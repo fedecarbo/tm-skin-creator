@@ -7,12 +7,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Where things stand
 
 - **Phase: building the tool.** `CHECKLIST.md` tracks progress. Read it at the start of every
-  session and carry on from the first unticked checkpoint. Building starts only after the user
-  has reviewed it (checkpoint 0).
+  session and carry on from the first unticked checkpoint. The user agreed the plan on
+  2026-09-23. The foundation (the car's parts and materials, checked in game) comes before
+  design tools.
 - There's no code yet, so there are no build, run or test commands. Add them here as soon as
   they exist.
 - Record technical decisions in the repo (this file, `CHECKLIST.md` or the code), so the next
   cold session finds them.
+- Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. When a checkpoint
+  is ticked, commit and push without asking; the user said yes on 2026-09-23. At other times,
+  commit only when asked. Never push files that aren't ours to publish.
 - Before adding any tool or library, look up its latest release and use that version, then
   record it. If a paid option would be far better, tell the user and discuss it before using it.
 
@@ -20,6 +24,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Use plain words. Leave code, file names, paths and jargon out of replies unless they ask.
 - Show rather than describe. A preview picture beats a paragraph.
+- Ask only about taste and real trade-offs. Don't ask about things good design handles anyway:
+  a question about their driving camera felt pointless (2026-09-23).
+- The user is happy to test in the game (drive, brake, turbo, day and night, F12 screenshots).
+  Ask for that whenever the game is the only way to know.
 
 ## Don't look in the game's skin folder
 
@@ -51,20 +59,35 @@ folder and never edit them in place. They're git-ignored because the GitHub repo
   nested `source/StadiumCAR2020_OffsetFix.zip`, which contains the FBX mesh and the unpainted
   DDS textures (`Skin_*`, `Details_*`, `Wheels_*`, `Glass_*`). The main textures are 2048×2048.
 
-## Skin texture format (from Nadeo's `ReadMe.txt`)
+## Skin texture format
 
-DDS files are required. They must use legacy D3D9 headers (FourCC `DXT1`, `DXT5`, `ATI1` or
-`ATI2`), not DX10 headers.
+From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link in
+`official/SOURCES.md`). DDS files are required. They must use legacy D3D9 headers (FourCC
+`DXT1`, `DXT5`, `ATI1` or `ATI2`), not DX10 headers.
 
 | File | Compression | Content |
 |---|---|---|
 | `Skin_B`, `Details_B` | BC1 / `DXT1` | Base colour, RGB |
 | `Skin_R`, `Details_R` | BC5 / `ATI2` | R = roughness, G = metalness |
-| `Skin_CoatR` | BC4 / `ATI1` | Varnish layer, greyscale |
+| `Skin_CoatR` | BC4 / `ATI1` | Clear coat ("glitter paint effect"), greyscale |
 | `Skin_DirtMask`, `Details_DirtMask` | BC4 / `ATI1` | Dirt mask, greyscale |
 | `Details_I` | BC3 / `DXT5` | Self-illumination, RGB + alpha |
-| `Details_N` | BC5 / `ATI2` | Normal map |
+| `Details_N` | BC5 / `ATI2` | Normal map, OpenGL (Y+) |
+| `Wheels_B` | BC1 / `DXT1` | Base colour, RGB (post only) |
+| `Wheels_R` | BC5 / `ATI2` | Roughness, metalness (post only) |
+| `Wheels_N` | BC5 / `ATI2` | Normal map (post only) |
+| `Wheels_DirtMask` | BC4 / `ATI1` | Dirt mask (post only) |
+| `Glass_D` | BC1 / `DXT1` | Tint = colour, luminosity = opacity (post only) |
+| `Glass_I` | "BC5, RGB + alpha" in the post, which can't be right | Self-illumination |
 
+- Rows marked "post only" aren't in the ReadMe, and some disagree with the stock files. In the
+  model zip, `Wheels_R` is one-channel `ATI1` at 512×1024, the glass set is
+  `Glass_T`/`Glass_I` (`DXT5`, 1024²), and `Skin_CoatR` is a 16² `DXT1`. Trust what the game
+  test in checkpoint 1 shows, and record it in `CHECKLIST.md`.
+- Without `Skin_CoatR`, the coat follows roughness and metalness (post). Skin takes no normal
+  map.
+- A skin can't change the player number or ID, the turbo colour, the colour of the digits, the
+  rear lights or the glass gear display (post).
 - The shaders blend ambient occlusion (AO) themselves. Don't bake AO into the textures.
 - The alpha channel of `Details_I` picks how each glowing area behaves:
 
