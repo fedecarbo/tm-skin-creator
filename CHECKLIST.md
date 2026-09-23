@@ -38,7 +38,8 @@ syncing them: `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`. They are:
 - the unpacked car model;
 - the tool's maps of the car and its parts;
 - the picture maker's model files;
-- the built game files.
+- the built game files;
+- what the viewer page loads (the car, the sky, each skin's pictures).
 
 All of them can be rebuilt from the project at any time.
 
@@ -128,15 +129,16 @@ Part 1 comes first, because every design depends on it.
       check that 2225070 is Trackmania's Steam app id.
     - Read only that folder, or pictures the user pastes.
 
-### [ ] 2. The viewer
+### [x] 2. The viewer
 
 - **What it's for:** seeing a skin before it goes into the game. You see it to decide whether
   you like it. I see it to check my work before I show you.
-- **What you'll see:** a page in your browser showing the car on a floor like the game's
-  stadium, wearing the test skin.
+- **What you'll see:** a page in your browser showing the car in a photo studio, wearing the
+  test skin. You swapped the stadium for a studio on 2026-09-24.
   - Drag to spin it.
   - Scroll to zoom.
-  - One button switches between day and night. At night the lights and glowing parts come on.
+  - One button switches between day and night. At night the room darkens with the car, and the
+    lights and glowing parts come on.
   - Buttons show or hide the body, the details, the wheels and the glass. For example, hide the
     body to see what's underneath.
 
@@ -152,9 +154,18 @@ Part 1 comes first, because every design depends on it.
       `file://`.
     - Export the mesh from the FBX into a compact file the page loads. Keep the four meshes
       separate so they can be hidden.
-  - **Lighting and floor.**
-    - Take a free CC0 HDRI from Poly Haven (latest).
-    - Give the floor a road-like material.
+  - **Lighting and background (user's choice, 2026-09-24).** The user tried the stadium, then
+    three studios, and chose the studio look of another project of theirs
+    (`Documents\Trackmania Skin Studio`). They showed it for its lighting and background only:
+    take nothing else from that project.
+    - Day: Poly Haven "Studio Small 09" (2K) at strength 1, plus one warm key light from above
+      the front left (0.55, 1, 0.35) that casts the shadow.
+    - Night: Poly Haven "Dikhololo Night" (1K) at 2.2, with a dim blue key.
+    - The room is lit by the same light, so it darkens with the car at night (the user asked
+      for that instead of fixed background colours). It's a seamless charcoal cove: floor, curve,
+      walls and ceiling, with a linear grey of 0.035 (`TUNE.room`). There's a soft dark patch
+      under the car. The room is drawn from inside only, so the camera can go under the floor to
+      see the underside. ACES tone mapping, exposure 0.9.
   - **Materials.**
     - The game's `_R` holds R = roughness and G = metalness. three.js reads roughness from G
       and metalness from B, so swizzle when making the viewer's textures.
@@ -168,6 +179,20 @@ Part 1 comes first, because every design depends on it.
       `--enable-unsafe-swiftshader`.
   - **Credit.** Put a line on the page crediting the car model's author, amogusstrikesback2
     (CC-BY-4.0).
+  - **Done 2026-09-24.** The user saw it and approved it for now ("leave it like that"). The
+    viewer stays open to change: checkpoint 4 tunes it against the game.
+    - `tool/view.py` prepares the data and serves the page. The data is `car.bin`, PNG texture
+      "slots" and the sky. Missing textures fall back to stock, as in the game. `tool/snap.py`
+      takes the snapshot sheets. The page is `viewer/index.html` + `viewer/viewer.js`, with
+      three.js 0.186.0 in `viewer/lib/three`.
+    - The HDRIs are downloaded into the work folder and checked against Poly Haven's md5s
+      (`HDRIS` in `tool/view.py`).
+    - Headless Edge draws on the real RTX 5070 Ti through ANGLE/D3D11 (`--use-angle=d3d11
+      --enable-gpu`). Load to first picture takes about 2.5 s.
+    - Paint colour against the user's editor screenshots of TSC_Test_SkinOnly: orange (234,
+      148, 58) against the game's (253, 159, 46), blue (56, 102, 213) against (27, 57, 189).
+      ACES pulls orange towards yellow, as the game does. `TUNE` in `viewer.js` (exposure, env,
+      key, coat) can be overridden from the URL when matching again.
 
 ### [ ] 3. The car taken apart
 
@@ -394,8 +419,9 @@ Part 1 comes first, because every design depends on it.
   chain.
 - **Install:** one zip per skin, no spaces in its name, with `Icon.tga`, recorded in
   `skins/installed.json`.
-- **Viewer must-haves (user, 2026-09-23):** spin and zoom, day and night, a game-like setting,
-  hide and show parts. Comparing versions isn't wanted.
+- **Viewer must-haves (user, 2026-09-23):** spin and zoom, day and night, hide and show parts.
+  Comparing versions isn't wanted. The setting is a photo studio, not the game's stadium
+  (user, 2026-09-24).
 - **Free tools only (user, 2026-09-23).** If a paid tool would be far better, tell the user and
   discuss it first. The picture maker is free and local.
 - **The user has Club access (2026-09-23),** which custom skins need.
@@ -477,5 +503,23 @@ Part 1 comes first, because every design depends on it.
   - **Every texture is optional.** TSC_Test_SkinOnly held only `Skin_B` and `Skin_R`
     (0.21 MB) and worked. Everything else kept the stock look. So a skin need only ship the
     textures it changes.
-  - Still open: whether a new skin needs a restart or re-entering the garage. The user wasn't
-    asked; ask next time a skin is installed.
+  - **No restart needed:** the user started the game after the install, and all three uploaded
+    easily. Still unknown: whether a skin installed while the game is running shows up
+    without a restart. Check that in checkpoint 3's game test.
+- **2026-09-24, checkpoint 2: the viewer next to the game's screenshots.**
+  - Shapes, layout, left/right, stock tyres ("NADEO" sidewalls) and stock rims all match.
+  - With the sky light at 1, paint looked washed out: orange measured (250, 154, 105) against
+    the game's (253, 159, 46). Lowering it to 0.55 fixed that. The clear coat hardly changed
+    the colour.
+  - **Glow puzzles for checkpoint 4:**
+    - The stock turbo-colour (160) areas on the wheel pods hold smooth white-to-black fades.
+      That looks like a mask the game animates. At rest in the game they stayed dark, so the
+      viewer shows 160, 224, 64 and 192 off on a parked car.
+    - **Solved:** in the game the front wing's lower hooks and the thin line under the nose
+      glowed green, although the file made them cyan (code 128) and white-blue (code 96).
+      They sit behind small glass lenses, and TSC_Test's `Glass_T` was green. The viewer
+      shows the same green with the glass on, and cyan and white with it hidden. The pod
+      crescents have no lens and showed cyan. So glass tint colours the lights behind it.
+  - `Skin_CoatR` is probably clear-coat roughness, following Nadeo's `_R` naming. A flat 0
+    means a mirror coat over everything, which would explain "matte isn't fully matte". The
+    viewer uses it that way until checkpoint 4 tests it.

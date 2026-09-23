@@ -14,10 +14,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Set up: `python -m venv <that venv>`, `PY -m pip install -r requirements.txt`, then
     `PY -m tool.prepare`, which checks the `official/` zips and unpacks them.
   - Test skins (checkpoint 1): `PY -m tool.testskin`. Install: `PY -m tool.install <name> ...`.
-  - `tool/preview.py` renders quick views of the car for Claude's own checks. It's not the
-    viewer.
+  - Viewer: `PY -m tool.view <name>` serves http://localhost:8765/?skin=<name> and opens the
+    browser. Run it in the background so it keeps serving while the user looks.
+  - Claude's check: `PY -m tool.snap <name>` saves six views to `build/<name>_views.png`. Look at
+    it before showing the user anything. `snap.snap(..., shots=..., query=...)` takes close-ups.
+  - `tool/preview.py` renders flat views without materials, for quick checks of texture layout.
 - Work folder `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`: `venv`, `official` (unpacked zips),
-  `cache` (the parsed mesh and bakes), `build` (DDS files and zips). All of it is rebuildable.
+  `cache` (the parsed mesh and bakes), `build` (DDS files and zips), `viewer` (what the viewer
+  page loads). All of it is rebuildable.
 - Record technical decisions in the repo (this file, `CHECKLIST.md` or the code), so the next
   cold session finds them.
 - Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. When a checkpoint

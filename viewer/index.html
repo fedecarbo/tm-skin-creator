@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skin viewer</title>
+<link rel="icon" href="data:,">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0d0f12; }
+  body { font: 14px/1.35 "Segoe UI", system-ui, sans-serif; color: #f2f4f7; }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  .panel { position: fixed; background: rgba(12, 14, 18, 0.72); backdrop-filter: blur(6px);
+           border-radius: 10px; padding: 10px 12px; }
+  #ui { top: 12px; left: 12px; max-width: calc(100vw - 48px); }
+  #title { font-weight: 600; font-size: 16px; margin-bottom: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+  .row span { opacity: 0.7; margin-right: 2px; }
+  button { font: inherit; color: #f2f4f7; background: rgba(255, 255, 255, 0.08); cursor: pointer;
+           border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px; padding: 4px 12px; }
+  button:hover { background: rgba(255, 255, 255, 0.16); }
+  button[aria-pressed="true"] { background: #f2f4f7; color: #0d0f12; border-color: #f2f4f7; }
+  .hint { margin-top: 8px; font-size: 12px; opacity: 0.65; }
+  #credit { bottom: 10px; left: 12px; padding: 5px 10px; font-size: 11px; opacity: 0.8;
+            max-width: calc(100vw - 48px); }
+  #credit a { color: inherit; }
+  #status { top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; }
+  #status:empty { display: none; }
+  body.snap .panel:not(#status) { display: none; }
+</style>
+<!-- three.js 0.186.0, copied from the npm package (jsdelivr) into lib/three, with its licence. -->
+<script type="importmap">
+{ "imports": { "three": "./lib/three/build/three.module.js", "three/addons/": "./lib/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+<canvas id="view"></canvas>
+<div id="ui" class="panel">
+  <div id="title">Skin viewer</div>
+  <div class="row">
+    <button id="day" aria-pressed="true">Day</button>
+    <button id="night" aria-pressed="false">Night</button>
+  </div>
+  <div class="row" id="parts">
+    <span>Show</span>
+    <button data-part="Skin" aria-pressed="true">Body</button>
+    <button data-part="Details" aria-pressed="true">Details</button>
+    <button data-part="Wheels" aria-pressed="true">Wheels</button>
+    <button data-part="Glass" aria-pressed="true">Glass</button>
+  </div>
+  <div class="hint">Drag to spin, scroll to zoom, right-drag to move.</div>
+</div>
+<div id="credit" class="panel">
+  Car model: <a href="https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf">Trackmania 2020 CarSport</a>
+  by <a href="https://sketchfab.com/amogusstrikesback2">amogusstrikesback2</a>,
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+  Lighting: <a href="https://polyhaven.com/a/studio_small_09">Studio Small 09</a> and
+  <a href="https://polyhaven.com/a/dikhololo_night">Dikhololo Night</a> from Poly Haven, CC0.
+</div>
+<div id="status" class="panel">Loading…</div>
+<script type="module" src="./viewer.js"></script>
+</body>
+</html>

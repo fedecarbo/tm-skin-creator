@@ -2,3 +2,9 @@
 # venv: %LOCALAPPDATA%\TrackmaniaSkinChallenge\venv
 numpy==2.5.3
 pillow==12.3.0
+# Playwright drives the Edge installed on this PC for Claude's viewer snapshots (no browser
+# download needed). The other three are its dependencies, pinned 2026-09-24.
+playwright==1.63.0
+greenlet==3.5.6
+pyee==13.0.1
+typing_extensions==4.16.0
