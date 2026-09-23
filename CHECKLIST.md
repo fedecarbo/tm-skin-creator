@@ -61,7 +61,7 @@ Part 1 comes first, because every design depends on it.
 
 ## Part 1: Setting up
 
-### [ ] 1. A test paint job in your game
+### [x] 1. A test paint job in your game
 
 - **What it's for:** proving the basics first. The tool has to make files the game accepts and
   put them where the game finds them. If that fails, nothing else matters, so it comes first.
@@ -411,3 +411,71 @@ Part 1 comes first, because every design depends on it.
 - **2026-09-23, from Nadeo's 2020 post and the stock files:** a skin can also paint the wheels
   and the glass, but not the player number or ID, the turbo colour, the digit colours, the rear
   lights or the glass gear display. See `CLAUDE.md` for the texture table.
+- **2026-09-23, ATI2 channel order.** Nadeo's ATI2 files store the first block = channel 0.
+  - In `Details_N`, texture features running along the columns line up with the first block:
+    correlation +0.50, and +0.46 in `Wheels_N`. So the first block is X, and by the same tool
+    it's roughness in `_R`.
+  - Their bit-count field holds "A2XY". `tool/dds.py` copies both.
+  - Stock `Skin_R` then reads roughness ≈ 3 and metalness ≈ 255: smooth metal under the paint.
+  - The test skin's CHROME/MATTE patches confirm the order in game.
+- **2026-09-23, compression.**
+  - Pillow's BC4/BC5/BC3-alpha encoding is loose. It put 1 % of `Details_I` texels on the
+    wrong glow code, and was off by 21/255 at hard edges. `tool/dds.py` has its own BC4
+    encoder (min/max endpoints, both modes). Glow codes now survive on 99.999 % of texels,
+    with a maximum of 8 off, so they still snap to the right code.
+  - Pillow's BC1 still does colour. Flat colours can land up to 6/255 off: its endpoint
+    rounding isn't nearest. Revisit before fine designs.
+  - Nadeo's own mips average the glow codes: 35 % of texels are off-code at mip 6. Ours
+    point-sample the alpha, so the codes stay exact at every mip.
+- **2026-09-23, the model's orientation.**
+  - The car faces +z, with y up. The wheels are at z +178.9 (front) and −119.6 (rear).
+  - The car's left is +x. The game confirmed it: the model isn't mirrored.
+  - The discs over the wheels are part of the Skin mesh, and their texels are shared between
+    both sides.
+  - The glass pieces include the cockpit canopy and lenses on the sides.
+- **2026-09-24, checkpoint 1 in game.** The user ran all three test skins and took F12
+  screenshots (from 00:10 to 00:11).
+  - **All our files load.** The legacy headers, mips and formats are right. Left and right are
+    correct.
+  - **ATI2 order confirmed.** The CHROME nose shines like a mirror.
+  - **Matte isn't fully matte.** Roughness 255 with metalness 0 still looks "slightly
+    reflective" to the user. Suspect the clear coat: `Skin_CoatR` was a flat 0, like Nadeo's
+    reference. Test it in checkpoint 4.
+  - **Glass:** the game reads `Glass_T` (it showed green), not `Glass_D` (red). `Glass_D` was
+    ignored when both were present.
+  - **Wheels:**
+    - `Wheels_B` covers the tyres; the grid showed on the rubber.
+    - The rim's inner part is Details: it showed yellow.
+    - The outer hub discs are Skin: they showed blue on both sides.
+    - The user saw a thin green ring between the tyre and the rim.
+  - **Glow (stock `Details_I` layout):**
+    - Brake lights (code 0) are strips behind the front wheels, visible from the chase
+      camera. They glow all the time and flare to near white when braking.
+    - Front lights (code 128) are crescents inside the front wheel pods.
+    - The code 160 areas (turbo colour) are grey in the file and showed green in game: the
+      front wing's lower edges and the rings at the wheels. That colour is the game's.
+    - Located by baking Details. The lit texels per code are:
+
+      | Code | Lit texels | Where |
+      |---|---|---|
+      | 160 | 278k | around the wheel pods and the wing edges |
+      | 96 | 72k | mostly at the rear |
+      | 0 | 3.7k | the front pods |
+      | 128 | 3.3k | z 192–213 |
+      | 224 | 2k | beside the rear wheels |
+      | 192 | 104 | |
+  - **The game's own number:** in a race it draws "CAR 01" on the engine cover's centre. In
+    the game's skin editor, big "AB" and "CDE" letters sat in the same spot, probably
+    placeholders for the number and name. Keep important design away from there.
+  - **The game has a built-in skin editor.** It opened our skin, and its paint has "Matte %"
+    and "Metal %" sliders. It's a handy reference for checkpoint 4.
+  - **4096² works.** TSC_Test_Sharp loaded and looks visibly sharper. Its zip was 8.45 MB,
+    with painted textures at 4096² and Nadeo's dirt and normal maps at 2048². It loaded fine.
+    - Nadeo's dirt masks and normal maps are most of a zip's weight: 2K stock DirtMasks
+      4.3 MB, `Details_N` 2.1 MB.
+    - Default: 4096² for painted textures. Keep zips ≤ 8.5 MB until an upload limit shows up.
+  - **Every texture is optional.** TSC_Test_SkinOnly held only `Skin_B` and `Skin_R`
+    (0.21 MB) and worked. Everything else kept the stock look. So a skin need only ship the
+    textures it changes.
+  - Still open: whether a new skin needs a restart or re-entering the garage. The user wasn't
+    asked; ask next time a skin is installed.

@@ -10,8 +10,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   session and carry on from the first unticked checkpoint. The user agreed the plan on
   2026-09-23. The foundation (the car's parts and materials, checked in game) comes before
   design tools.
-- There's no code yet, so there are no build, run or test commands. Add them here as soon as
-  they exist.
+- Commands (from the repo root; `PY` is `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`):
+  - Set up: `python -m venv <that venv>`, `PY -m pip install -r requirements.txt`, then
+    `PY -m tool.prepare`, which checks the `official/` zips and unpacks them.
+  - Test skins (checkpoint 1): `PY -m tool.testskin`. Install: `PY -m tool.install <name> ...`.
+  - `tool/preview.py` renders quick views of the car for Claude's own checks. It's not the
+    viewer.
+- Work folder `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`: `venv`, `official` (unpacked zips),
+  `cache` (the parsed mesh and bakes), `build` (DDS files and zips). All of it is rebuildable.
 - Record technical decisions in the repo (this file, `CHECKLIST.md` or the code), so the next
   cold session finds them.
 - Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. When a checkpoint
@@ -40,9 +46,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `.claude/settings.json` denies Claude's file tools on that folder. That also stops the Write
   tool from creating files there. Shell commands and scripts aren't covered, so the rule
   above is what stops them. Don't work around the deny.
-- The only thing that writes there is the tool's install step, which isn't built yet. It holds
-  the folder path in its own code. It checks only whether its exact target file name is free,
-  and it never overwrites or deletes a file this project didn't create.
+- The only thing that writes there is `tool/install.py`. It holds the folder path in its own
+  code. It checks only whether its exact target file name is free, and it never overwrites or
+  deletes a file this project didn't create (`skins/installed.json` + sha256).
+- Steam screenshots (F12) are in
+  `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`. 2225070 is
+  Trackmania. Look only at screenshots taken after the skin you're testing was installed.
 
 ## Source assets (`official/`)
 
@@ -73,17 +82,18 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
 | `Skin_DirtMask`, `Details_DirtMask` | BC4 / `ATI1` | Dirt mask, greyscale |
 | `Details_I` | BC3 / `DXT5` | Self-illumination, RGB + alpha |
 | `Details_N` | BC5 / `ATI2` | Normal map, OpenGL (Y+) |
-| `Wheels_B` | BC1 / `DXT1` | Base colour, RGB (post only) |
-| `Wheels_R` | BC5 / `ATI2` | Roughness, metalness (post only) |
-| `Wheels_N` | BC5 / `ATI2` | Normal map (post only) |
-| `Wheels_DirtMask` | BC4 / `ATI1` | Dirt mask (post only) |
-| `Glass_D` | BC1 / `DXT1` | Tint = colour, luminosity = opacity (post only) |
-| `Glass_I` | "BC5, RGB + alpha" in the post, which can't be right | Self-illumination |
+| `Wheels_B` | BC1 / `DXT1` | Base colour, RGB (tyres and wheel faces) |
+| `Wheels_R` | BC5 / `ATI2` | Roughness, metalness |
+| `Wheels_N` | BC5 / `ATI2` | Normal map |
+| `Wheels_DirtMask` | BC4 / `ATI1` | Dirt mask |
+| `Glass_T` | BC3 / `DXT5` | Glass tint (RGB) + alpha, 1024² |
+| `Glass_I` | untested | Self-illumination of the glass |
 
-- Rows marked "post only" aren't in the ReadMe, and some disagree with the stock files. In the
-  model zip, `Wheels_R` is one-channel `ATI1` at 512×1024, the glass set is
-  `Glass_T`/`Glass_I` (`DXT5`, 1024²), and `Skin_CoatR` is a 16² `DXT1`. Trust what the game
-  test in checkpoint 1 shows, and record it in `CHECKLIST.md`.
+- Wheels and glass files aren't in the ReadMe. Checkpoint 1 confirmed in game that the wheel
+  files work, and that the game reads `Glass_T`, not the `Glass_D` in Nadeo's 2020 post.
+- Every texture is optional: anything left out of the zip keeps the game's stock look. Skin,
+  Details and Wheels take 4096² (Wheels 1024×2048). Details of all of this are under "Things
+  we learned" in `CHECKLIST.md`.
 - Without `Skin_CoatR`, the coat follows roughness and metalness (post). Skin takes no normal
   map.
 - A skin can't change the player number or ID, the turbo colour, the colour of the digits, the

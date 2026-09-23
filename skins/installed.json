@@ -1,0 +1,17 @@
+{
+  "TSC_Test.zip": {
+    "bytes": 7521029,
+    "installed": "2026-09-23T23:39:21",
+    "sha256": "3aab73a3be16e8ab7a2f7c97d301784ca824838824cfad6b94588bd9b2d37287"
+  },
+  "TSC_Test_Sharp.zip": {
+    "bytes": 8451413,
+    "installed": "2026-09-23T23:39:21",
+    "sha256": "30db7d1a19b1b8ade51c2c32e425eee1d3ece4c7f9225ba3d6050070f82ce28e"
+  },
+  "TSC_Test_SkinOnly.zip": {
+    "bytes": 211748,
+    "installed": "2026-09-23T23:39:21",
+    "sha256": "8e170b82a6089ce80242570b53f425f41d8167c7ce457173b67db1189dce8998"
+  }
+}
