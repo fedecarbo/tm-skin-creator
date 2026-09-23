@@ -1,0 +1,11 @@
+# Third-party assets: not ours to publish, and the repo is public.
+# official/SOURCES.md says where to download them and lists their sha256.
+official/*.zip
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/

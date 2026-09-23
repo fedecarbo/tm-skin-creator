@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(//c/Users/fedec/OneDrive/Documents/Trackmania/Skins/Models/CarSport)",
+      "Read(//c/Users/fedec/OneDrive/Documents/Trackmania/Skins/Models/CarSport/**)"
+    ]
+  }
+}
