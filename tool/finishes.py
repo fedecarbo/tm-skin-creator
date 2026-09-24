@@ -133,6 +133,8 @@ def _texture_finish(key):
 def get(name):
     key = " ".join(name.strip().lower().split())
     key = ALIASES.get(key, key)
+    if key in SHINES and key not in LIBRARY:
+        return SHINES[key]
     if key not in LIBRARY:
         t = _texture_finish(key)
         if t:

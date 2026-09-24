@@ -191,7 +191,7 @@ def wrap(name, pos, nrm, colour, finish, params):
     if name == "rust":
         wear = smoothstep(0.05, 0.25, pic[:, 0] - pic[:, 2])  # orange: red well above blue
     else:
-        wear = smoothstep(0.62, 0.42, lum)  # the dark chips
+        wear = smoothstep(0.8, 0.6, lum)  # the dark chips (the paint in the photo is ~0.87, the chips under 0.6)
     # `amount` moves the threshold: more wear at 1, hardly any at 0
     wear = np.clip(wear * (0.3 + 1.6 * amount) + (amount - 0.5) * 0.4, 0, 1)
     col = colour[None, :] * (1 - wear)[:, None] + pic * wear[:, None]

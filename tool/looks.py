@@ -266,7 +266,7 @@ def scratched(pos, nrm, colour, finish, params):
     total *= smoothstep(0.35, 0.65, noise.fbm(pos / 20, 3, seed + 7)) * 0.5 + 0.5  # patchy
     total *= amt * 1.6
     total = np.clip(total, 0, 1)
-    light = colours.adjust(tuple(colour), 1.6, 0.6)
+    light = np.clip(colour + (1 - colour) * 0.55, 0, 1)  # towards white, per point (colour may be (n, 3))
     out = mix(colour, light, total * 0.8)
     return {"colour": out, "roughness": const(len(pos), finish.roughness) + 0.3 * total,
             "varnish": const(len(pos), finish.varnish) * (1 - total)}

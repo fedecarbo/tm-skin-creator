@@ -22,7 +22,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Skins (checkpoint 5): a design is `skins/<name>/design.py`, a `design(s)` function of
     `paintbox.Skin` calls (the docstring of `tool/paintbox.py` is the key). `PY -m tool.skin
     show <name>` paints, exports to the viewer and snapshots; `PY -m tool.skin install <name>`
-    builds the zip and installs it; `PY -m tool.gallery` opens the page of all skins.
+    builds the zip and installs it; `PY -m tool.gallery` opens the page of all skins;
+    `PY -m tool.swatches` opens the materials page (every finish on a ball).
     Phrases go through `finishes.resolve()`: colour + finish + region words.
   - Parts (checkpoint 3): `PY -m tool.parts` turns the names in `tool/naming.py` into
     `car/parts.json` (`--review` renders the car coloured by part). `parts.load().mask(bake,

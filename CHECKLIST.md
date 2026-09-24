@@ -431,6 +431,12 @@ Part 1 comes first, because every design depends on it.
       TSC_Race is installed in the game. The user liked them (2026-09-24, "quite impressed"),
       and spotted the sunk splashes on the Nebula, since fixed. The three dot versions
       (TSC_Dots, TSC_Dots_Scatter, TSC_Dots_Grid) stay in the gallery for reference.
+    - **The materials page (user, 2026-09-24):** `PY -m tool.swatches` paints every finish
+      onto a 30 cm ball with the same code as the car, pictures it through
+      `viewer/swatch.html` with the car's lighting, and `viewer/materials.html` shows them
+      all by family with their names, so the user can point at what they mean. Swatches are
+      rebuilt when the finish code changes (a hash of the source), and added photo surfaces
+      appear by themselves.
     - **Not yet seen in the game:** the richer finishes (candy, chrome rims, rust, leather,
       metallic flake at 1 mm). Test one or two of the samples in the game when convenient.
     - Pictures placed on the car: `Skin.decal(image, spot, width)` (tested with a drawn
