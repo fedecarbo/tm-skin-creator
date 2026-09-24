@@ -19,6 +19,11 @@
     "installed": "2026-09-24T08:55:05",
     "sha256": "d898383fe72490ed947f439e1720c8d952bf17b06677b818cca63cd4103ad628"
   },
+  "TSC_Race.zip": {
+    "bytes": 4744313,
+    "installed": "2026-09-24T12:59:52",
+    "sha256": "36967ef6e6159f9698b57b0aaa98509a867747adb3bc4d3cb646a68eb8b797e0"
+  },
   "TSC_Test.zip": {
     "bytes": 7521029,
     "installed": "2026-09-23T23:39:21",

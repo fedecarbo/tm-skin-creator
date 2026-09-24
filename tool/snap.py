@@ -10,6 +10,7 @@ this PC (no browser download). The GPU line it prints says which renderer drew t
 import argparse
 import io
 import time
+from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 from playwright.sync_api import sync_playwright
@@ -26,9 +27,12 @@ SHOTS = (("front three-quarter", "front", False, []), ("rear three-quarter", "re
 EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
 
 
-def snap(name, out=None, size=(960, 720), shots=SHOTS, query=""):
-    """query: extra page settings, e.g. "exposure=0.9&coat=0.5" (TUNE in viewer.js)."""
-    view.prepare(name)
+def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None):
+    """query: extra page settings, e.g. "exposure=0.9&coat=0.5" (TUNE in viewer.js).
+    prepare=False: the skin is already in the viewer's data (the paint box exports it itself).
+    thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture)."""
+    if prepare:
+        view.prepare(name)
     server = view.start_server(0)
     url = f"http://127.0.0.1:{server.server_address[1]}/?skin={name}&snap=1" + (f"&{query}" if query else "")
     tiles, errors = [], []
@@ -55,6 +59,9 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query=""):
     for e in errors:
         print(f"page error: {e}")
     out = out or paths.BUILD / f"{name}_views.png"
+    if thumb and tiles:
+        Path(thumb).parent.mkdir(parents=True, exist_ok=True)
+        tiles[0][1].convert("RGB").resize((640, 480), Image.LANCZOS).save(thumb)
     cols = 3
     rows = (len(tiles) + cols - 1) // cols
     sheet = Image.new("RGB", (cols * size[0], rows * size[1]))

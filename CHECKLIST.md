@@ -337,7 +337,7 @@ Part 1 comes first, because every design depends on it.
 
 ## Part 2: Designing
 
-### [ ] 5. The paint box
+### [x] 5. The paint box
 
 - **What it's for:** the design tools, built on the parts from step 3 and the materials from
   step 4:
@@ -390,6 +390,52 @@ Part 1 comes first, because every design depends on it.
     marked. Clicking a thumbnail opens the skin in 3D. It reads `skins/*/` and
     `skins/installed.json`.
   - Use free tools only. The user decided against paid image generation (2026-09-23).
+  - **Done 2026-09-24 (Fable 5.1); the user looked at the samples and ticked it.** A design
+    is `skins/<name>/design.py` with a `design(s)` function of `paintbox.Skin` calls; the
+    docstring at the top of `tool/paintbox.py` is the key. `PY -m tool.skin show <name>` paints
+    it (15-75 s at 4096², the Nebula's fine sparkle 4 min), puts it in the viewer, snapshots it
+    and makes `skins/<name>/thumb.png`; `PY -m tool.skin install <name>` encodes and installs
+    (32 s). The pieces:
+    - `tool/colours.py`: colour words and hex codes, with modifiers ("dark", "pale");
+    - `tool/finishes.py`: the library (paint, metals, composites, inside, wear, light,
+      patterns), aliases, and `resolve(phrase)`, which sorts a phrase into colour + finish +
+      leftover words. A metal named as a colour ("gold") is the metal; a shine word overrides
+      ("matte gold", "scratched matte olive");
+    - `tool/looks.py`: the patterns, drawn in 3D (triplanar) on the baked positions: carbon,
+      weave, forged, cloth, webbing, brushed, flake, pearl, candy, scratched, dusty, faded,
+      greasy, worn, camo, hex, checks, splatter, lines; `tool/noise.py` underneath;
+    - `tool/textures.py`: rust, chips, brushed steel, cast iron, leather and quilted leather
+      come from photographs (ambientCG, CC0, downloaded once into the work folder, 1K JPG
+      sets ~5 MB each), wrapped on in 3D; the rust and chip pictures act as masks over the
+      paint colour;
+    - `tool/shapes.py`: zones with soft edges in 3D (stripe, band, plane, sphere, box, fade,
+      facing, named regions "nose", "bonnet", "deck", "sides"...), combinable with & | ~;
+    - `tool/coverage.py`: every part's texel coverage cached sparsely per size (built once,
+      about a minute per set at 4096², 35-63 MB files in `cache/`);
+    - lettering: `Skin.text()` and `Skin.decal()` project onto named spots (`paintbox.SPOTS`:
+      left/right side, flanks, nose, bonnet, sidepods, decks, tail). Fonts in `tool/fonts.py`:
+      Windows ones plus six OFL Google fonts pinned by commit and sha256;
+    - glow: `Skin.glow(part, colour, kind)` writes `Details_I` (inner car only);
+    - the gallery: `viewer/gallery.html` + `tool/gallery.py` (`PY -m tool.gallery` serves and
+      opens it); `PY -m tool.skin list` prints the same list.
+    - **A growing library (user, 2026-09-24: "a fairly large library").** `PY -m tool.textures
+      search "snake skin"` fetches candidates from ambientCG (thousands of CC0 surfaces) and
+      lays their thumbnails on one sheet in `build/`; look, then `PY -m tool.textures add
+      "snake skin" Leather008 --scale 40` names the chosen one. From then on "snake skin"
+      works in any phrase ("green snake skin, glossy"). Added sets are kept in the work
+      folder's `textures/library.json`. When the user asks for a surface we don't have, do
+      this in the chat rather than say no.
+    - Five samples in `skins/`: TSC_Race (white, red stripe, 27), TSC_Tricolore (Italian
+      flag, gold wheels), TSC_Nebula (candy fade, splatter, glow), TSC_Camo (matte urban
+      camo), TSC_RatRod (rust and chips from photos), plus TSC_Dots (the wrapping test).
+      TSC_Race is installed in the game. The user liked them (2026-09-24, "quite impressed"),
+      and spotted the sunk splashes on the Nebula, since fixed. The three dot versions
+      (TSC_Dots, TSC_Dots_Scatter, TSC_Dots_Grid) stay in the gallery for reference.
+    - **Not yet seen in the game:** the richer finishes (candy, chrome rims, rust, leather,
+      metallic flake at 1 mm). Test one or two of the samples in the game when convenient.
+    - Pictures placed on the car: `Skin.decal(image, spot, width)` (tested with a drawn
+      badge on the bonnet and both sides). Not built yet, by choice: tyre lettering (reads
+      backwards on one side, see "Things we learned"); relief on the inner car.
 
 ### [ ] 6. The picture maker
 
@@ -493,6 +539,48 @@ Part 1 comes first, because every design depends on it.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-24, the paint box (checkpoint 5).**
+  - **Patterns must be laid on the surface, not cut out of space (user, 2026-09-24).** The
+    first splatter drew drops as balls in 3D and sliced them with the body: on curves the
+    drops looked sunk into the panel. Every pattern now uses the triplanar way (drawn flat
+    from the direction each panel faces): dots, splashes, weaves, hexagons all follow the
+    curves. The user then spotted dots merging on the sidepod's shoulder, where two of the
+    three directions overlap, and after a "tube" projection was tried, dots stretched on the
+    flanks and the nose: any projection invented from outside stretches wherever the surface
+    curves away from it. **The real fix is the car's own unfolding** (`tool/uvmap.py`).
+    Measured: Nadeo's UV layout stretches the body shell by under 5 % on 98 % of its area and
+    the shell is one continuous island; the Skin set as a whole is under 10 % on 87 %. So flat
+    patterns on the body (dots, splashes, hexagons, checks, weaves) are drawn in texture
+    space, each island scaled by its own texels-per-cm and turned so the car's length runs
+    up the pattern. Islands meet along the folds between parts, where a break is natural.
+    The inner car's unfolding is in hundreds of small pieces, so it keeps the three-direction
+    projection (fine for its small parts). The tube mapping stays in `looks.py` for comparison.
+  - **Then the user asked for dots that cover the whole car unbroken**, and the unfolding
+    clips a pattern at every panel edge. So patterns made of separate things (dots, splashes,
+    honeycomb cells) are no longer patterns at all: `looks.surface_points()` spreads points
+    evenly over the painted surface itself (Poisson-disc thinning of candidate texels, in
+    lattice order for a grid-like look or random for a hand-placed one), and each element
+    is drawn by 3D distance from its point. Whole everywhere, round on every curve, and one
+    that lands on a fold bends over it like a sticker. Honeycomb is the cells between such
+    points (nearest two). What can't be seamless: continuous tilings (checks, stripes,
+    weaves); those use the unfolding and break at the folds, where a real wrap would too.
+    TSC_Dots is the test.
+  - Sequential compositing with anti-aliased part coverage handles every seam: a texel half
+    in part A and half in part B takes half of each paint. No special seam code.
+  - A phrase's colour words can collide with finishes ("gold", "chrome", "copper", "rust"):
+    when no finish word is present, the metal wins and its own colour is used; "dark gold"
+    darkens the metal. "gold satin" is satin gold metal.
+  - Texel budget at 4096² on the body: about 1 texel per mm on the flanks, so 20 cm letters
+    are crisp; lettering is drawn at 40 px per cm before projection.
+  - The usable flat area on each side, between the sidepod inlet and the rear wheel, is about
+    34 cm wide, centred 66 cm behind the axle line (paintbox.SPOTS "left side"): the wheel
+    cover hides the flank behind that, the sidepod's recess swallows it in front. Text wider
+    than its spot is shrunk to fit, with a note.
+  - ambientCG's download needs a User-Agent header (a bare Python one gets 403). Its 1K JPG
+    sets are ~5-7 MB; the API is https://ambientcg.com/api/v2/full_json.
+  - Cost: fine sparkle patterns (a Voronoi cell per 1 mm over the whole body) take minutes;
+    everything else seconds. Building the zip is 32 s, nearly all BC1 encoding through Pillow.
 
 - **2026-09-24, the lab skins in the skin editor (checkpoint 4).** The user's screenshots
   (09:46-09:48) of TSC_Lab and TSC_Lab_NoCoat, read against `tool/labskin.py`'s key.

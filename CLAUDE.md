@@ -19,6 +19,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Claude's check: `PY -m tool.snap <name>` saves six views to `build/<name>_views.png`. Look at
     it before showing the user anything. `snap.snap(..., shots=..., query=...)` takes close-ups.
   - `tool/preview.py` renders flat views without materials, for quick checks of texture layout.
+  - Skins (checkpoint 5): a design is `skins/<name>/design.py`, a `design(s)` function of
+    `paintbox.Skin` calls (the docstring of `tool/paintbox.py` is the key). `PY -m tool.skin
+    show <name>` paints, exports to the viewer and snapshots; `PY -m tool.skin install <name>`
+    builds the zip and installs it; `PY -m tool.gallery` opens the page of all skins.
+    Phrases go through `finishes.resolve()`: colour + finish + region words.
   - Parts (checkpoint 3): `PY -m tool.parts` turns the names in `tool/naming.py` into
     `car/parts.json` (`--review` renders the car coloured by part). `parts.load().mask(bake,
     "Details", "brake caliper", side="left", end="front")` is a texel mask. `PY -m tool.partskin`
