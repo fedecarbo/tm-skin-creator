@@ -25,6 +25,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     builds the zip and installs it; `PY -m tool.gallery` opens the page of all skins;
     `PY -m tool.swatches` opens the materials page (every finish on a ball).
     Phrases go through `finishes.resolve()`: colour + finish + region words.
+  - Pictures (checkpoint 6): `PY -m tool.pictures decal "a roaring tiger head"` or `tile "small
+    bananas on cream"` makes candidates on a sheet in `build/pictures/`; look, then `PY -m
+    tool.pictures keep <slug> <k> <skin> <name>` puts the chosen one in `skins/<skin>/art/`. In a
+    design: `s.decal(s.art("tiger"), "left side", width=32)` (a picture at a spot, across every
+    panel it covers); `s.scatter(s.art("banana"), "body", size=(7, 10), spacing=11)` (copies of a
+    cut-out spread evenly, each whole and inside one panel: the user's choice for prints made
+    of objects, 2026-09-24); `s.print("bananas", scale=36)` then `s.paint("body", "bananas")`
+    (a seamless tile as one continuous sheet, for textures). Read the notes `show` prints: a
+    decal says when it crosses a fold or falls off an edge. The user prefers illustrations,
+    prints and decals to photo-real pictures (2026-09-24); the "sticker" style is the default.
+    First-time setup: `PY -m tool.pictures setup` downloads the 16 GB of weights.
   - Parts (checkpoint 3): `PY -m tool.parts` turns the names in `tool/naming.py` into
     `car/parts.json` (`--review` renders the car coloured by part). `parts.load().mask(bake,
     "Details", "brake caliper", side="left", end="front")` is a texel mask. `PY -m tool.partskin`

@@ -32,6 +32,7 @@ puts it in the game. Sets the design never touches aren't shipped, so they keep 
 """
 
 import json
+import os
 import re
 import time
 
@@ -54,7 +55,7 @@ SPOTS = {
     "left flank": dict(centre=(35, 55, 60), right=(0, 0, -1), up=(0, 1, 0), facing=(0.8, 0.3, 0.2), width=70, parts=("body shell",)),
     "right flank": dict(centre=(-35, 55, 60), right=(0, 0, 1), up=(0, 1, 0), facing=(-0.8, 0.3, 0.2), width=70, parts=("body shell",)),
     "nose": dict(centre=(0, 50, 180), right=(-1, 0, 0), up=(0, 0, 1), facing=(0, 0.93, 0.3), width=30, parts=("nose tip",)),
-    "bonnet": dict(centre=(0, 68, 95), right=(-1, 0, 0), up=(0, 0, 1), facing=(0, 0.95, 0.18), width=50, parts=("body shell",)),
+    "bonnet": dict(centre=(0, 66, 117), right=(-1, 0, 0), up=(0, 0, 1), facing=(0, 0.95, 0.18), width=45, parts=("body shell",)),  # the free bonnet: z 91..142 (2026-09-24)
     "left sidepod": dict(centre=(70, 61, -20), right=(-1, 0, 0), up=(0, 0, 1), facing=(0.18, 0.97, 0), width=28, parts=("sidepod top",)),
     "right sidepod": dict(centre=(-70, 61, -20), right=(-1, 0, 0), up=(0, 0, 1), facing=(-0.18, 0.97, 0), width=28, parts=("sidepod top",)),
     "left deck": dict(centre=(38, 69, -95), right=(0, 0, -1), up=(-0.33, 0.91, 0), facing=(0.33, 0.91, -0.1), width=45, parts=("engine cover",)),
@@ -358,6 +359,23 @@ class Skin:
 
     # ---- lettering and pictures ----
 
+    def art(self, name):
+        """A kept picture of this skin's: skins/<skin>/art/<name>.png (tool/pictures.py)."""
+        p = paths.SKINS / self.name / "art" / f"{name}.png"
+        if not p.exists():
+            raise FileNotFoundError(f"no picture {name!r} for {self.name}: make one with `python -m tool.pictures`")
+        return p
+
+    def print(self, name, scale=30, picture=None, wrap="uv"):
+        """Make a kept tile usable as a finish: after s.print("bananas", scale=25),
+        s.paint("body", "bananas") lays it on with 25 cm per repeat. wrap: "facing" (one
+        continuous projection per side of the car, so neighbouring panels line up; it
+        changes only at the shoulders), "uv" (the car's unfolding, no stretch, but every panel
+        starts the pattern afresh) or "planes" (blended projections)."""
+        from tool import textures
+        textures.add_file(name, self.art(picture or name), scale, about=f"{self.name}'s print {name}", wrap=wrap)
+        return self
+
     def _spot(self, where, at=None):
         if isinstance(where, dict):
             spec = dict(where)
@@ -371,7 +389,7 @@ class Skin:
         """Lay a picture (PIL RGBA, or a path) on the body at a spot (SPOTS, or a dict with
         centre, right, up, facing). width in cm. rgb: paint every opaque pixel this colour
         instead of the picture's own (for one-colour lettering)."""
-        if isinstance(image, (str, bytes)) or hasattr(image, "read"):
+        if isinstance(image, (str, bytes, os.PathLike)) or hasattr(image, "read"):
             image = Image.open(image)
         image = image.convert("RGBA")
         spec = self._spot(where, at)
@@ -379,13 +397,14 @@ class Skin:
         arr = np.asarray(image, np.float32) / 255
         c = self.canvas("Skin")
         b = c.bake
-        alpha = paint.project(b, arr[..., 3], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)
-        # keep it on the spot's parts, so a decal never wraps onto the far side of the car
-        ids = []
-        for p in spec.get("parts", ()):
-            ids += self.parts.select(p)
-        if ids:
-            alpha *= coverage.load(self.parts, "Skin", c.w, c.h).get(ids) > 0.5
+        # onto the nearest surface only: the decal crosses every panel in its footprint (a
+        # sticker over a panel gap, as on a real car) and never reaches the far side
+        alpha, info = paint.project_near(b, arr[..., 3], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)
+        if info["landed"] < 0.97:
+            self.notes.append(f"decal at {where}: {info['landed']:.0%} of the picture landed on the car; the rest falls in a gap or off an edge")
+        if info["step_cm"] > 4:
+            self.notes.append(f"decal at {where}: the surface under the picture has a fold or step of {info['step_cm']:.0f} cm; "
+                              "it will look cut there. Try a smaller picture or another spot")
         flat = alpha.reshape(-1)
         idx = np.flatnonzero(flat > 0.002)
         if not len(idx):
@@ -398,10 +417,114 @@ class Skin:
         if rgb is not None:
             col = np.broadcast_to(np.asarray(colours.get(rgb), np.float32), (len(idx), 3))
         else:
-            col = np.stack([paint.project(b, arr[..., k], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing).reshape(-1)[idx]
+            col = np.stack([paint.project_near(b, arr[..., k], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)[0].reshape(-1)[idx]
                             for k in range(3)], 1)
         c.blend(idx, m, col, np.full(len(idx), fin.roughness, np.float32), np.full(len(idx), fin.metalness, np.float32),
                 np.full(len(idx), fin.varnish, np.float32))
+        return self
+
+    def scatter(self, image, where="body", size=8, spacing=None, turn="random", finish="gloss", zone=None, seed=None,
+                min_facing=0.35, step_cm=2.5, min_landed=0.98):
+        """Sprinkle copies of a picture (a cut-out, RGBA, or a path; or a list of them, mixed) over parts, each laid flat
+        on the surface as its own small sticker and always whole: a copy that would cross a fold
+        or run off a panel's edge is left out, so nothing is ever cut (user, 2026-09-24). size:
+        the copy's width in cm, or (smallest, largest); spacing: the least distance between
+        copies in cm (default: a little more than the largest size, so they never overlap);
+        turn: "random", "length" (along the car) or an angle in degrees from the car's length."""
+        images = list(image) if isinstance(image, (list, tuple)) else [image]  # several: a random one per copy
+        arrs = []
+        for im in images:
+            if isinstance(im, (str, bytes, os.PathLike)) or hasattr(im, "read"):
+                im = Image.open(im)
+            arrs.append(np.asarray(im.convert("RGBA"), np.float32) / 255)
+        tallest = max(a.shape[0] / a.shape[1] for a in arrs)
+        sizes = (float(size), float(size)) if np.isscalar(size) else (float(size[0]), float(size[1]))
+        spacing = spacing or sizes[1] * max(1.0, tallest) * 1.15
+        rng = np.random.default_rng(self.seed if seed is None else seed)
+        fin = finishes.get(finish) if isinstance(finish, str) else finish
+        z_axis = np.array([0, 0, 1.0], np.float32)
+        placed = skipped = 0
+        t0 = time.time()
+        for tset, ids in self._ids(where).items():
+            c = self.canvas(tset)
+            idx, m = self._mask(tset, ids, zone, c)
+            if not len(idx):
+                continue
+            pos, nrm = c.pos[idx], c.nrm[idx]
+            points = looks.surface_points(pos, spacing, seed=int(rng.integers(1 << 30)), regular=False, relax=8)
+            # a coarse 3D grid over the parts' texels, so each copy only looks at its neighbourhood
+            reach = sizes[1] * max(1.0, tallest) * 0.75
+            cell = np.floor(pos / reach).astype(np.int64)
+            cmin = cell.min(0)
+            cell -= cmin
+            dims = cell.max(0) + 1
+            ckey = (cell[:, 0] * dims[1] + cell[:, 1]) * dims[2] + cell[:, 2]
+            order = np.argsort(ckey, kind="stable")
+            skeys = ckey[order]
+            for pt in points:
+                pc = np.floor(pt / reach).astype(np.int64) - cmin
+                sub = []
+                for dx in (-1, 0, 1):
+                    for dy in (-1, 0, 1):
+                        for dz in (-1, 0, 1):
+                            q = pc + (dx, dy, dz)
+                            if (q < 0).any() or (q >= dims).any():
+                                continue
+                            k = (q[0] * dims[1] + q[1]) * dims[2] + q[2]
+                            a, b = np.searchsorted(skeys, k), np.searchsorted(skeys, k, side="right")
+                            if b > a:
+                                sub.append(order[a:b])
+                if not sub:
+                    skipped += 1
+                    continue
+                sub = np.concatenate(sub)
+                ps, ns = pos[sub], nrm[sub]
+                nearest = np.argmin(((ps - pt) ** 2).sum(1))
+                n = ns[nearest]
+                n = n / max(np.linalg.norm(n), 1e-6)
+                up = z_axis - n * float(n @ z_axis)
+                if np.linalg.norm(up) < 0.2:
+                    up = np.array([1.0, 0, 0], np.float32) - n * float(n[0])
+                up /= np.linalg.norm(up)
+                if turn == "random":
+                    ang = rng.uniform(0, 2 * np.pi)
+                elif turn == "length":
+                    ang = 0.0
+                else:
+                    ang = np.radians(float(turn))
+                up = np.cos(ang) * up + np.sin(ang) * np.cross(n, up)
+                right = np.cross(up, n)
+                w_cm = rng.uniform(*sizes)
+                arr = arrs[int(rng.integers(len(arrs)))]
+                # where it doesn't fit whole (a fold, a panel's edge), try nudging it a little
+                # and shrinking it a little before giving up, so the spread stays even near seams
+                centre = ps[nearest]
+                ok = False
+                for attempt in range(6):
+                    if attempt:
+                        shift = rng.normal(0, 0.25 * w_cm, 2)
+                        cand = centre + shift[0] * right + shift[1] * up
+                        near2 = np.argmin(((ps - cand) ** 2).sum(1))
+                        cen, w_try = ps[near2], w_cm * (1 - 0.08 * attempt)
+                    else:
+                        cen, w_try = centre, w_cm
+                    alpha, info = paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., 3], cen, right, up, w_try, n, min_facing)
+                    if info["landed"] >= min_landed and info["step_cm"] <= step_cm:
+                        ok = True
+                        break
+                hit = np.flatnonzero(alpha > 0.002) if ok else np.zeros(0, np.int64)
+                if not len(hit):
+                    skipped += 1
+                    continue
+                col = np.stack([paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., k], cen, right, up, w_try, n, min_facing)[0][hit]
+                                for k in range(3)], 1)
+                gi = idx[sub[hit]]
+                mm = alpha[hit] * m[sub[hit]]
+                c.blend(gi, mm, col, np.full(len(gi), fin.roughness, np.float32), np.full(len(gi), fin.metalness, np.float32),
+                        np.full(len(gi), fin.varnish, np.float32))
+                placed += 1
+        self.notes.append(f"scatter on {where}: {placed} copies placed, {skipped} left out for crossing a fold or an edge "
+                          f"({time.time() - t0:.0f} s)")
         return self
 
     def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,

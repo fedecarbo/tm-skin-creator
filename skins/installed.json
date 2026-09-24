@@ -4,6 +4,11 @@
     "installed": "2026-09-24T11:18:54",
     "sha256": "b08beaf9611187205d0d8a2432d9dcb79959680f3bd4aeae0ef36a615d47dd9f"
   },
+  "TSC_Donuts.zip": {
+    "bytes": 6017520,
+    "installed": "2026-09-24T19:48:58",
+    "sha256": "0c3d747232c221a1ec5915e9b8b381ef10f34527257f5f1619fd78c074c09025"
+  },
   "TSC_Lab.zip": {
     "bytes": 3360002,
     "installed": "2026-09-24T09:41:26",
@@ -43,5 +48,10 @@
     "bytes": 211748,
     "installed": "2026-09-23T23:39:21",
     "sha256": "8e170b82a6089ce80242570b53f425f41d8167c7ce457173b67db1189dce8998"
+  },
+  "TSC_Tiger.zip": {
+    "bytes": 3200084,
+    "installed": "2026-09-24T19:39:21",
+    "sha256": "e4658f24084b09eb34b3340ffebb7e74104c756b56c45781557a69077db0cfce"
   }
 }

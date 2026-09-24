@@ -109,6 +109,16 @@ def add(name, asset, scale=60, mask=False, metal=False, about=""):
     return key
 
 
+def add_file(name, file, scale=30, about="", wrap="uv"):
+    """Name one of our own tile pictures as a set, for this process only (a design's print,
+    tool/pictures.py). scale: cm one repeat covers on the car. wrap: "facing", "uv" or "planes"
+    (see wrap())."""
+    key = " ".join(name.lower().split())
+    SETS[key] = {"file": str(file), "mode": "overlay", "scale": scale, "about": about or key, "metal": False, "wrap": wrap}
+    _cache.pop(key, None)
+    return key
+
+
 def fetch(asset):
     folder = FOLDER / asset
     if not (folder / "Color.jpg").exists():
@@ -129,7 +139,12 @@ def load(name):
     """The set as float arrays: colour (h, w, 3) sRGB, roughness (h, w) or None, metalness or None."""
     if name in _cache:
         return _cache[name]
-    folder = fetch(SETS[name]["asset"])
+    spec = SETS[name]
+    if "file" in spec:  # a picture of our own (tool/pictures.py), colour only
+        _cache[name] = {"colour": np.asarray(Image.open(spec["file"]).convert("RGB"), np.float32) / 255,
+                        "roughness": None, "metalness": None}
+        return _cache[name]
+    folder = fetch(spec["asset"])
 
     def read(kind):
         for ext in (".jpg", ".png"):
@@ -173,8 +188,21 @@ def wrap(name, pos, nrm, colour, finish, params):
     amount = float(params.get("amount", 0.5))
     n = len(pos)
     colour = np.asarray(colour, np.float32)
-    pic = triplanar_sample(tex["colour"], pos, nrm, scale)
-    rough = triplanar_sample(tex["roughness"], pos, nrm, scale) if tex["roughness"] is not None else None
+    how = params.get("mapping") or spec.get("wrap", "planes")
+    if how == "uv" and params.get("uv") is not None:
+        # the car's unfolding, like the flat patterns: no stretch, but each panel is its own
+        # island, so the pattern starts afresh at every panel edge
+        uv = params["uv"]
+        lay = lambda image: sample(image, uv[:, 0] / scale, uv[:, 1] / scale)
+    elif how == "facing":
+        # one projection per side of the car, chosen by which way each texel faces, with only
+        # a sliver of blending: neighbouring panels on the same side line up, and the pattern
+        # changes only along the shoulders, where a real wrap has its seam too
+        lay = lambda image: triplanar_sample(image, pos, nrm, scale, power=40)
+    else:
+        lay = lambda image: triplanar_sample(image, pos, nrm, scale)
+    pic = lay(tex["colour"])
+    rough = lay(tex["roughness"]) if tex["roughness"] is not None else None
     if spec["mode"] == "overlay":
         if params.get("own colour") or not params.get("tinted") and finish.colour is None:
             col = pic  # the photograph's own colours, as when the user names a set without a colour

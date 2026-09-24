@@ -455,7 +455,7 @@ Part 1 comes first, because every design depends on it.
       badge on the bonnet and both sides). Not built yet, by choice: tyre lettering (reads
       backwards on one side, see "Things we learned"); relief on the inner car.
 
-### [ ] 6. The picture maker
+### [x] 6. The picture maker
 
 - **What it's for:** detailed artwork, such as a realistic tiger across the doors or a painted
   character, made by a free program that runs on your PC.
@@ -477,6 +477,66 @@ Part 1 comes first, because every design depends on it.
     - seamless tileable textures, for patterns.
   - Generate a few candidates and look at them before using one. Aim for under a minute per
     picture.
+  - **Done 2026-09-24 (Fable 5.1).** The user looked closely at the samples, sent the placement
+    code back twice (below), asked for a candy car with donuts (TSC_Donuts, installed) and
+    said: "for these kind of randomness graphics it works pretty well." Still open, for the
+    design work ahead: ordered layouts across panels (a regular grid of dots or motifs that
+    should line up from panel to panel). `looks.surface_points(regular=True)` gives a
+    lattice-like spread, so `Skin.scatter` could take a `regular` switch; the lined-up
+    unfolding covers continuous prints. `tool/pictures.py`:
+    - **The model: FLUX.2 [klein] 4B** (Black Forest Labs, January 2026, Apache 2.0, not
+      gated), through diffusers 0.40.0. Chosen over Z-Image-Turbo (Apache 2.0 too, but a 33 GB
+      download, fp32 weights, and photo-leaning) and Qwen-Image (20B, needs quantising); the
+      newer Qwen-Image-2.1 and FLUX.2 [klein] 9B are non-commercial. 16 GB of weights in
+      `%LOCALAPPDATA%\TrackmaniaSkinChallenge\models` (`HF_HOME`), 4 steps, about 3 s per
+      1024² picture; a decal with its cut-out about 20 s, a tile about 8 s.
+    - **Memory:** the text encoder (Qwen3 4B, 8 GB) and the transformer (8 GB) don't fit the
+      card together, and the PC's 16 GB of RAM (7 GB free) can't hold either as a fallback.
+      So they're loaded straight onto the card one after the other (`device_map="cuda"`
+      with the other half passed as None): all prompts are encoded, the encoder dropped, then
+      the pictures made. About 8 s per load.
+    - **PyTorch 2.14.0+cu130:** the cu128 index stops at 2.11 and has no Python 3.14 wheels;
+      the CUDA 13 build has them and covers Blackwell (sm_120). Driver 610.88 is fine.
+    - **Decals:** asked for on a plain white background in a style (sticker with a white
+      border by default; also flat, print, painted, line art, retro, photo), cut out with
+      BiRefNet (MIT) through rembg 2.0.85 on the processor (ONNX; 1 GB model in
+      `models/rembg`), cropped to the subject. Kept PNGs carry their prompt and seed.
+    - **Tiles** are drawn on a torus: after every denoising step the latents are rolled by a
+      random amount, so every edge is an interior for most steps; the picture is decoded from
+      a 2×2 repeat and the middle cut out. Seam score (edge jump / inner jump) about 1.0, i.e.
+      no join. (First try was rolling the finished picture and re-drawing the cross with the
+      rest pinned; it left half-objects and hard cuts at the band's edges.)
+    - **The user's review (2026-09-24), which reshaped the placement code.** They looked
+      closely and found the tiger cut by neighbouring panels and the bonnet's cockpit surround,
+      and the banana print cut at every panel and mushy. Fixes:
+      - `paint.project_near()`: a decal lands on the nearest surface along its facing (a depth
+        test per 1.5 cm cell), so it crosses every panel in its footprint and never reaches
+        the far side; the old panel list is gone. It also measures how much of the picture
+        landed and how far from flat the surface is (`step_cm`); `Skin.decal` notes both, so
+        a picture across a fold is flagged before anyone looks.
+      - The front flank has a deep fold (the lower flank sits back under an overhanging lip):
+        no place for a big sticker. Flat spots on a side: the rear flank behind the sidepod
+        (34 cm) and a thin strip along the top of the front flank (lettering, `at=(±35, 62,
+        60)`). The bonnet spot moved to z 117 (the free bonnet is z 91..142; the cockpit
+        surround takes it up to 91).
+      - **Prints as one sheet:** the unfolding's islands are now lined up across their seams
+        (`uvmap._offsets`: least squares over shared mesh corners; median mismatch 3.9 cm on
+        the Skin set, but some seams can't line up because the two sides are mirror images).
+        A projection per facing (`wrap="facing"`) was tried and rejected: it smears the print
+        wherever the surface turns. The unfolding bends a print over the shoulder with no
+        stretch.
+      - **Prints as objects (the user's idea): `Skin.scatter()`.** Copies of a cut-out are
+        spread evenly over the surface (Poisson-disc points), each laid flat on its panel as
+        its own sticker, whole: one that would cross a fold or run off an edge is nudged and
+        shrunk a little, and left out if it still doesn't fit. The tool says how many were
+        placed and left out (359 and 27 on TSC_Bananas, 13 s). This is the way for any print
+        made of separate things, and could replace the dots' distance drawing too.
+    - Samples: **TSC_Tiger** (a tiger sticker on each rear flank and the bonnet, matte
+      black, orange trim; installed in the game), **TSC_Bananas** (scattered banana
+      stickers) and **TSC_Bananas_Print** (the same as one continuous seamless tile, for
+      comparison).
+    - The user's taste (2026-09-24, mid-build): illustrations, prints and decals rather than
+      photographs. The styles and the defaults follow that.
 
 ### [ ] 7. Your first skin, start to finish
 
@@ -557,6 +617,25 @@ Part 1 comes first, because every design depends on it.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-24, pictures on the car (checkpoint 6).**
+  - A decal restricted to one named panel stops dead at the next panel; the user saw the
+    tiger cut in half. Project onto the nearest surface instead (a depth test), and let it
+    cross panels like a real sticker. Then choose spots that are flat: the tool now measures
+    the fold under a picture and says so.
+  - The front flank of the body shell is not flat: the lower half sits back under an
+    overhanging lip along a diagonal crease. Big stickers go on the rear flank (behind the
+    sidepod) or the bonnet (z 91..142); the front flank's top strip takes lettering.
+  - A tiled print laid per island breaks at every panel edge, because each island starts the
+    pattern at its own offset. Lining the islands up along their shared mesh corners fixes
+    most seams (median 3.9 cm off); mirrored twins can't be lined up.
+  - Projections per facing smear a pattern wherever the surface turns; the unfolding doesn't.
+  - For prints made of separate objects, don't tile at all: scatter whole copies, each laid
+    flat inside one panel (the user's idea). No seam can show because nothing crosses one.
+  - The model draws small repeated things badly: a dozen bananas per 1024² tile came out
+    mushy; four across came out crisp. Ask for a few large objects and scale on the car.
+  - The picture maker's "landed" measure must be counted in half-centimetre cells: the picture
+    has more pixels than the car has texels, so a per-pixel count reports 10-50 %.
 
 - **2026-09-24, the paint box (checkpoint 5).**
   - **Patterns must be laid on the surface, not cut out of space (user, 2026-09-24).** The

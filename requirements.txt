@@ -10,3 +10,18 @@ pyee==13.0.1
 typing_extensions==4.16.0
 # scipy: connected components and nearest-neighbour lookups for taking the car apart (2026-09-24).
 scipy==1.18.1
+# The picture maker (checkpoint 6, 2026-09-24): FLUX.2 [klein] 4B through diffusers on the card.
+# torch comes from PyTorch's own index: the cu130 build (CUDA 13) is the one with wheels for
+# Python 3.14 and the RTX 5070 Ti (Blackwell, sm_120); the cu128 index stopped at 2.11.
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch==2.14.0+cu130
+diffusers==0.40.0
+transformers==5.17.0
+accelerate==1.15.0
+huggingface_hub==1.33.0
+safetensors==0.8.0
+tokenizers==0.23.2
+# The background cutter: BiRefNet (MIT) through rembg on the processor (ONNX Runtime). rembg
+# brings scikit-image, pymatting, numba and pooch; pip resolves those.
+rembg[cpu]==2.0.85
+onnxruntime==1.30.0
