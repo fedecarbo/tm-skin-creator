@@ -394,10 +394,9 @@
    "side": "left",
    "end": "",
    "mesh": "Details",
-   "tris": 3789,
-   "area_cm2": 7686.5,
+   "tris": 2113,
+   "area_cm2": 7134.6,
    "pieces": [
-    1898,
     1899,
     1900,
     1901,
@@ -514,8 +513,8 @@
     2013,
     2018
    ],
-   "texels": 158637,
-   "shared": 1.0
+   "texels": 150056,
+   "shared": 0.98
   },
   {
    "id": 21,
@@ -524,10 +523,9 @@
    "side": "right",
    "end": "",
    "mesh": "Details",
-   "tris": 3789,
-   "area_cm2": 7686.5,
+   "tris": 2093,
+   "area_cm2": 7133.3,
    "pieces": [
-    1731,
     1732,
     1733,
     1734,
@@ -545,9 +543,7 @@
     1746,
     1747,
     1748,
-    1749,
     1750,
-    1751,
     1752,
     1753,
     1754,
@@ -586,7 +582,6 @@
     1787,
     1788,
     1789,
-    1790,
     1791,
     1792,
     1793,
@@ -596,7 +591,6 @@
     1797,
     1798,
     1799,
-    1800,
     1801,
     1802,
     1803,
@@ -623,7 +617,6 @@
     1824,
     1825,
     1826,
-    1827,
     1828,
     1829,
     1830,
@@ -644,8 +637,8 @@
     1846,
     1895
    ],
-   "texels": 158637,
-   "shared": 1.0
+   "texels": 150026,
+   "shared": 0.98
   },
   {
    "id": 22,
@@ -679,6 +672,41 @@
   },
   {
    "id": 24,
+   "name": "sidepod grille plate",
+   "parent": "sidepod",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "tris": 1676,
+   "area_cm2": 551.9,
+   "pieces": [
+    1898
+   ],
+   "texels": 11774,
+   "shared": 0.96
+  },
+  {
+   "id": 25,
+   "name": "sidepod grille plate",
+   "parent": "sidepod",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "tris": 1696,
+   "area_cm2": 553.2,
+   "pieces": [
+    1731,
+    1749,
+    1751,
+    1790,
+    1800,
+    1827
+   ],
+   "texels": 11801,
+   "shared": 0.96
+  },
+  {
+   "id": 26,
    "name": "sidepod inlet",
    "parent": "sidepod",
    "side": "left",
@@ -693,7 +721,7 @@
    "shared": 0.0
   },
   {
-   "id": 25,
+   "id": 27,
    "name": "sidepod inlet",
    "parent": "sidepod",
    "side": "right",
@@ -708,7 +736,7 @@
    "shared": 0.0
   },
   {
-   "id": 26,
+   "id": 28,
    "name": "sidepod panel",
    "parent": "sidepod",
    "side": "left",
@@ -728,7 +756,7 @@
    "shared": 1.0
   },
   {
-   "id": 27,
+   "id": 29,
    "name": "sidepod panel",
    "parent": "sidepod",
    "side": "right",
@@ -748,7 +776,7 @@
    "shared": 1.0
   },
   {
-   "id": 28,
+   "id": 30,
    "name": "sidepod strut",
    "parent": "sidepod",
    "side": "left",
@@ -763,7 +791,7 @@
    "shared": 1.0
   },
   {
-   "id": 29,
+   "id": 31,
    "name": "sidepod strut",
    "parent": "sidepod",
    "side": "right",
@@ -778,7 +806,7 @@
    "shared": 1.0
   },
   {
-   "id": 30,
+   "id": 32,
    "name": "sidepod top",
    "parent": "sidepod",
    "side": "left",
@@ -793,7 +821,7 @@
    "shared": 0.0
   },
   {
-   "id": 31,
+   "id": 33,
    "name": "sidepod top",
    "parent": "sidepod",
    "side": "right",
@@ -808,7 +836,7 @@
    "shared": 0.0
   },
   {
-   "id": 32,
+   "id": 34,
    "name": "airbox",
    "parent": "engine cover",
    "side": "left",
@@ -838,7 +866,7 @@
    "shared": 1.0
   },
   {
-   "id": 33,
+   "id": 35,
    "name": "airbox",
    "parent": "engine cover",
    "side": "right",
@@ -868,7 +896,7 @@
    "shared": 1.0
   },
   {
-   "id": 34,
+   "id": 36,
    "name": "engine cover",
    "parent": "engine cover",
    "side": "centre",
@@ -883,7 +911,7 @@
    "shared": 0.0
   },
   {
-   "id": 35,
+   "id": 37,
    "name": "engine cover panel",
    "parent": "engine cover",
    "side": "left",
@@ -898,7 +926,7 @@
    "shared": 0.0
   },
   {
-   "id": 36,
+   "id": 38,
    "name": "engine cover panel",
    "parent": "engine cover",
    "side": "right",
@@ -913,7 +941,7 @@
    "shared": 0.0
   },
   {
-   "id": 37,
+   "id": 39,
    "name": "number panel",
    "parent": "engine cover",
    "side": "centre",
@@ -928,7 +956,7 @@
    "shared": 0.0
   },
   {
-   "id": 38,
+   "id": 40,
    "name": "number panel",
    "parent": "engine cover",
    "side": "left",
@@ -943,7 +971,7 @@
    "shared": 0.0
   },
   {
-   "id": 39,
+   "id": 41,
    "name": "number panel",
    "parent": "engine cover",
    "side": "right",
@@ -958,7 +986,7 @@
    "shared": 0.0
   },
   {
-   "id": 40,
+   "id": 42,
    "name": "diffuser",
    "parent": "tail",
    "side": "centre",
@@ -973,7 +1001,7 @@
    "shared": 0.0
   },
   {
-   "id": 41,
+   "id": 43,
    "name": "diffuser strake",
    "parent": "tail",
    "side": "left",
@@ -990,7 +1018,7 @@
    "shared": 0.0
   },
   {
-   "id": 42,
+   "id": 44,
    "name": "diffuser strake",
    "parent": "tail",
    "side": "right",
@@ -1007,7 +1035,7 @@
    "shared": 0.0
   },
   {
-   "id": 43,
+   "id": 45,
    "name": "digit display",
    "parent": "tail",
    "side": "centre",
@@ -1032,7 +1060,7 @@
    "shared": 0.96
   },
   {
-   "id": 44,
+   "id": 46,
    "name": "digit display",
    "parent": "tail",
    "side": "left",
@@ -1075,7 +1103,7 @@
    "shared": 0.96
   },
   {
-   "id": 45,
+   "id": 47,
    "name": "digit display",
    "parent": "tail",
    "side": "right",
@@ -1117,7 +1145,7 @@
    "shared": 0.95
   },
   {
-   "id": 46,
+   "id": 48,
    "name": "exhaust",
    "parent": "tail",
    "side": "left",
@@ -1135,7 +1163,7 @@
    "shared": 1.0
   },
   {
-   "id": 47,
+   "id": 49,
    "name": "exhaust",
    "parent": "tail",
    "side": "right",
@@ -1153,7 +1181,7 @@
    "shared": 1.0
   },
   {
-   "id": 48,
+   "id": 50,
    "name": "rear bumper",
    "parent": "tail",
    "side": "centre",
@@ -1169,7 +1197,7 @@
    "shared": 0.0
   },
   {
-   "id": 49,
+   "id": 51,
    "name": "rear bumper",
    "parent": "tail",
    "side": "left",
@@ -1198,7 +1226,7 @@
    "shared": 0.83
   },
   {
-   "id": 50,
+   "id": 52,
    "name": "rear bumper",
    "parent": "tail",
    "side": "right",
@@ -1227,7 +1255,7 @@
    "shared": 0.83
   },
   {
-   "id": 51,
+   "id": 53,
    "name": "rear bumper corner",
    "parent": "tail",
    "side": "left",
@@ -1242,7 +1270,7 @@
    "shared": 1.0
   },
   {
-   "id": 52,
+   "id": 54,
    "name": "rear bumper corner",
    "parent": "tail",
    "side": "right",
@@ -1257,7 +1285,7 @@
    "shared": 1.0
   },
   {
-   "id": 53,
+   "id": 55,
    "name": "rear strake",
    "parent": "tail",
    "side": "centre",
@@ -1273,7 +1301,7 @@
    "shared": 1.0
   },
   {
-   "id": 54,
+   "id": 56,
    "name": "rear strake",
    "parent": "tail",
    "side": "left",
@@ -1298,7 +1326,7 @@
    "shared": 1.0
   },
   {
-   "id": 55,
+   "id": 57,
    "name": "rear strake",
    "parent": "tail",
    "side": "right",
@@ -1323,7 +1351,7 @@
    "shared": 1.0
   },
   {
-   "id": 56,
+   "id": 58,
    "name": "rear undertray",
    "parent": "tail",
    "side": "centre",
@@ -1338,7 +1366,7 @@
    "shared": 0.0
   },
   {
-   "id": 57,
+   "id": 59,
    "name": "rear undertray",
    "parent": "tail",
    "side": "left",
@@ -1356,7 +1384,7 @@
    "shared": 0.97
   },
   {
-   "id": 58,
+   "id": 60,
    "name": "rear undertray",
    "parent": "tail",
    "side": "right",
@@ -1374,7 +1402,7 @@
    "shared": 0.97
   },
   {
-   "id": 59,
+   "id": 61,
    "name": "side vent",
    "parent": "tail",
    "side": "left",
@@ -1397,7 +1425,7 @@
    "shared": 1.0
   },
   {
-   "id": 60,
+   "id": 62,
    "name": "side vent",
    "parent": "tail",
    "side": "right",
@@ -1420,7 +1448,7 @@
    "shared": 1.0
   },
   {
-   "id": 61,
+   "id": 63,
    "name": "tail corner",
    "parent": "tail",
    "side": "left",
@@ -1435,7 +1463,7 @@
    "shared": 0.0
   },
   {
-   "id": 62,
+   "id": 64,
    "name": "tail corner",
    "parent": "tail",
    "side": "right",
@@ -1450,7 +1478,7 @@
    "shared": 0.0
   },
   {
-   "id": 63,
+   "id": 65,
    "name": "tail panel",
    "parent": "tail",
    "side": "centre",
@@ -1465,7 +1493,7 @@
    "shared": 0.0
   },
   {
-   "id": 64,
+   "id": 66,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "left",
@@ -1480,7 +1508,7 @@
    "shared": 1.0
   },
   {
-   "id": 65,
+   "id": 67,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "right",
@@ -1495,7 +1523,7 @@
    "shared": 1.0
   },
   {
-   "id": 66,
+   "id": 68,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "left",
@@ -1510,7 +1538,7 @@
    "shared": 1.0
   },
   {
-   "id": 67,
+   "id": 69,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "right",
@@ -1525,7 +1553,7 @@
    "shared": 1.0
   },
   {
-   "id": 68,
+   "id": 70,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "left",
@@ -1551,7 +1579,7 @@
    "shared": 1.0
   },
   {
-   "id": 69,
+   "id": 71,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "right",
@@ -1577,7 +1605,7 @@
    "shared": 1.0
   },
   {
-   "id": 70,
+   "id": 72,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "left",
@@ -1603,7 +1631,7 @@
    "shared": 1.0
   },
   {
-   "id": 71,
+   "id": 73,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "right",
@@ -1629,7 +1657,7 @@
    "shared": 1.0
   },
   {
-   "id": 72,
+   "id": 74,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "left",
@@ -1646,7 +1674,7 @@
    "shared": 1.0
   },
   {
-   "id": 73,
+   "id": 75,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "right",
@@ -1663,7 +1691,7 @@
    "shared": 1.0
   },
   {
-   "id": 74,
+   "id": 76,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "left",
@@ -1680,7 +1708,7 @@
    "shared": 1.0
   },
   {
-   "id": 75,
+   "id": 77,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "right",
@@ -1697,7 +1725,7 @@
    "shared": 1.0
   },
   {
-   "id": 76,
+   "id": 78,
    "name": "front wing",
    "parent": "front wing",
    "side": "centre",
@@ -1712,7 +1740,7 @@
    "shared": 0.0
   },
   {
-   "id": 77,
+   "id": 79,
    "name": "front wing",
    "parent": "front wing",
    "side": "left",
@@ -1737,7 +1765,7 @@
    "shared": 1.0
   },
   {
-   "id": 78,
+   "id": 80,
    "name": "front wing",
    "parent": "front wing",
    "side": "right",
@@ -1762,7 +1790,7 @@
    "shared": 1.0
   },
   {
-   "id": 79,
+   "id": 81,
    "name": "front wing endplate",
    "parent": "front wing",
    "side": "left",
@@ -1777,7 +1805,7 @@
    "shared": 1.0
   },
   {
-   "id": 80,
+   "id": 82,
    "name": "front wing endplate",
    "parent": "front wing",
    "side": "right",
@@ -1792,7 +1820,7 @@
    "shared": 1.0
   },
   {
-   "id": 81,
+   "id": 83,
    "name": "wing bracket",
    "parent": "front wing",
    "side": "centre",
@@ -1812,7 +1840,7 @@
    "shared": 0.74
   },
   {
-   "id": 82,
+   "id": 84,
    "name": "wing bracket",
    "parent": "front wing",
    "side": "left",
@@ -1850,7 +1878,7 @@
    "shared": 1.0
   },
   {
-   "id": 83,
+   "id": 85,
    "name": "wing bracket",
    "parent": "front wing",
    "side": "right",
@@ -1889,7 +1917,7 @@
    "shared": 1.0
   },
   {
-   "id": 84,
+   "id": 86,
    "name": "wing pylon",
    "parent": "front wing",
    "side": "centre",
@@ -1904,7 +1932,7 @@
    "shared": 0.0
   },
   {
-   "id": 85,
+   "id": 87,
    "name": "wing pylon",
    "parent": "front wing",
    "side": "left",
@@ -1921,7 +1949,7 @@
    "shared": 0.0
   },
   {
-   "id": 86,
+   "id": 88,
    "name": "wing pylon",
    "parent": "front wing",
    "side": "right",
@@ -1938,7 +1966,7 @@
    "shared": 0.0
   },
   {
-   "id": 87,
+   "id": 89,
    "name": "floor",
    "parent": "floor",
    "side": "centre",
@@ -1954,7 +1982,7 @@
    "shared": 0.16
   },
   {
-   "id": 88,
+   "id": 90,
    "name": "floor",
    "parent": "floor",
    "side": "left",
@@ -1985,7 +2013,7 @@
    "shared": 0.79
   },
   {
-   "id": 89,
+   "id": 91,
    "name": "floor",
    "parent": "floor",
    "side": "right",
@@ -2016,7 +2044,7 @@
    "shared": 0.79
   },
   {
-   "id": 90,
+   "id": 92,
    "name": "floor plank",
    "parent": "floor",
    "side": "centre",
@@ -2031,7 +2059,7 @@
    "shared": 0.0
   },
   {
-   "id": 91,
+   "id": 93,
    "name": "floor plank",
    "parent": "floor",
    "side": "left",
@@ -2049,7 +2077,7 @@
    "shared": 0.85
   },
   {
-   "id": 92,
+   "id": 94,
    "name": "floor plank",
    "parent": "floor",
    "side": "right",
@@ -2067,7 +2095,7 @@
    "shared": 0.85
   },
   {
-   "id": 93,
+   "id": 95,
    "name": "floor rail",
    "parent": "floor",
    "side": "centre",
@@ -2082,7 +2110,7 @@
    "shared": 0.0
   },
   {
-   "id": 94,
+   "id": 96,
    "name": "rear diffuser",
    "parent": "floor",
    "side": "centre",
@@ -2101,7 +2129,7 @@
    "shared": 0.39
   },
   {
-   "id": 95,
+   "id": 97,
    "name": "rear diffuser",
    "parent": "floor",
    "side": "left",
@@ -2300,7 +2328,7 @@
    "shared": 0.75
   },
   {
-   "id": 96,
+   "id": 98,
    "name": "rear diffuser",
    "parent": "floor",
    "side": "right",
@@ -2501,7 +2529,7 @@
    "shared": 0.75
   },
   {
-   "id": 97,
+   "id": 99,
    "name": "antenna",
    "parent": "chassis",
    "side": "centre",
@@ -2521,7 +2549,7 @@
    "shared": 0.0
   },
   {
-   "id": 98,
+   "id": 100,
    "name": "cockpit tub",
    "parent": "chassis",
    "side": "centre",
@@ -2589,7 +2617,7 @@
    "shared": 0.99
   },
   {
-   "id": 99,
+   "id": 101,
    "name": "cockpit tub",
    "parent": "chassis",
    "side": "left",
@@ -2656,7 +2684,7 @@
    "shared": 0.92
   },
   {
-   "id": 100,
+   "id": 102,
    "name": "cockpit tub",
    "parent": "chassis",
    "side": "right",
@@ -2723,7 +2751,7 @@
    "shared": 0.92
   },
   {
-   "id": 101,
+   "id": 103,
    "name": "engine bay",
    "parent": "chassis",
    "side": "left",
@@ -2752,7 +2780,7 @@
    "shared": 1.0
   },
   {
-   "id": 102,
+   "id": 104,
    "name": "engine bay",
    "parent": "chassis",
    "side": "right",
@@ -2781,7 +2809,7 @@
    "shared": 1.0
   },
   {
-   "id": 103,
+   "id": 105,
    "name": "front bulkhead",
    "parent": "chassis",
    "side": "centre",
@@ -2812,7 +2840,7 @@
    "shared": 0.5
   },
   {
-   "id": 104,
+   "id": 106,
    "name": "front bulkhead",
    "parent": "chassis",
    "side": "left",
@@ -2831,7 +2859,7 @@
    "shared": 1.0
   },
   {
-   "id": 105,
+   "id": 107,
    "name": "front bulkhead",
    "parent": "chassis",
    "side": "right",
@@ -2850,7 +2878,7 @@
    "shared": 1.0
   },
   {
-   "id": 106,
+   "id": 108,
    "name": "nose inner",
    "parent": "chassis",
    "side": "centre",
@@ -2877,7 +2905,7 @@
    "shared": 1.0
   },
   {
-   "id": 107,
+   "id": 109,
    "name": "nose inner",
    "parent": "chassis",
    "side": "left",
@@ -2954,7 +2982,7 @@
    "shared": 1.0
   },
   {
-   "id": 108,
+   "id": 110,
    "name": "nose inner",
    "parent": "chassis",
    "side": "right",
@@ -3032,7 +3060,7 @@
    "shared": 1.0
   },
   {
-   "id": 109,
+   "id": 111,
    "name": "nose plate",
    "parent": "chassis",
    "side": "centre",
@@ -3048,7 +3076,7 @@
    "shared": 0.0
   },
   {
-   "id": 110,
+   "id": 112,
    "name": "nose plate",
    "parent": "chassis",
    "side": "left",
@@ -3074,7 +3102,7 @@
    "shared": 1.0
   },
   {
-   "id": 111,
+   "id": 113,
    "name": "nose plate",
    "parent": "chassis",
    "side": "right",
@@ -3100,7 +3128,7 @@
    "shared": 1.0
   },
   {
-   "id": 112,
+   "id": 114,
    "name": "nose sensor",
    "parent": "chassis",
    "side": "centre",
@@ -3119,7 +3147,7 @@
    "shared": 0.57
   },
   {
-   "id": 113,
+   "id": 115,
    "name": "nose sensor",
    "parent": "chassis",
    "side": "left",
@@ -3141,7 +3169,7 @@
    "shared": 1.0
   },
   {
-   "id": 114,
+   "id": 116,
    "name": "nose sensor",
    "parent": "chassis",
    "side": "right",
@@ -3162,7 +3190,7 @@
    "shared": 1.0
   },
   {
-   "id": 115,
+   "id": 117,
    "name": "side vane",
    "parent": "chassis",
    "side": "left",
@@ -3177,7 +3205,7 @@
    "shared": 1.0
   },
   {
-   "id": 116,
+   "id": 118,
    "name": "side vane",
    "parent": "chassis",
    "side": "right",
@@ -3192,7 +3220,7 @@
    "shared": 1.0
   },
   {
-   "id": 117,
+   "id": 119,
    "name": "belt buckle",
    "parent": "cockpit",
    "side": "centre",
@@ -3207,7 +3235,7 @@
    "shared": 0.0
   },
   {
-   "id": 118,
+   "id": 120,
    "name": "belt buckle",
    "parent": "cockpit",
    "side": "left",
@@ -3222,7 +3250,7 @@
    "shared": 1.0
   },
   {
-   "id": 119,
+   "id": 121,
    "name": "belt buckle",
    "parent": "cockpit",
    "side": "right",
@@ -3237,7 +3265,7 @@
    "shared": 1.0
   },
   {
-   "id": 120,
+   "id": 122,
    "name": "cockpit rim",
    "parent": "cockpit",
    "side": "centre",
@@ -3253,7 +3281,7 @@
    "shared": 0.0
   },
   {
-   "id": 121,
+   "id": 123,
    "name": "cockpit rim",
    "parent": "cockpit",
    "side": "left",
@@ -3285,7 +3313,7 @@
    "shared": 1.0
   },
   {
-   "id": 122,
+   "id": 124,
    "name": "cockpit rim",
    "parent": "cockpit",
    "side": "right",
@@ -3317,7 +3345,7 @@
    "shared": 1.0
   },
   {
-   "id": 123,
+   "id": 125,
    "name": "dashboard",
    "parent": "cockpit",
    "side": "centre",
@@ -3339,7 +3367,7 @@
    "shared": 0.22
   },
   {
-   "id": 124,
+   "id": 126,
    "name": "dashboard",
    "parent": "cockpit",
    "side": "left",
@@ -3371,7 +3399,7 @@
    "shared": 1.0
   },
   {
-   "id": 125,
+   "id": 127,
    "name": "dashboard",
    "parent": "cockpit",
    "side": "right",
@@ -3403,7 +3431,7 @@
    "shared": 1.0
   },
   {
-   "id": 126,
+   "id": 128,
    "name": "mirror",
    "parent": "cockpit",
    "side": "left",
@@ -3422,7 +3450,7 @@
    "shared": 1.0
   },
   {
-   "id": 127,
+   "id": 129,
    "name": "mirror",
    "parent": "cockpit",
    "side": "right",
@@ -3441,7 +3469,7 @@
    "shared": 1.0
   },
   {
-   "id": 128,
+   "id": 130,
    "name": "mirror arm",
    "parent": "cockpit",
    "side": "left",
@@ -3461,7 +3489,7 @@
    "shared": 1.0
   },
   {
-   "id": 129,
+   "id": 131,
    "name": "mirror arm",
    "parent": "cockpit",
    "side": "right",
@@ -3481,7 +3509,7 @@
    "shared": 1.0
   },
   {
-   "id": 130,
+   "id": 132,
    "name": "seat",
    "parent": "cockpit",
    "side": "left",
@@ -3498,7 +3526,7 @@
    "shared": 1.0
   },
   {
-   "id": 131,
+   "id": 133,
    "name": "seat",
    "parent": "cockpit",
    "side": "right",
@@ -3515,7 +3543,7 @@
    "shared": 1.0
   },
   {
-   "id": 132,
+   "id": 134,
    "name": "seat belt",
    "parent": "cockpit",
    "side": "left",
@@ -3532,7 +3560,7 @@
    "shared": 1.0
   },
   {
-   "id": 133,
+   "id": 135,
    "name": "seat belt",
    "parent": "cockpit",
    "side": "right",
@@ -3549,7 +3577,7 @@
    "shared": 1.0
   },
   {
-   "id": 134,
+   "id": 136,
    "name": "steering column",
    "parent": "cockpit",
    "side": "centre",
@@ -3585,7 +3613,7 @@
    "shared": 0.16
   },
   {
-   "id": 135,
+   "id": 137,
    "name": "steering column",
    "parent": "cockpit",
    "side": "left",
@@ -3601,7 +3629,7 @@
    "shared": 1.0
   },
   {
-   "id": 136,
+   "id": 138,
    "name": "steering column",
    "parent": "cockpit",
    "side": "right",
@@ -3617,7 +3645,7 @@
    "shared": 1.0
   },
   {
-   "id": 137,
+   "id": 139,
    "name": "steering wheel",
    "parent": "cockpit",
    "side": "centre",
@@ -3636,7 +3664,7 @@
    "shared": 0.16
   },
   {
-   "id": 138,
+   "id": 140,
    "name": "steering wheel",
    "parent": "cockpit",
    "side": "left",
@@ -3661,7 +3689,7 @@
    "shared": 1.0
   },
   {
-   "id": 139,
+   "id": 141,
    "name": "steering wheel",
    "parent": "cockpit",
    "side": "right",
@@ -3686,7 +3714,7 @@
    "shared": 1.0
   },
   {
-   "id": 140,
+   "id": 142,
    "name": "brake line",
    "parent": "front suspension",
    "side": "left",
@@ -3701,7 +3729,7 @@
    "shared": 1.0
   },
   {
-   "id": 141,
+   "id": 143,
    "name": "brake line",
    "parent": "front suspension",
    "side": "right",
@@ -3716,7 +3744,7 @@
    "shared": 1.0
   },
   {
-   "id": 142,
+   "id": 144,
    "name": "damper",
    "parent": "front suspension",
    "side": "centre",
@@ -3731,7 +3759,7 @@
    "shared": 1.0
   },
   {
-   "id": 143,
+   "id": 145,
    "name": "damper",
    "parent": "front suspension",
    "side": "left",
@@ -3758,7 +3786,7 @@
    "shared": 1.0
   },
   {
-   "id": 144,
+   "id": 146,
    "name": "damper",
    "parent": "front suspension",
    "side": "right",
@@ -3785,7 +3813,7 @@
    "shared": 1.0
   },
   {
-   "id": 145,
+   "id": 147,
    "name": "lower wishbone",
    "parent": "front suspension",
    "side": "left",
@@ -3802,7 +3830,7 @@
    "shared": 1.0
   },
   {
-   "id": 146,
+   "id": 148,
    "name": "lower wishbone",
    "parent": "front suspension",
    "side": "right",
@@ -3819,7 +3847,7 @@
    "shared": 1.0
   },
   {
-   "id": 147,
+   "id": 149,
    "name": "pushrod",
    "parent": "front suspension",
    "side": "centre",
@@ -3835,7 +3863,7 @@
    "shared": 1.0
   },
   {
-   "id": 148,
+   "id": 150,
    "name": "pushrod",
    "parent": "front suspension",
    "side": "left",
@@ -3861,7 +3889,7 @@
    "shared": 1.0
   },
   {
-   "id": 149,
+   "id": 151,
    "name": "pushrod",
    "parent": "front suspension",
    "side": "right",
@@ -3887,7 +3915,7 @@
    "shared": 1.0
   },
   {
-   "id": 150,
+   "id": 152,
    "name": "tie rod",
    "parent": "front suspension",
    "side": "left",
@@ -3905,7 +3933,7 @@
    "shared": 1.0
   },
   {
-   "id": 151,
+   "id": 153,
    "name": "tie rod",
    "parent": "front suspension",
    "side": "right",
@@ -3923,7 +3951,7 @@
    "shared": 1.0
   },
   {
-   "id": 152,
+   "id": 154,
    "name": "upper wishbone",
    "parent": "front suspension",
    "side": "left",
@@ -3938,7 +3966,7 @@
    "shared": 1.0
   },
   {
-   "id": 153,
+   "id": 155,
    "name": "upper wishbone",
    "parent": "front suspension",
    "side": "right",
@@ -3953,7 +3981,7 @@
    "shared": 1.0
   },
   {
-   "id": 154,
+   "id": 156,
    "name": "upright",
    "parent": "front suspension",
    "side": "left",
@@ -3969,7 +3997,7 @@
    "shared": 1.0
   },
   {
-   "id": 155,
+   "id": 157,
    "name": "upright",
    "parent": "front suspension",
    "side": "right",
@@ -3985,7 +4013,7 @@
    "shared": 1.0
   },
   {
-   "id": 156,
+   "id": 158,
    "name": "driveshaft",
    "parent": "rear suspension",
    "side": "left",
@@ -4013,7 +4041,7 @@
    "shared": 1.0
   },
   {
-   "id": 157,
+   "id": 159,
    "name": "driveshaft",
    "parent": "rear suspension",
    "side": "right",
@@ -4042,7 +4070,7 @@
    "shared": 1.0
   },
   {
-   "id": 158,
+   "id": 160,
    "name": "hub bracket",
    "parent": "rear suspension",
    "side": "left",
@@ -4062,7 +4090,7 @@
    "shared": 1.0
   },
   {
-   "id": 159,
+   "id": 161,
    "name": "hub bracket",
    "parent": "rear suspension",
    "side": "right",
@@ -4082,7 +4110,7 @@
    "shared": 1.0
   },
   {
-   "id": 160,
+   "id": 162,
    "name": "rear arm",
    "parent": "rear suspension",
    "side": "centre",
@@ -4102,7 +4130,7 @@
    "shared": 1.0
   },
   {
-   "id": 161,
+   "id": 163,
    "name": "rear arm",
    "parent": "rear suspension",
    "side": "left",
@@ -4214,7 +4242,7 @@
    "shared": 1.0
   },
   {
-   "id": 162,
+   "id": 164,
    "name": "rear arm",
    "parent": "rear suspension",
    "side": "right",
@@ -4325,7 +4353,7 @@
    "shared": 1.0
   },
   {
-   "id": 163,
+   "id": 165,
    "name": "rear damper",
    "parent": "rear suspension",
    "side": "left",
@@ -4343,7 +4371,7 @@
    "shared": 1.0
   },
   {
-   "id": 164,
+   "id": 166,
    "name": "rear damper",
    "parent": "rear suspension",
    "side": "right",
@@ -4361,7 +4389,7 @@
    "shared": 1.0
   },
   {
-   "id": 165,
+   "id": 167,
    "name": "upright cover",
    "parent": "rear suspension",
    "side": "left",
@@ -4376,7 +4404,7 @@
    "shared": 1.0
   },
   {
-   "id": 166,
+   "id": 168,
    "name": "upright cover",
    "parent": "rear suspension",
    "side": "right",
@@ -4391,7 +4419,7 @@
    "shared": 1.0
   },
   {
-   "id": 167,
+   "id": 169,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "left",
@@ -4415,7 +4443,7 @@
    "shared": 1.0
   },
   {
-   "id": 168,
+   "id": 170,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "right",
@@ -4439,7 +4467,7 @@
    "shared": 1.0
   },
   {
-   "id": 169,
+   "id": 171,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "left",
@@ -4463,7 +4491,7 @@
    "shared": 1.0
   },
   {
-   "id": 170,
+   "id": 172,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "right",
@@ -4487,7 +4515,7 @@
    "shared": 1.0
   },
   {
-   "id": 171,
+   "id": 173,
    "name": "hub",
    "parent": "wheel",
    "side": "left",
@@ -4521,7 +4549,7 @@
    "shared": 1.0
   },
   {
-   "id": 172,
+   "id": 174,
    "name": "hub",
    "parent": "wheel",
    "side": "right",
@@ -4555,7 +4583,7 @@
    "shared": 1.0
   },
   {
-   "id": 173,
+   "id": 175,
    "name": "hub",
    "parent": "wheel",
    "side": "left",
@@ -4579,7 +4607,7 @@
    "shared": 1.0
   },
   {
-   "id": 174,
+   "id": 176,
    "name": "hub",
    "parent": "wheel",
    "side": "right",
@@ -4603,7 +4631,7 @@
    "shared": 1.0
   },
   {
-   "id": 175,
+   "id": 177,
    "name": "rim",
    "parent": "wheel",
    "side": "left",
@@ -4620,7 +4648,7 @@
    "shared": 1.0
   },
   {
-   "id": 176,
+   "id": 178,
    "name": "rim",
    "parent": "wheel",
    "side": "right",
@@ -4637,7 +4665,7 @@
    "shared": 1.0
   },
   {
-   "id": 177,
+   "id": 179,
    "name": "rim",
    "parent": "wheel",
    "side": "left",
@@ -4654,7 +4682,7 @@
    "shared": 1.0
   },
   {
-   "id": 178,
+   "id": 180,
    "name": "rim",
    "parent": "wheel",
    "side": "right",
@@ -4671,7 +4699,7 @@
    "shared": 1.0
   },
   {
-   "id": 179,
+   "id": 181,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "left",
@@ -4697,7 +4725,7 @@
    "shared": 1.0
   },
   {
-   "id": 180,
+   "id": 182,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "right",
@@ -4723,7 +4751,7 @@
    "shared": 1.0
   },
   {
-   "id": 181,
+   "id": 183,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "left",
@@ -4749,7 +4777,7 @@
    "shared": 1.0
   },
   {
-   "id": 182,
+   "id": 184,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "right",
@@ -4775,7 +4803,7 @@
    "shared": 1.0
   },
   {
-   "id": 183,
+   "id": 185,
    "name": "sidewall",
    "parent": "tyre",
    "side": "left",
@@ -4791,7 +4819,7 @@
    "shared": 1.0
   },
   {
-   "id": 184,
+   "id": 186,
    "name": "sidewall",
    "parent": "tyre",
    "side": "right",
@@ -4807,7 +4835,7 @@
    "shared": 1.0
   },
   {
-   "id": 185,
+   "id": 187,
    "name": "sidewall",
    "parent": "tyre",
    "side": "left",
@@ -4823,7 +4851,7 @@
    "shared": 1.0
   },
   {
-   "id": 186,
+   "id": 188,
    "name": "sidewall",
    "parent": "tyre",
    "side": "right",
@@ -4839,7 +4867,7 @@
    "shared": 1.0
   },
   {
-   "id": 187,
+   "id": 189,
    "name": "tread",
    "parent": "tyre",
    "side": "left",
@@ -4855,7 +4883,7 @@
    "shared": 1.0
   },
   {
-   "id": 188,
+   "id": 190,
    "name": "tread",
    "parent": "tyre",
    "side": "right",
@@ -4871,7 +4899,7 @@
    "shared": 1.0
   },
   {
-   "id": 189,
+   "id": 191,
    "name": "tread",
    "parent": "tyre",
    "side": "left",
@@ -4887,7 +4915,7 @@
    "shared": 1.0
   },
   {
-   "id": 190,
+   "id": 192,
    "name": "tread",
    "parent": "tyre",
    "side": "right",
@@ -4903,7 +4931,7 @@
    "shared": 1.0
   },
   {
-   "id": 191,
+   "id": 193,
    "name": "canopy",
    "parent": "glass",
    "side": "centre",
@@ -4918,7 +4946,7 @@
    "shared": 0.28
   },
   {
-   "id": 192,
+   "id": 194,
    "name": "gear display",
    "parent": "glass",
    "side": "centre",
@@ -4933,7 +4961,7 @@
    "shared": 0.0
   },
   {
-   "id": 193,
+   "id": 195,
    "name": "gear display",
    "parent": "glass",
    "side": "left",
@@ -4954,7 +4982,7 @@
    "shared": 0.0
   },
   {
-   "id": 194,
+   "id": 196,
    "name": "gear display",
    "parent": "glass",
    "side": "right",
@@ -4975,7 +5003,7 @@
    "shared": 0.0
   },
   {
-   "id": 195,
+   "id": 197,
    "name": "mirror glass",
    "parent": "glass",
    "side": "left",
@@ -4990,7 +5018,7 @@
    "shared": 1.0
   },
   {
-   "id": 196,
+   "id": 198,
    "name": "mirror glass",
    "parent": "glass",
    "side": "right",
@@ -5005,7 +5033,7 @@
    "shared": 1.0
   },
   {
-   "id": 197,
+   "id": 199,
    "name": "nose lens",
    "parent": "glass",
    "side": "centre",
@@ -5027,7 +5055,7 @@
    "shared": 0.75
   },
   {
-   "id": 198,
+   "id": 200,
    "name": "rear light lens",
    "parent": "glass",
    "side": "left",
@@ -5043,7 +5071,7 @@
    "shared": 0.0
   },
   {
-   "id": 199,
+   "id": 201,
    "name": "rear light lens",
    "parent": "glass",
    "side": "right",
@@ -5059,7 +5087,7 @@
    "shared": 0.0
   },
   {
-   "id": 200,
+   "id": 202,
    "name": "side lens",
    "parent": "glass",
    "side": "left",
@@ -5075,7 +5103,7 @@
    "shared": 1.0
   },
   {
-   "id": 201,
+   "id": 203,
    "name": "side lens",
    "parent": "glass",
    "side": "right",
@@ -5091,7 +5119,7 @@
    "shared": 1.0
   },
   {
-   "id": 202,
+   "id": 204,
    "name": "wing lens",
    "parent": "glass",
    "side": "left",
@@ -5106,7 +5134,7 @@
    "shared": 1.0
   },
   {
-   "id": 203,
+   "id": 205,
    "name": "wing lens",
    "parent": "glass",
    "side": "right",

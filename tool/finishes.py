@@ -90,7 +90,7 @@ LIBRARY = {
     "race-worn": _f("race-worn", 0.45, 0.0, 0.6, look="worn", about="dust, chips and scratches, lightly"),
     # light
     "neon": _f("neon", 0.4, 0.0, 0.0, glow="always on", about="a self-lit colour (inner car only; the body can't glow)"),
-    "reflective tape": _f("reflective tape", 0.25, 0.6, 0.0, (0.88, 0.88, 0.84), look="flake", about="bright silvery tape"),
+    "reflective tape": _f("reflective tape", 0.3, 0.75, 0.0, (0.9, 0.9, 0.88), about="bright silvery tape, no sparkle (user, 2026-09-24)"),
     # patterns that arrange colours (a palette); a stated colour is the first colour
     "camo": _f("camo", 0.85, 0.0, 0.0, look="camo", about="blotchy camouflage in 3 or 4 colours"),
     "hexagons": _f("hexagons", 0.3, 0.0, 1.0, look="hex", about="a honeycomb of lines"),

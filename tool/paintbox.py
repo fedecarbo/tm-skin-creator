@@ -11,6 +11,7 @@
         s.paint("rim", "gunmetal")
         s.text("27", "left side", colour="black", font="russo", height=28)
         s.glow("sidepod frame", "electric blue")              # always on (inner car only)
+        s.glow("brake caliper")                               # glow in the colour painted on it
         s.paint("sidewall", "white rubber")                   # the tyres' sides
         s.glass("smoke", 0.6)                                 # tint the glass
         s.dirt(0.5)                                           # half as dirty as stock on dirt
@@ -292,19 +293,23 @@ class Skin:
         return self
 
     def _glow(self, c, idx, m, col, kind):
+        """col: one colour (3,), or a colour per texel (n, 3)."""
         g = finishes.glow(kind)
         rgb = np.asarray(col, np.float32)
+        if rgb.ndim == 1:
+            rgb = np.broadcast_to(rgb, (len(idx), 3))
         if not g["keeps colour"]:
-            rgb = np.full(3, float(rgb.mean()), np.float32)
+            rgb = np.repeat(rgb.mean(1, keepdims=True), 3, 1)
         on = m > 0.5
-        c.glow_rgb[idx[on]] = rgb
+        c.glow_rgb[idx[on]] = rgb[on]
         c.glow_code[idx[on]] = g["code"]
         c.glow_touched = True
 
-    def glow(self, where, colour, kind="always on", zone=None):
+    def glow(self, where, colour=None, kind="always on", zone=None):
         """Make inner-car parts glow: kind is one of finishes.GLOWS ("always on", "night only",
-        "brake lights", "front lights", "energy", ...). The body can't glow."""
-        col = np.asarray(colours.get(colour), np.float32)
+        "brake lights", "front lights", "energy", ...). The body can't glow. colour None: the
+        parts glow in whatever colour is already painted on them (so a fade can glow)."""
+        col = None if colour is None else np.asarray(colours.get(colour), np.float32)
         targets = self._ids(where)
         for tset, ids in targets.items():
             if tset != "Details":
@@ -312,6 +317,9 @@ class Skin:
                 continue
             c = self.canvas(tset)
             idx, m = self._mask(tset, ids, zone, c)
+            if col is None:
+                self._glow(c, idx, m, c.colour[idx], kind)
+                continue
             self._glow(c, idx, m, col, kind)
             # the lit colour also goes in the base colour, so it reads the same by day
             c.blend(idx, m, np.broadcast_to(col, (len(idx), 3)), np.full(len(idx), 0.4, np.float32), np.zeros(len(idx), np.float32), np.zeros(len(idx), np.float32))

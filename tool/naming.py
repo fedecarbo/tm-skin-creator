@@ -62,6 +62,9 @@ PARTS = [
     dict(name="antenna", parent="chassis", group=[256, 258]),
     dict(name="side vane", parent="chassis", group=[328]),
     dict(name="sidepod panel", parent="sidepod", group=[419]),
+    # the plate the grille sits in: its own crease-bounded piece inside the frame's group (the
+    # user wanted it painted apart, 2026-09-24); it must come before the frame, first name wins
+    dict(name="sidepod grille plate", parent="sidepod", piece=[1898]),
     dict(name="sidepod frame", parent="sidepod", group=[411]),
     dict(name="sidepod grille", parent="sidepod", group=[439]),
     dict(name="sidepod boss", parent="sidepod", group=[412]),

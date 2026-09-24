@@ -6,7 +6,7 @@ every part's coverage once, sparsely (most texels are 0, and most covered ones a
 in the work folder, and rebuilds when car/parts.json changes.
 
     cov = coverage.load(p, "Skin", 4096, 4096)
-    cov.get([id, id, ...])   -> float32 (h, w), 0..1, the union (max) of the parts' coverage
+    cov.get([id, id, ...])   -> float32 (h, w), 0..1, the parts' coverage added up (clipped to 1)
 """
 
 import hashlib
@@ -50,15 +50,17 @@ class Coverage:
         return out
 
     def get(self, ids):
+        """The parts' coverage added up and clipped to 1. Added, not the largest: where two
+        parts meet, each covers part of the seam texel, and painting both must cover it fully
+        (the largest left the stock paint showing through as a dotted line along every seam;
+        found on TSC_Seams_Black, 2026-09-24). Shared texels (twins) just clip to 1."""
         flat = np.zeros(self.w * self.h, np.float32)
         for i in ids:
             if i not in self.sparse:
                 continue
             idx, val = self.sparse[i]
-            np.maximum.at(flat, idx, val.astype(np.float32) / 255) if False else None
-            cur = flat[idx]
-            flat[idx] = np.maximum(cur, val.astype(np.float32) / 255)
-        return flat.reshape(self.h, self.w)
+            flat[idx] += val.astype(np.float32) / 255
+        return np.minimum(flat, 1).reshape(self.h, self.w)
 
 
 _loaded = {}

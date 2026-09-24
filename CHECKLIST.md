@@ -278,6 +278,10 @@ Part 1 comes first, because every design depends on it.
       snapshots (`tool/snap.py` shots take a fifth item).
     - Known rough edges: some inner names are guesses (side vent, side vane, nose sensor,
       airbox). The body shell is one part on purpose (see "Clean borders" below).
+    - Pieces inside a named group can be named apart when a design needs them: the exporter
+      split the meshes along every crease, so each crease-bounded piece has an id. Put the new
+      entry before the group's entry (first name wins). First case: "sidepod grille plate"
+      (2026-09-24), which the user spotted by its creases.
 
 ### [x] 4. The materials lab
 
@@ -439,6 +443,14 @@ Part 1 comes first, because every design depends on it.
       appear by themselves.
     - **Not yet seen in the game:** the richer finishes (candy, chrome rims, rust, leather,
       metallic flake at 1 mm). Test one or two of the samples in the game when convenient.
+    - `shapes.seams(width, kinds=("border", "open"), crease=60)` (2026-09-24): a line along the
+      body panels' seams, found on the mesh (part borders, free edges, optionally folds), for
+      tape and pinstriping. First used by TSC_Seams_Black and TSC_Seams_White.
+    - **Seam texels (2026-09-24):** `coverage.get()` adds the parts' coverage (clipped to 1).
+      It used to take the largest, so where two parts meet each covered half the seam texel
+      and "body" paint landed at half strength there, with the stock glossy grey showing
+      through as a dotted line along every panel seam. Skins painted before this need
+      `tool.skin show` again before they're reinstalled.
     - Pictures placed on the car: `Skin.decal(image, spot, width)` (tested with a drawn
       badge on the bonnet and both sides). Not built yet, by choice: tyre lettering (reads
       backwards on one side, see "Things we learned"); relief on the inner car.
