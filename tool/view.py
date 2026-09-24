@@ -16,7 +16,8 @@ Python's built-in web server serves two folders (ES modules don't load from file
 The game's textures become PNG "slots" laid out the way three.js reads them:
   <Set>_B      base colour, sRGB
   <Set>_RM     G = roughness, B = metalness (three.js reads them there; the game's _R holds R, G)
-  Skin_Coat    G = clear-coat roughness, from Skin_CoatR. Without it the coat follows roughness.
+  Skin_Coat    R = how much glossy varnish, 255 - Skin_CoatR (0 in the game's file is full gloss,
+               255 none). Without the file the whole body is glossy, as in the game.
   <Set>_N      normal map, RGB, with Z rebuilt from the game's two channels
   <Set>_I      glow colour, RGB, and <Set>_Code, the glow code of each texel (the _I alpha)
   Glass_T      glass tint, RGBA
@@ -56,7 +57,7 @@ SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO",
          "Details_B", "Details_RM", "Details_N", "Details_I", "Details_Code", "Details_AO",
          "Wheels_B", "Wheels_RM", "Wheels_N", "Wheels_AO",
          "Glass_T", "Glass_I", "Glass_Code", "Glass_AO")
-NO_STOCK = {"Skin_Coat"}  # left out, the coat follows roughness instead of a stock file
+NO_STOCK = {"Skin_Coat"}  # left out, the viewer varnishes everything, as the game does
 
 
 def _stale(target, *sources):
@@ -150,7 +151,7 @@ def convert(tex_name, image):
         return {f"{tset}_RM": Image.fromarray(rm, "RGB")}
     if kind == "CoatR":
         coat = np.zeros((h, w, 3), np.uint8)
-        coat[..., 1] = a[..., 0]
+        coat[..., 0] = 255 - a[..., 0]  # three.js reads the clear-coat amount from R
         return {"Skin_Coat": Image.fromarray(coat, "RGB")}
     if kind == "N":
         xy = a[..., :2].astype(np.float64) / 255 * 2 - 1

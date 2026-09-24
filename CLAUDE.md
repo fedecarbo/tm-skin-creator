@@ -86,7 +86,7 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
 |---|---|---|
 | `Skin_B`, `Details_B` | BC1 / `DXT1` | Base colour, RGB |
 | `Skin_R`, `Details_R` | BC5 / `ATI2` | R = roughness, G = metalness |
-| `Skin_CoatR` | BC4 / `ATI1` | Clear coat ("glitter paint effect"), greyscale |
+| `Skin_CoatR` | BC4 / `ATI1` | Varnish: 0 glossy, 255 none |
 | `Skin_DirtMask`, `Details_DirtMask` | BC4 / `ATI1` | Dirt mask, greyscale |
 | `Details_I` | BC3 / `DXT5` | Self-illumination, RGB + alpha |
 | `Details_N` | BC5 / `ATI2` | Normal map, OpenGL (Y+) |
@@ -102,8 +102,9 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
 - Every texture is optional: anything left out of the zip keeps the game's stock look. Skin,
   Details and Wheels take 4096² (Wheels 1024×2048). Details of all of this are under "Things
   we learned" in `CHECKLIST.md`.
-- Without `Skin_CoatR`, the coat follows roughness and metalness (post). Skin takes no normal
-  map.
+- `Skin_CoatR` is the varnish: 0 lays a glossy clear varnish over anything, 255 lays none, and
+  a skin without the file is varnished all over. Matte paint needs 255 there, so always ship
+  the file (checkpoint 4, 2026-09-24). Skin takes no normal map.
 - A skin can't change the player number or ID, the turbo colour, the colour of the digits, the
   rear lights or the glass gear display (post).
 - The shaders blend ambient occlusion (AO) themselves. Don't bake AO into the textures.

@@ -39,22 +39,23 @@ const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car
 const TUNE = { exposure: 0.9, env: 1, key: 1, coat: 1, room: 0.035 };
 for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(params.get(key));
 
-// The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on a parked car, by
-// day and at night, and the colour the game supplies for codes whose RGB must be grey. Best
-// guesses until checkpoint 4 compares them with the game. Glows that depend on driving are off:
-// the stock turbo-colour (160) areas hold smooth white-to-black ramps over the wheel pods, which
-// look like a mask the game animates, and in the user's night screenshots they stayed dark
-// except thin green edges on the front wing.
+// The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on a car that's just
+// driving, by day and at night, and the colour the game supplies for codes whose RGB must be
+// grey. From the user's game screenshots (2026-09-24, CHECKLIST.md): brake lights glow dimly
+// all the time and flare towards white when braking (checkpoint 1's stock strips); the front lights are
+// bright white by day and at night; "always on" keeps its colour; "night only" comes on at night
+// (and on a dusk map); energy is dim and tinted by the game (red for this player). Brake heat,
+// turbo, exhaust heat and boost weren't seen to light up, so they stay off.
 const GLOW = [
-  { code: 0, day: 1.5, night: 3 },  // brake lights: on all the time, brighter when braking
-  { code: 32, day: 1, night: 2 },  // energy, tinted with the team colour
+  { code: 0, day: 1.2, night: 1.8 },  // brake lights: dim all the time, brighter when braking
+  { code: 32, day: 0.6, night: 1, tint: [1, 0.2, 0.2] },  // energy, tinted by the game
   { code: 64, day: 0, night: 0 },  // brake heat: only when braking hard
-  { code: 96, day: 1.5, night: 3 },  // always glowing
-  { code: 128, day: 1, night: 8 },  // front lights, bright at night
+  { code: 96, day: 1.2, night: 1.8 },  // always glowing, its own colour
+  { code: 128, day: 4, night: 8 },  // front lights, bright white day and night
   { code: 160, day: 0, night: 0, tint: [0.15, 1, 0.3] },  // turbo colour, green in the game
   { code: 192, day: 0, night: 0 },  // exhaust heat: only during turbo
   { code: 224, day: 0, night: 0 },  // boost colour
-  { code: 255, day: 0, night: 3 },  // night only
+  { code: 255, day: 0, night: 1.4 },  // night only. Coloured glows above ~1.5 wash out under the tone mapping
 ];
 const glowUniforms = {
   glowGain: { value: GLOW.map((g) => g.day) },
@@ -376,10 +377,12 @@ function buildCar(geoms, tex) {
     map: tex[`${set}_B`], roughnessMap: tex[`${set}_RM`], metalnessMap: tex[`${set}_RM`],
     roughness: 1, metalness: 1, aoMap: tex[`${set}_AO`], ...extra,
   });
-  // Body: a clear coat over the paint. Skin_CoatR sets the coat's roughness; without it the coat
-  // follows the paint's roughness. A guess until checkpoint 4 compares it with the game.
+  // Body: a glossy varnish (clear coat) over the paint. In the game, Skin_CoatR at 0 is a glossy
+  // varnish over anything, 255 adds no gloss, and a skin without the file is glossy all over
+  // (checked with the lab skins, 2026-09-24, CHECKLIST.md). Skin_Coat holds 255 - CoatR in R,
+  // which three.js reads as the coat's amount.
   const skin = new THREE.MeshPhysicalMaterial(std('Skin', {
-    clearcoat: TUNE.coat, clearcoatRoughness: 1, clearcoatRoughnessMap: tex.Skin_Coat || tex.Skin_RM,
+    clearcoat: TUNE.coat, clearcoatRoughness: 0, clearcoatMap: tex.Skin_Coat || null,
   }));
   const details = new THREE.MeshStandardMaterial(std('Details', { normalMap: tex.Details_N }));
   if (tex.Details_I) {

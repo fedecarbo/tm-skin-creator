@@ -1,4 +1,14 @@
 {
+  "TSC_Lab.zip": {
+    "bytes": 3360002,
+    "installed": "2026-09-24T09:41:26",
+    "sha256": "0afd707af69448f60d3f1ee59a8be35b309070174f44c5f0eefcfbb6da640176"
+  },
+  "TSC_Lab_NoCoat.zip": {
+    "bytes": 3333756,
+    "installed": "2026-09-24T09:41:26",
+    "sha256": "cb999b7322d7e2f8b918fa11b76a4fa2084fc42f28cba00f195e5396018fd35f"
+  },
   "TSC_Parts.zip": {
     "bytes": 8653551,
     "installed": "2026-09-24T08:55:05",

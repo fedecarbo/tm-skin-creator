@@ -349,6 +349,24 @@ class Parts:
             out = np.maximum(out, np.where(keep, cov, 0))
         return out
 
+    def local_bake(self, texture_set, width, height, name=None, side=None, end=None, ids=None):
+        """A bake (tri, position, normal) of one part's own triangles only. The main bake's
+        position on a shared texel may come from any part that covers it; here it always comes
+        from this part (its mirror twin at worst, so |x| and the rest agree)."""
+        from tool import fbx, raster
+        ids = self.select(name, side, end) if ids is None else ids
+        if not hasattr(self, "_meshes"):
+            self._meshes = fbx.meshes()
+        m = self._meshes[MESH_NAME[texture_set]]
+        tris = self.tri_mask(texture_set, None, ids=ids)
+        uv = m["tri_uv"][tris].astype(np.float64)
+        xy = np.stack([uv[..., 0] * width, (1 - uv[..., 1]) * height], -1)
+        tri, bary = raster.rasterise(xy, width, height)
+        position = raster.interpolate(tri, bary, m["positions"][m["tri_vertex"][tris]])
+        normal = raster.interpolate(tri, bary, m["tri_normal"][tris])
+        normal /= np.maximum(np.linalg.norm(normal, axis=-1, keepdims=True), 1e-9)
+        return {"tri": tri, "position": position, "normal": normal.astype(np.float32)}
+
     def mask(self, bake, texture_set, name=None, side=None, end=None, ids=None):
         """Boolean texel mask (h, w): every texel the part covers by at least half. Shared texels
         (bake["count"] > 1) count for every part on them. See coverage() for soft edges."""

@@ -279,7 +279,7 @@ Part 1 comes first, because every design depends on it.
     - Known rough edges: some inner names are guesses (side vent, side vane, nose sensor,
       airbox). The body shell is one part on purpose (see "Clean borders" below).
 
-### [ ] 4. The materials lab
+### [x] 4. The materials lab
 
 - **What it's for:** testing every material in your game, until the tool knows exactly how each
   one looks and the viewer matches the game.
@@ -321,6 +321,19 @@ Part 1 comes first, because every design depends on it.
   - Record every result under "Things we learned". Tune the viewer's shaders to match.
   - **Output:** a named library of finishes and glows with measured values, in the code, for
     the paint box to use.
+  - **Where it stands (2026-09-24, Fable 5.1):** `tool/labskin.py` builds and the tool installed
+    two lab skins, **TSC_Lab** and **TSC_Lab_NoCoat** (identical, minus `Skin_CoatR`). The
+    docstring at the top of `tool/labskin.py` is the key: what sits where.
+    - Done: the skin editor screenshots (09:46-09:48) settled the varnish, roughness, metalness
+      and the tyres (see "Things we learned"). The viewer's varnish now follows the game
+      (`Skin_Coat` = 255 - CoatR as the coat amount). `tool/finishes.py` holds the named
+      finishes; its `GLOWS` table waits for the driving tests.
+    - Done too: the user drove TSC_Lab at night and on dirt (screenshots 10:07-10:11). `GLOWS`
+      in `tool/finishes.py` and `GLOW` in `viewer/viewer.js` now say what the game showed.
+      `build/night_vs_game.png` puts the viewer's night beside the game's.
+    - Left open, on purpose: brake heat, turbo colour, exhaust heat and boost were never seen to
+      light up. They stay off in the viewer until a design wants them; then test that design.
+    - **Done 2026-09-24.** The user checked the viewer against their screenshots and ticked it.
 
 ## Part 2: Designing
 
@@ -448,9 +461,79 @@ Part 1 comes first, because every design depends on it.
 - **This PC (2026-09-23):** an RTX 5070 Ti with 16 GB, a Ryzen 7 5800X3D, 16 GB of RAM and
   Python 3.14.2.
 - **Credit:** amogusstrikesback2, CC-BY-4.0, wherever the car model is reused.
+- **Don't take the game's own files apart (2026-09-24).** The user asked twice whether Claude
+  could read the game's shaders to get exact answers. Claude declined: the game's data is in
+  encrypted packs and its shaders are compiled code, so reading them means decrypting Ubisoft's
+  files, which the licence forbids, and it would still not replace tests in the game. What's
+  fair game: Nadeo's published files, the stock textures, the user's in-game tests and
+  screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
 
+- **2026-09-24, the lab skins in the skin editor (checkpoint 4).** The user's screenshots
+  (09:46-09:48) of TSC_Lab and TSC_Lab_NoCoat, read against `tool/labskin.py`'s key.
+  - **`Skin_CoatR` is the varnish, and 0 means glossy.** On TSC_Lab the deck's varnish-0
+    columns carry a whitish sky sheen even at roughness 100 %, the varnish-255 columns show the
+    plain, deeper orange; on the black bonnet the varnish-255 half at roughness 50 % is a hazy
+    grey and the varnish-0 half a dark mirror. TSC_Lab_NoCoat looks like varnish 0 everywhere.
+    So: no file = glossy varnish all over; **matte paint needs CoatR 255 on that area**, and the
+    tool always ships `Skin_CoatR`. This explains checkpoint 1's "matte isn't fully matte" (its
+    CoatR was a flat 0). The varnish never blurs the base: roughness 0 under varnish 255 is
+    still a sharp mirror. Modelled in the viewer as a glossy clear coat whose amount is
+    1 - CoatR.
+  - **Roughness and metalness behave like ordinary PBR.** The R0..R100 bands go from a sharp
+    mirror to matte (under the varnish the steps are subtle), the metal half of the deck is
+    metal, and the flank's M0 / M50 / M100 bands step up in reflectivity.
+  - **The tyres take roughness and metalness** from a two-channel `Wheels_R` (ATI2), although
+    the stock file is one-channel: sector 5 (roughness 0, metal) is chrome, 4 (rough, paint) is
+    white matte, 6 and 7 blur in between.
+  - **Energy (code 32) glows dim red at rest** in the skin editor: the sidepod frames, painted
+    dark grey, show as maroon. The game's colour, not ours.
+  - **Glass:** the canopy's cyan tint shows only faintly, the amber not at all from behind, and
+    the alpha bands (255 / 128 / 32) made no visible difference in the editor. Not settled.
+  - **The wing domes** are in the game; zoomed in, they read as raised (lit on the sun's side),
+    so the game takes our normal maps as written (OpenGL, Y up). Weak evidence: they're small.
+- **2026-09-24, the lab skin driven (checkpoint 4).** The user's night and dirt screenshots
+  (10:07-10:11), read against `tool/labskin.py`'s key.
+  - **Brake lights (0):** the lab put them on the rear bumper corners, which turn out to be
+    hidden from every camera, so nothing new; checkpoint 1's stock strips stand (dim always,
+    near white when braking).
+  - **Energy (32)** is on at rest, dim, tinted by the game (red here).
+  - **Always on (96)** keeps its colour (magenta), day and night.
+  - **Front lights (128)** are bright white by day and at night, in the daytime dirt shot too.
+  - **Night only (255)** is on at night, and on a dusk map in daylight.
+  - **Not seen:** brake heat (64) when braking from 133 km/h, exhaust heat (192) and turbo colour
+    (160) on turbo pads, boost (224). The hubs (160) are hidden by the wheel covers anyway.
+    Treat these four as off in the viewer until a design needs them.
+  - **The game's own rear lights** are two red bars on the tail wing and two under the bumper,
+    on all the time and pink-white when braking (the user's "pink/white"). The wing flaps up
+    under hard acceleration and shows red underneath. None of that is ours to change.
+  - **Dirt:** the mask works as a mask: the body's left half (255) turns the track's dusty
+    brown, the right half (0) stays clean; the tread (255) browns, the sidewalls (0) don't. At
+    255 the dirt covers the paint completely, so designs want moderate values (the stock mask
+    averages 53 with a few texels up to 230). The game's number stays clean.
+  - **Glass:** the canopy's alpha made no visible difference from any angle (user). Treat
+    `Glass_T` as tint only.
+- **2026-09-24, building the lab skins (checkpoint 4).**
+  - Nadeo's `ReadMe.txt` calls `Skin_CoatR` a "Varnish layer" (greyscale). Whether it's the
+    varnish's amount or its roughness is what the lab's deck swatches decide.
+  - **The four tyres use identical texels and the left and right wheels aren't mirrored**
+    (measured from the mesh: the same angle round the axle maps to the same UV on both
+    sides). So any writing on a tyre reads backwards on one side of the car. Inner and outer
+    sidewalls have their own texels (image columns 0..206 inner, 311..511 outer at 512 wide;
+    the tread sits between).
+  - **A shared texel's baked position can belong to a different part** (the main bake keeps the
+    last triangle drawn). Zoning a shared Details part by the main bake's positions gives
+    nonsense; `parts.load().local_bake(set, w, h, name)` rasterises only that part's triangles
+    and gives its own positions and normals (its mirror twin's at worst).
+  - The Details atlas is coarse on some parts: the front wing's top has ~6 texels per cm, the
+    rear bumper's face (the strip above the digits) is only 12 cm tall. Lettering in relief is
+    hopeless there; the lab uses a 10 cm dome instead.
+  - Parts the game's chase camera can actually see, out of the small inner ones (checked in the
+    viewer): rear bumper and its corners, rear strakes, the rear undertray's edge, hub
+    brackets, hubs (through the wheel covers' spokes), rims, sidepod frames, side vents, the
+    front wing. Exhausts, wing brackets, mirror arms, calipers and the airbox are hidden or
+    tiny. The glows in the lab sit on the visible ones.
 - **2026-09-23, from Nadeo's 2020 post and the stock files:** a skin can also paint the wheels
   and the glass, but not the player number or ID, the turbo colour, the digit colours, the rear
   lights or the glass gear display. See `CLAUDE.md` for the texture table.
@@ -508,8 +591,10 @@ Part 1 comes first, because every design depends on it.
       | 224 | 2k | beside the rear wheels |
       | 192 | 104 | |
   - **The game's own number:** in a race it draws "CAR 01" on the engine cover's centre. In
-    the game's skin editor, big "AB" and "CDE" letters sat in the same spot, probably
-    placeholders for the number and name. Keep important design away from there.
+    the game's skin editor, big "AB" and "CDE" letters sat in the same spot: placeholders for
+    the player number and username, which the game draws there (user, 2026-09-24). Those
+    rectangles are the parts "number panel" and "engine cover panel": paint them plain and keep
+    lettering and detail off them.
   - **The game has a built-in skin editor.** It opened our skin, and its paint has "Matte %"
     and "Metal %" sliders. It's a handy reference for checkpoint 4.
   - **4096² works.** TSC_Test_Sharp loaded and looks visibly sharper. Its zip was 8.45 MB,
