@@ -355,6 +355,9 @@ Part 1 comes first, because every design depends on it.
   your skins. Click any one to see it in 3D. One of them goes into the game.
 - **Model:** Sonnet 5. These are straightforward pieces built on checkpoints 3 and 4.
 - **Notes for Claude:**
+  - **Start from `tool/carbonskin.py`** (2026-09-24): a design built by hand from parts and
+    `tool/finishes.py` (a triplanar carbon weave, matte body, gloss on named parts). The user
+    liked it in the game. The paint box should make that kind of thing from words.
   - A design is `skins/<name>/design.py`, a short script that calls the paint library. The user
     never reads it.
   - Paint by part name, using `car/parts.json`.
