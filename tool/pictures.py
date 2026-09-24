@@ -219,7 +219,8 @@ def make(kind, words, style=None, n=4, seed=None, size=(1024, 1024)):
     style = style or ("sticker" if kind == "decal" else "print")
     prompt = prompt_for(kind, words, style)
     seed = int(time.time()) % 100000 if seed is None else int(seed)
-    folder = OUT / slug(words)
+    name = slug(words) + ("" if style in ("sticker", "print") else "-" + slug(style))  # the style tells runs apart
+    folder = OUT / name
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.glob("*.png"):
         old.unlink()
@@ -243,7 +244,7 @@ def make(kind, words, style=None, n=4, seed=None, size=(1024, 1024)):
         paths_out.append(p)
         print(f"pictures: {kind} {k + 1}/{n} (seed {s}) in {time.time() - t0:.0f} s", flush=True)
         t0 = time.time()
-    sheet = OUT / f"{slug(words)}.png"
+    sheet = OUT / f"{name}.png"
     make_sheet(paths_out, sheet, kind)
     return sheet, paths_out
 

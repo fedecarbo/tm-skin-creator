@@ -2,7 +2,7 @@
 
 Every zone is a function (pos, nrm) -> weight 0..1 per point, where pos is (n, 3) in cm
 (x = the car's left, y = up, z = forward) and nrm the unit normals. A weight of 1 is inside.
-Edges are feathered over `soft` cm (default 1.5), so the border never shows the texel grid,
+Edges are feathered over `soft` cm (default 0.2, about two texels), so the border never shows the texel grid,
 and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
 
     shapes.stripe(width=20)                a stripe down the middle, along the car
@@ -26,7 +26,9 @@ import numpy as np
 
 from tool.noise import smoothstep
 
-SOFT = 1.5
+# 0.2 cm is about two texels at 4096² (pitch 0.09 cm): enough to hide the grid and no more. The
+# first value, 1.5 cm, blurred every stripe edge over 15 texels (the user, 2026-09-24).
+SOFT = 0.2
 
 
 class Zone:

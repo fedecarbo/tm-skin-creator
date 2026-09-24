@@ -8,6 +8,7 @@ def design(s):
     s.scatter(s.art("banana"), "body", size=(7, 10), spacing=11, turn="random", seed=3)
     s.paint(["nose tip", "wing pylon", "diffuser", "diffuser strake"], "gloss dark brown")
     s.paint("inner", "dark brown satin")
+    s.paint("wheel covers", "gloss cream")
     s.paint("rim", "gold")
     s.paint("brake caliper", "yellow")
     s.paint("seat", "black leather")

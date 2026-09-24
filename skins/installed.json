@@ -5,9 +5,14 @@
     "sha256": "b08beaf9611187205d0d8a2432d9dcb79959680f3bd4aeae0ef36a615d47dd9f"
   },
   "TSC_Donuts.zip": {
-    "bytes": 6017520,
-    "installed": "2026-09-24T19:48:58",
-    "sha256": "0c3d747232c221a1ec5915e9b8b381ef10f34527257f5f1619fd78c074c09025"
+    "bytes": 5725729,
+    "installed": "2026-09-24T20:03:36",
+    "sha256": "17de48c1be21cb7393c3f1f8fea16580fac973b9b846dbd4239dcb3d1bf6d18c"
+  },
+  "TSC_IceCreamSweet.zip": {
+    "bytes": 3809094,
+    "installed": "2026-09-24T22:04:14",
+    "sha256": "22fac8a98f06d17ba13cc8618aaf0e16f0867f4b7a3e67c853e5a2665fe95939"
   },
   "TSC_Lab.zip": {
     "bytes": 3360002,

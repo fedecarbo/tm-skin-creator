@@ -1,8 +1,10 @@
 """DDS files the way Trackmania wants them: legacy D3D9 headers and a full mip chain.
 
-Colour blocks (BC1, and the colour half of BC3) come from Pillow's "bcn" encoder. Single-channel
-blocks (BC4, both halves of BC5, the alpha half of BC3) come from our own encoder, bc4_blocks,
-which keeps Details_I glow codes exact. The header is written here, copying the layout of
+Every block comes from our own numpy encoders. Colour blocks (BC1, and the colour half of BC3)
+from bc1_blocks: endpoints on each block's principal axis, refined by least squares; Pillow's
+"bcn" encoder was 5 dB worse and put visible fringes round sticker outlines (2026-09-24).
+Single-channel blocks (BC4, both halves of BC5, the alpha half of BC3) from bc4_blocks, which
+keeps Details_I glow codes exact. The header is written here, copying the layout of
 Nadeo's reference files (flags 0xA1007, caps 0x401008, "A2XY" in the ATI2 bit-count field).
 Nadeo's ATI2 files store the first block = channel 0 (normal X, roughness): see CHECKLIST.md.
 
@@ -87,6 +89,79 @@ def build_mips(image, srgb=False, normal=False, codes_in_alpha=False):
     return out
 
 
+def _to565(c):
+    r = np.clip(np.rint(c[..., 0] / 255 * 31), 0, 31).astype(np.uint16)
+    g = np.clip(np.rint(c[..., 1] / 255 * 63), 0, 63).astype(np.uint16)
+    b = np.clip(np.rint(c[..., 2] / 255 * 31), 0, 31).astype(np.uint16)
+    return (r << 11) | (g << 5) | b
+
+
+def _from565(v):
+    r = ((v >> 11) & 31).astype(np.float32) * 255 / 31
+    g = ((v >> 5) & 63).astype(np.float32) * 255 / 63
+    b = (v & 31).astype(np.float32) * 255 / 31
+    return np.stack([r, g, b], -1)
+
+
+def _palette(q0, q1):
+    e0, e1 = _from565(q0), _from565(q1)
+    return np.stack([e0, e1, (2 * e0 + e1) / 3, (e0 + 2 * e1) / 3], 1)
+
+
+def bc1_blocks(rgb, iters=3):
+    """Our own BC1 encoder for a uint8 (h, w, 3) image (sides multiples of 4). Returns
+    (n_blocks, 8) uint8, every block in 4-colour mode (color0 > color1, or equal with all
+    indices 0), so no texel turns transparent. Endpoints start at the ends of each block's
+    principal axis and are refined by least squares against the chosen indices."""
+    h, w = rgb.shape[:2]
+    if h % 4 or w % 4:  # the smallest mips: pad to whole blocks by repeating the edge
+        rgb = np.pad(rgb, ((0, -h % 4), (0, -w % 4), (0, 0)), mode="edge")
+        h, w = rgb.shape[:2]
+    px = rgb.reshape(h // 4, 4, w // 4, 4, 3).transpose(0, 2, 1, 3, 4).reshape(-1, 16, 3).astype(np.float32)
+    n = len(px)
+    mean = px.mean(1, keepdims=True)
+    cen = px - mean
+    cov = np.einsum("bki,bkj->bij", cen, cen)
+    v = np.ones((n, 3), np.float32) / np.sqrt(3)
+    for _ in range(8):  # power iteration: the principal axis
+        v = np.einsum("bij,bj->bi", cov, v)
+        v /= np.maximum(np.linalg.norm(v, axis=1, keepdims=True), 1e-6)
+    proj = np.einsum("bki,bi->bk", cen, v)
+    c0 = mean[:, 0] + v * proj.min(1, keepdims=True)
+    c1 = mean[:, 0] + v * proj.max(1, keepdims=True)
+    weights = np.array([1, 0, 2 / 3, 1 / 3], np.float32)
+    for _ in range(iters):
+        pal = _palette(_to565(c0), _to565(c1))
+        idx = ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).argmin(-1)
+        wa = weights[idx]
+        wb = 1 - wa
+        aa, ab, bb = (wa * wa).sum(1), (wa * wb).sum(1), (wb * wb).sum(1)
+        ra, rb = np.einsum("bk,bkc->bc", wa, px), np.einsum("bk,bkc->bc", wb, px)
+        det = aa * bb - ab * ab
+        good = np.abs(det) > 1e-3
+        d = np.where(good, det, 1)[:, None]
+        n0 = (bb[:, None] * ra - ab[:, None] * rb) / d
+        n1 = (aa[:, None] * rb - ab[:, None] * ra) / d
+        c0 = np.where(good[:, None], np.clip(n0, 0, 255), c0)
+        c1 = np.where(good[:, None], np.clip(n1, 0, 255), c1)
+    q0, q1 = _to565(c0), _to565(c1)
+    swap = q0 < q1
+    q0, q1 = np.where(swap, q1, q0), np.where(swap, q0, q1)
+    pal = _palette(q0, q1)
+    idx = ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).argmin(-1).astype(np.uint32)
+    idx[q0 == q1] = 0
+    bits = np.zeros(n, np.uint32)
+    for k in range(16):
+        bits |= idx[:, k] << np.uint32(2 * k)
+    blocks = np.zeros((n, 8), np.uint8)
+    blocks[:, 0] = q0 & 255
+    blocks[:, 1] = q0 >> 8
+    blocks[:, 2] = q1 & 255
+    blocks[:, 3] = q1 >> 8
+    blocks[:, 4:] = bits.astype("<u4").view(np.uint8).reshape(n, 4)
+    return blocks
+
+
 def fix_bc1(blocks):
     """Keep every BC1 block in 4-colour mode (color0 > color1), so no texel turns transparent.
 
@@ -158,14 +233,9 @@ def encode_level(level, fourcc):
     if level.ndim == 2:
         level = level[..., None]
     if fourcc == "DXT1":
-        im = Image.fromarray(np.ascontiguousarray(level[..., :3]), "RGB")
-        return fix_bc1(im.tobytes("bcn", mode))
+        return bc1_blocks(level[..., :3]).tobytes()
     if fourcc == "DXT5":
-        # Pillow's colour half, our alpha half.
-        im = Image.fromarray(np.ascontiguousarray(level[..., :4]), "RGBA")
-        blocks = np.frombuffer(im.tobytes("bcn", mode), dtype=np.uint8).reshape(-1, 16).copy()
-        blocks[:, :8] = bc4_blocks(level[..., 3])
-        return blocks.tobytes()
+        return np.concatenate([bc4_blocks(level[..., 3]), bc1_blocks(level[..., :3])], 1).tobytes()
     if fourcc == "ATI1":
         return bc4_blocks(level[..., 0]).tobytes()
     return np.concatenate([bc4_blocks(level[..., 0]), bc4_blocks(level[..., 1])], 1).tobytes()

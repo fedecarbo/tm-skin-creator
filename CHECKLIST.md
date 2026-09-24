@@ -538,7 +538,7 @@ Part 1 comes first, because every design depends on it.
     - The user's taste (2026-09-24, mid-build): illustrations, prints and decals rather than
       photographs. The styles and the defaults follow that.
 
-### [ ] 7. Your first skin, start to finish
+### [x] 7. Your first skin, start to finish
 
 - **What it's for:** the real test. You describe a skin in your own words, and I show it in the
   viewer. You ask for changes, then say yes, and it's in your game.
@@ -554,6 +554,22 @@ Part 1 comes first, because every design depends on it.
     can pick up any skin.
   - Keep a small picture of each version.
   - While iterating, preview from uncompressed textures, and encode DDS only at install.
+  - **Done 2026-09-24 (Fable 5.1), the first round.** The user asked for "an ice cream truck
+    theme". Two takes were shown (TSC_IceCreamTruck, the truck itself; TSC_IceCreamSweet, a
+    mint body sprinkled with cones, lollies and three-scoop cones). The user chose the sweet
+    one, then three rounds of change, each from the game's skin editor close up: an even
+    sprinkle (no clusters of one picture, no bare patches), stickers not pixelated (filtered
+    sampling and a better BC1 encoder), stripe edges sharp (the shape feather 1.5 cm → 0.2 cm).
+    Then: "Sure... if you are confident." Installed and accepted. What the user said and each
+    change: `skins/TSC_IceCreamSweet/notes.md`; pictures of every round in `versions/`.
+    - The promise "yes reaches the game in under 30 seconds" is now 51 s: the new BC1 encoder
+      doubled the build time. Worth trimming (fewer refinement passes on flat blocks, or the
+      mips in parallel) before checkpoint 8.
+    - The user watches sharpness closely and checks it in the game's skin editor at close
+      range: keep every edge, sticker and letter at the texel grain.
+  - [ ] **The comparison round, still to do:** one skin made on Opus 5.5, in a fresh chat with
+    that model picked at the top. Then the user says which model they prefer for everyday
+    use, and checkpoint 8's skill recommends it.
 
 ### [ ] 8. Tidy up for everyday use
 
@@ -593,8 +609,8 @@ Part 1 comes first, because every design depends on it.
   textures.
 - **The viewer is a three.js page** served by Python. Claude's snapshots come from Playwright
   driving Edge.
-- **DDS files come from our own writer:** Pillow's block encoder, a legacy header and a mip
-  chain.
+- **DDS files come from our own writer:** our own block encoders (numpy), a legacy header and
+  a mip chain. Pillow's BC1 was 5 dB worse (2026-09-24).
 - **Install:** one zip per skin, no spaces in its name, with `Icon.tga`, recorded in
   `skins/installed.json`.
 - **Viewer must-haves (user, 2026-09-23):** spin and zoom, day and night, hide and show parts.
@@ -758,8 +774,11 @@ Part 1 comes first, because every design depends on it.
     wrong glow code, and was off by 21/255 at hard edges. `tool/dds.py` has its own BC4
     encoder (min/max endpoints, both modes). Glow codes now survive on 99.999 % of texels,
     with a maximum of 8 off, so they still snap to the right code.
-  - Pillow's BC1 still does colour. Flat colours can land up to 6/255 off: its endpoint
-    rounding isn't nearest. Revisit before fine designs.
+  - Pillow's BC1 did colour until checkpoint 7 (2026-09-24), when the user's close-up game
+    screenshots showed pixelated stickers: it was 5 dB worse than a refined encoder and put
+    fringes round every edge. `tool/dds.py` now has its own BC1 (`bc1_blocks`: endpoints on
+    each block's principal axis, refined by least squares; on a par with Microsoft's texconv,
+    which was tried and removed). Building a zip went from 25 s to 51 s.
   - Nadeo's own mips average the glow codes: 35 % of texels are off-code at mip 6. Ours
     point-sample the alpha, so the codes stay exact at every mip.
 - **2026-09-23, the model's orientation.**
@@ -888,3 +907,19 @@ Part 1 comes first, because every design depends on it.
     (distance-transform) edges. Those two ideas are what rules 1 and 2 adopt. Nothing else was
     taken from it.
   - scipy 1.18.1 added (connected components, nearest-neighbour lookups).
+- **Checkpoint 7, the first skin (2026-09-24, Fable 5.1).**
+  - **Texel pitch on the body at 4096² is 0.09 cm** (median; measured on the bake). A 12 cm
+    sticker is about 130 texels wide, a BC1 block 3.6 mm.
+  - **Pictures were aliased:** a decal or scatter copy took one picture pixel per texel, and a
+    400-px sticker has three times the texels' pixels, so its thin outlines came out broken;
+    the user saw them pixelated in the game's skin editor. `paint.project_points` now filters
+    the picture down to the texel pitch (Lanczos) and samples it bilinearly (`fit_to_texels`).
+  - **An even scatter** (the user: clusters of the same picture, bare patches): each copy takes
+    the picture least used among its neighbours; a copy that doesn't fit is nudged, turned and
+    shrunk before it's given up; a second pass fills patches still bare (measured from the
+    copies' outlines) with smaller copies.
+  - A tall picture (a cone) on the flank: `PIL.Image.rotate(expand=True)` then crop to the
+    alpha's bbox, or `width` counts the empty corners and the picture comes out small.
+  - Two picture-maker runs with the same words share one folder in `build/pictures/`, so the
+    second overwrites the first even with another style: give the style its own slug.
+  - `tool/skin.py` keeps `skins/<name>/versions/<n>.png`, one picture per round shown.

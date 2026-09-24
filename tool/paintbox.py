@@ -23,7 +23,9 @@ colour (carbon black, chrome silver), which a stated colour overrides. Later cal
 earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn in 3D.
 
 `where`: a part or assembly name from car/parts.json, a list of them, or one of the words
-"body" (the Skin set), "inner" (Details), "tyres" (Wheels), "glass", "everything".
+"body" (the paint set without the wheel covers), "wheels" (the covers, rims, hubs and wheel
+rings: their own design step, never touched by body paint), "wheel covers", "inner" (Details),
+"tyres" (Wheels), "glass", "everything".
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front".
 
 The result: Skin.textures() gives the game's textures as float arrays; show() puts them in the
@@ -43,8 +45,13 @@ from tool import bake, colours, coverage, dds, finishes, fonts, looks, pack, pai
 from tool.testskin import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
-SET_WORDS = {"body": "Skin", "skin": "Skin", "inner": "Details", "details": "Details", "inside": "Details",
-             "tyres": "Wheels", "tires": "Wheels", "wheels": "Wheels", "glass": "Glass"}
+SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside": "Details",
+             "tyres": "Wheels", "tires": "Wheels", "glass": "Glass"}
+# "body" is the paint set without the wheel covers: the wheels are their own design step and
+# body paint or a scatter must never reach them (user, 2026-09-24). "wheels" is everything on
+# a wheel but the tyre: the covers (Skin) and the rims, hubs and wheel rings (Details).
+WHEEL_COVER_PARTS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
+WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "wheel ring")
 GLOW_CODES = np.array([0, 32, 64, 96, 128, 160, 192, 224, 255])
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
@@ -175,6 +182,16 @@ class Skin:
             if key in SET_WORDS:
                 tset = SET_WORDS[key]
                 out.setdefault(tset, set()).update(i for i, inst in enumerate(self.parts.instances) if inst["mesh"] == tset)
+                continue
+            if key == "body":
+                out.setdefault("Skin", set()).update(i for i, inst in enumerate(self.parts.instances)
+                                                     if inst["mesh"] == "Skin" and inst["name"] not in WHEEL_COVER_PARTS)
+                continue
+            if key in ("wheels", "wheel", "wheel covers", "wheel cover"):
+                group = WHEEL_PARTS if key.startswith("wheels") or key == "wheel" else WHEEL_COVER_PARTS
+                for name in group:
+                    for i in self.parts.select(name):
+                        out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
                 continue
             bits = [b.strip() for b in key.split("|")]
             side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
@@ -430,20 +447,26 @@ class Skin:
         or run off a panel's edge is left out, so nothing is ever cut (user, 2026-09-24). size:
         the copy's width in cm, or (smallest, largest); spacing: the least distance between
         copies in cm (default: a little more than the largest size, so they never overlap);
-        turn: "random", "length" (along the car) or an angle in degrees from the car's length."""
-        images = list(image) if isinstance(image, (list, tuple)) else [image]  # several: a random one per copy
+        turn: "random", "length" (along the car) or an angle in degrees from the car's length.
+        The spread is even (user, 2026-09-24: the first version bunched up and left bare
+        patches): each copy takes the picture least used among its neighbours, a copy that
+        doesn't fit is nudged, turned and shrunk before it's given up, and a second pass fills
+        any patch still bare with smaller copies."""
+        from scipy.spatial import cKDTree
+        images = list(image) if isinstance(image, (list, tuple)) else [image]
         arrs = []
         for im in images:
             if isinstance(im, (str, bytes, os.PathLike)) or hasattr(im, "read"):
                 im = Image.open(im)
             arrs.append(np.asarray(im.convert("RGBA"), np.float32) / 255)
-        tallest = max(a.shape[0] / a.shape[1] for a in arrs)
+        aspects = [a.shape[0] / a.shape[1] for a in arrs]
+        tallest = max(aspects)
         sizes = (float(size), float(size)) if np.isscalar(size) else (float(size[0]), float(size[1]))
         spacing = spacing or sizes[1] * max(1.0, tallest) * 1.15
         rng = np.random.default_rng(self.seed if seed is None else seed)
         fin = finishes.get(finish) if isinstance(finish, str) else finish
         z_axis = np.array([0, 0, 1.0], np.float32)
-        placed = skipped = 0
+        placed = skipped = filled = 0
         t0 = time.time()
         for tset, ids in self._ids(where).items():
             c = self.canvas(tset)
@@ -451,7 +474,6 @@ class Skin:
             if not len(idx):
                 continue
             pos, nrm = c.pos[idx], c.nrm[idx]
-            points = looks.surface_points(pos, spacing, seed=int(rng.integers(1 << 30)), regular=False, relax=8)
             # a coarse 3D grid over the parts' texels, so each copy only looks at its neighbourhood
             reach = sizes[1] * max(1.0, tallest) * 0.75
             cell = np.floor(pos / reach).astype(np.int64)
@@ -461,7 +483,8 @@ class Skin:
             ckey = (cell[:, 0] * dims[1] + cell[:, 1]) * dims[2] + cell[:, 2]
             order = np.argsort(ckey, kind="stable")
             skeys = ckey[order]
-            for pt in points:
+
+            def neighbourhood(pt):
                 pc = np.floor(pt / reach).astype(np.int64) - cmin
                 sub = []
                 for dx in (-1, 0, 1):
@@ -474,57 +497,119 @@ class Skin:
                             a, b = np.searchsorted(skeys, k), np.searchsorted(skeys, k, side="right")
                             if b > a:
                                 sub.append(order[a:b])
-                if not sub:
-                    skipped += 1
-                    continue
-                sub = np.concatenate(sub)
-                ps, ns = pos[sub], nrm[sub]
-                nearest = np.argmin(((ps - pt) ** 2).sum(1))
-                n = ns[nearest]
-                n = n / max(np.linalg.norm(n), 1e-6)
+                return np.concatenate(sub) if sub else None
+
+            def frame(n, ang):
                 up = z_axis - n * float(n @ z_axis)
                 if np.linalg.norm(up) < 0.2:
                     up = np.array([1.0, 0, 0], np.float32) - n * float(n[0])
                 up /= np.linalg.norm(up)
-                if turn == "random":
-                    ang = rng.uniform(0, 2 * np.pi)
-                elif turn == "length":
-                    ang = 0.0
-                else:
-                    ang = np.radians(float(turn))
                 up = np.cos(ang) * up + np.sin(ang) * np.cross(n, up)
-                right = np.cross(up, n)
-                w_cm = rng.uniform(*sizes)
-                arr = arrs[int(rng.integers(len(arrs)))]
-                # where it doesn't fit whole (a fold, a panel's edge), try nudging it a little
-                # and shrinking it a little before giving up, so the spread stays even near seams
+                return up, np.cross(up, n)
+
+            def place(pt, kind, size_range):
+                """Try to lay one copy near pt: nudged, turned and shrunk before giving up.
+                Returns the centre it landed at, or None."""
+                nonlocal placed
+                sub = neighbourhood(pt)
+                if sub is None:
+                    return None
+                ps, ns = pos[sub], nrm[sub]
+                nearest = np.argmin(((ps - pt) ** 2).sum(1))
+                n = ns[nearest]
+                n = n / max(np.linalg.norm(n), 1e-6)
+                if turn == "random":
+                    ang0 = rng.uniform(0, 2 * np.pi)
+                elif turn == "length":
+                    ang0 = 0.0
+                else:
+                    ang0 = np.radians(float(turn))
+                w_cm = rng.uniform(*size_range)
+                arr = arrs[kind]
                 centre = ps[nearest]
-                ok = False
-                for attempt in range(6):
-                    if attempt:
-                        shift = rng.normal(0, 0.25 * w_cm, 2)
+                # attempts: as is; nudged; turned (only when the turn is free); then smaller
+                tries = [(0.0, 0.0, 1.0), (0.3, 0.0, 1.0), (0.3, 0.0, 1.0)]
+                if turn == "random":
+                    tries += [(0.2, np.pi / 2, 1.0), (0.2, np.pi / 4, 1.0), (0.2, -np.pi / 4, 1.0)]
+                tries += [(0.3, 0.0, 0.8), (0.3, np.pi / 2 if turn == "random" else 0.0, 0.65), (0.4, 0.0, 0.5)]
+                for shift_k, dang, scale in tries:
+                    up, right = frame(n, ang0 + dang)
+                    if shift_k:
+                        shift = rng.normal(0, shift_k * w_cm, 2)
                         cand = centre + shift[0] * right + shift[1] * up
-                        near2 = np.argmin(((ps - cand) ** 2).sum(1))
-                        cen, w_try = ps[near2], w_cm * (1 - 0.08 * attempt)
+                        cen = ps[np.argmin(((ps - cand) ** 2).sum(1))]
                     else:
-                        cen, w_try = centre, w_cm
+                        cen = centre
+                    w_try = w_cm * scale
                     alpha, info = paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., 3], cen, right, up, w_try, n, min_facing)
                     if info["landed"] >= min_landed and info["step_cm"] <= step_cm:
-                        ok = True
-                        break
-                hit = np.flatnonzero(alpha > 0.002) if ok else np.zeros(0, np.int64)
-                if not len(hit):
+                        hit = np.flatnonzero(alpha > 0.002)
+                        if not len(hit):
+                            return None
+                        col = np.stack([paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., k], cen, right, up, w_try, n, min_facing)[0][hit]
+                                        for k in range(3)], 1)
+                        gi = idx[sub[hit]]
+                        mm = alpha[hit] * m[sub[hit]]
+                        c.blend(gi, mm, col, np.full(len(gi), fin.roughness, np.float32), np.full(len(gi), fin.metalness, np.float32),
+                                np.full(len(gi), fin.varnish, np.float32))
+                        covered[sub[hit[alpha[hit] > 0.3]]] = True
+                        placed += 1
+                        return cen
+                return None
+
+            def kinds_for(points, done_points, done_kinds):
+                """A picture per point: the one least used among the neighbours already decided
+                (within 2.2 spacings, the nearer ones counting more), ties broken at random,
+                so no picture bunches up."""
+                if len(arrs) == 1:
+                    return [0] * len(points)
+                all_pts = np.asarray(list(done_points) + list(points), np.float32)
+                kinds = list(done_kinds) + [-1] * len(points)
+                tree = cKDTree(all_pts)
+                base = len(done_points)
+                for i in range(len(points)):
+                    j = base + i
+                    counts = np.zeros(len(arrs))
+                    for q in tree.query_ball_point(all_pts[j], 2.2 * spacing):
+                        if q != j and kinds[q] >= 0:
+                            counts[kinds[q]] += 1 / (1 + np.linalg.norm(all_pts[q] - all_pts[j]) / spacing)
+                    best = np.flatnonzero(counts == counts.min())
+                    kinds[j] = int(rng.choice(best))
+                return kinds[base:]
+
+            covered = np.zeros(len(pos), bool)  # texels under a copy, for finding bare patches
+            points = looks.surface_points(pos, spacing, seed=int(rng.integers(1 << 30)), regular=False, relax=8)
+            kinds = kinds_for(points, [], [])
+            centres, centre_kinds = [], []
+            for pt, kind in zip(points, kinds):
+                cen = place(pt, kind, sizes)
+                if cen is None:
                     skipped += 1
-                    continue
-                col = np.stack([paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., k], cen, right, up, w_try, n, min_facing)[0][hit]
-                                for k in range(3)], 1)
-                gi = idx[sub[hit]]
-                mm = alpha[hit] * m[sub[hit]]
-                c.blend(gi, mm, col, np.full(len(gi), fin.roughness, np.float32), np.full(len(gi), fin.metalness, np.float32),
-                        np.full(len(gi), fin.varnish, np.float32))
-                placed += 1
-        self.notes.append(f"scatter on {where}: {placed} copies placed, {skipped} left out for crossing a fold or an edge "
-                          f"({time.time() - t0:.0f} s)")
+                else:
+                    centres.append(cen)
+                    centre_kinds.append(kind)
+            # second pass: texels far from the outline of every copy are a bare patch; sprinkle
+            # it again with smaller copies (it's bare because the full size didn't fit there)
+            for _ in range(2):
+                on = np.flatnonzero(covered)
+                if not len(on):
+                    break
+                sample = pos[rng.choice(len(pos), min(len(pos), 60_000), replace=False)]
+                d, _ = cKDTree(pos[rng.choice(on, min(len(on), 120_000), replace=False)]).query(sample, workers=-1)
+                bare = sample[d > 0.55 * spacing]  # a gap wider than one spacing
+                if len(bare) < 50:
+                    break
+                more = looks.surface_points(bare, 0.8 * spacing, seed=int(rng.integers(1 << 30)), regular=False, relax=4)
+                more_kinds = kinds_for(more, centres, centre_kinds)
+                small = (sizes[0] * 0.7, sizes[1] * 0.85)
+                for pt, kind in zip(more, more_kinds):
+                    cen = place(pt, kind, small)
+                    if cen is not None:
+                        centres.append(cen)
+                        centre_kinds.append(kind)
+                        filled += 1
+        self.notes.append(f"scatter on {where}: {placed} copies placed ({filled} of them smaller ones filling bare patches), "
+                          f"{skipped} spots left bare for crossing a fold or an edge ({time.time() - t0:.0f} s)")
         return self
 
     def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,

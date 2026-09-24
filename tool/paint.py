@@ -84,11 +84,31 @@ def project_near(bake, image, centre, right, up, width_cm, facing, min_facing=0.
     return vals.reshape(bake["position"].shape[:2]), info
 
 
-def project_points(pos, nrm, cov, image, centre, right, up, width_cm, facing, min_facing=0.3, cell_cm=1.5, tol_cm=10.0):
+TEXEL_CM = 0.09  # the body's texel pitch at 4096² (median 0.089 cm, measured 2026-09-24)
+
+
+def fit_to_texels(image, width_cm, texel_cm):
+    """The picture filtered down to about one pixel per texel, so sampling it can't alias.
+    A picture with fewer pixels than that is left alone."""
+    ih, iw = image.shape
+    want = width_cm / texel_cm
+    if iw <= 1.25 * want:
+        return image
+    from PIL import Image
+    w2 = max(2, int(round(want)))
+    h2 = max(2, int(round(ih * w2 / iw)))
+    im = Image.fromarray(np.ascontiguousarray(image, np.float32), "F").resize((w2, h2), Image.LANCZOS)
+    return np.clip(np.asarray(im, np.float32), 0, 1)
+
+
+def project_points(pos, nrm, cov, image, centre, right, up, width_cm, facing, min_facing=0.3, cell_cm=1.5, tol_cm=10.0,
+                   texel_cm=TEXEL_CM):
     """project_near() on flat arrays of texels: pos (n, 3), nrm (n, 3), cov (n,) bool.
     Returns (values (n,), info). The depth test works per cell_cm cell of the image: a texel is
-    kept if it's within tol_cm of the nearest texel in its cell or the cells around it."""
-    from scipy.ndimage import maximum_filter
+    kept if it's within tol_cm of the nearest texel in its cell or the cells around it.
+    The picture is filtered to the texel pitch and sampled bilinearly (no aliasing)."""
+    from scipy.ndimage import map_coordinates, maximum_filter
+    image = fit_to_texels(image, width_cm, texel_cm)
     ih, iw = image.shape
     cm_per_px = width_cm / iw
     facing = np.asarray(facing, np.float32)
@@ -114,7 +134,8 @@ def project_points(pos, nrm, cov, image, centre, right, up, width_cm, facing, mi
     keep = np.zeros(len(pos), bool)
     keep[ok] = depth[ok] >= near[cy, cx] - tol_cm
     ti, si = t[keep].astype(int), s[keep].astype(int)
-    out[keep] = image[ti, si]
+    # bilinear, with pixel centres at +0.5 (the picture's edge fades over half a pixel)
+    out[keep] = map_coordinates(image, [t[keep] - 0.5, s[keep] - 0.5], order=1, mode="nearest")
     # how much landed, counted in half-centimetre cells (the image has more pixels than the
     # car has texels, so a pixel count would miss most of them)
     q = max(1, int(round(0.5 / cm_per_px)))

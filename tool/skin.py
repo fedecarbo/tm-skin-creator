@@ -6,7 +6,8 @@
     python -m tool.skin list                   every skin, newest first
 
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),
-notes.md (the user's words and each change they asked for), thumb.png (the latest picture).
+notes.md (the user's words and each change they asked for), thumb.png (the latest picture),
+versions/<n>.png (a picture of every round shown).
 show() also refreshes the gallery page's list (tool/gallery.py).
 """
 
@@ -47,8 +48,11 @@ def show(name, open_browser=False, snapshot=True):
     paintbox.save_painted(s)
     print(f"exported in {time.time() - t0:.0f} s")
     if snapshot:
-        # the front three-quarter view becomes the skin's picture in the gallery
-        snap.snap(name, prepare=False, thumb=paths.SKINS / name / "thumb.png")
+        # the front three-quarter view becomes the skin's picture in the gallery, and a numbered
+        # copy in versions/ keeps every round the user has seen (checkpoint 7)
+        thumb = paths.SKINS / name / "thumb.png"
+        snap.snap(name, prepare=False, thumb=thumb)
+        keep_version(name, thumb)
     gallery.refresh()
     if open_browser:
         from tool import view
@@ -64,6 +68,19 @@ def show(name, open_browser=False, snapshot=True):
         import threading
         threading.Event().wait()
     return s
+
+
+def keep_version(name, thumb):
+    """Copy the skin's picture to skins/<name>/versions/<n>.png, unless it matches the last one."""
+    import shutil
+    folder = paths.SKINS / name / "versions"
+    folder.mkdir(exist_ok=True)
+    kept = sorted(folder.glob("*.png"), key=lambda p: int(p.stem))
+    if kept and kept[-1].read_bytes() == thumb.read_bytes():
+        return
+    n = int(kept[-1].stem) + 1 if kept else 1
+    shutil.copyfile(thumb, folder / f"{n}.png")
+    print(f"version {n} kept")
 
 
 def do_install(name):

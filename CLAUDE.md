@@ -51,6 +51,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Before adding any tool or library, look up its latest release and use that version, then
   record it. If a paid option would be far better, tell the user and discuss it before using it.
 
+## Design rules from the user
+
+- **The wheels are their own design step (2026-09-24).** Body paint, prints and scatters
+  cover the body only; "body" in the paint box excludes the wheel covers. Paint the wheels
+  ("wheels": covers, rims, hubs, wheel rings; "tyres" separately) with their own calls.
+
 ## Talking to the user
 
 - Use plain words. Leave code, file names, paths and jargon out of replies unless they ask.

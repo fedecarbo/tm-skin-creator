@@ -8,6 +8,7 @@ def design(s):
     s.paint("body", "bananas")
     s.paint(["nose tip", "wing pylon", "diffuser", "diffuser strake"], "gloss dark brown")
     s.paint("inner", "dark brown satin")
+    s.paint("wheel covers", "gloss cream")
     s.paint("rim", "gold")
     s.paint("brake caliper", "yellow")
     s.paint("seat", "black leather")
