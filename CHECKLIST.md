@@ -568,9 +568,19 @@ Part 1 comes first, because every design depends on it.
       about 2 minutes). Don't trade quality for build time.
     - The user watches sharpness closely and checks it in the game's skin editor at close
       range: keep every edge, sticker and letter at the texel grain.
-  - [ ] **The comparison round, still to do:** one skin made on Opus 5.5, in a fresh chat with
-    that model picked at the top. Then the user says which model they prefer for everyday
-    use, and checkpoint 8's skill recommends it.
+  - [x] **The comparison round:** one skin made on Opus 5.5, in a fresh chat with that model
+    picked at the top. Then the user says which model they prefer for everyday use, and
+    checkpoint 8's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
+    user: "in Opus 5.5 the skin looks pretty cool. I'm impressed. Could have looked for other
+    minor details, but I'm very happy with initial results. I can then tweak."
+    - **Made 2026-09-24/25 on Opus 5.5:** the user asked for their CMYK car with "the skin
+      peeling off" to reveal CMYK. Two takes (TSC_CMYK_Peel, TSC_CMYK_Peel_More), four rounds
+      of change (see their notes.md); the user chose TSC_CMYK_Peel_More and it's installed.
+      The user's verdict is above. The "minor details" were things like the sidepod frame
+      still wearing the old colour run, which the user had to spot: before showing a skin
+      built on an earlier one, go over every visible part's inherited paint.
+    - New in the paint box: `Skin.keep()` and `Skin.peel()` (tool/peel.py), a top layer torn
+      open to show a kept layer underneath.
 
 ### [ ] 8. Tidy up for everyday use
 
@@ -584,8 +594,8 @@ Part 1 comes first, because every design depends on it.
   - Cut the build-phase parts of `CLAUDE.md`. Replace the `@BRIEF.md` import with the few lines
     of the brief that still apply.
   - Check the current Claude Code docs on skills first.
-  - The skill recommends whichever model won checkpoint 7 for the everyday loop. Fable 5.1
-    turns can take minutes, which fits the user's "looks first".
+  - The skill recommends Opus 5.5 for the everyday loop: it won checkpoint 7's comparison
+    (2026-09-25). Fable 5.1 stays the step-up when a design stalls.
 
 ## Decisions (for Claude)
 
@@ -623,6 +633,7 @@ Part 1 comes first, because every design depends on it.
   **One-time-payment tools of incredible quality: always suggest them (user, 2026-09-24).**
   Subscriptions still need a discussion first.
 - **The user has Club access (2026-09-23),** which custom skins need.
+- **Everyday model (user, 2026-09-25): Opus 5.5,** after checkpoint 7's comparison.
 - **Models (user, 2026-09-23):** the user can use Fable 5.1, for the steps that need the best.
   Fable 5.1 runs checkpoint 3 and the first round of checkpoint 7, and is the step-up when a
   step stalls. Opus 5.5 handles the other hard steps, and Sonnet 5 the straightforward ones.
@@ -637,6 +648,22 @@ Part 1 comes first, because every design depends on it.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-24/25, a torn wrap (checkpoint 7's comparison round, TSC_CMYK_Peel).**
+  - Paint can't fake big 3D shapes: strips of wrap folded back over the body, shaded as a
+    curl, looked flat to the user. Small, crisp cues work; big illusions don't.
+  - Any fade along an edge reads as a soft edge. A soft shadow inside the tears made crisp cuts
+    look blurred; a hard-edged band (solid, one-texel edge) gives depth and stays crisp.
+  - A shadow painted for one light direction looks wrong from the other side: from the rear
+    camera it didn't read as 3D. An even band all round every edge (light from straight
+    above) reads from every camera.
+  - Torn edges: fractal noise gives spray-paint specks; faceted noise (value noise without its
+    smoothstep) gives straight runs and sharp corners, like torn vinyl.
+  - A texel whose centre misses every triangle had its baked position at the origin, so a
+    pattern drew a speck there along the seams. The paint box's canvas now gives such texels
+    the nearest covered texel's position.
+  - `noise._hash` in 32-bit arithmetic gives the same values in half the time; `value()` is
+    1.7x faster, which every pattern benefits from.
 
 - **2026-09-24, pictures on the car (checkpoint 6).**
   - A decal restricted to one named panel stops dead at the next panel; the user saw the

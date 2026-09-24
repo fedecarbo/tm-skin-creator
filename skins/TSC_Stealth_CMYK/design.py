@@ -10,9 +10,10 @@ ACCENT = ["sidepod grille", "side vent", "brake caliper", "seat belt", "brake li
 C, M, Y = "#00c8ff", "#ff1fa8", "#ffe600"
 
 
-def stealth_base(s):
+def stealth_base(s, seams=True):
     s.paint("body", "matte", colour="#232528")
-    s.paint("body", "gloss", colour="#26282b", zone=shapes.seams(1.5, parts=MAIN))
+    if seams:
+        s.paint("body", "gloss", colour="#26282b", zone=shapes.seams(1.5, parts=MAIN))
     s.paint("inner", "satin", colour="#2a2b2e")
     s.paint(["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm", "sidepod strut"], "carbon")
     s.paint(["damper", "rear damper", "upright", "hub bracket", "driveshaft", "upright cover", "hub", "sidepod frame"], "satin", colour="#1e1f22")
@@ -29,8 +30,8 @@ def run(s, where):
     s.paint(where, "satin", colour=Y, zone=shapes.fade("z", -10, -47))
 
 
-def design(s, bold=False):
-    stealth_base(s)
+def design(s, bold=False, seams=True):
+    stealth_base(s, seams)
     run(s, ["sidepod frame", "sidepod grille", "sidepod panel", "seat belt"])
     s.paint(["brake caliper", "brake line", "front wing endplate"], "satin", colour=C)
     s.paint(["side vent", "rear strake"], "satin", colour=Y)

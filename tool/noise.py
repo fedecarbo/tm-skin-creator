@@ -4,6 +4,8 @@ Every function takes points p as an (n, 3) float array in cm and returns (n,) fl
 plain numpy, so a whole texture's worth of points (millions) goes through in seconds.
 
     value(p, seed)          smooth value noise, 0..1, one cycle per ~1 cm
+    value(p, seed, smooth=False)  the same, straight between the lattice points: faceted,
+                            so a threshold of it has angular edges (torn paper, vinyl)
     fbm(p, octaves, seed)   layered noise, 0..1, the usual "natural" look
     worley(p, seed)         distance to the nearest random cell point, 0..~1 (cells ~1 cm)
     cell_id(p, seed)        the id of the nearest random cell point (for colouring cells)
@@ -14,20 +16,23 @@ import numpy as np
 
 
 def _hash(ix, iy, iz, seed):
-    """A pseudo-random 0..1 per integer lattice point."""
-    h = (ix.astype(np.int64) * 374761393 + iy.astype(np.int64) * 668265263
-         + iz.astype(np.int64) * 2147483647 + int(seed) * 1013904223) & 0xFFFFFFFF
-    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
-    h = h ^ (h >> 16)
-    return (h & 0xFFFFFF).astype(np.float32) / 0xFFFFFF
+    """A pseudo-random 0..1 per integer lattice point. In 32-bit arithmetic, which wraps just
+    like the masked 64-bit version it replaced (the same values, in half the time)."""
+    u = np.uint32
+    h = (ix.astype(u) * u(374761393) + iy.astype(u) * u(668265263)
+         + iz.astype(u) * u(2147483647) + u((int(seed) * 1013904223) & 0xFFFFFFFF))
+    h = (h ^ (h >> u(13))) * u(1274126177)
+    h = h ^ (h >> u(16))
+    return (h & u(0xFFFFFF)).astype(np.float32) / 0xFFFFFF
 
 
-def value(p, seed=0):
+def value(p, seed=0, smooth=True):
     p = np.asarray(p, np.float32)
     i = np.floor(p)
     f = p - i
-    f = f * f * (3 - 2 * f)  # smoothstep
-    ix, iy, iz = (i[:, k].astype(np.int64) for k in range(3))
+    if smooth:
+        f = f * f * (3 - 2 * f)  # smoothstep
+    ix, iy, iz = (i[:, k].astype(np.int32) for k in range(3))
     fx, fy, fz = f[:, 0], f[:, 1], f[:, 2]
     out = np.zeros(len(p), np.float32)
     for dz in (0, 1):

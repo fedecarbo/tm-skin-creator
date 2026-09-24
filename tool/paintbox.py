@@ -15,6 +15,9 @@
         s.paint("sidewall", "white rubber")                   # the tyres' sides
         s.glass("smoke", 0.6)                                 # tint the glass
         s.dirt(0.5)                                           # half as dirty as stock on dirt
+        under = s.keep()                                      # the paint so far, as a layer...
+        s.paint("body", "matte black")                        # ... under a wrap ...
+        s.peel(under, amount=0.2)                             # ... torn open (tool/peel.py)
 
 Words: `what` is a phrase the tool sorts into a colour, a finish and (optionally) a region:
 "dark red carbon, glossy", "brushed steel", "olive camo" (see tool/colours.py, tool/finishes.py,
@@ -78,8 +81,13 @@ class Canvas:
         self.set, self.w, self.h = tset, w, h
         self.bake = bake.bake(tset, w, h)
         self.cov = self.bake["tri"] >= 0
-        self.pos = self.bake["position"].reshape(-1, 3)
-        self.nrm = self.bake["normal"].reshape(-1, 3)
+        # a texel on an island's edge can be partly covered by a part (coverage samples 2x2)
+        # while its centre misses every triangle, so the bake left it at the origin and a
+        # pattern drawn there came out as a speck along the seam: it takes the nearest texel's
+        from scipy.ndimage import distance_transform_edt
+        near = distance_transform_edt(~self.cov, return_distances=False, return_indices=True)
+        self.pos = self.bake["position"][near[0], near[1]].reshape(-1, 3)
+        self.nrm = self.bake["normal"][near[0], near[1]].reshape(-1, 3)
         self._uv_cm = None
         n = w * h
         b = stock(f"{tset}_B" if tset != "Glass" else "Glass_T", (w, h))
@@ -308,6 +316,18 @@ class Skin:
         s.blend_paint("body", "candy purple", "teal", shapes.fade("z", 200, -150))."""
         self.paint(where, what_a, **params)
         self.paint(where, what_b, zone=zone, **params)
+        return self
+
+    def keep(self, tset="Skin"):
+        """A copy of a texture set's paint so far: the layer a peel reveals (tool/peel.py)."""
+        c = self.canvas(tset)
+        return {k: None if getattr(c, k) is None else getattr(c, k).copy() for k in ("colour", "rough", "metal", "coat")}
+
+    def peel(self, under, where="body", **params):
+        """Tear the body's paint open, as a wrap ripped off, to show `under` (from keep())
+        (tool/peel.py has the parameters)."""
+        from tool import peel
+        peel.peel(self, under, where, **params)
         return self
 
     def _glow(self, c, idx, m, col, kind):
