@@ -562,9 +562,10 @@ Part 1 comes first, because every design depends on it.
     sampling and a better BC1 encoder), stripe edges sharp (the shape feather 1.5 cm → 0.2 cm).
     Then: "Sure... if you are confident." Installed and accepted. What the user said and each
     change: `skins/TSC_IceCreamSweet/notes.md`; pictures of every round in `versions/`.
-    - The promise "yes reaches the game in under 30 seconds" is now 51 s: the new BC1 encoder
-      doubled the build time. Worth trimming (fewer refinement passes on flat blocks, or the
-      mips in parallel) before checkpoint 8.
+    - The promise "yes reaches the game in under 30 seconds" became 51 s with the new BC1
+      encoder. The user's call (2026-09-24): "if the compressions are better then so be it...
+      for me quality goes first." So the encoder got a local endpoint search too (+2 dB; a build is now
+      about 2 minutes). Don't trade quality for build time.
     - The user watches sharpness closely and checks it in the game's skin editor at close
       range: keep every edge, sticker and letter at the texel grain.
   - [ ] **The comparison round, still to do:** one skin made on Opus 5.5, in a fresh chat with
@@ -594,6 +595,7 @@ Part 1 comes first, because every design depends on it.
 - **A universal tool (user, 2026-09-23):** any kind of skin, not a fixed set of styles.
 - **Looks before speed (user, 2026-09-23).** Up to about 10 minutes a round is fine if the skin
   is clearly better.
+  The same for the build: a better game file is worth a slower install (user, 2026-09-24).
 - **One design or a few (user, 2026-09-23):** one when the idea is clear, 2–3 takes when it's
   vague.
 - **Wanted extras (user, 2026-09-23):** a local picture maker and a page of all skins. Sharing
@@ -618,6 +620,8 @@ Part 1 comes first, because every design depends on it.
   (user, 2026-09-24).
 - **Free tools only (user, 2026-09-23).** If a paid tool would be far better, tell the user and
   discuss it first. The picture maker is free and local.
+  **One-time-payment tools of incredible quality: always suggest them (user, 2026-09-24).**
+  Subscriptions still need a discussion first.
 - **The user has Club access (2026-09-23),** which custom skins need.
 - **Models (user, 2026-09-23):** the user can use Fable 5.1, for the steps that need the best.
   Fable 5.1 runs checkpoint 3 and the first round of checkpoint 7, and is the step-up when a

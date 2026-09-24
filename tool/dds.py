@@ -108,11 +108,38 @@ def _palette(q0, q1):
     return np.stack([e0, e1, (2 * e0 + e1) / 3, (e0 + 2 * e1) / 3], 1)
 
 
-def bc1_blocks(rgb, iters=3):
+def _block_error(px, q0, q1):
+    pal = _palette(q0, q1)
+    return ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).min(-1).sum(1)
+
+
+def _local_search(px, q0, q1, rounds=1):
+    """Nudge each endpoint one step up and down in each of r, g, b, keeping any change that
+    lowers the block's error. One round is worth +2 dB on a skin (2026-09-24); a second
+    round adds only 0.03 dB."""
+    err = _block_error(px, q0, q1)
+    for _ in range(rounds):
+        for which in (0, 1):
+            for step, top in ((1 << 11, 31), (1 << 5, 63), (1, 31)):
+                for sign in (1, -1):
+                    q = q0 if which == 0 else q1
+                    chan = (q // step) % (top + 1)
+                    can = (chan < top) if sign > 0 else (chan > 0)
+                    q = np.where(can, q.astype(np.int32) + sign * step, q).astype(np.uint16)
+                    t0, t1 = (q, q1) if which == 0 else (q0, q)
+                    e = _block_error(px, t0, t1)
+                    better = (t0 >= t1) & (e < err)  # and stay in 4-colour mode
+                    q0, q1, err = np.where(better, t0, q0), np.where(better, t1, q1), np.where(better, e, err)
+    return q0, q1
+
+
+def bc1_blocks(rgb, iters=3, search=1):
     """Our own BC1 encoder for a uint8 (h, w, 3) image (sides multiples of 4). Returns
     (n_blocks, 8) uint8, every block in 4-colour mode (color0 > color1, or equal with all
     indices 0), so no texel turns transparent. Endpoints start at the ends of each block's
-    principal axis and are refined by least squares against the chosen indices."""
+    principal axis, are refined by least squares against the chosen indices (3 passes:
+    more don't help), then a local search nudges them a step at a time (`search` rounds).
+    Quality over build time: the user's call (2026-09-24)."""
     h, w = rgb.shape[:2]
     if h % 4 or w % 4:  # the smallest mips: pad to whole blocks by repeating the edge
         rgb = np.pad(rgb, ((0, -h % 4), (0, -w % 4), (0, 0)), mode="edge")
@@ -147,6 +174,8 @@ def bc1_blocks(rgb, iters=3):
     q0, q1 = _to565(c0), _to565(c1)
     swap = q0 < q1
     q0, q1 = np.where(swap, q1, q0), np.where(swap, q0, q1)
+    if search:
+        q0, q1 = _local_search(px, q0, q1, search)
     pal = _palette(q0, q1)
     idx = ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).argmin(-1).astype(np.uint32)
     idx[q0 == q1] = 0

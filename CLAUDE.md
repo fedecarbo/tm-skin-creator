@@ -50,6 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   commit only when asked. Never push files that aren't ours to publish.
 - Before adding any tool or library, look up its latest release and use that version, then
   record it. If a paid option would be far better, tell the user and discuss it before using it.
+  Always suggest a one-time-payment tool when its quality is far better (user, 2026-09-24).
 
 ## Design rules from the user
 
