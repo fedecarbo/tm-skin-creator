@@ -363,11 +363,22 @@ Part 1 comes first, because every design depends on it.
   - Paint by part name, using `car/parts.json`.
   - Evaluate patterns procedurally in 3D (triplanar on the baked positions), so they don't
     break at seams.
-  - **Surfaces by name (user, 2026-09-24).** The user wants to ask for materials in words:
-    "carbon", "brushed metal", "hex", "camo", "worn", "scratched". Build a named library of
-    surface patterns next to `tool/finishes.py`, each a pattern plus a default finish, and let
-    any finish override it ("worn matte olive", "brushed titanium"). The body takes no relief,
-    so body patterns are paint only; the inner car can have relief through `Details_N`.
+  - **A library of finishes (user, 2026-09-24).** "Finish" is the user's word for the whole
+    family: how a surface looks, from its shine, a pattern, or wear. Grow `tool/finishes.py`
+    into a named library, each entry a look (a pattern drawn in 3D) plus a default shine
+    (roughness, metalness, varnish), with any shine able to override it ("scratched matte
+    olive", "brushed gold"). The user asked for car-relevant materials; the agreed target:
+    - paint: gloss, satin, matte, metallic (flake), pearl, candy;
+    - metal: chrome, polished aluminium, brushed steel, brushed titanium, gunmetal, gold,
+      copper, anodised (a colour on metal), raw cast;
+    - composites and plastics: carbon weave, forged carbon, kevlar, gloss plastic, matte
+      plastic, rubber, vinyl wrap;
+    - inside: leather, cloth, belt webbing;
+    - wear: scratched, chipped, dusty, faded, rusted, greasy, race-worn;
+    - light: neon (a self-lit colour, via `Details_I` code 96), reflective tape.
+    Limits to say out loud when asked: no holographic or colour-shift paint (the game's
+    shading can't), and the body takes no relief, so body patterns and scratches are paint
+    only; the inner car can have relief through `Details_N`.
   - Fonts: the Windows fonts (Bahnschrift, Impact, Arial Bold) plus a few free OFL Google
     Fonts. Pin them and record their licences.
   - **Gallery page** in `viewer/`: one thumbnail per skin, newest first, the installed one
