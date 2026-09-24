@@ -194,7 +194,7 @@ Part 1 comes first, because every design depends on it.
       ACES pulls orange towards yellow, as the game does. `TUNE` in `viewer.js` (exposure, env,
       key, coat) can be overridden from the URL when matching again.
 
-### [ ] 3. The car taken apart
+### [x] 3. The car taken apart
 
 - **What it's for:** the tool learns every part of the car, so "red brake discs" or "a stripe
   down the bonnet" lands exactly where it should. The 3D model has no named parts. It's four
@@ -261,6 +261,23 @@ Part 1 comes first, because every design depends on it.
     - Downsample colour for the mips in linear light.
   - **Viewer.** Add a parts list with hide/show, isolate, click-to-name and a colour-by-part
     mode.
+  - **Done 2026-09-24.** The user checked TSC_Parts in the game (several rounds on the borders,
+    see "Clean borders" under Things we learned) and the viewer, and ticked it.
+    - `tool/segment.py` splits each mesh into pieces (vertex-connected), groups (touching
+      pieces) and mirror twins; ids are deterministic and cached in the work folder.
+    - `tool/naming.py` is the naming table, written by eye from labelled renders: 87 names in
+      14 assemblies. `tool/parts.py` resolves it to every triangle (unnamed pieces join the
+      nearest named piece of their mesh), writes `car/parts.json` (205 instances: name + side +
+      end, pieces, texels, shared share) and gives texel masks: `parts.load().mask(bake, set,
+      name, side=, end=)`. `python -m tool.parts --review` renders `build/parts_review.png`.
+    - `tool/bake.py` now also bakes `count` (triangles per texel) and `sides` (left/right bits).
+    - `tool/partskin.py` builds TSC_Parts, which paints named parts in loud colours; it's
+      installed. The user checks it in the game; the viewer shows the same.
+    - The viewer has a parts panel (hide/show per part or assembly, "only", click a part to see
+      its name, colour by part, shared-areas overlay). `viewer.showParts(...)` drives it for
+      snapshots (`tool/snap.py` shots take a fifth item).
+    - Known rough edges: some inner names are guesses (side vent, side vane, nose sensor,
+      airbox). The body shell is one part on purpose (see "Clean borders" below).
 
 ### [ ] 4. The materials lab
 
@@ -523,3 +540,57 @@ Part 1 comes first, because every design depends on it.
   - `Skin_CoatR` is probably clear-coat roughness, following Nadeo's `_R` naming. A flat 0
     means a mirror coat over everything, which would explain "matte isn't fully matte". The
     viewer uses it that way until checkpoint 4 tests it.
+- **2026-09-24, checkpoint 3: the car taken apart.**
+  - **The exporter already split the meshes at every hard edge and UV seam** by duplicating
+    vertices: no piece has a normal break or a UV seam inside it. So vertex-connected pieces
+    (Skin 133, Details 1918, Wheels 4, Glass 36) are the crease-and-island split the plan
+    asked for. Welding vertices by position instead gives the touching-piece groups (Skin 38,
+    Details 417), such as an arm with its bolts. Dihedral splitting adds nothing useful: the
+    big body panel and the tyres are smooth, so their regions come from rules (z ranges,
+    normals, radius).
+  - **The Details mesh is a whole inner car:** chassis, floor and plank, front wing with
+    endplates, wishbones, pushrods, dampers, tie rods, brake lines, hubs, rims, calipers,
+    seat, belts and buckle, steering wheel and column, dashboard, mirrors, airboxes, exhausts,
+    rear bumper with three seven-segment digit displays, rear diffuser, side vents.
+  - **The Wheels mesh is only the tyre ring** (radius 29–36 cm): tread and sidewalls. The rims
+    and hubs are Details. The Skin's wheel covers are 16 pieces each: ring, spoked disc, hub.
+  - **Glass:** the canopy carries 15 tiny pieces at its rear, the gear display. Other glass:
+    lenses inside the nose, at the wing hooks, the rear lights, the side vents and the mirrors.
+  - **Mirrored pieces:** 1795 of the 1918 Details pieces have an x-mirrored twin (matched by
+    mirrored bounding box and triangle count ±20 %).
+  - **Shared texels** (several triangles on one texel): Skin 11 % of covered texels (the four
+    wheel covers share one set, plus the nose and tail ends), Details 82 % (nearly every
+    left/right pair, and the four wheels' rims, hubs, calipers), Wheels 100 % (all four tyres),
+    Glass 40 %. `car/parts.json` records each part's `shared` share: a colour on such a part
+    lands on its twin too. Painting one side differently is impossible there.
+  - Rasterising a part's own triangles gives its texel mask; a bake's "last triangle wins"
+    label would lose the shared ones.
+  - **Clean borders: the rules (from the user's game screenshots, 2026-09-24).**
+    1. **A part border lies on a fold of the mesh, never inside a smooth surface.** Splitting
+       the body shell into nose, bonnet and flank was wrong three times over: cut by triangle
+       it was a sawtooth; cut by the surface's slope it kinked at every triangle (the slope is
+       interpolated inside each one) and left slivers at seams; the shell has no fold at all
+       (no crease over 10° except its centre seam). So the shell is one part, "body shell".
+       Zones on it are the paint box's job: shapes in 3D with soft edges, not part names.
+    2. **The few cuts that remain use a distance field with anti-aliased edges:** tread and
+       sidewall by radius from the axle (34.5 cm), the chassis by z. `parts.coverage()` gives
+       0..1 along the border over one texel; `mask()` is coverage > 0.5.
+    3. **Texels between UV islands take the colour of the nearest island** (`raster.fill_holes`
+       is a nearest-neighbour fill). The push-pull average tried first mixed neighbouring
+       islands, and the game's filtering showed a fringe of odd colour along every seam.
+    4. **Paint at 4096²**, the sharpness already decided: a hard edge's step is then ~1 mm.
+    5. **Seams between parts are anti-aliased.** Many islands touch in the atlas with no gap
+       (the cockpit surround and the body shell share a border of 3,500 texels at 4096), so
+       a texel on the seam belongs partly to each. `parts.coverage()` takes 2×2 samples per
+       texel, and a painter mixes each texel's colour by every part's share (`tool/partskin.py`
+       shows the pattern: last colour per instance, then a weighted mix, then the nearest fill
+       for the gaps). Before this, the seam texel went whole to one part, and the game showed
+       a one-texel overflow of the wrong colour, stepped along the seam.
+    6. Cost: painting all 200-odd parts at 4096² takes about 3½ minutes, nearly all of it the
+       coverage rasterising. The paint box should cache each part's coverage per size.
+  - **Looked at the user's other project (`Documents\Trackmania Skin Studio`), with their
+    permission, for this one question.** Its faces are cut only along welded mesh edges that
+    fold by 30° or more, and its shapes are painted as supersampled coverage with feathered
+    (distance-transform) edges. Those two ideas are what rules 1 and 2 adopt. Nothing else was
+    taken from it.
+  - scipy 1.18.1 added (connected components, nearest-neighbour lookups).

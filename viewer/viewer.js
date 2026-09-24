@@ -1,8 +1,9 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
-// Data comes from /data/ (see tool/view.py): car.json + car.bin, the two lighting HDRIs, and
-// skins/<name>/skin.json, which gives the URL of every texture slot.
+// Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
+// with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
+// the two lighting HDRIs, and skins/<name>/skin.json, which gives the URL of every texture slot.
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -164,12 +165,12 @@ async function loadMeshes() {
   const meta = await (await fetch('data/car.json')).json();
   const bin = await (await fetch('data/car.bin')).arrayBuffer();
   const out = {};
-  for (const m of meta.meshes) {
+  for (const m of meta.meshes) {  // one vertex per triangle corner, so parts have hard edges
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(bin, m.position, m.vertices * 3), 3));
     g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(bin, m.normal, m.vertices * 3), 3));
     g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(bin, m.uv, m.vertices * 2), 2));
-    g.setIndex(new THREE.BufferAttribute(new Uint32Array(bin, m.index, m.indices), 1));
+    g.setAttribute('part', new THREE.BufferAttribute(new Float32Array(bin, m.part, m.vertices), 1));
     out[m.name] = g;
   }
   return out;
@@ -180,12 +181,14 @@ const textureLoader = new THREE.TextureLoader();
 async function loadTextures(urls) {
   const colour = new Set(['Skin_B', 'Details_B', 'Wheels_B', 'Glass_T', 'Details_I', 'Glass_I']);
   const out = {};
+  urls = { ...urls, Skin_Shared: 'Skin_Shared.png', Details_Shared: 'Details_Shared.png',
+    Wheels_Shared: 'Wheels_Shared.png', Glass_Shared: 'Glass_Shared.png' };
   await Promise.all(Object.entries(urls).map(async ([slot, url]) => {
     if (!url) return;
     const t = await textureLoader.loadAsync('data/' + url);
     t.colorSpace = colour.has(slot) ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.anisotropy = maxAniso;
-    if (slot.endsWith('_Code')) {  // codes are read exactly: never blended with a neighbour
+    if (slot.endsWith('_Code') || slot.endsWith('_Shared')) {  // read exactly: never blended with a neighbour
       t.minFilter = t.magFilter = THREE.NearestFilter;
       t.generateMipmaps = false;
     }
@@ -211,6 +214,162 @@ function addGlow(material, codeMap) {
         #endif`);
   };
 }
+
+// ---- Parts: every corner carries its part id (car/parts.json). A 256x2 table texture holds,
+// per part, row 0: visible and highlighted flags, row 1: its colour for "colour by part". The
+// materials' shaders read it, so hiding a part is a discard and needs no extra meshes. ----
+
+const partsState = { doc: null, table: null, data: null, mode: { value: 0 }, shared: { value: 0 }, rows: [] };
+
+function partTable() {
+  if (partsState.table) return partsState.table;
+  const data = new Uint8Array(256 * 2 * 4);
+  const n = partsState.doc.parts.length;
+  const names = [...new Set(partsState.doc.parts.map((p) => p.name))];
+  for (let i = 0; i < n; i++) {
+    data[i * 4] = 255;  // visible
+    const h = (names.indexOf(partsState.doc.parts[i].name) * 0.618034) % 1;  // one colour per name
+    const c = new THREE.Color().setHSL(h, 0.75, 0.5);
+    data[(256 + i) * 4] = c.r * 255; data[(256 + i) * 4 + 1] = c.g * 255; data[(256 + i) * 4 + 2] = c.b * 255;
+  }
+  const t = new THREE.DataTexture(data, 256, 2, THREE.RGBAFormat, THREE.UnsignedByteType);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.needsUpdate = true;
+  partsState.table = t;
+  partsState.data = data;
+  return t;
+}
+
+function setPartFlag(ids, channel, on) {  // channel 0: visible, 1: highlighted
+  for (const i of ids) partsState.data[i * 4 + channel] = on ? 255 : 0;
+  partsState.table.needsUpdate = true;
+}
+
+function addParts(material, sharedMap) {
+  const previous = material.onBeforeCompile;
+  material.onBeforeCompile = (shader) => {
+    if (previous) previous(shader);
+    Object.assign(shader.uniforms, { partTable: { value: partTable() }, partMode: partsState.mode,
+      showShared: partsState.shared, sharedMap: { value: sharedMap || null } });
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
+        attribute float part; varying float vPart; varying vec2 vPartUv;`)
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+        vPart = part;
+        vPartUv = uv;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
+        varying float vPart; varying vec2 vPartUv;
+        uniform sampler2D partTable; uniform sampler2D sharedMap; uniform int partMode; uniform int showShared;`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        {
+          float px = (vPart + 0.5) / 256.0;
+          vec4 flags = texture2D( partTable, vec2( px, 0.25 ) );
+          if ( flags.r < 0.5 ) discard;
+          if ( partMode == 1 ) diffuseColor.rgb = mix( diffuseColor.rgb, texture2D( partTable, vec2( px, 0.75 ) ).rgb, 0.85 );
+          if ( showShared == 1 && texture2D( sharedMap, vPartUv ).r > 0.5 ) {
+            float stripe = step( 0.5, fract( ( vPartUv.x + vPartUv.y ) * 160.0 ) );
+            diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 1.0, 0.0, 0.85 ), 0.6 * stripe );
+          }
+          if ( flags.g > 0.5 ) diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 1.0, 0.85, 0.2 ), 0.65 );
+        }`);
+  };
+  material.customProgramCacheKey = () => 'parts';
+}
+
+function partLabel(p) {
+  const tag = [p.end, p.side === 'centre' ? '' : p.side].filter(Boolean).join(' ');
+  return tag ? `${p.name} (${tag})` : p.name;
+}
+
+// The list: one row per (name, end); the row's checkbox hides both sides together.
+function buildPartsList() {
+  const list = document.getElementById('partsList');
+  list.textContent = '';
+  const parts = partsState.doc.parts;
+  for (const asm of partsState.doc.assemblies) {
+    const rows = new Map();
+    parts.forEach((p, i) => {
+      if (p.parent !== asm.name) return;
+      const key = `${p.name}|${p.end}`;
+      if (!rows.has(key)) rows.set(key, { name: p.name, end: p.end, ids: [] });
+      rows.get(key).ids.push(i);
+    });
+    if (!rows.size) continue;
+    const box = document.createElement('div');
+    box.className = 'assembly closed';
+    const head = document.createElement('div');
+    head.className = 'head';
+    const all = document.createElement('input');
+    all.type = 'checkbox';
+    all.checked = true;
+    all.title = 'show or hide the whole assembly';
+    all.onclick = (e) => { e.stopPropagation(); for (const r of rows.values()) r.setVisible(all.checked); };
+    head.append(all, Object.assign(document.createElement('span'), { textContent: asm.name }),
+      Object.assign(document.createElement('span'), { className: 'about', textContent: asm.about }));
+    head.onclick = () => box.classList.toggle('closed');
+    const items = document.createElement('div');
+    items.className = 'items';
+    for (const r of rows.values()) {
+      const row = document.createElement('div');
+      row.className = 'part';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = true;
+      r.setVisible = (on) => { cb.checked = on; row.classList.toggle('off', !on); setPartFlag(r.ids, 0, on); };
+      cb.onclick = (e) => { e.stopPropagation(); r.setVisible(cb.checked); };
+      const name = Object.assign(document.createElement('span'), { className: 'name', textContent: r.name });
+      const tag = Object.assign(document.createElement('span'), { className: 'tag', textContent: r.end || '' });
+      const only = Object.assign(document.createElement('button'), { className: 'only', textContent: 'only', title: 'show only this' });
+      only.onclick = (e) => { e.stopPropagation(); for (const o of partsState.rows) o.setVisible(o === r); box.classList.remove('closed'); };
+      row.onclick = () => highlight(r.ids, r);
+      row.append(cb, name, tag, only);
+      r.row = row;
+      items.append(row);
+      partsState.rows.push(r);
+    }
+    box.append(head, items);
+    list.append(box);
+  }
+}
+
+let litIds = [];
+function highlight(ids, row) {
+  setPartFlag(litIds, 1, false);
+  for (const r of partsState.rows) r.row.classList.remove('lit');
+  litIds = litIds.length && litIds.join() === ids.join() ? [] : ids;  // click again to clear
+  setPartFlag(litIds, 1, true);
+  if (litIds.length) {
+    const r = row || partsState.rows.find((o) => o.ids.includes(ids[0]));
+    if (r) {
+      r.row.classList.add('lit');
+      r.row.parentElement.parentElement.classList.remove('closed');
+      r.row.scrollIntoView({ block: 'nearest' });
+    }
+  }
+}
+
+// Clicking the car names the part under the pointer.
+const raycaster = new THREE.Raycaster();
+const tip = document.getElementById('tip');
+const partOfHit = (hit) => hit.object.geometry.getAttribute('part').getX(hit.face.a);
+let pressAt = null;
+canvas.addEventListener('pointerdown', (e) => { pressAt = [e.clientX, e.clientY]; });
+canvas.addEventListener('pointerup', (e) => {
+  if (!pressAt || Math.hypot(e.clientX - pressAt[0], e.clientY - pressAt[1]) > 4 || !partsState.doc) return;
+  const ndc = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const hit = raycaster.intersectObjects(Object.values(parts).filter((m) => m.visible))
+    .find((h) => partsState.data[partOfHit(h) * 4] > 0);
+  tip.textContent = '';
+  if (!hit) { highlight([]); return; }
+  const id = partOfHit(hit);
+  const p = partsState.doc.parts[id];
+  highlight([id]);
+  tip.textContent = `${partLabel(p)} · ${p.mesh}${p.shared > 0.5 ? ' · shared with its twin' : ''}`;
+  tip.style.left = `${Math.min(e.clientX + 14, innerWidth - 260)}px`;
+  tip.style.top = `${e.clientY + 14}px`;
+});
 
 function buildCar(geoms, tex) {
   const std = (set, extra = {}) => ({
@@ -239,6 +398,7 @@ function buildCar(geoms, tex) {
   }
   const car = new THREE.Group();
   for (const [name, material] of Object.entries({ Skin: skin, Details: details, Wheels: wheels, Glass: glass })) {
+    addParts(material, tex[`${name}_Shared`]);
     const mesh = new THREE.Mesh(geoms[name], material);
     mesh.castShadow = name !== 'Glass';
     mesh.receiveShadow = true;
@@ -264,7 +424,23 @@ function setNight(night) {
 // ---- Controls on the page ----
 
 document.getElementById('day').onclick = () => setNight(false);
-document.getElementById('night').onclick = () => setNight(true);for (const b of document.querySelectorAll('#parts button')) {
+document.getElementById('night').onclick = () => setNight(true);
+const pressed = (id, on) => document.getElementById(id).setAttribute('aria-pressed', String(on));
+document.getElementById('colourBy').onclick = () => {
+  partsState.mode.value = partsState.mode.value ? 0 : 1;
+  pressed('colourBy', partsState.mode.value === 1);
+};
+document.getElementById('shared').onclick = () => {
+  partsState.shared.value = partsState.shared.value ? 0 : 1;
+  pressed('shared', partsState.shared.value === 1);
+};
+document.getElementById('togglePartsPanel').onclick = () => {
+  const panel = document.getElementById('partsPanel');
+  panel.hidden = !panel.hidden;
+  pressed('togglePartsPanel', !panel.hidden);
+};
+document.getElementById('showAll').onclick = () => { for (const r of partsState.rows) r.setVisible(true); highlight([]); tip.textContent = ''; };
+if (innerWidth < 720) document.getElementById('togglePartsPanel').click();for (const b of document.querySelectorAll('#parts button')) {
   b.onclick = () => {
     const mesh = parts[b.dataset.part];
     if (!mesh) return;
@@ -290,6 +466,20 @@ window.viewer = {
     for (const [name, mesh] of Object.entries(parts)) mesh.visible = !hidden.includes(name);
     await frames(3);
   },
+  // Parts settings: { colourBy, shared, hidden: [part names], only: [part names], highlight: [part names] }.
+  // A name matches a part, its assembly, or "name|side|end".
+  async showParts(opts = {}) {
+    const match = (names) => partsState.doc.parts.map((p, i) => [p, i]).filter(([p]) => names.some((n) =>
+      n === p.name || n === p.parent || n === `${p.name}|${p.side}|${p.end}`)).map(([, i]) => i);
+    partsState.mode.value = opts.colourBy ? 1 : 0;
+    partsState.shared.value = opts.shared ? 1 : 0;
+    const hidden = new Set(match(opts.hidden || []));
+    const only = opts.only ? new Set(match(opts.only)) : null;
+    for (const r of partsState.rows) r.setVisible(r.ids.every((i) => !hidden.has(i) && (!only || only.has(i))));
+    highlight([]);
+    if (opts.highlight) highlight(match(opts.highlight));
+    await frames(3);
+  },
   gpu() {
     const gl = renderer.getContext();
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
@@ -313,7 +503,11 @@ async function start() {
   const res = await fetch(`data/skins/${encodeURIComponent(skinName)}/skin.json`);
   if (!res.ok) throw new Error(`no skin called ${skinName} has been prepared for the viewer`);
   const skin = await res.json();
-  const [geoms, tex] = await Promise.all([loadMeshes(), loadTextures(skin.textures), loadLighting()]);
+  const [geoms, tex, , doc] = await Promise.all([loadMeshes(), loadTextures(skin.textures), loadLighting(),
+    fetch('data/parts.json').then((r) => r.json())]);
+  partsState.doc = doc;
+  partTable();
+  buildPartsList();
   addRoom();
   buildCar(geoms, tex);
   setNight(false);

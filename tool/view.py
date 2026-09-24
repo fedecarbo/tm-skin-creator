@@ -6,7 +6,9 @@
 Python's built-in web server serves two folders (ES modules don't load from file://):
   /        the repo's viewer/ folder: the page and three.js
   /data/   the work folder's viewer/ folder, all rebuildable:
-             car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0
+             car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0, each
+                                  corner tagged with its part; parts.json lists the parts
+             <Set>_Shared.png     the texels that several parts share (mirrored or repeated)
              <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
              stock/*.png          Nadeo's stock textures, for anything a skin leaves out
              skins/<name>/        one skin's textures, and skin.json with the URL of every slot
@@ -36,7 +38,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from tool import dds, fbx, paths
+from tool import bake, dds, fbx, parts, paths
 
 DATA = paths.WORK / "viewer"
 STOCK = DATA / "stock"
@@ -69,30 +71,29 @@ def _stale(target, *sources):
 
 
 def export_mesh():
-    """car.bin: per mesh, float32 positions, normals and UVs, then uint32 indices."""
+    """car.bin: per mesh, one vertex per triangle corner (no index), with float32 positions,
+    normals, UVs and the part id of its triangle (car/parts.json). Also parts.json and, per
+    texture set, <Set>_Shared.png: the texels several parts share, for the viewer's overlay."""
     out_json, out_bin = DATA / "car.json", DATA / "car.bin"
-    if not _stale(out_json, fbx.CACHE, paths.FBX):
+    sources = (fbx.CACHE, paths.FBX, parts.PARTS_JSON, parts.CACHE, paths.REPO / "tool" / "naming.py")
+    if not _stale(out_json, *sources):
         return
     meshes = fbx.meshes()
+    p = parts.load()
     lift = -min(m["positions"][:, 1].min() for m in meshes.values())  # wheels on the floor
     blob, index, offset = [], [], 0
     for name, mesh_name in MESHES:
         m = meshes[mesh_name]
         corners = m["tri_vertex"].reshape(-1)
-        uv = m["tri_uv"].reshape(-1, 2)
-        normal = m["tri_normal"].reshape(-1, 3)
-        # One vertex per distinct (position, uv, normal).
-        key = np.concatenate([corners[:, None].astype(np.float32), uv, normal], 1)
-        _, first, inverse = np.unique(np.ascontiguousarray(key).view(f"V{key.shape[1] * 4}"),
-                                      return_index=True, return_inverse=True)
-        pos = (m["positions"][corners[first]] + [0, lift, 0]) * 0.01
+        off = p.mesh_offset[name]
+        part = np.repeat(p.tri_part[off:off + len(m["tri_vertex"])], 3)
         arrays = {
-            "position": pos.astype(np.float32),
-            "normal": normal[first].astype(np.float32),
-            "uv": uv[first].astype(np.float32),
-            "index": inverse.reshape(-1).astype(np.uint32),
+            "position": ((m["positions"][corners] + [0, lift, 0]) * 0.01).astype(np.float32),
+            "normal": m["tri_normal"].reshape(-1, 3).astype(np.float32),
+            "uv": m["tri_uv"].reshape(-1, 2).astype(np.float32),
+            "part": part.astype(np.float32),
         }
-        entry = {"name": name, "vertices": len(first), "indices": len(inverse)}
+        entry = {"name": name, "vertices": len(corners)}
         for field, a in arrays.items():
             entry[field] = offset
             blob.append(a.tobytes())
@@ -100,6 +101,11 @@ def export_mesh():
         index.append(entry)
     DATA.mkdir(parents=True, exist_ok=True)
     out_bin.write_bytes(b"".join(blob))
+    (DATA / "parts.json").write_text(parts.PARTS_JSON.read_text())
+    for tset, (w, h) in parts.BAKE_SIZE.items():
+        b = bake.bake(tset, w, h)
+        shared = ((b["tri"] >= 0) & (b["count"] > 1)).astype(np.uint8) * 255
+        Image.fromarray(shared, "L").save(DATA / f"{tset}_Shared.png", compress_level=1)
     out_json.write_text(json.dumps({"units": "m", "lift_cm": float(lift), "meshes": index}, indent=1))
 
 

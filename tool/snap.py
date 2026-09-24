@@ -16,8 +16,10 @@ from playwright.sync_api import sync_playwright
 
 from tool import paths, view
 
-# (label, view, night, hidden parts). A view is a name from viewer.js's VIEWS, or
-# {"dir": [x, y, z], "dist": metres, "target": [x, y, z]} for a close look.
+# (label, view, night, hidden meshes[, parts]). A view is a name from viewer.js's VIEWS, or
+# {"dir": [x, y, z], "dist": metres, "target": [x, y, z]} for a close look. parts is an optional
+# dict for viewer.showParts: {"colourBy": True, "shared": True, "hidden": [...], "only": [...],
+# "highlight": [...]} with part or assembly names (or "name|side|end").
 SHOTS = (("front three-quarter", "front", False, []), ("rear three-quarter", "rear", False, []),
          ("left side", "left", False, []), ("right side", "right", False, []),
          ("top", "top", False, []), ("night", "front", True, []))
@@ -43,8 +45,9 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query=""):
             if page.evaluate("window.viewer.error"):
                 raise RuntimeError(page.evaluate("window.viewer.error"))
             print(f"GPU: {page.evaluate('viewer.gpu()')}; loaded in {time.time() - start:.1f} s")
-            for label, view_spec, night, hidden in shots:
+            for label, view_spec, night, hidden, *rest in shots:
                 page.evaluate("([v, n, h]) => viewer.show(v, n, h)", [view_spec, night, hidden])
+                page.evaluate("(o) => viewer.showParts(o)", rest[0] if rest else {})
                 tiles.append((label, Image.open(io.BytesIO(page.screenshot()))))
             browser.close()
     finally:

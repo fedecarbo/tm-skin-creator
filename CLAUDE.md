@@ -19,6 +19,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Claude's check: `PY -m tool.snap <name>` saves six views to `build/<name>_views.png`. Look at
     it before showing the user anything. `snap.snap(..., shots=..., query=...)` takes close-ups.
   - `tool/preview.py` renders flat views without materials, for quick checks of texture layout.
+  - Parts (checkpoint 3): `PY -m tool.parts` turns the names in `tool/naming.py` into
+    `car/parts.json` (`--review` renders the car coloured by part). `parts.load().mask(bake,
+    "Details", "brake caliper", side="left", end="front")` is a texel mask. `PY -m tool.partskin`
+    builds the TSC_Parts test skin. Shared texels: see `shared` in `car/parts.json`.
 - Work folder `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`: `venv`, `official` (unpacked zips),
   `cache` (the parsed mesh and bakes), `build` (DDS files and zips), `viewer` (what the viewer
   page loads). All of it is rebuildable.

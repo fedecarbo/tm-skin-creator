@@ -1,4 +1,9 @@
 {
+  "TSC_Parts.zip": {
+    "bytes": 8653551,
+    "installed": "2026-09-24T08:55:05",
+    "sha256": "d898383fe72490ed947f439e1720c8d952bf17b06677b818cca63cd4103ad628"
+  },
   "TSC_Test.zip": {
     "bytes": 7521029,
     "installed": "2026-09-23T23:39:21",

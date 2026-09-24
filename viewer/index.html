@@ -26,6 +26,29 @@
   #status { top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; }
   #status:empty { display: none; }
   body.snap .panel:not(#status) { display: none; }
+  /* The parts list */
+  #partsPanel { top: 12px; right: 12px; width: 300px; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px);
+                display: flex; flex-direction: column; }
+  #partsPanel[hidden] { display: none; }
+  #partsHead { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+  #partsHead .grow { flex: 1; }
+  #partsList { overflow-y: auto; margin-top: 8px; font-size: 13px; padding-right: 4px; }
+  .assembly { margin-top: 6px; }
+  .assembly > .head { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 4px; border-radius: 6px; }
+  .assembly > .head:hover { background: rgba(255, 255, 255, 0.08); }
+  .assembly > .head .about { opacity: 0.55; font-size: 12px; flex: 1; text-align: right; }
+  .assembly.closed > .items { display: none; }
+  .items { margin-left: 18px; }
+  .part { display: flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 6px; cursor: pointer; }
+  .part:hover, .part.lit { background: rgba(255, 200, 60, 0.22); }
+  .part .name { flex: 1; }
+  .part .tag { opacity: 0.55; font-size: 11px; }
+  .part .only { font-size: 11px; padding: 1px 8px; opacity: 0.7; }
+  .part.off .name, .part.off .tag { opacity: 0.4; text-decoration: line-through; }
+  input[type=checkbox] { accent-color: #f2f4f7; margin: 0; }
+  #tip { position: fixed; pointer-events: none; padding: 5px 10px; font-size: 13px; z-index: 5; }
+  #tip:empty { display: none; }
+  @media (max-width: 720px) { #partsPanel { top: auto; bottom: 44px; max-height: 45vh; } }
 </style>
 <!-- three.js 0.186.0, copied from the npm package (jsdelivr) into lib/three, with its licence. -->
 <script type="importmap">
@@ -47,8 +70,18 @@
     <button data-part="Wheels" aria-pressed="true">Wheels</button>
     <button data-part="Glass" aria-pressed="true">Glass</button>
   </div>
-  <div class="hint">Drag to spin, scroll to zoom, right-drag to move.</div>
+  <div class="row">
+    <button id="togglePartsPanel" aria-pressed="true">Parts list</button>
+    <button id="colourBy" aria-pressed="false">Colour by part</button>
+    <button id="shared" aria-pressed="false">Shared areas</button>
+  </div>
+  <div class="hint">Drag to spin, scroll to zoom, right-drag to move. Click a part to see its name.</div>
 </div>
+<div id="partsPanel" class="panel">
+  <div id="partsHead"><span>Parts</span><span class="grow"></span><button id="showAll">Show all</button></div>
+  <div id="partsList"></div>
+</div>
+<div id="tip" class="panel"></div>
 <div id="credit" class="panel">
   Car model: <a href="https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf">Trackmania 2020 CarSport</a>
   by <a href="https://sketchfab.com/amogusstrikesback2">amogusstrikesback2</a>,
