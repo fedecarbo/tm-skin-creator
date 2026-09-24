@@ -376,6 +376,11 @@ Part 1 comes first, because every design depends on it.
     - inside: leather, cloth, belt webbing;
     - wear: scratched, chipped, dusty, faded, rusted, greasy, race-worn;
     - light: neon (a self-lit colour, via `Details_I` code 96), reflective tape.
+    **The user won't sort their words into colour, finish and layout; the tool must** (user,
+    2026-09-24). Every painted area is a colour plus a finish. A finish may bring its own
+    colour (carbon is black, chrome silver, gold gold), which a stated colour overrides ("red
+    carbon" tints the weave). Layouts (stripes, camo, fades) arrange colours; the finish under
+    them defaults to gloss. When a phrase is genuinely ambiguous, show a picture and ask.
     Limits to say out loud when asked: no holographic or colour-shift paint (the game's
     shading can't), and the body takes no relief, so body patterns and scratches are paint
     only; the inner car can have relief through `Details_N`.
