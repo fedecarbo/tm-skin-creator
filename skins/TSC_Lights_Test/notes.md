@@ -32,9 +32,9 @@ them light up (checkpoint 4), so they sit on bigger, plainer spots here.
    hard"), then a gentle stop, to compare.
    Also the rear lights as a gear display (the user's observation, 2026-09-25: standing still
    only the outer ends light, each gear lights the next band, braking lights it all red): at
-   which speeds the bands come on, whether they fill up or move along one at a time, and
-   when the small piece in the middle lights. A short video from behind while accelerating
-   from a standstill would answer all three.
+   whether the bands fill up or move along one at a time, and
+   when the small piece in the middle lights (the shift speeds are known: 100, 160, 235 and
+   340 km/h). A short video from behind while accelerating from a standstill would answer both.
 4. The same at night (a night map or night mood).
 5. A close look at the engine cover, to see the lettering on the yellow and blue panels.
 6. One screenshot with the game's Cam 2 (standing still is fine), for the viewer's camera menu.

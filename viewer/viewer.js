@@ -513,12 +513,12 @@ showSpeed(SPEED);
 // (measured 2026-09-25): the band from v 0.450 (the corner) is gear 1, the one ending at 0.532
 // (towards the middle) gear 5. The small centre piece lights when braking. The colour is the
 // game's red: the stock file is white there, the game red. Provisional until the lights test:
-// the gear speeds, whether the bands fill up or move along, the centre piece. ----
+// whether the bands fill up or move along, the centre piece. ----
 
 // The bar's surface is tinted red too, as a red lens looks when unlit: a strong glow over the
 // pale stock surface washed out to peach under the tone mapping.
 const REAR = { colour: [1, 0.06, 0.04], lens: [0.55, 0.06, 0.05], on: { day: 1.8, night: 2.4 }, brake: { day: 6, night: 7 } };
-const GEARS = [40, 80, 120, 160];  // km/h where gears 2-5 come in: a guess
+const GEARS = [100, 160, 235, 340];  // km/h where gears 2-5 come in (a Reddit tip the user found, 2026-09-25)
 const gearOf = (kmh) => 1 + GEARS.filter((t) => kmh >= t).length;
 const rearUniforms = { rearColour: { value: new THREE.Color(...REAR.colour) }, rearLens: { value: new THREE.Color(...REAR.lens) }, rearLevel: { value: REAR.on.day },
   rearBrake: { value: 0 }, rearGear: { value: gearOf(SPEED) } };
