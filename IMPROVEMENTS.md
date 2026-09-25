@@ -40,7 +40,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## The viewer, from the user's screenshots and videos
 
-- **Cam 2 in the Driving menu is a guess** (2026-09-25) until a screenshot of the game's Cam 2.
+- **Define the game's cameras** (2026-09-25, the user). The viewer's Driving menu should hold
+  each of the game's cameras that show the car, each matched to the game. Now Cam 1 is matched
+  to one screenshot (then moved closer at the user's wish) and Cam 2 is a guess (`VIEWS` in
+  `viewer/viewer.js`; Decisions, "The game's cameras"). Needs a screenshot of each camera from
+  the user, standing still and at speed: the straight-line video shows Cam 1 pulling back
+  and lower as the speed rises and closing in again when the car slows, so each camera may
+  follow the pad's speed.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
 - **The rear wings and air brakes, fine-tuning** (2026-09-25): the viewer opens both wings (up
   or down, then apart) at the video's pace, and raises the air brakes (rear quarter panels,
