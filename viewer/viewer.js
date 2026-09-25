@@ -497,8 +497,10 @@ function setPlate(on) {
 const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 218)) || 0));
 const SEVEN = [0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f];  // 0-9, bits a b c d e f g
 const digitUniforms = { digitMask: { value: [0, 0, 0] } };
+// A stopped car's display is dark (the user, 2026-09-25): 0 shows no digits.
 function showSpeed(kmh) {
-  digitUniforms.digitMask.value = [...String(kmh).padStart(3, ' ')].map((c) => (c === ' ' ? 0 : SEVEN[Number(c)]));
+  const text = kmh > 0 ? String(kmh).padStart(3, ' ') : '   ';
+  digitUniforms.digitMask.value = [...text].map((c) => (c === ' ' ? 0 : SEVEN[Number(c)]));
   const out = document.getElementById('padSpeed');
   if (out) out.textContent = kmh;
 }
@@ -543,17 +545,19 @@ function applyBraking() {
 }
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
-// speed on its digits and the brake lights (the user's idea, 2026-09-25). Rough numbers, only for
-// the look: the speed climbs to about 400 km/h in 15 s, brakes to 0 in about 2 s, and holds
-// when neither is pressed. Turbo and the other glows join once the game's screenshots show what
-// they do. ----
+// speed on its digits and the brake lights (the user's idea, 2026-09-25). Only for the look, as
+// the user asked: Accelerate jumps to racing speed (330 km/h in about 0.7 s) and then creeps up
+// slowly, letting go drifts down slowly, and Brake stops the car in about half a second.
+// Turbo and the other glows join once the game's screenshots show what they do. ----
 
+const RACING = 330;  // km/h
 const drive = { speed: SPEED, gas: false, brake: false, shown: -1, last: 0 };
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
-  if (drive.brake) drive.speed -= 220 * dt;
-  else if (drive.gas) drive.speed += 90 * dt * Math.max(0.05, 1 - drive.speed / 500);
+  if (drive.brake) drive.speed -= 700 * dt;
+  else if (drive.gas) drive.speed += (drive.speed < RACING ? 500 : 2.5) * dt;
+  else drive.speed -= 3 * dt;
   drive.speed = Math.min(999, Math.max(0, drive.speed));
   const kmh = Math.round(drive.speed);
   if (kmh !== drive.shown) { drive.shown = kmh; showSpeed(kmh); }

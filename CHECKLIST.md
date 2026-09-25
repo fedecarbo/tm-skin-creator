@@ -754,8 +754,9 @@ Part 1 comes first, because every design depends on it.
       the file's colours; if the game keeps them red, the viewer should draw them red.
     - **The pad under the car (the user's idea, 2026-09-25):** hold Accelerate or Brake (or
       ↑/W, ↓/S) and the speed on the digits climbs or falls, with the brake lights flaring
-      while braking (`stepDrive` in `viewer/viewer.js`; the speed holds when neither is
-      pressed; snapshots keep `?speed=`). Once the game's screenshots show what turbo, boost
+      while braking (`stepDrive` in `viewer/viewer.js`; snapshots keep `?speed=`). Tuned to
+      the user's feel: Accelerate jumps to racing speed (330) then creeps up, letting go drifts
+      down slowly, Brake stops the car in half a second, and a stopped car's display is dark. Once the game's screenshots show what turbo, boost
       and the other glows do, they join the pad as states.
 
 ### [ ] 10. Tidy up for everyday use
