@@ -1246,17 +1246,19 @@ for (const b of viewButtons) {
     markView(b.dataset.view);
     openCams(false);
     camPicked = byId('camMenu').contains(b) ? b.dataset.view : null;
-    byId('copyCam').hidden = true;
+    showCopy();
   };
 }
+// Copy shows from picking a Driving camera until another view is picked.
+const showCopy = () => {
+  byId('copyCam').hidden = !camPicked;
+  if (camPicked) byId('copyCam').firstElementChild.textContent = `Copy ${camTitle(camPicked)}`;
+};
 byId('cam').onclick = (e) => { e.stopPropagation(); openCams(byId('camMenu').hidden); };
 controls.addEventListener('start', () => {  // the user took the camera
   glide = null;
   markView(null);
-  if (camPicked) {
-    byId('copyCam').hidden = false;
-    byId('copyCam').firstElementChild.textContent = `Copy ${camTitle(camPicked)}`;
-  }
+  showCopy();
 });
 byId('copyCam').onclick = copyCamera;
 byId('spin').onclick = () => {
