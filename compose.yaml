@@ -1,0 +1,13 @@
+# docker compose up --build, then open http://localhost:8765/gallery.html
+services:
+  app:
+    build: .
+    init: true  # passes Ctrl-C and `docker compose down` on to Python
+    volumes:
+      - .:/app  # the repo: design edits on this machine show up without a rebuild
+      - tsc-work:/data  # the work folder (unpacked zips, cache, build, viewer data), all rebuildable
+    ports:
+      - "127.0.0.1:8765:8765"  # this computer only
+
+volumes:
+  tsc-work:

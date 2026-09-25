@@ -48,8 +48,8 @@ All of them can be rebuilt from the project at any time.
 The work comes in two parts:
 - **Part 1, setting up (checkpoints 1–4):** the tool learns the car. It learns which files the
   game takes, every part of the car, and exactly how every material looks in the game.
-- **Part 2, designing (checkpoints 5–9):** the design tools, then your first real skin, a new
-  look for the viewer, then everyday use.
+- **Part 2, designing (checkpoints 5–10):** the design tools, then your first real skin, a new
+  look for the viewer, the speed display and brake lights, then everyday use.
 
 Part 1 comes first, because every design depends on it.
 
@@ -570,7 +570,7 @@ Part 1 comes first, because every design depends on it.
       range: keep every edge, sticker and letter at the texel grain.
   - [x] **The comparison round:** one skin made on Opus 5.5, in a fresh chat with that model
     picked at the top. Then the user says which model they prefer for everyday use, and
-    checkpoint 9's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
+    checkpoint 10's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
     user: "in Opus 5.5 the skin looks pretty cool. I'm impressed. Could have looked for other
     minor details, but I'm very happy with initial results. I can then tweak."
     - **Made 2026-09-24/25 on Opus 5.5:** the user asked for their CMYK car with "the skin
@@ -629,8 +629,49 @@ Part 1 comes first, because every design depends on it.
     A first fit was close but not right, and the user said it isn't needed. Cam 2 wasn't sent.
   - **Done 2026-09-25.** The user: "you've done an amazing job with the ui", and asked for the
     list newest first (done).
+  - **The game's number (added 2026-09-25, the user's idea).** Show → Number lays the initials
+    and number the game writes on the engine cover (no skin can hide them) over the car as a
+    layer of the viewer's own, never in the skin files. The initials go on "number panel" (the
+    narrow one behind the cockpit), the number on "engine cover panel", both reading from
+    behind, as in the user's Cam 1 screenshot ("DEC 01"). "CAR 01" by default (the user's
+    choice); `?initials=DEC&number=07` tries others.
+    - `addPlate` in `viewer/viewer.js` draws it in the body's shader, projected flat onto each
+      panel (both are near-flat), in Russo One (in `viewer/lib/fonts`, the file `tool/fonts.py`
+      pins), off-white, matte, not metal.
+    - It's on by default and each browser remembers the choice. Snapshots leave it off (still
+      identical to before, within 1/255).
+    - The lettering is a guess until the user sends a close-up of the engine cover from the
+      game.
 
-### [ ] 9. Tidy up for everyday use
+### [ ] 9. The speed display and the brake lights
+
+- **What it's for:** the display on the back of the car, which shows your speed, and the brake
+  lights, in your skin's own colours; and the viewer showing a real speed (like 218) instead
+  of 888. You asked for it on 2026-09-25: you remember seeing a skin with custom-coloured
+  brakes and speed numbers.
+- **What you'll see:**
+  - In the viewer: the rear display showing a speed, such as 218, in the colour the skin gives
+    it, and the brake lights in theirs.
+  - In the game: a test skin with coloured speed digits and coloured brake lights. You drive,
+    brake, and tell me or screenshot whether the colours show. Then the paint box can do it
+    from words ("neon green speed numbers, blue brake lights").
+- **Model:** Opus 5.5. Reading the game's behaviour from your screenshots takes care.
+- **Notes for Claude:**
+  - Nadeo's 2020 post says a skin can't change the digits' colour (`CLAUDE.md`), but the user
+    remembers a skin that did. Measured 2026-09-25 on the stock `Details_I` (2048²): the
+    "digit display" part (`tool/naming.py`, 11,043 texels) is glow code 96 ("always on", which
+    keeps its painted colour in the game: magenta in the lab), RGB ~227 white, with every
+    segment lit (888). The game presumably masks the segments to show the speed. So painting
+    that part's `Details_I` RGB may colour the digits: a test skin settles it.
+  - Brake lights: code 0 keeps its RGB (`GLOWS` in `tool/finishes.py`). The stock strips
+    behind the front wheels are reddish and flare to near white when braking. The lab's code-0
+    part was hidden from every camera, so test a colour on those strips. Brake heat (64) has
+    never been seen lit; "brakes" may also mean painted calipers, which already work.
+  - Viewer: light only the segments of a chosen speed (`?speed=218`, default 218). Find each
+    digit's seven segments from the lit texels' 3D positions, and mask the rest in the Details
+    shader, the way `addPlate` does the number.
+
+### [ ] 10. Tidy up for everyday use
 
 - **What it's for:** making every future chat start straight at "describe your skin", without
   the building notes getting in the way.

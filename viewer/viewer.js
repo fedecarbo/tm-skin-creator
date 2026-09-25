@@ -360,6 +360,112 @@ function addParts(material, sharedMap) {
   material.customProgramCacheKey = () => 'parts';
 }
 
+// ---- The game's number. The game writes the player's initials and number on two engine-cover
+// panels over every skin, and a skin can't hide or move them (CLAUDE.md). The viewer lays them
+// on as a layer of its own, never part of the skin, so "Show → Number" turns them off. As in the
+// user's Cam 1 screenshot (2026-09-25): the initials on "number panel", the narrow one just
+// behind the cockpit, and the number on "engine cover panel" behind it, both reading from behind
+// the car. The lettering (Russo One, white) is a guess at the game's until a close-up says more.
+// ?initials=DEC&number=07 tries others. Snapshots (?snap=1) leave it off. ----
+
+const PLATE = { initials: params.get('initials') || 'CAR', number: params.get('number') || '01' };
+const PLATE_PANELS = [['number panel', PLATE.initials], ['engine cover panel', PLATE.number]];
+const plateUniforms = { plateOn: { value: 0 }, plateColour: { value: new THREE.Color('#ececec') } };
+
+// A panel's frame: its middle, and axes along the text (to the car's right, as read from behind)
+// and up it (towards the nose), each divided by the panel's size, so the panel spans -0.5..0.5.
+function panelFrame(geom, ids) {
+  const pos = geom.getAttribute('position'), nrm = geom.getAttribute('normal'), part = geom.getAttribute('part');
+  const pts = [], n = new THREE.Vector3(), p = new THREE.Vector3();
+  for (let i = 0; i < part.count; i++) {
+    if (!ids.has(part.getX(i))) continue;
+    pts.push(new THREE.Vector3().fromBufferAttribute(pos, i));
+    n.add(p.fromBufferAttribute(nrm, i));
+  }
+  n.normalize();
+  const u = new THREE.Vector3(-1, 0, 0).addScaledVector(n, n.x).normalize();
+  const v = new THREE.Vector3().crossVectors(n, u);
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const q of pts) {
+    u0 = Math.min(u0, q.dot(u)); u1 = Math.max(u1, q.dot(u));
+    v0 = Math.min(v0, q.dot(v)); v1 = Math.max(v1, q.dot(v));
+  }
+  const centre = new THREE.Vector3().addScaledVector(u, (u0 + u1) / 2).addScaledVector(v, (v0 + v1) / 2);
+  return { centre, u: u.divideScalar(u1 - u0), v: v.divideScalar(v1 - v0), aspect: (u1 - u0) / (v1 - v0) };
+}
+
+// The text as a mask (alpha only, so its mips don't darken), as large as the panel allows.
+function plateMask(text, aspect) {
+  const w = 1024, h = Math.round(w / aspect);
+  const g = Object.assign(document.createElement('canvas'), { width: w, height: h }).getContext('2d');
+  const measure = (size) => { g.font = `${size}px "Russo One"`; return g.measureText(text); };
+  let m = measure(100);
+  m = measure(100 * Math.min(w * 0.86 / m.width, h * 0.74 / (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent)));
+  g.fillStyle = '#fff';
+  g.textAlign = 'center';
+  g.fillText(text, w / 2, h / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
+  const t = new THREE.CanvasTexture(g.canvas);
+  t.anisotropy = maxAniso;
+  return t;
+}
+
+async function setupPlate(geom) {
+  await document.fonts.load('100px "Russo One"');
+  PLATE_PANELS.forEach(([name, text], k) => {
+    const ids = new Set(partsState.doc.parts.flatMap((p, i) => (p.name === name ? [i] : [])));
+    for (const i of ids) partsState.data[i * 4 + 2] = k ? 170 : 85;  // which panel, for the shader
+    const f = panelFrame(geom, ids);
+    Object.assign(plateUniforms, { [`plateMask${k}`]: { value: plateMask(text, f.aspect) },
+      [`plateC${k}`]: { value: f.centre }, [`plateU${k}`]: { value: f.u }, [`plateV${k}`]: { value: f.v } });
+  });
+  partsState.table.needsUpdate = true;
+}
+
+// Body only; after addParts, whose part id and table it reads.
+function addPlate(material) {
+  const previous = material.onBeforeCompile;
+  material.onBeforeCompile = (shader) => {
+    if (previous) previous(shader);
+    Object.assign(shader.uniforms, plateUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
+        varying vec3 vPlatePos;`)
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+        vPlatePos = position;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
+        varying vec3 vPlatePos;
+        uniform int plateOn; uniform vec3 plateColour;
+        uniform sampler2D plateMask0; uniform vec3 plateC0; uniform vec3 plateU0; uniform vec3 plateV0;
+        uniform sampler2D plateMask1; uniform vec3 plateC1; uniform vec3 plateU1; uniform vec3 plateV1;
+        float plateSample( sampler2D mask, vec3 c, vec3 u, vec3 v ) {
+          vec2 st = vec2( dot( vPlatePos - c, u ), dot( vPlatePos - c, v ) ) + 0.5;
+          float inside = step( 0.0, st.x ) * step( st.x, 1.0 ) * step( 0.0, st.y ) * step( st.y, 1.0 );
+          return texture2D( mask, st ).a * inside;
+        }`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        float plateA = 0.0;
+        if ( plateOn == 1 ) {
+          float which = texture2D( partTable, vec2( ( vPart + 0.5 ) / 256.0, 0.25 ) ).b;
+          float a0 = plateSample( plateMask0, plateC0, plateU0, plateV0 );
+          float a1 = plateSample( plateMask1, plateC1, plateU1, plateV1 );
+          plateA = which > 0.5 ? a1 : which > 0.2 ? a0 : 0.0;
+          diffuseColor.rgb = mix( diffuseColor.rgb, plateColour, plateA );
+        }`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = mix( roughnessFactor, 0.45, plateA );`)
+      .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
+        metalnessFactor *= 1.0 - plateA;`);
+  };
+  material.customProgramCacheKey = () => 'parts-plate';
+}
+
+function setPlate(on) {
+  plateUniforms.plateOn.value = on ? 1 : 0;
+  pressed(byId('plateToggle'), on);
+  try { localStorage.setItem('tsc-viewer-number', on ? '1' : '0'); } catch {}
+}
+
 function partLabel(p) {
   const tag = [p.end, p.side === 'centre' ? '' : p.side].filter(Boolean).join(' ');
   return tag ? `${p.name} (${tag})` : p.name;
@@ -484,6 +590,7 @@ function makeMaterials(tex) {
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name]);
+  addPlate(skin);
   return out;
 }
 
@@ -660,6 +767,7 @@ for (const b of document.querySelectorAll('#showMenu [data-part]')) {
     pressed(b, mesh.visible);
   };
 }
+byId('plateToggle').onclick = () => setPlate(!plateUniforms.plateOn.value);
 const viewButtons = [...document.querySelectorAll('#bar [data-view]')];
 const markView = (name) => { currentView = name; for (const b of viewButtons) pressed(b, b.dataset.view === name); };
 for (const b of viewButtons) b.onclick = () => { setView(b.dataset.view, true); markView(b.dataset.view); };
@@ -730,8 +838,14 @@ async function start() {
   partTable();
   buildPartsList();
   addRoom();
+  await setupPlate(geoms.Skin);
   await loadSkin(skinName);
   setNight(false);
+  if (!snap) {  // on unless this browser turned it off last time
+    let on = true;
+    try { on = localStorage.getItem('tsc-viewer-number') !== '0'; } catch {}
+    setPlate(on);
+  }
   renderer.setAnimationLoop(() => {
     stepGlide();
     controls.update();

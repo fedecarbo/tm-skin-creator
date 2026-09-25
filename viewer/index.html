@@ -7,9 +7,11 @@
 <link rel="icon" href="data:,">
 <style>
   /* The look the user chose on 2026-09-25 ("race garage", from three mockups): a skin list down
-     the left, slanted racing lettering, one yellow-green accent. Teko (SIL OFL 1.1, lib/fonts)
-     is the google/fonts file that tool/fonts.py pins. Icons: Lucide (ISC). */
+     the left, slanted racing lettering, one yellow-green accent. Teko and Russo One (SIL OFL
+     1.1, lib/fonts, with their licences) are the google/fonts files that tool/fonts.py pins;
+     Russo One draws the game's number on the car (viewer.js). Icons: Lucide (ISC). */
   @font-face { font-family: Teko; src: url("lib/fonts/Teko-Variable.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
+  @font-face { font-family: "Russo One"; src: url("lib/fonts/RussoOne-Regular.ttf") format("truetype"); font-display: block; }
   :root { --ground: #0d0f12; --text: #f2f4f7; --acc: #e8ff47; --rail: 300px; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ground); }
   body { font: 14px/1.35 "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); }
@@ -156,6 +158,7 @@
       <button class="sk" data-part="Details" aria-pressed="true"><span class="box"></span><span>Details</span></button>
       <button class="sk" data-part="Wheels" aria-pressed="true"><span class="box"></span><span>Wheels</span></button>
       <button class="sk" data-part="Glass" aria-pressed="true"><span class="box"></span><span>Glass</span></button>
+      <button class="sk" id="plateToggle" aria-pressed="true" title="the initials and number the game writes on the engine cover"><span class="box"></span><span>Number</span></button>
     </div>
   </div>
   <button id="togglePartsPanel" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-parts"/></svg><span>Parts</span></button>
