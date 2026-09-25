@@ -66,8 +66,8 @@ for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(par
 // (and on a dusk map); energy is dim and tinted by the game (red for this player). Brake heat
 // lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT). Turbo lights only after
 // a turbo pad, in the pad's colour (the turbo videos, 2026-09-25: the hubs yellow for about 3 s
-// after a yellow pad), and the pad has no turbo, so it stays off. Exhaust heat and boost weren't
-// seen to light up, so they stay off.
+// after a yellow pad): the pad's Turbo button (TURBO). Exhaust heat ("ON when Turbo is enabled",
+// xrayjay's table) lights with it there, a guess until the game shows it. Boost stays off.
 const GLOW = [
   { code: 0, day: 1.2, night: 1.8 },  // brake lights: dim all the time, brighter when braking
   { code: 32, day: 0.6, night: 1, tint: [1, 0.2, 0.2] },  // energy, tinted by the game
@@ -856,9 +856,14 @@ function applyBraking() {
   const look = night ? 'night' : 'day';
   glowUniforms.glowGain.value[0] = braking || drive.brake ? BRAKING[look] : GLOW[0][look];
   glowUniforms.glowGain.value[2] = drive.heat ** 2 * BRAKE_HEAT[look];
-  const brake = braking || drive.brake;
-  rearUniforms.rearBrake.value = brake ? 1 : 0;
-  rearUniforms.rearLevel.value = (brake ? REAR.brake : REAR.on)[look];
+  // after a turbo pad the rear lights go red as when braking, with no brake pressed
+  const red = braking || drive.brake || drive.turbo > TURBO.glow - TURBO.red;
+  rearUniforms.rearBrake.value = red ? 1 : 0;
+  rearUniforms.rearLevel.value = (red ? REAR.brake : REAR.on)[look];
+  // the turbo colour (code 160) and exhaust heat (192): full on, fading over the last half second
+  const turbo = Math.min(1, drive.turbo / TURBO.fade);
+  glowUniforms.glowGain.value[5] = turbo * TURBO.gain[look];
+  glowUniforms.glowGain.value[6] = turbo * TURBO.gain[look];
 }
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
@@ -866,9 +871,13 @@ function applyBraking() {
 // idea, 2026-09-25). The pace is the game's, read frame by frame off the user's straight-line
 // video (2026-09-25; CHECKLIST.md): full throttle from a standstill on the flat reaches 101 km/h
 // at 1.8 s, 162 at 3.6 s, 236 at 6.2 s, 342 at 10.7 s and 372 at 12 s. Braking is the lights
-// test's videos (2026-09-25): BRAKE. Reactor boost and the other glows join once the game's
-// screenshots show what they do. ----
+// test's videos (2026-09-25): BRAKE. Turbo is a yellow turbo pad, from the user's turbo videos
+// (2026-09-25): TURBO. Reactor boost joins once the game shows what it does. ----
 
+// A yellow turbo pad, from the turbo videos (2026-09-25): the turbo colour glows for about 3 s, fading
+// over the last half second; the rear lights go red for the first 1.5 s; the speed climbs from about
+// 130 to 400 km/h in 2 s. ?turbo=1 holds it on in snapshots.
+const TURBO = { glow: 3, fade: 0.5, red: 1.5, push: 2, climb: 135, gain: { day: 0.9, night: 1.2 } };
 // km/h per second from each speed up. The video stops at 372: past it the last pace goes on, a guess.
 const PACE = [[0, 56], [101, 37], [162, 40], [200, 25]];
 const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
@@ -880,6 +889,7 @@ const coast = (kmh) => 3.5 + 0.3 * kmh;
 // in 2 to 2.5 s.
 const BRAKE = (kmh) => 93 + 0.4 * kmh;
 const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, heat: 0, shown: '', last: 0,
+  turbo: snap && params.get('turbo') === '1' ? TURBO.fade : 0,
   wingUp: SPEED >= WING.openFrom, wingOut: 0, wingApart: 0, wingPause: 0, airbrake: snap ? Number(params.get('airbrake') ?? 0) : 0 };
 {  // at the start: open at speed; in snapshots shut, or ?wing= (0.5 out, 1 open too)
   const open = snap ? Number(params.get('wing') ?? 0) : +(SPEED >= WING.openFrom);
@@ -907,8 +917,14 @@ function stepWing(dt) {
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
+  if (drive.turbo > 0) {
+    if (drive.turbo > TURBO.glow - TURBO.push && !drive.brake) drive.speed += TURBO.climb * dt;
+    drive.turbo = Math.max(0, drive.turbo - dt);
+    applyBraking();
+    pressed(byId('padTurbo'), drive.turbo > 0);
+  }
   if (drive.brake) drive.speed -= BRAKE(drive.speed) * dt;
-  else if (!drive.gas) drive.speed -= coast(drive.speed) * dt;
+  else if (!drive.gas && drive.turbo <= TURBO.glow - TURBO.push) drive.speed -= coast(drive.speed) * dt;
   else if (drive.pause > 0) drive.pause -= dt;  // changing up: the speed holds
   else drive.speed += climb(drive.speed) * dt;
   drive.speed = Math.min(999, Math.max(0, drive.speed));
@@ -947,6 +963,13 @@ for (const [id, pedal] of [['padGas', 'gas'], ['padBrake', 'brake']]) {
   b.addEventListener('pointerdown', (e) => { b.setPointerCapture(e.pointerId); hold(pedal, true); });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(type, () => hold(pedal, false));
 }
+function turbo() {
+  drive.turbo = TURBO.glow;
+  applyBraking();
+  pressed(byId('padTurbo'), true);
+}
+document.getElementById('padTurbo').addEventListener('click', turbo);
+addEventListener('keydown', (e) => { if (e.code === 'KeyT' && !e.repeat) turbo(); });
 const PEDAL_KEYS = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake' };
 addEventListener('keydown', (e) => { if (PEDAL_KEYS[e.code] && !e.repeat) { hold(PEDAL_KEYS[e.code], true); e.preventDefault(); } });
 addEventListener('keyup', (e) => { if (PEDAL_KEYS[e.code]) hold(PEDAL_KEYS[e.code], false); });

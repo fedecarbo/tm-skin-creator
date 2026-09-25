@@ -46,3 +46,9 @@ half of it gone, bigger tears and bigger flaps.
   and all four tyres share the painted one's shape within 0.1 mm.
 - Installed 2026-09-25 with the round ring: 7.44 MB.
 - Seen in the game 2026-09-25: the user says the tyre line is round now.
+- Change 11 (user, 2026-09-25, Opus 5.5): the inside finished ("the quality of the entire car"),
+  then from the game: no yellow turbo glow over the inside of the wheels (magenta preferred), one
+  ring per wheel with the tyre's line a bit thicker, less orange at the rear ("keep the black
+  from the tip with maybe a few tears"), orange digits; and "your approach and mine". Shown as
+  two takes, TSC_CMYK_BlackTail (the user's tail) and TSC_CMYK_EndsInK (Claude's): their notes
+  say what changed. The pick goes into this skin, so it keeps its name in the game.

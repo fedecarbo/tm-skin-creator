@@ -53,8 +53,8 @@ def wheels(s, take):
         s.paint("sidewall", "satin", colour=ORANGE, zone=line & round_wheel(0.5, 1))
 
 
-def design(s, wheel_take="gradient"):
-    _peel.design(s, more=True, end=ORANGE)
+def design(s, wheel_take="gradient", tip=None, hold=None):
+    _peel.design(s, more=True, end=ORANGE, tip=tip, hold=hold)
     s.relight("brake lights", C)
     s.relight("speed numbers", M)
     # one colour per gear band, from the tail's corner inwards; unlit, the bars are dark (not the

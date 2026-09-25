@@ -79,24 +79,28 @@ def gradient(F, idx, P, w, n):
 
 
 def peel(skin, under, where="body", amount=0.2, scale=30.0, stretch=0.5, jag=0.07, seed=0,
-         keep_off=("number panel", "engine cover panel"), shadow=0.25, shadow_dark=0.5):
-    """Tear the paint on `where` (Skin set) open to show `under` (from Skin.keep()).
-    amount: the share torn open; scale: the tears' size in cm; stretch < 1 draws them out
-    along the car; jag: how ragged their outline is. keep_off: parts never torn (the game
-    draws the number and the name there); tears thin out as they near them, so none is cut
-    straight along their border. shadow: the width in cm of the hard shadow inside every
-    tear's edge (0 for none); shadow_dark: how much it darkens the paint underneath.
-    Returns the torn weight per texel (for checks)."""
+         keep_off=("number panel", "engine cover panel"), shadow=0.25, shadow_dark=0.5, hold=None):
+    """Tear the paint on `where` open to show `under` (from Skin.keep(): the body's, or the
+    inner car's for inner parts). amount: the share torn open; scale: the tears' size in cm;
+    stretch < 1 draws them out along the car; jag: how ragged their outline is. keep_off: parts
+    never torn (the game draws the number and the name there); tears thin out as they near
+    them, so none is cut straight along their border. hold: a zone (tool/shapes.py) where the
+    wrap holds, 1 = no tears: they shrink away towards it, never cut along its edge. shadow:
+    the width in cm of the hard shadow inside every tear's edge (0 for none); shadow_dark: how
+    much it darkens the paint underneath. Returns the torn weight per texel (for checks)."""
     t0 = time.time()
-    c = skin.canvas("Skin")
-    ids = skin._ids(where).get("Skin", [])
-    idx, m = skin._mask("Skin", ids, None, c)
+    tset = under.get("set", "Skin")
+    c = skin.canvas(tset)
+    ids = skin._ids(where).get(tset, [])
+    idx, m = skin._mask(tset, ids, None, c)
     pos = c.pos[idx]
     H = tears(pos, amount, scale, seed, stretch, jag)
-    off = [i for i, inst in enumerate(skin.parts.instances) if inst["mesh"] == "Skin" and inst["name"] in keep_off]
+    if hold is not None:
+        H = H - 0.35 * hold(pos, c.nrm[idx])
+    off = [i for i, inst in enumerate(skin.parts.instances) if inst["mesh"] == tset and inst["name"] in keep_off]
     if off:
         from tool import coverage
-        locked = coverage.load(skin.parts, "Skin", c.w, c.h).get(off).reshape(-1)[idx]
+        locked = coverage.load(skin.parts, tset, c.w, c.h).get(off).reshape(-1)[idx]
         margin = 12.0
         d, _ = cKDTree(pos[locked > 0.5][::3]).query(pos, distance_upper_bound=margin, workers=-1)
         H = H - 0.35 * (1 - np.minimum(d, margin) / margin) ** 2
@@ -107,6 +111,8 @@ def peel(skin, under, where="body", amount=0.2, scale=30.0, stretch=0.5, jag=0.0
     shade = np.clip(0.5 + (shadow - sd) / pitch, 0, 1) * hole if shadow > 0 else np.zeros_like(hole)
     for k in ("colour", "rough", "metal", "coat"):
         layer = getattr(c, k)
+        if layer is None:
+            continue
         h = hole[:, None] if k == "colour" else hole
         u = under[k][idx]
         if k == "colour":

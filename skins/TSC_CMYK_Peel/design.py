@@ -12,12 +12,16 @@ _spec.loader.exec_module(_cmyk)
 C, M, Y = _cmyk.C, _cmyk.M, _cmyk.Y
 
 
-def design(s, more=False, end=Y):
-    """end: the colour the run ends in at the tail (yellow; TSC_CMYK_Peel_More's is orange)."""
+def design(s, more=False, end=Y, tip=None, hold=None):
+    """end: the colour the run ends in at the tail (yellow; TSC_CMYK_Peel_More's is orange).
+    tip: a last colour it fades into at the very tail (TSC_CMYK_EndsInK's black). hold: a zone
+    where the wrap holds, no tears (TSC_CMYK_BlackTail's tail)."""
     # underneath: the CMY run along the whole body (satin, so the colour holds at every angle)
     s.paint("body", "satin", colour=C)
     s.paint("body", "satin", colour=M, zone=shapes.fade("z", 150, 50))
     s.paint("body", "satin", colour=end, zone=shapes.fade("z", -10, -100))
+    if tip is not None:
+        s.paint("body", "matte", colour=tip, zone=shapes.fade("z", -110, -150))  # matte like the wrap: the tears dissolve
     under = s.keep()
     # on top: the Bold car without its glossy seam lines ("the black tape", user), torn open
     _cmyk.design(s, bold=True, seams=False, end=end)
@@ -25,6 +29,6 @@ def design(s, more=False, end=Y):
     # the tears (user); the glowing grille inside keeps its colour
     s.paint("sidepod frame", "matte", colour="#232528")
     if more:
-        s.peel(under, amount=0.45, scale=40, seed=11)
+        s.peel(under, amount=0.45, scale=40, seed=11, hold=hold)
     else:
-        s.peel(under, amount=0.2, scale=30, seed=7)
+        s.peel(under, amount=0.2, scale=30, seed=7, hold=hold)

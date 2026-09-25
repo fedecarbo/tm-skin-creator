@@ -1009,6 +1009,30 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   - Checked in headless Edge as an iPhone (390×844 at 3×, touch) and at 1440×900: no page errors,
     nothing overlapping. Next: the user on a real phone.
 
+### The inner car finished: relief, the lights, the turbo (done 2026-09-25)
+
+- **What it's for:** the user (2026-09-25), driving TSC_CMYK_Peel_More: "we could do some
+  internal for future tool functionality and to keep on the great work on the skin", then
+  "doesnt matter if its visible or not front or back, what matters is the quality of the
+  entire car". Two list items went with it: raised detail on the inner car, and a Turbo button.
+- **What you'll see:** raised detail inside the car (a quilted seat, marks on the tail), every
+  light in a skin's own colours, and a Turbo button on the viewer's pad (or T).
+- **Notes for Claude:**
+  - `tool/relief.py` (its docstring is the key) and `Skin.relief` / `Skin.emboss`: heights in
+    3D, turned into the normal map by their slope along each triangle's own texture directions,
+    measured a fraction of a millimetre either way in 3D, so seams, folds and mirrored twins
+    need nothing special. Patterns: ribs, studs, quilted, hex, rivets (at points or along a
+    line; along a part's open edges too, but on the CMYK car those edges are tucked under other
+    parts, so the rivets landed out of sight). `emboss` lays a word or a picture flat on the
+    surface nearest a point, with its mirror image by default.
+  - `relight(zone=, keep_level=)`: a fade of light colours, and a new hue at the stock
+    brightness. `glow(replacing=, keep_level=)`: one kind of glow swapped for another where a
+    part carries it (the stock turbo glow for exhaust heat). `peel` tears inner parts too, from
+    a `keep("Details")`, and `hold=` keeps the wrap whole in a zone (tears shrink away, never cut).
+  - The viewer's Turbo: `TURBO` in `viewer/viewer.js`, the values the turbo videos gave.
+  - Checked with a picture of every inner part on its own and close looks from all sides, day,
+    night and in a turbo, on TSC_CMYK_BlackTail and TSC_CMYK_EndsInK.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
@@ -1085,6 +1109,36 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-25, finishing the inner car (TSC_CMYK_BlackTail, TSC_CMYK_EndsInK).**
+  - **Nadeo's Details_N** is 2048² and three texels in four are rounding noise within 1.5/255 of
+    flat: 2.1 MB zipped as it is, 0.57 MB with the noise set flat and every real detail kept
+    (the faint weave on carbon parts is real, 1 to 2 %: keep it). Upscaled to 4096² it zips to
+    about 2 MB, so a zip near the budget ships the relief at 2048² (8.11 MB for the CMYK car).
+    At 2048² a texel is about 4 mm on most inner parts: relief reads from 1 cm up.
+  - **Most inner parts share their texels with their mirror twin** (the tail frame 74 %, the
+    seat 99 %): a word raised on one side reads backwards on the other. Marks that read the
+    same both ways work (a printer's registration mark).
+  - **The stock inner car is full of lights** a design never sees until it paints around them:
+    teal lamps in the cockpit tub, bulkhead and nose, a light strip under the floor ("floor
+    rail"), white front lights on the front wing's ends, an always-on ring inside each wheel,
+    faint night glows on the airboxes, sidepod frames and steering, and a white always-on panel
+    under the deck ("rear bumper"), hidden by the body. The turbo colour (code 160) is on the
+    hubs and most of the suspension, the tail's fins, undertray and bulkhead.
+  - **A glow's edge takes the code of the nearest texel**: the viewer (and the game, which
+    filters the same way) blends the glow colour between texels but not the code, so an unlit
+    texel of another code beside a glow lit a line of the glow's colour on that code's terms. A
+    dashed line of always-on orange ran round the tail's openings, whose glow is exhaust heat.
+    `paintbox.dark_take_codes` gives the unlit texels near a glow its code.
+  - **A second coat left the first along every island's edge**: an edge texel is partly outside
+    every triangle, and paint weighed by that coverage mixed with what was there. Paint now
+    weighs by the part's share of what covers the texel (`coverage.share`): full on an edge only
+    it reaches, mixed only where another part shares it. Skins repainted from now on have
+    cleaner edges.
+  - **The exhaust's trim shares a few texels with the tail frame**: paint the tail after it, or
+    the exhaust's colour shows as dashes along the tail's edges.
+  - **Satin black under a matte black wrap** catches the light as pale grey blotches; for tears
+    that should vanish into the black, the paint under them is matte too.
 
 - **2026-09-25, the page online.** The viewer's lens is fixed top to bottom (32°), so a phone
   held upright sees about a third as much across, and the car was cut off at both ends until

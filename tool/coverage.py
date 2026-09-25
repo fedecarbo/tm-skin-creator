@@ -7,6 +7,8 @@ in the work folder, and rebuilds when car/parts.json changes.
 
     cov = coverage.load(p, "Skin", 4096, 4096)
     cov.get([id, id, ...])   -> float32 (h, w), 0..1, the parts' coverage added up (clipped to 1)
+    cov.share([id, ...])     -> the parts' share of what covers each texel: 1 on an island's edge
+                                that only they reach, where get() gives the part inside the island
 """
 
 import hashlib
@@ -26,6 +28,7 @@ class Coverage:
         self.ids = [i for i, inst in enumerate(p.instances) if inst["mesh"] == texture_set]
         self.file = paths.CACHE / f"coverage_{texture_set}_{width}x{height}_{_key()}.npz"
         self.sparse = self._load() or self._build()
+        self._all = None
 
     def _load(self):
         if not self.file.exists():
@@ -61,6 +64,17 @@ class Coverage:
             idx, val = self.sparse[i]
             flat[idx] += val.astype(np.float32) / 255
         return np.minimum(flat, 1).reshape(self.h, self.w)
+
+    def share(self, ids):
+        """The parts' share of each texel's covered area, 0..1: what paint on them should weigh.
+        On an island's edge a texel is partly outside every triangle; get() gives the part
+        inside, so a second coat over a first left the first showing there at a quarter or so,
+        a dashed line along every edge (black over orange on TSC_CMYK_BlackTail's tail,
+        2026-09-25). Only where another part shares the texel does the paint mix."""
+        if self._all is None:
+            self._all = self.get(self.ids).reshape(-1)
+        mine = self.get(ids).reshape(-1)
+        return np.minimum(mine / np.maximum(self._all, 1e-6), 1).reshape(self.h, self.w)
 
 
 _loaded = {}

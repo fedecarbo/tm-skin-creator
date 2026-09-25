@@ -14,14 +14,17 @@ Nothing.
 
 ## The tool
 
+- **Words on the inner car** (2026-09-25, TSC_CMYK_BlackTail): `Skin.emboss` raises lettering,
+  but most inner parts share their texels with their mirror twin (74 to 99 %), so a word reads
+  backwards on one side. Only marks that read the same both ways work there (the registration
+  marks). Idea: list the inner parts' unshared areas big enough for a word (the tail frame's
+  centre, the floor's centre plank?) and name them as spots, like `SPOTS` on the body.
 - **Motifs lined up across panels** (2026-09-24, checkpoint 6). The tool can spread pictures or
   dots evenly, but not in rows that line up from panel to panel, like a regular grid. Idea: a
   `regular` switch on `Skin.scatter`, using `looks.surface_points(regular=True)`.
 - **Writing on the tyres** (2026-09-24, checkpoint 5). Not built: all four tyres share one
   paint and the left and right ones aren't mirrored, so text reads backwards on one side.
   Idea: symmetric words and logos only, or no text on tyres at all.
-- **Raised detail on the inner car** (2026-09-24, checkpoint 5): bolts, embossed logos, ribs,
-  through `Details_N`. Not built. The body can't take relief at all.
 - **Some inner part names are guesses** (2026-09-24, checkpoint 3): side vent, side vane, nose
   sensor, airbox. Check them the first time a design paints them. Known since the air brakes
   (2026-09-25): "nose sensor" is the nose panel's lifting arms, "rear damper" the rear quarter
@@ -49,10 +52,6 @@ Nothing.
   nose panel, with their arms) while braking. How far the wings move, the air brakes' angles
   and how quick they are were set by eye. A short video from the side (pull away, brake hard,
   let go) would pin them. Notes under the lights improvement in `CHECKLIST.md`.
-- **Turbo on the pad** (2026-09-25, the turbo videos): a Turbo button that does what a yellow
-  pad did in the game: the turbo glow (code 160, the stock hubs) in the pad's colour for about
-  3 s, fading over the last half second, the rear lights red for about 1.5 s, and the speed
-  climbing fast (about 130 to 400 km/h in 2 s).
 - **The page online, sharper on big screens** (2026-09-25, `tool/publish.py`): it carries
   2048² paint so a phone can hold it, so on a computer, close up, it's softer than the viewer
   here. Idea: publish the 4096² colour maps too and let the viewer take them when the screen
@@ -68,11 +67,12 @@ These need the user to drive or look, so they're tested when a skin uses them.
 - **Finishes never seen in the game** (2026-09-24, checkpoint 5): candy, chrome rims, rust,
   leather, metallic flake.
 - **Glows never seen to light up** (2026-09-24, checkpoint 4): exhaust heat and boost (brake
-  heat and turbo lit in the lights test, 2026-09-25). The viewer shows them off.
-  TSC_Lights_Test carries both (side vents, rear strakes), but its side vents are hidden from
-  the chase cameras: a skin testing exhaust heat needs it on a part seen from behind. Still
-  to see: a reactor boost, a red turbo pad (red, as the pad?), and whether the sidepod frames
-  light with the turbo like the hubs.
+  heat and turbo lit in the lights test, 2026-09-25). TSC_CMYK_BlackTail and TSC_CMYK_EndsInK
+  (2026-09-25) carry exhaust heat where the chase cameras see it: inside the tail's two openings
+  (orange) and in place of every stock turbo glow (magenta inside the wheels): whichever is
+  installed, a turbo pad settles it. The viewer lights it with its Turbo button, a guess.
+  Still to see: a reactor boost, a red turbo pad (red, as the pad?), and whether the sidepod
+  frames light with the turbo like the hubs.
 - **Whether the wheel covers turn** (2026-09-25): the viewer turns them with the tyres and
   rims; the tyres are known to turn (the tyre line in the game), the covers are assumed to. A
   skin with a pattern on the covers, driven slowly past the camera, would show it.

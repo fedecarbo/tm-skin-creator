@@ -119,6 +119,9 @@ class Canvas:
             self.glow_rgb = np.ascontiguousarray(i[..., :3].reshape(n, 3)).astype(np.float32)
             a = np.rint(i[..., 3].reshape(n) * 255)
             self.glow_code = GLOW_CODES[np.digitize(a, (GLOW_CODES[1:] + GLOW_CODES[:-1]) / 2)].astype(np.uint8)
+        # the design's relief (tool/relief.py): slopes along u and v, and how much of Nadeo's own
+        # relief stays under it; None until a design asks for relief
+        self.slope = self.keep_stock = None
         self.dirt = None  # None: ship the stock mask untouched
 
     @property
@@ -143,7 +146,7 @@ class Canvas:
 
     def textures(self):
         """The game's textures for this set, or {} when the design never touched it."""
-        if not self.touched.any() and not self.glow_touched and self.dirt is None:
+        if not self.touched.any() and not self.glow_touched and self.dirt is None and self.slope is None:
             return {}
         h, w = self.h, self.w
         cov = self.cov
@@ -159,11 +162,34 @@ class Canvas:
             if self.coat is not None:
                 out["Skin_CoatR"] = (raster.fill_holes(self.coat.reshape(h, w), cov), "ATI1", {})
         if self.glow_touched:
-            rgba = np.concatenate([self.glow_rgb, self.glow_code[:, None].astype(np.float32) / 255], 1).reshape(h, w, 4)
+            rgba = np.concatenate([self.glow_rgb, dark_take_codes(self.glow_rgb, self.glow_code, w, h)[:, None].astype(np.float32) / 255],
+                                  1).reshape(h, w, 4)
             out["Details_I"] = (rgba, "DXT5", {"codes_in_alpha": True})
+        if self.slope is not None:
+            from tool import relief
+            n = relief.clean_stock(stock("Details_N", (w, h))).reshape(-1, 2)
+            n = 0.5 + (n - 0.5) * self.keep_stock[:, None]
+            ours = np.flatnonzero(np.abs(self.slope).max(1) > 1e-4)
+            n[ours] = relief.combine(n[ours], relief.to_normal(self.slope[ours]))
+            out["Details_N"] = (n.reshape(h, w, 2), "ATI2", {"normal": True})
         if self.dirt is not None:
             out[f"{self.set}_DirtMask"] = (np.clip(stock(f"{self.set}_DirtMask") * self.dirt, 0, 1), "ATI1", {})
         return out
+
+
+def dark_take_codes(rgb, code, w, h, reach=3):
+    """The glow codes, with every unlit texel within `reach` texels of a glow taking that glow's
+    code. The game and the viewer blend the glow colour between texels but read the code of the
+    nearest one, so an unlit texel of another code beside a glow lit the glow's colour on its
+    own terms along the edge: a dashed line of always-on orange round TSC_CMYK_BlackTail's
+    turbo-lit openings (2026-09-25). An unlit texel shows nothing whatever its code."""
+    from scipy.ndimage import distance_transform_edt
+    lit = (rgb.max(1) > 0.004).reshape(h, w)
+    d, (iy, ix) = distance_transform_edt(~lit, return_distances=True, return_indices=True)
+    fix = (~lit & (d <= reach)).reshape(-1)
+    out = code.copy()
+    out[fix] = code[(iy * w + ix).reshape(-1)[fix]]
+    return out
 
 
 class Skin:
@@ -233,7 +259,7 @@ class Skin:
                     return
 
     def _mask(self, tset, ids, zone, canvas):
-        cov = coverage.load(self.parts, tset, canvas.w, canvas.h).get(ids).reshape(-1)
+        cov = coverage.load(self.parts, tset, canvas.w, canvas.h).share(ids).reshape(-1)
         idx = np.flatnonzero(cov > 0.002)
         m = cov[idx]
         if zone is not None:
@@ -333,11 +359,13 @@ class Skin:
     def keep(self, tset="Skin"):
         """A copy of a texture set's paint so far: the layer a peel reveals (tool/peel.py)."""
         c = self.canvas(tset)
-        return {k: None if getattr(c, k) is None else getattr(c, k).copy() for k in ("colour", "rough", "metal", "coat")}
+        kept = {k: None if getattr(c, k) is None else getattr(c, k).copy() for k in ("colour", "rough", "metal", "coat")}
+        return {**kept, "set": tset}
 
     def peel(self, under, where="body", **params):
-        """Tear the body's paint open, as a wrap ripped off, to show `under` (from keep())
-        (tool/peel.py has the parameters)."""
+        """Tear the paint open, as a wrap ripped off, to show `under` (from keep()): on the
+        body, or on inner parts with an `under` kept from "Details" (tool/peel.py has the
+        parameters)."""
         from tool import peel
         peel.peel(self, under, where, **params)
         return self
@@ -355,10 +383,13 @@ class Skin:
         c.glow_code[idx[on]] = g["code"]
         c.glow_touched = True
 
-    def glow(self, where, colour=None, kind="always on", zone=None):
+    def glow(self, where, colour=None, kind="always on", zone=None, replacing=None, keep_level=False):
         """Make inner-car parts glow: kind is one of finishes.GLOWS ("always on", "night only",
         "brake lights", "front lights", "energy", ...). The body can't glow. colour None: the
-        parts glow in whatever colour is already painted on them (so a fade can glow)."""
+        parts glow in whatever colour is already painted on them (so a fade can glow).
+        replacing: only where the parts carry that kind of glow now (a stock one), swapped for
+        this one: s.glow("hub", "magenta", "exhaust heat", replacing="turbo"). keep_level: each
+        texel keeps the brightness it glowed with (relight's), and the paint is left alone."""
         col = None if colour is None else np.asarray(colours.get(colour), np.float32)
         targets = self._ids(where)
         for tset, ids in targets.items():
@@ -367,6 +398,13 @@ class Skin:
                 continue
             c = self.canvas(tset)
             idx, m = self._mask(tset, ids, zone, c)
+            if replacing is not None:
+                keep = c.glow_code[idx] == finishes.glow(replacing)["code"]
+                idx, m = idx[keep], m[keep]
+            if keep_level and col is not None:
+                level = c.glow_rgb[idx].max(1)
+                self._glow(c, idx, m, col / max(float(col.max()), 1e-6) * level[:, None], kind)
+                continue
             if col is None:
                 self._glow(c, idx, m, c.colour[idx], kind)
                 continue
@@ -375,7 +413,7 @@ class Skin:
             c.blend(idx, m, np.broadcast_to(col, (len(idx), 3)), np.full(len(idx), 0.4, np.float32), np.zeros(len(idx), np.float32), np.zeros(len(idx), np.float32))
         return self
 
-    def relight(self, where, colour):
+    def relight(self, where, colour, zone=None, keep_level=False):
         """Give the stock glow on parts a new colour. Each texel keeps its kind of glow and its
         brightness, so the pattern stays: the speed digits' segments with their dark backing, the
         brake lights' slots. The brightest texel takes the full colour. The
@@ -390,7 +428,12 @@ class Skin:
 
         For "rear lights", colour may be a list of five, one per gear band from the tail's corner
         inwards: gear 1 lights the first, gear 5 all five. The centre piece (lit only when
-        braking, red) takes the last."""
+        braking, red) takes the last.
+
+        zone: recolour only where a zone says, blending by its weight, so a fade works as with
+        paint: relight(parts, "cyan"), then relight(parts, "magenta", zone=shapes.fade(...)).
+        keep_level: keep each texel's stock brightness and change only its hue (for faint lights,
+        such as the night-only glows), rather than raising the brightest to the full colour."""
         bands = isinstance(colour, list)
         if bands and LIGHT_WORDS.get(where, where).split("|")[0] != "rear light":
             raise ValueError(f"relight {where}: a colour per gear band is for the rear lights only")
@@ -413,7 +456,14 @@ class Skin:
                 band = np.searchsorted(REAR_BANDS, 1 - (rows + 0.5) / c.h, side="right")
                 band[(us + 0.5) / c.w >= 0.5] = len(cols) - 1
                 col = cols[np.minimum(band, len(cols) - 1)]
-            c.glow_rgb[idx] = col * (level / level.max())[:, None]
+            if keep_level:
+                new = col / np.maximum(np.max(col, axis=-1, keepdims=True), 1e-6) * level[:, None]
+            else:
+                new = col * (level / level.max())[:, None]
+            if zone is not None:
+                w = zone(c.pos[idx], c.nrm[idx])[:, None]
+                new = c.glow_rgb[idx] * (1 - w) + new * w
+            c.glow_rgb[idx] = new
             c.glow_touched = True
         return self
 
@@ -447,6 +497,95 @@ class Skin:
 
     def tyres(self, what="black rubber", **params):
         return self.paint("tyres", what, **params)
+
+    # ---- relief (the inner car only: the game's normal map, tool/relief.py) ----
+
+    def _relief(self, where, make_h, zone=None, replace=False, what="relief"):
+        """Lay a height function on inner-car parts. make_h(tris_xyz, pos, nrm) -> h(pos, nrm)
+        in cm, given the parts' triangles and surface (for patterns that follow their edges or
+        sit on given points)."""
+        from scipy.ndimage import distance_transform_edt
+        from tool import relief
+        t_u, t_v = relief.frames("Details")
+        for tset, ids in self._ids(where).items():
+            if tset != "Details":
+                self.notes.append(f"{what} on {where}: only the inner car takes relief; skipped {tset}")
+                continue
+            c = self.canvas(tset)
+            idx, m = self._mask(tset, ids, zone, c)
+            if not len(idx):
+                continue
+            # the parts' own positions (a shared texel's main-bake position may be another part's)
+            lb = self.parts.local_bake(tset, c.w, c.h, ids=ids)
+            hit = lb["tri"] >= 0
+            near = distance_transform_edt(~hit, return_distances=False, return_indices=True)
+            flat = near[0].reshape(-1)[idx] * c.w + near[1].reshape(-1)[idx]
+            pos = lb["position"].reshape(-1, 3)[flat].astype(np.float32)
+            nrm = lb["normal"].reshape(-1, 3)[flat]
+            tris = np.flatnonzero(self.parts.tri_mask(tset, None, ids=ids))
+            tri = tris[lb["tri"].reshape(-1)[flat]]
+            mesh = self.parts._meshes["Details_01"]
+            h = make_h(mesh["positions"][mesh["tri_vertex"][tris]], pos, nrm)
+            s = relief.slopes(h, pos, nrm, t_u[tri], t_v[tri])
+            if c.slope is None:
+                c.slope = np.zeros((c.w * c.h, 2), np.float32)
+                c.keep_stock = np.ones(c.w * c.h, np.float32)
+            c.slope[idx] += s * m[:, None]
+            if replace:
+                c.keep_stock[idx] *= 1 - m
+        return self
+
+    def relief(self, where, pattern, depth=0.2, zone=None, replace=False, **params):
+        """Raised (depth > 0, cm) or sunk detail on inner-car parts, in the game's normal map.
+        pattern: "ribs" (scale apart, width, direction), "studs" (scale apart, size), "quilted"
+        (scale: the diamonds), "hex" (scale, groove), "rivets" (size; at `points`, a list of
+        (x, y, z) in cm, or along `line` = (from, to) every `spacing` cm, moved onto the parts'
+        surface; else along the parts' open edges, `inset` cm in, where they aren't tucked
+        under another part), or a function h(pos, nrm) -> cm. replace: a new surface, so
+        Nadeo's own relief there goes; otherwise ours is laid over theirs. Features under 1 cm
+        blur away when the map ships at 2048² (tool/relief.py)."""
+        from tool import relief
+        if callable(pattern):
+            make = lambda tris, pos, nrm: pattern
+        elif pattern == "rivets":
+            def make(tris, pos, nrm):
+                if "points" in params or "line" in params:
+                    pts = params.get("points") or relief.line_points(*params["line"], params.get("spacing", 4.0))
+                    pts = relief.snap(pts, pos)
+                else:
+                    pts = relief.edge_points(tris, params.get("spacing", 4.0), params.get("inset", 1.0), params.get("min_loop"))
+                if not len(pts):
+                    self.notes.append(f"rivets on {where}: no edge long enough for them")
+                return relief.points(pts if len(pts) else np.zeros((1, 3)) + 1e6, depth, params.get("size", 1.0), params.get("bevel", 0.2))
+        else:
+            h = relief.PATTERNS[pattern](depth=depth, **params)
+            make = lambda tris, pos, nrm: h
+        return self._relief(where, make, zone, replace, what=f"relief {pattern!r}")
+
+    def emboss(self, text, where, at, right, height=4.0, depth=0.12, font=None, weight=None, spacing=0,
+               bevel=0.15, zone=None, picture=None, width=None, mirror=True):
+        """Raised (depth > 0) or sunk lettering on inner-car parts, `height` cm tall, centred on
+        the parts' surface nearest `at` (cm), laid flat there and read along `right`. picture: a
+        PIL image or path instead of text, `width` cm wide (its alpha is raised). mirror: its
+        mirror image on the car's other side too. Most inner parts share their texels with their
+        mirror twin, which shows it there anyway (backwards, for words): use centre parts for
+        words, or marks that read the same both ways."""
+        from tool import relief
+        if picture is not None:
+            im = Image.open(picture) if not isinstance(picture, Image.Image) else picture
+            alpha = np.asarray(im.convert("RGBA"), np.float32)[..., 3] / 255
+            w_cm = width or 10.0
+        else:
+            img, w_cm = render_text(text, font or fonts.DEFAULT, height, weight=weight, spacing=spacing)
+            alpha = np.asarray(img["fill"], np.float32)[..., 3] / 255
+        def make(tris, pos, nrm):
+            k = int(np.argmin(np.linalg.norm(pos - np.asarray(at, np.float32), axis=1)))
+            f = nrm[k] / np.linalg.norm(nrm[k])
+            r = np.asarray(right, np.float64)
+            r = r - f * (r @ f)
+            h = relief.picture(alpha, pos[k], r, np.cross(f, r), w_cm, depth, bevel)
+            return relief.mirrored(h) if mirror else h
+        return self._relief(where, make, zone, what=f"emboss {text or 'a picture'!r}")
 
     # ---- lettering and pictures ----
 
@@ -781,9 +920,10 @@ def save_painted(skin):
 
 def build_zip(name, icon_image=None):
     """DDS files and the zip from build/<name>/painted.npz. A zip over ZIP_BUDGET gets its
-    roughness maps at half size (the stock's own 2048²), largest first, until it fits: where a
-    design kept the stock look they hold nothing finer, and a finish on a whole part keeps its
-    edges (the island's)."""
+    normal map, then its roughness maps, at half size (the stock's own 2048²), largest first,
+    until it fits: the relief is drawn to read at 2048² (tool/relief.py); where a design kept
+    the stock look the roughness maps hold nothing finer, and a finish on a whole part keeps
+    its edges (the island's). Colour and glow always ship at full size."""
     out = paths.BUILD / name
     meta = json.loads((out / "painted.json").read_text())
     data = np.load(out / "painted.npz")
@@ -798,11 +938,13 @@ def build_zip(name, icon_image=None):
         cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
         icon_image = pack.icon(name[:8], cols[0], cols[-1])
     zip_path = pack.pack(name, out, icon_image)
+    normals = [t for t in specs if t.endswith("_N") and data[t].shape[0] > 2048]
     rough = [t for t in specs if t.endswith("_R")]
-    while zip_path.stat().st_size > ZIP_BUDGET and rough:
+    while zip_path.stat().st_size > ZIP_BUDGET and (normals or rough):
         sizes = pack.sizes(zip_path)
-        t = max(rough, key=lambda t: sizes.get(f"{t}.dds", 0))
-        rough.remove(t)
+        group = normals or rough
+        t = max(group, key=lambda t: sizes.get(f"{t}.dds", 0))
+        group.remove(t)
         fourcc, spec = specs[t]
         half = dds.halve(data[t].astype(np.float32) / 255)
         dds.write(out / f"{t}.dds", half, fourcc, **spec)
