@@ -31,7 +31,7 @@ them light up (checkpoint 4), so they sit on bigger, plainer spots here.
 3. One hard stop from full speed, looking at the front wheels (brake heat, "on when braking
    hard"), then a gentle stop, to compare.
    Also the rear lights as a gear display (the user's observation, 2026-09-25: standing still
-   only the outer ends light, each gear lights the next band, braking lights it all red): at
+   only the outer ends light, each gear lights the next band, braking lights it all red):
    whether the bands fill up or move along one at a time, and
    when the small piece in the middle lights (the shift speeds are known: 100, 160, 235 and
    340 km/h). A short video from behind while accelerating from a standstill would answer both.
