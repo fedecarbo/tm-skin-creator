@@ -590,18 +590,19 @@ function applyBraking() {
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
 // speed on its digits, the brake lights and the turbo (the user's idea, 2026-09-25). As the user
-// described the game: Accelerate reaches 180 km/h in about 4 s and holds it there, letting go
-// drifts down slowly, and Brake stops the car in about half a second. Reactor boost and the
+// described the game: Accelerate reaches 180 km/h in about 4 s, then climbs slowly to 350 (so
+// all five gears show on the rear lights), letting go drifts down slowly, and Brake stops the
+// car in about half a second. Reactor boost and the
 // other glows join once the game's screenshots show what they do. ----
 
-const CRUISE = 180;  // km/h
+const CRUISE = 180, TOP = 350;  // km/h
 const drive = { speed: SPEED, gas: false, brake: false, turbo: false, shown: -1, last: 0 };
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
   if (drive.brake) drive.speed -= 700 * dt;
   else if (drive.gas && drive.speed < CRUISE) drive.speed = Math.min(CRUISE, drive.speed + (35 + 30 * (1 - drive.speed / CRUISE)) * dt);
-  else if (drive.gas) drive.speed = Math.max(CRUISE, drive.speed - 60 * dt);  // above it (?speed=): settle
+  else if (drive.gas) drive.speed = Math.min(Math.max(TOP, drive.speed), drive.speed + 12 * dt);
   else drive.speed -= 3 * dt;
   drive.speed = Math.min(999, Math.max(0, drive.speed));
   const turbo = drive.speed >= TURBO.from;

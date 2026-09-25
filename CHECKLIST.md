@@ -707,6 +707,9 @@ Part 1 comes first, because every design depends on it.
     **Next:** on the Windows PC, `tool.skin show TSC_Lights_Test` then `install`, and the user's
     in-game test (`skins/TSC_Lights_Test/notes.md` has the colour key and what to try; `key.png`
     is the viewer's picture to compare with). Then the words, the notes and `CLAUDE.md` above.
+    **Queued, the user will do it later (2026-09-25):** a short video from behind while pulling
+    away from a standstill, for the rear lights' gear display (fill-up or one at a time, the
+    centre piece).
     - **Research** (web; Reddit threads read through an archive):
       - Speed digits: very likely yes. On r/TrackMania (2021-2024) players colour them with the
         `Details_I` RGB on the digits at alpha exactly 96. The game still lights only the
@@ -759,7 +762,8 @@ Part 1 comes first, because every design depends on it.
     - **The pad under the car (the user's idea, 2026-09-25):** hold Accelerate or Brake (or
       ↑/W, ↓/S) and the speed on the digits climbs or falls, with the brake lights flaring
       while braking (`stepDrive` in `viewer/viewer.js`; snapshots keep `?speed=`). Tuned to
-      the user's feel of the game: Accelerate reaches 180 in about 4 s and holds it, letting go
+      the user's feel of the game: Accelerate reaches 180 in about 4 s, then climbs slowly
+      (12 km/h a second) to 350, so all five gears show on the rear lights; letting go
       drifts down slowly (3 km/h a second), Brake stops the car in half a second, and a stopped
       car's display is dark.
     - **Turbo on the pad, provisional:** from 100 km/h the turbo-colour areas (code 160: the
