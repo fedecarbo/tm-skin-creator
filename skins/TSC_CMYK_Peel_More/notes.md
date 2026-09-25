@@ -21,3 +21,5 @@ half of it gone, bigger tears and bigger flaps.
   the wrap at the back, the inside run, the tail parts, and the lights. The other CMYK cars keep
   their yellow (`end=` on the shared designs). Shown with a picture of the rear lights through
   the gears, braking and at night.
+- Installed 2026-09-25 at the user's yes ("Like it :)"): 5.82 MB, built in 169 s. Glow codes
+  checked in the game file: rims 64 (orange), brake lights 0 (cyan), digits and rear lights 96.
