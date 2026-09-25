@@ -23,22 +23,23 @@ def stealth_base(s, seams=True):
     s.paint("rim", "satin", colour="#1e1f22")
 
 
-def run(s, where):
-    """The cyan > magenta > yellow run along the car, over the sidepod's length (z 36 .. -47)."""
+def run(s, where, end=Y):
+    """The cyan > magenta > yellow run along the car, over the sidepod's length (z 36 .. -47).
+    end: the colour it ends in (yellow, or another, as TSC_CMYK_Peel_More's orange)."""
     s.paint(where, "satin", colour=C)
     s.paint(where, "satin", colour=M, zone=shapes.fade("z", 36, -2))
-    s.paint(where, "satin", colour=Y, zone=shapes.fade("z", -10, -47))
+    s.paint(where, "satin", colour=end, zone=shapes.fade("z", -10, -47))
 
 
-def design(s, bold=False, seams=True):
+def design(s, bold=False, seams=True, end=Y):
     stealth_base(s, seams)
-    run(s, ["sidepod frame", "sidepod grille", "sidepod panel", "seat belt"])
+    run(s, ["sidepod frame", "sidepod grille", "sidepod panel", "seat belt"], end)
     s.paint(["brake caliper", "brake line", "front wing endplate"], "satin", colour=C)
-    s.paint(["side vent", "rear strake"], "satin", colour=Y)
+    s.paint(["side vent", "rear strake"], "satin", colour=end)
     if bold:
         s.paint("front wing", "satin", colour=C)
-        s.paint(["rear diffuser", "rear bumper", "rear light"], "satin", colour=Y)
-        run(s, ["cockpit rim", "mirror", "mirror arm"])
+        s.paint(["rear diffuser", "rear bumper", "rear light"], "satin", colour=end)
+        run(s, ["cockpit rim", "mirror", "mirror arm"], end)
     # the plate each grille sits in goes black, to break up the run (user, 2026-09-24)
     s.paint("sidepod grille plate", "satin", colour="#1e1f22")
     s.glow(["sidepod grille", "side vent"], None, "always on")

@@ -12,14 +12,15 @@ _spec.loader.exec_module(_cmyk)
 C, M, Y = _cmyk.C, _cmyk.M, _cmyk.Y
 
 
-def design(s, more=False):
+def design(s, more=False, end=Y):
+    """end: the colour the run ends in at the tail (yellow; TSC_CMYK_Peel_More's is orange)."""
     # underneath: the CMY run along the whole body (satin, so the colour holds at every angle)
     s.paint("body", "satin", colour=C)
     s.paint("body", "satin", colour=M, zone=shapes.fade("z", 150, 50))
-    s.paint("body", "satin", colour=Y, zone=shapes.fade("z", -10, -100))
+    s.paint("body", "satin", colour=end, zone=shapes.fade("z", -10, -100))
     under = s.keep()
     # on top: the Bold car without its glossy seam lines ("the black tape", user), torn open
-    _cmyk.design(s, bold=True, seams=False)
+    _cmyk.design(s, bold=True, seams=False, end=end)
     # the ring round each sidepod inlet in the wrap's black, so the colour comes only through
     # the tears (user); the glowing grille inside keeps its colour
     s.paint("sidepod frame", "matte", colour="#232528")

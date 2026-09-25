@@ -64,6 +64,9 @@ GLOW_CODES = np.array([0, 32, 64, 96, 128, 160, 192, 224, 255])
 LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display", "speedometer": "digit display",
                "digits": "digit display", "brake lights": "brake light", "rear lights": "rear light",
                "tail lights": "rear light", "gear lights": "rear light"}
+# the rear lights' gear bands: the texture v where bands 2 to 5 start, on the bars (u < 0.5; the
+# centre piece is u > 0.5). Band 1 is at the tail's corner. The viewer's rear lights use the same.
+REAR_BANDS = (0.4747, 0.4903, 0.5030, 0.5157)
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
 # seen from, the largest sensible width (cm). Measured on the model (2026-09-24).
@@ -383,8 +386,15 @@ class Skin:
         this colour, braking or not. "brake lights" (the slots inside the front wheels) glow dimly
         and flare towards white while braking. "rear lights" fill up band by band with the gear
         in this colour and turn fully red while braking, whatever the colour. A tinted rear lens
-        (glass) filters them, the braking red too: red through a blue or green lens looks dark."""
-        col = np.asarray(colours.get(colour), np.float32)
+        (glass) filters them, the braking red too: red through a blue or green lens looks dark.
+
+        For "rear lights", colour may be a list of five, one per gear band from the tail's corner
+        inwards: gear 1 lights the first, gear 5 all five. The centre piece (lit only when
+        braking, red) takes the last."""
+        bands = isinstance(colour, list)
+        if bands and LIGHT_WORDS.get(where, where).split("|")[0] != "rear light":
+            raise ValueError(f"relight {where}: a colour per gear band is for the rear lights only")
+        cols = np.asarray([colours.get(c) for c in (colour if bands else [colour])], np.float32)
         own = [g["code"] for g in finishes.GLOWS.values() if g["keeps colour"]]
         for tset, ids in self._ids(where).items():
             if tset != "Details":
@@ -397,6 +407,12 @@ class Skin:
             if not len(idx) or level.max() < 0.05:
                 self.notes.append(f"relight {where}: no stock glow there to recolour")
                 continue
+            col = cols[0]
+            if bands:
+                rows, us = np.divmod(idx, c.w)
+                band = np.searchsorted(REAR_BANDS, 1 - (rows + 0.5) / c.h, side="right")
+                band[(us + 0.5) / c.w >= 0.5] = len(cols) - 1
+                col = cols[np.minimum(band, len(cols) - 1)]
             c.glow_rgb[idx] = col * (level / level.max())[:, None]
             c.glow_touched = True
         return self
