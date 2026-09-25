@@ -12,7 +12,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **Define the game's cameras** (below), the user's way (2026-09-25): they set each camera by
   eye in the viewer, next to the game, press "Copy Cam N" and paste it in the chat. Claude
-  squares it up behind the car and writes it into `VIEWS` in `viewer/viewer.js`.
+  squares it up behind the car and writes it into `VIEWS` in `viewer/viewer.js`. Cam 1 set
+  (2026-09-25); Cam 2 and Cam 3 to come.
 
 ## The tool
 
