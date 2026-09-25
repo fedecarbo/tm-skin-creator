@@ -29,7 +29,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **Raised detail on the inner car** (2026-09-24, checkpoint 5): bolts, embossed logos, ribs,
   through `Details_N`. Not built. The body can't take relief at all.
 - **Some inner part names are guesses** (2026-09-24, checkpoint 3): side vent, side vane, nose
-  sensor, airbox. Check them the first time a design paints them.
+  sensor, airbox. Check them the first time a design paints them. Known since the air brakes
+  (2026-09-25): "nose sensor" is the nose panel's lifting arms, "rear damper" the rear quarter
+  panel's arm, and "airbox" the opening under each quarter panel. Renaming them means updating
+  `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
+  the viewer.
 - **Claude's snapshots after the viewer's new look** (2026-09-25). The new look was checked on
   the Mac only. Run `tool.snap` once on the Windows PC and compare with an older views sheet:
   `?snap=1` should keep the old framing.
@@ -38,11 +42,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **Cam 2 in the Driving menu is a guess** (2026-09-25) until a screenshot of the game's Cam 2.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
-- **The rear wings, fine-tuning** (2026-09-25): the viewer opens both (up or down, then
-  apart) at the video's speeds, with distances set by eye from behind. A short video from the
-  side (pull away, brake hard, let go) would pin the distances and show the pieces the user
-  saw move when braking, which aren't modelled. Notes under the lights improvement in
-  `CHECKLIST.md`.
+- **The rear wings and air brakes, fine-tuning** (2026-09-25): the viewer opens both wings (up
+  or down, then apart) at the video's pace, and raises the air brakes (rear quarter panels,
+  nose panel, with their arms) while braking. How far the wings move, the air brakes' angles
+  and how quick they are were set by eye. A short video from the side (pull away, brake hard,
+  let go) would pin them. Notes under the lights improvement in `CHECKLIST.md`.
 
 ## To check in the game
 

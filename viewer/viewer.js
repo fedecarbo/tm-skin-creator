@@ -614,14 +614,115 @@ function showWing(out, apart) {  // each 0..1
   wingUniforms.wingApart.value = WINGS.map((w) => w.apart * easeWing(apart));
 }
 
-// The wings' parts move in the vertex shader, in the materials and in the shadow's depth pass.
-// After addParts, which declares the part attribute.
+// ---- The air brakes (the user, 2026-09-25): braking, the two rear quarter panels tip up at the
+// front and the nose panel tips up at the back, quickly, each pushed up by arms inside it. Unlike
+// the wings these do tilt: each panel turns about its other edge, along a hinge line in its own
+// plane, found from the mesh at load, and takes its underside along ("with"). Each arm swings
+// about its base and stretches so that its tip stays on the panel: the "rear damper" in each
+// quarter panel's opening and the "nose sensor" rods under the nose (names from checkpoint 3,
+// before we knew what they were). Provisional until a side view: the angles and how quick.
+// Snapshots keep them down; ?airbrake=1 raises them there. ----
+
+const AIRBRAKES = [  // hinge: the edge that stays; angle in degrees
+  { part: 'rear quarter panel', hinge: 'back', angle: Number(params.get('quarterAngle') ?? 20), with: [], arms: ['rear damper'] },
+  { part: 'nose panel', hinge: 'front', angle: Number(params.get('noseAngle') ?? 30), with: ['nose plate'], arms: ['nose sensor'] },
+];
+const AIRBRAKE = { up: 0.15, down: 0.2 };  // seconds
+const vec3s = (n, make = () => new THREE.Vector3()) => Array.from({ length: n }, make);
+const tiltUniforms = { tiltOn: { value: 0 },
+  tiltIds: { value: new Array(8).fill(-1) }, tiltSlot: { value: new Array(8).fill(0) },  // part -> panel
+  tiltAngle: { value: [0, 0, 0, 0] }, tiltPivot: { value: vec3s(4) }, tiltAxis: { value: vec3s(4, () => new THREE.Vector3(1, 0, 0)) },
+  armIds: { value: [-1, -1, -1, -1] }, armBase: { value: vec3s(4) }, armDir: { value: vec3s(4, () => new THREE.Vector3(0, 1, 0)) },
+  armAxis: { value: vec3s(4, () => new THREE.Vector3(1, 0, 0)) }, armAngle: { value: [0, 0, 0, 0] }, armStretch: { value: [1, 1, 1, 1] } };
+const airbrake = { max: [], arms: [] };  // per panel its angle; per arm its panel, base and tip
+
+// The corners of the given parts, from the Skin and Details meshes.
+function partVertices(geoms, ids) {
+  const vs = [], ns = [];
+  for (const g of [geoms.Skin, geoms.Details]) {
+    const pos = g.attributes.position.array, nrm = g.attributes.normal.array, part = g.attributes.part.array;
+    for (let v = 0; v < part.length; v++) {
+      if (!ids.includes(part[v])) continue;
+      vs.push(new THREE.Vector3(pos[3 * v], pos[3 * v + 1], pos[3 * v + 2]));
+      ns.push(new THREE.Vector3(nrm[3 * v], nrm[3 * v + 1], nrm[3 * v + 2]));
+    }
+  }
+  return { vs, ns };
+}
+// An arm's two ends: along its longest direction (power iteration on the spread of its corners).
+function armEnds(vs) {
+  const mean = vs.reduce((a, v) => a.add(v), new THREE.Vector3()).divideScalar(vs.length);
+  const c = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (const v of vs) {
+    const d = v.clone().sub(mean).toArray();
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) c[i][j] += d[i] * d[j];
+  }
+  let dir = new THREE.Vector3(1, 1, 1).normalize();
+  for (let k = 0; k < 30; k++) {
+    const a = dir.toArray();
+    dir = new THREE.Vector3(...c.map((row) => row[0] * a[0] + row[1] * a[1] + row[2] * a[2])).normalize();
+  }
+  const t = vs.map((v) => v.clone().sub(mean).dot(dir));
+  const ends = [Math.min(...t), Math.max(...t)].map((s) => mean.clone().addScaledVector(dir, s));
+  return ends[0].y < ends[1].y ? ends : [ends[1], ends[0]];  // [base, tip]: the base is the lower end
+}
+
+// Per panel: its mean normal n; the hinge, the middle of the edge that stays (its front- or
+// rearmost corners); d, the way to the other edge within the panel's plane; the axis d x n,
+// about which a positive turn lifts that edge along n.
+function setupAirbrakes(geoms) {
+  const doc = partsState.doc.parts, ids = [], slots = [], arms = [];
+  const find = (names, side) => doc.flatMap((p, i) => (names.includes(p.name) && p.side === side ? [i] : []));
+  AIRBRAKES.forEach((a) => doc.forEach((p, id) => {
+    if (p.name !== a.part || airbrake.max.length >= 4) return;
+    const k = airbrake.max.length;
+    const { vs, ns } = partVertices(geoms, [id]);
+    const n = ns.reduce((s, v) => s.add(v), new THREE.Vector3()).normalize();
+    const zs = vs.map((v) => v.z);
+    const edge = (z) => { const e = vs.filter((v) => Math.abs(v.z - z) < 0.015); return e.reduce((s, v) => s.add(v), new THREE.Vector3()).divideScalar(e.length); };
+    const [hinge, other] = a.hinge === 'front' ? [edge(Math.max(...zs)), edge(Math.min(...zs))] : [edge(Math.min(...zs)), edge(Math.max(...zs))];
+    const d = other.clone().sub(hinge);
+    d.addScaledVector(n, -d.dot(n)).normalize();
+    tiltUniforms.tiltPivot.value[k].copy(hinge);
+    tiltUniforms.tiltAxis.value[k].crossVectors(d, n).normalize();
+    airbrake.max.push(THREE.MathUtils.degToRad(a.angle));
+    // what turns with it: the panel, its underside, and on a centre panel the arms' centre piece
+    for (const i of [id, ...find(a.with, p.side), ...(p.side === 'centre' ? find(a.arms, 'centre') : [])]) { ids.push(i); slots.push(k); }
+    // its arms: on the same side, or both sides under a centre panel
+    for (const i of p.side === 'centre' ? [...find(a.arms, 'left'), ...find(a.arms, 'right')] : find(a.arms, p.side)) {
+      const [base, tip] = armEnds(partVertices(geoms, [i]).vs);
+      arms.push({ id: i, panel: k, base, tip });
+    }
+  }));
+  tiltUniforms.tiltIds.value = [...ids, ...new Array(8).fill(-1)].slice(0, 8);
+  tiltUniforms.tiltSlot.value = [...slots, ...new Array(8).fill(0)].slice(0, 8);
+  airbrake.arms = arms.slice(0, 4);
+  airbrake.arms.forEach((arm, j) => { tiltUniforms.armIds.value[j] = arm.id; tiltUniforms.armBase.value[j].copy(arm.base); });
+}
+function showAirbrakes(t) {  // 0 down .. 1 up
+  const u = tiltUniforms;
+  u.tiltOn.value = t > 0 ? 1 : 0;
+  u.tiltAngle.value = [0, 1, 2, 3].map((k) => (airbrake.max[k] || 0) * easeWing(t));
+  airbrake.arms.forEach((arm, j) => {  // swing the arm so its tip follows the panel, stretching it to reach
+    const pivot = u.tiltPivot.value[arm.panel];
+    const moved = arm.tip.clone().sub(pivot).applyAxisAngle(u.tiltAxis.value[arm.panel], u.tiltAngle.value[arm.panel]).add(pivot);
+    const from = arm.tip.clone().sub(arm.base), to = moved.sub(arm.base);
+    const axis = new THREE.Vector3().crossVectors(from, to);
+    u.armAngle.value[j] = axis.lengthSq() > 1e-12 ? from.angleTo(to) : 0;
+    if (axis.lengthSq() > 1e-12) u.armAxis.value[j].copy(axis.normalize());
+    u.armDir.value[j].copy(from).normalize();
+    u.armStretch.value[j] = to.length() / from.length();
+  });
+}
+
+// The wings' and air brakes' parts move in the vertex shader, in the materials and in the
+// shadow's depth pass. After addParts, which declares the part attribute.
 function addWing(material) {
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
   material.onBeforeCompile = (shader) => {
     if (previous) previous(shader);
-    Object.assign(shader.uniforms, wingUniforms);
+    Object.assign(shader.uniforms, wingUniforms, tiltUniforms);
     const declare = shader.vertexShader.includes('attribute float part') ? '' : 'attribute float part;';
     shader.vertexShader = shader.vertexShader
       .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
@@ -638,9 +739,37 @@ function addWing(material) {
             return v;
           }
           return v;
+        }
+        uniform float tiltOn; uniform float tiltIds[ 8 ]; uniform float tiltSlot[ 8 ];
+        uniform float tiltAngle[ 4 ]; uniform vec3 tiltPivot[ 4 ]; uniform vec3 tiltAxis[ 4 ];
+        uniform float armIds[ 4 ]; uniform vec3 armBase[ 4 ]; uniform vec3 armDir[ 4 ]; uniform vec3 armAxis[ 4 ];
+        uniform float armAngle[ 4 ]; uniform float armStretch[ 4 ];
+        vec3 tiltTurn( vec3 v, vec3 a, float t ) {  // Rodrigues: v turned by t about the unit axis a
+          return v * cos( t ) + cross( a, v ) * sin( t ) + a * dot( a, v ) * ( 1.0 - cos( t ) );
+        }
+        // the air brakes: a panel's parts turn about its hinge; an arm stretches along itself and
+        // swings about its base. point: a position (else a normal, which only turns).
+        vec3 tiltMove( vec3 v, float p, bool point ) {
+          if ( tiltOn == 0.0 ) return v;
+          for ( int i = 0; i < 8; i++ ) {
+            if ( abs( p - tiltIds[ i ] ) > 0.5 ) continue;
+            int s = int( tiltSlot[ i ] + 0.5 );
+            if ( !point ) return tiltTurn( v, tiltAxis[ s ], tiltAngle[ s ] );
+            return tiltPivot[ s ] + tiltTurn( v - tiltPivot[ s ], tiltAxis[ s ], tiltAngle[ s ] );
+          }
+          for ( int i = 0; i < 4; i++ ) {
+            if ( abs( p - armIds[ i ] ) > 0.5 ) continue;
+            if ( !point ) return tiltTurn( v, armAxis[ i ], armAngle[ i ] );
+            vec3 l = v - armBase[ i ];
+            l += armDir[ i ] * dot( l, armDir[ i ] ) * ( armStretch[ i ] - 1.0 );
+            return armBase[ i ] + tiltTurn( l, armAxis[ i ], armAngle[ i ] );
+          }
+          return v;
         }`)
+      .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+        objectNormal = tiltMove( objectNormal, part, false );`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-        transformed = wingMove( transformed, part );`);
+        transformed = tiltMove( wingMove( transformed, part ), part, true );`);
   };
   material.customProgramCacheKey = () => `${previousKey()}-wing`;
 }
@@ -688,7 +817,7 @@ const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
 // from 371 km/h to a stop in about 11.6 s, as in the video.
 const coast = (kmh) => 3.5 + 0.3 * kmh;
 const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, turbo: false, shown: '', last: 0,
-  wingUp: SPEED >= WING.openFrom, wingOut: 0, wingApart: 0, wingPause: 0 };
+  wingUp: SPEED >= WING.openFrom, wingOut: 0, wingApart: 0, wingPause: 0, airbrake: snap ? Number(params.get('airbrake') ?? 0) : 0 };
 {  // at the start: open at speed; in snapshots shut, or ?wing= (0.5 out, 1 open too)
   const open = snap ? Number(params.get('wing') ?? 0) : +(SPEED >= WING.openFrom);
   drive.wingOut = Math.min(1, open * 2);
@@ -707,6 +836,10 @@ function stepWing(dt) {
     else d.wingOut = Math.max(0, d.wingOut - dt / WING.back);
   }
   if (d.wingOut !== was[0] || d.wingApart !== was[1]) showWing(d.wingOut, d.wingApart);
+  // the air brakes: up while braking (the pad's Brake, or Show → Braking)
+  const air = braking || d.brake
+    ? Math.min(1, d.airbrake + dt / AIRBRAKE.up) : Math.max(0, d.airbrake - dt / AIRBRAKE.down);
+  if (air !== d.airbrake) showAirbrakes(d.airbrake = air);
 }
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
@@ -1146,6 +1279,8 @@ async function start() {
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();
+  setupAirbrakes(geoms);
+  showAirbrakes(drive.airbrake);
   await loadSkin(skinName);
   setNight(false);
   if (!snap) {  // on unless this browser turned it off last time

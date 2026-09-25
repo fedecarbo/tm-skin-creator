@@ -908,7 +908,23 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
         width). The parts move in the vertex shader, the shadow too (`customDepthMaterial`).
         Snapshots keep them shut (identical to before); `?wing=1` opens them there, and
         `?wingLift=`, `?wingSpread=`, `?flapDrop=`, `?flapSpread=` (cm) try other distances. A
-        side video would pin the distances and show what moves when braking.
+        side video would pin the distances.
+      - **The air brakes (the user, 2026-09-25):** braking, the two rear quarter panels tip up at
+        the front and the nose panel tips up at the back, "rather quick", each pushed by arms
+        inside it. In the model the arms are "rear damper" (a telescopic arm in each quarter
+        panel's opening) and "nose sensor" (two rods under the nose, and a crossbar at the
+        panel); the openings are "airbox" and "nose plate" left/right; "nose plate" centre is the
+        nose panel's underside. Names from checkpoint 3, before we knew (`IMPROVEMENTS.md`).
+      - **In the viewer** (`AIRBRAKES`, `setupAirbrakes`, `showAirbrakes`): each panel turns about
+        the edge that stays, along a hinge line in its own plane (from the mesh at load: its mean
+        normal and the middle of its front- or rearmost corners), taking its underside and
+        crossbar along; each arm swings about its lower end and stretches so its tip stays on
+        the panel (its ends by power iteration on its corners). 20° for the quarter panels,
+        after the user's braking screenshot (12:33: dark openings either side of the engine
+        cover; 35° stood too tall); 30° for the nose, a guess (from Cam 1 it hides behind the
+        cockpit at any angle). Up in 0.15 s, down in 0.2 s, while the pad's Brake or Show →
+        Braking is on. Snapshots keep them down; `?airbrake=1`, `?quarterAngle=`, `?noseAngle=`.
+        A first render showed a thin line above the car: the far quarter panel, edge-on.
       - **The canopy's rear:** its (magenta, in TSC_Parts) lines don't change with the gear
         from behind. The glass gear display wasn't visible from Cam 1.
       - **Turbo:** nothing turned green from behind; no turbo pads on this straight.
