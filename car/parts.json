@@ -4866,12 +4866,12 @@
    "end": "front",
    "cut": "tyre_sidewall",
    "mesh": "Wheels",
-   "tris": 711,
-   "area_cm2": 2626.3,
+   "tris": 744,
+   "area_cm2": 2843.1,
    "pieces": [
     2051
    ],
-   "texels": 152248,
+   "texels": 151869,
    "shared": 1.0
   },
   {
@@ -4882,12 +4882,12 @@
    "end": "front",
    "cut": "tyre_sidewall",
    "mesh": "Wheels",
-   "tris": 711,
-   "area_cm2": 2626.3,
+   "tris": 744,
+   "area_cm2": 2843.1,
    "pieces": [
     2052
    ],
-   "texels": 152248,
+   "texels": 151869,
    "shared": 1.0
   },
   {
@@ -4898,12 +4898,12 @@
    "end": "rear",
    "cut": "tyre_sidewall",
    "mesh": "Wheels",
-   "tris": 711,
-   "area_cm2": 2733.7,
+   "tris": 744,
+   "area_cm2": 2960.7,
    "pieces": [
     2053
    ],
-   "texels": 152248,
+   "texels": 151869,
    "shared": 1.0
   },
   {
@@ -4914,12 +4914,12 @@
    "end": "rear",
    "cut": "tyre_sidewall",
    "mesh": "Wheels",
-   "tris": 711,
-   "area_cm2": 2733.7,
+   "tris": 744,
+   "area_cm2": 2960.7,
    "pieces": [
     2054
    ],
-   "texels": 152248,
+   "texels": 151869,
    "shared": 1.0
   },
   {
@@ -4930,12 +4930,12 @@
    "end": "front",
    "cut": "tyre_tread",
    "mesh": "Wheels",
-   "tris": 513,
-   "area_cm2": 6739.6,
+   "tris": 480,
+   "area_cm2": 6522.9,
    "pieces": [
     2051
    ],
-   "texels": 372040,
+   "texels": 372419,
    "shared": 1.0
   },
   {
@@ -4946,12 +4946,12 @@
    "end": "front",
    "cut": "tyre_tread",
    "mesh": "Wheels",
-   "tris": 513,
-   "area_cm2": 6739.7,
+   "tris": 480,
+   "area_cm2": 6522.9,
    "pieces": [
     2052
    ],
-   "texels": 372040,
+   "texels": 372419,
    "shared": 1.0
   },
   {
@@ -4962,12 +4962,12 @@
    "end": "rear",
    "cut": "tyre_tread",
    "mesh": "Wheels",
-   "tris": 513,
-   "area_cm2": 7387.2,
+   "tris": 480,
+   "area_cm2": 7160.2,
    "pieces": [
     2053
    ],
-   "texels": 372040,
+   "texels": 372419,
    "shared": 1.0
   },
   {
@@ -4978,12 +4978,12 @@
    "end": "rear",
    "cut": "tyre_tread",
    "mesh": "Wheels",
-   "tris": 513,
-   "area_cm2": 7387.2,
+   "tris": 480,
+   "area_cm2": 7160.2,
    "pieces": [
     2054
    ],
-   "texels": 372040,
+   "texels": 372419,
    "shared": 1.0
   },
   {

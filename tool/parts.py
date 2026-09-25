@@ -21,10 +21,10 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from tool import naming, paths, segment
+from tool.shapes import WHEEL_Y, WHEEL_Z  # the wheel centres, fitted to the tyres and covers
 
 PARTS_JSON = paths.REPO / "car" / "parts.json"
 CACHE = paths.CACHE / "parts.npz"
-WHEEL_Y, WHEEL_Z = 35.3, (178.9, -119.6)  # wheel centres (measured 2026-09-23)
 ENDED = {"wheel", "tyre", "wheel cover", "front suspension", "rear suspension"}  # assemblies split front/rear
 MESH_NAME = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
 MESH_TRIS = {"Skin": 27184, "Details": 65246, "Wheels": 4896, "Glass": 2239}

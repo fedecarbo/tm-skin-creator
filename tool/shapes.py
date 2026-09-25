@@ -116,8 +116,8 @@ def box(lo, hi, soft=SOFT):
 
 
 # the wheel centres, fitted to the tyres' tread and bead, the covers' and the rims' edges (within
-# 0.2 mm, 2026-09-25). tool/parts.py's older figures (35.3; 178.9, -119.6) are 5.7 mm too far
-# forward, and a ring round them wobbled in the game as the wheel turned (the user).
+# 0.2 mm, 2026-09-25). The older figures (35.3; 178.9, -119.6) were 5.7 mm too far forward, and a
+# ring round them wobbled in the game as the wheel turned (the user). tool/parts.py uses these too.
 WHEEL_Y, WHEEL_Z = 35.252, (178.314, -120.163)
 
 

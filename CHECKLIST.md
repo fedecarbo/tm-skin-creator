@@ -1062,7 +1062,9 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   178.314 front, -120.163 rear); `shapes.WHEEL_Y/WHEEL_Z` hold them. All four tyres share one
   shape in one texture layout (within 0.1 mm), so a ring in 3D is round on each. Anything that
   turns needs its centre fitted to the geometry, not read off by eye. Redrawn round the fitted
-  centres, the user saw it round in the game (2026-09-25).
+  centres, the user saw it round in the game (2026-09-25). `tool/parts.py` now takes them from
+  `shapes` too, so the tyre's sidewall/tread split (34.5 cm) is round: it moved 33 triangles a
+  tyre, nothing else changed, and TSC_CMYK_Peel_More repaints identically.
 - **2026-09-25, the lights test (TSC_Lights_Test, the user's day and night videos).** A skin can
   colour the speed digits, the rear lights (a glow colour and a lens tint, which multiply) and
   the brake lights inside the front wheels. It can't colour the initials and number: they stay
