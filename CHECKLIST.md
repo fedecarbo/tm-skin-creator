@@ -1067,7 +1067,11 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   about the fitted axles in the vertex shader (`SPIN`), shadows too, with the pad's speed. A
   screen can't show the true rate (290° a frame at 400 km/h looks like crawling or running
   backwards), so it eases off to about 4 turns a second: true at walking pace, a steady fast
-  spin from about 40 km/h. `?spin=` turns them in snapshots.
+  spin from about 40 km/h. `?spin=` turns them in snapshots. The first version wobbled (the
+  user saw it at once): the viewer lifts the whole car 1.2 cm so the tyres sit on its floor
+  (`car.json`'s `lift_cm`), and the axles hadn't been lifted with it. Anything placed in the
+  viewer from the model's own figures needs that lift; the fitted cameras got it too. Checked
+  by rendering a wheel at 0, 90, 180 and 270°: the centre cap stays within 0.3 px.
 - **2026-09-25, the turbo (TSC_Lights_Test, the user's day and night turbo videos).** One
   yellow turbo pad each, Cam 1, full throttle to about 440 km/h, then braking. The turbo glow
   (code 160) lights in the pad's colour: the stock hubs (grey, code 160) glowed yellow inside

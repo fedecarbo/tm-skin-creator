@@ -29,18 +29,18 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // The game's cameras that show the car, under Driving (the user, 2026-09-25: not the cockpit
   // ones), standing still, fitted to the user's 2560x1440 screenshots of each (2026-09-25): the
   // tyres' outer edges and tops, the horizon, and for Cam 3 the nose fin and a mirror, projected
-  // from the model, the lens free. Cam 1 and 2 land within 1.5 px, Cam 3 within about 8. The
+  // from the model, the lens free, then raised 1.2 cm with the car (car.json's lift_cm). Cam 1 and 2 land within 1.5 px, Cam 3 within about 8. The
   // game's lens is wider than the 58.7° tall (90° wide) first assumed: 73 to 77° tall, 105 to
   // 110° wide at 16:9. The user had set all three by eye in the viewer first ("Copy Cam N",
   // below): Cam 1 2.47 m up at 12° down, Cam 2 1.82 m up at 6°, Cam 3 1.08 m up at 2°, all
   // through the narrower lens, which drew the car about 1.4 times too big.
   // Cam 1, the chase camera: 3.36 m up, 5.21 m behind the car's centre, 10.9° down.
-  cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.226, 0.652], fov: 72.8 },
+  cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.238, 0.652], fov: 72.8 },
   // Cam 2: lower and closer, 2.22 m up, 4.56 m behind, 3.4° down.
-  cam2: { dir: [0, 0.0588, -0.9983], dist: 4.962, target: [0, 1.929, 0.390], fov: 74.1 },
-  // Cam 3, over the cockpit: 0.93 m up at the front of the canopy, level, the nose and front
+  cam2: { dir: [0, 0.0588, -0.9983], dist: 4.962, target: [0, 1.941, 0.390], fov: 74.1 },
+  // Cam 3, over the cockpit: 0.94 m up at the front of the canopy, level, the nose and front
   // tyres filling the bottom of the picture. Driving cameras may come this close (DRIVING_MIN).
-  cam3: { dir: [0, 0, -1], dist: 0.900, target: [0, 0.928, 0.923], fov: 76.9 },
+  cam3: { dir: [0, 0, -1], dist: 0.900, target: [0, 0.940, 0.923], fov: 76.9 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -241,6 +241,7 @@ const parts = {};  // Skin, Details, Wheels, Glass -> mesh
 
 async function loadMeshes() {
   const meta = await (await fetch('data/car.json')).json();
+  spinUniforms.spinLift.value = meta.lift_cm / 100;  // the model's axles, raised with it
   const bin = await (await fetch('data/car.bin')).arrayBuffer();
   const out = {};
   for (const m of meta.meshes) {  // one vertex per triangle corner, so parts have hard edges
@@ -734,7 +735,9 @@ function showAirbrakes(t) {  // 0 down .. 1 up
 // the tyre, the rim, the thin ring at the tyre's bead, the wheel covers, and the small split
 // ring at the centre (named "brake caliper" in checkpoint 3, but it sits 5 to 7 cm from the
 // axle on the outer face). What stays: the fairing inside the wheel ("hub") and the brake light
-// that shows through its slot, always behind the axle in the game. Axles from tool/shapes.py.
+// that shows through its slot, always behind the axle in the game. Axles from tool/shapes.py,
+// raised by the lift that puts the tyres on the floor (car.json's lift_cm: 1.2 cm; without it
+// the wheels wobbled, the user saw at once).
 // A screen can't show the true rate (at 400 km/h a wheel turns 290° a frame and would seem to
 // crawl or run backwards), so the turn eases off towards SPIN.max (rad/s, about 4 turns a
 // second): true at walking pace, a steady fast spin from about 40 km/h. Snapshots keep the
@@ -742,7 +745,7 @@ function showAirbrakes(t) {  // 0 down .. 1 up
 const SPIN = { radius: 0.364, max: 25, axle: [0.35252, 1.78314, -1.20163],
   parts: ['tread', 'sidewall', 'rim', 'wheel ring', 'wheel cover ring', 'wheel cover disc', 'wheel cover hub', 'brake caliper'] };
 const spinUniforms = { spinAngle: { value: snap ? THREE.MathUtils.degToRad(Number(params.get('spin') ?? 0)) : 0 },
-  spinIds: { value: new Array(40).fill(-1) } };
+  spinIds: { value: new Array(40).fill(-1) }, spinLift: { value: 0 } };
 function setupSpin() {
   const ids = partsState.doc.parts.flatMap((p, i) => (SPIN.parts.includes(p.name) ? [i] : []));
   spinUniforms.spinIds.value = [...ids, ...new Array(40).fill(-1)].slice(0, 40);
@@ -765,7 +768,7 @@ function addWing(material) {
     shader.vertexShader = shader.vertexShader
       .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
         ${declare}
-        uniform float spinAngle; uniform float spinIds[ 40 ];
+        uniform float spinAngle; uniform float spinIds[ 40 ]; uniform float spinLift;
         // the wheels: a turning part's corners go round its axle (the front one ahead of z 0.3 m).
         // point: a position (else a normal, which only turns). A positive angle rolls forward.
         vec3 spinMove( vec3 v, vec3 at, float p, bool point ) {
@@ -774,7 +777,7 @@ function addWing(material) {
           for ( int i = 0; i < 40; i++ ) if ( abs( p - spinIds[ i ] ) < 0.5 ) turns = true;
           if ( !turns ) return v;
           float c = cos( spinAngle ), s = sin( spinAngle );
-          vec3 axle = point ? vec3( 0.0, ${wy}, at.z > 0.3 ? ${wzFront} : ${wzRear} ) : vec3( 0.0 );
+          vec3 axle = point ? vec3( 0.0, ${wy} + spinLift, at.z > 0.3 ? ${wzFront} : ${wzRear} ) : vec3( 0.0 );
           vec3 r = v - axle;
           return axle + vec3( r.x, r.y * c - r.z * s, r.y * s + r.z * c );
         }
