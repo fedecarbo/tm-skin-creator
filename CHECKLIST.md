@@ -1012,7 +1012,11 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   down at a point 1.32 m up, near the first screenshot's framing; Cam 2 lower and a little
   closer, 1.82 m up and 6° down at a point 1.28 m up (not the farther camera guessed before); Cam 3 over the driver's shoulder, 1.08 m up, almost level, 0.9 m behind a
   point over the bonnet. Cam 3's first try met the orbit's 1 m limit, so a Driving camera may
-  come to 0.2 m (`DRIVING_MIN`), and the user set it again closer and lower. Next: the pull-back at speed (`IMPROVEMENTS.md`).
+  come to 0.2 m (`DRIVING_MIN`), and the user set it again closer and lower. The same evening the
+  user sent the game's Cam 1, 2 and 3 as screenshots, and all three were fitted to them, lens
+  and all (Things we learned, "the game's lens"); their by-eye settings are in the comment on
+  `VIEWS`. A Driving camera now frames the car at the game's size (`GAME_FRAMED`: no zoom-out),
+  lifted 12 % so the pad doesn't cover the tail. Next: the pull-back at speed (`IMPROVEMENTS.md`).
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.
@@ -1055,6 +1059,25 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
 
 ## Things we learned
 
+- **2026-09-25, the turbo (TSC_Lights_Test, the user's day and night turbo videos).** One
+  yellow turbo pad each, Cam 1, full throttle to about 440 km/h, then braking. The turbo glow
+  (code 160) lights in the pad's colour: the stock hubs (grey, code 160) glowed yellow inside
+  all four wheels from the pad (day 2.2 s, night 1.6 s) for about 3 s, fading over the last
+  half second (gone by day 5.3 s, night 5.0 s). Found by lighting up each candidate part in the
+  viewer from the same angle: the hubs' shape matched exactly. The sidepod frames, which carry
+  it too, can't be seen from behind. The rear lights went red, as when braking, for about
+  1.5 s after the pad, with no brake pressed (the user's pedal overlay), then back to the gear
+  display. The speed digits stayed green. The speed rose from about 130 to 400 km/h in 2 s.
+  Exhaust heat (the side vents) is out of the chase cameras' sight, and there was no boost pad.
+- **2026-09-25, the game's lens is wider than we thought (the user's Cam 1, 2, 3 screenshots,
+  2560x1440, standing still).** Fitting each camera to the tyres' outer edges and tops and the
+  horizon (projected from the model, lens free) gives 72.8° tall for Cam 1 and 74.1° for Cam 2,
+  both within 1.5 px; Cam 3 (plus the nose fin and a mirror) 76.9°, within about 8 px. With the
+  58.7° tall (90° wide) lens assumed since checkpoint 7, no pose fits (13 to 16 px off), and
+  the user's by-eye settings drew the car about 1.4 times too big. Poses: Cam 1 3.36 m up, 5.21
+  m behind the car's centre, 10.9° down; Cam 2 2.22 m up, 4.56 m behind, 3.4° down; Cam 3 0.93
+  m up at the front of the canopy, level. Overlaying the viewer's outline on the screenshots
+  confirmed all three. Match a camera by fitting its lens too, not by eye.
 - **2026-09-25, a ring round the wheels must use the true axle (TSC_CMYK_Peel_More).** A line
   round each tyre, drawn round the wheel centres measured on 2026-09-23, wobbled in the game as
   the wheel turned: those centres were 5.7 mm too far forward. Circles fitted to the tread's

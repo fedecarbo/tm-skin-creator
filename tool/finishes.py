@@ -231,8 +231,11 @@ GLOWS = {
     "always on": {"code": 96, "keeps colour": True,
                   "seen": "magenta as painted, day and night; the speed digits and rear lights are this code"},
     "front lights": {"code": 128, "keeps colour": True, "seen": "bright white by day and at night"},
-    "turbo": {"code": 160, "keeps colour": False, "seen": "not seen (the hubs are hidden by the wheel covers)"},
-    "exhaust heat": {"code": 192, "keeps colour": True, "seen": "not seen to light up on turbo pads"},
+    "turbo": {"code": 160, "keeps colour": False,
+              "seen": "the hubs (stock) in the pad's colour after a yellow turbo pad (the lights test, 2026-09-25): "
+                      "yellow for about 3 s, fading over the last half second; seen inside the wheels from the chase cameras"},
+    "exhaust heat": {"code": 192, "keeps colour": True,
+                     "seen": "not seen: the side vents that carry it in the lights test are hidden from the chase cameras"},
     "boost": {"code": 224, "keeps colour": False, "seen": "not seen"},
     "night only": {"code": 255, "keeps colour": True, "seen": "yellow as painted at night, and on a dusk map"},
 }

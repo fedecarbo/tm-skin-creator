@@ -54,3 +54,10 @@ them light up (checkpoint 4), so they sit on bigger, plainer spots here.
   flaring blue-white: yes. Lettering: white on both panels, so no. Brake heat: orange rims,
   building over ~1.5 s and fading ~1 s after. Turbo, exhaust heat, boost: not triggered (no
   pads). Full notes in `CHECKLIST.md`, under the lights improvement.
+- Driven again 2026-09-25: the user's day and night turbo videos (one yellow turbo pad, full
+  throttle to about 440 km/h, then braking; no red pad, no reactor boost) and screenshots of
+  Cam 1, 2 and 3 standing still. Turbo: yes, the stock hubs glow yellow (the pad's colour)
+  for about 3 s after the pad; the sidepod frames can't be seen from behind. The rear lights
+  go red for about 1.5 s after the pad, without braking. Digits stay green. Exhaust heat: the
+  side vents are hidden from behind, so not seen. Boost: no boost pad. The player's initials
+  now read FCP. Full notes in `CHECKLIST.md`, Things we learned.

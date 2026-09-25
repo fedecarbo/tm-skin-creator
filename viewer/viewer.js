@@ -27,25 +27,20 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // and the buttons share the window (snapshots keep dist).
   top: { dir: [0, 1, -0.0001], dist: 7.6, roomy: 1.3 },
   // The game's cameras that show the car, under Driving (the user, 2026-09-25: not the cockpit
-  // ones), all through the game's wide lens (58.7° tall, 90° wide at 16:9). The user sets each
-  // by eye next to the game and pastes it to Claude ("Copy Cam N", below), who writes it here
-  // squared up behind the car. They're as seen in the viewer's framing (FRAMED), standing still.
-  // Cam 1 and Cam 2 aim at a point above the car, so the car sits low in the picture and the
-  // track ahead shows, as the game means them to (the user, 2026-09-25, their second setting).
-  // Cam 1, the chase camera: 2.47 m up, 5.35 m behind the point it looks at (1.32 m up), 12°
-  // down. Pasted: camera at 0.037, 2.467, -4.790, looking at -0.068, 1.323, 0.562 (1.1° off
-  // centre). Close to the user's first screenshot (3.75 m up, 13.5° down at a point 2.18 m up),
-  // which the viewer had moved closer; the user's first setting aimed at the car, 26° down.
-  cam1: { dir: [0, 0.209, -0.9779], dist: 5.474, target: [0, 1.323, 0.562], fov: 58.7 },
-  // Cam 2: lower than Cam 1 and a little closer, not the farther one first guessed. 1.82 m up,
-  // 5.21 m behind the point it looks at (1.28 m up), 6° down. Pasted: camera at -0.028, 1.816,
-  // -4.770, looking at -0.028, 1.278, 0.440 (square already).
-  cam2: { dir: [0, 0.1027, -0.9947], dist: 5.238, target: [0, 1.278, 0.44], fov: 58.7 },
-  // Cam 3, the one over the driver's shoulder, set by the user (2026-09-25): 1.08 m up, 0.9 m
-  // behind the point it looks at, over the bonnet, almost level (2° down). Pasted: camera at
-  // 0.016, 1.080, -0.397, looking at -0.002, 1.045, 0.504 (1.1° off centre). Their first try
-  // (1.18 m up, 9° down) met the orbit's 1 m limit, so Driving cameras may come closer (DRIVING_MIN).
-  cam3: { dir: [0, 0.0388, -0.9992], dist: 0.902, target: [0, 1.045, 0.504], fov: 58.7 },
+  // ones), standing still, fitted to the user's 2560x1440 screenshots of each (2026-09-25): the
+  // tyres' outer edges and tops, the horizon, and for Cam 3 the nose fin and a mirror, projected
+  // from the model, the lens free. Cam 1 and 2 land within 1.5 px, Cam 3 within about 8. The
+  // game's lens is wider than the 58.7° tall (90° wide) first assumed: 73 to 77° tall, 105 to
+  // 110° wide at 16:9. The user had set all three by eye in the viewer first ("Copy Cam N",
+  // below): Cam 1 2.47 m up at 12° down, Cam 2 1.82 m up at 6°, Cam 3 1.08 m up at 2°, all
+  // through the narrower lens, which drew the car about 1.4 times too big.
+  // Cam 1, the chase camera: 3.36 m up, 5.21 m behind the car's centre, 10.9° down.
+  cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.226, 0.652], fov: 72.8 },
+  // Cam 2: lower and closer, 2.22 m up, 4.56 m behind, 3.4° down.
+  cam2: { dir: [0, 0.0588, -0.9983], dist: 4.962, target: [0, 1.929, 0.390], fov: 74.1 },
+  // Cam 3, over the cockpit: 0.93 m up at the front of the canopy, level, the nose and front
+  // tyres filling the bottom of the picture. Driving cameras may come this close (DRIVING_MIN).
+  cam3: { dir: [0, 0, -1], dist: 0.900, target: [0, 0.928, 0.923], fov: 76.9 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -69,15 +64,17 @@ for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(par
 // all the time and flare towards white when braking (checkpoint 1's stock strips); the front lights are
 // bright white by day and at night; "always on" keeps its colour; "night only" comes on at night
 // (and on a dusk map); energy is dim and tinted by the game (red for this player). Brake heat
-// lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT). Turbo, exhaust heat
-// and boost weren't seen to light up, so they stay off.
+// lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT). Turbo lights only after
+// a turbo pad, in the pad's colour (the turbo videos, 2026-09-25: the hubs yellow for about 3 s
+// after a yellow pad), and the pad has no turbo, so it stays off. Exhaust heat and boost weren't
+// seen to light up, so they stay off.
 const GLOW = [
   { code: 0, day: 1.2, night: 1.8 },  // brake lights: dim all the time, brighter when braking
   { code: 32, day: 0.6, night: 1, tint: [1, 0.2, 0.2] },  // energy, tinted by the game
   { code: 64, day: 0, night: 0 },  // brake heat: while braking (BRAKE_HEAT)
   { code: 96, day: 1.2, night: 1.8 },  // always glowing, its own colour
   { code: 128, day: 4, night: 8 },  // front lights, bright white day and night
-  { code: 160, day: 0, night: 0, tint: [0.15, 1, 0.3] },  // turbo colour, green in the game
+  { code: 160, day: 0, night: 0, tint: [1, 0.78, 0.1] },  // turbo: the pad's colour (a yellow pad here)
   { code: 192, day: 0, night: 0 },  // exhaust heat: only during turbo
   { code: 224, day: 0, night: 0 },  // boost colour
   { code: 255, day: 0, night: 1.4 },  // night only. Coloured glows above ~1.5 wash out under the tone mapping
@@ -151,6 +148,9 @@ function stepGlide() {
 // up to clear the buttons along the bottom, and the car is drawn a little smaller. Snapshots
 // keep the plain framing.
 const FRAMED = { up: 0.05, zoom: 0.92 };
+// A Driving camera: the car as big as on the game's screen, lifted clear of the pad (the game's
+// picture has the car's tail at 89 % of the height, where the pad sits).
+const GAME_FRAMED = { up: 0.12, zoom: 1 };
 function railWidth() {
   return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rail')) || 0;
 }
@@ -161,8 +161,9 @@ function frame(w, h, plain) {
     camera.zoom = 1;
   } else {
     const rail = railWidth();
-    camera.setViewOffset(w - rail, h, -rail, FRAMED.up * h, w, h);
-    camera.zoom = FRAMED.zoom;
+    const f = camPicked ? GAME_FRAMED : FRAMED;
+    camera.setViewOffset(w - rail, h, -rail, f.up * h, w, h);
+    camera.zoom = f.zoom;
   }
   camera.updateProjectionMatrix();
 }
@@ -1257,6 +1258,7 @@ for (const b of viewButtons) {
     openCams(false);
     camPicked = byId('camMenu').contains(b) ? b.dataset.view : null;
     controls.minDistance = camPicked ? DRIVING_MIN : 1;
+    resize();  // a Driving camera frames the car as the game does
     showCopy();
   };
 }

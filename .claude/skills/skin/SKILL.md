@@ -92,11 +92,13 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
   the same width all round (as if lit from above), or it looks wrong from the other camera.
 - Glow is for the inner car only: `s.glow(part, colour, kind)`. Seen working: "always on",
   "night only", "front lights" (white), "energy" (the game tints it), "brake lights", "brake
-  heat" (rims glow while braking hard, building over about 1.5 s). Turbo, exhaust heat and
-  boost were never seen to light up, so don't promise them.
+  heat" (rims glow while braking hard, building over about 1.5 s), "turbo" (glows in the
+  turbo pad's colour, yellow for a yellow pad, for about 3 s after it: the stock hubs carry it,
+  seen inside the wheels). Exhaust heat and boost were never seen to light up, so don't
+  promise them.
 - The car's own lights take any colour: `s.relight("speed numbers" | "brake lights" | "rear
   lights", colour)`. The rear lights fill up with the gear in that colour and turn red when
-  braking, whatever the colour. A tinted rear lens ("rear light lens") colours them too, and
+  braking, whatever the colour, and for about 1.5 s after a turbo pad. A tinted rear lens ("rear light lens") colours them too, and
   filters the braking red: keep it clear or warm.
 - `s.glass(colour, strength)` only tints. It also tints the lights behind the lenses.
 - Most inner parts share their paint with their twin on the other side, so `"…|left"` also

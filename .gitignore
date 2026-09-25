@@ -2,8 +2,9 @@
 # official/SOURCES.md says where to download them and lists their sha256.
 official/*.zip
 
-# The user's recordings from the game: large, and they stay on the Windows PC.
+# The user's recordings and screenshots from the game: large, and they stay on the Windows PC.
 *.mp4
+/*.png
 
 # Personal Claude Code settings
 .claude/settings.local.json
