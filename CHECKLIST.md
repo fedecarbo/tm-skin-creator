@@ -610,7 +610,7 @@ Part 1 comes first, because every design depends on it.
     - `loadSkin()` switches a skin in place. Textures are cached by slot and URL and freed when
       the new skin doesn't use them (each is up to 4096²).
     - The list reads `data/gallery.json`, which now carries a `title` ("CMYK Peel More").
-    - `VIEWS.driving` is the game's Cam 1, fitted to the user's 1920x1080 screenshot (the car's
+    - `VIEWS.cam1` (was `driving`) is the game's Cam 1, fitted to the user's 1920x1080 screenshot (the car's
       box within 5 px): the camera 3.75 m up and 6.3 m behind the centre, tilted down 13.5°,
       fov 58.7° (the game's 90° wide at 16:9). `roomy` moves a view back on the page only.
       Later the same day the user found the car too small and low in that framing: the view
@@ -633,7 +633,7 @@ Part 1 comes first, because every design depends on it.
     the menus, Save picture, three window widths. Still to do on Windows: one `tool.snap` run.
   - The user also sent the game's Cam 3 (a camera above the cockpit, looking over the nose).
     A first fit was close but not right, and the user said it isn't needed. Cam 2 wasn't sent.
-    Later the user asked for a choice of cameras after all (Decisions, "Wanted later").
+    Later the user asked for a choice of cameras after all (Decisions, "The game's cameras").
   - **Done 2026-09-25.** The user: "you've done an amazing job with the ui", and asked for the
     list newest first (done).
   - **The game's number (added 2026-09-25, the user's idea).** Show → Number lays the initials
@@ -779,10 +779,11 @@ Part 1 comes first, because every design depends on it.
   vague.
 - **Wanted extras (user, 2026-09-23):** a local picture maker and a page of all skins. Sharing
   skins and copy-from-picture aren't wanted for now.
-- **Wanted later, not scheduled (user, 2026-09-25):** the viewer's Driving button becomes a
-  choice of the game's cameras that show the car (Cam 1, Cam 2, …), not the cockpit ones.
-  Each needs a screenshot from the game to match, as Cam 1 had (checkpoint 8). Until then,
-  Driving is Cam 1, centred and closer (a placeholder).
+- **The game's cameras in the viewer (user, 2026-09-25):** Driving opens a choice of the
+  game's cameras that show the car, not the cockpit ones. Built as a placeholder: Cam 1 is
+  matched to the user's screenshot (then centred and closer, at their wish); Cam 2 is a guess,
+  labelled so, until a screenshot of it comes (`VIEWS.cam2` in `viewer/viewer.js`). Any other
+  camera that shows the car joins the menu the same way, each matched to a screenshot.
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.

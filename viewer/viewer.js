@@ -26,14 +26,18 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // Looking down, the car's front at the top. roomy: further back on the page, where the title
   // and the buttons share the window (snapshots keep dist).
   top: { dir: [0, 1, -0.0001], dist: 7.6, roomy: 1.3 },
-  // The game's chase camera ("Cam 1"), from the user's in-game screenshot (2026-09-25,
-  // 1920x1080): 3.75 m up and 6.3 m behind the car's centre, looking 13.5° down at a point above
-  // the car, through the game's wide lens (58.7° tall, 90° wide at 16:9). That leaves the car
-  // small at the bottom, which the user found awkward here (2026-09-25), so the view keeps the
-  // game's lens but aims at the car from closer (5.2 m) and lower (18° above the car, not 27°),
-  // so the speed digits read as they do in the game (the user's call, 2026-09-25).
+  // The game's cameras that show the car, under Driving (the user, 2026-09-25: not the cockpit
+  // ones). Cam 1, the chase camera, from the user's in-game screenshot (2026-09-25, 1920x1080):
+  // 3.75 m up and 6.3 m behind the car's centre, looking 13.5° down at a point above the car,
+  // through the game's wide lens (58.7° tall, 90° wide at 16:9). That leaves the car small at
+  // the bottom, which the user found awkward here, so the view keeps the game's lens but aims
+  // at the car from closer (5.2 m) and lower (18° above the car, not 27°), so the speed digits
+  // read as they do in the game (the user's call, 2026-09-25).
   // The game's exact framing: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 }.
-  driving: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
+  cam1: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
+  // Cam 2, the game's farther chase camera: a guess (further back and a little higher) until the
+  // user sends a screenshot of it to match.
+  cam2: { dir: [0, 0.375, -0.927], dist: 7.5, fov: 58.7 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -809,6 +813,7 @@ byId('show').onclick = (e) => {
 };
 document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
+  if (!byId('camWrap').contains(e.target)) openCams(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
 for (const b of document.querySelectorAll('#showMenu [data-part]')) {
@@ -822,8 +827,16 @@ for (const b of document.querySelectorAll('#showMenu [data-part]')) {
 byId('plateToggle').onclick = () => setPlate(!plateUniforms.plateOn.value);
 byId('brakeToggle').onclick = () => setBraking(!braking);
 const viewButtons = [...document.querySelectorAll('#bar [data-view]')];
-const markView = (name) => { currentView = name; for (const b of viewButtons) pressed(b, b.dataset.view === name); };
-for (const b of viewButtons) b.onclick = () => { setView(b.dataset.view, true); markView(b.dataset.view); };
+const openCams = (open) => { byId('camMenu').hidden = !open; byId('cam').setAttribute('aria-expanded', String(open)); };
+const markView = (name) => {
+  currentView = name;
+  for (const b of viewButtons) pressed(b, b.dataset.view === name);
+  const cam = viewButtons.find((b) => b.dataset.view === name && byId('camMenu').contains(b));
+  pressed(byId('cam'), Boolean(cam));  // Driving shows which of the game's cameras is on
+  if (cam) byId('camName').textContent = cam.firstElementChild.textContent;
+};
+for (const b of viewButtons) b.onclick = () => { setView(b.dataset.view, true); markView(b.dataset.view); openCams(false); };
+byId('cam').onclick = (e) => { e.stopPropagation(); openCams(byId('camMenu').hidden); };
 controls.addEventListener('start', () => { glide = null; markView(null); });  // the user took the camera
 byId('spin').onclick = () => {
   controls.autoRotate = !controls.autoRotate;
