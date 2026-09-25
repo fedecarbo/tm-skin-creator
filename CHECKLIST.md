@@ -648,7 +648,9 @@ Part 1 comes first, because every design depends on it.
     - It's on by default and each browser remembers the choice. Snapshots leave it off (still
       identical to before, within 1/255).
     - The lettering is a guess until the user sends a close-up of the engine cover from the
-      game.
+      game. The user says the game's is "bold but not too bold" and likes Russo One, so the
+      viewer thins its strokes a little (`PLATE_THIN` 0.02 of the letters' size, their pick
+      out of four, 2026-09-25).
 
 ### [ ] 9. Your own colours for the speed numbers, brake lights and car number
 

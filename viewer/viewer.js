@@ -373,7 +373,8 @@ function addParts(material, sharedMap) {
 // on as a layer of its own, never part of the skin, so "Show → Number" turns them off. As in the
 // user's Cam 1 screenshot (2026-09-25): the initials on "number panel", the narrow one just
 // behind the cockpit, and the number on "engine cover panel" behind it, both reading from behind
-// the car. The lettering (Russo One, white) is a guess at the game's until a close-up says more.
+// the car. The lettering (Russo One, white, thinned a little) is a guess at the game's typeface,
+// until a close-up says more; the user likes it.
 // ?initials=DEC&number=07 tries others. Snapshots (?snap=1) leave it off. ----
 
 const PLATE = { initials: params.get('initials') || 'CAR', number: params.get('number') || '01' };
@@ -402,16 +403,29 @@ function panelFrame(geom, ids) {
   return { centre, u: u.divideScalar(u1 - u0), v: v.divideScalar(v1 - v0), aspect: (u1 - u0) / (v1 - v0) };
 }
 
+// How much each stroke of the lettering is thinned, as a share of the letters' size: Russo One
+// has one weight, heavier than the game's ("bold but not too bold"). The user picked 0.02 out
+// of 0, 0.02, 0.035 and 0.05 (2026-09-25); ?plateThin= tries others.
+const PLATE_THIN = Number(params.get('plateThin') ?? 0.02);
+
 // The text as a mask (alpha only, so its mips don't darken), as large as the panel allows.
 function plateMask(text, aspect) {
   const w = 1024, h = Math.round(w / aspect);
   const g = Object.assign(document.createElement('canvas'), { width: w, height: h }).getContext('2d');
   const measure = (size) => { g.font = `${size}px "Russo One"`; return g.measureText(text); };
   let m = measure(100);
-  m = measure(100 * Math.min(w * 0.86 / m.width, h * 0.74 / (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent)));
+  const size = 100 * Math.min(w * 0.86 / m.width, h * 0.74 / (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent));
+  m = measure(size);
+  const x = w / 2, y = h / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
   g.fillStyle = '#fff';
   g.textAlign = 'center';
-  g.fillText(text, w / 2, h / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
+  g.fillText(text, x, y);
+  if (PLATE_THIN > 0) {  // a stroke along every outline, cut away: half its width off each side
+    g.globalCompositeOperation = 'destination-out';
+    g.lineJoin = 'round';
+    g.lineWidth = 2 * PLATE_THIN * size;
+    g.strokeText(text, x, y);
+  }
   const t = new THREE.CanvasTexture(g.canvas);
   t.anisotropy = maxAniso;
   return t;
