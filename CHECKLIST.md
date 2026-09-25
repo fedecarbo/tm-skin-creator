@@ -1006,9 +1006,11 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   straight behind the car (keeps the height, the tilt, the distance and the target's height
   and depth, sets the side-to-side to zero) and writes it into `VIEWS`. What they set is in
   the viewer's framing (the list on the left, `FRAMED`), so it's kept as seen there, not
-  converted to the game's full screen. All three set that day, standing still: Cam 1 3.17 m
-  up and 26° down; Cam 2 lower and closer, 2.04 m up and 14° down (not the farther camera
-  guessed before); Cam 3 over the driver's shoulder, 1.08 m up, almost level, 0.9 m behind a
+  converted to the game's full screen. All three set that day, standing still. Cam 1 and 2
+  were set twice: first aimed at the car, then at a point above it, so the car sits low in the
+  picture and the track ahead shows, "the game's intention" (the user). Cam 1 2.47 m up and 12°
+  down at a point 1.32 m up, near the first screenshot's framing; Cam 2 lower and a little
+  closer, 1.82 m up and 6° down at a point 1.28 m up (not the farther camera guessed before); Cam 3 over the driver's shoulder, 1.08 m up, almost level, 0.9 m behind a
   point over the bonnet. Cam 3's first try met the orbit's 1 m limit, so a Driving camera may
   come to 0.2 m (`DRIVING_MIN`), and the user set it again closer and lower. Next: the pull-back at speed (`IMPROVEMENTS.md`).
 - **The user helps with in-game tests (2026-09-23).**

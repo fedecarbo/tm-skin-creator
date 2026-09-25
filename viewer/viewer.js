@@ -30,16 +30,17 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // ones), all through the game's wide lens (58.7° tall, 90° wide at 16:9). The user sets each
   // by eye next to the game and pastes it to Claude ("Copy Cam N", below), who writes it here
   // squared up behind the car. They're as seen in the viewer's framing (FRAMED), standing still.
-  // Cam 1, the chase camera, set by the user (2026-09-25): 3.17 m up, 5.45 m behind the point it
-  // looks at (just above the car's middle), 26° down. Pasted: camera at 0.005, 3.166, -5.144,
-  // looking at -0.022, 0.515, 0.311 (0.3° off centre). Before it, from a screenshot: 3.75 m up
-  // and 6.3 m behind, looking 13.5° down at a point above the car, which left the car small at
-  // the bottom: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27] }.
-  cam1: { dir: [0, 0.4371, -0.8994], dist: 6.065, target: [0, 0.515, 0.311], fov: 58.7 },
-  // Cam 2, set by the user (2026-09-25): lower and closer than Cam 1, not the farther one first
-  // guessed. 2.04 m up, 5.07 m behind the point it looks at (above the cockpit), 14° down.
-  // Pasted: camera at 0.017, 2.044, -4.718, looking at -0.033, 0.743, 0.355 (0.6° off centre).
-  cam2: { dir: [0, 0.2484, -0.9687], dist: 5.237, target: [0, 0.743, 0.355], fov: 58.7 },
+  // Cam 1 and Cam 2 aim at a point above the car, so the car sits low in the picture and the
+  // track ahead shows, as the game means them to (the user, 2026-09-25, their second setting).
+  // Cam 1, the chase camera: 2.47 m up, 5.35 m behind the point it looks at (1.32 m up), 12°
+  // down. Pasted: camera at 0.037, 2.467, -4.790, looking at -0.068, 1.323, 0.562 (1.1° off
+  // centre). Close to the user's first screenshot (3.75 m up, 13.5° down at a point 2.18 m up),
+  // which the viewer had moved closer; the user's first setting aimed at the car, 26° down.
+  cam1: { dir: [0, 0.209, -0.9779], dist: 5.474, target: [0, 1.323, 0.562], fov: 58.7 },
+  // Cam 2: lower than Cam 1 and a little closer, not the farther one first guessed. 1.82 m up,
+  // 5.21 m behind the point it looks at (1.28 m up), 6° down. Pasted: camera at -0.028, 1.816,
+  // -4.770, looking at -0.028, 1.278, 0.440 (square already).
+  cam2: { dir: [0, 0.1027, -0.9947], dist: 5.238, target: [0, 1.278, 0.44], fov: 58.7 },
   // Cam 3, the one over the driver's shoulder, set by the user (2026-09-25): 1.08 m up, 0.9 m
   // behind the point it looks at, over the bonnet, almost level (2° down). Pasted: camera at
   // 0.016, 1.080, -0.397, looking at -0.002, 1.045, 0.504 (1.1° off centre). Their first try
