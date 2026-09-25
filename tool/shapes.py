@@ -115,7 +115,10 @@ def box(lo, hi, soft=SOFT):
     return field(lambda p, n: np.minimum(p - lo, hi - p).min(1), soft)
 
 
-WHEEL_Y, WHEEL_Z = 35.3, (178.9, -119.6)  # the wheel centres (tool/parts.py)
+# the wheel centres, fitted to the tyres' tread and bead, the covers' and the rims' edges (within
+# 0.2 mm, 2026-09-25). tool/parts.py's older figures (35.3; 178.9, -119.6) are 5.7 mm too far
+# forward, and a ring round them wobbled in the game as the wheel turned (the user).
+WHEEL_Y, WHEEL_Z = 35.252, (178.314, -120.163)
 
 
 def wheel_ring(r0, r1, soft=SOFT):

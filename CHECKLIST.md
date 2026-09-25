@@ -1040,6 +1040,13 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
 
 ## Things we learned
 
+- **2026-09-25, a ring round the wheels must use the true axle (TSC_CMYK_Peel_More).** A line
+  round each tyre, drawn round the wheel centres measured on 2026-09-23, wobbled in the game as
+  the wheel turned: those centres were 5.7 mm too far forward. Circles fitted to the tread's
+  crown, the tyre's bead, the covers' and the rims' edges all agree within 0.2 mm (35.252;
+  178.314 front, -120.163 rear); `shapes.WHEEL_Y/WHEEL_Z` hold them. All four tyres share one
+  shape in one texture layout (within 0.1 mm), so a ring in 3D is round on each. Anything that
+  turns needs its centre fitted to the geometry, not read off by eye.
 - **2026-09-25, the lights test (TSC_Lights_Test, the user's day and night videos).** A skin can
   colour the speed digits, the rear lights (a glow colour and a lens tint, which multiply) and
   the brake lights inside the front wheels. It can't colour the initials and number: they stay

@@ -29,6 +29,13 @@ Nothing.
   `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
   the viewer.
 
+- **The wheel centres in `tool/parts.py` are 5.7 mm too far forward** (2026-09-25,
+  TSC_CMYK_Peel_More: a tyre line wobbled in the game). `shapes.py` has the fitted ones
+  (35.252; 178.314, -120.163). parts.py still uses 35.3 and 178.9, -119.6 to split the tyre
+  into sidewall and tread (at 34.5 cm) and to name the cover pieces, so that split is off-centre
+  by 5.7 mm: a sidewall painted unlike the tread would wobble too. Fix: use the fitted centres
+  there, run `tool.parts`, and check the skins that paint "sidewall" or "tread".
+
 ## The viewer, from the user's screenshots and videos
 
 - **Define the game's cameras** (2026-09-25, the user). The viewer's Driving menu should hold

@@ -38,3 +38,10 @@ half of it gone, bigger tears and bigger flaps.
   that shows beyond the cover (30 to 34.5).
 - Installed 2026-09-25: 7.44 MB, built in 178 s. The line's edges checked in `Wheels_B`: one
   to two texels, no fringes.
+- Change 10 (user, from the game): "It seems that the ring is not perfectly circular, because
+  when I drive I see the ring being wobbly". The wheel centres the ring was drawn round were
+  5.7 mm too far forward (tool/parts.py's figures from 2026-09-23), so the line swung by half
+  its width as the wheel turned. `shapes.WHEEL_Y/WHEEL_Z` now hold centres fitted to the tread,
+  bead, covers and rims; the line is at 31.7-32.9 cm all the way round (measured within 0.4 mm),
+  and all four tyres share the painted one's shape within 0.1 mm.
+- Installed 2026-09-25 with the round ring: 7.44 MB.
