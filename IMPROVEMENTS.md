@@ -33,10 +33,15 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the Mac only. Run `tool.snap` once on the Windows PC and compare with an older views sheet:
   `?snap=1` should keep the old framing.
 
-## The viewer, waiting on the user's screenshots
+## The viewer, from the user's screenshots and videos
 
 - **Cam 2 in the Driving menu is a guess** (2026-09-25) until a screenshot of the game's Cam 2.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
+- **The user's video `straight-line-test.mp4`** (repo root, 53 MB, git-ignored, Windows PC
+  only; 2026-09-25) is the source for the next three items. The user is starting a session on
+  them.
+- **The pad's acceleration and speed times** (2026-09-25): tuned to the user's gear timings
+  (`stepDrive` in `viewer/viewer.js`); check them against the video.
 - **The rear wing flap** (2026-09-25): it opens under full throttle from 1.5 s to 2.5 s. Which
   pieces lift, the hinge and the angle wait for a screenshot from the side with it open, and
   when it closes. Notes under the lights improvement in `CHECKLIST.md`.
