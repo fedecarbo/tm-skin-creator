@@ -99,8 +99,10 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
   a tyre reads backwards on one side.
 - `s.dirt(amount)`: how dirty the car gets on dirt (1 = stock, 0 never).
 - Say these can't be done, if asked: holographic or colour-shift paint, relief on the body,
-  the player's number and name, the turbo colour, the digits, the rear lights, the gear
-  display on the glass.
+  the player's number and name, the turbo colour, the gear display on the glass.
+- The speed digits and the rear lights can take a colour in the game (the user's screenshots,
+  2026-09-25), but the paint box has no words for them until the lights test in
+  `IMPROVEMENTS.md` is done: say that, rather than that it can't be done.
 
 ## Before showing anything
 

@@ -12,10 +12,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **Your own colours for the speed numbers, brake lights and car number** (2026-09-25, the
   user). Research done on the Mac: the speed digits and brake lights very likely can take a
-  colour; the car's initials and number can't. **Next, on the Windows PC:** `tool.skin show
-  TSC_Lights_Test`, install it, and the user drives it (brake, turbo, day and night, F12
-  screenshots). Then the paint box gets the words ("speed numbers", "brake lights") and the
-  skill's line on what can't be done is corrected. Notes and the full test in `CHECKLIST.md`.
+  colour; the car's initials and number can't. The user's night screenshots of a pink-lit
+  skin (2026-09-25) prove the digits and the rear lights' gear bands take a skin's colour.
+  **Next, on the Windows PC:** `tool.skin show TSC_Lights_Test`, install it, and the user
+  drives it (brake, turbo, day and night, F12 screenshots). Then the paint box gets the words
+  ("speed numbers", "rear lights", "brake lights"). Notes and the full test in `CHECKLIST.md`.
 
 ## The tool
 
@@ -37,16 +38,12 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **Cam 2 in the Driving menu is a guess** (2026-09-25) until a screenshot of the game's Cam 2.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
-- **The user's video `straight-line-test.mp4`** (repo root, 53 MB, git-ignored, Windows PC
-  only; 2026-09-25) is the source for the next three items. The user is starting a session on
-  them.
-- **The pad's acceleration and speed times** (2026-09-25): tuned to the user's gear timings
-  (`stepDrive` in `viewer/viewer.js`); check them against the video.
-- **The rear wing flap** (2026-09-25): it opens under full throttle from 1.5 s to 2.5 s. Which
-  pieces lift, the hinge and the angle wait for a screenshot from the side with it open, and
-  when it closes. Notes under the lights improvement in `CHECKLIST.md`.
-- **The rear lights' gear display** (2026-09-25): a short video from behind while pulling
-  away shows whether the bands fill up or light one at a time, and what the centre piece does.
+- **The rear wing flap** (2026-09-25): the straight-line video gave its timing (up from ~60
+  to ~95 km/h under throttle, down at ~43-34 while coasting), and from behind the tail panel
+  and tail corners rise together. The user saw other pieces move when braking, and the wing
+  looks steeper then. Which pieces move, the hinge and the angles wait for a short video from
+  the side: pull away, brake hard, let go. Notes under the lights improvement in
+  `CHECKLIST.md`.
 
 ## To check in the game
 

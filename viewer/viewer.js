@@ -492,36 +492,38 @@ function setPlate(on) {
 // of its own (three pieces: its face and two bevels), but all 21 share one patch of Details_I,
 // lit, so the file says "888" (measured 2026-09-25): the game picks the lit bars
 // itself. So does the viewer, from the segment each corner carries (tool/view.py
-// digit_segments), showing a speed (?speed=180) with leading zeros blank. Unlit bars don't glow.
+// digit_segments), showing a speed (?speed=180). Unlit bars don't glow. The game always
+// lights three digits, leading zeros too ("075"), and a stopped car shows "000" (the user's
+// straight-line video, 2026-09-25).
 
 const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 180)) || 0));
 const SEVEN = [0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f];  // 0-9, bits a b c d e f g
 const digitUniforms = { digitMask: { value: [0, 0, 0] } };
-// A stopped car's display is dark (the user, 2026-09-25): 0 shows no digits.
 function showSpeed(kmh) {
-  const text = kmh > 0 ? String(kmh).padStart(3, ' ') : '   ';
-  digitUniforms.digitMask.value = [...text].map((c) => (c === ' ' ? 0 : SEVEN[Number(c)]));
+  digitUniforms.digitMask.value = [...String(kmh).padStart(3, '0')].map((c) => SEVEN[Number(c)]);
   const out = document.getElementById('padSpeed');
   if (out) out.textContent = kmh;
 }
 showSpeed(SPEED);
 
-// ---- The rear lights: a gear display. The user watched the game (2026-09-25): standing still
-// only the far left and right bars light; each gear lights the next bar (five gears); braking
-// lights the whole thing red. Each side's bar (the L from the tail's corner along its top) is
-// split into five bands by dark lines in Details_I/Details_B, at these v's of its UV strip
-// (measured 2026-09-25): the band from v 0.450 (the corner) is gear 1, the one ending at 0.532
-// (towards the middle) gear 5. The small centre piece lights when braking. The colour is the
-// game's red: the stock file is white there, the game red. Provisional until the lights test:
-// whether the bands fill up or move along, the centre piece. ----
+// ---- The rear lights: a gear display. Each side's bar (the L from the tail's corner along its
+// top) is split into five bands by dark lines in Details_I/Details_B, at these v's of its UV
+// strip (measured 2026-09-25): the band from v 0.450 (the corner) is gear 1, the one ending at
+// 0.532 (towards the middle) gear 5. The user's straight-line video (2026-09-25, the parts skin,
+// whose Details_I is stock) settled how they behave: the bands fill up from the corner, one per
+// gear (gear 1, standing still included, lights the corner only), in the file's own colour
+// (white in the stock file, not red); unlit they look like the glass over them. Braking lights
+// both bars whole and the small centre piece, red; so does the car held at the start. ----
 
-// The bar's surface is tinted red too, as a red lens looks when unlit: a strong glow over the
-// pale stock surface washed out to peach under the tone mapping.
-const REAR = { colour: [1, 0.06, 0.04], lens: [0.55, 0.06, 0.05], on: { day: 1.8, night: 2.4 }, brake: { day: 6, night: 7 } };
-const GEARS = [100, 160, 235, 340];  // km/h where gears 2-5 come in (a Reddit tip the user found, 2026-09-25)
-const gearOf = (kmh) => 1 + GEARS.filter((t) => kmh >= t).length;
+// on: as "always on" (96). Braking also tints the bars' surface red: a red glow alone over the
+// pale stock surface washes out to peach under the tone mapping.
+const REAR = { colour: [1, 0.015, 0.025], lens: [0.55, 0.06, 0.05], on: { day: 1.2, night: 1.8 }, brake: { day: 4, night: 4.5 } };
+// Gear changes, from the video: up at these speeds under full throttle, down at the lower ones
+// while coasting, and the speed pauses for a moment at each change up.
+const GEAR_UP = [101, 162, 236, 342], GEAR_DOWN = [90, 142, 200, 279], SHIFT_PAUSE = 0.2;
+const gearFor = (kmh) => 1 + GEAR_UP.filter((t) => kmh >= t).length;  // as when accelerating
 const rearUniforms = { rearColour: { value: new THREE.Color(...REAR.colour) }, rearLens: { value: new THREE.Color(...REAR.lens) }, rearLevel: { value: REAR.on.day },
-  rearBrake: { value: 0 }, rearGear: { value: gearOf(SPEED) } };
+  rearBrake: { value: 0 }, rearGear: { value: gearFor(SPEED) } };
 
 function setupRearLights() {
   partsState.doc.parts.forEach((p, i) => { if (p.name === 'rear light') partsState.data[i * 4 + 3] = 255; });
@@ -546,20 +548,23 @@ function addDisplays(material) {
         uniform vec3 rearColour; uniform vec3 rearLens; uniform float rearLevel; uniform float rearBrake; uniform int rearGear;
         #define IS_REAR ( texture2D( partTable, vec2( ( vPart + 0.5 ) / 256.0, 0.25 ) ).a > 0.5 )  // a macro: partTable is declared after this`)
       .replace('#include <color_fragment>', `#include <color_fragment>
-        if ( IS_REAR ) diffuseColor.rgb *= rearLens;`)
+        if ( IS_REAR && rearBrake > 0.5 ) diffuseColor.rgb *= rearLens;`)
       .replace('#include <aomap_fragment>', `#include <aomap_fragment>
         if ( vDigit > 0.5 ) {  // 1 + 7 * digit + segment
           int code = int( vDigit + 0.5 ) - 1;
           totalEmissiveRadiance *= float( ( digitMask[ code / 7 ] >> ( code % 7 ) ) & 1 );
         }
-        if ( IS_REAR ) {  // the rear lights
-          float lit = rearBrake;
-          if ( vPartUv.x < 0.5 ) {  // a bar: its band, 0 at the tail's corner to 4 towards the middle
-            int band = int( vPartUv.y >= 0.4747 ) + int( vPartUv.y >= 0.4903 ) + int( vPartUv.y >= 0.5030 ) + int( vPartUv.y >= 0.5157 );
-            lit = max( lit, float( band < rearGear ) );
-          }
+        if ( IS_REAR ) {  // the rear lights: braking, all of it red; otherwise the gear's bands in the file's colour
           vec3 file = texture2D( emissiveMap, vEmissiveMapUv ).rgb;
-          totalEmissiveRadiance = max( file.r, max( file.g, file.b ) ) * rearColour * rearLevel * lit;
+          if ( rearBrake > 0.5 ) totalEmissiveRadiance = max( file.r, max( file.g, file.b ) ) * rearColour * rearLevel;
+          else {
+            float lit = 0.0;
+            if ( vPartUv.x < 0.5 ) {  // a bar: its band, 0 at the tail's corner to 4 towards the middle
+              int band = int( vPartUv.y >= 0.4747 ) + int( vPartUv.y >= 0.4903 ) + int( vPartUv.y >= 0.5030 ) + int( vPartUv.y >= 0.5157 );
+              lit = float( band < rearGear );
+            }
+            totalEmissiveRadiance = file * rearLevel * lit;
+          }
         }`);
   };
   material.customProgramCacheKey = () => 'parts-displays';
@@ -589,40 +594,46 @@ function applyBraking() {
 }
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
-// speed on its digits, the brake lights and the turbo (the user's idea, 2026-09-25). As the user
-// timed the game (2026-09-25): from a standstill, gear 2 (100 km/h) at 2 s, gear 3 (160) at
-// 3.86 s, gear 4 (235) at 6.23 s, gear 5 (340) at 10.76 s, then on to 350. Letting go drifts
-// down slowly, and Brake stops the car in about half a second. Reactor boost and the
-// other glows join once the game's screenshots show what they do. ----
+// speed on its digits, the gear on its rear lights, the brake lights and the turbo (the user's
+// idea, 2026-09-25). The pace is the game's, read frame by frame off the user's straight-line
+// video (2026-09-25; CHECKLIST.md): full throttle from a standstill on the flat reaches 101 km/h
+// at 1.8 s, 162 at 3.6 s, 236 at 6.2 s, 342 at 10.7 s and 372 at 12 s. Brake stops the car in
+// about half a second. Reactor boost and the other glows join once the game's screenshots show
+// what they do. ----
 
-// (km/h, s from a standstill): the pace between them is steady
-const PACE = [[0, 0], [100, 2], [160, 3.86], [235, 6.23], [340, 10.76]], TOP = 350;
-function climb(kmh) {  // km/h per second at this speed
-  const next = PACE.findIndex(([v]) => v > kmh);
-  const k = next < 0 ? PACE.length - 1 : Math.max(1, next);  // past the last: its pace goes on
-  const [[v0, t0], [v1, t1]] = [PACE[k - 1], PACE[k]];
-  return (v1 - v0) / (t1 - t0);
-}
-const drive = { speed: SPEED, gas: false, brake: false, turbo: false, shown: -1, last: 0 };
+// km/h per second from each speed up. The video stops at 372: past it the last pace goes on, a guess.
+const PACE = [[0, 56], [101, 37], [162, 40], [200, 25]];
+const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
+// Letting go (no brake): the car loses 3.5 km/h a second plus 0.3 of its speed, so it rolls
+// from 371 km/h to a stop in about 11.6 s, as in the video.
+const coast = (kmh) => 3.5 + 0.3 * kmh;
+const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, turbo: false, shown: '', last: 0 };
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
   if (drive.brake) drive.speed -= 700 * dt;
-  else if (drive.gas) drive.speed = Math.min(Math.max(TOP, drive.speed), drive.speed + climb(drive.speed) * dt);
-  else drive.speed -= 3 * dt;
+  else if (!drive.gas) drive.speed -= coast(drive.speed) * dt;
+  else if (drive.pause > 0) drive.pause -= dt;  // changing up: the speed holds
+  else drive.speed += climb(drive.speed) * dt;
   drive.speed = Math.min(999, Math.max(0, drive.speed));
+  if (!drive.gas) drive.pause = 0;
+  while (drive.gear < 5 && drive.speed >= GEAR_UP[drive.gear - 1]) {
+    drive.gear += 1;
+    if (drive.gas) drive.pause = SHIFT_PAUSE;
+  }
+  while (drive.gear > 1 && drive.speed < GEAR_DOWN[drive.gear - 2]) drive.gear -= 1;
   const turbo = drive.speed >= TURBO.from;
   if (turbo !== drive.turbo) {
     drive.turbo = turbo;
     applyBraking();
     byId('padTurbo').classList.toggle('on', turbo);
   }
-  const kmh = Math.round(drive.speed);
-  if (kmh !== drive.shown) {
-    drive.shown = kmh;
+  const kmh = Math.round(drive.speed), shown = `${kmh} ${drive.gear}`;
+  if (shown !== drive.shown) {
+    drive.shown = shown;
     showSpeed(kmh);
-    rearUniforms.rearGear.value = gearOf(kmh);
-    byId('padGear').textContent = gearOf(kmh);
+    rearUniforms.rearGear.value = drive.gear;
+    byId('padGear').textContent = drive.gear;
   }
 }
 function hold(pedal, on) {

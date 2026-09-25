@@ -823,8 +823,10 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       bumper", which lost the new parts; they now list them too (their textures checked
       identical).
     - `car/parts.json`: the Mac recomputed every part's texels and shared share with the
-      current masks. The Windows cache (`parts_stats.json`) still holds figures from before
-      the coverage fix, so a rebuild there gives slightly different statistics. Harmless.
+      current masks. The Windows cache (`parts_stats.json`) held figures from before the
+      coverage fix, so every `view.prepare` there rewrote `car/parts.json` slightly wrong;
+      rebuilt from scratch on 2026-09-25 (28 s), it now matches the Mac's. If the file shows
+      up changed again, delete that cache and run `tool.parts`.
     - **Viewer:** the speed display shows `?speed=` (180 by default) instead of 888, lighting
       whole bars: `tool/view.py` `digit_segments` tags each bar's corners with its digit and
       segment in `car.bin`, and `addDigits` reads that. (A first try picked segments by position
@@ -833,11 +835,10 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       the file's colours; if the game keeps them red, the viewer should draw them red.
     - **The pad under the car (the user's idea, 2026-09-25):** hold Accelerate or Brake (or
       ↑/W, ↓/S) and the speed on the digits climbs or falls, with the brake lights flaring
-      while braking (`stepDrive` in `viewer/viewer.js`; snapshots keep `?speed=`). Tuned to
-      the user's timings from the game: from a standstill gear 2 (100 km/h) at 2 s, gear 3
-      (160) at 3.86 s, gear 4 (235) at 6.23 s, gear 5 (340) at 10.76 s, then on to 350; letting go
-      drifts down slowly (3 km/h a second), Brake stops the car in half a second, and a stopped
-      car's display is dark.
+      while braking (`stepDrive` in `viewer/viewer.js`; snapshots keep `?speed=`). First tuned
+      to the user's timings (gear 2 at 2 s, … gear 5 at 10.76 s, on to 350; letting go 3 km/h a
+      second; a stopped car's display dark); now to the straight-line video (below), which
+      corrected all three. Brake still stops the car in half a second (not in the video).
     - **Turbo on the pad, provisional:** from 100 km/h the turbo-colour areas (code 160: the
       wheel rings and hubs, the front wing's lower edges) glow in the game's green, and the pad
       shows "Turbo". The user thinks turbo comes on at 100 (2026-09-25), and checkpoint 1 saw
@@ -848,10 +849,51 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       still only the far left and right ends light, each gear lights the next band (five
       gears), braking lights it all red. Each side's bar has five bands, split by dark lines in
       its texture (v 0.4747, 0.4903, 0.5030, 0.5157 of its UV strip; the corner end is band 1).
-      The viewer shows them in the game's red with a red-tinted surface, band by band by gear
-      (`GEARS`: up at 100, 160, 235 and 340 km/h, from a Reddit tip the user found), all bands
-      and the centre piece when braking. Provisional: fill-up versus one at a time, the centre
-      piece.
+      First drawn in red at the Reddit tip's gear speeds (100, 160, 235, 340); the video
+      (below) settled the rest.
+    - **The user's straight-line video (2026-09-25):** `straight-line-test.mp4` (repo root,
+      Windows PC only, git-ignored), driven with TSC_Parts (stock `Details_I`), Cam 1 from
+      behind, 2560x1440 at 30 fps, 29 s: full throttle from the start on a flat straight to
+      372 km/h at 12 s, then let go (no brake) and rolled to a stop at 23.7 s. The user's
+      overlay shows the speed, gear, revs and pedals; read frame by frame (PyAV 18.1.0 in a
+      scratch folder, not a project dependency; race time = video time − 0.67 s, checked
+      against the race clock).
+      - **Pace:** 101 km/h at 1.80 s, 162 at 3.64, 236 at 6.22, 342 at 10.70, 372 at 12.02.
+        Nearly steady between: 56 km/h a second in gear 1, 37 in gear 2, 40 from 162 to 200,
+        then 25 (a clear kink at 200, mid gear 3). The speed holds 0.15-0.3 s at each change up.
+        The viewer's `PACE`, `SHIFT_PAUSE` 0.2 s; its pad matched the video within 1-3 km/h
+        live. Past 372 the video stops (the top speed on the flat wasn't found online), so the
+        last pace goes on, a guess.
+      - **Gears:** up at 101, 162, 236 and 342 km/h; down while coasting at 279, 200, 142 and 90
+        (`GEAR_UP`, `GEAR_DOWN`).
+      - **Letting go:** the car loses 3.5 km/h a second plus 0.3 of its speed (`coast`): 371 to 0
+        in 11.6 s, within 2 km/h of the video throughout.
+      - **Digits:** always three, leading zeros lit ("075", "008"), "000" when stopped, both at
+        the start and after rolling to a stop. (Unlit segments look dark in shade and beige in
+        sunshine, so read them in the shade.)
+      - **Rear lights:** the bands fill up from the corner, one per gear, down again with the
+        gear (gear 1, standing still included, lights the corner only). Lit, they're the file's
+        colour (the stock white, pale cyan through the lens); unlit they look like the lens
+        glass. The car held at the start lights both bars whole and the centre piece red, as
+        braking does; the centre piece is dark otherwise. The viewer now draws the bands in the
+        file's colour, and braking in red with a red-tinted surface (a pure red, gain 4-4.5:
+        stronger washed out to orange).
+      - **The user's night screenshots of a pink-lit skin** (Steam, 12:28 throttle at 189 in
+        gear 3, 12:33 braking at 147): the digits and the lit bands glow in the skin's pink, so a
+        skin can colour both. Braking turns both bars fully red whatever their colour; the
+        digits stay pink. Thin strips under the bars glow red to purple and flare white when
+        braking (that skin's code 0, probably); the front wheels' brake lights glow pink and
+        flare. The user didn't brake in the first one.
+      - **The rear wing:** under full throttle it starts to lift at ~60 km/h (1.1 s) and is fully
+        open by ~95 km/h (1.7 s). It stays open while coasting and closes from ~43 to ~34 km/h
+        (about 0.7 s). From behind, the tail panel and the tail corners rise together, thin
+        white slivers show between them, and the bars' ribbed top faces show beneath. Braking
+        (the 12:33 screenshot) it looks steeper, like an air brake, and the user saw other
+        pieces move when braking. The hinge, the angle, and what moves when braking wait for a
+        side view.
+      - **The canopy's rear:** its (magenta, in TSC_Parts) lines don't change with the gear
+        from behind. The glass gear display wasn't visible from Cam 1.
+      - **Turbo:** nothing turned green from behind; no turbo pads on this straight.
     - **What triggers the other glows** (research, 2026-09-25; the only source is xrayjay's
       table, "TM2020 Illum Alpha Tones", which Nadeo links): 160 turbo colour "is colored under
       turbo input" (the turbo pads), 192 exhaust heat "ON when Turbo is enabled", 224 boost "is
@@ -921,6 +963,16 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
 
 ## Things we learned
 
+- **2026-09-25, the user's straight-line video and night screenshots** (full notes under the
+  lights improvement).
+  - The game's pace, gear changes (up and down) and roll-down are now measured from frames:
+    the earlier figures, timed by eye while playing (2 s to gear 2, 3 km/h a second when
+    letting go, a dark display when stopped), were off each time. Where a short video can
+    settle something, ask for one.
+  - The digits always show three figures ("075", "000"). The rear bars fill up with the gear
+    in the skin's own colour; braking turns them red whatever that colour.
+  - A skin can colour the digits and the rear lights (the user's screenshots).
+  - The wing lifts at ~60-95 km/h, stays up while coasting and drops at ~40.
 - **2026-09-24/25, a torn wrap (checkpoint 7's comparison round, TSC_CMYK_Peel).**
   - Paint can't fake big 3D shapes: strips of wrap folded back over the body, shaded as a
     curl, looked flat to the user. Small, crisp cues work; big illusions don't.
