@@ -14,9 +14,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   user). Research done on the Mac: the speed digits and brake lights very likely can take a
   colour; the car's initials and number can't. The user's night screenshots of a pink-lit
   skin (2026-09-25) prove the digits and the rear lights' gear bands take a skin's colour.
-  **Next, on the Windows PC:** `tool.skin show TSC_Lights_Test`, install it, and the user
-  drives it (brake, turbo, day and night, F12 screenshots). Then the paint box gets the words
-  ("speed numbers", "rear lights", "brake lights"). Notes and the full test in `CHECKLIST.md`.
+  TSC_Lights_Test is installed on the Windows PC (2026-09-25). **Next:** the user drives it
+  (brake, turbo, day and night, F12 screenshots), then the paint box gets the words ("speed
+  numbers", "rear lights", "brake lights"). Notes and the full test in `CHECKLIST.md`.
 
 ## The tool
 
@@ -34,9 +34,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   panel's arm, and "airbox" the opening under each quarter panel. Renaming them means updating
   `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
   the viewer.
-- **Claude's snapshots after the viewer's new look** (2026-09-25). The new look was checked on
-  the Mac only. Run `tool.snap` once on the Windows PC and compare with an older views sheet:
-  `?snap=1` should keep the old framing.
 
 ## The viewer, from the user's screenshots and videos
 
@@ -67,4 +64,5 @@ These need the user to drive or look, so they're tested when a skin uses them.
 - **Does a skin installed while the game is running show up without a restart?** (2026-09-24,
   checkpoint 1). Still not recorded.
 - **The upload size limit.** Zips stay under 8.5 MB until a limit shows up (2026-09-24,
-  checkpoint 1).
+  checkpoint 1); the install halves the roughness maps to fit (2026-09-25). Undocumented;
+  Ubisoft said in 2022 that 9 MB "may be too big".

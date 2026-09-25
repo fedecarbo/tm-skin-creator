@@ -23,6 +23,12 @@ def icon(label, left, right):
     return im
 
 
+def sizes(zip_path):
+    """Each file's compressed size in the zip, by name."""
+    with zipfile.ZipFile(zip_path) as z:
+        return {i.filename: i.compress_size for i in z.infolist()}
+
+
 def pack(name, folder, icon_image):
     if " " in name:
         raise ValueError("skin names can't contain spaces")

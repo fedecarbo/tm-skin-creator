@@ -45,3 +45,6 @@ them light up (checkpoint 4), so they sit on bigger, plainer spots here.
   glows were added (brake heat, exhaust heat, turbo, boost), at the user's wish to test every
   state a skin can set. Codes checked after compression: the
   digits stay exactly 96, the brake lights 0, the rear lights 96. Not yet installed.
+- Shown 2026-09-25 (Windows PC, Opus 5.5): painted as on the Mac, views as `key.png` predicts.
+- Installed 2026-09-25: 5.46 MB, its roughness map (`Details_R`) at 2048² to stay under the
+  zip budget (9.28 MB at 4096²). Waiting for the user's drive.

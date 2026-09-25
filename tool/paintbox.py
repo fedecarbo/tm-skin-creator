@@ -49,6 +49,8 @@ from tool import bake, colours, coverage, dds, finishes, fonts, looks, pack, pai
 from tool.testskin import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
+# uploads may fail near 9 MB (a Nadeo developer, 2022); 8.45 and 8.65 MB zips have worked
+ZIP_BUDGET = 8.5e6
 SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside": "Details",
              "tyres": "Wheels", "tires": "Wheels", "glass": "Glass"}
 # "body" is the paint set without the wheel covers: the wheels are their own design step and
@@ -750,17 +752,34 @@ def save_painted(skin):
 
 
 def build_zip(name, icon_image=None):
-    """DDS files and the zip from build/<name>/painted.npz."""
+    """DDS files and the zip from build/<name>/painted.npz. A zip over ZIP_BUDGET gets its
+    roughness maps at half size (the stock's own 2048²), largest first, until it fits: where a
+    design kept the stock look they hold nothing finer, and a finish on a whole part keeps its
+    edges (the island's)."""
     out = paths.BUILD / name
     meta = json.loads((out / "painted.json").read_text())
     data = np.load(out / "painted.npz")
     for old in out.glob("*.dds"):
         old.unlink()
+    specs = {}
     for tex_name, spec in meta["textures"].items():
         spec = dict(spec)
-        fourcc = spec.pop("fourcc")
-        dds.write(out / f"{tex_name}.dds", data[tex_name].astype(np.float32) / 255, fourcc, **spec)
+        specs[tex_name] = (spec.pop("fourcc"), spec)
+        dds.write(out / f"{tex_name}.dds", data[tex_name].astype(np.float32) / 255, specs[tex_name][0], **spec)
     if icon_image is None:
         cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
         icon_image = pack.icon(name[:8], cols[0], cols[-1])
-    return pack.pack(name, out, icon_image)
+    zip_path = pack.pack(name, out, icon_image)
+    rough = [t for t in specs if t.endswith("_R")]
+    while zip_path.stat().st_size > ZIP_BUDGET and rough:
+        sizes = pack.sizes(zip_path)
+        t = max(rough, key=lambda t: sizes.get(f"{t}.dds", 0))
+        rough.remove(t)
+        fourcc, spec = specs[t]
+        half = dds.halve(data[t].astype(np.float32) / 255)
+        dds.write(out / f"{t}.dds", half, fourcc, **spec)
+        zip_path = pack.pack(name, out, icon_image)
+        print(f"{t} at {half.shape[1]}x{half.shape[0]}, to keep the zip under {ZIP_BUDGET / 1e6} MB")
+    if zip_path.stat().st_size > ZIP_BUDGET:
+        print(f"warning: the zip is still over {ZIP_BUDGET / 1e6} MB; the upload may fail")
+    return zip_path

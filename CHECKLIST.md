@@ -692,7 +692,8 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
     goes by its design.py's time, above the rest. Ties within a commit go by name. The Mac's
     Docker image has git for this. The gallery shows the date in the viewing computer's clock.
   - Checked on the Mac with headless Chrome on 2026-09-25: every view, switching skins, night,
-    the menus, Save picture, three window widths. Still to do on Windows: one `tool.snap` run.
+    the menus, Save picture, three window widths. The Windows `tool.snap` run matched too
+    (Things we learned, 2026-09-25).
   - The user also sent the game's Cam 3 (a camera above the cockpit, looking over the nose).
     A first fit was close but not right, and the user said it isn't needed. Cam 2 wasn't sent.
     Later the user asked for a choice of cameras after all (Decisions, "The game's cameras").
@@ -936,6 +937,12 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       them to speed or throttle, and nothing documents their colours or fades. The user asked
       for these as pad states (2026-09-25): add Turbo, Super turbo, Reactor and a hard stop
       once the game's screenshots show them (the test notes ask for them), not before.
+    - **Installed on the Windows PC (2026-09-25, Opus 5.5).** `show` then `install`. The first
+      zip was 9.28 MB: `Details_R` alone was 5.74 MB, because a design that paints only a few
+      inner parts ships the stock roughness (2048², grainy) upscaled to 4096², which barely
+      compresses. `build_zip` now halves the roughness maps, largest first, when a zip is over
+      `ZIP_BUDGET` (see Things we learned); this one came out 5.46 MB, `Details_R` at 2048².
+      **Next:** the user drives it (the notes' "What to try"), then the words in the paint box.
 
 ## Decisions (for Claude)
 
@@ -997,6 +1004,19 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
 
 ## Things we learned
 
+- **2026-09-25, the zip budget (TSC_Lights_Test).** Ubisoft's Ubi-Milky passed on in 2022
+  that "the team were a little concerned about the 9mb car skin file size, believing it may be
+  too big" (devtrackers.gg/trackmania/p/95b8392e): the only public word on a limit, and none
+  is documented. Zips of 8.45 and 8.65 MB have worked. So `paintbox.ZIP_BUDGET` is 8.5 MB, and
+  `build_zip` enforces it: over it, the roughness maps drop to 2048² (the stock's own size),
+  largest first, and it warns if that isn't enough. Colour stays 4096². A skin that paints a
+  few inner parts is the case that hits it (the stock grain upscaled barely compresses);
+  mixed sizes within a set already worked in the game (TSC_Lab: `Details_B` 4096²,
+  `Details_I` and `Details_N` 2048²).
+- **2026-09-25, Claude's snapshots after the viewer's new look,** checked on the Windows PC:
+  TSC_CMYK_Peel_More re-snapped against its sheet from before the new look differs in 855 of
+  4.1 million pixels, all on the speed digits (a speed now, not 888), the rear light bands
+  and single-pixel edge flicker. `?snap=1` keeps the framing.
 - **2026-09-25, the user's straight-line video and night screenshots** (full notes under the
   lights improvement).
   - The game's pace, gear changes (up and down) and roll-down are now measured from frames:
@@ -1220,7 +1240,8 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
     with painted textures at 4096² and Nadeo's dirt and normal maps at 2048². It loaded fine.
     - Nadeo's dirt masks and normal maps are most of a zip's weight: 2K stock DirtMasks
       4.3 MB, `Details_N` 2.1 MB.
-    - Default: 4096² for painted textures. Keep zips ≤ 8.5 MB until an upload limit shows up.
+    - Default: 4096² for painted textures. Keep zips ≤ 8.5 MB until an upload limit shows up
+      (`build_zip` enforces it since 2026-09-25: Things we learned).
   - **Every texture is optional.** TSC_Test_SkinOnly held only `Skin_B` and `Skin_R`
     (0.21 MB) and worked. Everything else kept the stock look. So a skin need only ship the
     textures it changes.
