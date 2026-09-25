@@ -1047,6 +1047,8 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   that red too (keep the rear lenses clear or warm). Brake heat works: the rims glow while
   braking hard, building over about 1.5 s. A straight without pads lights no turbo colour at
   any speed. Details under the lights improvement.
+  - **No restart needed:** the user found TSC_Lights_Test in the game without restarting it
+    (the question open since checkpoint 1).
 - **2026-09-25, the zip budget (TSC_Lights_Test).** Ubisoft's Ubi-Milky passed on in 2022
   that "the team were a little concerned about the 9mb car skin file size, believing it may be
   too big" (devtrackers.gg/trackmania/p/95b8392e): the only public word on a limit, and none

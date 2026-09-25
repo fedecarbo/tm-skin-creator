@@ -139,9 +139,8 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
    has small stickers or lettering, look at a magnified crop of an outline in
    `build/<name>/Skin_B.dds` (`tool.dds.decode`). Edges should be about two texels, with no
    fringes.
-2. Tell them: in the game, Garage → My Skins → Upload skin, then pick `<name>`. If it isn't
-   there, restarting the game brings it in. Whether that's ever needed is still on the
-   improvement list, so ask them. If anything looks off, an F12 screenshot shows it.
+2. Tell them: in the game, Garage → My Skins → Upload skin, then pick `<name>`. No restart
+   is needed (TSC_Lights_Test, 2026-09-25). If anything looks off, an F12 screenshot shows it.
 3. Add the `Installed` line to `notes.md`.
 4. Screenshots are in
    `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`. Look

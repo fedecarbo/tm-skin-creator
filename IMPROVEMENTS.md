@@ -62,8 +62,6 @@ These need the user to drive or look, so they're tested when a skin uses them.
   with turbo pads (yellow and red) and a reactor boost, with the camera behind the car.
 - **How see-through the glass is** (2026-09-24, checkpoint 4): the glass file's alpha made no
   visible difference, so the tool treats glass as tint only.
-- **Does a skin installed while the game is running show up without a restart?** (2026-09-24,
-  checkpoint 1). Still not recorded.
 - **The upload size limit.** Zips stay under 8.5 MB until a limit shows up (2026-09-24,
   checkpoint 1); the install halves the roughness maps to fit (2026-09-25). Undocumented;
   Ubisoft said in 2022 that 9 MB "may be too big".
