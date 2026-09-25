@@ -38,11 +38,10 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **Cam 2 in the Driving menu is a guess** (2026-09-25) until a screenshot of the game's Cam 2.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
-- **The rear wing flap** (2026-09-25): the straight-line video gave its timing (up from ~60
-  to ~95 km/h under throttle, down at ~43-34 while coasting), and from behind the tail panel
-  and tail corners rise together. The user saw other pieces move when braking, and the wing
-  looks steeper then. Which pieces move, the hinge and the angles wait for a short video from
-  the side: pull away, brake hard, let go. Notes under the lights improvement in
+- **The rear wings, fine-tuning** (2026-09-25): the viewer opens both (up or down, then
+  apart) at the video's speeds, with distances set by eye from behind. A short video from the
+  side (pull away, brake hard, let go) would pin the distances and show the pieces the user
+  saw move when braking, which aren't modelled. Notes under the lights improvement in
   `CHECKLIST.md`.
 
 ## To check in the game

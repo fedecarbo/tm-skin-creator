@@ -884,13 +884,27 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
         digits stay pink. Thin strips under the bars glow red to purple and flare white when
         braking (that skin's code 0, probably); the front wheels' brake lights glow pink and
         flare. The user didn't brake in the first one.
-      - **The rear wing:** under full throttle it starts to lift at ~60 km/h (1.1 s) and is fully
-        open by ~95 km/h (1.7 s). It stays open while coasting and closes from ~43 to ~34 km/h
-        (about 0.7 s). From behind, the tail panel and the tail corners rise together, thin
-        white slivers show between them, and the bars' ribbed top faces show beneath. Braking
-        (the 12:33 screenshot) it looks steeper, like an air brake, and the user saw other
-        pieces move when braking. The hinge, the angle, and what moves when braking wait for a
-        side view.
+      - **The rear wings:** under full throttle they start to open at ~60 km/h (1.1 s) and are
+        fully open by ~95 km/h (1.7 s). They stay open while coasting and close from ~43 to
+        ~34 km/h (about 0.7 s), the sides first. Braking (the 12:33 screenshot) the top one
+        looks steeper, and the user saw other pieces move when braking: not modelled yet.
+      - **How they move (the user, 2026-09-25, correcting a first try with hinged flaps that
+        tipped):** there are two, top and bottom. Neither tilts. The top wing (the tail panel
+        between the two tail corners) lifts straight up, then the corners slide apart from the
+        panel; the bottom wing (the diffuser and undertray between the diffuser strakes) drops
+        straight down, then its sides slide apart. The blocks under each ("rear bumper",
+        "rear bumper corner", white and purple in TSC_Parts) move out but not apart, so they
+        show in the gaps: the white slivers and purple strips of the video. The top's
+        "rear bumper" pieces also hold plates inside the tail corners' ends (|x| > 44 cm),
+        which slide with the corners.
+      - **In the viewer** (`WINGS`, `addWing`, driven by `stepDrive`): out in the first half of
+        the opening, apart in the second, the reverse when closing. Up 6 cm and apart 3.5 cm on
+        top, down 8 cm and apart 3 cm below: set by eye against frames #580 (open) and #600
+        (shut), where the camera hardly moves, and #460 (gaps about a tenth of the panel's
+        width). The parts move in the vertex shader, the shadow too (`customDepthMaterial`).
+        Snapshots keep them shut (identical to before); `?wing=1` opens them there, and
+        `?wingLift=`, `?wingSpread=`, `?flapDrop=`, `?flapSpread=` (cm) try other distances. A
+        side video would pin the distances and show what moves when braking.
       - **The canopy's rear:** its (magenta, in TSC_Parts) lines don't change with the gear
         from behind. The glass gear display wasn't visible from Cam 1.
       - **Turbo:** nothing turned green from behind; no turbo pads on this straight.
@@ -972,7 +986,9 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   - The digits always show three figures ("075", "000"). The rear bars fill up with the gear
     in the skin's own colour; braking turns them red whatever that colour.
   - A skin can colour the digits and the rear lights (the user's screenshots).
-  - The wing lifts at ~60-95 km/h, stays up while coasting and drops at ~40.
+  - Two rear wings open at ~60-95 km/h, stay open while coasting and close at ~40. They
+    move straight out and then apart, not on hinges (the user), so ask how something moves
+    before modelling it from one camera angle.
 - **2026-09-24/25, a torn wrap (checkpoint 7's comparison round, TSC_CMYK_Peel).**
   - Paint can't fake big 3D shapes: strips of wrap folded back over the body, shaded as a
     curl, looked flat to the user. Small, crisp cues work; big illusions don't.

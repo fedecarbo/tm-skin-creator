@@ -570,6 +570,83 @@ function addDisplays(material) {
   material.customProgramCacheKey = () => 'parts-displays';
 }
 
+// ---- The rear wings. Two wings open under way (the user, 2026-09-25). They don't tilt: each
+// moves straight out, then its side pieces slide apart from its centre piece. The top wing (the
+// tail panel between the two tail corners) lifts, showing the tops of the rear light bars; the
+// bottom wing (the plate under the bumper: the diffuser and the undertray between the diffuser
+// strakes) drops. The blocks under each ("rear bumper", "rear bumper corner": white and purple
+// in TSC_Parts) move out with it but not apart, so they show in the gaps, as in the video. The
+// user's straight-line video: under full throttle they start at ~60 km/h and are fully open by
+// ~95 (about 0.6 s); they stay open while coasting and close from ~43 to ~34 km/h (about 0.7 s),
+// the sides first. Provisional until a side view: how far they move, and what moves when
+// braking. Snapshots keep them shut. ----
+
+// How far, in metres: out (+ up) and apart (each side). ?wingLift=, ?wingSpread=, ?flapDrop=
+// and ?flapSpread= (cm) try others; ?wing=1 opens them in snapshots.
+const cm = (key, fallback) => Number(params.get(key) ?? fallback) / 100;
+const WINGS = [
+  { parts: ['tail panel', 'tail corner', 'rear bumper'], blocks: ['rear bumper'], out: cm('wingLift', 6), apart: cm('wingSpread', 3.5) },
+  { parts: ['diffuser', 'diffuser strake', 'rear undertray', 'rear bumper corner'], blocks: ['rear bumper corner'],
+    out: -cm('flapDrop', 8), apart: cm('flapSpread', 3) },
+];
+const WING = { openFrom: 60, shutBelow: 43, opening: 0.6, closing: 0.7, outer: 0.44 };  // outer: see addWing
+const wingUniforms = { wingOut: { value: [0, 0] }, wingApart: { value: [0, 0] },
+  wingIds: { value: new Array(16).fill(-1) }, wingOf: { value: new Array(16).fill(0) } };
+// Each part's wing and role, packed as 4 * wing + role: 0 the centre piece, 1 a side, 2 a block,
+// 3 the top wing's blocks, whose outer ends (the plates inside the tail corners) go with the sides.
+function setupWing() {
+  const ids = [], of = [];
+  WINGS.forEach((w, k) => partsState.doc.parts.forEach((p, i) => {
+    if (!w.parts.includes(p.name)) return;
+    const role = w.blocks.includes(p.name) ? (k === 0 ? 3 : 2) : (p.side === 'centre' ? 0 : 1);
+    ids.push(i);
+    of.push(4 * k + role);
+  }));
+  wingUniforms.wingIds.value = [...ids, ...new Array(16).fill(-1)].slice(0, 16);
+  wingUniforms.wingOf.value = [...of, ...new Array(16).fill(0)].slice(0, 16);
+}
+const easeWing = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
+function showWing(open) {  // 0 shut .. 1 open: out in the first half, apart in the second
+  wingUniforms.wingOut.value = WINGS.map((w) => w.out * easeWing(open * 2));
+  wingUniforms.wingApart.value = WINGS.map((w) => w.apart * easeWing(open * 2 - 1));
+}
+
+// The wings' parts move in the vertex shader, in the materials and in the shadow's depth pass.
+// After addParts, which declares the part attribute.
+function addWing(material) {
+  const previous = material.onBeforeCompile;
+  const previousKey = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
+  material.onBeforeCompile = (shader) => {
+    if (previous) previous(shader);
+    Object.assign(shader.uniforms, wingUniforms);
+    const declare = shader.vertexShader.includes('attribute float part') ? '' : 'attribute float part;';
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
+        ${declare}
+        uniform float wingOut[ 2 ]; uniform float wingApart[ 2 ]; uniform float wingIds[ 16 ]; uniform float wingOf[ 16 ];
+        vec3 wingMove( vec3 v, float p ) {
+          if ( wingOut[ 0 ] == 0.0 ) return v;  // shut
+          for ( int i = 0; i < 16; i++ ) {
+            if ( abs( p - wingIds[ i ] ) > 0.5 ) continue;
+            int k = int( wingOf[ i ] + 0.5 ) / 4, role = int( wingOf[ i ] + 0.5 ) - 4 * k;
+            float out_ = k == 0 ? wingOut[ 0 ] : wingOut[ 1 ], apart = k == 0 ? wingApart[ 0 ] : wingApart[ 1 ];
+            v.y += out_;
+            if ( role == 1 || ( role == 3 && abs( v.x ) > ${WING.outer.toFixed(3)} ) ) v.x += sign( v.x ) * apart;
+            return v;
+          }
+          return v;
+        }`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        transformed = wingMove( transformed, part );`);
+  };
+  material.customProgramCacheKey = () => `${previousKey()}-wing`;
+}
+function wingDepthMaterial() {
+  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+  addWing(m);
+  return m;
+}
+
 // Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white). Show →
 // Braking holds them on (for a picture); the pad's Brake while it's held.
 // Turbo: the turbo-colour areas (code 160: the rings round the wheels, the front wing's lower
@@ -607,7 +684,9 @@ const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
 // Letting go (no brake): the car loses 3.5 km/h a second plus 0.3 of its speed, so it rolls
 // from 371 km/h to a stop in about 11.6 s, as in the video.
 const coast = (kmh) => 3.5 + 0.3 * kmh;
-const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, turbo: false, shown: '', last: 0 };
+const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, turbo: false, shown: '', last: 0,
+  wingUp: SPEED >= WING.openFrom, wing: snap ? Number(params.get('wing') ?? 0) : +(SPEED >= WING.openFrom) };
+showWing(drive.wing);
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
@@ -622,6 +701,10 @@ function stepDrive(now) {
     if (drive.gas) drive.pause = SHIFT_PAUSE;
   }
   while (drive.gear > 1 && drive.speed < GEAR_DOWN[drive.gear - 2]) drive.gear -= 1;
+  if (drive.speed >= WING.openFrom) drive.wingUp = true;
+  else if (drive.speed < WING.shutBelow) drive.wingUp = false;
+  const wing = Math.min(1, Math.max(0, drive.wing + (drive.wingUp ? dt / WING.opening : -dt / WING.closing)));
+  if (wing !== drive.wing) showWing(drive.wing = wing);
   const turbo = drive.speed >= TURBO.from;
   if (turbo !== drive.turbo) {
     drive.turbo = turbo;
@@ -778,6 +861,8 @@ function makeMaterials(tex) {
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name]);
   addPlate(skin);
   if (tex.Details_I) addDisplays(details);
+  addWing(skin);
+  addWing(details);
   return out;
 }
 
@@ -790,6 +875,7 @@ function dressCar(geoms, tex) {
       const mesh = new THREE.Mesh(geoms[name], material);
       mesh.castShadow = name !== 'Glass';
       mesh.receiveShadow = true;
+      if (name === 'Skin' || name === 'Details') mesh.customDepthMaterial = wingDepthMaterial();  // its shadow follows the wing
       parts[name] = mesh;
       car.add(mesh);
     }
@@ -1039,6 +1125,7 @@ async function start() {
   addRoom();
   await setupPlate(geoms.Skin);
   setupRearLights();
+  setupWing();
   await loadSkin(skinName);
   setNight(false);
   if (!snap) {  // on unless this browser turned it off last time
