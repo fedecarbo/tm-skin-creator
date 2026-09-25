@@ -610,14 +610,14 @@ Part 1 comes first, because every design depends on it.
     - `loadSkin()` switches a skin in place. Textures are cached by slot and URL and freed when
       the new skin doesn't use them (each is up to 4096²).
     - The list reads `data/gallery.json`, which now carries a `title` ("CMYK Peel More").
-    - `VIEWS.cam1` (was `driving`) is the game's Cam 1, fitted to the user's 1920x1080 screenshot (the car's
-      box within 5 px): the camera 3.75 m up and 6.3 m behind the centre, tilted down 13.5°,
+    - `VIEWS.cam1` (was `driving`) is the game's Cam 1, fitted to the user's 1920x1080
+      screenshot (the car's box within 5 px): the camera 3.75 m up and 6.3 m behind the centre, tilted down 13.5°,
       fov 58.7° (the game's 90° wide at 16:9). `roomy` moves a view back on the page only.
       Later the same day the user found the car too small and low in that framing: the view
       keeps the game's lens (the user wanted it kept, not a narrower one) but aims at the car
       from 5.2 m instead of 7.3 m, and from 18° above it instead of 27°, so the speed digits
       read clearly, as the user remembers them in the game. The game's exact framing is in the
-      comment on `VIEWS.driving`.
+      comment on `VIEWS.cam1`.
     - Views glide round the car (spherical interpolation), never through it. Spin is
       OrbitControls' autoRotate. Save picture renders at pixel ratio 2 with the plain framing
       and no buttons.
