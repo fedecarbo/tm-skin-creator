@@ -496,9 +496,13 @@ function setPlate(on) {
 
 const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 218)) || 0));
 const SEVEN = [0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f];  // 0-9, bits a b c d e f g
-const digitUniforms = {
-  digitMask: { value: [...String(SPEED).padStart(3, ' ')].map((c) => (c === ' ' ? 0 : SEVEN[Number(c)])) },
-};
+const digitUniforms = { digitMask: { value: [0, 0, 0] } };
+function showSpeed(kmh) {
+  digitUniforms.digitMask.value = [...String(kmh).padStart(3, ' ')].map((c) => (c === ' ' ? 0 : SEVEN[Number(c)]));
+  const out = document.getElementById('padSpeed');
+  if (out) out.textContent = kmh;
+}
+showSpeed(SPEED);
 
 // Details only; after addGlow.
 function addDigits(material) {
@@ -524,14 +528,51 @@ function addDigits(material) {
   material.customProgramCacheKey = () => 'parts-digits';
 }
 
-// Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white).
+// Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white). Show →
+// Braking holds them on (for a picture); the pad's Brake while it's held.
 const BRAKING = { day: 8, night: 10 };
 let braking = false, night = false;
 function setBraking(on) {
   braking = on;
-  glowUniforms.glowGain.value[0] = on ? BRAKING[night ? 'night' : 'day'] : GLOW[0][night ? 'night' : 'day'];
   pressed(byId('brakeToggle'), on);
+  applyBraking();
 }
+function applyBraking() {
+  const on = braking || drive.brake;
+  glowUniforms.glowGain.value[0] = on ? BRAKING[night ? 'night' : 'day'] : GLOW[0][night ? 'night' : 'day'];
+}
+
+// ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
+// speed on its digits and the brake lights (the user's idea, 2026-09-25). Rough numbers, only for
+// the look: the speed climbs to about 400 km/h in 15 s, brakes to 0 in about 2 s, and holds
+// when neither is pressed. Turbo and the other glows join once the game's screenshots show what
+// they do. ----
+
+const drive = { speed: SPEED, gas: false, brake: false, shown: -1, last: 0 };
+function stepDrive(now) {
+  const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
+  drive.last = now;
+  if (drive.brake) drive.speed -= 220 * dt;
+  else if (drive.gas) drive.speed += 90 * dt * Math.max(0.05, 1 - drive.speed / 500);
+  drive.speed = Math.min(999, Math.max(0, drive.speed));
+  const kmh = Math.round(drive.speed);
+  if (kmh !== drive.shown) { drive.shown = kmh; showSpeed(kmh); }
+}
+function hold(pedal, on) {
+  if (drive[pedal] === on) return;
+  drive[pedal] = on;
+  pressed(byId(pedal === 'gas' ? 'padGas' : 'padBrake'), on);
+  if (pedal === 'brake') applyBraking();
+}
+for (const [id, pedal] of [['padGas', 'gas'], ['padBrake', 'brake']]) {
+  const b = document.getElementById(id);
+  b.addEventListener('pointerdown', (e) => { b.setPointerCapture(e.pointerId); hold(pedal, true); });
+  for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(type, () => hold(pedal, false));
+}
+const PEDAL_KEYS = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake' };
+addEventListener('keydown', (e) => { if (PEDAL_KEYS[e.code] && !e.repeat) { hold(PEDAL_KEYS[e.code], true); e.preventDefault(); } });
+addEventListener('keyup', (e) => { if (PEDAL_KEYS[e.code]) hold(PEDAL_KEYS[e.code], false); });
+addEventListener('blur', () => { hold('gas', false); hold('brake', false); });
 
 function partLabel(p) {
   const tag = [p.end, p.side === 'centre' ? '' : p.side].filter(Boolean).join(' ');
@@ -926,8 +967,9 @@ async function start() {
     try { on = localStorage.getItem('tsc-viewer-number') !== '0'; } catch {}
     setPlate(on);
   }
-  renderer.setAnimationLoop(() => {
+  renderer.setAnimationLoop((now) => {
     stepGlide();
+    if (!snap) stepDrive(now);
     controls.update();
     renderer.render(scene, camera);
   });

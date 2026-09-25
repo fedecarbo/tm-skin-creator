@@ -73,6 +73,15 @@
   #showMenu .box { width: 10px; height: 10px; border: 2px solid currentColor; margin-top: -3px; }
   #showMenu .sk[aria-pressed="true"] .box { background: currentColor; }
 
+  /* Under the car: the pedals and the speed */
+  #pad { position: fixed; left: calc(var(--rail) + (100vw - var(--rail)) / 2); bottom: 122px; transform: translateX(-50%);
+         display: flex; align-items: center; gap: 6px; user-select: none; -webkit-user-select: none; }
+  #pad .key { font-size: 21px; padding: 9px 16px 6px; touch-action: none; }
+  #pad .key[aria-pressed="true"] { background: var(--acc); color: var(--ground); }
+  #speedo { display: flex; align-items: baseline; gap: 5px; min-width: 104px; justify-content: center; padding: 0 6px; }
+  #speedo b { font-size: 38px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  #speedo small { font-size: 16px; opacity: 0.6; }
+
   /* Bottom: cameras, spin, picture */
   #bar { position: fixed; left: calc(var(--rail) + 40px); right: 40px; bottom: 50px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
   #camWrap { position: relative; }
@@ -176,6 +185,12 @@
   <span class="gap"></span>
   <button id="day" class="sk" aria-pressed="true"><svg class="ic"><use href="#i-sun"/></svg><span>Day</span></button>
   <button id="night" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-moon"/></svg><span>Night</span></button>
+</div>
+
+<div id="pad" class="chrome teko">
+  <button id="padBrake" class="sk key" aria-pressed="false" title="hold to brake (↓ or S)"><svg class="ic"><use href="#i-down"/></svg><span>Brake</span></button>
+  <span id="speedo"><b id="padSpeed">218</b><small>km/h</small></span>
+  <button id="padGas" class="sk key" aria-pressed="false" title="hold to accelerate (↑ or W)"><span>Accelerate</span><svg class="ic"><use href="#i-up"/></svg></button>
 </div>
 
 <div id="bar" class="chrome teko">
