@@ -592,7 +592,7 @@ Part 1 comes first, because every design depends on it.
     - New in the paint box: `Skin.keep()` and `Skin.peel()` (tool/peel.py), a top layer torn
       open to show a kept layer underneath.
 
-### [ ] 8. Tidy up for everyday use
+### [x] 8. Tidy up for everyday use
 
 - **What it's for:** making every future chat start straight at "describe your skin", without
   the building notes getting in the way.
@@ -634,9 +634,11 @@ Part 1 comes first, because every design depends on it.
       checkpoints 8 and 9. They're improvements now (below). A SessionStart hook in
       `.claude/settings.json` pulls at the start of each session, and `CLAUDE.md` says to push
       after each piece of work.
-    - **To tick it:** the user opens a fresh chat, picks Opus 5.5 and describes a skin. When
-      it works, tick this box, commit and push, and remove the "Checkpoint 8 is waiting" line
-      from `CLAUDE.md`.
+    - **Ticked 2026-09-25 by the user** ("I think we did the brand new skin, Opus 5.5 worked
+      pretty well"). The routine, on Opus 5.5, carried TSC_CMYK_Peel_More through six rounds
+      (lights in its colours, the orange end, three wheel takes, the tyre line, the wobble fix
+      from the game) and three installs. The skin itself was designed in checkpoint 7's round,
+      before the routine was written down; the user counted the work as the test.
 
 ## Improvements after the build
 
@@ -1046,7 +1048,8 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   crown, the tyre's bead, the covers' and the rims' edges all agree within 0.2 mm (35.252;
   178.314 front, -120.163 rear); `shapes.WHEEL_Y/WHEEL_Z` hold them. All four tyres share one
   shape in one texture layout (within 0.1 mm), so a ring in 3D is round on each. Anything that
-  turns needs its centre fitted to the geometry, not read off by eye.
+  turns needs its centre fitted to the geometry, not read off by eye. Redrawn round the fitted
+  centres, the user saw it round in the game (2026-09-25).
 - **2026-09-25, the lights test (TSC_Lights_Test, the user's day and night videos).** A skin can
   colour the speed digits, the rear lights (a glow colour and a lens tint, which multiply) and
   the brake lights inside the front wheels. It can't colour the initials and number: they stay

@@ -45,3 +45,4 @@ half of it gone, bigger tears and bigger flaps.
   bead, covers and rims; the line is at 31.7-32.9 cm all the way round (measured within 0.4 mm),
   and all four tyres share the painted one's shape within 0.1 mm.
 - Installed 2026-09-25 with the round ring: 7.44 MB.
+- Seen in the game 2026-09-25: the user says the tyre line is round now.

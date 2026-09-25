@@ -33,9 +33,6 @@ like what you show them.
 
 ## Where things are
 
-- **Checkpoint 8 is waiting for the user.** They make a skin in a fresh chat through the `skin`
-  skill. Once they've seen it work, tick checkpoint 8 in `CHECKLIST.md`, commit and push, and
-  delete this line.
 - The tool was built in checkpoints 0 to 8 (`CHECKLIST.md`). That file is the history, not a
   to-do list: every decision, and "Things we learned" from the game and the tests. It's long,
   so search it rather than read it all. `.claude/rules/tool.md` loads with the tool's code:
