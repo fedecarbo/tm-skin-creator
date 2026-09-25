@@ -232,7 +232,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     # Windows can map .js to text/plain in the registry, and browsers refuse modules served that way.
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map,
                       ".js": "text/javascript", ".json": "application/json", ".html": "text/html",
-                      ".png": "image/png", ".bin": "application/octet-stream", ".hdr": "application/octet-stream"}
+                      ".png": "image/png", ".bin": "application/octet-stream", ".hdr": "application/octet-stream",
+                      ".ttf": "font/ttf"}
 
     def translate_path(self, path):
         path = urllib.parse.urlsplit(path).path

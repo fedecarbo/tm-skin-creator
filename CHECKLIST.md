@@ -48,8 +48,8 @@ All of them can be rebuilt from the project at any time.
 The work comes in two parts:
 - **Part 1, setting up (checkpoints 1–4):** the tool learns the car. It learns which files the
   game takes, every part of the car, and exactly how every material looks in the game.
-- **Part 2, designing (checkpoints 5–8):** the design tools, then your first real skin, then
-  everyday use.
+- **Part 2, designing (checkpoints 5–9):** the design tools, then your first real skin, a new
+  look for the viewer, then everyday use.
 
 Part 1 comes first, because every design depends on it.
 
@@ -570,7 +570,7 @@ Part 1 comes first, because every design depends on it.
       range: keep every edge, sticker and letter at the texel grain.
   - [x] **The comparison round:** one skin made on Opus 5.5, in a fresh chat with that model
     picked at the top. Then the user says which model they prefer for everyday use, and
-    checkpoint 8's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
+    checkpoint 9's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
     user: "in Opus 5.5 the skin looks pretty cool. I'm impressed. Could have looked for other
     minor details, but I'm very happy with initial results. I can then tweak."
     - **Made 2026-09-24/25 on Opus 5.5:** the user asked for their CMYK car with "the skin
@@ -582,7 +582,55 @@ Part 1 comes first, because every design depends on it.
     - New in the paint box: `Skin.keep()` and `Skin.peel()` (tool/peel.py), a top layer torn
       open to show a kept layer underneath.
 
-### [ ] 8. Tidy up for everyday use
+### [x] 8. The viewer's new look
+
+- **What it's for:** a viewer that feels like part of the racing world, with better ways to
+  look at a skin. You asked for it on 2026-09-25 and picked the "race garage" look out of three
+  mockups.
+- **What you'll see:** the viewer with your skins listed down the left. Click one and the car
+  changes paint while the camera stays put, so two skins compare at the same angle.
+  - The skin's name in big slanted letters, marked when it's in the game.
+  - Along the bottom: front, rear, left, right, top, and a driving view like the game's chase
+    camera; a slow spin; and Save picture, which saves the car in the studio as a picture.
+  - Top right: day and night, show or hide the body, details, wheels and glass, and the parts
+    list.
+  - The page of all skins and the materials page wear the same lettering.
+
+  The driving view is matched to your screenshot of the game's Cam 1.
+- **Model:** Opus 5.5, the everyday model. Building a page to a chosen design is
+  straightforward; matching the chase camera takes judgment.
+- **Notes for Claude:**
+  - The mockups: https://claude.ai/artifact/EErF9X9RmvMU8KZKcRu1w5 (A showroom, B race garage,
+    C just the car). The user chose B.
+  - `viewer/index.html` holds the layout and CSS. Teko (SIL OFL) is in `viewer/lib/fonts/`: the
+    google/fonts file `tool/fonts.py` pins (sha256 d1321889…), renamed `Teko-Variable.ttf`.
+    Icons are Lucide 1.48.0 (ISC), inline.
+  - `viewer/viewer.js`:
+    - `loadSkin()` switches a skin in place. Textures are cached by slot and URL and freed when
+      the new skin doesn't use them (each is up to 4096²).
+    - The list reads `data/gallery.json`, which now carries a `title` ("CMYK Peel More").
+    - `VIEWS.driving` is the game's Cam 1, fitted to the user's 1920x1080 screenshot (the car's
+      box within 5 px): the camera 3.75 m up and 6.3 m behind the centre, tilted down 13.5°,
+      fov 58.7° (the game's 90° wide at 16:9). `roomy` moves a view back on the page only.
+    - Views glide round the car (spherical interpolation), never through it. Spin is
+      OrbitControls' autoRotate. Save picture renders at pixel ratio 2 with the plain framing
+      and no buttons.
+  - The page frames the car beside the list with `camera.setViewOffset` (5 % up, zoom 0.92).
+    `?snap=1` keeps the old framing: pixel-identical on 2026-09-25, so thumbnails and check
+    sheets don't change. `window.viewer.show/showParts` are unchanged.
+  - Under 900 px wide the list folds behind a button.
+  - Newest first, on every computer: `tool/gallery.py` orders skins by the commit that added
+    each design.py (a fresh clone gives every file the same time); a skin not committed yet
+    goes by its design.py's time, above the rest. Ties within a commit go by name. The Mac's
+    Docker image has git for this. The gallery shows the date in the viewing computer's clock.
+  - Checked on the Mac with headless Chrome on 2026-09-25: every view, switching skins, night,
+    the menus, Save picture, three window widths. Still to do on Windows: one `tool.snap` run.
+  - The user also sent the game's Cam 3 (a camera above the cockpit, looking over the nose).
+    A first fit was close but not right, and the user said it isn't needed. Cam 2 wasn't sent.
+  - **Done 2026-09-25.** The user: "you've done an amazing job with the ui", and asked for the
+    list newest first (done).
+
+### [ ] 9. Tidy up for everyday use
 
 - **What it's for:** making every future chat start straight at "describe your skin", without
   the building notes getting in the way.
@@ -628,6 +676,9 @@ Part 1 comes first, because every design depends on it.
 - **Viewer must-haves (user, 2026-09-23):** spin and zoom, day and night, hide and show parts.
   Comparing versions isn't wanted. The setting is a photo studio, not the game's stadium
   (user, 2026-09-24).
+- **Viewer look (user, 2026-09-25): "race garage",** chosen from three mockups (showroom, race
+  garage, just the car): skins listed on the left, slanted Teko lettering, one yellow-green
+  accent (#e8ff47). The car, studio and lighting stay as tuned against the game.
 - **Free tools only (user, 2026-09-23).** If a paid tool would be far better, tell the user and
   discuss it first. The picture maker is free and local.
   **One-time-payment tools of incredible quality: always suggest them (user, 2026-09-24).**

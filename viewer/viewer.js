@@ -3,14 +3,15 @@
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
-// the two lighting HDRIs, and skins/<name>/skin.json, which gives the URL of every texture slot.
+// the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
+// gallery.json (tool/gallery.py), the list of skins down the left.
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 
 const params = new URLSearchParams(location.search);
-const skinName = params.get('skin') || 'TSC_Test';
+let skinName = params.get('skin') || 'TSC_Test';
 const snap = params.has('snap');
 document.body.classList.toggle('snap', snap);
 const statusBox = document.getElementById('status');
@@ -22,8 +23,16 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   rear: { dir: [-0.62, 0.3, -0.72], dist: 6.4 },  // rear three-quarter, from the car's right
   left: { dir: [1, 0.06, 0], dist: 6.2 },
   right: { dir: [-1, 0.06, 0], dist: 6.2 },
-  top: { dir: [0, 1, -0.0001], dist: 7.6 },  // looking down, the car's front at the top
+  // Looking down, the car's front at the top. roomy: further back on the page, where the title
+  // and the buttons share the window (snapshots keep dist).
+  top: { dir: [0, 1, -0.0001], dist: 7.6, roomy: 1.3 },
+  // The game's chase camera ("Cam 1"), matched to the user's in-game screenshot (2026-09-25,
+  // 1920x1080): the camera 3.75 m up and 6.3 m behind the car's centre, tilted down 13.5°,
+  // through the game's wider lens (58.7° tall, 90° wide at 16:9). The target is on that line of
+  // sight above the car, so dragging from here still turns round the car.
+  driving: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 },
 };
+const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
 // the car and shows in its reflections. Night is a moonlit sky with a dim blue key. Both HDRIs
 // are from Poly Haven (CC0). key: the one light that casts a shadow. The room around the car is a
@@ -74,27 +83,77 @@ renderer.shadowMap.type = THREE.PCFShadowMap;  // soft already; PCFSoftShadowMap
 const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 400);
+const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 400);
 const controls = new OrbitControls(camera, canvas);
 controls.target.copy(CENTRE);
 controls.enableDamping = true;
 controls.minDistance = 1;
 controls.maxDistance = 18;
+controls.autoRotateSpeed = 1.5;  // one turn in about 40 s
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
 
-// view: a name from VIEWS, or { dir, dist, target } for a close look.
-function setView(view) {
+// view: a name from VIEWS, or { dir, dist, target, fov } for a close look. glide: move there smoothly.
+let glide = null;
+function setView(view, smooth = false) {
   const v = typeof view === 'string' ? VIEWS[view] : view;
-  controls.target.set(...(v.target || CENTRE.toArray()));
-  camera.position.copy(controls.target).addScaledVector(new THREE.Vector3(...v.dir).normalize(), v.dist);
-  controls.update();
+  const target = new THREE.Vector3(...(v.target || CENTRE.toArray()));
+  const offset = new THREE.Vector3(...v.dir).normalize().multiplyScalar(v.dist * (snap ? 1 : v.roomy || 1));
+  const fov = v.fov || FOV;
+  if (!smooth) {
+    glide = null;
+    controls.target.copy(target);
+    camera.position.copy(target).add(offset);
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+    controls.update();
+    return;
+  }
+  // Round the car, not through it: angles and distance change, the target slides.
+  const from = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+  const to = new THREE.Spherical().setFromVector3(offset);
+  let turn = to.theta - from.theta;
+  turn -= Math.round(turn / (2 * Math.PI)) * 2 * Math.PI;
+  glide = { start: performance.now(), from, to, turn, target0: controls.target.clone(), target1: target, fov0: camera.fov, fov1: fov };
+}
+
+function stepGlide() {
+  if (!glide) return;
+  const t = Math.min(1, (performance.now() - glide.start) / 650);
+  const e = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+  const { from, to } = glide;
+  controls.target.lerpVectors(glide.target0, glide.target1, e);
+  const s = new THREE.Spherical(from.radius + (to.radius - from.radius) * e, from.phi + (to.phi - from.phi) * e, from.theta + glide.turn * e);
+  camera.position.setFromSpherical(s).add(controls.target);
+  camera.fov = glide.fov0 + (glide.fov1 - glide.fov0) * e;
+  camera.updateProjectionMatrix();
+  if (t >= 1) glide = null;
+}
+
+// The list down the left covers part of the window, so the picture's centre moves to the middle
+// of the space beside it (a view offset, so the car still turns about its own centre), a little
+// up to clear the buttons along the bottom, and the car is drawn a little smaller. Snapshots
+// keep the plain framing.
+const FRAMED = { up: 0.05, zoom: 0.92 };
+function railWidth() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rail')) || 0;
+}
+function frame(w, h, plain) {
+  if (plain) {
+    camera.clearViewOffset();
+    camera.aspect = w / h;
+    camera.zoom = 1;
+  } else {
+    const rail = railWidth();
+    camera.setViewOffset(w - rail, h, -rail, FRAMED.up * h, w, h);
+    camera.zoom = FRAMED.zoom;
+  }
+  camera.updateProjectionMatrix();
 }
 
 function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
   renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
+  frame(w, h, snap);
 }
 window.addEventListener('resize', resize);
 
@@ -178,24 +237,47 @@ async function loadMeshes() {
 }
 
 const textureLoader = new THREE.TextureLoader();
+const COLOUR_SLOTS = new Set(['Skin_B', 'Details_B', 'Wheels_B', 'Glass_T', 'Details_I', 'Glass_I']);
 
+async function loadTexture(slot, url) {
+  const t = await textureLoader.loadAsync('data/' + url);
+  t.colorSpace = COLOUR_SLOTS.has(slot) ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.anisotropy = maxAniso;
+  if (slot.endsWith('_Code') || slot.endsWith('_Shared')) {  // read exactly: never blended with a neighbour
+    t.minFilter = t.magFilter = THREE.NearestFilter;
+    t.generateMipmaps = false;
+  }
+  return t;
+}
+
+// Which texels several parts share: the same for every skin, so loaded once.
+const sharedMaps = {};
+async function loadShared() {
+  await Promise.all(['Skin', 'Details', 'Wheels', 'Glass'].map(async (set) => {
+    sharedMaps[set] = await loadTexture(`${set}_Shared`, `${set}_Shared.png`);
+  }));
+}
+
+// A skin's textures, kept by slot and URL. A skin is 4096² textures, so switching skins frees
+// what the new one doesn't use; the stock ones it shares stay.
+const texCache = new Map();  // "slot|url" -> Promise<Texture>
 async function loadTextures(urls) {
-  const colour = new Set(['Skin_B', 'Details_B', 'Wheels_B', 'Glass_T', 'Details_I', 'Glass_I']);
   const out = {};
-  urls = { ...urls, Skin_Shared: 'Skin_Shared.png', Details_Shared: 'Details_Shared.png',
-    Wheels_Shared: 'Wheels_Shared.png', Glass_Shared: 'Glass_Shared.png' };
   await Promise.all(Object.entries(urls).map(async ([slot, url]) => {
     if (!url) return;
-    const t = await textureLoader.loadAsync('data/' + url);
-    t.colorSpace = colour.has(slot) ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-    t.anisotropy = maxAniso;
-    if (slot.endsWith('_Code') || slot.endsWith('_Shared')) {  // read exactly: never blended with a neighbour
-      t.minFilter = t.magFilter = THREE.NearestFilter;
-      t.generateMipmaps = false;
-    }
-    out[slot] = t;
+    const id = `${slot}|${url}`;
+    if (!texCache.has(id)) texCache.set(id, loadTexture(slot, url));
+    out[slot] = await texCache.get(id);
   }));
   return out;
+}
+function freeTexturesExcept(urls) {
+  const keep = new Set(Object.entries(urls).filter(([, u]) => u).map(([s, u]) => `${s}|${u}`));
+  for (const [id, pending] of texCache) {
+    if (keep.has(id)) continue;
+    texCache.delete(id);
+    pending.then((t) => t.dispose(), () => {});
+  }
 }
 
 // Glow from an _I texture: its RGB times the gain and tint of each texel's code.
@@ -372,7 +454,8 @@ canvas.addEventListener('pointerup', (e) => {
   tip.style.top = `${e.clientY + 14}px`;
 });
 
-function buildCar(geoms, tex) {
+// The four materials for one skin's textures.
+function makeMaterials(tex) {
   const std = (set, extra = {}) => ({
     map: tex[`${set}_B`], roughnessMap: tex[`${set}_RM`], metalnessMap: tex[`${set}_RM`],
     roughness: 1, metalness: 1, aoMap: tex[`${set}_AO`], ...extra,
@@ -399,16 +482,31 @@ function buildCar(geoms, tex) {
     glass.emissiveMap = tex.Glass_I;
     addGlow(glass, tex.Glass_Code);
   }
-  const car = new THREE.Group();
-  for (const [name, material] of Object.entries({ Skin: skin, Details: details, Wheels: wheels, Glass: glass })) {
-    addParts(material, tex[`${name}_Shared`]);
-    const mesh = new THREE.Mesh(geoms[name], material);
-    mesh.castShadow = name !== 'Glass';
-    mesh.receiveShadow = true;
-    parts[name] = mesh;
-    car.add(mesh);
+  const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
+  for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name]);
+  return out;
+}
+
+// Dresses the car in a skin's textures; the first call builds the car.
+function dressCar(geoms, tex) {
+  const materials = makeMaterials(tex);
+  if (!Object.keys(parts).length) {
+    const car = new THREE.Group();
+    for (const [name, material] of Object.entries(materials)) {
+      const mesh = new THREE.Mesh(geoms[name], material);
+      mesh.castShadow = name !== 'Glass';
+      mesh.receiveShadow = true;
+      parts[name] = mesh;
+      car.add(mesh);
+    }
+    scene.add(car);
+    return;
   }
-  scene.add(car);
+  for (const [name, material] of Object.entries(materials)) {
+    const old = parts[name].material;
+    parts[name].material = material;
+    old.dispose();
+  }
 }
 
 // ---- Day and night ----
@@ -424,33 +522,155 @@ function setNight(night) {
   document.getElementById('night').setAttribute('aria-pressed', String(night));
 }
 
+// ---- Skins: the list down the left, and switching the car's paint in place ----
+
+let geometries = null;
+let gallery = [];  // tool/gallery.py's entries
+let loading = 0;   // the latest request wins when skins are clicked quickly
+const titleOf = (name) => name.replace(/^TSC_/, '').replaceAll('_', ' ').replace(/([a-z])(?=[A-Z])/g, '$1 ');
+
+async function loadSkin(name) {
+  const ticket = ++loading;
+  const res = await fetch(`data/skins/${encodeURIComponent(name)}/skin.json`);
+  if (!res.ok) throw new Error(`no skin called ${name} has been prepared for the viewer`);
+  const skin = await res.json();
+  const tex = await loadTextures(skin.textures);
+  if (ticket !== loading) return;
+  dressCar(geometries, tex);
+  freeTexturesExcept(skin.textures);
+  skinName = name;
+  showSkinName();
+}
+
+function markSkin(name) {
+  for (const item of document.querySelectorAll('#skinList .item')) {
+    item.setAttribute('aria-current', String(item.dataset.skin === name));
+  }
+}
+
+function showSkinName() {
+  const entry = gallery.find((s) => s.name === skinName);
+  const title = entry?.title || titleOf(skinName);
+  document.getElementById('title').textContent = title;
+  document.getElementById('tag').hidden = !entry?.installed;
+  document.title = `${title} · Skin viewer`;
+  markSkin(skinName);
+}
+
+async function buildSkinList() {
+  const res = await fetch('data/gallery.json');
+  gallery = res.ok ? await res.json() : [];
+  const list = document.getElementById('skinList');
+  list.textContent = '';
+  document.getElementById('count').textContent = gallery.length || '';
+  for (const s of gallery) {
+    const item = document.createElement('button');
+    item.className = 'item';
+    item.dataset.skin = s.name;
+    item.disabled = !s.viewable;
+    if (!s.viewable) item.title = 'not painted for the viewer yet';
+    const pic = s.thumb ? Object.assign(document.createElement('img'), { src: `data/${s.thumb}?t=${Math.floor(s.stamp)}`, alt: '', loading: 'lazy' })
+      : Object.assign(document.createElement('span'), { className: 'noPic' });
+    const n = Object.assign(document.createElement('span'), { className: 'n', textContent: s.title || titleOf(s.name) });
+    if (s.installed) n.append(Object.assign(document.createElement('small'), { textContent: 'In the game' }));
+    item.append(pic, n);
+    item.onclick = () => switchSkin(s.name);
+    list.append(item);
+  }
+  showSkinName();
+  list.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'center' });
+}
+
+async function switchSkin(name) {
+  document.body.classList.remove('railOpen');
+  if (name === skinName) return;
+  const p = new URLSearchParams(location.search);
+  p.set('skin', name);
+  history.replaceState(null, '', `?${p}`);
+  markSkin(name);
+  const ticket = loading + 1;
+  const slow = setTimeout(() => { if (loading === ticket) statusBox.textContent = `Loading ${titleOf(name)}…`; }, 250);
+  try {
+    await loadSkin(name);
+  } catch (err) {
+    showSkinName();
+    statusBox.textContent = `Couldn't show ${titleOf(name)}: ${err.message}`;
+    setTimeout(() => { statusBox.textContent = ''; }, 4000);
+    return;
+  } finally {
+    clearTimeout(slow);
+  }
+  if (loading === ticket) statusBox.textContent = '';
+}
+
+// ---- A picture of the car: the studio only, no buttons, framed like the snapshots ----
+
+let currentView = 'front';
+function savePicture() {
+  const ratio = renderer.getPixelRatio();
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setPixelRatio(Math.max(2, ratio));
+  renderer.setSize(w, h, false);
+  frame(w, h, true);
+  renderer.render(scene, camera);
+  canvas.toBlob((blob) => {  // the canvas is copied at the call, before the next frame draws
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${skinName}_${currentView || 'view'}.png` });
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }, 'image/png');
+  renderer.setPixelRatio(ratio);
+  resize();
+}
+
 // ---- Controls on the page ----
 
-document.getElementById('day').onclick = () => setNight(false);
-document.getElementById('night').onclick = () => setNight(true);
-const pressed = (id, on) => document.getElementById(id).setAttribute('aria-pressed', String(on));
-document.getElementById('colourBy').onclick = () => {
+const pressed = (el, on) => el.setAttribute('aria-pressed', String(on));
+const byId = (id) => document.getElementById(id);
+byId('day').onclick = () => setNight(false);
+byId('night').onclick = () => setNight(true);
+byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
-  pressed('colourBy', partsState.mode.value === 1);
+  pressed(byId('colourBy'), partsState.mode.value === 1);
 };
-document.getElementById('shared').onclick = () => {
+byId('shared').onclick = () => {
   partsState.shared.value = partsState.shared.value ? 0 : 1;
-  pressed('shared', partsState.shared.value === 1);
+  pressed(byId('shared'), partsState.shared.value === 1);
 };
-document.getElementById('togglePartsPanel').onclick = () => {
-  const panel = document.getElementById('partsPanel');
+byId('togglePartsPanel').onclick = () => {
+  const panel = byId('partsPanel');
   panel.hidden = !panel.hidden;
-  pressed('togglePartsPanel', !panel.hidden);
+  pressed(byId('togglePartsPanel'), !panel.hidden);
 };
-document.getElementById('showAll').onclick = () => { for (const r of partsState.rows) r.setVisible(true); highlight([]); tip.textContent = ''; };
-if (innerWidth < 720) document.getElementById('togglePartsPanel').click();for (const b of document.querySelectorAll('#parts button')) {
+byId('showAll').onclick = () => { for (const r of partsState.rows) r.setVisible(true); highlight([]); tip.textContent = ''; };
+byId('show').onclick = (e) => {
+  e.stopPropagation();
+  const menu = byId('showMenu');
+  menu.hidden = !menu.hidden;
+  byId('show').setAttribute('aria-expanded', String(!menu.hidden));
+};
+document.addEventListener('click', (e) => {
+  if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
+  if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
+});
+for (const b of document.querySelectorAll('#showMenu [data-part]')) {
   b.onclick = () => {
     const mesh = parts[b.dataset.part];
     if (!mesh) return;
     mesh.visible = !mesh.visible;
-    b.setAttribute('aria-pressed', String(mesh.visible));
+    pressed(b, mesh.visible);
   };
 }
+const viewButtons = [...document.querySelectorAll('#bar [data-view]')];
+const markView = (name) => { currentView = name; for (const b of viewButtons) pressed(b, b.dataset.view === name); };
+for (const b of viewButtons) b.onclick = () => { setView(b.dataset.view, true); markView(b.dataset.view); };
+controls.addEventListener('start', () => { glide = null; markView(null); });  // the user took the camera
+byId('spin').onclick = () => {
+  controls.autoRotate = !controls.autoRotate;
+  pressed(byId('spin'), controls.autoRotate);
+};
+byId('save').onclick = savePicture;
+byId('railToggle').onclick = () => document.body.classList.toggle('railOpen');
+matchMedia('(max-width: 900px)').addEventListener('change', resize);
 
 // ---- Start ----
 
@@ -499,28 +719,28 @@ window.addEventListener('error', (e) => fail(e.error || e.message));
 window.addEventListener('unhandledrejection', (e) => fail(e.reason));
 
 async function start() {
-  document.getElementById('title').textContent = skinName;
-  document.title = `${skinName} · Skin viewer`;
+  document.getElementById('title').textContent = titleOf(skinName);
+  document.title = `${titleOf(skinName)} · Skin viewer`;
   resize();
   setView('front');
-  const res = await fetch(`data/skins/${encodeURIComponent(skinName)}/skin.json`);
-  if (!res.ok) throw new Error(`no skin called ${skinName} has been prepared for the viewer`);
-  const skin = await res.json();
-  const [geoms, tex, , doc] = await Promise.all([loadMeshes(), loadTextures(skin.textures), loadLighting(),
-    fetch('data/parts.json').then((r) => r.json())]);
+  const [geoms, , doc] = await Promise.all([loadMeshes(), loadLighting(),
+    fetch('data/parts.json').then((r) => r.json()), loadShared()]);
+  geometries = geoms;
   partsState.doc = doc;
   partTable();
   buildPartsList();
   addRoom();
-  buildCar(geoms, tex);
+  await loadSkin(skinName);
   setNight(false);
   renderer.setAnimationLoop(() => {
+    stepGlide();
     controls.update();
     renderer.render(scene, camera);
   });
   await frames(2);
   statusBox.textContent = '';
   window.viewer.ready = true;
+  if (!snap) buildSkinList().catch((err) => console.error(err));
 }
 
 start().catch(fail);
