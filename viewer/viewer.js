@@ -40,11 +40,11 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // guessed. 2.04 m up, 5.07 m behind the point it looks at (above the cockpit), 14° down.
   // Pasted: camera at 0.017, 2.044, -4.718, looking at -0.033, 0.743, 0.355 (0.6° off centre).
   cam2: { dir: [0, 0.2484, -0.9687], dist: 5.237, target: [0, 0.743, 0.355], fov: 58.7 },
-  // Cam 3, the one over the driver's shoulder, set by the user (2026-09-25): 1.18 m up, 1 m
-  // behind the point it looks at, over the bonnet, 9° down. Pasted: camera at -0.010, 1.181,
-  // -0.486, looking at -0.024, 1.020, 0.501 (0.8° off centre). 1 m was then the closest the
-  // view could go, so Driving cameras may now come closer (DRIVING_MIN).
-  cam3: { dir: [0, 0.161, -0.987], dist: 1.0, target: [0, 1.02, 0.501], fov: 58.7 },
+  // Cam 3, the one over the driver's shoulder, set by the user (2026-09-25): 1.08 m up, 0.9 m
+  // behind the point it looks at, over the bonnet, almost level (2° down). Pasted: camera at
+  // 0.016, 1.080, -0.397, looking at -0.002, 1.045, 0.504 (1.1° off centre). Their first try
+  // (1.18 m up, 9° down) met the orbit's 1 m limit, so Driving cameras may come closer (DRIVING_MIN).
+  cam3: { dir: [0, 0.0388, -0.9992], dist: 0.902, target: [0, 1.045, 0.504], fov: 58.7 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
