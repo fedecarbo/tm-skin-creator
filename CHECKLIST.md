@@ -49,7 +49,8 @@ The work comes in two parts:
 - **Part 1, setting up (checkpoints 1–4):** the tool learns the car. It learns which files the
   game takes, every part of the car, and exactly how every material looks in the game.
 - **Part 2, designing (checkpoints 5–10):** the design tools, then your first real skin, a new
-  look for the viewer, the speed display and brake lights, then everyday use.
+  look for the viewer, your own colours for the speed numbers and brake lights, then everyday
+  use.
 
 Part 1 comes first, because every design depends on it.
 
@@ -643,20 +644,33 @@ Part 1 comes first, because every design depends on it.
     - The lettering is a guess until the user sends a close-up of the engine cover from the
       game.
 
-### [ ] 9. The speed display and the brake lights
+### [ ] 9. Your own colours for the speed numbers, brake lights and car number
 
-- **What it's for:** the display on the back of the car, which shows your speed, and the brake
-  lights, in your skin's own colours; and the viewer showing a real speed (like 218) instead
-  of 888. You asked for it on 2026-09-25: you remember seeing a skin with custom-coloured
-  brakes and speed numbers.
+- **What it's for:** finding out what a skin can colour beyond its paint, then making the tool
+  do it, so that when you design a skin you can simply say the colours. Three things:
+  1. the speed numbers on the back of the car (white by default);
+  2. the brake lights, when the car brakes;
+  3. the initials and number on the engine cover ("CAR 01").
+
+  You asked for it on 2026-09-25. You remember a skin with custom-coloured brakes and speed
+  numbers, and weren't sure the tool could do it. Research comes first, because some of it
+  may not be possible. The answer for each is yes or no, and why.
 - **What you'll see:**
-  - In the viewer: the rear display showing a speed, such as 218, in the colour the skin gives
-    it, and the brake lights in theirs.
-  - In the game: a test skin with coloured speed digits and coloured brake lights. You drive,
-    brake, and tell me or screenshot whether the colours show. Then the paint box can do it
-    from words ("neon green speed numbers, blue brake lights").
-- **Model:** Opus 5.5. Reading the game's behaviour from your screenshots takes care.
+  - A short answer for each of the three: possible or not, and how it looks in the game,
+    settled by a test skin you drive and brake with, by day and at night, with screenshots.
+  - For each that's possible: you say it in words when designing ("green speed numbers, blue
+    brake lights"), and the skin in your game has it.
+  - In the viewer: the rear display showing a speed, like 218, instead of 888, in the skin's
+    colour; a way to see the brake lights on; and the car number in its colour, if that can
+    change.
+- **Model:** Opus 5.5. The research and reading the game's behaviour from your screenshots take
+  care.
 - **Notes for Claude:**
+  - **Start with research:** Nadeo's pages (links in `official/SOURCES.md`), community skin
+    guides, and skins that do this. Then the in-game test. Don't take the game's files apart
+    (Decisions). The tool may already be able to do some of it: `Skin.glow(where, colour,
+    kind)` in `tool/paintbox.py` writes `Details_I` on any named inner part, so
+    `s.glow("digit display", "green", "always on")` might already colour the speed numbers.
   - Nadeo's 2020 post says a skin can't change the digits' colour (`CLAUDE.md`), but the user
     remembers a skin that did. Measured 2026-09-25 on the stock `Details_I` (2048²): the
     "digit display" part (`tool/naming.py`, 11,043 texels) is glow code 96 ("always on", which
@@ -666,10 +680,21 @@ Part 1 comes first, because every design depends on it.
   - Brake lights: code 0 keeps its RGB (`GLOWS` in `tool/finishes.py`). The stock strips
     behind the front wheels are reddish and flare to near white when braking. The lab's code-0
     part was hidden from every camera, so test a colour on those strips. Brake heat (64) has
-    never been seen lit; "brakes" may also mean painted calipers, which already work.
+    never been seen lit; "brakes" may also mean painted calipers, which already work. Find
+    which named part holds the stock code-0 strips, so "brake lights" works as a place in a
+    phrase.
+  - Initials and number: the game draws them, and a skin can't change the player number or ID
+    (`CLAUDE.md`). Whether their colour follows anything in the skin (the panels' paint, a glow
+    code, nothing) is unknown: research, then test (for example, paint the two panels a strong
+    colour and see what the lettering does). The viewer draws them in `addPlate`, off-white, a
+    guess.
   - Viewer: light only the segments of a chosen speed (`?speed=218`, default 218). Find each
     digit's seven segments from the lit texels' 3D positions, and mask the rest in the Details
-    shader, the way `addPlate` does the number.
+    shader, the way `addPlate` does the number. A "Brake" button could show code 0 at full
+    brightness (its `GLOW` gain).
+  - Afterwards, record what's possible under "Things we learned", update `CLAUDE.md`'s line on
+    what a skin can't change, and give the paint box the words ("speed numbers", "brake
+    lights").
 
 ### [ ] 10. Tidy up for everyday use
 
