@@ -1,0 +1,39 @@
+{
+ "units": "m",
+ "lift_cm": 1.1875299215316772,
+ "meshes": [
+  {
+   "name": "Skin",
+   "vertices": 81552,
+   "position": 0,
+   "normal": 978624,
+   "uv": 1957248,
+   "part": 2609664
+  },
+  {
+   "name": "Details",
+   "vertices": 195738,
+   "position": 2935872,
+   "normal": 5284728,
+   "uv": 7633584,
+   "part": 9199488,
+   "digit": 9982440
+  },
+  {
+   "name": "Wheels",
+   "vertices": 14688,
+   "position": 10765392,
+   "normal": 10941648,
+   "uv": 11117904,
+   "part": 11235408
+  },
+  {
+   "name": "Glass",
+   "vertices": 6717,
+   "position": 11294160,
+   "normal": 11374764,
+   "uv": 11455368,
+   "part": 11509104
+  }
+ ]
+}

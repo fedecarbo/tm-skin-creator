@@ -1,0 +1,23 @@
+{
+ "name": "TSC_IceCreamSweet",
+ "textures": {
+  "Skin_B": "skins/TSC_IceCreamSweet/Skin_B.jpg",
+  "Skin_RM": "skins/TSC_IceCreamSweet/Skin_RM.jpg",
+  "Skin_Coat": "skins/TSC_IceCreamSweet/Skin_Coat.jpg",
+  "Skin_AO": "stock/Skin_AO.png",
+  "Details_B": "skins/TSC_IceCreamSweet/Details_B.jpg",
+  "Details_RM": "skins/TSC_IceCreamSweet/Details_RM.jpg",
+  "Details_N": "stock/Details_N.jpg",
+  "Details_I": "stock/Details_I.jpg",
+  "Details_Code": "stock/Details_Code.png",
+  "Details_AO": "stock/Details_AO.png",
+  "Wheels_B": "stock/Wheels_B.jpg",
+  "Wheels_RM": "stock/Wheels_RM.jpg",
+  "Wheels_N": "stock/Wheels_N.jpg",
+  "Wheels_AO": "stock/Wheels_AO.png",
+  "Glass_T": "stock/Glass_T.png",
+  "Glass_I": "stock/Glass_I.jpg",
+  "Glass_Code": "stock/Glass_Code.png",
+  "Glass_AO": "stock/Glass_AO.png"
+ }
+}
