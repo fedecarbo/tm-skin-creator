@@ -506,12 +506,34 @@ function showSpeed(kmh) {
 }
 showSpeed(SPEED);
 
-// Details only; after addGlow.
-function addDigits(material) {
+// ---- The rear lights: a gear display. The user watched the game (2026-09-25): standing still
+// only the far left and right bars light; each gear lights the next bar (five gears); braking
+// lights the whole thing red. Each side's bar (the L from the tail's corner along its top) is
+// split into five bands by dark lines in Details_I/Details_B, at these v's of its UV strip
+// (measured 2026-09-25): the band from v 0.450 (the corner) is gear 1, the one ending at 0.532
+// (towards the middle) gear 5. The small centre piece lights when braking. The colour is the
+// game's red: the stock file is white there, the game red. Provisional until the lights test:
+// the gear speeds, whether the bands fill up or move along, the centre piece. ----
+
+// The bar's surface is tinted red too, as a red lens looks when unlit: a strong glow over the
+// pale stock surface washed out to peach under the tone mapping.
+const REAR = { colour: [1, 0.06, 0.04], lens: [0.55, 0.06, 0.05], on: { day: 1.8, night: 2.4 }, brake: { day: 6, night: 7 } };
+const GEARS = [40, 80, 120, 160];  // km/h where gears 2-5 come in: a guess
+const gearOf = (kmh) => 1 + GEARS.filter((t) => kmh >= t).length;
+const rearUniforms = { rearColour: { value: new THREE.Color(...REAR.colour) }, rearLens: { value: new THREE.Color(...REAR.lens) }, rearLevel: { value: REAR.on.day },
+  rearBrake: { value: 0 }, rearGear: { value: gearOf(SPEED) } };
+
+function setupRearLights() {
+  partsState.doc.parts.forEach((p, i) => { if (p.name === 'rear light') partsState.data[i * 4 + 3] = 255; });
+  partsState.table.needsUpdate = true;
+}
+
+// Details only; after addGlow and addParts: the speed digits and the rear lights.
+function addDisplays(material) {
   const previous = material.onBeforeCompile;
   material.onBeforeCompile = (shader) => {
     if (previous) previous(shader);
-    Object.assign(shader.uniforms, digitUniforms);
+    Object.assign(shader.uniforms, digitUniforms, rearUniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
         attribute float digit; varying float vDigit;`)
@@ -520,14 +542,27 @@ function addDigits(material) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
         varying float vDigit;
-        uniform int digitMask[ 3 ];`)
+        uniform int digitMask[ 3 ];
+        uniform vec3 rearColour; uniform vec3 rearLens; uniform float rearLevel; uniform float rearBrake; uniform int rearGear;
+        #define IS_REAR ( texture2D( partTable, vec2( ( vPart + 0.5 ) / 256.0, 0.25 ) ).a > 0.5 )  // a macro: partTable is declared after this`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        if ( IS_REAR ) diffuseColor.rgb *= rearLens;`)
       .replace('#include <aomap_fragment>', `#include <aomap_fragment>
         if ( vDigit > 0.5 ) {  // 1 + 7 * digit + segment
           int code = int( vDigit + 0.5 ) - 1;
           totalEmissiveRadiance *= float( ( digitMask[ code / 7 ] >> ( code % 7 ) ) & 1 );
+        }
+        if ( IS_REAR ) {  // the rear lights
+          float lit = rearBrake;
+          if ( vPartUv.x < 0.5 ) {  // a bar: its band, 0 at the tail's corner to 4 towards the middle
+            int band = int( vPartUv.y >= 0.4747 ) + int( vPartUv.y >= 0.4903 ) + int( vPartUv.y >= 0.5030 ) + int( vPartUv.y >= 0.5157 );
+            lit = max( lit, float( band < rearGear ) );
+          }
+          vec3 file = texture2D( emissiveMap, vEmissiveMapUv ).rgb;
+          totalEmissiveRadiance = max( file.r, max( file.g, file.b ) ) * rearColour * rearLevel * lit;
         }`);
   };
-  material.customProgramCacheKey = () => 'parts-digits';
+  material.customProgramCacheKey = () => 'parts-displays';
 }
 
 // Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white). Show →
@@ -548,6 +583,9 @@ function applyBraking() {
   const look = night ? 'night' : 'day';
   glowUniforms.glowGain.value[0] = braking || drive.brake ? BRAKING[look] : GLOW[0][look];
   glowUniforms.glowGain.value[5] = drive.turbo ? TURBO[look] : GLOW[5][look];
+  const brake = braking || drive.brake;
+  rearUniforms.rearBrake.value = brake ? 1 : 0;
+  rearUniforms.rearLevel.value = (brake ? REAR.brake : REAR.on)[look];
 }
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
@@ -573,7 +611,12 @@ function stepDrive(now) {
     byId('padTurbo').classList.toggle('on', turbo);
   }
   const kmh = Math.round(drive.speed);
-  if (kmh !== drive.shown) { drive.shown = kmh; showSpeed(kmh); }
+  if (kmh !== drive.shown) {
+    drive.shown = kmh;
+    showSpeed(kmh);
+    rearUniforms.rearGear.value = gearOf(kmh);
+    byId('padGear').textContent = gearOf(kmh);
+  }
 }
 function hold(pedal, on) {
   if (drive[pedal] === on) return;
@@ -716,7 +759,7 @@ function makeMaterials(tex) {
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name]);
   addPlate(skin);
-  if (tex.Details_I) addDigits(details);
+  if (tex.Details_I) addDisplays(details);
   return out;
 }
 
@@ -977,6 +1020,7 @@ async function start() {
   buildPartsList();
   addRoom();
   await setupPlate(geoms.Skin);
+  setupRearLights();
   await loadSkin(skinName);
   setNight(false);
   if (!snap) {  // on unless this browser turned it off last time

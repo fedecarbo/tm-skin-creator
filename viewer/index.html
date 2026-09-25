@@ -81,6 +81,8 @@
   #speedo { display: flex; align-items: baseline; gap: 5px; min-width: 104px; justify-content: center; padding: 0 6px; }
   #speedo b { font-size: 38px; font-weight: 600; font-variant-numeric: tabular-nums; }
   #speedo small { font-size: 16px; opacity: 0.6; }
+  #speedo .gear { margin-left: 8px; }
+  #speedo .gear b { font-size: 20px; opacity: 1; }
   #padTurbo { font-style: normal; font-size: 15px; padding: 3px 6px 1px; margin-left: 4px; opacity: 0.3; transform: skewX(-12deg); }
   #padTurbo.on { opacity: 1; background: var(--acc); color: var(--ground); }
 
@@ -191,7 +193,7 @@
 
 <div id="pad" class="chrome teko">
   <button id="padBrake" class="sk key" aria-pressed="false" title="hold to brake (↓ or S)"><svg class="ic"><use href="#i-down"/></svg><span>Brake</span></button>
-  <span id="speedo"><b id="padSpeed">180</b><small>km/h</small><i id="padTurbo" title="the turbo-colour glow, from 100 km/h (provisional)">Turbo</i></span>
+  <span id="speedo"><b id="padSpeed">180</b><small>km/h</small><small class="gear">gear <b id="padGear">5</b></small><i id="padTurbo" title="the turbo-colour glow, from 100 km/h (provisional)">Turbo</i></span>
   <button id="padGas" class="sk key" aria-pressed="false" title="hold to accelerate (↑ or W)"><span>Accelerate</span><svg class="ic"><use href="#i-up"/></svg></button>
 </div>
 

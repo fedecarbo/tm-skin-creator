@@ -9,7 +9,7 @@ shows; compare the game's screenshots with it.
 |---|---|---|---|
 | Speed digits (rear bumper) | green | the stock glow (white, code 96) recoloured | the speed shows in green, and the unlit segments stay dark |
 | Brake lights (the slotted crescent inside each front wheel) | blue | the stock glow (dim red, code 0) recoloured | dim blue at rest, flaring when braking. A report online says red may show through |
-| Rear lights (the bars under the tail's lenses) | magenta glow; the car's left lens tinted cyan | the stock glow (white in the file, red in the game) recoloured, and the lens tinted | red on both sides = neither works; magenta = the glow works; cyan or blue on the left = the lens tint works too |
+| Rear lights (the bars under the tail's lenses) | magenta glow; the car's left lens tinted cyan | the stock glow (white in the file, red in the game) recoloured, and the lens tinted | red on both sides = neither works; magenta = the glow works; cyan or blue on the left = the lens tint works too. The viewer shows the game's red (the stock look) |
 | Initials and number (engine cover) | yellow panel behind the initials, dark blue behind the number | plain paint | research says the game mode sets the lettering's colour (white in a normal race), so it should stay white on both |
 | Brake heat (the wheel rims) | orange | code 64, rims painted dark | orange rims when braking hard |
 | Exhaust heat (the side vents at the tail) | yellow | code 192, vents painted dark | yellow vents during a turbo |
@@ -30,6 +30,11 @@ them light up (checkpoint 4), so they sit on bigger, plainer spots here.
    edges (the game's turbo colour), and the back of the car (exhaust heat).
 3. One hard stop from full speed, looking at the front wheels (brake heat, "on when braking
    hard"), then a gentle stop, to compare.
+   Also the rear lights as a gear display (the user's observation, 2026-09-25: standing still
+   only the outer ends light, each gear lights the next band, braking lights it all red): at
+   which speeds the bands come on, whether they fill up or move along one at a time, and
+   when the small piece in the middle lights. A short video from behind while accelerating
+   from a standstill would answer all three.
 4. The same at night (a night map or night mood).
 5. A close look at the engine cover, to see the lettering on the yellow and blue panels.
 6. One screenshot with the game's Cam 2 (standing still is fine), for the viewer's camera menu.

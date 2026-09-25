@@ -768,6 +768,13 @@ Part 1 comes first, because every design depends on it.
       those areas green while driving and dark at rest. The documented trigger is "turbo
       input" (below), so the lights test is to settle it. Snapshots keep it off. Once the game's screenshots show what turbo, boost
       and the other glows do, they join the pad as states.
+    - **The rear lights are a gear display** (the user, from the game, 2026-09-25): standing
+      still only the far left and right ends light, each gear lights the next band (five
+      gears), braking lights it all red. Each side's bar has five bands, split by dark lines in
+      its texture (v 0.4747, 0.4903, 0.5030, 0.5157 of its UV strip; the corner end is band 1).
+      The viewer shows them in the game's red with a red-tinted surface, band by band by gear
+      (`GEARS` 40/80/120/160 km/h, a guess), all bands and the centre piece when braking.
+      Provisional: the shift speeds, fill-up versus one at a time, the centre piece.
     - **What triggers the other glows** (research, 2026-09-25; the only source is xrayjay's
       table, "TM2020 Illum Alpha Tones", which Nadeo links): 160 turbo colour "is colored under
       turbo input" (the turbo pads), 192 exhaust heat "ON when Turbo is enabled", 224 boost "is
