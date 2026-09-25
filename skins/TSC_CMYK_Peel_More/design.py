@@ -45,8 +45,9 @@ def wheels(s, take):
             s.paint("sidewall", "satin", colour=colour, zone=shapes.wheel_ring(r - 0.4, r + 0.4))
     elif take == "magenta":  # the covers' outer ring in satin magenta, the rest black
         s.paint("wheel cover ring", "satin", colour=M)
-    elif take == "gradient":  # the black take's line, 1.2 cm instead of 0.8, cyan > magenta > orange
-        line = shapes.wheel_ring(31.0, 32.2)
+    elif take == "gradient":  # the black take's line, 1.2 cm instead of 0.8, cyan > magenta > orange,
+        # centred on the sidewall that shows beyond the cover (30 to 34.5 cm; the user)
+        line = shapes.wheel_ring(31.7, 32.9)
         s.paint("sidewall", "satin", colour=C, zone=line)
         s.paint("sidewall", "satin", colour=M, zone=line & round_wheel(0, 0.5))
         s.paint("sidewall", "satin", colour=ORANGE, zone=line & round_wheel(0.5, 1))

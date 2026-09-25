@@ -33,3 +33,8 @@ half of it gone, bigger tears and bigger flaps.
   take, its sidewall line 1.2 cm instead of 0.8 (31.0-32.2 cm from the axle), running cyan at
   each wheel's front, magenta over the top and bottom, orange at its back (`round_wheel`).
   Wheel covers matte black like the wrap. New in the paint box: `shapes.wheel_ring`.
+- Change 9 (user): "Yes perfect, just slight upwards the ring, as in a bit closer to the tread,
+  so it aligns more middle". The line moved out to 31.7-32.9 cm, the middle of the sidewall
+  that shows beyond the cover (30 to 34.5).
+- Installed 2026-09-25: 7.44 MB, built in 178 s. The line's edges checked in `Wheels_B`: one
+  to two texels, no fringes.
