@@ -12,6 +12,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.left(), shapes.right()
     shapes.plane(point, normal)            one side of any plane: diagonal splits
     shapes.sphere(centre, radius), shapes.box(lo, hi)
+    shapes.wheel_ring(29.5, 30.5)          a ring round each wheel's axle: tyre sidewall stripes
     shapes.fade(axis="z", start=200, end=-150)  0 at start rising to 1 at end: for blends
     shapes.facing("up"), shapes.facing((1, 0, 0))  where the surface faces a direction
     shapes.region("nose")                  a named region of the body (REGIONS)
@@ -112,6 +113,20 @@ def sphere(centre, radius, soft=SOFT):
 def box(lo, hi, soft=SOFT):
     lo, hi = np.asarray(lo, np.float32), np.asarray(hi, np.float32)
     return field(lambda p, n: np.minimum(p - lo, hi - p).min(1), soft)
+
+
+WHEEL_Y, WHEEL_Z = 35.3, (178.9, -119.6)  # the wheel centres (tool/parts.py)
+
+
+def wheel_ring(r0, r1, soft=SOFT):
+    """A ring round each wheel's axle, from r0 to r1 cm out: a stripe on the tyres' sidewalls
+    (28.5 to 34.5 cm) or on the wheel covers (the cover ring 19 to 30, the disc 9 to 19). All
+    four wheels share their paint, so it shows on each."""
+    def f(p, n):
+        zc = np.where(p[:, 2] > 30, WHEEL_Z[0], WHEEL_Z[1])
+        r = np.hypot(p[:, 1] - WHEEL_Y, p[:, 2] - zc)
+        return np.minimum(r - r0, r1 - r)
+    return field(f, soft)
 
 
 def cylinder(a, b, radius, soft=SOFT):
