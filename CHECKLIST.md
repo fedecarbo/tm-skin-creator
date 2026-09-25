@@ -762,8 +762,8 @@ Part 1 comes first, because every design depends on it.
     - **The pad under the car (the user's idea, 2026-09-25):** hold Accelerate or Brake (or
       ↑/W, ↓/S) and the speed on the digits climbs or falls, with the brake lights flaring
       while braking (`stepDrive` in `viewer/viewer.js`; snapshots keep `?speed=`). Tuned to
-      the user's feel of the game: Accelerate reaches 180 in about 4 s, then climbs slowly
-      (12 km/h a second) to 350, so all five gears show on the rear lights; letting go
+      the user's timings from the game: from a standstill gear 2 (100 km/h) at 2 s, gear 3
+      (160) at 3.86 s, gear 4 (235) at 6.23 s, gear 5 (340) at 10.76 s, then on to 350; letting go
       drifts down slowly (3 km/h a second), Brake stops the car in half a second, and a stopped
       car's display is dark.
     - **Turbo on the pad, provisional:** from 100 km/h the turbo-colour areas (code 160: the

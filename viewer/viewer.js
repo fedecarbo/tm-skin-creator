@@ -590,19 +590,25 @@ function applyBraking() {
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
 // speed on its digits, the brake lights and the turbo (the user's idea, 2026-09-25). As the user
-// described the game: Accelerate reaches 180 km/h in about 4 s, then climbs slowly to 350 (so
-// all five gears show on the rear lights), letting go drifts down slowly, and Brake stops the
-// car in about half a second. Reactor boost and the
+// timed the game (2026-09-25): from a standstill, gear 2 (100 km/h) at 2 s, gear 3 (160) at
+// 3.86 s, gear 4 (235) at 6.23 s, gear 5 (340) at 10.76 s, then on to 350. Letting go drifts
+// down slowly, and Brake stops the car in about half a second. Reactor boost and the
 // other glows join once the game's screenshots show what they do. ----
 
-const CRUISE = 180, TOP = 350;  // km/h
+// (km/h, s from a standstill): the pace between them is steady
+const PACE = [[0, 0], [100, 2], [160, 3.86], [235, 6.23], [340, 10.76]], TOP = 350;
+function climb(kmh) {  // km/h per second at this speed
+  const next = PACE.findIndex(([v]) => v > kmh);
+  const k = next < 0 ? PACE.length - 1 : Math.max(1, next);  // past the last: its pace goes on
+  const [[v0, t0], [v1, t1]] = [PACE[k - 1], PACE[k]];
+  return (v1 - v0) / (t1 - t0);
+}
 const drive = { speed: SPEED, gas: false, brake: false, turbo: false, shown: -1, last: 0 };
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
   if (drive.brake) drive.speed -= 700 * dt;
-  else if (drive.gas && drive.speed < CRUISE) drive.speed = Math.min(CRUISE, drive.speed + (35 + 30 * (1 - drive.speed / CRUISE)) * dt);
-  else if (drive.gas) drive.speed = Math.min(Math.max(TOP, drive.speed), drive.speed + 12 * dt);
+  else if (drive.gas) drive.speed = Math.min(Math.max(TOP, drive.speed), drive.speed + climb(drive.speed) * dt);
   else drive.speed -= 3 * dt;
   drive.speed = Math.min(999, Math.max(0, drive.speed));
   const turbo = drive.speed >= TURBO.from;
