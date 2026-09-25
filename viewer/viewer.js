@@ -490,7 +490,7 @@ function setPlate(on) {
 
 // ---- The speed display: three seven-segment digits on the rear bumper. Each segment is a bar
 // of its own (three pieces: its face and two bevels), but all 21 share one patch of Details_I,
-// lit, so the file says "888" (measured 2026-09-25, checkpoint 9): the game picks the lit bars
+// lit, so the file says "888" (measured 2026-09-25): the game picks the lit bars
 // itself. So does the viewer, from the segment each corner carries (tool/view.py
 // digit_segments), showing a speed (?speed=180) with leading zeros blank. Unlit bars don't glow.
 

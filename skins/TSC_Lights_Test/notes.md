@@ -1,6 +1,6 @@
 # TSC_Lights_Test
 
-Checkpoint 9's test skin (2026-09-25, Opus 5.5): which of the car's lights a skin can colour.
+The lights test skin (2026-09-25, Opus 5.5): which of the car's lights a skin can colour.
 The user asked for their own colours on the speed numbers, the brake lights and the car number.
 Each question has its own colour, so one screenshot answers it. `key.png` is what the viewer
 shows; compare the game's screenshots with it.

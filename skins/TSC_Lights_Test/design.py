@@ -1,4 +1,4 @@
-"""Checkpoint 9's test: which of the car's lights a skin can colour. Each question has its own
+"""The lights test: which of the car's lights a skin can colour. Each question has its own
 colour, so one screenshot answers it (the key is in notes.md). The body is plain grey so the
 colours stand out."""
 

@@ -2,10 +2,13 @@
 
 This is the plan for building the skin tool, one checkpoint at a time.
 
-- **For Claude:** at the start of every session, read this file, find the first checkpoint whose
-  box isn't ticked, and carry on from there. Tick a box only after the user has seen what the
-  checkpoint promises. If something we learn changes the plan, change this file and tell the
-  user.
+- **For Claude:** while a checkpoint is unticked, read this file at the start of a session, find
+  the first checkpoint whose box isn't ticked, and carry on from there. Tick a box only after
+  the user has seen what the checkpoint promises. If something we learn changes the plan,
+  change this file and tell the user. Once every box is ticked, sessions start from the `skin`
+  skill (`.claude/skills/skin/`) and this file is the record: search it when changing the tool.
+  Anything the user asks for after the build is an improvement, never a new checkpoint (see
+  "Improvements after the build").
 - **Switching model:** each checkpoint names the Claude model to use. At the start of a session,
   type `/model` in the chat box and pick it.
 - Each checkpoint has plain-language parts for you, then **Notes for Claude**, which you can
@@ -16,6 +19,9 @@ This is the plan for building the skin tool, one checkpoint at a time.
 ```
 Trackmania Skin Challenge/
   BRIEF.md, CLAUDE.md, CHECKLIST.md   the brief, Claude's standing notes, this plan
+  IMPROVEMENTS.md      the queue of things the tool should do better
+  .claude/skills/skin/ the everyday routine: your words -> the car -> your game
+  .claude/rules/       Claude's notes for working on the machinery
   official/            the files you gave me, never changed
   tool/                the machinery, a few small programs that:
                          read the car, find its parts, paint it,
@@ -30,6 +36,8 @@ Trackmania Skin Challenge/
   skins/installed.json a list of what the tool has put in your game,
                        so it never touches anything else
   requirements.txt     the exact versions of the tools the machinery uses
+  Dockerfile, compose.yaml, docker/
+                       the viewer on the Mac; the Windows PC doesn't need Docker
 ```
 
 The bulky working files live on this PC, outside OneDrive, so OneDrive doesn't spend its time
@@ -48,9 +56,9 @@ All of them can be rebuilt from the project at any time.
 The work comes in two parts:
 - **Part 1, setting up (checkpoints 1–4):** the tool learns the car. It learns which files the
   game takes, every part of the car, and exactly how every material looks in the game.
-- **Part 2, designing (checkpoints 5–10):** the design tools, then your first real skin, a new
-  look for the viewer, your own colours for the speed numbers and brake lights, then everyday
-  use.
+- **Part 2, designing (checkpoints 5–8):** the design tools, then your first real skin, then
+  everyday use. After that, what you ask for is an improvement: it goes on the improvement list
+  (`IMPROVEMENTS.md`), and its notes go at the end of this file.
 
 Part 1 comes first, because every design depends on it.
 
@@ -171,7 +179,8 @@ Part 1 comes first, because every design depends on it.
     - The game's `_R` holds R = roughness and G = metalness. three.js reads roughness from G
       and metalness from B, so swizzle when making the viewer's textures.
     - Showing CoatR as clearcoat is a guess until checkpoint 4 has compared it with the game.
-  - **Night.** Use the Details_I alpha codes (table in `CLAUDE.md`) to decide which parts glow.
+  - **Night.** Use the Details_I alpha codes (table in `.claude/rules/tool.md`) to decide which
+    parts glow.
   - **Claude's snapshots.**
     - Playwright (latest) drives the installed Edge headless and saves one sheet of angles:
       front and rear three-quarter, both sides, top, and night.
@@ -571,7 +580,7 @@ Part 1 comes first, because every design depends on it.
       range: keep every edge, sticker and letter at the texel grain.
   - [x] **The comparison round:** one skin made on Opus 5.5, in a fresh chat with that model
     picked at the top. Then the user says which model they prefer for everyday use, and
-    checkpoint 10's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
+    checkpoint 8's skill recommends it. **Done 2026-09-25: Opus 5.5 for everyday use.** The
     user: "in Opus 5.5 the skin looks pretty cool. I'm impressed. Could have looked for other
     minor details, but I'm very happy with initial results. I can then tweak."
     - **Made 2026-09-24/25 on Opus 5.5:** the user asked for their CMYK car with "the skin
@@ -583,7 +592,60 @@ Part 1 comes first, because every design depends on it.
     - New in the paint box: `Skin.keep()` and `Skin.peel()` (tool/peel.py), a top layer torn
       open to show a kept layer underneath.
 
-### [x] 8. The viewer's new look
+### [ ] 8. Tidy up for everyday use
+
+- **What it's for:** making every future chat start straight at "describe your skin", without
+  the building notes getting in the way.
+- **What you'll see:** a fresh chat where you describe a skin and it just works.
+- **Model:** Sonnet 5. It only writes down a routine that already works.
+- **Notes for Claude:**
+  - Move the chat loop (describe → view → change → install) into a project skill in
+    `.claude/skills/`.
+  - Cut the build-phase parts of `CLAUDE.md`. Replace the `@BRIEF.md` import with the few lines
+    of the brief that still apply.
+  - Check the current Claude Code docs on skills first.
+  - The skill recommends Opus 5.5 for the everyday loop: it won checkpoint 7's comparison
+    (2026-09-25). Fable 5.1 stays the step-up when a design stalls.
+  - **Where it stands (2026-09-25, on Opus 5.5; the user said "go ahead" without switching to
+    Sonnet 5).** Checked against the current docs (code.claude.com/docs/en/skills and
+    /memory): a project skill is `.claude/skills/<name>/SKILL.md`; its description decides when
+    it loads (1,536 characters with `when_to_use`); once loaded it stays in the chat, and after
+    the chat is summarised the first 5,000 tokens are put back. So the skill is kept to about
+    2,500 tokens, and survives whole. CLAUDE.md: under 200 lines; path-scoped rules load only
+    when Claude reads matching files. `model:` in a skill only lasts one turn, so the skill
+    tells the user to pick Opus 5.5 with `/model` instead.
+    - `.claude/skills/skin/SKILL.md` (new): the routine, the commands, the design rules the
+      user taught us, the checks before showing, the record in `notes.md`, installing.
+    - `CLAUDE.md`: 84 lines instead of 130 plus the imported brief. The `@BRIEF.md` import is
+      replaced by the brief's four measures of success and the user's role. The build-phase
+      commands, the source assets and the texture format moved to `.claude/rules/tool.md`,
+      which loads with `tool/`, `viewer/`, `official/` and `car/` files.
+    - Two routines that the last skins wrote by hand each round are now commands in
+      `tool/snap.py`: `--close` (nine close looks at the joins, folds, wheel and the driving
+      camera) and `--picture` (the takes side by side with close-ups, opened on the user's
+      screen).
+    - **The improvement list (the user's question, 2026-09-25):** `IMPROVEMENTS.md` is the
+      queue of things the tool should do better. It started with the open items scattered in
+      this file (ordered layouts, tyre lettering, inner relief, guessed part names, and what's
+      still to check in the game). The skill reads it at the start of each skin. It fixes only
+      what the skin needs, adds the rest to the list, and works on the list when the user asks.
+    - **Out of step, fixed 2026-09-25:** this work sat on the Windows PC unpushed while the Mac
+      carried on from the old `CLAUDE.md` and made the viewer's new look and the lights work
+      checkpoints 8 and 9. They're improvements now (below). A SessionStart hook in
+      `.claude/settings.json` pulls at the start of each session, and `CLAUDE.md` says to push
+      after each piece of work.
+    - **To tick it:** the user opens a fresh chat, picks Opus 5.5 and describes a skin. When
+      it works, tick this box, commit and push, and remove the "Checkpoint 8 is waiting" line
+      from `CLAUDE.md`.
+
+## Improvements after the build
+
+Changes the user asked for once the tool worked (the user, 2026-09-25: "I'm always going
+to be queuing improvements"). They are never new checkpoints: each one is queued in
+`IMPROVEMENTS.md`, and its working notes go here, newest last. When one is done, its line
+leaves `IMPROVEMENTS.md` and its notes stay here as the record.
+
+### The viewer's new look (done 2026-09-25)
 
 - **What it's for:** a viewer that feels like part of the racing world, with better ways to
   look at a skin. You asked for it on 2026-09-25 and picked the "race garage" look out of three
@@ -652,7 +714,7 @@ Part 1 comes first, because every design depends on it.
       viewer thins its strokes a little (`PLATE_THIN` 0.02 of the letters' size, their pick
       out of four, 2026-09-25).
 
-### [ ] 9. Your own colours for the speed numbers, brake lights and car number
+### Your own colours for the speed numbers, brake lights and car number (in progress)
 
 - **What it's for:** finding out what a skin can colour beyond its paint, then making the tool
   do it, so that when you design a skin you can simply say the colours. Three things:
@@ -679,8 +741,8 @@ Part 1 comes first, because every design depends on it.
     (Decisions). The tool may already be able to do some of it: `Skin.glow(where, colour,
     kind)` in `tool/paintbox.py` writes `Details_I` on any named inner part, so
     `s.glow("digit display", "green", "always on")` might already colour the speed numbers.
-  - Nadeo's 2020 post says a skin can't change the digits' colour (`CLAUDE.md`), but the user
-    remembers a skin that did. Measured 2026-09-25 on the stock `Details_I` (2048²): the
+  - Nadeo's 2020 post says a skin can't change the digits' colour (the `skin` skill), but the
+    user remembers a skin that did. Measured 2026-09-25 on the stock `Details_I` (2048²): the
     "digit display" part (`tool/naming.py`, 11,043 texels) is glow code 96 ("always on", which
     keeps its painted colour in the game: magenta in the lab), RGB ~227 white, with every
     segment lit (888). The game presumably masks the segments to show the speed. So painting
@@ -692,21 +754,21 @@ Part 1 comes first, because every design depends on it.
     which named part holds the stock code-0 strips, so "brake lights" works as a place in a
     phrase.
   - Initials and number: the game draws them, and a skin can't change the player number or ID
-    (`CLAUDE.md`). Whether their colour follows anything in the skin (the panels' paint, a glow
-    code, nothing) is unknown: research, then test (for example, paint the two panels a strong
-    colour and see what the lettering does). The viewer draws them in `addPlate`, off-white, a
-    guess.
+    (the `skin` skill). Whether their colour follows anything in the skin (the panels' paint, a
+    glow code, nothing) is unknown: research, then test (for example, paint the two panels a
+    strong colour and see what the lettering does). The viewer draws them in `addPlate`,
+    off-white, a guess.
   - Viewer: light only the segments of a chosen speed (`?speed=218`, default 218). Find each
     digit's seven segments from the lit texels' 3D positions, and mask the rest in the Details
     shader, the way `addPlate` does the number. A "Brake" button could show code 0 at full
     brightness (its `GLOW` gain).
-  - Afterwards, record what's possible under "Things we learned", update `CLAUDE.md`'s line on
+  - Afterwards, record what's possible under "Things we learned", update the `skin` skill's line on
     what a skin can't change, and give the paint box the words ("speed numbers", "brake
     lights").
   - **Progress 2026-09-25 (Opus 5.5, on the Mac): research done, the test skin is ready.**
     **Next:** on the Windows PC, `tool.skin show TSC_Lights_Test` then `install`, and the user's
     in-game test (`skins/TSC_Lights_Test/notes.md` has the colour key and what to try; `key.png`
-    is the viewer's picture to compare with). Then the words, the notes and `CLAUDE.md` above.
+    is the viewer's picture to compare with). Then the words, the notes and the skill's line above.
     **Queued, the user will do it later (2026-09-25):** a short video from behind while pulling
     away from a standstill, for the rear lights' gear display (fill-up or one at a time, the
     centre piece).
@@ -798,21 +860,6 @@ Part 1 comes first, because every design depends on it.
       them to speed or throttle, and nothing documents their colours or fades. The user asked
       for these as pad states (2026-09-25): add Turbo, Super turbo, Reactor and a hard stop
       once the game's screenshots show them (the test notes ask for them), not before.
-
-### [ ] 10. Tidy up for everyday use
-
-- **What it's for:** making every future chat start straight at "describe your skin", without
-  the building notes getting in the way.
-- **What you'll see:** a fresh chat where you describe a skin and it just works.
-- **Model:** Sonnet 5. It only writes down a routine that already works.
-- **Notes for Claude:**
-  - Move the chat loop (describe → view → change → install) into a project skill in
-    `.claude/skills/`.
-  - Cut the build-phase parts of `CLAUDE.md`. Replace the `@BRIEF.md` import with the few lines
-    of the brief that still apply.
-  - Check the current Claude Code docs on skills first.
-  - The skill recommends Opus 5.5 for the everyday loop: it won checkpoint 7's comparison
-    (2026-09-25). Fable 5.1 stays the step-up when a design stalls.
 
 ## Decisions (for Claude)
 
@@ -1017,7 +1064,7 @@ Part 1 comes first, because every design depends on it.
     tiny. The glows in the lab sit on the visible ones.
 - **2026-09-23, from Nadeo's 2020 post and the stock files:** a skin can also paint the wheels
   and the glass, but not the player number or ID, the turbo colour, the digit colours, the rear
-  lights or the glass gear display. See `CLAUDE.md` for the texture table.
+  lights or the glass gear display. See `.claude/rules/tool.md` for the texture table.
 - **2026-09-23, ATI2 channel order.** Nadeo's ATI2 files store the first block = channel 0.
   - In `Details_N`, texture features running along the columns line up with the first block:
     correlation +0.50, and +0.46 in `Wheels_N`. So the first block is X, and by the same tool

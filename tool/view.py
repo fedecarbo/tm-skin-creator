@@ -74,7 +74,7 @@ def _stale(target, *sources):
 
 def digit_segments(p, n_tris):
     """Per Details triangle: 0, or 1 + 7 * digit + segment on the speed display, so the viewer
-    lights whole bars (checkpoint 9). Digit 0 is the hundreds, on the car's left (+x); segments
+    lights whole bars. Digit 0 is the hundreds, on the car's left (+x); segments
     0..6 are a..g as read from behind: top, upper right, lower right, bottom, lower left, upper
     left, middle. Each bar is three long thin pieces (its face and two bevels); the backing
     between the bars isn't long, and stays 0."""

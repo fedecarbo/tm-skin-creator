@@ -2,61 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-@BRIEF.md
+## The project
 
-## Where things stand
+A tool that makes skins (paint jobs) from the user's words for the Trackmania 2020 stadium car
+(CarSport). The user describes a skin in a chat. Claude shows it on the car and changes it until
+the user says yes, then installs it so they can pick it in the game. From the user's brief
+(`BRIEF.md`), they judge it by four things:
 
-- **Phase: building the tool.** `CHECKLIST.md` tracks progress. Read it at the start of every
-  session and carry on from the first unticked checkpoint. The user agreed the plan on
-  2026-09-23. The foundation (the car's parts and materials, checked in game) comes before
-  design tools.
-- Commands (from the repo root; `PY` is `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`):
-  - Set up: `python -m venv <that venv>`, `PY -m pip install -r requirements.txt`, then
-    `PY -m tool.prepare`, which checks the `official/` zips and unpacks them.
-  - Test skins (checkpoint 1): `PY -m tool.testskin`. Install: `PY -m tool.install <name> ...`.
-  - Viewer: `PY -m tool.view <name>` serves http://localhost:8765/?skin=<name> and opens the
-    browser. Run it in the background so it keeps serving while the user looks.
-  - Claude's check: `PY -m tool.snap <name>` saves six views to `build/<name>_views.png`. Look at
-    it before showing the user anything. `snap.snap(..., shots=..., query=...)` takes close-ups.
-  - `tool/preview.py` renders flat views without materials, for quick checks of texture layout.
-  - Skins (checkpoint 5): a design is `skins/<name>/design.py`, a `design(s)` function of
-    `paintbox.Skin` calls (the docstring of `tool/paintbox.py` is the key). `PY -m tool.skin
-    show <name>` paints, exports to the viewer and snapshots; `PY -m tool.skin install <name>`
-    builds the zip and installs it; `PY -m tool.gallery` opens the page of all skins;
-    `PY -m tool.swatches` opens the materials page (every finish on a ball).
-    Phrases go through `finishes.resolve()`: colour + finish + region words.
-  - Pictures (checkpoint 6): `PY -m tool.pictures decal "a roaring tiger head"` or `tile "small
-    bananas on cream"` makes candidates on a sheet in `build/pictures/`; look, then `PY -m
-    tool.pictures keep <slug> <k> <skin> <name>` puts the chosen one in `skins/<skin>/art/`. In a
-    design: `s.decal(s.art("tiger"), "left side", width=32)` (a picture at a spot, across every
-    panel it covers); `s.scatter(s.art("banana"), "body", size=(7, 10), spacing=11)` (copies of a
-    cut-out spread evenly, each whole and inside one panel: the user's choice for prints made
-    of objects, 2026-09-24); `s.print("bananas", scale=36)` then `s.paint("body", "bananas")`
-    (a seamless tile as one continuous sheet, for textures). Read the notes `show` prints: a
-    decal says when it crosses a fold or falls off an edge. The user prefers illustrations,
-    prints and decals to photo-real pictures (2026-09-24); the "sticker" style is the default.
-    First-time setup: `PY -m tool.pictures setup` downloads the 16 GB of weights.
-  - Parts (checkpoint 3): `PY -m tool.parts` turns the names in `tool/naming.py` into
-    `car/parts.json` (`--review` renders the car coloured by part). `parts.load().mask(bake,
-    "Details", "brake caliper", side="left", end="front")` is a texel mask. `PY -m tool.partskin`
-    builds the TSC_Parts test skin. Shared texels: see `shared` in `car/parts.json`.
-- Work folder `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`: `venv`, `official` (unpacked zips),
-  `cache` (the parsed mesh and bakes), `build` (DDS files and zips), `viewer` (what the viewer
-  page loads). All of it is rebuildable.
-- Record technical decisions in the repo (this file, `CHECKLIST.md` or the code), so the next
-  cold session finds them.
-- Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. When a checkpoint
-  is ticked, commit and push without asking; the user said yes on 2026-09-23. At other times,
-  commit only when asked. Never push files that aren't ours to publish.
-- Before adding any tool or library, look up its latest release and use that version, then
-  record it. If a paid option would be far better, tell the user and discuss it before using it.
-  Always suggest a one-time-payment tool when its quality is far better (user, 2026-09-24).
+- **They like the skin in the game:** one they would actually drive with, not only one that
+  looks good in a picture.
+- **It's fast:** from their words to the car in minutes, not hours.
+- **It's all in words:** they never open a paint program or touch a file.
+- **It stays small and simple:** they'd rather have less machinery than more.
 
-## Design rules from the user
+The user isn't technical and won't read code or the files that describe a design. Claude makes
+every technical decision. Ask them only about what the skin should look like, and whether they
+like what you show them.
 
-- **The wheels are their own design step (2026-09-24).** Body paint, prints and scatters
-  cover the body only; "body" in the paint box excludes the wheel covers. Paint the wheels
-  ("wheels": covers, rims, hubs, wheel rings; "tyres" separately) with their own calls.
+**Every request to make, change, show or install a skin goes through the `skin` skill**
+(`.claude/skills/skin/SKILL.md`). Load it first.
 
 ## Talking to the user
 
@@ -66,6 +30,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   a question about their driving camera felt pointless (2026-09-23).
 - The user is happy to test in the game (drive, brake, turbo, day and night, F12 screenshots).
   Ask for that whenever the game is the only way to know.
+
+## Where things are
+
+- **Checkpoint 8 is waiting for the user.** They make a skin in a fresh chat through the `skin`
+  skill. Once they've seen it work, tick checkpoint 8 in `CHECKLIST.md`, commit and push, and
+  delete this line.
+- The tool was built in checkpoints 0 to 8 (`CHECKLIST.md`). That file is the history, not a
+  to-do list: every decision, and "Things we learned" from the game and the tests. It's long,
+  so search it rather than read it all. `.claude/rules/tool.md` loads with the tool's code:
+  commands for the machinery, the source assets and the game's texture format.
+- `IMPROVEMENTS.md`: the queue of things the tool should do better. **Whatever the user asks the
+  tool to do better (the viewer, new abilities, fixes) is an improvement, never a new
+  checkpoint** (the user, 2026-09-25): it goes on that list, and a big one keeps its working
+  notes under "Improvements after the build" in `CHECKLIST.md`. The `skin` skill says how the
+  list is kept. Work on it when the user asks. "Under way" says what's in progress.
+- **Two computers** share the repo through GitHub: this Windows PC (the game, installing,
+  snapshots; no Docker) and a Mac (the viewer through Docker, `docker compose up`). A hook in
+  `.claude/settings.json` pulls at the start of each session: if it failed, sort that out
+  first. Work that isn't pushed doesn't exist on the other computer.
+- `tool/`: the Python machinery. `viewer/`: the 3D page and the gallery. `car/parts.json`: every
+  part's name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool has put
+  in the game.
+- `PY` is `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, run from the repo
+  root.
+- Work folder `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`: `venv`, `official` (unpacked zips),
+  `cache` (the parsed mesh and bakes), `build` (pictures, DDS files and zips), `models` (the
+  picture maker's weights), `textures`, `viewer` (what the viewer page loads). All of it is
+  rebuildable.
+- Record technical decisions in the repo (the code, `CHECKLIST.md`, or this file if every
+  session needs them), so the next cold session finds them.
+- Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. Commit and push
+  without asking after each finished piece of work (a skin shown or installed, an improvement
+  or a step of one, a checkpoint ticked), and before a session stops mid-way, so the other
+  computer starts from it (the user, 2026-09-23 and 2026-09-25). Never push files that aren't
+  ours to publish.
+- Before adding any tool or library, look up its latest release and use that version, then
+  record it. If a paid option would be far better, tell the user and discuss it before using it.
+  Always suggest a one-time-payment tool when its quality is far better (user, 2026-09-24).
+- Credit the car model's author, amogusstrikesback2 (CC-BY-4.0), wherever the model is reused.
 
 ## Don't look in the game's skin folder
 
@@ -85,75 +88,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`. 2225070 is
   Trackmania. Look only at screenshots taken after the skin you're testing was installed.
 
-## Source assets (`official/`)
-
-Leave the zips unchanged: `official/SOURCES.md` records their sha256. Extract them to a working
-folder and never edit them in place. They're git-ignored because the GitHub repo
-(`fedecarbo/tm-skin-creator`) is public. A fresh clone downloads them from the links in
-`SOURCES.md`.
-
-- `CarSport-Template.zip` (from Nadeo): `ReadMe.txt` and the flat UV maps `UV_Skin.png`,
-  `UV_Skin_Hollow.png` and `UV_Details_Hollow.png` (2048×2048), plus `UV_Details.png`. That one
-  is **2018×2018**, so scale it before overlaying.
-- `CarSport-Model.zip` is a community upload on Sketchfab. It is **CC-BY-4.0, so credit the
-  author, amogusstrikesback2,** wherever you reuse the model. It holds `textures/*.png` and a
-  nested `source/StadiumCAR2020_OffsetFix.zip`, which contains the FBX mesh and the unpainted
-  DDS textures (`Skin_*`, `Details_*`, `Wheels_*`, `Glass_*`). The main textures are 2048×2048.
-
-## Skin texture format
-
-From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link in
-`official/SOURCES.md`). DDS files are required. They must use legacy D3D9 headers (FourCC
-`DXT1`, `DXT5`, `ATI1` or `ATI2`), not DX10 headers.
-
-| File | Compression | Content |
-|---|---|---|
-| `Skin_B`, `Details_B` | BC1 / `DXT1` | Base colour, RGB |
-| `Skin_R`, `Details_R` | BC5 / `ATI2` | R = roughness, G = metalness |
-| `Skin_CoatR` | BC4 / `ATI1` | Varnish: 0 glossy, 255 none |
-| `Skin_DirtMask`, `Details_DirtMask` | BC4 / `ATI1` | Dirt mask, greyscale |
-| `Details_I` | BC3 / `DXT5` | Self-illumination, RGB + alpha |
-| `Details_N` | BC5 / `ATI2` | Normal map, OpenGL (Y+) |
-| `Wheels_B` | BC1 / `DXT1` | Base colour, RGB (tyres and wheel faces) |
-| `Wheels_R` | BC5 / `ATI2` | Roughness, metalness |
-| `Wheels_N` | BC5 / `ATI2` | Normal map |
-| `Wheels_DirtMask` | BC4 / `ATI1` | Dirt mask |
-| `Glass_T` | BC3 / `DXT5` | Glass tint (RGB) + alpha, 1024² |
-| `Glass_I` | untested | Self-illumination of the glass |
-
-- Wheels and glass files aren't in the ReadMe. Checkpoint 1 confirmed in game that the wheel
-  files work, and that the game reads `Glass_T`, not the `Glass_D` in Nadeo's 2020 post.
-- Every texture is optional: anything left out of the zip keeps the game's stock look. Skin,
-  Details and Wheels take 4096² (Wheels 1024×2048). Details of all of this are under "Things
-  we learned" in `CHECKLIST.md`.
-- `Skin_CoatR` is the varnish: 0 lays a glossy clear varnish over anything, 255 lays none, and
-  a skin without the file is varnished all over. Matte paint needs 255 there, so always ship
-  the file (checkpoint 4, 2026-09-24). Skin takes no normal map.
-- A skin can't change the player number or ID, the turbo colour, the colour of the digits, the
-  rear lights or the glass gear display (post).
-- The shaders blend ambient occlusion (AO) themselves. Don't bake AO into the textures.
-- The alpha channel of `Details_I` picks how each glowing area behaves:
-
-  | Alpha | Behaviour |
-  |---|---|
-  | 0 | Brake lights, on when braking |
-  | 32 | Energy, tinted in game (team colour); the RGB must be grey |
-  | 64 | Brake heat, on when braking hard |
-  | 96 | Always glowing |
-  | 128 | Front lights, bright at night |
-  | 160 | Turbo colour; the RGB must be grey |
-  | 192 | Exhaust heat, on during turbo |
-  | 224 | Boost colour; the RGB must be grey |
-  | 255 | Glowing at night only |
-
 ## Keeping this file useful
 
-- It loads every session, so keep it under 200 lines and hold only what every session needs.
-  Add a line when leaving it out caused a mistake or a repeated explanation. Delete lines that
-  stop being true.
-- Put instructions for one part of the code in `.claude/rules/*.md`, with `paths:` frontmatter.
-  Put step-by-step procedures in a skill.
-- Once the tool works end to end, move the chat loop (describe → preview → change → install)
-  into a project skill in `.claude/skills/`. Then cut the build-phase parts of this file, and
-  replace the `@BRIEF.md` import with the few lines of the brief that still apply when the tool
-  runs. Plan that as a checkpoint.
+It loads every session, so keep it short: only what every session needs. Instructions for one
+part of the code go in `.claude/rules/*.md` with `paths:`. The design routine lives in the
+`skin` skill. Delete lines that stop being true.
