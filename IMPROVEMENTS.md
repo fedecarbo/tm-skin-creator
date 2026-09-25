@@ -10,10 +10,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
-- **Define the game's cameras** (below), the user's way (2026-09-25): they set each camera by
-  eye in the viewer, next to the game, press "Copy Cam N" and paste it in the chat. Claude
-  squares it up behind the car and writes it into `VIEWS` in `viewer/viewer.js`. Cam 1 and Cam 2 set
-  (2026-09-25); Cam 3 to come, if the game has a third that shows the car.
+Nothing.
 
 ## The tool
 
@@ -41,14 +38,12 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## The viewer, from the user's screenshots and videos
 
-- **Define the game's cameras** (2026-09-25, the user). The viewer's Driving menu should hold
-  each of the game's cameras that show the car, each matched to the game. Now Cam 1 is matched
-  to one screenshot (then moved closer at the user's wish) and Cam 2 is a guess (`VIEWS` in
-  `viewer/viewer.js`; Decisions, "The game's cameras"). Needs a screenshot of each camera from
-  the user, standing still and at speed: the straight-line video shows Cam 1 pulling back
-  and lower as the speed rises and closing in again when the car slows, so each camera may
-  follow the pad's speed. The lights test's two videos (2026-09-25, this PC) show Cam 1 through
-  a whole run and a hard stop, day and night.
+- **The game's cameras at speed** (2026-09-25, the user). Cam 1, 2 and 3 are set by the user
+  standing still (Decisions, "The game's cameras"). In the game they pull back and lower as the
+  speed rises and close in again when the car slows (the straight-line video; the lights
+  test's two videos show Cam 1 through a whole run and a hard stop). Idea: the user sets each
+  camera again as it looks at top speed ("Copy Cam N"), and the viewer slides between the two
+  poses with the pad's speed.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
   The lights test's videos have one ("CAR 00", day at 13.2 s, night at 10.8 s).
 - **The rear wings and air brakes, fine-tuning** (2026-09-25): the viewer opens both wings (up

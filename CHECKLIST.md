@@ -1006,7 +1006,11 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   straight behind the car (keeps the height, the tilt, the distance and the target's height
   and depth, sets the side-to-side to zero) and writes it into `VIEWS`. What they set is in
   the viewer's framing (the list on the left, `FRAMED`), so it's kept as seen there, not
-  converted to the game's full screen. Cam 3 is a free slot, not set yet.
+  converted to the game's full screen. All three set that day, standing still: Cam 1 3.17 m
+  up and 26° down; Cam 2 lower and closer, 2.04 m up and 14° down (not the farther camera
+  guessed before); Cam 3 over the driver's shoulder, 1.18 m up, 1 m behind a point over the
+  bonnet. Cam 3 met the orbit's 1 m limit, so a Driving camera may come to 0.2 m
+  (`DRIVING_MIN`). Next: the pull-back at speed (`IMPROVEMENTS.md`).
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.

@@ -40,8 +40,11 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // guessed. 2.04 m up, 5.07 m behind the point it looks at (above the cockpit), 14° down.
   // Pasted: camera at 0.017, 2.044, -4.718, looking at -0.033, 0.743, 0.355 (0.6° off centre).
   cam2: { dir: [0, 0.2484, -0.9687], dist: 5.237, target: [0, 0.743, 0.355], fov: 58.7 },
-  // Cam 3: not set; starts where Cam 1 did.
-  cam3: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
+  // Cam 3, the one over the driver's shoulder, set by the user (2026-09-25): 1.18 m up, 1 m
+  // behind the point it looks at, over the bonnet, 9° down. Pasted: camera at -0.010, 1.181,
+  // -0.486, looking at -0.024, 1.020, 0.501 (0.8° off centre). 1 m was then the closest the
+  // view could go, so Driving cameras may now come closer (DRIVING_MIN).
+  cam3: { dir: [0, 0.161, -0.987], dist: 1.0, target: [0, 1.02, 0.501], fov: 58.7 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -100,6 +103,7 @@ const controls = new OrbitControls(camera, canvas);
 controls.target.copy(CENTRE);
 controls.enableDamping = true;
 controls.minDistance = 1;
+const DRIVING_MIN = 0.2;  // closer, with a Driving camera picked: Cam 3 sits over the driver's shoulder
 controls.maxDistance = 18;
 controls.autoRotateSpeed = 1.5;  // one turn in about 40 s
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
@@ -1248,6 +1252,7 @@ for (const b of viewButtons) {
     markView(b.dataset.view);
     openCams(false);
     camPicked = byId('camMenu').contains(b) ? b.dataset.view : null;
+    controls.minDistance = camPicked ? DRIVING_MIN : 1;
     showCopy();
   };
 }
