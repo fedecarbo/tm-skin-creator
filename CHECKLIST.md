@@ -633,6 +633,7 @@ Part 1 comes first, because every design depends on it.
     the menus, Save picture, three window widths. Still to do on Windows: one `tool.snap` run.
   - The user also sent the game's Cam 3 (a camera above the cockpit, looking over the nose).
     A first fit was close but not right, and the user said it isn't needed. Cam 2 wasn't sent.
+    Later the user asked for a choice of cameras after all (Decisions, "Wanted later").
   - **Done 2026-09-25.** The user: "you've done an amazing job with the ui", and asked for the
     list newest first (done).
   - **The game's number (added 2026-09-25, the user's idea).** Show → Number lays the initials
@@ -778,6 +779,10 @@ Part 1 comes first, because every design depends on it.
   vague.
 - **Wanted extras (user, 2026-09-23):** a local picture maker and a page of all skins. Sharing
   skins and copy-from-picture aren't wanted for now.
+- **Wanted later, not scheduled (user, 2026-09-25):** the viewer's Driving button becomes a
+  choice of the game's cameras that show the car (Cam 1, Cam 2, …), not the cockpit ones.
+  Each needs a screenshot from the game to match, as Cam 1 had (checkpoint 8). Until then,
+  Driving is Cam 1, centred and closer (a placeholder).
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.
