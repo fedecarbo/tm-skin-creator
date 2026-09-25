@@ -492,9 +492,9 @@ function setPlate(on) {
 // of its own (three pieces: its face and two bevels), but all 21 share one patch of Details_I,
 // lit, so the file says "888" (measured 2026-09-25, checkpoint 9): the game picks the lit bars
 // itself. So does the viewer, from the segment each corner carries (tool/view.py
-// digit_segments), showing a speed (?speed=218) with leading zeros blank. Unlit bars don't glow.
+// digit_segments), showing a speed (?speed=180) with leading zeros blank. Unlit bars don't glow.
 
-const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 218)) || 0));
+const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 180)) || 0));
 const SEVEN = [0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f];  // 0-9, bits a b c d e f g
 const digitUniforms = { digitMask: { value: [0, 0, 0] } };
 // A stopped car's display is dark (the user, 2026-09-25): 0 shows no digits.
@@ -532,7 +532,12 @@ function addDigits(material) {
 
 // Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white). Show →
 // Braking holds them on (for a picture); the pad's Brake while it's held.
+// Turbo: the turbo-colour areas (code 160: the rings round the wheels, the front wing's lower
+// edges) glow in the game's green from 100 km/h. Provisional: checkpoint 1 saw them green while
+// driving and dark at rest, and the user thinks turbo comes on at 100 (2026-09-25); the lights
+// test (skins/TSC_Lights_Test/notes.md) is to confirm. Snapshots keep it off.
 const BRAKING = { day: 8, night: 10 };
+const TURBO = { from: 100, day: 1.2, night: 1.8 };
 let braking = false, night = false;
 function setBraking(on) {
   braking = on;
@@ -540,25 +545,33 @@ function setBraking(on) {
   applyBraking();
 }
 function applyBraking() {
-  const on = braking || drive.brake;
-  glowUniforms.glowGain.value[0] = on ? BRAKING[night ? 'night' : 'day'] : GLOW[0][night ? 'night' : 'day'];
+  const look = night ? 'night' : 'day';
+  glowUniforms.glowGain.value[0] = braking || drive.brake ? BRAKING[look] : GLOW[0][look];
+  glowUniforms.glowGain.value[5] = drive.turbo ? TURBO[look] : GLOW[5][look];
 }
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
-// speed on its digits and the brake lights (the user's idea, 2026-09-25). Only for the look, as
-// the user asked: Accelerate jumps to racing speed (330 km/h in about 0.7 s) and then creeps up
-// slowly, letting go drifts down slowly, and Brake stops the car in about half a second.
-// Turbo and the other glows join once the game's screenshots show what they do. ----
+// speed on its digits, the brake lights and the turbo (the user's idea, 2026-09-25). As the user
+// described the game: Accelerate reaches 180 km/h in about 4 s and holds it there, letting go
+// drifts down slowly, and Brake stops the car in about half a second. Reactor boost and the
+// other glows join once the game's screenshots show what they do. ----
 
-const RACING = 330;  // km/h
-const drive = { speed: SPEED, gas: false, brake: false, shown: -1, last: 0 };
+const CRUISE = 180;  // km/h
+const drive = { speed: SPEED, gas: false, brake: false, turbo: false, shown: -1, last: 0 };
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
   if (drive.brake) drive.speed -= 700 * dt;
-  else if (drive.gas) drive.speed += (drive.speed < RACING ? 500 : 2.5) * dt;
+  else if (drive.gas && drive.speed < CRUISE) drive.speed = Math.min(CRUISE, drive.speed + (35 + 30 * (1 - drive.speed / CRUISE)) * dt);
+  else if (drive.gas) drive.speed = Math.max(CRUISE, drive.speed - 60 * dt);  // above it (?speed=): settle
   else drive.speed -= 3 * dt;
   drive.speed = Math.min(999, Math.max(0, drive.speed));
+  const turbo = drive.speed >= TURBO.from;
+  if (turbo !== drive.turbo) {
+    drive.turbo = turbo;
+    applyBraking();
+    byId('padTurbo').classList.toggle('on', turbo);
+  }
   const kmh = Math.round(drive.speed);
   if (kmh !== drive.shown) { drive.shown = kmh; showSpeed(kmh); }
 }

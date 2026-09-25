@@ -746,7 +746,7 @@ Part 1 comes first, because every design depends on it.
     - `car/parts.json`: the Mac recomputed every part's texels and shared share with the
       current masks. The Windows cache (`parts_stats.json`) still holds figures from before
       the coverage fix, so a rebuild there gives slightly different statistics. Harmless.
-    - **Viewer:** the speed display shows `?speed=` (218 by default) instead of 888, lighting
+    - **Viewer:** the speed display shows `?speed=` (180 by default) instead of 888, lighting
       whole bars: `tool/view.py` `digit_segments` tags each bar's corners with its digit and
       segment in `car.bin`, and `addDigits` reads that. (A first try picked segments by position
       on the digit and cut across the bars; the user spotted it.) Show → Braking flares the brake lights (code-0 gain
@@ -755,8 +755,14 @@ Part 1 comes first, because every design depends on it.
     - **The pad under the car (the user's idea, 2026-09-25):** hold Accelerate or Brake (or
       ↑/W, ↓/S) and the speed on the digits climbs or falls, with the brake lights flaring
       while braking (`stepDrive` in `viewer/viewer.js`; snapshots keep `?speed=`). Tuned to
-      the user's feel: Accelerate jumps to racing speed (330) then creeps up, letting go drifts
-      down slowly, Brake stops the car in half a second, and a stopped car's display is dark. Once the game's screenshots show what turbo, boost
+      the user's feel of the game: Accelerate reaches 180 in about 4 s and holds it, letting go
+      drifts down slowly (3 km/h a second), Brake stops the car in half a second, and a stopped
+      car's display is dark.
+    - **Turbo on the pad, provisional:** from 100 km/h the turbo-colour areas (code 160: the
+      wheel rings and hubs, the front wing's lower edges) glow in the game's green, and the pad
+      shows "Turbo". The user thinks turbo comes on at 100 (2026-09-25), and checkpoint 1 saw
+      those areas green while driving and dark at rest. The documented trigger is "turbo
+      input" (below), so the lights test is to settle it. Snapshots keep it off. Once the game's screenshots show what turbo, boost
       and the other glows do, they join the pad as states.
     - **What triggers the other glows** (research, 2026-09-25; the only source is xrayjay's
       table, "TM2020 Illum Alpha Tones", which Nadeo links): 160 turbo colour "is colored under
