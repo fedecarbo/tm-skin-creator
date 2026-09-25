@@ -982,6 +982,33 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       re-exported (a lone `tool.snap` run), so the viewer's list lost that skin's picture until
       the next gallery refresh. It keeps it now.
 
+### Your skins online, for your phone and friends (done 2026-09-25)
+
+- **What it's for:** the user (2026-09-25): "would like to show the skins on my phone and
+  friends". They had switched on GitHub Pages for the repo.
+- **What you'll see:** https://fedecarbo.github.io/tm-skin-creator/ opens the 3D viewer on the
+  newest skin; "My skins" lists the rest, "All skins" is the picture grid. Only the skins in
+  the game (the user's pick, 2026-09-25), no test cars. A skin goes on when it's installed.
+- **Notes for Claude:**
+  - `PY -m tool.publish` builds the page in the work folder's `site/` (its own git repo) and
+    force-pushes it as the single commit of `gh-pages`, so GitHub never keeps old textures and
+    the OneDrive repo never holds them. `--here` serves it on this computer. Its docstring is
+    the key. GitHub Pages must serve the `gh-pages` branch, root (Settings, Pages).
+  - Clones leave `gh-pages` out of their fetches: the SessionStart hook sets the negative
+    refspec `remote.origin.fetch ^refs/heads/gh-pages` (git 2.29 or later) on each computer.
+  - Lighter for phones: at most 2048², JPEG at quality 90 with full-res colour (4:4:4) for
+    colour, roughness, normals and glow; PNG for the glow codes, the glass tint, AO and the
+    shared texels. Six skins: 36 MB, of which a first visit loads about 20 MB.
+  - The workbench (parts list, part names on click, Copy camera, materials) is hidden by
+    `viewer/public.css`, which only the published copy links. The published `index.html` opens
+    the newest skin when the link names none.
+  - On a phone: the `max-width: 600px` block in `viewer/index.html` (icons alone at the top, two
+    rows of buttons at the bottom, the pedals above them, no gear) and `frame()` in
+    `viewer/viewer.js`, which draws the car smaller in a window taller than 1.3 : 1 (16 : 9 for
+    the Driving cameras) so it fits across.
+  - Checked in headless Edge as an iPhone (390×844 at 3×, touch) and at 1440×900: no page errors,
+    nothing overlapping. Next: the user on a real phone.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
@@ -1058,6 +1085,15 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-25, the page online.** The viewer's lens is fixed top to bottom (32°), so a phone
+  held upright sees about a third as much across, and the car was cut off at both ends until
+  `frame()` drew it smaller by the window's shape. Next to the 4096² PNG at twice the size,
+  2048² JPEG (quality 90, 4:4:4) is only softer, with no blocks or ringing; a 4096² texture
+  takes about 90 MB of graphics memory with its mips, too much times five on a phone. GitHub
+  Pages kept building `main` after `gh-pages` was pushed: the source is a setting. The Edit
+  tool reads `$'` in a replacement as a JavaScript replace pattern (it pasted in the rest of
+  the file), so keep that pair out of edits or write the line with a script.
 
 - **2026-09-25, the wheels turn in the viewer (the user's idea).** Lighting each wheel part on
   its own showed what goes round: the tyre, the rim (the gold barrel), the thin ring at the

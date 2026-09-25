@@ -53,6 +53,13 @@ Nothing.
   pad did in the game: the turbo glow (code 160, the stock hubs) in the pad's colour for about
   3 s, fading over the last half second, the rear lights red for about 1.5 s, and the speed
   climbing fast (about 130 to 400 km/h in 2 s).
+- **The page online, sharper on big screens** (2026-09-25, `tool/publish.py`): it carries
+  2048² paint so a phone can hold it, so on a computer, close up, it's softer than the viewer
+  here. Idea: publish the 4096² colour maps too and let the viewer take them when the screen
+  is large and `renderer.capabilities.maxTextureSize` allows.
+- **The page online, a lighter first visit** (2026-09-25): about 20 MB before the car shows
+  (the car's shape 11 MB, the studio lighting 6 MB), slow on mobile data. Idea: the mesh in
+  half floats or meshopt-compressed, and the 1K studio HDR on phones.
 
 ## To check in the game
 

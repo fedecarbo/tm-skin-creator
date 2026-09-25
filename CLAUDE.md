@@ -46,6 +46,9 @@ like what you show them.
   snapshots; no Docker) and a Mac (the viewer through Docker, `docker compose up`). A hook in
   `.claude/settings.json` pulls at the start of each session: if it failed, sort that out
   first. Work that isn't pushed doesn't exist on the other computer.
+- **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/,
+  the skins in the game in 3D. `PY -m tool.publish` rebuilds it and replaces the `gh-pages`
+  branch; it never goes on `main`.
 - `tool/`: the Python machinery. `viewer/`: the 3D page and the gallery. `car/parts.json`: every
   part's name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool has put
   in the game.

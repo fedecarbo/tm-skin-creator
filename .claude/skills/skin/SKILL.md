@@ -37,6 +37,7 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
 | `PY -m tool.swatches` (background) | The materials page: every finish on a ball, by family. |
 | `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
+| `PY -m tool.publish` | Puts the skins in the game on the page online (the user's phone and friends), about 10 s plus the upload. `--here` shows it on this computer only. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]` | Candidate cut-out pictures on one sheet, `build/pictures/<slug>.png`, about 20 s each. Styles: sticker (default), flat, print, painted, line art, retro, photo. |
 | `PY -m tool.pictures tile "<words>"` | Seamless tiles, for a continuous print. |
 | `PY -m tool.pictures keep <slug> <k> <skin> <name>` | Keeps candidate k as `skins/<skin>/art/<name>.png`, for `s.art("<name>")`. |
@@ -143,7 +144,9 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
    fringes.
 2. Tell them: in the game, Garage → My Skins → Upload skin, then pick `<name>`. No restart
    is needed (TSC_Lights_Test, 2026-09-25). If anything looks off, an F12 screenshot shows it.
-3. Add the `Installed` line to `notes.md`.
-4. Screenshots are in
+3. Run `PY -m tool.publish` (under a minute) so the page online shows it too, and tell the user
+   it's there for their phone and friends.
+4. Add the `Installed` line to `notes.md`.
+5. Screenshots are in
    `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`. Look
    only at ones taken after the install.

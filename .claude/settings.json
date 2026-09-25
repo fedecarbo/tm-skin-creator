@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "git -C \"${CLAUDE_PROJECT_DIR}\" pull --ff-only 2>&1 || echo \"The pull from GitHub failed (above): sort it out before other work.\"",
+            "command": "git -C \"${CLAUDE_PROJECT_DIR}\" config remote.origin.fetch '^refs/heads/gh-pages' gh-pages; git -C \"${CLAUDE_PROJECT_DIR}\" pull --ff-only 2>&1 || echo \"The pull from GitHub failed (above): sort it out before other work.\"",
             "timeout": 60,
             "statusMessage": "Getting the latest from GitHub"
           }

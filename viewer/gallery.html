@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your skins</title>
+<title>My skins</title>
 <link rel="icon" href="data:,">
 <style>
   /* The viewer's look (viewer/index.html): Teko lettering, one yellow-green accent. */
@@ -28,13 +28,20 @@
   .badge { font-family: Teko, Bahnschrift, sans-serif; text-transform: uppercase; letter-spacing: 0.03em; font-size: 15px; line-height: 1;
            padding: 3px 8px 1px; background: #e8ff47; color: #0d0f12; font-weight: 600; display: inline-block; transform: skewX(-12deg); }
   #empty { opacity: 0.6; }
+  .credit { margin-top: 32px; font-size: 11px; opacity: 0.45; }
+  .credit a { color: inherit; }
 </style>
 </head>
 <body>
-<h1 class="teko">Your skins</h1>
-<div class="sub">Newest first. Click one to see it in 3D. <span class="badge">in the game</span> marks the ones installed. The finishes the tool knows: <a href="./materials.html">materials</a>.</div>
+<h1 class="teko">My skins</h1>
+<div class="sub">Newest first. Click one to see it in 3D.<span class="tool-only"> <span class="badge">in the game</span> marks the ones installed. The finishes the tool knows: <a href="./materials.html">materials</a>.</span></div>
 <div class="grid" id="grid"></div>
 <p id="empty" hidden>No skins yet. Describe one in the chat.</p>
+<p class="credit">
+  Car model: <a href="https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf">Trackmania 2020 CarSport</a>
+  by <a href="https://sketchfab.com/amogusstrikesback2">amogusstrikesback2</a>,
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, shown with these skins painted on it.
+</p>
 <script>
 (async () => {
   const res = await fetch('data/gallery.json', { cache: 'no-store' });

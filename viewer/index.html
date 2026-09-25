@@ -145,6 +145,25 @@
     #credit { left: 16px; }
     #partsPanel { top: auto; right: 12px; bottom: 150px; max-height: 45vh; }
   }
+  /* A phone held upright (the page online, tool/publish.py): icons alone at the top, smaller
+     buttons in two rows at the bottom, the pedals above them. */
+  @media (max-width: 600px) {
+    #railToggle { left: 12px; top: 12px; }
+    #top { right: 12px; top: 12px; gap: 4px; }
+    #top .gap { width: 6px; }
+    #show > span, #togglePartsPanel > span, #day > span, #night > span, #save > span { display: none; }
+    #name { top: 62px; left: 16px; max-width: calc(100vw - 32px); }
+    #title { font-size: 38px; }
+    #bar { left: 10px; right: 10px; bottom: 30px; gap: 4px; justify-content: center; }
+    #bar .sk, #pad .key { font-size: 18px; padding: 7px 11px 4px; }
+    #bar .gap { display: none; }
+    #save { padding: 7px 16px 4px; }
+    #pad { left: 50%; bottom: 118px; }
+    #speedo { min-width: 84px; }
+    #speedo .gear { display: none; }
+    #speedo b { font-size: 32px; }
+    #credit { left: 12px; right: 12px; bottom: 6px; font-size: 9px; }
+  }
 </style>
 <!-- three.js 0.186.0, copied from the npm package (jsdelivr) into lib/three, with its licence. -->
 <script type="importmap">

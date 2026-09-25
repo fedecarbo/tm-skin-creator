@@ -163,7 +163,9 @@ function frame(w, h, plain) {
     const rail = railWidth();
     const f = camPicked ? GAME_FRAMED : FRAMED;
     camera.setViewOffset(w - rail, h, -rail, f.up * h, w, h);
-    camera.zoom = f.zoom;
+    // The lens is fixed top to bottom, so a tall window (a phone held upright) sees less across:
+    // draw the car smaller until it fits across as it does on a wide screen, or the game's 16:9.
+    camera.zoom = f.zoom * Math.min(1, (w - rail) / h / (camPicked ? 16 / 9 : 1.3));
   }
   camera.updateProjectionMatrix();
 }
