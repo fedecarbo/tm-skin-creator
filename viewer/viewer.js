@@ -575,11 +575,10 @@ function addDisplays(material) {
 // tail panel between the two tail corners) lifts, showing the tops of the rear light bars; the
 // bottom wing (the plate under the bumper: the diffuser and the undertray between the diffuser
 // strakes) drops. The blocks under each ("rear bumper", "rear bumper corner": white and purple
-// in TSC_Parts) move out with it but not apart, so they show in the gaps, as in the video. The
-// user's straight-line video: under full throttle they start at ~60 km/h and are fully open by
-// ~95 (about 0.6 s); they stay open while coasting and close from ~43 to ~34 km/h (about 0.7 s),
-// the sides first. Provisional until a side view: how far they move, and what moves when
-// braking. Snapshots keep them shut. ----
+// in TSC_Parts) move out with it but not apart, so they show in the gaps, as in the video. They
+// open from 60 km/h, stay open while coasting and close below 43 (the timeline: WING).
+// Provisional until a side view: how far they move, and what moves when braking. Snapshots keep
+// them shut. ----
 
 // How far, in metres: out (+ up) and apart (each side). ?wingLift=, ?wingSpread=, ?flapDrop=
 // and ?flapSpread= (cm) try others; ?wing=1 opens them in snapshots.
@@ -589,7 +588,11 @@ const WINGS = [
   { parts: ['diffuser', 'diffuser strake', 'rear undertray', 'rear bumper corner'], blocks: ['rear bumper corner'],
     out: -cm('flapDrop', 8), apart: cm('flapSpread', 3) },
 ];
-const WING = { openFrom: 60, shutBelow: 43, opening: 0.6, closing: 0.7, outer: 0.44 };  // outer: see addWing
+// The timeline, in seconds, read frame by frame off the video: opening from 60 km/h (the user
+// confirmed), out in 0.4, a 0.4 pause, apart in 0.75, fully open at 2.67 s on the race clock
+// (the user timed it at 2.70); closing below 43, together in 0.6, then back in in 0.25.
+const WING = { openFrom: 60, shutBelow: 43, out: 0.4, pause: 0.4, apart: 0.75, together: 0.6, back: 0.25,
+  outer: 0.44 };  // outer: see addWing
 const wingUniforms = { wingOut: { value: [0, 0] }, wingApart: { value: [0, 0] },
   wingIds: { value: new Array(16).fill(-1) }, wingOf: { value: new Array(16).fill(0) } };
 // Each part's wing and role, packed as 4 * wing + role: 0 the centre piece, 1 a side, 2 a block,
@@ -606,9 +609,9 @@ function setupWing() {
   wingUniforms.wingOf.value = [...of, ...new Array(16).fill(0)].slice(0, 16);
 }
 const easeWing = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
-function showWing(open) {  // 0 shut .. 1 open: out in the first half, apart in the second
-  wingUniforms.wingOut.value = WINGS.map((w) => w.out * easeWing(open * 2));
-  wingUniforms.wingApart.value = WINGS.map((w) => w.apart * easeWing(open * 2 - 1));
+function showWing(out, apart) {  // each 0..1
+  wingUniforms.wingOut.value = WINGS.map((w) => w.out * easeWing(out));
+  wingUniforms.wingApart.value = WINGS.map((w) => w.apart * easeWing(apart));
 }
 
 // The wings' parts move in the vertex shader, in the materials and in the shadow's depth pass.
@@ -685,8 +688,26 @@ const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
 // from 371 km/h to a stop in about 11.6 s, as in the video.
 const coast = (kmh) => 3.5 + 0.3 * kmh;
 const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, turbo: false, shown: '', last: 0,
-  wingUp: SPEED >= WING.openFrom, wing: snap ? Number(params.get('wing') ?? 0) : +(SPEED >= WING.openFrom) };
-showWing(drive.wing);
+  wingUp: SPEED >= WING.openFrom, wingOut: 0, wingApart: 0, wingPause: 0 };
+{  // at the start: open at speed; in snapshots shut, or ?wing= (0.5 out, 1 open too)
+  const open = snap ? Number(params.get('wing') ?? 0) : +(SPEED >= WING.openFrom);
+  drive.wingOut = Math.min(1, open * 2);
+  drive.wingApart = Math.max(0, open * 2 - 1);
+  showWing(drive.wingOut, drive.wingApart);
+}
+function stepWing(dt) {
+  const d = drive, was = [d.wingOut, d.wingApart];
+  if (d.wingUp) {
+    if (d.wingOut < 1) d.wingOut = Math.min(1, d.wingOut + dt / WING.out);
+    else if (d.wingApart === 0 && d.wingPause < WING.pause) d.wingPause += dt;
+    else d.wingApart = Math.min(1, d.wingApart + dt / WING.apart);
+  } else {
+    d.wingPause = 0;
+    if (d.wingApart > 0) d.wingApart = Math.max(0, d.wingApart - dt / WING.together);
+    else d.wingOut = Math.max(0, d.wingOut - dt / WING.back);
+  }
+  if (d.wingOut !== was[0] || d.wingApart !== was[1]) showWing(d.wingOut, d.wingApart);
+}
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
@@ -703,8 +724,7 @@ function stepDrive(now) {
   while (drive.gear > 1 && drive.speed < GEAR_DOWN[drive.gear - 2]) drive.gear -= 1;
   if (drive.speed >= WING.openFrom) drive.wingUp = true;
   else if (drive.speed < WING.shutBelow) drive.wingUp = false;
-  const wing = Math.min(1, Math.max(0, drive.wing + (drive.wingUp ? dt / WING.opening : -dt / WING.closing)));
-  if (wing !== drive.wing) showWing(drive.wing = wing);
+  stepWing(dt);
   const turbo = drive.speed >= TURBO.from;
   if (turbo !== drive.turbo) {
     drive.turbo = turbo;

@@ -897,8 +897,12 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
         show in the gaps: the white slivers and purple strips of the video. The top's
         "rear bumper" pieces also hold plates inside the tail corners' ends (|x| > 44 cm),
         which slide with the corners.
-      - **In the viewer** (`WINGS`, `addWing`, driven by `stepDrive`): out in the first half of
-        the opening, apart in the second, the reverse when closing. Up 6 cm and apart 3.5 cm on
+      - **The timeline** (frames 46-166 and 540-620; the user timed "2.70" for the full opening
+        and confirmed it starts at 60): from 60 km/h (1.1 s on the race clock) out in 0.4 s, a
+        0.4 s pause, apart in 0.75 s, fully open at 2.67 s (frame 100). Closing below 43, the
+        sides come together in about 0.6 s, then the wings go back in within about 0.25 s. A
+        first version opened in 0.6 s in all; the user found it too quick.
+      - **In the viewer** (`WINGS`, `WING`, `addWing`, `stepWing`): Up 6 cm and apart 3.5 cm on
         top, down 8 cm and apart 3 cm below: set by eye against frames #580 (open) and #600
         (shut), where the camera hardly moves, and #460 (gaps about a tenth of the panel's
         width). The parts move in the vertex shader, the shadow too (`customDepthMaterial`).
