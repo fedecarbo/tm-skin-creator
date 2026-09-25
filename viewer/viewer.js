@@ -30,9 +30,10 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // 1920x1080): 3.75 m up and 6.3 m behind the car's centre, looking 13.5° down at a point above
   // the car, through the game's wide lens (58.7° tall, 90° wide at 16:9). That leaves the car
   // small at the bottom, which the user found awkward here (2026-09-25), so the view keeps the
-  // game's lens and angle onto the car but aims at the car and comes closer (7.3 m to 5.2 m).
+  // game's lens but aims at the car from closer (5.2 m) and lower (18° above the car, not 27°),
+  // so the speed digits read as they do in the game (the user's call, 2026-09-25).
   // The game's exact framing: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 }.
-  driving: { dir: [0, 0.4514, -0.8923], dist: 5.2, fov: 58.7 },
+  driving: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights

@@ -614,9 +614,10 @@ Part 1 comes first, because every design depends on it.
       box within 5 px): the camera 3.75 m up and 6.3 m behind the centre, tilted down 13.5°,
       fov 58.7° (the game's 90° wide at 16:9). `roomy` moves a view back on the page only.
       Later the same day the user found the car too small and low in that framing: the view
-      keeps the game's lens and its angle onto the car, but aims at the car from 5.2 m instead
-      of 7.3 m (the user wanted the game's lens kept, not a narrower one). The game's exact
-      framing is in the comment on `VIEWS.driving`.
+      keeps the game's lens (the user wanted it kept, not a narrower one) but aims at the car
+      from 5.2 m instead of 7.3 m, and from 18° above it instead of 27°, so the speed digits
+      read clearly, as the user remembers them in the game. The game's exact framing is in the
+      comment on `VIEWS.driving`.
     - Views glide round the car (spherical interpolation), never through it. Spin is
       OrbitControls' autoRotate. Save picture renders at pixel ratio 2 with the plain framing
       and no buttons.
