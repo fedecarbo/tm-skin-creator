@@ -36,8 +36,10 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // and 6.3 m behind, looking 13.5° down at a point above the car, which left the car small at
   // the bottom: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27] }.
   cam1: { dir: [0, 0.4371, -0.8994], dist: 6.065, target: [0, 0.515, 0.311], fov: 58.7 },
-  // Cam 2, the game's farther chase camera: a guess (further back and a little higher).
-  cam2: { dir: [0, 0.375, -0.927], dist: 7.5, fov: 58.7 },
+  // Cam 2, set by the user (2026-09-25): lower and closer than Cam 1, not the farther one first
+  // guessed. 2.04 m up, 5.07 m behind the point it looks at (above the cockpit), 14° down.
+  // Pasted: camera at 0.017, 2.044, -4.718, looking at -0.033, 0.743, 0.355 (0.6° off centre).
+  cam2: { dir: [0, 0.2484, -0.9687], dist: 5.237, target: [0, 0.743, 0.355], fov: 58.7 },
   // Cam 3: not set; starts where Cam 1 did.
   cam3: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
 };
