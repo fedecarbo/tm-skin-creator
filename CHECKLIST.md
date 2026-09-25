@@ -740,6 +740,10 @@ Part 1 comes first, because every design depends on it.
       - Piece 139 (a bevel of the right digit's bottom bar) had no mirror match and fell to
         "rear diffuser"; it's named "digit display" now. TSC_Stealth_CMYK_Bold, which paints the
         diffuser yellow, had painted that face yellow; it no longer does.
+    - The test skin also carries the four driving glows (the user: "all those states you can
+      customise, so we might need to do some tests"): brake heat orange on the rims, exhaust
+      heat yellow on the side vents, turbo on the sidepod frames and boost on the rear strakes
+      (grey: the game's colours), each part painted dark so a colour there is the glow.
     - `TSC_IceCreamSweet`, `TSC_IceCreamTruck` and `TSC_Stealth_CMYK` painted "hub" or "rear
       bumper", which lost the new parts; they now list them too (their textures checked
       identical).

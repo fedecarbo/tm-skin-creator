@@ -11,8 +11,14 @@ shows; compare the game's screenshots with it.
 | Brake lights (the slotted crescent inside each front wheel) | blue | the stock glow (dim red, code 0) recoloured | dim blue at rest, flaring when braking. A report online says red may show through |
 | Rear lights (the bars under the tail's lenses) | magenta glow; the car's left lens tinted cyan | the stock glow (white in the file, red in the game) recoloured, and the lens tinted | red on both sides = neither works; magenta = the glow works; cyan or blue on the left = the lens tint works too |
 | Initials and number (engine cover) | yellow panel behind the initials, dark blue behind the number | plain paint | research says the game mode sets the lettering's colour (white in a normal race), so it should stay white on both |
+| Brake heat (the wheel rims) | orange | code 64, rims painted dark | orange rims when braking hard |
+| Exhaust heat (the side vents at the tail) | yellow | code 192, vents painted dark | yellow vents during a turbo |
+| Turbo (the sidepod frames) | the game's colour | code 160, grey in the file, frames painted dark | the frames light up in the game's turbo colour. The stock turbo areas (the rings round the wheels) are left as they are, to compare |
+| Boost (the fins under the tail) | the game's colour | code 224, grey in the file, fins painted dark | the fins light up during a reactor boost |
 
-The rest of the car is plain grey, with the stock wheels.
+The rest of the car is plain grey, with the stock wheels (but for the dark rims). The earlier lab
+skin had these four glows on the rear bumper, rear strakes, hubs and undertray and saw none of
+them light up (checkpoint 4), so they sit on bigger, plainer spots here.
 
 ## What to try in the game
 
@@ -30,5 +36,7 @@ The rest of the car is plain grey, with the stock wheels.
 
 ## Log
 
-- 2026-09-25: made on the Mac and checked in the viewer. Codes checked after compression: the
+- 2026-09-25: made on the Mac and checked in the viewer. Later the same day the four driving
+  glows were added (brake heat, exhaust heat, turbo, boost), at the user's wish to test every
+  state a skin can set. Codes checked after compression: the
   digits stay exactly 96, the brake lights 0, the rear lights 96. Not yet installed.
