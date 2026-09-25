@@ -26,11 +26,13 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // Looking down, the car's front at the top. roomy: further back on the page, where the title
   // and the buttons share the window (snapshots keep dist).
   top: { dir: [0, 1, -0.0001], dist: 7.6, roomy: 1.3 },
-  // The game's chase camera ("Cam 1"), matched to the user's in-game screenshot (2026-09-25,
-  // 1920x1080): the camera 3.75 m up and 6.3 m behind the car's centre, tilted down 13.5°,
-  // through the game's wider lens (58.7° tall, 90° wide at 16:9). The target is on that line of
-  // sight above the car, so dragging from here still turns round the car.
-  driving: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 },
+  // The game's chase camera ("Cam 1"): the camera where the user's in-game screenshot put it
+  // (2026-09-25, 1920x1080): 3.75 m up and 6.3 m behind the car's centre, so the car is seen
+  // from the game's angle. The game looks 13.5° down, above the car, through a 58.7° lens, which
+  // leaves the car small at the bottom; the user found that awkward here (2026-09-25), so the
+  // view aims at the car and zooms in (40°). For the game's exact framing:
+  // { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 }.
+  driving: { dir: [0, 0.4514, -0.8923], dist: 7.334, fov: 40 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -231,6 +233,7 @@ async function loadMeshes() {
     g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(bin, m.normal, m.vertices * 3), 3));
     g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(bin, m.uv, m.vertices * 2), 2));
     g.setAttribute('part', new THREE.BufferAttribute(new Float32Array(bin, m.part, m.vertices), 1));
+    if (m.digit !== undefined) g.setAttribute('digit', new THREE.BufferAttribute(new Float32Array(bin, m.digit, m.vertices), 1));
     out[m.name] = g;
   }
   return out;
@@ -466,6 +469,51 @@ function setPlate(on) {
   try { localStorage.setItem('tsc-viewer-number', on ? '1' : '0'); } catch {}
 }
 
+// ---- The speed display: three seven-segment digits on the rear bumper. Each segment is a bar
+// of its own (three pieces: its face and two bevels), but all 21 share one patch of Details_I,
+// lit, so the file says "888" (measured 2026-09-25, checkpoint 9): the game picks the lit bars
+// itself. So does the viewer, from the segment each corner carries (tool/view.py
+// digit_segments), showing a speed (?speed=218) with leading zeros blank. Unlit bars don't glow.
+
+const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 218)) || 0));
+const SEVEN = [0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f];  // 0-9, bits a b c d e f g
+const digitUniforms = {
+  digitMask: { value: [...String(SPEED).padStart(3, ' ')].map((c) => (c === ' ' ? 0 : SEVEN[Number(c)])) },
+};
+
+// Details only; after addGlow.
+function addDigits(material) {
+  const previous = material.onBeforeCompile;
+  material.onBeforeCompile = (shader) => {
+    if (previous) previous(shader);
+    Object.assign(shader.uniforms, digitUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
+        attribute float digit; varying float vDigit;`)
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+        vDigit = digit;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
+        varying float vDigit;
+        uniform int digitMask[ 3 ];`)
+      .replace('#include <aomap_fragment>', `#include <aomap_fragment>
+        if ( vDigit > 0.5 ) {  // 1 + 7 * digit + segment
+          int code = int( vDigit + 0.5 ) - 1;
+          totalEmissiveRadiance *= float( ( digitMask[ code / 7 ] >> ( code % 7 ) ) & 1 );
+        }`);
+  };
+  material.customProgramCacheKey = () => 'parts-digits';
+}
+
+// Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white).
+const BRAKING = { day: 8, night: 10 };
+let braking = false, night = false;
+function setBraking(on) {
+  braking = on;
+  glowUniforms.glowGain.value[0] = on ? BRAKING[night ? 'night' : 'day'] : GLOW[0][night ? 'night' : 'day'];
+  pressed(byId('brakeToggle'), on);
+}
+
 function partLabel(p) {
   const tag = [p.end, p.side === 'centre' ? '' : p.side].filter(Boolean).join(' ');
   return tag ? `${p.name} (${tag})` : p.name;
@@ -591,6 +639,7 @@ function makeMaterials(tex) {
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name]);
   addPlate(skin);
+  if (tex.Details_I) addDigits(details);
   return out;
 }
 
@@ -618,9 +667,11 @@ function dressCar(geoms, tex) {
 
 // ---- Day and night ----
 
-function setNight(night) {
+function setNight(on) {
+  night = on;
   const look = LOOKS[night ? 'night' : 'day'];
   GLOW.forEach((g, i) => { glowUniforms.glowGain.value[i] = night ? g.night : g.day; });
+  setBraking(braking);
   scene.environment = envMaps[night ? 'night' : 'day'] || null;
   scene.environmentIntensity = look.env * TUNE.env;
   key.color.set(look.keyColour);
@@ -768,6 +819,7 @@ for (const b of document.querySelectorAll('#showMenu [data-part]')) {
   };
 }
 byId('plateToggle').onclick = () => setPlate(!plateUniforms.plateOn.value);
+byId('brakeToggle').onclick = () => setBraking(!braking);
 const viewButtons = [...document.querySelectorAll('#bar [data-view]')];
 const markView = (name) => { currentView = name; for (const b of viewButtons) pressed(b, b.dataset.view === name); };
 for (const b of viewButtons) b.onclick = () => { setView(b.dataset.view, true); markView(b.dataset.view); };

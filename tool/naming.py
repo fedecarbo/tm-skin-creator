@@ -72,11 +72,15 @@ PARTS = [
     dict(name="airbox", parent="engine cover", group=[340, 370]),
     dict(name="exhaust", parent="tail", group=[322, 323]),
     dict(name="side vent", parent="tail", group=[366, 367, 413, 414]),
+    # the lights under the tail's lenses, behind the "rear light lens" glass: the stock glow there is
+    # white, yet the game shows them red, and Nadeo's post says a skin can't change them
+    dict(name="rear light", parent="tail", piece=[241, 231]),
     dict(name="rear bumper", parent="tail", group=[88, 339, 354, 266, 232]),
     dict(name="rear bumper corner", parent="tail", group=[360]),
     dict(name="rear undertray", parent="tail", group=[90]),
     dict(name="rear strake", parent="tail", group=[374]),
-    dict(name="digit display", parent="tail", group=[312, 305, 311, 240, 234, 239]),
+    # piece 139 (the right digit's bottom bar face) has no mirror match, so it's named here
+    dict(name="digit display", parent="tail", group=[312, 305, 311, 240, 234, 239], piece=[139]),
     # cockpit
     dict(name="seat", parent="cockpit", group=[152]),
     dict(name="seat belt", parent="cockpit", group=[169, 278, 274, 200, 307, 154]),
@@ -95,6 +99,9 @@ PARTS = [
     dict(name="pushrod", parent="front suspension", group=[282, 276]),
     dict(name="brake line", parent="front suspension", group=[279]),
     dict(name="upright", parent="front suspension", group=[415, 416]),
+    # the slotted crescent inside each front wheel that the stock Details_I marks as brake lights
+    # (code 0): dim all the time, flaring when braking (checkpoint 1). Part of the hub's group.
+    dict(name="brake light", parent="wheel", piece=[461, 462]),
     dict(name="hub", parent="wheel", group=[421, 434]),
     dict(name="rim", parent="wheel", group=[442, 443, 440, 444]),
     dict(name="brake caliper", parent="wheel", group=[445, 446, 450, 451]),

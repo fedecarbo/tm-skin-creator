@@ -12,6 +12,7 @@
         s.text("27", "left side", colour="black", font="russo", height=28)
         s.glow("sidepod frame", "electric blue")              # always on (inner car only)
         s.glow("brake caliper")                               # glow in the colour painted on it
+        s.relight("digit display", "lime")                    # the stock glow, recoloured
         s.paint("sidewall", "white rubber")                   # the tyres' sides
         s.glass("smoke", 0.6)                                 # tint the glass
         s.dirt(0.5)                                           # half as dirty as stock on dirt
@@ -54,7 +55,7 @@ SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside":
 # body paint or a scatter must never reach them (user, 2026-09-24). "wheels" is everything on
 # a wheel but the tyre: the covers (Skin) and the rims, hubs and wheel rings (Details).
 WHEEL_COVER_PARTS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
-WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "wheel ring")
+WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "brake light", "wheel ring")
 GLOW_CODES = np.array([0, 32, 64, 96, 128, 160, 192, 224, 255])
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
@@ -361,6 +362,29 @@ class Skin:
             self._glow(c, idx, m, col, kind)
             # the lit colour also goes in the base colour, so it reads the same by day
             c.blend(idx, m, np.broadcast_to(col, (len(idx), 3)), np.full(len(idx), 0.4, np.float32), np.zeros(len(idx), np.float32), np.zeros(len(idx), np.float32))
+        return self
+
+    def relight(self, where, colour):
+        """Give the stock glow on parts a new colour. Each texel keeps its kind of glow and its
+        brightness, so the pattern stays: the speed digits' segments with their dark backing, the
+        brake lights' slots. The brightest texel takes the full colour. The
+        paint is left as it is (a painted digit would show "888" by day). Glows whose colour
+        the game supplies (energy, turbo, boost) stay grey."""
+        col = np.asarray(colours.get(colour), np.float32)
+        own = [g["code"] for g in finishes.GLOWS.values() if g["keeps colour"]]
+        for tset, ids in self._ids(where).items():
+            if tset != "Details":
+                self.notes.append(f"relight {where}: only the inner car (Details) glows; skipped {tset}")
+                continue
+            c = self.canvas(tset)
+            idx, m = self._mask(tset, ids, None, c)
+            idx = idx[(m > 0.5) & np.isin(c.glow_code[idx], own)]
+            level = c.glow_rgb[idx].max(1)
+            if not len(idx) or level.max() < 0.05:
+                self.notes.append(f"relight {where}: no stock glow there to recolour")
+                continue
+            c.glow_rgb[idx] = col * (level / level.max())[:, None]
+            c.glow_touched = True
         return self
 
     def no_glow(self, where):

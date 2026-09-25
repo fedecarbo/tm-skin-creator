@@ -16,7 +16,7 @@ def stealth_base(s, seams=True):
         s.paint("body", "gloss", colour="#26282b", zone=shapes.seams(1.5, parts=MAIN))
     s.paint("inner", "satin", colour="#2a2b2e")
     s.paint(["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm", "sidepod strut"], "carbon")
-    s.paint(["damper", "rear damper", "upright", "hub bracket", "driveshaft", "upright cover", "hub", "sidepod frame"], "satin", colour="#1e1f22")
+    s.paint(["damper", "rear damper", "upright", "hub bracket", "driveshaft", "upright cover", "hub", "brake light", "sidepod frame"], "satin", colour="#1e1f22")
     s.paint("exhaust", "brushed titanium")
     s.paint(["seat", "steering wheel"], "black leather")
     s.paint("dashboard", "matte", colour="#1a1b1d")
@@ -37,7 +37,7 @@ def design(s, bold=False, seams=True):
     s.paint(["side vent", "rear strake"], "satin", colour=Y)
     if bold:
         s.paint("front wing", "satin", colour=C)
-        s.paint(["rear diffuser", "rear bumper"], "satin", colour=Y)
+        s.paint(["rear diffuser", "rear bumper", "rear light"], "satin", colour=Y)
         run(s, ["cockpit rim", "mirror", "mirror arm"])
     # the plate each grille sits in goes black, to break up the run (user, 2026-09-24)
     s.paint("sidepod grille plate", "satin", colour="#1e1f22")

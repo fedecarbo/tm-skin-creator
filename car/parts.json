@@ -71,7 +71,7 @@
    "pieces": [
     21
    ],
-   "texels": 556319,
+   "texels": 557390,
    "shared": 0.0
   },
   {
@@ -89,8 +89,8 @@
     126,
     127
    ],
-   "texels": 68,
-   "shared": 1.0
+   "texels": 82,
+   "shared": 0.83
   },
   {
    "id": 2,
@@ -107,8 +107,8 @@
     123,
     124
    ],
-   "texels": 68,
-   "shared": 1.0
+   "texels": 82,
+   "shared": 0.83
   },
   {
    "id": 3,
@@ -122,7 +122,7 @@
    "pieces": [
     122
    ],
-   "texels": 89299,
+   "texels": 90033,
    "shared": 0.0
   },
   {
@@ -144,8 +144,8 @@
     49,
     50
    ],
-   "texels": 146,
-   "shared": 1.0
+   "texels": 178,
+   "shared": 0.82
   },
   {
    "id": 5,
@@ -166,8 +166,8 @@
     41,
     42
    ],
-   "texels": 146,
-   "shared": 1.0
+   "texels": 179,
+   "shared": 0.82
   },
   {
    "id": 6,
@@ -181,7 +181,7 @@
    "pieces": [
     33
    ],
-   "texels": 2322,
+   "texels": 2342,
    "shared": 0.0
   },
   {
@@ -197,8 +197,8 @@
     18,
     128
    ],
-   "texels": 288,
-   "shared": 1.0
+   "texels": 385,
+   "shared": 0.75
   },
   {
    "id": 8,
@@ -213,8 +213,8 @@
     13,
     125
    ],
-   "texels": 289,
-   "shared": 1.0
+   "texels": 384,
+   "shared": 0.75
   },
   {
    "id": 9,
@@ -234,7 +234,7 @@
     1090,
     1091
    ],
-   "texels": 12825,
+   "texels": 12968,
    "shared": 0.0
   },
   {
@@ -249,7 +249,7 @@
    "pieces": [
     51
    ],
-   "texels": 31056,
+   "texels": 31190,
    "shared": 0.0
   },
   {
@@ -264,7 +264,7 @@
    "pieces": [
     23
    ],
-   "texels": 107349,
+   "texels": 107655,
    "shared": 0.0
   },
   {
@@ -279,7 +279,7 @@
    "pieces": [
     29
    ],
-   "texels": 172020,
+   "texels": 172826,
    "shared": 0.0
   },
   {
@@ -294,7 +294,7 @@
    "pieces": [
     20
    ],
-   "texels": 172020,
+   "texels": 172824,
    "shared": 0.0
   },
   {
@@ -309,7 +309,7 @@
    "pieces": [
     58
    ],
-   "texels": 20948,
+   "texels": 21055,
    "shared": 0.0
   },
   {
@@ -324,7 +324,7 @@
    "pieces": [
     57
    ],
-   "texels": 20948,
+   "texels": 21054,
    "shared": 0.0
   },
   {
@@ -339,7 +339,7 @@
    "pieces": [
     19
    ],
-   "texels": 143576,
+   "texels": 144036,
    "shared": 0.0
   },
   {
@@ -354,7 +354,7 @@
    "pieces": [
     14
    ],
-   "texels": 143578,
+   "texels": 144039,
    "shared": 0.0
   },
   {
@@ -369,8 +369,8 @@
    "pieces": [
     594
    ],
-   "texels": 8940,
-   "shared": 1.0
+   "texels": 9000,
+   "shared": 0.99
   },
   {
    "id": 19,
@@ -384,8 +384,8 @@
    "pieces": [
     597
    ],
-   "texels": 8940,
-   "shared": 1.0
+   "texels": 9000,
+   "shared": 0.99
   },
   {
    "id": 20,
@@ -652,7 +652,7 @@
    "pieces": [
     1998
    ],
-   "texels": 5590,
+   "texels": 5589,
    "shared": 1.0
   },
   {
@@ -667,7 +667,7 @@
    "pieces": [
     1831
    ],
-   "texels": 5590,
+   "texels": 5589,
    "shared": 1.0
   },
   {
@@ -717,7 +717,7 @@
    "pieces": [
     15
    ],
-   "texels": 59516,
+   "texels": 59647,
    "shared": 0.0
   },
   {
@@ -732,7 +732,7 @@
    "pieces": [
     10
    ],
-   "texels": 59519,
+   "texels": 59646,
    "shared": 0.0
   },
   {
@@ -752,7 +752,7 @@
     2019,
     2020
    ],
-   "texels": 49716,
+   "texels": 49890,
    "shared": 1.0
   },
   {
@@ -772,7 +772,7 @@
     1896,
     1897
    ],
-   "texels": 49716,
+   "texels": 49890,
    "shared": 1.0
   },
   {
@@ -787,8 +787,8 @@
    "pieces": [
     595
    ],
-   "texels": 7423,
-   "shared": 1.0
+   "texels": 7526,
+   "shared": 0.99
   },
   {
    "id": 31,
@@ -802,8 +802,8 @@
    "pieces": [
     598
    ],
-   "texels": 7423,
-   "shared": 1.0
+   "texels": 7526,
+   "shared": 0.99
   },
   {
    "id": 32,
@@ -817,7 +817,7 @@
    "pieces": [
     55
    ],
-   "texels": 79711,
+   "texels": 79919,
    "shared": 0.0
   },
   {
@@ -832,7 +832,7 @@
    "pieces": [
     56
    ],
-   "texels": 79711,
+   "texels": 79919,
    "shared": 0.0
   },
   {
@@ -862,8 +862,8 @@
     1867,
     2014
    ],
-   "texels": 44239,
-   "shared": 1.0
+   "texels": 45382,
+   "shared": 0.98
   },
   {
    "id": 35,
@@ -892,8 +892,8 @@
     1856,
     1857
    ],
-   "texels": 44239,
-   "shared": 1.0
+   "texels": 45382,
+   "shared": 0.98
   },
   {
    "id": 36,
@@ -907,7 +907,7 @@
    "pieces": [
     22
    ],
-   "texels": 138568,
+   "texels": 139384,
    "shared": 0.0
   },
   {
@@ -922,7 +922,7 @@
    "pieces": [
     3
    ],
-   "texels": 25408,
+   "texels": 25524,
    "shared": 0.0
   },
   {
@@ -937,7 +937,7 @@
    "pieces": [
     1
    ],
-   "texels": 25423,
+   "texels": 25532,
    "shared": 0.0
   },
   {
@@ -952,7 +952,7 @@
    "pieces": [
     2
    ],
-   "texels": 7128,
+   "texels": 7201,
    "shared": 0.0
   },
   {
@@ -967,7 +967,7 @@
    "pieces": [
     4
    ],
-   "texels": 7222,
+   "texels": 7322,
    "shared": 0.0
   },
   {
@@ -982,7 +982,7 @@
    "pieces": [
     0
    ],
-   "texels": 7223,
+   "texels": 7324,
    "shared": 0.0
   },
   {
@@ -997,7 +997,7 @@
    "pieces": [
     52
    ],
-   "texels": 66782,
+   "texels": 67022,
    "shared": 0.0
   },
   {
@@ -1014,7 +1014,7 @@
     131,
     132
    ],
-   "texels": 32659,
+   "texels": 33188,
    "shared": 0.0
   },
   {
@@ -1031,7 +1031,7 @@
     129,
     130
    ],
-   "texels": 32656,
+   "texels": 33206,
    "shared": 0.0
   },
   {
@@ -1056,8 +1056,8 @@
     1713,
     1717
    ],
-   "texels": 9889,
-   "shared": 0.96
+   "texels": 10107,
+   "shared": 0.94
   },
   {
    "id": 46,
@@ -1099,8 +1099,8 @@
     1714,
     1716
    ],
-   "texels": 9906,
-   "shared": 0.96
+   "texels": 10089,
+   "shared": 0.94
   },
   {
    "id": 47,
@@ -1109,11 +1109,12 @@
    "side": "right",
    "end": "",
    "mesh": "Details",
-   "tris": 158,
-   "area_cm2": 328.9,
+   "tris": 164,
+   "area_cm2": 342.5,
    "pieces": [
     137,
     138,
+    139,
     164,
     165,
     166,
@@ -1141,8 +1142,8 @@
     1715,
     1718
    ],
-   "texels": 9920,
-   "shared": 0.95
+   "texels": 10099,
+   "shared": 0.94
   },
   {
    "id": 48,
@@ -1159,8 +1160,8 @@
     201,
     585
    ],
-   "texels": 15270,
-   "shared": 1.0
+   "texels": 15458,
+   "shared": 0.99
   },
   {
    "id": 49,
@@ -1177,8 +1178,8 @@
     206,
     587
    ],
-   "texels": 15270,
-   "shared": 1.0
+   "texels": 15458,
+   "shared": 0.99
   },
   {
    "id": 50,
@@ -1193,7 +1194,7 @@
     212,
     214
    ],
-   "texels": 4682,
+   "texels": 4874,
    "shared": 0.0
   },
   {
@@ -1203,8 +1204,8 @@
    "side": "left",
    "end": "",
    "mesh": "Details",
-   "tris": 283,
-   "area_cm2": 2849.2,
+   "tris": 176,
+   "area_cm2": 2276.9,
    "pieces": [
     133,
     197,
@@ -1218,12 +1219,10 @@
     219,
     220,
     221,
-    222,
-    231,
-    241
+    222
    ],
-   "texels": 60779,
-   "shared": 0.83
+   "texels": 47429,
+   "shared": 0.78
   },
   {
    "id": 52,
@@ -1232,8 +1231,8 @@
    "side": "right",
    "end": "",
    "mesh": "Details",
-   "tris": 283,
-   "area_cm2": 2849.2,
+   "tris": 176,
+   "area_cm2": 2276.9,
    "pieces": [
     202,
     203,
@@ -1247,12 +1246,10 @@
     226,
     227,
     228,
-    229,
-    236,
-    345
+    229
    ],
-   "texels": 60660,
-   "shared": 0.83
+   "texels": 47435,
+   "shared": 0.78
   },
   {
    "id": 53,
@@ -1266,7 +1263,7 @@
    "pieces": [
     592
    ],
-   "texels": 13950,
+   "texels": 13994,
    "shared": 1.0
   },
   {
@@ -1281,11 +1278,43 @@
    "pieces": [
     591
    ],
-   "texels": 13950,
+   "texels": 13994,
    "shared": 1.0
   },
   {
    "id": 55,
+   "name": "rear light",
+   "parent": "tail",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "tris": 107,
+   "area_cm2": 572.4,
+   "pieces": [
+    231,
+    241
+   ],
+   "texels": 14128,
+   "shared": 0.98
+  },
+  {
+   "id": 56,
+   "name": "rear light",
+   "parent": "tail",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "tris": 107,
+   "area_cm2": 572.4,
+   "pieces": [
+    236,
+    345
+   ],
+   "texels": 14128,
+   "shared": 0.98
+  },
+  {
+   "id": 57,
    "name": "rear strake",
    "parent": "tail",
    "side": "centre",
@@ -1297,11 +1326,11 @@
     1509,
     1521
    ],
-   "texels": 251,
-   "shared": 1.0
+   "texels": 269,
+   "shared": 0.94
   },
   {
-   "id": 56,
+   "id": 58,
    "name": "rear strake",
    "parent": "tail",
    "side": "left",
@@ -1322,11 +1351,11 @@
     1568,
     1569
    ],
-   "texels": 42006,
-   "shared": 1.0
+   "texels": 42560,
+   "shared": 0.99
   },
   {
-   "id": 57,
+   "id": 59,
    "name": "rear strake",
    "parent": "tail",
    "side": "right",
@@ -1347,11 +1376,11 @@
     1572,
     1573
    ],
-   "texels": 41755,
-   "shared": 1.0
+   "texels": 42308,
+   "shared": 0.99
   },
   {
-   "id": 58,
+   "id": 60,
    "name": "rear undertray",
    "parent": "tail",
    "side": "centre",
@@ -1362,11 +1391,11 @@
    "pieces": [
     588
    ],
-   "texels": 32437,
+   "texels": 32655,
    "shared": 0.0
   },
   {
-   "id": 59,
+   "id": 61,
    "name": "rear undertray",
    "parent": "tail",
    "side": "left",
@@ -1380,11 +1409,11 @@
     1049,
     1050
    ],
-   "texels": 22141,
-   "shared": 0.97
+   "texels": 22701,
+   "shared": 0.95
   },
   {
-   "id": 60,
+   "id": 62,
    "name": "rear undertray",
    "parent": "tail",
    "side": "right",
@@ -1398,11 +1427,11 @@
     1047,
     1048
    ],
-   "texels": 22295,
-   "shared": 0.97
+   "texels": 22551,
+   "shared": 0.95
   },
   {
-   "id": 61,
+   "id": 63,
    "name": "side vent",
    "parent": "tail",
    "side": "left",
@@ -1421,11 +1450,11 @@
     1474,
     1475
    ],
-   "texels": 13983,
-   "shared": 1.0
+   "texels": 14093,
+   "shared": 0.99
   },
   {
-   "id": 62,
+   "id": 64,
    "name": "side vent",
    "parent": "tail",
    "side": "right",
@@ -1444,11 +1473,11 @@
     1482,
     1483
    ],
-   "texels": 13983,
-   "shared": 1.0
+   "texels": 14093,
+   "shared": 0.99
   },
   {
-   "id": 63,
+   "id": 65,
    "name": "tail corner",
    "parent": "tail",
    "side": "left",
@@ -1459,11 +1488,11 @@
    "pieces": [
     7
    ],
-   "texels": 28959,
+   "texels": 29109,
    "shared": 0.0
   },
   {
-   "id": 64,
+   "id": 66,
    "name": "tail corner",
    "parent": "tail",
    "side": "right",
@@ -1474,11 +1503,11 @@
    "pieces": [
     8
    ],
-   "texels": 28958,
+   "texels": 29110,
    "shared": 0.0
   },
   {
-   "id": 65,
+   "id": 67,
    "name": "tail panel",
    "parent": "tail",
    "side": "centre",
@@ -1489,11 +1518,11 @@
    "pieces": [
     6
    ],
-   "texels": 59596,
+   "texels": 59830,
    "shared": 0.0
   },
   {
-   "id": 66,
+   "id": 68,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "left",
@@ -1504,11 +1533,11 @@
    "pieces": [
     59
    ],
-   "texels": 99708,
+   "texels": 99948,
    "shared": 1.0
   },
   {
-   "id": 67,
+   "id": 69,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "right",
@@ -1519,11 +1548,11 @@
    "pieces": [
     74
    ],
-   "texels": 99708,
+   "texels": 99948,
    "shared": 1.0
   },
   {
-   "id": 68,
+   "id": 70,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "left",
@@ -1534,11 +1563,11 @@
    "pieces": [
     96
    ],
-   "texels": 99708,
+   "texels": 99948,
    "shared": 1.0
   },
   {
-   "id": 69,
+   "id": 71,
    "name": "wheel cover disc",
    "parent": "wheel cover",
    "side": "right",
@@ -1549,11 +1578,11 @@
    "pieces": [
     109
    ],
-   "texels": 99708,
+   "texels": 99948,
    "shared": 1.0
   },
   {
-   "id": 70,
+   "id": 72,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "left",
@@ -1575,11 +1604,11 @@
     69,
     70
    ],
-   "texels": 53838,
-   "shared": 1.0
+   "texels": 55245,
+   "shared": 0.97
   },
   {
-   "id": 71,
+   "id": 73,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "right",
@@ -1601,11 +1630,11 @@
     85,
     86
    ],
-   "texels": 53838,
-   "shared": 1.0
+   "texels": 55245,
+   "shared": 0.97
   },
   {
-   "id": 72,
+   "id": 74,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "left",
@@ -1627,11 +1656,11 @@
     104,
     105
    ],
-   "texels": 53838,
-   "shared": 1.0
+   "texels": 55245,
+   "shared": 0.97
   },
   {
-   "id": 73,
+   "id": 75,
    "name": "wheel cover hub",
    "parent": "wheel cover",
    "side": "right",
@@ -1653,11 +1682,11 @@
     117,
     118
    ],
-   "texels": 53838,
-   "shared": 1.0
+   "texels": 55245,
+   "shared": 0.97
   },
   {
-   "id": 74,
+   "id": 76,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "left",
@@ -1670,11 +1699,11 @@
     72,
     73
    ],
-   "texels": 125661,
+   "texels": 126037,
    "shared": 1.0
   },
   {
-   "id": 75,
+   "id": 77,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "right",
@@ -1687,11 +1716,11 @@
     88,
     89
    ],
-   "texels": 125661,
+   "texels": 126037,
    "shared": 1.0
   },
   {
-   "id": 76,
+   "id": 78,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "left",
@@ -1704,11 +1733,11 @@
     91,
     92
    ],
-   "texels": 125661,
+   "texels": 126037,
    "shared": 1.0
   },
   {
-   "id": 77,
+   "id": 79,
    "name": "wheel cover ring",
    "parent": "wheel cover",
    "side": "right",
@@ -1721,11 +1750,11 @@
     120,
     121
    ],
-   "texels": 125661,
+   "texels": 126037,
    "shared": 1.0
   },
   {
-   "id": 78,
+   "id": 80,
    "name": "front wing",
    "parent": "front wing",
    "side": "centre",
@@ -1736,11 +1765,11 @@
    "pieces": [
     1710
    ],
-   "texels": 191,
+   "texels": 203,
    "shared": 0.0
   },
   {
-   "id": 79,
+   "id": 81,
    "name": "front wing",
    "parent": "front wing",
    "side": "left",
@@ -1761,11 +1790,11 @@
     1454,
     1710
    ],
-   "texels": 48148,
-   "shared": 1.0
+   "texels": 48433,
+   "shared": 0.99
   },
   {
-   "id": 80,
+   "id": 82,
    "name": "front wing",
    "parent": "front wing",
    "side": "right",
@@ -1786,11 +1815,11 @@
     1463,
     1710
    ],
-   "texels": 48148,
-   "shared": 1.0
+   "texels": 48431,
+   "shared": 0.99
   },
   {
-   "id": 81,
+   "id": 83,
    "name": "front wing endplate",
    "parent": "front wing",
    "side": "left",
@@ -1801,11 +1830,11 @@
    "pieces": [
     1564
    ],
-   "texels": 568,
-   "shared": 1.0
+   "texels": 705,
+   "shared": 0.8
   },
   {
-   "id": 82,
+   "id": 84,
    "name": "front wing endplate",
    "parent": "front wing",
    "side": "right",
@@ -1816,11 +1845,11 @@
    "pieces": [
     1565
    ],
-   "texels": 568,
-   "shared": 1.0
+   "texels": 705,
+   "shared": 0.8
   },
   {
-   "id": 83,
+   "id": 85,
    "name": "wing bracket",
    "parent": "front wing",
    "side": "centre",
@@ -1836,11 +1865,11 @@
     1205,
     1243
    ],
-   "texels": 3854,
-   "shared": 0.74
+   "texels": 4056,
+   "shared": 0.7
   },
   {
-   "id": 84,
+   "id": 86,
    "name": "wing bracket",
    "parent": "front wing",
    "side": "left",
@@ -1874,11 +1903,11 @@
     1207,
     1208
    ],
-   "texels": 10524,
-   "shared": 1.0
+   "texels": 10945,
+   "shared": 0.96
   },
   {
-   "id": 85,
+   "id": 87,
    "name": "wing bracket",
    "parent": "front wing",
    "side": "right",
@@ -1913,11 +1942,11 @@
     1225,
     1226
    ],
-   "texels": 13362,
-   "shared": 1.0
+   "texels": 13889,
+   "shared": 0.96
   },
   {
-   "id": 86,
+   "id": 88,
    "name": "wing pylon",
    "parent": "front wing",
    "side": "centre",
@@ -1928,11 +1957,11 @@
    "pieces": [
     25
    ],
-   "texels": 13640,
+   "texels": 13712,
    "shared": 0.0
   },
   {
-   "id": 87,
+   "id": 89,
    "name": "wing pylon",
    "parent": "front wing",
    "side": "left",
@@ -1945,11 +1974,11 @@
     31,
     32
    ],
-   "texels": 17603,
+   "texels": 17844,
    "shared": 0.0
   },
   {
-   "id": 88,
+   "id": 90,
    "name": "wing pylon",
    "parent": "front wing",
    "side": "right",
@@ -1962,11 +1991,11 @@
     27,
     28
    ],
-   "texels": 17603,
+   "texels": 17843,
    "shared": 0.0
   },
   {
-   "id": 89,
+   "id": 91,
    "name": "floor",
    "parent": "floor",
    "side": "centre",
@@ -1978,11 +2007,11 @@
     1439,
     1706
    ],
-   "texels": 830,
-   "shared": 0.16
+   "texels": 904,
+   "shared": 0.14
   },
   {
-   "id": 90,
+   "id": 92,
    "name": "floor",
    "parent": "floor",
    "side": "left",
@@ -2009,11 +2038,11 @@
     1451,
     1706
    ],
-   "texels": 519135,
-   "shared": 0.79
+   "texels": 522232,
+   "shared": 0.78
   },
   {
-   "id": 91,
+   "id": 93,
    "name": "floor",
    "parent": "floor",
    "side": "right",
@@ -2040,11 +2069,11 @@
     1460,
     1706
    ],
-   "texels": 518646,
-   "shared": 0.79
+   "texels": 522669,
+   "shared": 0.78
   },
   {
-   "id": 92,
+   "id": 94,
    "name": "floor plank",
    "parent": "floor",
    "side": "centre",
@@ -2055,11 +2084,11 @@
    "pieces": [
     1709
    ],
-   "texels": 192,
+   "texels": 203,
    "shared": 0.0
   },
   {
-   "id": 93,
+   "id": 95,
    "name": "floor plank",
    "parent": "floor",
    "side": "left",
@@ -2073,11 +2102,11 @@
     1708,
     1709
    ],
-   "texels": 8457,
-   "shared": 0.85
+   "texels": 8541,
+   "shared": 0.84
   },
   {
-   "id": 94,
+   "id": 96,
    "name": "floor plank",
    "parent": "floor",
    "side": "right",
@@ -2091,11 +2120,11 @@
     1711,
     1712
    ],
-   "texels": 8452,
-   "shared": 0.85
+   "texels": 8537,
+   "shared": 0.84
   },
   {
-   "id": 95,
+   "id": 97,
    "name": "floor rail",
    "parent": "floor",
    "side": "centre",
@@ -2106,11 +2135,11 @@
    "pieces": [
     1122
    ],
-   "texels": 2628,
+   "texels": 2635,
    "shared": 0.0
   },
   {
-   "id": 96,
+   "id": 98,
    "name": "rear diffuser",
    "parent": "floor",
    "side": "centre",
@@ -2125,11 +2154,11 @@
     240,
     1574
    ],
-   "texels": 533,
+   "texels": 579,
    "shared": 0.39
   },
   {
-   "id": 97,
+   "id": 99,
    "name": "rear diffuser",
    "parent": "floor",
    "side": "left",
@@ -2324,20 +2353,19 @@
     1726,
     1727
    ],
-   "texels": 261699,
-   "shared": 0.75
+   "texels": 265227,
+   "shared": 0.74
   },
   {
-   "id": 98,
+   "id": 100,
    "name": "rear diffuser",
    "parent": "floor",
    "side": "right",
    "end": "",
    "mesh": "Details",
-   "tris": 2350,
-   "area_cm2": 11856.8,
+   "tris": 2344,
+   "area_cm2": 11843.2,
    "pieces": [
-    139,
     230,
     237,
     238,
@@ -2525,11 +2553,11 @@
     1729,
     1730
    ],
-   "texels": 265319,
-   "shared": 0.75
+   "texels": 265207,
+   "shared": 0.74
   },
   {
-   "id": 99,
+   "id": 101,
    "name": "antenna",
    "parent": "chassis",
    "side": "centre",
@@ -2545,11 +2573,11 @@
     1118,
     1119
    ],
-   "texels": 2451,
+   "texels": 2524,
    "shared": 0.0
   },
   {
-   "id": 100,
+   "id": 102,
    "name": "cockpit tub",
    "parent": "chassis",
    "side": "centre",
@@ -2617,7 +2645,7 @@
    "shared": 0.99
   },
   {
-   "id": 101,
+   "id": 103,
    "name": "cockpit tub",
    "parent": "chassis",
    "side": "left",
@@ -2684,7 +2712,7 @@
    "shared": 0.92
   },
   {
-   "id": 102,
+   "id": 104,
    "name": "cockpit tub",
    "parent": "chassis",
    "side": "right",
@@ -2751,7 +2779,7 @@
    "shared": 0.92
   },
   {
-   "id": 103,
+   "id": 105,
    "name": "engine bay",
    "parent": "chassis",
    "side": "left",
@@ -2780,7 +2808,7 @@
    "shared": 1.0
   },
   {
-   "id": 104,
+   "id": 106,
    "name": "engine bay",
    "parent": "chassis",
    "side": "right",
@@ -2809,7 +2837,7 @@
    "shared": 1.0
   },
   {
-   "id": 105,
+   "id": 107,
    "name": "front bulkhead",
    "parent": "chassis",
    "side": "centre",
@@ -2836,11 +2864,11 @@
     1266,
     1267
    ],
-   "texels": 5468,
-   "shared": 0.5
+   "texels": 5950,
+   "shared": 0.48
   },
   {
-   "id": 106,
+   "id": 108,
    "name": "front bulkhead",
    "parent": "chassis",
    "side": "left",
@@ -2855,11 +2883,11 @@
     1255,
     1256
    ],
-   "texels": 28911,
-   "shared": 1.0
+   "texels": 29083,
+   "shared": 0.99
   },
   {
-   "id": 107,
+   "id": 109,
    "name": "front bulkhead",
    "parent": "chassis",
    "side": "right",
@@ -2874,11 +2902,11 @@
     1268,
     1269
    ],
-   "texels": 28911,
-   "shared": 1.0
+   "texels": 29083,
+   "shared": 0.99
   },
   {
-   "id": 108,
+   "id": 110,
    "name": "nose inner",
    "parent": "chassis",
    "side": "centre",
@@ -2905,7 +2933,7 @@
    "shared": 1.0
   },
   {
-   "id": 109,
+   "id": 111,
    "name": "nose inner",
    "parent": "chassis",
    "side": "left",
@@ -2982,7 +3010,7 @@
    "shared": 1.0
   },
   {
-   "id": 110,
+   "id": 112,
    "name": "nose inner",
    "parent": "chassis",
    "side": "right",
@@ -3060,7 +3088,7 @@
    "shared": 1.0
   },
   {
-   "id": 111,
+   "id": 113,
    "name": "nose plate",
    "parent": "chassis",
    "side": "centre",
@@ -3072,11 +3100,11 @@
     501,
     503
    ],
-   "texels": 21745,
+   "texels": 22013,
    "shared": 0.0
   },
   {
-   "id": 112,
+   "id": 114,
    "name": "nose plate",
    "parent": "chassis",
    "side": "left",
@@ -3098,11 +3126,11 @@
     1881,
     1882
    ],
-   "texels": 16075,
-   "shared": 1.0
+   "texels": 16933,
+   "shared": 0.95
   },
   {
-   "id": 113,
+   "id": 115,
    "name": "nose plate",
    "parent": "chassis",
    "side": "right",
@@ -3124,11 +3152,11 @@
     1890,
     1891
    ],
-   "texels": 16075,
-   "shared": 1.0
+   "texels": 16933,
+   "shared": 0.95
   },
   {
-   "id": 114,
+   "id": 116,
    "name": "nose sensor",
    "parent": "chassis",
    "side": "centre",
@@ -3143,11 +3171,11 @@
     505,
     506
    ],
-   "texels": 1213,
-   "shared": 0.57
+   "texels": 1321,
+   "shared": 0.56
   },
   {
-   "id": 115,
+   "id": 117,
    "name": "nose sensor",
    "parent": "chassis",
    "side": "left",
@@ -3165,11 +3193,11 @@
     1034,
     1035
    ],
-   "texels": 2554,
-   "shared": 1.0
+   "texels": 2658,
+   "shared": 0.96
   },
   {
-   "id": 116,
+   "id": 118,
    "name": "nose sensor",
    "parent": "chassis",
    "side": "right",
@@ -3186,11 +3214,11 @@
     1037,
     1038
    ],
-   "texels": 2554,
-   "shared": 1.0
+   "texels": 2658,
+   "shared": 0.96
   },
   {
-   "id": 117,
+   "id": 119,
    "name": "side vane",
    "parent": "chassis",
    "side": "left",
@@ -3201,11 +3229,11 @@
    "pieces": [
     1231
    ],
-   "texels": 14700,
-   "shared": 1.0
+   "texels": 14902,
+   "shared": 0.99
   },
   {
-   "id": 118,
+   "id": 120,
    "name": "side vane",
    "parent": "chassis",
    "side": "right",
@@ -3216,11 +3244,11 @@
    "pieces": [
     1232
    ],
-   "texels": 14700,
-   "shared": 1.0
+   "texels": 14902,
+   "shared": 0.99
   },
   {
-   "id": 119,
+   "id": 121,
    "name": "belt buckle",
    "parent": "cockpit",
    "side": "centre",
@@ -3231,11 +3259,11 @@
    "pieces": [
     1129
    ],
-   "texels": 1800,
+   "texels": 1823,
    "shared": 0.0
   },
   {
-   "id": 120,
+   "id": 122,
    "name": "belt buckle",
    "parent": "cockpit",
    "side": "left",
@@ -3246,11 +3274,11 @@
    "pieces": [
     1131
    ],
-   "texels": 765,
-   "shared": 1.0
+   "texels": 800,
+   "shared": 0.95
   },
   {
-   "id": 121,
+   "id": 123,
    "name": "belt buckle",
    "parent": "cockpit",
    "side": "right",
@@ -3261,11 +3289,11 @@
    "pieces": [
     1133
    ],
-   "texels": 765,
-   "shared": 1.0
+   "texels": 800,
+   "shared": 0.95
   },
   {
-   "id": 122,
+   "id": 124,
    "name": "cockpit rim",
    "parent": "cockpit",
    "side": "centre",
@@ -3277,11 +3305,11 @@
     1228,
     1229
    ],
-   "texels": 3594,
+   "texels": 3679,
    "shared": 0.0
   },
   {
-   "id": 123,
+   "id": 125,
    "name": "cockpit rim",
    "parent": "cockpit",
    "side": "left",
@@ -3309,11 +3337,11 @@
     1184,
     1185
    ],
-   "texels": 18085,
-   "shared": 1.0
+   "texels": 18594,
+   "shared": 0.97
   },
   {
-   "id": 124,
+   "id": 126,
    "name": "cockpit rim",
    "parent": "cockpit",
    "side": "right",
@@ -3341,11 +3369,11 @@
     1186,
     1187
    ],
-   "texels": 18085,
-   "shared": 1.0
+   "texels": 18594,
+   "shared": 0.97
   },
   {
-   "id": 125,
+   "id": 127,
    "name": "dashboard",
    "parent": "cockpit",
    "side": "centre",
@@ -3363,11 +3391,11 @@
     527,
     529
    ],
-   "texels": 7916,
-   "shared": 0.22
+   "texels": 8318,
+   "shared": 0.21
   },
   {
-   "id": 126,
+   "id": 128,
    "name": "dashboard",
    "parent": "cockpit",
    "side": "left",
@@ -3395,11 +3423,11 @@
     546,
     547
    ],
-   "texels": 1996,
-   "shared": 1.0
+   "texels": 2024,
+   "shared": 0.99
   },
   {
-   "id": 127,
+   "id": 129,
    "name": "dashboard",
    "parent": "cockpit",
    "side": "right",
@@ -3427,11 +3455,11 @@
     564,
     565
    ],
-   "texels": 1996,
-   "shared": 1.0
+   "texels": 2024,
+   "shared": 0.99
   },
   {
-   "id": 128,
+   "id": 130,
    "name": "mirror",
    "parent": "cockpit",
    "side": "left",
@@ -3446,11 +3474,11 @@
     1095,
     1096
    ],
-   "texels": 3753,
-   "shared": 1.0
+   "texels": 3893,
+   "shared": 0.96
   },
   {
-   "id": 129,
+   "id": 131,
    "name": "mirror",
    "parent": "cockpit",
    "side": "right",
@@ -3465,11 +3493,11 @@
     1106,
     1107
    ],
-   "texels": 3753,
-   "shared": 1.0
+   "texels": 3893,
+   "shared": 0.96
   },
   {
-   "id": 130,
+   "id": 132,
    "name": "mirror arm",
    "parent": "cockpit",
    "side": "left",
@@ -3485,11 +3513,11 @@
     1101,
     1102
    ],
-   "texels": 604,
-   "shared": 1.0
+   "texels": 631,
+   "shared": 0.96
   },
   {
-   "id": 131,
+   "id": 133,
    "name": "mirror arm",
    "parent": "cockpit",
    "side": "right",
@@ -3505,11 +3533,11 @@
     1112,
     1113
    ],
-   "texels": 604,
-   "shared": 1.0
+   "texels": 631,
+   "shared": 0.96
   },
   {
-   "id": 132,
+   "id": 134,
    "name": "seat",
    "parent": "cockpit",
    "side": "left",
@@ -3522,11 +3550,11 @@
     1135,
     1136
    ],
-   "texels": 73740,
-   "shared": 1.0
+   "texels": 74431,
+   "shared": 0.99
   },
   {
-   "id": 133,
+   "id": 135,
    "name": "seat",
    "parent": "cockpit",
    "side": "right",
@@ -3539,11 +3567,11 @@
     1138,
     1139
    ],
-   "texels": 73740,
-   "shared": 1.0
+   "texels": 74431,
+   "shared": 0.99
   },
   {
-   "id": 134,
+   "id": 136,
    "name": "seat belt",
    "parent": "cockpit",
    "side": "left",
@@ -3556,11 +3584,11 @@
     1126,
     1130
    ],
-   "texels": 7378,
-   "shared": 1.0
+   "texels": 7605,
+   "shared": 0.97
   },
   {
-   "id": 135,
+   "id": 137,
    "name": "seat belt",
    "parent": "cockpit",
    "side": "right",
@@ -3573,11 +3601,11 @@
     1128,
     1132
    ],
-   "texels": 7378,
-   "shared": 1.0
+   "texels": 7605,
+   "shared": 0.97
   },
   {
-   "id": 136,
+   "id": 138,
    "name": "steering column",
    "parent": "cockpit",
    "side": "centre",
@@ -3609,11 +3637,11 @@
     629,
     660
    ],
-   "texels": 5569,
-   "shared": 0.16
+   "texels": 5861,
+   "shared": 0.15
   },
   {
-   "id": 137,
+   "id": 139,
    "name": "steering column",
    "parent": "cockpit",
    "side": "left",
@@ -3625,11 +3653,11 @@
     612,
     614
    ],
-   "texels": 191,
-   "shared": 1.0
+   "texels": 192,
+   "shared": 0.99
   },
   {
-   "id": 138,
+   "id": 140,
    "name": "steering column",
    "parent": "cockpit",
    "side": "right",
@@ -3641,11 +3669,11 @@
     618,
     620
    ],
-   "texels": 191,
-   "shared": 1.0
+   "texels": 192,
+   "shared": 0.99
   },
   {
-   "id": 139,
+   "id": 141,
    "name": "steering wheel",
    "parent": "cockpit",
    "side": "centre",
@@ -3660,11 +3688,11 @@
     658,
     659
    ],
-   "texels": 3995,
+   "texels": 4098,
    "shared": 0.16
   },
   {
-   "id": 140,
+   "id": 142,
    "name": "steering wheel",
    "parent": "cockpit",
    "side": "left",
@@ -3685,11 +3713,11 @@
     644,
     645
    ],
-   "texels": 11883,
-   "shared": 1.0
+   "texels": 12095,
+   "shared": 0.98
   },
   {
-   "id": 141,
+   "id": 143,
    "name": "steering wheel",
    "parent": "cockpit",
    "side": "right",
@@ -3710,11 +3738,11 @@
     656,
     657
    ],
-   "texels": 11883,
-   "shared": 1.0
+   "texels": 12095,
+   "shared": 0.98
   },
   {
-   "id": 142,
+   "id": 144,
    "name": "brake line",
    "parent": "front suspension",
    "side": "left",
@@ -3729,7 +3757,7 @@
    "shared": 1.0
   },
   {
-   "id": 143,
+   "id": 145,
    "name": "brake line",
    "parent": "front suspension",
    "side": "right",
@@ -3744,7 +3772,7 @@
    "shared": 1.0
   },
   {
-   "id": 144,
+   "id": 146,
    "name": "damper",
    "parent": "front suspension",
    "side": "centre",
@@ -3755,11 +3783,11 @@
    "pieces": [
     1163
    ],
-   "texels": 116,
-   "shared": 1.0
+   "texels": 122,
+   "shared": 0.95
   },
   {
-   "id": 145,
+   "id": 147,
    "name": "damper",
    "parent": "front suspension",
    "side": "left",
@@ -3782,11 +3810,11 @@
     1154,
     1161
    ],
-   "texels": 8973,
-   "shared": 1.0
+   "texels": 9293,
+   "shared": 0.97
   },
   {
-   "id": 146,
+   "id": 148,
    "name": "damper",
    "parent": "front suspension",
    "side": "right",
@@ -3809,11 +3837,11 @@
     1176,
     1183
    ],
-   "texels": 8857,
-   "shared": 1.0
+   "texels": 9171,
+   "shared": 0.97
   },
   {
-   "id": 147,
+   "id": 149,
    "name": "lower wishbone",
    "parent": "front suspension",
    "side": "left",
@@ -3826,11 +3854,11 @@
     705,
     706
    ],
-   "texels": 60028,
+   "texels": 60245,
    "shared": 1.0
   },
   {
-   "id": 148,
+   "id": 150,
    "name": "lower wishbone",
    "parent": "front suspension",
    "side": "right",
@@ -3843,11 +3871,11 @@
     729,
     730
    ],
-   "texels": 60028,
+   "texels": 60245,
    "shared": 1.0
   },
   {
-   "id": 149,
+   "id": 151,
    "name": "pushrod",
    "parent": "front suspension",
    "side": "centre",
@@ -3859,11 +3887,11 @@
     1190,
     1210
    ],
-   "texels": 222,
-   "shared": 1.0
+   "texels": 237,
+   "shared": 0.95
   },
   {
-   "id": 150,
+   "id": 152,
    "name": "pushrod",
    "parent": "front suspension",
    "side": "left",
@@ -3885,11 +3913,11 @@
     1201,
     1383
    ],
-   "texels": 8506,
-   "shared": 1.0
+   "texels": 9249,
+   "shared": 0.92
   },
   {
-   "id": 151,
+   "id": 153,
    "name": "pushrod",
    "parent": "front suspension",
    "side": "right",
@@ -3911,11 +3939,11 @@
     1221,
     1384
    ],
-   "texels": 8514,
-   "shared": 1.0
+   "texels": 9260,
+   "shared": 0.92
   },
   {
-   "id": 152,
+   "id": 154,
    "name": "tie rod",
    "parent": "front suspension",
    "side": "left",
@@ -3929,11 +3957,11 @@
     701,
     1241
    ],
-   "texels": 17472,
-   "shared": 1.0
+   "texels": 17691,
+   "shared": 0.99
   },
   {
-   "id": 153,
+   "id": 155,
    "name": "tie rod",
    "parent": "front suspension",
    "side": "right",
@@ -3947,11 +3975,11 @@
     720,
     1242
    ],
-   "texels": 17472,
-   "shared": 1.0
+   "texels": 17691,
+   "shared": 0.99
   },
   {
-   "id": 154,
+   "id": 156,
    "name": "upper wishbone",
    "parent": "front suspension",
    "side": "left",
@@ -3962,11 +3990,11 @@
    "pieces": [
     698
    ],
-   "texels": 59345,
+   "texels": 59555,
    "shared": 1.0
   },
   {
-   "id": 155,
+   "id": 157,
    "name": "upper wishbone",
    "parent": "front suspension",
    "side": "right",
@@ -3977,11 +4005,11 @@
    "pieces": [
     725
    ],
-   "texels": 59345,
+   "texels": 59555,
    "shared": 1.0
   },
   {
-   "id": 156,
+   "id": 158,
    "name": "upright",
    "parent": "front suspension",
    "side": "left",
@@ -3993,11 +4021,11 @@
     696,
     697
    ],
-   "texels": 129,
-   "shared": 1.0
+   "texels": 131,
+   "shared": 0.98
   },
   {
-   "id": 157,
+   "id": 159,
    "name": "upright",
    "parent": "front suspension",
    "side": "right",
@@ -4009,11 +4037,11 @@
     723,
     724
    ],
-   "texels": 129,
-   "shared": 1.0
+   "texels": 131,
+   "shared": 0.98
   },
   {
-   "id": 158,
+   "id": 160,
    "name": "driveshaft",
    "parent": "rear suspension",
    "side": "left",
@@ -4037,11 +4065,11 @@
     831,
     832
    ],
-   "texels": 1750,
-   "shared": 1.0
+   "texels": 1774,
+   "shared": 0.99
   },
   {
-   "id": 159,
+   "id": 161,
    "name": "driveshaft",
    "parent": "rear suspension",
    "side": "right",
@@ -4066,11 +4094,11 @@
     947,
     948
    ],
-   "texels": 2347,
-   "shared": 1.0
+   "texels": 2387,
+   "shared": 0.99
   },
   {
-   "id": 160,
+   "id": 162,
    "name": "hub bracket",
    "parent": "rear suspension",
    "side": "left",
@@ -4086,11 +4114,11 @@
     788,
     789
    ],
-   "texels": 47717,
-   "shared": 1.0
+   "texels": 48386,
+   "shared": 0.99
   },
   {
-   "id": 161,
+   "id": 163,
    "name": "hub bracket",
    "parent": "rear suspension",
    "side": "right",
@@ -4106,11 +4134,11 @@
     905,
     906
    ],
-   "texels": 47717,
-   "shared": 1.0
+   "texels": 48386,
+   "shared": 0.99
   },
   {
-   "id": 162,
+   "id": 164,
    "name": "rear arm",
    "parent": "rear suspension",
    "side": "centre",
@@ -4126,11 +4154,11 @@
     1554,
     1561
    ],
-   "texels": 809,
-   "shared": 1.0
+   "texels": 840,
+   "shared": 0.98
   },
   {
-   "id": 163,
+   "id": 165,
    "name": "rear arm",
    "parent": "rear suspension",
    "side": "left",
@@ -4238,11 +4266,11 @@
     1540,
     1541
    ],
-   "texels": 32542,
-   "shared": 1.0
+   "texels": 33700,
+   "shared": 0.97
   },
   {
-   "id": 164,
+   "id": 166,
    "name": "rear arm",
    "parent": "rear suspension",
    "side": "right",
@@ -4349,11 +4377,11 @@
     1562,
     1563
    ],
-   "texels": 31136,
-   "shared": 1.0
+   "texels": 32276,
+   "shared": 0.97
   },
   {
-   "id": 165,
+   "id": 167,
    "name": "rear damper",
    "parent": "rear suspension",
    "side": "left",
@@ -4367,11 +4395,11 @@
     493,
     494
    ],
-   "texels": 3677,
-   "shared": 1.0
+   "texels": 3808,
+   "shared": 0.97
   },
   {
-   "id": 166,
+   "id": 168,
    "name": "rear damper",
    "parent": "rear suspension",
    "side": "right",
@@ -4385,11 +4413,11 @@
     498,
     499
    ],
-   "texels": 3677,
-   "shared": 1.0
+   "texels": 3808,
+   "shared": 0.97
   },
   {
-   "id": 167,
+   "id": 169,
    "name": "upright cover",
    "parent": "rear suspension",
    "side": "left",
@@ -4400,11 +4428,11 @@
    "pieces": [
     790
    ],
-   "texels": 5391,
-   "shared": 1.0
+   "texels": 5484,
+   "shared": 0.98
   },
   {
-   "id": 168,
+   "id": 170,
    "name": "upright cover",
    "parent": "rear suspension",
    "side": "right",
@@ -4415,11 +4443,11 @@
    "pieces": [
     882
    ],
-   "texels": 5391,
-   "shared": 1.0
+   "texels": 5484,
+   "shared": 0.98
   },
   {
-   "id": 169,
+   "id": 171,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "left",
@@ -4439,11 +4467,11 @@
     678,
     679
    ],
-   "texels": 1956,
+   "texels": 1962,
    "shared": 1.0
   },
   {
-   "id": 170,
+   "id": 172,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "right",
@@ -4463,11 +4491,11 @@
     716,
     717
    ],
-   "texels": 1956,
+   "texels": 1962,
    "shared": 1.0
   },
   {
-   "id": 171,
+   "id": 173,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "left",
@@ -4487,11 +4515,11 @@
     768,
     769
    ],
-   "texels": 1956,
+   "texels": 1962,
    "shared": 1.0
   },
   {
-   "id": 172,
+   "id": 174,
    "name": "brake caliper",
    "parent": "wheel",
    "side": "right",
@@ -4511,18 +4539,50 @@
     880,
     881
    ],
-   "texels": 1956,
+   "texels": 1962,
    "shared": 1.0
   },
   {
-   "id": 173,
+   "id": 175,
+   "name": "brake light",
+   "parent": "wheel",
+   "side": "left",
+   "end": "front",
+   "mesh": "Details",
+   "tris": 70,
+   "area_cm2": 277.0,
+   "pieces": [
+    461,
+    462
+   ],
+   "texels": 5730,
+   "shared": 1.0
+  },
+  {
+   "id": 176,
+   "name": "brake light",
+   "parent": "wheel",
+   "side": "right",
+   "end": "front",
+   "mesh": "Details",
+   "tris": 70,
+   "area_cm2": 277.0,
+   "pieces": [
+    481,
+    482
+   ],
+   "texels": 5730,
+   "shared": 1.0
+  },
+  {
+   "id": 177,
    "name": "hub",
    "parent": "wheel",
    "side": "left",
    "end": "front",
    "mesh": "Details",
-   "tris": 1650,
-   "area_cm2": 5813.9,
+   "tris": 1580,
+   "area_cm2": 5536.9,
    "pieces": [
     449,
     450,
@@ -4536,8 +4596,6 @@
     458,
     459,
     460,
-    461,
-    462,
     463,
     464,
     465,
@@ -4545,18 +4603,18 @@
     467,
     468
    ],
-   "texels": 119456,
-   "shared": 1.0
+   "texels": 115118,
+   "shared": 0.99
   },
   {
-   "id": 174,
+   "id": 178,
    "name": "hub",
    "parent": "wheel",
    "side": "right",
    "end": "front",
    "mesh": "Details",
-   "tris": 1650,
-   "area_cm2": 5813.9,
+   "tris": 1580,
+   "area_cm2": 5536.9,
    "pieces": [
     469,
     470,
@@ -4570,8 +4628,6 @@
     478,
     479,
     480,
-    481,
-    482,
     483,
     484,
     485,
@@ -4579,11 +4635,11 @@
     487,
     488
    ],
-   "texels": 119456,
-   "shared": 1.0
+   "texels": 115118,
+   "shared": 0.99
   },
   {
-   "id": 175,
+   "id": 179,
    "name": "hub",
    "parent": "wheel",
    "side": "left",
@@ -4603,11 +4659,11 @@
     778,
     779
    ],
-   "texels": 115241,
-   "shared": 1.0
+   "texels": 116136,
+   "shared": 0.99
   },
   {
-   "id": 176,
+   "id": 180,
    "name": "hub",
    "parent": "wheel",
    "side": "right",
@@ -4627,11 +4683,11 @@
     869,
     870
    ],
-   "texels": 115241,
-   "shared": 1.0
+   "texels": 116136,
+   "shared": 0.99
   },
   {
-   "id": 177,
+   "id": 181,
    "name": "rim",
    "parent": "wheel",
    "side": "left",
@@ -4644,11 +4700,11 @@
     680,
     681
    ],
-   "texels": 165486,
+   "texels": 165892,
    "shared": 1.0
   },
   {
-   "id": 178,
+   "id": 182,
    "name": "rim",
    "parent": "wheel",
    "side": "right",
@@ -4661,11 +4717,11 @@
     731,
     732
    ],
-   "texels": 165486,
+   "texels": 165892,
    "shared": 1.0
   },
   {
-   "id": 179,
+   "id": 183,
    "name": "rim",
    "parent": "wheel",
    "side": "left",
@@ -4678,11 +4734,11 @@
     746,
     759
    ],
-   "texels": 165252,
-   "shared": 1.0
+   "texels": 166383,
+   "shared": 0.99
   },
   {
-   "id": 180,
+   "id": 184,
    "name": "rim",
    "parent": "wheel",
    "side": "right",
@@ -4695,11 +4751,11 @@
     883,
     884
    ],
-   "texels": 165252,
-   "shared": 1.0
+   "texels": 166383,
+   "shared": 0.99
   },
   {
-   "id": 181,
+   "id": 185,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "left",
@@ -4721,11 +4777,11 @@
     692,
     693
    ],
-   "texels": 1339,
-   "shared": 1.0
+   "texels": 1345,
+   "shared": 0.99
   },
   {
-   "id": 182,
+   "id": 186,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "right",
@@ -4747,11 +4803,11 @@
     743,
     744
    ],
-   "texels": 1339,
-   "shared": 1.0
+   "texels": 1345,
+   "shared": 0.99
   },
   {
-   "id": 183,
+   "id": 187,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "left",
@@ -4773,11 +4829,11 @@
     757,
     758
    ],
-   "texels": 1339,
-   "shared": 1.0
+   "texels": 1345,
+   "shared": 0.99
   },
   {
-   "id": 184,
+   "id": 188,
    "name": "wheel ring",
    "parent": "wheel",
    "side": "right",
@@ -4799,11 +4855,11 @@
     895,
     896
    ],
-   "texels": 1339,
-   "shared": 1.0
+   "texels": 1345,
+   "shared": 0.99
   },
   {
-   "id": 185,
+   "id": 189,
    "name": "sidewall",
    "parent": "tyre",
    "side": "left",
@@ -4819,7 +4875,7 @@
    "shared": 1.0
   },
   {
-   "id": 186,
+   "id": 190,
    "name": "sidewall",
    "parent": "tyre",
    "side": "right",
@@ -4835,7 +4891,7 @@
    "shared": 1.0
   },
   {
-   "id": 187,
+   "id": 191,
    "name": "sidewall",
    "parent": "tyre",
    "side": "left",
@@ -4851,7 +4907,7 @@
    "shared": 1.0
   },
   {
-   "id": 188,
+   "id": 192,
    "name": "sidewall",
    "parent": "tyre",
    "side": "right",
@@ -4867,7 +4923,7 @@
    "shared": 1.0
   },
   {
-   "id": 189,
+   "id": 193,
    "name": "tread",
    "parent": "tyre",
    "side": "left",
@@ -4883,7 +4939,7 @@
    "shared": 1.0
   },
   {
-   "id": 190,
+   "id": 194,
    "name": "tread",
    "parent": "tyre",
    "side": "right",
@@ -4899,7 +4955,7 @@
    "shared": 1.0
   },
   {
-   "id": 191,
+   "id": 195,
    "name": "tread",
    "parent": "tyre",
    "side": "left",
@@ -4915,7 +4971,7 @@
    "shared": 1.0
   },
   {
-   "id": 192,
+   "id": 196,
    "name": "tread",
    "parent": "tyre",
    "side": "right",
@@ -4931,7 +4987,7 @@
    "shared": 1.0
   },
   {
-   "id": 193,
+   "id": 197,
    "name": "canopy",
    "parent": "glass",
    "side": "centre",
@@ -4942,11 +4998,11 @@
    "pieces": [
     2070
    ],
-   "texels": 167981,
+   "texels": 169089,
    "shared": 0.28
   },
   {
-   "id": 194,
+   "id": 198,
    "name": "gear display",
    "parent": "glass",
    "side": "centre",
@@ -4957,11 +5013,11 @@
    "pieces": [
     2058
    ],
-   "texels": 5686,
+   "texels": 5758,
    "shared": 0.0
   },
   {
-   "id": 195,
+   "id": 199,
    "name": "gear display",
    "parent": "glass",
    "side": "left",
@@ -4978,11 +5034,11 @@
     2068,
     2069
    ],
-   "texels": 57554,
+   "texels": 57824,
    "shared": 0.0
   },
   {
-   "id": 196,
+   "id": 200,
    "name": "gear display",
    "parent": "glass",
    "side": "right",
@@ -4999,11 +5055,11 @@
     2061,
     2062
    ],
-   "texels": 57527,
+   "texels": 57801,
    "shared": 0.0
   },
   {
-   "id": 197,
+   "id": 201,
    "name": "mirror glass",
    "parent": "glass",
    "side": "left",
@@ -5014,11 +5070,11 @@
    "pieces": [
     2084
    ],
-   "texels": 366,
-   "shared": 1.0
+   "texels": 372,
+   "shared": 0.98
   },
   {
-   "id": 198,
+   "id": 202,
    "name": "mirror glass",
    "parent": "glass",
    "side": "right",
@@ -5029,11 +5085,11 @@
    "pieces": [
     2085
    ],
-   "texels": 366,
-   "shared": 1.0
+   "texels": 372,
+   "shared": 0.98
   },
   {
-   "id": 199,
+   "id": 203,
    "name": "nose lens",
    "parent": "glass",
    "side": "centre",
@@ -5051,11 +5107,11 @@
     2089,
     2090
    ],
-   "texels": 240169,
-   "shared": 0.75
+   "texels": 242595,
+   "shared": 0.74
   },
   {
-   "id": 200,
+   "id": 204,
    "name": "rear light lens",
    "parent": "glass",
    "side": "left",
@@ -5067,11 +5123,11 @@
     2072,
     2080
    ],
-   "texels": 35760,
+   "texels": 35792,
    "shared": 0.0
   },
   {
-   "id": 201,
+   "id": 205,
    "name": "rear light lens",
    "parent": "glass",
    "side": "right",
@@ -5083,11 +5139,11 @@
     2073,
     2081
    ],
-   "texels": 35887,
+   "texels": 36096,
    "shared": 0.0
   },
   {
-   "id": 202,
+   "id": 206,
    "name": "side lens",
    "parent": "glass",
    "side": "left",
@@ -5103,7 +5159,7 @@
    "shared": 1.0
   },
   {
-   "id": 203,
+   "id": 207,
    "name": "side lens",
    "parent": "glass",
    "side": "right",
@@ -5119,7 +5175,7 @@
    "shared": 1.0
   },
   {
-   "id": 204,
+   "id": 208,
    "name": "wing lens",
    "parent": "glass",
    "side": "left",
@@ -5130,11 +5186,11 @@
    "pieces": [
     2082
    ],
-   "texels": 8394,
-   "shared": 1.0
+   "texels": 8607,
+   "shared": 0.98
   },
   {
-   "id": 205,
+   "id": 209,
    "name": "wing lens",
    "parent": "glass",
    "side": "right",
@@ -5145,8 +5201,8 @@
    "pieces": [
     2083
    ],
-   "texels": 8394,
-   "shared": 1.0
+   "texels": 8607,
+   "shared": 0.98
   }
  ]
 }

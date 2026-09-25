@@ -7,7 +7,8 @@ Python's built-in web server serves two folders (ES modules don't load from file
   /        the repo's viewer/ folder: the page and three.js
   /data/   the work folder's viewer/ folder, all rebuildable:
              car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0, each
-                                  corner tagged with its part; parts.json lists the parts
+                                  corner tagged with its part (and on Details, its speed-display
+                                  segment); parts.json lists the parts
              <Set>_Shared.png     the texels that several parts share (mirrored or repeated)
              <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
              stock/*.png          Nadeo's stock textures, for anything a skin leaves out
@@ -71,10 +72,41 @@ def _stale(target, *sources):
 # ---- The car ----
 
 
+def digit_segments(p, n_tris):
+    """Per Details triangle: 0, or 1 + 7 * digit + segment on the speed display, so the viewer
+    lights whole bars (checkpoint 9). Digit 0 is the hundreds, on the car's left (+x); segments
+    0..6 are a..g as read from behind: top, upper right, lower right, bottom, lower left, upper
+    left, middle. Each bar is three long thin pieces (its face and two bevels); the backing
+    between the bars isn't long, and stays 0."""
+    from tool import segment
+    seg = segment.segments()
+    tris = np.flatnonzero(p.tri_mask("Details", "digit display"))
+    piece = seg["piece"][p.mesh_offset["Details"] + tris]
+    bars = []
+    for q in np.unique(piece):
+        (x0, y0, _), (x1, y1, _) = seg["piece_lo"][q], seg["piece_hi"][q]
+        if max(x1 - x0, y1 - y0) > 2 * min(x1 - x0, y1 - y0):
+            cx, cy, _ = seg["piece_centroid"][q]
+            bars.append((q, cx, cy, x1 - x0 > y1 - y0, 0 if cx > 5 else 2 if cx < -5 else 1))
+    out = np.zeros(n_tris, np.float32)
+    for k in range(3):
+        mine = [b for b in bars if b[4] == k]
+        xc = np.mean([b[1] for b in mine])
+        yc = np.mean([b[2] for b in mine])
+        for q, cx, cy, flat, _ in mine:
+            if flat:
+                s = 0 if cy > yc + 2 else 3 if cy < yc - 2 else 6
+            else:  # the car's left (+x) is the reader's left
+                s = (5 if cy > yc else 4) if cx > xc else (1 if cy > yc else 2)
+            out[tris[piece == q]] = 1 + 7 * k + s
+    return out
+
+
 def export_mesh():
     """car.bin: per mesh, one vertex per triangle corner (no index), with float32 positions,
-    normals, UVs and the part id of its triangle (car/parts.json). Also parts.json and, per
-    texture set, <Set>_Shared.png: the texels several parts share, for the viewer's overlay."""
+    normals, UVs and the part id of its triangle (car/parts.json); on Details also its segment of
+    the speed display (digit_segments). Also parts.json and, per texture set, <Set>_Shared.png:
+    the texels several parts share, for the viewer's overlay."""
     out_json, out_bin = DATA / "car.json", DATA / "car.bin"
     sources = (fbx.CACHE, paths.FBX, parts.PARTS_JSON, parts.CACHE, paths.REPO / "tool" / "naming.py")
     if not _stale(out_json, *sources):
@@ -94,6 +126,8 @@ def export_mesh():
             "uv": m["tri_uv"].reshape(-1, 2).astype(np.float32),
             "part": part.astype(np.float32),
         }
+        if name == "Details":
+            arrays["digit"] = np.repeat(digit_segments(p, len(m["tri_vertex"])), 3)
         entry = {"name": name, "vertices": len(corners)}
         for field, a in arrays.items():
             entry[field] = offset

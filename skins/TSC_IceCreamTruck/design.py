@@ -33,7 +33,7 @@ def design(s):
     s.paint("wheel covers", f"gloss {pink}")
     s.paint("wheel cover ring", "gloss cream")
     s.paint("rim", "gloss cream")
-    s.paint("hub", "gloss cream")
+    s.paint(["hub", "brake light"], "gloss cream")
     s.paint("brake caliper", mint)
     s.paint("inner", "charcoal satin")
     s.paint("front wing", "gloss ivory")

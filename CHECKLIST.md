@@ -613,6 +613,9 @@ Part 1 comes first, because every design depends on it.
     - `VIEWS.driving` is the game's Cam 1, fitted to the user's 1920x1080 screenshot (the car's
       box within 5 px): the camera 3.75 m up and 6.3 m behind the centre, tilted down 13.5°,
       fov 58.7° (the game's 90° wide at 16:9). `roomy` moves a view back on the page only.
+      Later the same day the user found the car too small and low in that framing: the view
+      keeps the game's camera position but aims at the car with a 40° lens (the game's exact
+      framing is in the comment on `VIEWS.driving`).
     - Views glide round the car (spherical interpolation), never through it. Spin is
       OrbitControls' autoRotate. Save picture renders at pixel ratio 2 with the plain framing
       and no buttons.
@@ -695,6 +698,55 @@ Part 1 comes first, because every design depends on it.
   - Afterwards, record what's possible under "Things we learned", update `CLAUDE.md`'s line on
     what a skin can't change, and give the paint box the words ("speed numbers", "brake
     lights").
+  - **Progress 2026-09-25 (Opus 5.5, on the Mac): research done, the test skin is ready.**
+    **Next:** on the Windows PC, `tool.skin show TSC_Lights_Test` then `install`, and the user's
+    in-game test (`skins/TSC_Lights_Test/notes.md` has the colour key and what to try; `key.png`
+    is the viewer's picture to compare with). Then the words, the notes and `CLAUDE.md` above.
+    - **Research** (web; Reddit threads read through an archive):
+      - Speed digits: very likely yes. On r/TrackMania (2021-2024) players colour them with the
+        `Details_I` RGB on the digits at alpha exactly 96. The game still lights only the
+        segments it needs; a wrong alpha (120) broke that. One comment says the game tints the
+        digits for effects (blue on cruise control, yellow on the yellow booster). Nadeo's
+        "digits color" reads "(… digits color : rear lights and glass gears)", so it may mean
+        the canopy's gear display. Threads: reddit.com/r/TrackMania/comments/uuwnkw,
+        /vsnzy3, /1fyh2ef, /n0nwri.
+      - Brake lights: yes, code 0 lights when braking anywhere on `Details_I` (xrayjay's table,
+        which Nadeo credits: web.archive.org/web/20230427111112/https://i.imgur.com/shkhz5i.jpg).
+        One report: orange brake lights lit "orange then red" (reddit …/o1wr5k).
+      - Initials and number: no. Nadeo's changelog of 2021-03-18
+        (blog.trackmania.com/2021/03/18/update-club-items-are-available) says the game mode sets
+        their colour: white in a normal race, orange in warm-up, the team's colour in team
+        modes, red in danger. The player sets the three letters in Settings > Profile >
+        Trigram; the mode sets the number. The DossardPlus plugin changes them only on your own
+        screen.
+    - **Measured on the stock files:**
+      - The brake lights are Details pieces 461 and 462 (and their twins): the slotted crescent
+        inside each front wheel, 19 cm behind the axle. Front wheels only; left and right share
+        texels. Now the part "brake light" (parent "wheel", in "wheels").
+      - The rear lights are pieces 241 (a bar each side) and 231 (a small centre piece), white
+        code 96 in the file, behind the "rear light lens" glass (stock `Glass_T` white). Now the
+        part "rear light". The lenses have their own texels per side (0 % shared).
+      - The speed display: three digits of seven segments. Each segment is a bar of three
+        pieces (its face and two bevels, split at the model's creases); the backing between
+        the bars is six more pieces. All 21 bars share one patch of texels, so the digits
+        take one colour, never one per digit or segment. The backing is dark: painting the
+        whole part would light it up, so `Skin.relight(where, colour)` recolours the stock
+        glow instead (each texel keeps its code and brightness).
+      - Piece 139 (a bevel of the right digit's bottom bar) had no mirror match and fell to
+        "rear diffuser"; it's named "digit display" now. TSC_Stealth_CMYK_Bold, which paints the
+        diffuser yellow, had painted that face yellow; it no longer does.
+    - `TSC_IceCreamSweet`, `TSC_IceCreamTruck` and `TSC_Stealth_CMYK` painted "hub" or "rear
+      bumper", which lost the new parts; they now list them too (their textures checked
+      identical).
+    - `car/parts.json`: the Mac recomputed every part's texels and shared share with the
+      current masks. The Windows cache (`parts_stats.json`) still holds figures from before
+      the coverage fix, so a rebuild there gives slightly different statistics. Harmless.
+    - **Viewer:** the speed display shows `?speed=` (218 by default) instead of 888, lighting
+      whole bars: `tool/view.py` `digit_segments` tags each bar's corners with its digit and
+      segment in `car.bin`, and `addDigits` reads that. (A first try picked segments by position
+      on the digit and cut across the bars; the user spotted it.) Show → Braking flares the brake lights (code-0 gain
+      8 by day, 10 at night: a guess until the game's screenshots). The rear lights still show
+      the file's colours; if the game keeps them red, the viewer should draw them red.
 
 ### [ ] 10. Tidy up for everyday use
 
