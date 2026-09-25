@@ -710,6 +710,16 @@ Part 1 comes first, because every design depends on it.
     **Queued, the user will do it later (2026-09-25):** a short video from behind while pulling
     away from a standstill, for the rear lights' gear display (fill-up or one at a time, the
     centre piece).
+    **Queued too: the rear wing flap in the viewer.** The user (2026-09-25): under full throttle
+    from a standstill the wing at the back starts to open at 1.5 s (about 75 km/h) and is fully
+    open at 2.5 s (about 115 km/h); checkpoint 4 saw it show red underneath. Likely the rear
+    deck behind the engine cover ("tail panel", z -161.8..-130.7, top at y 65.5) hinged at its
+    front edge, uncovering the rear lights; but the "tail corner" pieces reach forward to z
+    -122.6 and would cut into the body if they swung with it, so which pieces lift, the hinge
+    and the angle wait for the user's screenshot from the side with the wing fully open, and
+    when it closes (off the throttle, braking, or below a speed). Then: rotate those parts'
+    vertices about the hinge in the vertex shader (as `addDisplays` does per part), driven by
+    `stepDrive`.
     - **Research** (web; Reddit threads read through an archive):
       - Speed digits: very likely yes. On r/TrackMania (2021-2024) players colour them with the
         `Details_I` RGB on the digits at alpha exactly 96. The game still lights only the
