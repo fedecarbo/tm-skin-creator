@@ -44,9 +44,6 @@ Nothing.
   nose panel, with their arms) while braking. How far the wings move, the air brakes' angles
   and how quick they are were set by eye. A short video from the side (pull away, brake hard,
   let go) would pin them. Notes under the lights improvement in `CHECKLIST.md`.
-- **A tinted rear lens should filter the braking red** (2026-09-25, TSC_Lights_Test): in the
-  game, red through the cyan lens looked dark at night and teal by day; the viewer draws the
-  red without the lens. Idea: multiply the braking colour by the lens's `Glass_T` tint.
 
 ## To check in the game
 

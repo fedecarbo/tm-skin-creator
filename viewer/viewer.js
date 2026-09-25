@@ -527,7 +527,10 @@ showSpeed(SPEED);
 // both bars whole and the small centre piece, red; so does the car held at the start. ----
 
 // on: as "always on" (96). Braking also tints the bars' surface red: a red glow alone over the
-// pale stock surface washes out to peach under the tone mapping.
+// pale stock surface washes out to peach under the tone mapping. A tinted lens ("rear light lens")
+// filters that red as in the game, with nothing more here: the glass's transmission multiplies
+// what's behind it by Glass_T (behind cyan, dark by night and teal by day, as in the lights
+// test's videos; checked 2026-09-25).
 const REAR = { colour: [1, 0.015, 0.025], lens: [0.55, 0.06, 0.05], on: { day: 1.2, night: 1.8 }, brake: { day: 4, night: 4.5 } };
 // Gear changes, from the video: up at these speeds under full throttle, down at the lower ones
 // while coasting, and the speed pauses for a moment at each change up.

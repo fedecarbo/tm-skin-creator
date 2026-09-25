@@ -1065,6 +1065,12 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   centres, the user saw it round in the game (2026-09-25). `tool/parts.py` now takes them from
   `shapes` too, so the tyre's sidewall/tread split (34.5 cm) is round: it moved 33 triangles a
   tyre, nothing else changed, and TSC_CMYK_Peel_More repaints identically.
+- **2026-09-25, the viewer's lenses already filter the braking red (TSC_Lights_Test).** The
+  improvement list said the viewer drew the red without the lens. It doesn't: the glass is a
+  transmission material, which multiplies what's behind it by `Glass_T`. Behind the cyan lens
+  the braking red comes out dull teal by day and dark at night, as in the videos (day 12.4 s,
+  night 9.2 to 10 s); with the glass hidden both bars show red. Check the viewer against the
+  game before building a fix for it.
 - **2026-09-25, the lights test (TSC_Lights_Test, the user's day and night videos).** A skin can
   colour the speed digits, the rear lights (a glow colour and a lens tint, which multiply) and
   the brake lights inside the front wheels. It can't colour the initials and number: they stay
