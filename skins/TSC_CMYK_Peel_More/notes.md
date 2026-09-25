@@ -23,3 +23,13 @@ half of it gone, bigger tears and bigger flaps.
   the gears, braking and at night.
 - Installed 2026-09-25 at the user's yes ("Like it :)"): 5.82 MB, built in 169 s. Glow codes
   checked in the game file: rims 64 (orange), brake lights 0 (cyan), digits and rear lights 96.
+- Change 7 (user, 2026-09-25): "I actually don't like the rims. Any ideas? I don't want them to
+  be metallic", then "also maybe we can do something with the sidewalls as well? of the wheel".
+  The wheel covers still had the stock mirror chrome (roughness 0.01, metal 1). Three takes
+  shown as TSC_CMYK_Wheels_Black, _Stripes and _Magenta (all with matte black covers).
+- Change 8 (user): "I like the magenta line actually. It would be nice to just make it slightly
+  thicker but not too much. And if you can actually do a radial effect of that line that
+  gradients the cmyk ... The gradient to be around I mean ... Following the ring". The black
+  take, its sidewall line 1.2 cm instead of 0.8 (31.0-32.2 cm from the axle), running cyan at
+  each wheel's front, magenta over the top and bottom, orange at its back (`round_wheel`).
+  Wheel covers matte black like the wrap. New in the paint box: `shapes.wheel_ring`.

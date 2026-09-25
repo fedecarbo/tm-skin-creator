@@ -1,8 +1,11 @@
 """TSC_CMYK_Peel with half the wrap gone: bigger tears, bigger flaps. The run ends in orange
 rather than yellow (the user, 2026-09-25), and the lights are in the run's colours: cyan brake
 lights at the front, magenta speed numbers, rear lights that go cyan > magenta > orange as the
-gears climb, and rims that glow orange-hot when braking hard."""
+gears climb, and rims that glow orange-hot when braking hard. The wheels are matte black, with
+a line round each tyre that runs cyan > magenta > orange from the wheel's front to its back."""
 import importlib.util
+
+import numpy as np
 
 from tool import paths, shapes
 
@@ -15,9 +18,20 @@ DARK = "#1e1f22"
 
 
 BLACK = "#232528"  # the wrap's black
-# the wheels, three takes (2026-09-25: the user doesn't want the stock chrome covers). All four
-# wheels and tyres share one paint. None keeps the installed look.
-WHEELS = ("black", "stripes", "magenta")
+# the wheels (2026-09-25: the user doesn't want the stock chrome covers). All four wheels and
+# tyres share one paint. Three takes were shown; the user picked "black" and asked for its line
+# a little thicker, running through the colours: "gradient", this car's wheels.
+WHEELS = ("black", "stripes", "magenta", "gradient")
+
+
+def round_wheel(lo, hi):
+    """0 at `lo` and 1 at `hi` of the way round each wheel from its front (0) to its back (1),
+    over the top and under the bottom alike."""
+    def f(p, n):
+        zc = np.where(p[:, 2] > 30, shapes.WHEEL_Z[0], shapes.WHEEL_Z[1])
+        t = np.abs(np.arctan2(p[:, 1] - shapes.WHEEL_Y, p[:, 2] - zc)) / np.pi
+        return np.clip((t - lo) / (hi - lo), 0, 1)
+    return shapes.Zone(f)
 
 
 def wheels(s, take):
@@ -31,9 +45,14 @@ def wheels(s, take):
             s.paint("sidewall", "satin", colour=colour, zone=shapes.wheel_ring(r - 0.4, r + 0.4))
     elif take == "magenta":  # the covers' outer ring in satin magenta, the rest black
         s.paint("wheel cover ring", "satin", colour=M)
+    elif take == "gradient":  # the black take's line, 1.2 cm instead of 0.8, cyan > magenta > orange
+        line = shapes.wheel_ring(31.0, 32.2)
+        s.paint("sidewall", "satin", colour=C, zone=line)
+        s.paint("sidewall", "satin", colour=M, zone=line & round_wheel(0, 0.5))
+        s.paint("sidewall", "satin", colour=ORANGE, zone=line & round_wheel(0.5, 1))
 
 
-def design(s, wheel_take=None):
+def design(s, wheel_take="gradient"):
     _peel.design(s, more=True, end=ORANGE)
     s.relight("brake lights", C)
     s.relight("speed numbers", M)
@@ -45,5 +64,4 @@ def design(s, wheel_take=None):
     # so the rims go back to the dark satin
     s.glow("rim", ORANGE, "brake heat")
     s.paint("rim", "satin", colour=DARK)
-    if wheel_take:
-        wheels(s, wheel_take)
+    wheels(s, wheel_take)
