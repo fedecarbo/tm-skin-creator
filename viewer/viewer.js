@@ -730,18 +730,54 @@ function showAirbrakes(t) {  // 0 down .. 1 up
   });
 }
 
-// The wings' and air brakes' parts move in the vertex shader, in the materials and in the
-// shadow's depth pass. After addParts, which declares the part attribute.
+// ---- The wheels turn with the pad's speed (the user, 2026-09-25). What turns about each axle:
+// the tyre, the rim, the thin ring at the tyre's bead, the wheel covers, and the small split
+// ring at the centre (named "brake caliper" in checkpoint 3, but it sits 5 to 7 cm from the
+// axle on the outer face). What stays: the fairing inside the wheel ("hub") and the brake light
+// that shows through its slot, always behind the axle in the game. Axles from tool/shapes.py.
+// A screen can't show the true rate (at 400 km/h a wheel turns 290° a frame and would seem to
+// crawl or run backwards), so the turn eases off towards SPIN.max (rad/s, about 4 turns a
+// second): true at walking pace, a steady fast spin from about 40 km/h. Snapshots keep the
+// wheels still; ?spin=90 turns them by that many degrees there. ----
+const SPIN = { radius: 0.364, max: 25, axle: [0.35252, 1.78314, -1.20163],
+  parts: ['tread', 'sidewall', 'rim', 'wheel ring', 'wheel cover ring', 'wheel cover disc', 'wheel cover hub', 'brake caliper'] };
+const spinUniforms = { spinAngle: { value: snap ? THREE.MathUtils.degToRad(Number(params.get('spin') ?? 0)) : 0 },
+  spinIds: { value: new Array(40).fill(-1) } };
+function setupSpin() {
+  const ids = partsState.doc.parts.flatMap((p, i) => (SPIN.parts.includes(p.name) ? [i] : []));
+  spinUniforms.spinIds.value = [...ids, ...new Array(40).fill(-1)].slice(0, 40);
+}
+function stepSpin(dt) {
+  const omega = drive.speed / 3.6 / SPIN.radius;  // rad/s
+  spinUniforms.spinAngle.value = (spinUniforms.spinAngle.value + SPIN.max * Math.tanh(omega / SPIN.max) * dt) % (2 * Math.PI);
+}
+
+// The wings', air brakes' and wheels' parts move in the vertex shader, in the materials and in
+// the shadow's depth pass. After addParts, which declares the part attribute.
 function addWing(material) {
   const previous = material.onBeforeCompile;
   const previousKey = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
   material.onBeforeCompile = (shader) => {
     if (previous) previous(shader);
-    Object.assign(shader.uniforms, wingUniforms, tiltUniforms);
+    Object.assign(shader.uniforms, wingUniforms, tiltUniforms, spinUniforms);
     const declare = shader.vertexShader.includes('attribute float part') ? '' : 'attribute float part;';
+    const [wy, wzFront, wzRear] = SPIN.axle.map((a) => a.toFixed(5));
     shader.vertexShader = shader.vertexShader
       .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
         ${declare}
+        uniform float spinAngle; uniform float spinIds[ 40 ];
+        // the wheels: a turning part's corners go round its axle (the front one ahead of z 0.3 m).
+        // point: a position (else a normal, which only turns). A positive angle rolls forward.
+        vec3 spinMove( vec3 v, vec3 at, float p, bool point ) {
+          if ( spinAngle == 0.0 ) return v;
+          bool turns = false;
+          for ( int i = 0; i < 40; i++ ) if ( abs( p - spinIds[ i ] ) < 0.5 ) turns = true;
+          if ( !turns ) return v;
+          float c = cos( spinAngle ), s = sin( spinAngle );
+          vec3 axle = point ? vec3( 0.0, ${wy}, at.z > 0.3 ? ${wzFront} : ${wzRear} ) : vec3( 0.0 );
+          vec3 r = v - axle;
+          return axle + vec3( r.x, r.y * c - r.z * s, r.y * s + r.z * c );
+        }
         uniform float wingOut[ 2 ]; uniform float wingApart[ 2 ]; uniform float wingIds[ 16 ]; uniform float wingOf[ 16 ];
         vec3 wingMove( vec3 v, float p ) {
           if ( wingOut[ 0 ] == 0.0 ) return v;  // shut
@@ -782,9 +818,9 @@ function addWing(material) {
           return v;
         }`)
       .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
-        objectNormal = tiltMove( objectNormal, part, false );`)
+        objectNormal = tiltMove( spinMove( objectNormal, position, part, false ), part, false );`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-        transformed = tiltMove( wingMove( transformed, part ), part, true );`);
+        transformed = tiltMove( wingMove( spinMove( transformed, position, part, true ), part ), part, true );`);
   };
   material.customProgramCacheKey = () => `${previousKey()}-wing`;
 }
@@ -880,6 +916,7 @@ function stepDrive(now) {
   if (drive.speed >= WING.openFrom) drive.wingUp = true;
   else if (drive.speed < WING.shutBelow) drive.wingUp = false;
   stepWing(dt);
+  stepSpin(dt);
   const heat = braking || drive.brake
     ? Math.min(1, drive.heat + dt / BRAKE_HEAT.up) : Math.max(0, drive.heat - dt / BRAKE_HEAT.down);
   if (heat !== drive.heat) {
@@ -1038,6 +1075,7 @@ function makeMaterials(tex) {
   if (tex.Details_I) addDisplays(details);
   addWing(skin);
   addWing(details);
+  addWing(wheels);  // for the wheels' turn
   return out;
 }
 
@@ -1344,6 +1382,7 @@ async function start() {
   setupRearLights();
   setupWing();
   setupAirbrakes(geoms);
+  setupSpin();
   showAirbrakes(drive.airbrake);
   await loadSkin(skinName);
   setNight(false);

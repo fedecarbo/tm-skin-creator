@@ -25,7 +25,10 @@ Nothing.
 - **Some inner part names are guesses** (2026-09-24, checkpoint 3): side vent, side vane, nose
   sensor, airbox. Check them the first time a design paints them. Known since the air brakes
   (2026-09-25): "nose sensor" is the nose panel's lifting arms, "rear damper" the rear quarter
-  panel's arm, and "airbox" the opening under each quarter panel. Renaming them means updating
+  panel's arm, and "airbox" the opening under each quarter panel. Known since the turning
+  wheels (2026-09-25): "brake caliper" is the split ring at each wheel's centre (5 to 7 cm from
+  the axle, on the outer face, under the cover's hub), and "hub" the fixed fairing inside the
+  wheel, with the brake light in its slot. Renaming them means updating
   `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
   the viewer.
 
@@ -46,11 +49,6 @@ Nothing.
   nose panel, with their arms) while braking. How far the wings move, the air brakes' angles
   and how quick they are were set by eye. A short video from the side (pull away, brake hard,
   let go) would pin them. Notes under the lights improvement in `CHECKLIST.md`.
-- **The wheels should turn** (2026-09-25, the user): on the pad, the wheels should spin with
-  the speed, faster as the car accelerates and slower as it brakes, so a design on the tyres
-  or wheel covers shows as it will in motion. Idea: turn the wheel and tyre triangles about
-  each axle (`shapes.WHEEL_Y/WHEEL_Z`, radius about 36.5 cm) in the vertex shader, as the wings
-  move, at the pad's speed divided by the radius; a fast blur may be needed at high speed.
 - **Turbo on the pad** (2026-09-25, the turbo videos): a Turbo button that does what a yellow
   pad did in the game: the turbo glow (code 160, the stock hubs) in the pad's colour for about
   3 s, fading over the last half second, the rear lights red for about 1.5 s, and the speed
@@ -68,6 +66,9 @@ These need the user to drive or look, so they're tested when a skin uses them.
   the chase cameras: a skin testing exhaust heat needs it on a part seen from behind. Still
   to see: a reactor boost, a red turbo pad (red, as the pad?), and whether the sidepod frames
   light with the turbo like the hubs.
+- **Whether the wheel covers turn** (2026-09-25): the viewer turns them with the tyres and
+  rims; the tyres are known to turn (the tyre line in the game), the covers are assumed to. A
+  skin with a pattern on the covers, driven slowly past the camera, would show it.
 - **How see-through the glass is** (2026-09-24, checkpoint 4): the glass file's alpha made no
   visible difference, so the tool treats glass as tint only.
 - **The upload size limit.** Zips stay under 8.5 MB until a limit shows up (2026-09-24,
