@@ -496,7 +496,8 @@ function setPlate(on) {
 // lights three digits, leading zeros too ("075"), and a stopped car shows "000" (the user's
 // straight-line video, 2026-09-25).
 
-const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? 180)) || 0));
+// The page starts standing still (the user, 2026-09-25); snapshots keep 180, so the digits show lit.
+const SPEED = Math.max(0, Math.min(999, Math.round(Number(params.get('speed') ?? (snap ? 180 : 0))) || 0));
 const SEVEN = [0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f];  // 0-9, bits a b c d e f g
 const digitUniforms = { digitMask: { value: [0, 0, 0] } };
 function showSpeed(kmh) {
