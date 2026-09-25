@@ -60,12 +60,13 @@ for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(par
 // grey. From the user's game screenshots (2026-09-24, CHECKLIST.md): brake lights glow dimly
 // all the time and flare towards white when braking (checkpoint 1's stock strips); the front lights are
 // bright white by day and at night; "always on" keeps its colour; "night only" comes on at night
-// (and on a dusk map); energy is dim and tinted by the game (red for this player). Brake heat,
-// turbo, exhaust heat and boost weren't seen to light up, so they stay off.
+// (and on a dusk map); energy is dim and tinted by the game (red for this player). Brake heat
+// lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT). Turbo, exhaust heat
+// and boost weren't seen to light up, so they stay off.
 const GLOW = [
   { code: 0, day: 1.2, night: 1.8 },  // brake lights: dim all the time, brighter when braking
   { code: 32, day: 0.6, night: 1, tint: [1, 0.2, 0.2] },  // energy, tinted by the game
-  { code: 64, day: 0, night: 0 },  // brake heat: only when braking hard
+  { code: 64, day: 0, night: 0 },  // brake heat: while braking (BRAKE_HEAT)
   { code: 96, day: 1.2, night: 1.8 },  // always glowing, its own colour
   { code: 128, day: 4, night: 8 },  // front lights, bright white day and night
   { code: 160, day: 0, night: 0, tint: [0.15, 1, 0.3] },  // turbo colour, green in the game
@@ -782,34 +783,37 @@ function wingDepthMaterial() {
 
 // Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white). Show →
 // Braking holds them on (for a picture); the pad's Brake while it's held.
-// Turbo: the turbo-colour areas (code 160: the rings round the wheels, the front wing's lower
-// edges) glow in the game's green from 100 km/h. Provisional: checkpoint 1 saw them green while
-// driving and dark at rest, and the user thinks turbo comes on at 100 (2026-09-25); the lights
-// test (skins/TSC_Lights_Test/notes.md) is to confirm. Snapshots keep it off.
+// Brake heat (code 64): the lights test's videos (2026-09-25) show the rims glow faint red
+// within a moment of braking, red-orange at 1 s, bright orange (their colour) at 1.5 s, and fade
+// out over about 1 s after letting go. The glow goes with the square of the heat, so it starts
+// faint. Show → Braking shows it full on.
+// Turbo (code 160) isn't on the pad: it comes from turbo pads. A first try lit it from 100 km/h,
+// but the lights test's videos (2026-09-25) show nothing green on a straight up to 357 km/h.
 const BRAKING = { day: 8, night: 10 };
-const TURBO = { from: 100, day: 1.2, night: 1.8 };
+const BRAKE_HEAT = { up: 1.5, down: 1.3, day: 1.5, night: 2 };
 let braking = false, night = false;
 function setBraking(on) {
   braking = on;
+  if (on) drive.heat = 1;
   pressed(byId('brakeToggle'), on);
   applyBraking();
 }
 function applyBraking() {
   const look = night ? 'night' : 'day';
   glowUniforms.glowGain.value[0] = braking || drive.brake ? BRAKING[look] : GLOW[0][look];
-  glowUniforms.glowGain.value[5] = drive.turbo ? TURBO[look] : GLOW[5][look];
+  glowUniforms.glowGain.value[2] = drive.heat ** 2 * BRAKE_HEAT[look];
   const brake = braking || drive.brake;
   rearUniforms.rearBrake.value = brake ? 1 : 0;
   rearUniforms.rearLevel.value = (brake ? REAR.brake : REAR.on)[look];
 }
 
 // ---- The pad under the car: hold Accelerate or Brake (or ↑/W, ↓/S) and the car shows it, the
-// speed on its digits, the gear on its rear lights, the brake lights and the turbo (the user's
+// speed on its digits, the gear on its rear lights, the brake lights and brake heat (the user's
 // idea, 2026-09-25). The pace is the game's, read frame by frame off the user's straight-line
 // video (2026-09-25; CHECKLIST.md): full throttle from a standstill on the flat reaches 101 km/h
-// at 1.8 s, 162 at 3.6 s, 236 at 6.2 s, 342 at 10.7 s and 372 at 12 s. Brake stops the car in
-// about half a second. Reactor boost and the other glows join once the game's screenshots show
-// what they do. ----
+// at 1.8 s, 162 at 3.6 s, 236 at 6.2 s, 342 at 10.7 s and 372 at 12 s. Braking is the lights
+// test's videos (2026-09-25): BRAKE. Reactor boost and the other glows join once the game's
+// screenshots show what they do. ----
 
 // km/h per second from each speed up. The video stops at 372: past it the last pace goes on, a guess.
 const PACE = [[0, 56], [101, 37], [162, 40], [200, 25]];
@@ -817,7 +821,11 @@ const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
 // Letting go (no brake): the car loses 3.5 km/h a second plus 0.3 of its speed, so it rolls
 // from 371 km/h to a stop in about 11.6 s, as in the video.
 const coast = (kmh) => 3.5 + 0.3 * kmh;
-const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, turbo: false, shown: '', last: 0,
+// Braking hard (the lights test's videos, read off the digits): about 180 km/h a second from
+// 290 to 145 and 145 from 185 to 85, so 93 + 0.4 of the speed; from 357 or 314 the car stopped
+// in 2 to 2.5 s.
+const BRAKE = (kmh) => 93 + 0.4 * kmh;
+const drive = { speed: SPEED, gear: gearFor(SPEED), pause: 0, gas: false, brake: false, heat: 0, shown: '', last: 0,
   wingUp: SPEED >= WING.openFrom, wingOut: 0, wingApart: 0, wingPause: 0, airbrake: snap ? Number(params.get('airbrake') ?? 0) : 0 };
 {  // at the start: open at speed; in snapshots shut, or ?wing= (0.5 out, 1 open too)
   const open = snap ? Number(params.get('wing') ?? 0) : +(SPEED >= WING.openFrom);
@@ -845,7 +853,7 @@ function stepWing(dt) {
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
-  if (drive.brake) drive.speed -= 700 * dt;
+  if (drive.brake) drive.speed -= BRAKE(drive.speed) * dt;
   else if (!drive.gas) drive.speed -= coast(drive.speed) * dt;
   else if (drive.pause > 0) drive.pause -= dt;  // changing up: the speed holds
   else drive.speed += climb(drive.speed) * dt;
@@ -859,11 +867,11 @@ function stepDrive(now) {
   if (drive.speed >= WING.openFrom) drive.wingUp = true;
   else if (drive.speed < WING.shutBelow) drive.wingUp = false;
   stepWing(dt);
-  const turbo = drive.speed >= TURBO.from;
-  if (turbo !== drive.turbo) {
-    drive.turbo = turbo;
+  const heat = braking || drive.brake
+    ? Math.min(1, drive.heat + dt / BRAKE_HEAT.up) : Math.max(0, drive.heat - dt / BRAKE_HEAT.down);
+  if (heat !== drive.heat) {
+    drive.heat = heat;
     applyBraking();
-    byId('padTurbo').classList.toggle('on', turbo);
   }
   const kmh = Math.round(drive.speed), shown = `${kmh} ${drive.gear}`;
   if (shown !== drive.shown) {

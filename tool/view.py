@@ -229,7 +229,8 @@ def export_skin(name, textures):
     folder = DATA / "skins" / name
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.glob("*.png"):
-        old.unlink()
+        if old.name != "thumb.png":  # the gallery's picture (tool/gallery.py)
+            old.unlink()
     own = set(_write_slots(folder, textures))
     stock = set(json.loads((STOCK / "stock.json").read_text()))
     urls = {}

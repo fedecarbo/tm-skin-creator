@@ -91,18 +91,21 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
 - Paint can't fake big 3D shapes (curls, folds): use small, crisp cues. A painted shadow must be
   the same width all round (as if lit from above), or it looks wrong from the other camera.
 - Glow is for the inner car only: `s.glow(part, colour, kind)`. Seen working: "always on",
-  "night only", "front lights" (white), "energy" (the game tints it), "brake lights". Brake
-  heat, turbo, exhaust heat and boost were never seen to light up, so don't promise them.
+  "night only", "front lights" (white), "energy" (the game tints it), "brake lights", "brake
+  heat" (rims glow while braking hard, building over about 1.5 s). Turbo, exhaust heat and
+  boost were never seen to light up, so don't promise them.
+- The car's own lights take any colour: `s.relight("speed numbers" | "brake lights" | "rear
+  lights", colour)`. The rear lights fill up with the gear in that colour and turn red when
+  braking, whatever the colour. A tinted rear lens ("rear light lens") colours them too, and
+  filters the braking red: keep it clear or warm.
 - `s.glass(colour, strength)` only tints. It also tints the lights behind the lenses.
 - Most inner parts share their paint with their twin on the other side, so `"…|left"` also
   paints the right (`show` notes it). All four wheels and tyres share one paint, and writing on
   a tyre reads backwards on one side.
 - `s.dirt(amount)`: how dirty the car gets on dirt (1 = stock, 0 never).
 - Say these can't be done, if asked: holographic or colour-shift paint, relief on the body,
-  the player's number and name, the turbo colour, the gear display on the glass.
-- The speed digits and the rear lights can take a colour in the game (the user's screenshots,
-  2026-09-25), but the paint box has no words for them until the lights test in
-  `IMPROVEMENTS.md` is done: say that, rather than that it can't be done.
+  the player's number and name or their colour (the game mode sets it: white in a normal race), the turbo colour,
+  the gear display on the glass.
 
 ## Before showing anything
 

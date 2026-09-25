@@ -10,13 +10,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
-- **Your own colours for the speed numbers, brake lights and car number** (2026-09-25, the
-  user). Research done on the Mac: the speed digits and brake lights very likely can take a
-  colour; the car's initials and number can't. The user's night screenshots of a pink-lit
-  skin (2026-09-25) prove the digits and the rear lights' gear bands take a skin's colour.
-  TSC_Lights_Test is installed on the Windows PC (2026-09-25). **Next:** the user drives it
-  (brake, turbo, day and night, F12 screenshots), then the paint box gets the words ("speed
-  numbers", "rear lights", "brake lights"). Notes and the full test in `CHECKLIST.md`.
+Nothing.
 
 ## The tool
 
@@ -43,13 +37,18 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   `viewer/viewer.js`; Decisions, "The game's cameras"). Needs a screenshot of each camera from
   the user, standing still and at speed: the straight-line video shows Cam 1 pulling back
   and lower as the speed rises and closing in again when the car slows, so each camera may
-  follow the pad's speed.
+  follow the pad's speed. The lights test's two videos (2026-09-25, this PC) show Cam 1 through
+  a whole run and a hard stop, day and night.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
+  The lights test's videos have one ("CAR 00", day at 13.2 s, night at 10.8 s).
 - **The rear wings and air brakes, fine-tuning** (2026-09-25): the viewer opens both wings (up
   or down, then apart) at the video's pace, and raises the air brakes (rear quarter panels,
   nose panel, with their arms) while braking. How far the wings move, the air brakes' angles
   and how quick they are were set by eye. A short video from the side (pull away, brake hard,
   let go) would pin them. Notes under the lights improvement in `CHECKLIST.md`.
+- **A tinted rear lens should filter the braking red** (2026-09-25, TSC_Lights_Test): in the
+  game, red through the cyan lens looked dark at night and teal by day; the viewer draws the
+  red without the lens. Idea: multiply the braking colour by the lens's `Glass_T` tint.
 
 ## To check in the game
 
@@ -57,8 +56,10 @@ These need the user to drive or look, so they're tested when a skin uses them.
 
 - **Finishes never seen in the game** (2026-09-24, checkpoint 5): candy, chrome rims, rust,
   leather, metallic flake.
-- **Glows never seen to light up** (2026-09-24, checkpoint 4): brake heat, turbo colour,
-  exhaust heat, boost. The viewer shows them off. The lights test skin carries all four.
+- **Glows never seen to light up** (2026-09-24, checkpoint 4): turbo colour, exhaust heat,
+  boost (brake heat lit in the lights test, 2026-09-25). The viewer shows them off.
+  TSC_Lights_Test carries all three (sidepod frames, side vents, rear strakes): needs a track
+  with turbo pads (yellow and red) and a reactor boost, with the camera behind the car.
 - **How see-through the glass is** (2026-09-24, checkpoint 4): the glass file's alpha made no
   visible difference, so the tool treats glass as tint only.
 - **Does a skin installed while the game is running show up without a restart?** (2026-09-24,

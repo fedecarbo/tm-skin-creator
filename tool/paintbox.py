@@ -12,7 +12,7 @@
         s.text("27", "left side", colour="black", font="russo", height=28)
         s.glow("sidepod frame", "electric blue")              # always on (inner car only)
         s.glow("brake caliper")                               # glow in the colour painted on it
-        s.relight("digit display", "lime")                    # the stock glow, recoloured
+        s.relight("speed numbers", "lime")                    # the stock glow, recoloured
         s.paint("sidewall", "white rubber")                   # the tyres' sides
         s.glass("smoke", 0.6)                                 # tint the glass
         s.dirt(0.5)                                           # half as dirty as stock on dirt
@@ -29,7 +29,8 @@ earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn
 `where`: a part or assembly name from car/parts.json, a list of them, or one of the words
 "body" (the paint set without the wheel covers), "wheels" (the covers, rims, hubs and wheel
 rings: their own design step, never touched by body paint), "wheel covers", "inner" (Details),
-"tyres" (Wheels), "glass", "everything".
+"tyres" (Wheels), "glass", "everything". The lights have plain words too (LIGHT_WORDS): "speed
+numbers", "brake lights", "rear lights".
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front".
 
 The result: Skin.textures() gives the game's textures as float arrays; show() puts them in the
@@ -59,6 +60,10 @@ SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside":
 WHEEL_COVER_PARTS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "brake light", "wheel ring")
 GLOW_CODES = np.array([0, 32, 64, 96, 128, 160, 192, 224, 255])
+# the lights a skin can recolour, in plain words (the lights test, 2026-09-25), for relight()
+LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display", "speedometer": "digit display",
+               "digits": "digit display", "brake lights": "brake light", "rear lights": "rear light",
+               "tail lights": "rear light", "gear lights": "rear light"}
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
 # seen from, the largest sensible width (cm). Measured on the model (2026-09-24).
@@ -205,6 +210,7 @@ class Skin:
                         out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
                 continue
             bits = [b.strip() for b in key.split("|")]
+            bits[0] = LIGHT_WORDS.get(bits[0], bits[0])
             side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
             end = next((b for b in bits[1:] if b in ("front", "rear")), None)
             ids = self.parts.select(bits[0], side=side, end=end)
@@ -371,7 +377,13 @@ class Skin:
         brightness, so the pattern stays: the speed digits' segments with their dark backing, the
         brake lights' slots. The brightest texel takes the full colour. The
         paint is left as it is (a painted digit would show "888" by day). Glows whose colour
-        the game supplies (energy, turbo, boost) stay grey."""
+        the game supplies (energy, turbo, boost) stay grey.
+
+        In the game (the lights test, 2026-09-25): "speed numbers" show only the lit segments, in
+        this colour, braking or not. "brake lights" (the slots inside the front wheels) glow dimly
+        and flare towards white while braking. "rear lights" fill up band by band with the gear
+        in this colour and turn fully red while braking, whatever the colour. A tinted rear lens
+        (glass) filters them, the braking red too: red through a blue or green lens looks dark."""
         col = np.asarray(colours.get(colour), np.float32)
         own = [g["code"] for g in finishes.GLOWS.values() if g["keeps colour"]]
         for tset, ids in self._ids(where).items():

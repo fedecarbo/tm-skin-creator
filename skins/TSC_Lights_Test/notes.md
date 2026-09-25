@@ -48,3 +48,9 @@ them light up (checkpoint 4), so they sit on bigger, plainer spots here.
 - Shown 2026-09-25 (Windows PC, Opus 5.5): painted as on the Mac, views as `key.png` predicts.
 - Installed 2026-09-25: 5.46 MB, its roughness map (`Details_R`) at 2048² to stay under the
   zip budget (9.28 MB at 4096²). Waiting for the user's drive.
+- Driven 2026-09-25: the user's day and night videos (full throttle, then a hard stop, on a
+  straight with no pads). Green digits: yes. Rear lights magenta, blue behind the cyan lens:
+  both work; braking turns them red, and the cyan lens darkens that red. Brake lights blue,
+  flaring blue-white: yes. Lettering: white on both panels, so no. Brake heat: orange rims,
+  building over ~1.5 s and fading ~1 s after. Turbo, exhaust heat, boost: not triggered (no
+  pads). Full notes in `CHECKLIST.md`, under the lights improvement.

@@ -715,7 +715,7 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       viewer thins its strokes a little (`PLATE_THIN` 0.02 of the letters' size, their pick
       out of four, 2026-09-25).
 
-### Your own colours for the speed numbers, brake lights and car number (in progress)
+### Your own colours for the speed numbers, brake lights and car number (done 2026-09-25)
 
 - **What it's for:** finding out what a skin can colour beyond its paint, then making the tool
   do it, so that when you design a skin you can simply say the colours. Three things:
@@ -845,7 +845,8 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       shows "Turbo". The user thinks turbo comes on at 100 (2026-09-25), and checkpoint 1 saw
       those areas green while driving and dark at rest. The documented trigger is "turbo
       input" (below), so the lights test is to settle it. Snapshots keep it off. Once the game's screenshots show what turbo, boost
-      and the other glows do, they join the pad as states.
+      and the other glows do, they join the pad as states. **Taken out 2026-09-25:** the lights
+      test's videos show nothing green up to 357 km/h on a straight without pads.
     - **The rear lights are a gear display** (the user, from the game, 2026-09-25): standing
       still only the far left and right ends light, each gear lights the next band (five
       gears), braking lights it all red. Each side's bar has five bands, split by dark lines in
@@ -942,7 +943,42 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
       inner parts ships the stock roughness (2048², grainy) upscaled to 4096², which barely
       compresses. `build_zip` now halves the roughness maps, largest first, when a zip is over
       `ZIP_BUDGET` (see Things we learned); this one came out 5.46 MB, `Details_R` at 2048².
-      **Next:** the user drives it (the notes' "What to try"), then the words in the paint box.
+    - **The user's two videos (2026-09-25):** `light-test-day.mp4` (17.5 s) and
+      `light-test-night.mp4` (14.5 s), repo root, Windows PC only, git-ignored. Cam 1, 2560x1440
+      at 30 fps: full throttle on a flat straight to 357 (day) or 314 km/h (night), then hard
+      braking to a stop (the day one ends in a spin). No pads, no boost. Read frame by frame
+      (PyAV 18.1.0 in a scratch folder; the user's overlay shows the pedals).
+      - **Speed digits:** green by day and night, only the lit segments (the unlit ones dark,
+        faintly visible by day), green while braking too. Yes.
+      - **Rear lights:** the right bar glows magenta, the left (behind the cyan-tinted lens)
+        blue: magenta through cyan. So both the glow colour and the lens tint work. They fill
+        up band by band with the gear, in that colour. Braking turns the bars and the centre
+        piece red, whatever the colour, the instant the pedal goes down and off the instant
+        it's released; behind the cyan lens that red looked dark by night and teal by day (the
+        tint filters it). Yes, with that catch.
+      - **Brake lights (the slots inside the front wheels):** dim blue at rest (seen at night),
+        flaring blue to near white while braking, back to dim at once. No red showed through.
+        Yes.
+      - **Initials and number:** white on the yellow and on the blue panel, day and night. The
+        game mode sets them, as researched. No.
+      - **Brake heat (code 64), seen for the first time:** the rims (all four) glow faint red
+        within a moment of braking hard, red-orange at 1 s, the painted orange by 1.5 s, and
+        fade out over about 1 s after letting go. The viewer's pad now does this
+        (`BRAKE_HEAT`: the glow goes with the square of the heat).
+      - **Braking pace:** read off the digits, about 180 km/h a second from 290 to 145 and 145
+        from 185 to 85; from 357 or 314 the car stopped in 2 to 2.5 s. The pad's Brake is now
+        93 + 0.4 of the speed a second (`BRAKE`), not the old 700.
+      - **Turbo, exhaust heat, boost:** not triggered (no pads). The provisional turbo from 100
+        km/h is out of the viewer. They stay on the improvement list's game checks.
+      - Also seen: the air brakes (quarter panels and nose panel) up only while braking; Cam 1
+        closing in as the car slows (for the cameras item); the engine cover's lettering close
+        up (day 13.2 s, night 10.8 s: for the lettering item).
+    - **The words:** `LIGHT_WORDS` in `tool/paintbox.py`: `s.relight("speed numbers" | "brake
+      lights" | "rear lights", colour)`, and `glass()` or a paint on "rear light lens" tints a
+      lens. `relight`'s docstring says what the game does with each.
+    - Found on the way: `view.export_skin` deleted the gallery's `thumb.png` when a skin was
+      re-exported (a lone `tool.snap` run), so the viewer's list lost that skin's picture until
+      the next gallery refresh. It keeps it now.
 
 ## Decisions (for Claude)
 
@@ -1004,6 +1040,13 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
 
 ## Things we learned
 
+- **2026-09-25, the lights test (TSC_Lights_Test, the user's day and night videos).** A skin can
+  colour the speed digits, the rear lights (a glow colour and a lens tint, which multiply) and
+  the brake lights inside the front wheels. It can't colour the initials and number: they stay
+  white. Braking turns the rear lights red whatever their colour, and a tinted lens filters
+  that red too (keep the rear lenses clear or warm). Brake heat works: the rims glow while
+  braking hard, building over about 1.5 s. A straight without pads lights no turbo colour at
+  any speed. Details under the lights improvement.
 - **2026-09-25, the zip budget (TSC_Lights_Test).** Ubisoft's Ubi-Milky passed on in 2022
   that "the team were a little concerned about the 9mb car skin file size, believing it may be
   too big" (devtrackers.gg/trackmania/p/95b8392e): the only public word on a limit, and none

@@ -64,7 +64,8 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
 
 - The game reads the wheel files and `Glass_T` (not the `Glass_D` in Nadeo's post).
 - Every texture is optional: anything left out of the zip keeps the stock look. Skin, Details
-  and Wheels take 4096² (Wheels 1024×2048). Keep zips ≤ 8.5 MB until an upload limit shows up.
+  and Wheels take 4096² (Wheels 1024×2048). Keep zips ≤ 8.5 MB until an upload limit shows up:
+  `build_zip` halves the roughness maps when a zip runs over.
 - `Skin_CoatR` is the varnish: 0 lays a glossy clear varnish over anything, 255 none, and a
   skin without the file is varnished all over. Matte paint needs 255 there, so always ship the
   file. Skin takes no normal map.
@@ -76,7 +77,7 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
   |---|---|
   | 0 | Brake lights, on when braking |
   | 32 | Energy, tinted in game (team colour); the RGB must be grey |
-  | 64 | Brake heat, on when braking hard |
+  | 64 | Brake heat, on when braking hard (builds over ~1.5 s) |
   | 96 | Always glowing |
   | 128 | Front lights, bright at night |
   | 160 | Turbo colour; the RGB must be grey |

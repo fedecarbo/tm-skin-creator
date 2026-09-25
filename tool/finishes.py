@@ -221,12 +221,15 @@ def resolve(phrase, default="gloss"):
 # as painted; otherwise the game tints it and the RGB should be grey.
 GLOWS = {
     "brake lights": {"code": 0, "keeps colour": True,
-                     "seen": "the stock strips behind the front wheels (checkpoint 1): dim all the time, "
-                             "flaring to near white when braking; the lab's part was hidden from the camera"},
+                     "seen": "the slots inside the front wheels, recoloured blue (the lights test, 2026-09-25): "
+                             "dim blue all the time, flaring blue to white while braking, dim again at once"},
     "energy": {"code": 32, "keeps colour": False,
                "seen": "dim, tinted red by the game (the player's colour), on at rest"},
-    "brake heat": {"code": 64, "keeps colour": True, "seen": "not seen to light up (braking from 133 km/h)"},
-    "always on": {"code": 96, "keeps colour": True, "seen": "magenta as painted, day and night"},
+    "brake heat": {"code": 64, "keeps colour": True,
+                   "seen": "orange rims (the lights test, 2026-09-25): dim red within a moment of braking hard, "
+                           "full colour after about 1.5 s, fading about 1 s after letting go"},
+    "always on": {"code": 96, "keeps colour": True,
+                  "seen": "magenta as painted, day and night; the speed digits and rear lights are this code"},
     "front lights": {"code": 128, "keeps colour": True, "seen": "bright white by day and at night"},
     "turbo": {"code": 160, "keeps colour": False, "seen": "not seen (the hubs are hidden by the wheel covers)"},
     "exhaust heat": {"code": 192, "keeps colour": True, "seen": "not seen to light up on turbo pads"},
