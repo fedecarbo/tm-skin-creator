@@ -26,13 +26,13 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // Looking down, the car's front at the top. roomy: further back on the page, where the title
   // and the buttons share the window (snapshots keep dist).
   top: { dir: [0, 1, -0.0001], dist: 7.6, roomy: 1.3 },
-  // The game's chase camera ("Cam 1"): the camera where the user's in-game screenshot put it
-  // (2026-09-25, 1920x1080): 3.75 m up and 6.3 m behind the car's centre, so the car is seen
-  // from the game's angle. The game looks 13.5° down, above the car, through a 58.7° lens, which
-  // leaves the car small at the bottom; the user found that awkward here (2026-09-25), so the
-  // view aims at the car and zooms in (40°). For the game's exact framing:
-  // { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 }.
-  driving: { dir: [0, 0.4514, -0.8923], dist: 7.334, fov: 40 },
+  // The game's chase camera ("Cam 1"), from the user's in-game screenshot (2026-09-25,
+  // 1920x1080): 3.75 m up and 6.3 m behind the car's centre, looking 13.5° down at a point above
+  // the car, through the game's wide lens (58.7° tall, 90° wide at 16:9). That leaves the car
+  // small at the bottom, which the user found awkward here (2026-09-25), so the view keeps the
+  // game's lens and angle onto the car but aims at the car and comes closer (7.3 m to 5.2 m).
+  // The game's exact framing: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 }.
+  driving: { dir: [0, 0.4514, -0.8923], dist: 5.2, fov: 58.7 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
