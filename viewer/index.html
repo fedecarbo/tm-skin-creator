@@ -95,6 +95,8 @@
   #camMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
   #camMenu .sk[aria-pressed="true"] { background: var(--text); }
   #camMenu small { font-size: 15px; opacity: 0.6; margin-left: auto; }
+  #copyCam { color: var(--acc); box-shadow: inset 0 0 0 2px var(--acc); }
+  #copyCam[hidden] { display: none; }
   #save { margin-left: auto; font-size: 24px; padding: 11px 22px 7px; }
   #save .ic { font-size: 19px; }
 
@@ -204,10 +206,12 @@
   <div id="camWrap">
     <button id="cam" class="sk" aria-pressed="false" aria-expanded="false" title="the game's cameras that show the car"><span>Driving</span><span id="camName">Cam 1</span><svg class="ic"><use href="#i-up"/></svg></button>
     <div id="camMenu" hidden>
-      <button class="sk" data-view="cam1" aria-pressed="false"><span>Cam 1</span><small>matched to the game</small></button>
-      <button class="sk" data-view="cam2" aria-pressed="false"><span>Cam 2</span><small>a guess until a screenshot</small></button>
+      <button class="sk" data-view="cam1" aria-pressed="false"><span>Cam 1</span><small>from a screenshot</small></button>
+      <button class="sk" data-view="cam2" aria-pressed="false"><span>Cam 2</span><small>a guess</small></button>
+      <button class="sk" data-view="cam3" aria-pressed="false"><span>Cam 3</span><small>not set yet</small></button>
     </div>
   </div>
+  <button id="copyCam" class="sk" hidden title="copy this view, to paste to Claude"><span>Copy</span></button>
   <span class="gap"></span>
   <button id="spin" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-spin"/></svg><span>Spin</span></button>
   <button id="save" class="sk acc"><svg class="ic"><use href="#i-camera"/></svg><span>Save picture</span></button>

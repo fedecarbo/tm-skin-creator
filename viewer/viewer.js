@@ -35,9 +35,11 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // read as they do in the game (the user's call, 2026-09-25).
   // The game's exact framing: { dir: [0, 0.2334, -0.9724], dist: 6.73, target: [0, 2.18, 0.27], fov: 58.7 }.
   cam1: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
-  // Cam 2, the game's farther chase camera: a guess (further back and a little higher) until the
-  // user sends a screenshot of it to match.
+  // Cam 2, the game's farther chase camera: a guess (further back and a little higher).
   cam2: { dir: [0, 0.375, -0.927], dist: 7.5, fov: 58.7 },
+  // Cam 3: not set; starts where Cam 1 does. The user sets each camera by eye next to the game
+  // and pastes it to Claude ("Copy Cam N", below), who writes it here, squared up.
+  cam3: { dir: [0, 0.309, -0.951], dist: 5.2, fov: 58.7 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -1166,6 +1168,28 @@ function savePicture() {
   resize();
 }
 
+// ---- The game's cameras, set by the user ----
+// Pick one under Driving, move the view until it looks like the game (drag to turn, right-drag to
+// slide the car in the picture, scroll to go nearer), then "Copy Cam N" and paste it to Claude
+// (the user's way, 2026-09-25). Claude squares it up straight behind the car, since nobody can
+// centre it by hand: only the height, the tilt, the distance and where the car sits count.
+
+let camPicked = null;  // the Driving camera last picked, while the user moves it
+const camTitle = (name) => document.querySelector(`#camMenu [data-view="${name}"]`).firstElementChild.textContent;
+
+async function copyCamera() {
+  const p = (v) => v.toArray().map((x) => x.toFixed(3)).join(', ');
+  const text = `${camTitle(camPicked)} from the viewer: camera at ${p(camera.position)}, looking at ${p(controls.target)}, lens ${camera.fov.toFixed(1)}°`;
+  const label = byId('copyCam').firstElementChild;
+  try {
+    await navigator.clipboard.writeText(text);
+    label.textContent = 'Copied: paste it to Claude';
+  } catch {  // no clipboard: show the text to copy by hand
+    statusBox.textContent = text;
+    setTimeout(() => { if (statusBox.textContent === text) statusBox.textContent = ''; }, 20000);
+  }
+}
+
 // ---- Controls on the page ----
 
 const pressed = (el, on) => el.setAttribute('aria-pressed', String(on));
@@ -1216,9 +1240,25 @@ const markView = (name) => {
   pressed(byId('cam'), Boolean(cam));  // Driving shows which of the game's cameras is on
   if (cam) byId('camName').textContent = cam.firstElementChild.textContent;
 };
-for (const b of viewButtons) b.onclick = () => { setView(b.dataset.view, true); markView(b.dataset.view); openCams(false); };
+for (const b of viewButtons) {
+  b.onclick = () => {
+    setView(b.dataset.view, true);
+    markView(b.dataset.view);
+    openCams(false);
+    camPicked = byId('camMenu').contains(b) ? b.dataset.view : null;
+    byId('copyCam').hidden = true;
+  };
+}
 byId('cam').onclick = (e) => { e.stopPropagation(); openCams(byId('camMenu').hidden); };
-controls.addEventListener('start', () => { glide = null; markView(null); });  // the user took the camera
+controls.addEventListener('start', () => {  // the user took the camera
+  glide = null;
+  markView(null);
+  if (camPicked) {
+    byId('copyCam').hidden = false;
+    byId('copyCam').firstElementChild.textContent = `Copy ${camTitle(camPicked)}`;
+  }
+});
+byId('copyCam').onclick = copyCamera;
 byId('spin').onclick = () => {
   controls.autoRotate = !controls.autoRotate;
   pressed(byId('spin'), controls.autoRotate);

@@ -1000,6 +1000,13 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   matched to the user's screenshot (then centred and closer, at their wish); Cam 2 is a guess,
   labelled so, until a screenshot of it comes (`VIEWS.cam2` in `viewer/viewer.js`). Any other
   camera that shows the car joins the menu the same way, each matched to a screenshot.
+  **The user's way to set them (2026-09-25):** by eye, in the viewer next to the game. Picking a
+  Driving camera and moving the view shows "Copy Cam N", which copies the camera's position,
+  the point it looks at and the lens. The user pastes that in the chat; Claude squares it up
+  straight behind the car (keeps the height, the tilt, the distance and the target's height
+  and depth, sets the side-to-side to zero) and writes it into `VIEWS`. What they set is in
+  the viewer's framing (the list on the left, `FRAMED`), so it's kept as seen there, not
+  converted to the game's full screen. Cam 3 is a free slot, not set yet.
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.
