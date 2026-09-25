@@ -18,10 +18,15 @@ The rest of the car is plain grey, with the stock wheels.
 
 1. Drive in daylight with the normal chase camera. F12 screenshots from behind: going fast,
    then braking hard (the rear lights, and the brake lights inside the front wheels).
-2. If the track has one: a yellow booster or cruise control. Someone online says the speed
-   digits change colour for those, so see whether the green gives way.
-3. The same at night (a night map or night mood).
-4. A close look at the engine cover, to see the lettering on the yellow and blue panels.
+2. If the track has them: a yellow turbo pad, then a red one, a reactor boost, and cruise
+   control. Screenshots from behind while each is on. Watch the speed digits (someone online
+   says they change colour for these), the rings round the wheels and the front wing's lower
+   edges (the game's turbo colour), and the back of the car (exhaust heat).
+3. One hard stop from full speed, looking at the front wheels (brake heat, "on when braking
+   hard"), then a gentle stop, to compare.
+4. The same at night (a night map or night mood).
+5. A close look at the engine cover, to see the lettering on the yellow and blue panels.
+6. One screenshot with the game's Cam 2 (standing still is fine), for the viewer's camera menu.
 
 ## Log
 

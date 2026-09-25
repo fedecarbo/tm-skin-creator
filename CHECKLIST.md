@@ -758,6 +758,14 @@ Part 1 comes first, because every design depends on it.
       the user's feel: Accelerate jumps to racing speed (330) then creeps up, letting go drifts
       down slowly, Brake stops the car in half a second, and a stopped car's display is dark. Once the game's screenshots show what turbo, boost
       and the other glows do, they join the pad as states.
+    - **What triggers the other glows** (research, 2026-09-25; the only source is xrayjay's
+      table, "TM2020 Illum Alpha Tones", which Nadeo links): 160 turbo colour "is colored under
+      turbo input" (the turbo pads), 192 exhaust heat "ON when Turbo is enabled", 224 boost "is
+      colored under boost input" (most likely reactor boost, 6 s), 64 brake heat "ON when
+      braking hard (ex: disc brake heating)", 32 energy the team colour. Nothing ties any of
+      them to speed or throttle, and nothing documents their colours or fades. The user asked
+      for these as pad states (2026-09-25): add Turbo, Super turbo, Reactor and a hard stop
+      once the game's screenshots show them (the test notes ask for them), not before.
 
 ### [ ] 10. Tidy up for everyday use
 
