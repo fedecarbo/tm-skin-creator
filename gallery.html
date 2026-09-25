@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My skins</title>
+<link rel="icon" href="data:,">
+<style>
+  /* The viewer's look (viewer/index.html): Teko lettering, one yellow-green accent. */
+  @font-face { font-family: Teko; src: url("lib/fonts/Teko-Variable.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
+  .teko { font-family: Teko, Bahnschrift, "DIN Condensed", sans-serif; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1; }
+  html, body { margin: 0; background: #0d0f12; }
+  body { font: 15px/1.4 "Segoe UI", system-ui, sans-serif; color: #f2f4f7; padding: 24px 16px 48px; }
+  h1 { font-size: 52px; font-weight: 600; margin: 0 0 10px; display: inline-block; transform: skewX(-9deg); }
+  .sub { opacity: 0.6; margin-bottom: 20px; font-size: 13px; }
+  .sub a { color: inherit; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; max-width: 1400px; }
+  a.card { display: block; background: #171a1f; border-radius: 12px; overflow: hidden; color: inherit; text-decoration: none;
+           border: 1px solid rgba(255, 255, 255, 0.08); transition: transform 0.12s, border-color 0.12s; position: relative; }
+  a.card:hover { transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.3); }
+  a.card.plain { pointer-events: none; opacity: 0.7; }
+  .pic { aspect-ratio: 4 / 3; background: #23262c center / cover no-repeat; }
+  .pic.empty { display: grid; place-items: center; opacity: 0.5; font-size: 13px; }
+  .body { padding: 10px 12px 12px; }
+  .name { font-weight: 500; font-size: 24px; display: flex; align-items: center; gap: 10px; padding-top: 3px; }
+  .words { opacity: 0.75; font-size: 13px; margin-top: 3px; min-height: 1.4em; }
+  .when { opacity: 0.45; font-size: 12px; margin-top: 6px; }
+  .badge { font-family: Teko, Bahnschrift, sans-serif; text-transform: uppercase; letter-spacing: 0.03em; font-size: 15px; line-height: 1;
+           padding: 3px 8px 1px; background: #e8ff47; color: #0d0f12; font-weight: 600; display: inline-block; transform: skewX(-12deg); }
+  #empty { opacity: 0.6; }
+  .credit { margin-top: 32px; font-size: 11px; opacity: 0.45; }
+  .credit a { color: inherit; }
+</style>
+<link rel="stylesheet" href="public.css">
+</head>
+<body>
+<h1 class="teko">My skins</h1>
+<div class="sub">Newest first. Click one to see it in 3D.<span class="tool-only"> <span class="badge">in the game</span> marks the ones installed. The finishes the tool knows: <a href="./materials.html">materials</a>.</span></div>
+<div class="grid" id="grid"></div>
+<p id="empty" hidden>No skins yet. Describe one in the chat.</p>
+<p class="credit">
+  Car model: <a href="https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf">Trackmania 2020 CarSport</a>
+  by <a href="https://sketchfab.com/amogusstrikesback2">amogusstrikesback2</a>,
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, shown with these skins painted on it.
+</p>
+<script>
+(async () => {
+  const res = await fetch('data/gallery.json', { cache: 'no-store' });
+  const skins = res.ok ? await res.json() : [];
+  const grid = document.getElementById('grid');
+  document.getElementById('empty').hidden = skins.length > 0;
+  for (const s of skins) {
+    const a = document.createElement('a');
+    a.className = 'card' + (s.viewable ? '' : ' plain');
+    a.href = `./?skin=${encodeURIComponent(s.name)}`;
+    const pic = document.createElement('div');
+    pic.className = 'pic' + (s.thumb ? '' : ' empty');
+    if (s.thumb) pic.style.backgroundImage = `url("data/${s.thumb}?t=${Math.floor(s.stamp)}")`;
+    else pic.textContent = 'no picture yet';
+    const body = document.createElement('div');
+    body.className = 'body';
+    const name = document.createElement('div');
+    name.className = 'name teko';
+    name.textContent = s.title || s.name;
+    if (s.installed) {
+      const b = document.createElement('span');
+      b.className = 'badge';
+      b.textContent = 'in the game';
+      name.append(b);
+    }
+    const words = document.createElement('div');
+    words.className = 'words';
+    words.textContent = s.words || '';
+    const when = document.createElement('div');
+    when.className = 'when';
+    when.textContent = s.made ? new Date(s.made * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : s.when;  // this computer's clock
+    body.append(name, words, when);
+    a.append(pic, body);
+    grid.append(a);
+  }
+})();
+</script>
+</body>
+</html>

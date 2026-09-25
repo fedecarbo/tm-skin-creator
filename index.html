@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skin viewer</title>
+<link rel="icon" href="data:,">
+<style>
+  /* The look the user chose on 2026-09-25 ("race garage", from three mockups): a skin list down
+     the left, slanted racing lettering, one yellow-green accent. Teko and Russo One (SIL OFL
+     1.1, lib/fonts, with their licences) are the google/fonts files that tool/fonts.py pins;
+     Russo One draws the game's number on the car (viewer.js). Icons: Lucide (ISC). */
+  @font-face { font-family: Teko; src: url("lib/fonts/Teko-Variable.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
+  @font-face { font-family: "Russo One"; src: url("lib/fonts/RussoOne-Regular.ttf") format("truetype"); font-display: block; }
+  :root { --ground: #0d0f12; --text: #f2f4f7; --acc: #e8ff47; --rail: 300px; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--ground); }
+  body { font: 14px/1.35 "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); }
+  canvas { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer;
+           text-transform: inherit; letter-spacing: inherit; line-height: inherit; }
+  .ic { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+  .teko { font-family: Teko, Bahnschrift, "DIN Condensed", sans-serif; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1; }
+  .panel { position: fixed; background: rgba(12, 14, 18, 0.78); backdrop-filter: blur(6px); border-radius: 4px; padding: 10px 12px; }
+  body.snap .panel:not(#status), body.snap .chrome { display: none !important; }
+
+  /* Slanted buttons: the box leans, its contents stand upright. */
+  .sk { display: flex; align-items: center; gap: 7px; padding: 8px 14px 5px; font-size: 20px; background: rgba(255, 255, 255, 0.08);
+        transform: skewX(-12deg); transition: background 0.12s, color 0.12s; white-space: nowrap; }
+  .sk > * { transform: skewX(12deg); }
+  .sk .ic { font-size: 16px; margin-top: -3px; }
+  .sk:hover { background: rgba(255, 255, 255, 0.16); }
+  .sk[aria-pressed="true"] { background: var(--text); color: var(--ground); }
+  .sk.acc { background: var(--acc); color: var(--ground); font-weight: 600; }
+  .sk.acc:hover { background: #f1ff8a; }
+  .gap { width: 14px; flex: none; }
+
+  /* My skins */
+  #rail { position: fixed; left: 0; top: 0; bottom: 0; width: var(--rail); box-sizing: border-box; padding: 28px 44px 0 24px; z-index: 3;
+          display: flex; flex-direction: column; background: rgba(8, 9, 12, 0.9);
+          clip-path: polygon(0 0, 100% 0, calc(100% - 30px) 100%, 0 100%); }
+  #rail h2 { margin: 0 0 14px 6px; font-size: 30px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+  #rail h2 span { font-size: 20px; opacity: 0.5; font-weight: 400; }
+  #skinList { flex: 1; overflow-y: auto; margin: 0 -8px 0 -4px; padding: 0 8px 12px 4px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
+              -webkit-mask-image: linear-gradient(#000 calc(100% - 48px), transparent); mask-image: linear-gradient(#000 calc(100% - 48px), transparent); }
+  .item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 5px 8px; margin-bottom: 6px; transform: skewX(-10deg); }
+  .item > * { transform: skewX(10deg); }
+  .item img, .item .noPic { width: 72px; height: 46px; object-fit: cover; flex: none; background: #23262c; }
+  .item .n { font-size: 21px; font-weight: 500; padding-top: 3px; }
+  .item .n small { display: block; font-size: 15px; color: var(--acc); margin-top: 2px; }
+  .item:hover { background: rgba(255, 255, 255, 0.07); }
+  .item[aria-current="true"] { background: rgba(232, 255, 71, 0.13); box-shadow: inset 4px 0 var(--acc); }
+  .item:disabled { opacity: 0.4; cursor: default; }
+  .item:disabled:hover { background: none; }
+  #railFoot { display: flex; gap: 18px; padding: 14px 6px 18px; font-size: 18px; }
+  #railFoot a { color: inherit; opacity: 0.6; text-decoration: none; }
+  #railFoot a:hover { opacity: 1; color: var(--acc); }
+  #railToggle { display: none; position: fixed; left: 16px; top: 16px; z-index: 4; }
+
+  /* The skin's name */
+  #name { position: fixed; left: calc(var(--rail) + 40px); top: 34px; max-width: calc(100vw - var(--rail) - 520px); pointer-events: none; }
+  #title { margin: 0; font-size: clamp(44px, 5.6vw, 76px); font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; overflow-wrap: anywhere; }
+  #tag { display: inline-block; margin-top: 8px; padding: 4px 10px 1px; background: var(--acc); color: var(--ground); font-size: 19px; font-weight: 600; transform: skewX(-12deg); }
+  #tag[hidden] { display: none; }
+
+  /* Top right: show, parts, day and night */
+  #top { position: fixed; right: 40px; top: 40px; display: flex; gap: 6px; z-index: 2; }
+  #showWrap { position: relative; }
+  #showMenu { position: absolute; right: 0; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+  #showMenu[hidden] { display: none; }
+  #showMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
+  #showMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
+  #showMenu .sk[aria-pressed="true"] { background: var(--text); }
+  #showMenu .box { width: 10px; height: 10px; border: 2px solid currentColor; margin-top: -3px; }
+  #showMenu .sk[aria-pressed="true"] .box { background: currentColor; }
+
+  /* Under the car: the pedals and the speed */
+  #pad { position: fixed; left: calc(var(--rail) + (100vw - var(--rail)) / 2); bottom: 122px; transform: translateX(-50%);
+         display: flex; align-items: center; gap: 6px; user-select: none; -webkit-user-select: none; }
+  #pad .key { font-size: 21px; padding: 9px 16px 6px; touch-action: none; }
+  #pad .key[aria-pressed="true"] { background: var(--acc); color: var(--ground); }
+  #speedo { display: flex; align-items: baseline; gap: 5px; min-width: 104px; justify-content: center; padding: 0 6px; }
+  #speedo b { font-size: 38px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  #speedo small { font-size: 16px; opacity: 0.6; }
+  #speedo .gear { margin-left: 8px; }
+  #speedo .gear b { font-size: 20px; opacity: 1; }
+
+  /* Bottom: cameras, spin, picture */
+  #bar { position: fixed; left: calc(var(--rail) + 40px); right: 40px; bottom: 50px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  #camWrap { position: relative; }
+  #camName { opacity: 0.55; }
+  #cam[aria-pressed="true"] #camName { opacity: 0.7; }
+  #camMenu { position: absolute; left: 0; bottom: calc(100% + 8px); display: flex; flex-direction: column; gap: 4px; min-width: 230px; }
+  #camMenu[hidden] { display: none; }
+  #camMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
+  #camMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
+  #camMenu .sk[aria-pressed="true"] { background: var(--text); }
+  #camMenu small { font-size: 15px; opacity: 0.6; margin-left: auto; }
+  #copyCam { color: var(--acc); box-shadow: inset 0 0 0 2px var(--acc); }
+  #copyCam[hidden] { display: none; }
+  #save { margin-left: auto; font-size: 24px; padding: 11px 22px 7px; }
+  #save .ic { font-size: 19px; }
+
+  #credit { left: calc(var(--rail) + 40px); bottom: 12px; padding: 0; background: none; backdrop-filter: none; font-size: 10.5px; opacity: 0.45; }
+  #credit a { color: inherit; }
+  #status { top: 50%; left: calc(50% + var(--rail) / 2); transform: translate(-50%, -50%); font-size: 15px; }
+  #status:empty { display: none; }
+  body.snap #status { left: 50%; }
+
+  /* The parts list */
+  #partsPanel { top: 96px; right: 40px; bottom: 120px; width: 300px; max-width: calc(100vw - 24px); display: flex; flex-direction: column; z-index: 2; }
+  #partsPanel[hidden] { display: none; }
+  #partsHead { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 600; }
+  #partsHead .grow { flex: 1; }
+  #partsTools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  #partsTools .sk, #partsHead .sk { font-size: 16px; padding: 6px 10px 3px; }
+  #partsList { overflow-y: auto; margin-top: 8px; font-size: 13px; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+  .assembly { margin-top: 6px; }
+  .assembly > .head { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 4px; border-radius: 3px; }
+  .assembly > .head:hover { background: rgba(255, 255, 255, 0.08); }
+  .assembly > .head .about { opacity: 0.55; font-size: 12px; flex: 1; text-align: right; }
+  .assembly.closed > .items { display: none; }
+  .items { margin-left: 18px; }
+  .part { display: flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 3px; cursor: pointer; }
+  .part:hover, .part.lit { background: rgba(232, 255, 71, 0.18); }
+  .part .name { flex: 1; }
+  .part .tag { opacity: 0.55; font-size: 11px; }
+  .part .only { font-size: 11px; padding: 1px 8px; opacity: 0.7; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 3px; }
+  .part.off .name, .part.off .tag { opacity: 0.4; text-decoration: line-through; }
+  input[type=checkbox] { accent-color: var(--acc); margin: 0; }
+  #tip { position: fixed; pointer-events: none; padding: 5px 10px; font-size: 13px; z-index: 5; }
+  #tip:empty { display: none; }
+
+  /* Narrow windows: the list folds away behind a button, and the car takes the whole width. */
+  @media (max-width: 900px) {
+    :root { --rail: 0px; }
+    #rail { width: min(300px, 86vw); z-index: 5; background: #08090c; transform: translateX(-100%); transition: transform 0.2s; }
+    body.railOpen #rail { transform: none; }
+    #railToggle { display: flex; }
+    body.railOpen #railToggle { visibility: hidden; }
+    #name { top: 64px; left: 20px; max-width: calc(100vw - 40px); }
+    #title { font-size: 44px; }
+    #top { right: 16px; top: 16px; }
+    #bar { left: 16px; right: 16px; bottom: 36px; }
+    #save { margin-left: 0; }
+    #credit { left: 16px; }
+    #partsPanel { top: auto; right: 12px; bottom: 150px; max-height: 45vh; }
+  }
+  /* A phone held upright (the page online, tool/publish.py): icons alone at the top, smaller
+     buttons in two rows at the bottom, the pedals above them. */
+  @media (max-width: 600px) {
+    #railToggle { left: 12px; top: 12px; }
+    #top { right: 12px; top: 12px; gap: 4px; }
+    #top .gap { width: 6px; }
+    #show > span, #togglePartsPanel > span, #day > span, #night > span, #save > span { display: none; }
+    #name { top: 62px; left: 16px; max-width: calc(100vw - 32px); }
+    #title { font-size: 38px; }
+    #bar { left: 10px; right: 10px; bottom: 30px; gap: 4px; justify-content: center; }
+    #bar .sk, #pad .key { font-size: 18px; padding: 7px 11px 4px; }
+    #bar .gap { display: none; }
+    #save { padding: 7px 16px 4px; }
+    #pad { left: 50%; bottom: 118px; }
+    #speedo { min-width: 84px; }
+    #speedo .gear { display: none; }
+    #speedo b { font-size: 32px; }
+    #credit { left: 12px; right: 12px; bottom: 6px; font-size: 9px; }
+  }
+</style>
+<!-- three.js 0.186.0, copied from the npm package (jsdelivr) into lib/three, with its licence. -->
+<script type="importmap">
+{ "imports": { "three": "./lib/three/build/three.module.js", "three/addons/": "./lib/three/examples/jsm/" } }
+</script>
+<link rel="stylesheet" href="public.css">
+<script>/* tool/publish.py: a link that names no skin opens the newest */
+const q = new URLSearchParams(location.search);
+if (!q.has("skin")) { q.set("skin", "TSC_CMYK_Peel_More"); history.replaceState(null, "", "?" + q); }
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></symbol>
+  <symbol id="i-parts" viewBox="0 0 24 24"><path d="M8 5h13"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="M3 10a2 2 0 0 0 2 2h3"/><path d="M3 5v12a2 2 0 0 0 2 2h3"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></symbol>
+  <symbol id="i-spin" viewBox="0 0 24 24"><path d="m15.194 13.707 3.814 1.86-1.86 3.814"/><path d="M16.47214 7.52786 A 5 10 0 1 0 13 21.79796"/><path d="M21.79796 11 A 10 5 0 1 0 19 15.57071"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+</svg>
+<canvas id="view"></canvas>
+
+<aside id="rail" class="chrome teko">
+  <h2>My skins <span id="count"></span></h2>
+  <div id="skinList"></div>
+  <nav id="railFoot"><a href="./gallery.html">All skins</a><a href="./materials.html">Materials</a></nav>
+</aside>
+<button id="railToggle" class="chrome sk teko"><span>My skins</span></button>
+
+<header id="name" class="chrome teko"><h1 id="title">Skin viewer</h1><span id="tag" hidden>In the game</span></header>
+
+<div id="top" class="chrome teko">
+  <div id="showWrap">
+    <button id="show" class="sk" aria-expanded="false"><svg class="ic"><use href="#i-layers"/></svg><span>Show</span><svg class="ic"><use href="#i-down"/></svg></button>
+    <div id="showMenu" hidden>
+      <button class="sk" data-part="Skin" aria-pressed="true"><span class="box"></span><span>Body</span></button>
+      <button class="sk" data-part="Details" aria-pressed="true"><span class="box"></span><span>Details</span></button>
+      <button class="sk" data-part="Wheels" aria-pressed="true"><span class="box"></span><span>Wheels</span></button>
+      <button class="sk" data-part="Glass" aria-pressed="true"><span class="box"></span><span>Glass</span></button>
+      <button class="sk" id="plateToggle" aria-pressed="true" title="the initials and number the game writes on the engine cover"><span class="box"></span><span>Number</span></button>
+      <button class="sk" id="brakeToggle" aria-pressed="false" title="the brake lights as they flare when the car brakes"><span class="box"></span><span>Braking</span></button>
+    </div>
+  </div>
+  <button id="togglePartsPanel" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-parts"/></svg><span>Parts</span></button>
+  <span class="gap"></span>
+  <button id="day" class="sk" aria-pressed="true"><svg class="ic"><use href="#i-sun"/></svg><span>Day</span></button>
+  <button id="night" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-moon"/></svg><span>Night</span></button>
+</div>
+
+<div id="pad" class="chrome teko">
+  <button id="padBrake" class="sk key" aria-pressed="false" title="hold to brake (↓ or S)"><svg class="ic"><use href="#i-down"/></svg><span>Brake</span></button>
+  <span id="speedo"><b id="padSpeed">0</b><small>km/h</small><small class="gear">gear <b id="padGear">1</b></small></span>
+  <button id="padGas" class="sk key" aria-pressed="false" title="hold to accelerate (↑ or W)"><span>Accelerate</span><svg class="ic"><use href="#i-up"/></svg></button>
+</div>
+
+<div id="bar" class="chrome teko">
+  <button class="sk" data-view="front" aria-pressed="true"><span>Front</span></button>
+  <button class="sk" data-view="rear" aria-pressed="false"><span>Rear</span></button>
+  <button class="sk" data-view="left" aria-pressed="false"><span>Left</span></button>
+  <button class="sk" data-view="right" aria-pressed="false"><span>Right</span></button>
+  <button class="sk" data-view="top" aria-pressed="false"><span>Top</span></button>
+  <div id="camWrap">
+    <button id="cam" class="sk" aria-pressed="false" aria-expanded="false" title="the game's cameras that show the car"><span>Driving</span><span id="camName">Cam 1</span><svg class="ic"><use href="#i-up"/></svg></button>
+    <div id="camMenu" hidden>
+      <button class="sk" data-view="cam1" aria-pressed="false"><span>Cam 1</span><small>set by you</small></button>
+      <button class="sk" data-view="cam2" aria-pressed="false"><span>Cam 2</span><small>set by you</small></button>
+      <button class="sk" data-view="cam3" aria-pressed="false"><span>Cam 3</span><small>set by you</small></button>
+    </div>
+  </div>
+  <button id="copyCam" class="sk" hidden title="copy this view, to paste to Claude"><span>Copy</span></button>
+  <span class="gap"></span>
+  <button id="spin" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-spin"/></svg><span>Spin</span></button>
+  <button id="save" class="sk acc"><svg class="ic"><use href="#i-camera"/></svg><span>Save picture</span></button>
+</div>
+
+<div id="partsPanel" class="panel" hidden>
+  <div id="partsHead" class="teko"><span>Parts</span><span class="grow"></span><button id="showAll" class="sk"><span>Show all</span></button></div>
+  <div id="partsTools" class="teko">
+    <button id="colourBy" class="sk" aria-pressed="false"><span>Colour by part</span></button>
+    <button id="shared" class="sk" aria-pressed="false"><span>Shared areas</span></button>
+  </div>
+  <div id="partsList"></div>
+</div>
+<div id="tip" class="panel"></div>
+<div id="credit" class="panel">
+  Car model: <a href="https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf">Trackmania 2020 CarSport</a>
+  by <a href="https://sketchfab.com/amogusstrikesback2">amogusstrikesback2</a>,
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+  Lighting: <a href="https://polyhaven.com/a/studio_small_09">Studio Small 09</a> and
+  <a href="https://polyhaven.com/a/dikhololo_night">Dikhololo Night</a> from Poly Haven, CC0.
+</div>
+<div id="status" class="panel">Loading…</div>
+<script type="module" src="./viewer.js"></script>
+</body>
+</html>
