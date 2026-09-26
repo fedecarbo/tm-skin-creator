@@ -1356,6 +1356,21 @@ worked on, live; not one page. What was settled the same day:
     map rooms as before; no page errors. The test car was removed.
   - **Next:** the user tries it on a new car.
 
+### Defining the parts (started 2026-09-26)
+
+Led by the user, step by step ("I honestly don't know how we are going to do this, but maybe we
+can go step by step"). The steps are theirs; each is agreed before it's built.
+
+- **Step 1, the top level** (the user, 2026-09-26): "the list of parts, at least the main ones
+  are too broken down ... Wheel cover, Tyre, etc. should be in a parent category called Wheels.
+  Same with body ... the parent of sidepod, engine cover, tail ... At least the external bits.
+  Then there's Mechanicals (or some other name you think is best) which covers cables,
+  suspensions etc." Claude's proposal, waiting on the user: Body (shell, sidepods, engine
+  cover, tail, front wing, floor), Wheels (tyres, wheel covers, rims hubs and brakes),
+  Mechanicals (inner frame, front and rear suspension, the brake lines with them), Cockpit
+  (seat, belts, steering wheel, dashboard, mirrors); no Glass group, each glass piece where it
+  sits. The Lab's rooms (Body, Wheels, Details, Lights) already cut the car nearly this way.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
