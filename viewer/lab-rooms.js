@@ -1,7 +1,7 @@
 // The Lab's painting rooms: Body, Wheels, Details, Lights (tool/rooms.py). Each room shows the car
-// Claude is working on with a camera on its area (the Car tab), or its own flat maps with only its
-// parts lit and named (the UV map tab). Point at a part on the map to name it; click it, or click
-// the car, to pick it and copy its line for Claude. The Lights room is seen at night, and its map
+// Claude is working on with a camera framing its area (the Car tab; the Details room takes the
+// shell off), or its own flat maps with only its parts lit and named (the UV map tab). Point at a
+// part on the map to name it; click it, or click the car, to pick it and copy its line for Claude. The Lights room is seen at night, and its map
 // is the light map. The user's plan of 2026-09-26 (CHECKLIST.md, "The Lab rethought").
 //   /lab.html?room=wheels[&tab=map][&map=Details][&part=<id>][&skin=<name>]
 // Everything comes from the tool (tool/view.py, export_uvmap): uvmap.json (each map; each part in
@@ -282,9 +282,10 @@ function heads() {
   }
 }
 
-function aimCar() {
+function aimCar() {  // the room's camera, framing its parts (tool/rooms.py), and the parts it takes off
   if (!car || !room) return;
   const night = room.key === 'lights' ? (mood.lights || 'night') === 'night' : false;
+  car.hide(room.hides);
   car.show(room.view, night, []);
 }
 
@@ -326,7 +327,9 @@ async function setRoom(key) {
   map = null;
   aimCar();
   const want = picked && inRoom[picked.id] ? picked.id : Number(params.get('part'));
-  const first = inRoom[want] ? want : room.ids.reduce((a, id) => (byId[id].area > byId[a].area ? id : a), room.ids[0]);
+  const inView = room.view.fit ? room.ids.filter((id) => room.view.fit.includes(id)) : [];  // the biggest part the camera frames
+  const pool = inView.length ? inView : room.ids;
+  const first = inRoom[want] ? want : pool.reduce((a, id) => (byId[id].area > byId[a].area ? id : a), pool[0]);
   picked = { id: first, here: false, lit: [] };  // in the panel, but nothing lit until it's picked
   await showTab(tab);
   pick(picked);  // lit: [] when it's the room's first pick, so the car keeps its paint

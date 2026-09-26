@@ -1193,7 +1193,9 @@ worked on, live; not one page. What was settled the same day:
 - **What it's for:** the rooms of "The Lab rethought" (above), Wheels first to settle what every
   room has; then all four were built the same way.
 - **What you'll see:** the Lab's Body, Wheels, Details and Lights tabs: each the car with a camera
-  on its area, or (UV map) its own flat maps, live as Claude paints.
+  on its area, or (UV map) its own flat maps, live as Claude paints. Body sees the car from higher
+  up, Wheels one front wheel close, Details the inner car with the shell taken off, Lights the rear
+  at night.
 - **Model:** Opus 5.5.
 - **Notes for Claude:**
   - **What came before (replaced):** a spots room and a parts room, live. Their mockups:
@@ -1252,8 +1254,38 @@ worked on, live; not one page. What was settled the same day:
   - **Checked on the Mac (2026-09-26)** in headless Chrome: every room's Car and UV map tabs at
     1440×900 (Flag Peel Costa Rica Sun Faded), the Wheels room at 390×844, no sideways scroll, no
     page errors. The mock takes (TSC_Mock_Wheels_*) were removed from the work folder.
-  - **Next:** the user looks. The cameras were set by eye and are the first thing to tune; the
-    Details room's camera still sees mostly the body.
+  - **The cameras (the user, 2026-09-26).** The first ones were set by eye: Body small in its
+    frame, Wheels aimed between the wheels (both cut off), Details nearly Body's view (the shell
+    hides the inner car), Lights with little glowing in view. The mockups:
+    https://claude.ai/artifact/1j5ftfuzYn6TiZz7F5uddd, each room as built and two new cameras, real
+    renders of TSC_FlagPeel_CostaRica_SunFaded in the embedded viewer. **The user chose** Body B
+    (from higher up, the whole car: the most painted shell in one picture), Wheels A (one front
+    wheel, close: its outside, and the far wheel's inside with the rim and brake ring), Details B
+    (the shell taken off, as Claude recommended: a camera alone can't see the inner car) and
+    **Lights as built** (Claude had recommended the front at night, for the rim rings and grilles).
+    - Not picked: Body at today's angle filling the frame; Wheels the front pair head on; Details
+      low at the front (the front suspension and wing only); Lights behind and low (the speed
+      digits big).
+    - **How it works:** a room's view in `rooms.py` names what it frames (`FRAMES`: "car", "front
+      left wheel") and a margin; `rooms()` exports the ids as `view.fit`. The viewer (`fitView`)
+      finds the distance and aim that put those parts' corners (every 8th) inside the picture with
+      the margin to spare at the nearest edge, for the frame's own shape (checked at 1058×740,
+      718×640 and a phone's 358×250), and frames again when the window changes until the user
+      turns the car. A room's `hides` names a room whose parts it takes off (Details: the Body
+      room's 40 parts, the number plate with them) through `viewer.hide(ids)`.
+    - Hidden parts cast no shadow now (the Skin's and Details' shadow material reads the part
+      table): the shell's shadow darkened the inner car it was hidden to show. The viewer's own
+      Parts list gets the same.
+    - A room's first part in the panel is its biggest part in the camera's frame (the Wheels room
+      named a rear rim while it showed the front left wheel).
+    - On a phone the page was 415 px wide since the rooms came (the six room tabs): the tabs now
+      scroll sideways on their own, like the materials' families.
+  - **Checked on the Mac (2026-09-26)** in headless Chrome: every room at 1440×900 and 390×844 (no
+    sideways scroll), the Wheels room loaded at 1100×800 and resized to it (the same framing),
+    switching Details → Body → Wheels in one page (the shell comes back), clicks in the Details
+    room pick inner parts (cockpit tub, lower wishbone) and never the hidden shell, the Studio, and
+    the viewer hiding the body; no page errors.
+  - **Next:** the user looks.
 
 #### [ ] 4. What the rooms do next
 
@@ -1263,7 +1295,8 @@ worked on, live; not one page. What was settled the same day:
 - **Notes for Claude:**
   - Claude's takes for a room side by side (A, B, C), as in the Wheels mockups.
   - A view that fades the rest of the car (the Body room with the wheels faded): the viewer
-    would need a fade per part (a third channel in its part table).
+    would need a fade per part (a third channel in its part table). Taking parts off is built
+    (the Details room, 2026-09-26: `hides`, `viewer.hide`).
   - The parts painted over (named in one step, repainted by a broader word in a later one) and
     the paint box's notes (a fold under a sticker) shown in the room: the paint box would record
     what each step put on each part (`decal` and `text` record no `paints` yet).

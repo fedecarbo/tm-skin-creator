@@ -13,8 +13,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **The Lab** (2026-09-26): where a car gets designed, live. The Studio (the timeline of the build,
   from clay) and the Materials tab are built. The user rethought the rest (2026-09-26): painting
   rooms for Body, Wheels, Details and Lights, each the car with a camera on its area and its own
-  UV map as a tab (built, waiting for the user to look). Later: takes side by side, the parts
-  painted over, sunrise and sunset. The steps and notes are in `CHECKLIST.md`, "The Lab".
+  UV map as a tab (built). The cameras were tuned with the user from real renders (2026-09-26):
+  Body from higher up, Wheels one front wheel close, Details with the shell taken off, Lights as it
+  was. Later: takes side by side, the parts painted over, sunrise and sunset. The steps and notes are in `CHECKLIST.md`, "The Lab".
 
 ## The tool
 

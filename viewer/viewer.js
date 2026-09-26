@@ -1,8 +1,8 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
-//   /?skin=<name>&embed=1  just the car, which another page lights and turns (the Lab's painting
-//                          rooms, viewer/lab-rooms.js, through window.viewer.show, light and onPick)
+//   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
+//                          Lab's painting rooms, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step (the Studio, viewer/lab-studio.js: dress, picture)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
@@ -110,10 +110,14 @@ controls.maxDistance = 18;
 controls.autoRotateSpeed = 1.5;  // one turn in about 40 s
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
 
-// view: a name from VIEWS, or { dir, dist, target, fov } for a close look. glide: move there smoothly.
+// view: a name from VIEWS, or { dir, dist, target, fov } for a close look, or { dir, fit, margin }
+// to frame parts (the Lab's rooms, tool/rooms.py). glide: move there smoothly.
 let glide = null;
+let fitted = null;  // a framing view, framed again when the window changes, until the user turns the car
 function setView(view, smooth = false) {
-  const v = typeof view === 'string' ? VIEWS[view] : view;
+  let v = typeof view === 'string' ? VIEWS[view] : view;
+  fitted = v.fit ? v : null;
+  if (v.fit) v = { ...v, ...fitView(v) };
   const target = new THREE.Vector3(...(v.target || CENTRE.toArray()));
   const offset = new THREE.Vector3(...v.dir).normalize().multiplyScalar(v.dist * (snap || embed ? 1 : v.roomy || 1));
   const fov = v.fov || FOV;
@@ -132,6 +136,52 @@ function setView(view, smooth = false) {
   let turn = to.theta - from.theta;
   turn -= Math.round(turn / (2 * Math.PI)) * 2 * Math.PI;
   glide = { start: performance.now(), from, to, turn, target0: controls.target.clone(), target1: target, fov0: camera.fov, fov1: fov };
+}
+
+// The distance, and the target slid across the picture, that frame the parts `fit` (ids) seen from
+// `dir`: their corners inside the picture with `margin` (a share of its half-size) to spare at the
+// nearest edge. Found by steps, from a sample of every 8th corner, a few milliseconds.
+let fitCorners = null;  // per part id, x y z of every 8th corner
+function fitView(v) {
+  if (!fitCorners) {
+    const lists = Array.from({ length: 256 }, () => []);
+    for (const g of Object.values(geometries)) {
+      const pos = g.getAttribute('position').array, part = g.getAttribute('part').array;
+      for (let k = 0; k < part.length; k += 8) lists[part[k]].push(pos[k * 3], pos[k * 3 + 1], pos[k * 3 + 2]);
+    }
+    fitCorners = lists.map((l) => new Float32Array(l));
+  }
+  const pts = v.fit.map((i) => fitCorners[i]).filter((p) => p && p.length);
+  const back = new THREE.Vector3(...v.dir).normalize();
+  const right = new THREE.Vector3(0, 1, 0).cross(back).normalize(), up = back.clone().cross(right);
+  const ty = Math.tan(THREE.MathUtils.degToRad(v.fov || FOV) / 2), tx = ty * camera.aspect, keep = 1 - (v.margin ?? 0.06);
+  const target = new THREE.Vector3();
+  let n = 0;
+  for (const p of pts) for (let k = 0; k < p.length; k += 3) { target.x += p[k]; target.y += p[k + 1]; target.z += p[k + 2]; n++; }
+  if (!n) return { dist: VIEWS.front.dist };
+  target.divideScalar(n);
+  let dist = VIEWS.front.dist;
+  const eye = new THREE.Vector3();
+  for (let step = 0; step < 60; step++) {
+    eye.copy(target).addScaledVector(back, dist);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, behind = false;
+    for (const p of pts) {
+      for (let k = 0; k < p.length; k += 3) {
+        const qx = p[k] - eye.x, qy = p[k + 1] - eye.y, qz = p[k + 2] - eye.z;
+        const z = -(qx * back.x + qy * back.y + qz * back.z);
+        if (z < 0.05) { behind = true; break; }
+        const sx = (qx * right.x + qy * right.y + qz * right.z) / z / tx, sy = (qx * up.x + qy * up.y + qz * up.z) / z / ty;
+        if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+      }
+      if (behind) break;
+    }
+    if (behind) { dist *= 1.3; continue; }
+    const size = Math.max(x1 - x0, y1 - y0) / 2 / keep;
+    target.addScaledVector(right, ((x0 + x1) / 2) * tx * dist * 0.7).addScaledVector(up, ((y0 + y1) / 2) * ty * dist * 0.7);
+    dist *= 1 + 0.6 * (size - 1);
+    if (Math.abs(size - 1) < 0.001 && Math.abs(x0 + x1) + Math.abs(y0 + y1) < 0.002) break;
+  }
+  return { dist, target: target.toArray() };
 }
 
 function stepGlide() {
@@ -178,6 +228,7 @@ function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
   renderer.setSize(w, h, false);
   frame(w, h, snap || embed);
+  if (fitted) setView(fitted);
 }
 window.addEventListener('resize', resize);
 
@@ -833,9 +884,27 @@ function addWing(material) {
   };
   material.customProgramCacheKey = () => `${previousKey()}-wing`;
 }
+// The Skin's and Details' shadow: it follows the wing, and a hidden part casts none (the Lab's
+// Details room takes the shell off).
 function wingDepthMaterial() {
   const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
   addWing(m);
+  const previous = m.onBeforeCompile, previousKey = m.customProgramCacheKey.bind(m);
+  m.onBeforeCompile = (shader) => {
+    previous(shader);
+    shader.uniforms.partTable = { value: partTable() };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
+        varying float vShadowPart;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vShadowPart = part;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <clipping_planes_pars_fragment>', `#include <clipping_planes_pars_fragment>
+        varying float vShadowPart; uniform sampler2D partTable;`)
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+        if ( texture2D( partTable, vec2( ( vShadowPart + 0.5 ) / 256.0, 0.25 ) ).r < 0.5 ) discard;`);
+  };
+  m.customProgramCacheKey = () => `${previousKey()}-hidden`;
   return m;
 }
 
@@ -1366,6 +1435,7 @@ const showCopy = () => {
 byId('cam').onclick = (e) => { e.stopPropagation(); openCams(byId('camMenu').hidden); };
 controls.addEventListener('start', () => {  // the user took the camera
   glide = null;
+  fitted = null;
   markView(null);
   showCopy();
 });
@@ -1409,8 +1479,13 @@ window.viewer = {
     if (opts.highlight) highlight(match(opts.highlight));
     await frames(3);
   },
-  // The Lab's painting rooms (viewer/lab-rooms.js, ?embed=1): light parts by id, turn the car to
-  // face them, and hear which part a click on the car picks.
+  // The Lab's painting rooms (viewer/lab-rooms.js, ?embed=1): take parts off (by id; the rest
+  // show), light parts by id, turn the car to face them, and hear which part a click on the car picks.
+  hide(ids) {
+    const off = new Set(ids);
+    partsState.doc.parts.forEach((p, i) => { partsState.data[i * 4] = off.has(i) ? 0 : 255; });
+    partsState.table.needsUpdate = true;
+  },
   light(ids) {
     setPartFlag(litIds, 1, false);
     litIds = [...ids];
