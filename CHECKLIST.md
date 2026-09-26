@@ -1197,10 +1197,16 @@ the first room; steps 3 and 4 wait until the user has used it.
     TSC_CMYK_Peel_More painted step by step over clay (matte `#b3a089` on body, wheel covers
     and inner car; tyres and glass left alone), each step exported to the viewer and drawn over
     CDP. The lights step only shows at night (a rear view at night).
-  - **Still to decide:** how a design marks its steps (a `s.step(name, words)` call in the paint
-    box is the obvious way); how each step's picture is made on both computers (the Mac has
-    no snapshots: the page could draw them with the viewer); how the Lab hears that the design
-    changed; and whether parts no step has painted stay clay in the game or keep Nadeo's look.
+  - **The clay (the user, 2026-09-26):** parts no step paints stay clay in the game too, so the
+    Studio shows what the game will ("I would do clay but ... the clay looks a bit too warm
+    maybe? Is there a more whiteish clay color?"). Round 2 of the same page offered A warm white
+    `#ddd2c0`, B neutral white `#dadad8`, C cool white `#d0d9df` (a first try at three whites
+    looked alike under the studio light); **the user chose B, neutral white `#dadad8`**, matte,
+    on the body, wheel covers and inner car (tyres and glass keep their own).
+  - **Still to decide (Claude):** how a design marks its steps (a `s.step(...)` call in the paint
+    box is the obvious way); how each step's picture is made on both computers (the Mac has no
+    snapshots: the page could draw them with the viewer); how the Lab hears that the design
+    changed.
   - **Next:** build it.
 
 ## Decisions (for Claude)
