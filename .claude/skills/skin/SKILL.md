@@ -27,6 +27,10 @@ or a whole scene is fine.
 ## Commands
 
 From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/python.exe"`.
+On the Mac there's no `PY`: the tool runs in the container (`docker compose up`), as
+`docker compose exec app python -m tool.skin show <name> --no-snap`. It has no snapshots,
+picture maker or game, so show the user the car in the Lab's Studio, check it with the Mac's
+headless Chrome, and install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
