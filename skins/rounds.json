@@ -17,5 +17,24 @@
     "title": "Unravelled"
    }
   ]
+ },
+ {
+  "title": "Unravelled",
+  "words": "Can you do a cmyk as well, lower lines yellow, to center magenta? like a gradient?, or from front to back",
+  "made": "2026-09-26",
+  "takes": [
+   {
+    "name": "TSC_ChaosElegance_Unravelled",
+    "title": "Ivory on green"
+   },
+   {
+    "name": "TSC_ChaosElegance_Unravelled_CMYKRise",
+    "title": "CMYK low to high"
+   },
+   {
+    "name": "TSC_ChaosElegance_Unravelled_CMYKRun",
+    "title": "CMYK nose to tail"
+   }
+  ]
  }
 ]

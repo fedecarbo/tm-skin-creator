@@ -14,3 +14,13 @@ Concept C, elegance coming undone. Gloss bottle green, fine ivory pinstripes the
 - Rounds before showing (not shown): noise added to the stripes only made them wavy (now the points are pushed about, which folds the lines into loops); wet-look green caught the sky and washed the deck white from behind, so gloss.
 - Shown 2026-09-26: the three concepts in one picture (front, rear, top; close rows), and the Studio.
 - Recorded 2026-09-26 as the round "Chaos and elegance" (A Kintsugi, B Thrown, C Unravelled): the Lab's switch.
+- Picked 2026-09-26 (the user: "c"). Finished after the pick: the game's own lamps inside the car
+  (still stock teal and white) and the turbo glow in ivory (exhaust heat, as on the CMYK car), and a
+  quilted seat.
+- Change 1 (user, 2026-09-26): "Can you do a cmyk as well, lower lines yellow, to center magenta?
+  like a gradient?, or from front to back", "and dark grey body", "And keep the elegant version as
+  well", then "I meant is in the whole cyan magenta yellow". This one stays as it is (look "ivory");
+  the design gained the CMYK looks, two takes on satin dark grey: TSC_ChaosElegance_Unravelled_
+  CMYKRise and _CMYKRun. The three are the round "Unravelled" (A this one, B rise, C run).
+- Shown 2026-09-26: the three in one picture (front, rear, top; close rows of the two CMYK takes),
+  and the Lab's switch.
