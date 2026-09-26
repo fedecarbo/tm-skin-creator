@@ -6,6 +6,10 @@
    "about": "the outside of the car"
   },
   {
+   "name": "floor",
+   "about": "the underside"
+  },
+  {
    "name": "wheels",
    "about": "tyres, covers, rims and brakes"
   },
@@ -46,8 +50,8 @@
   },
   {
    "name": "floor",
-   "group": "body",
-   "about": "the flat underside"
+   "group": "floor",
+   "about": "the flat underside, its planks and the diffuser under the tail"
   },
   {
    "name": "wheel cover",
@@ -2010,7 +2014,7 @@
   {
    "id": 87,
    "name": "floor",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
@@ -2027,7 +2031,7 @@
   {
    "id": 88,
    "name": "floor",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "left",
    "end": "",
@@ -2059,7 +2063,7 @@
   {
    "id": 89,
    "name": "floor",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "right",
    "end": "",
@@ -2091,7 +2095,7 @@
   {
    "id": 90,
    "name": "floor plank",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
@@ -2107,7 +2111,7 @@
   {
    "id": 91,
    "name": "floor plank",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "left",
    "end": "",
@@ -2126,7 +2130,7 @@
   {
    "id": 92,
    "name": "floor plank",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "right",
    "end": "",
@@ -2145,7 +2149,7 @@
   {
    "id": 93,
    "name": "floor rail",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
@@ -2161,7 +2165,7 @@
   {
    "id": 94,
    "name": "rear diffuser",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
@@ -2181,7 +2185,7 @@
   {
    "id": 95,
    "name": "rear diffuser",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "left",
    "end": "",
@@ -2381,7 +2385,7 @@
   {
    "id": 96,
    "name": "rear diffuser",
-   "group": "body",
+   "group": "floor",
    "parent": "floor",
    "side": "right",
    "end": "",

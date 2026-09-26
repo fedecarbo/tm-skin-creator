@@ -7,7 +7,7 @@ Names come from tool/naming.py. Pieces and groups come from tool/segment.py. Eve
 ends up in exactly one part instance: a name plus a side (left, right, centre) and, for the
 wheel-related assemblies, an end (front, rear). Pieces nobody named join the nearest named
 piece of their mesh. Each part sits in an assembly ("sidepod"), and each assembly in one of the
-car's groups (body, wheels, mechanicals, cockpit): a group's name picks all its parts too.
+car's groups (body, floor, wheels, mechanicals, cockpit): a group's name picks all its parts too.
 
     p = parts.load()
     p.mask(bake, "Details", "brake caliper")                  every caliper's texels

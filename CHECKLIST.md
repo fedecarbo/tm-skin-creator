@@ -1398,10 +1398,20 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
   sides), 4 % of the floor's is the wing's; the endplates and brackets share only with their
   twins. A throwaway car with only the floor red (removed) showed where: the whole underside,
   the floor's edge as a thin line along each side, and the flat panels on the front wing's top
-  and its underside. The list can separate them; the paint can't (Nadeo's layout). Claude's
-  proposal, waiting on the user: Floor as a fifth group (the floor, its planks and rail, the
-  rear diffuser), the front wing staying in Body, and the tie said aloud when either is painted
-  (`IMPROVEMENTS.md`, "The shared-paint note knows only twins with one name").
+  and its underside. The list can separate them; the paint can't (Nadeo's layout). The user
+  agreed ("Sure. Let's do that for now"):
+  - [x] **Built (2026-09-26).** Floor is a fifth group, after Body, holding the floor assembly
+    (floor, planks, rail, rear diffuser); the viewer lists its parts right under it. The front
+    wing stays in Body. Paint picks nothing new: "floor" named the same parts before.
+  - [x] **The tie said aloud.** `Skin._warn_shared` used to note only a mirror twin with the
+    same name. It now names every part not chosen that would take 5 % or more of its paint
+    (`SHARED_NOTE`), from `coverage.twins()` at the paint's size, with how much: "floor: its paint
+    also lands on upright (front left, front right: all of it), front wing (left, right: 93 %)".
+    Measured with it: the whole floor covers 93 % of the front wing's paint (each half 47 %, so
+    "about half" to the user was one half's figure); the wing's panels cover 9 % of each floor
+    half. The front uprights sit wholly in the small patch many inner parts share, so painting
+    the floor, the tail, the engine cover, the cockpit or the sidepod frames also paints them.
+    1.7 s for 21 names, once per set.
 
 ## Decisions (for Claude)
 

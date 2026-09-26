@@ -32,9 +32,9 @@ earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn
 rings: their own design step, never touched by body paint), "wheel covers", "inner" (Details),
 "tyres" (Wheels), "glass", "everything". The lights have plain words too (LIGHT_WORDS): "speed
 numbers", "brake lights", "rear lights".
-The groups (body, wheels, mechanicals, cockpit) top the parts list; "body" and "wheels" here are
-the words above, not the groups (the Body group also holds the floor and the black inner parts
-of the sidepods and tail). An assembly or group leaves its glass out unless the glass is named.
+The groups (body, floor, wheels, mechanicals, cockpit) top the parts list; "body" and "wheels"
+here are the words above, not the groups (the Body group also holds the black inner parts of the
+sidepods and tail). An assembly or group leaves its glass out unless the glass is named.
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front". "floor",
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
 "floor|left|part". The Lab's rooms copy the phrase for any part (parts.Parts.token).
@@ -86,6 +86,8 @@ LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display"
 # the rear lights' gear bands: the texture v where bands 2 to 5 start, on the bars (u < 0.5; the
 # centre piece is u > 0.5). Band 1 is at the tail's corner. The viewer's rear lights use the same.
 REAR_BANDS = (0.4747, 0.4903, 0.5030, 0.5157)
+# a part the paint also lands on (shared texels) is named when it takes this share of its paint
+SHARED_NOTE = 0.05
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
 # seen from, the largest sensible width (cm). Measured on the model (2026-09-24).
@@ -231,6 +233,7 @@ class Skin:
         self.clay_left = None  # the parts still in clay when the design is done (end_steps)
         self.frames = False  # skin.show sets it: write the car at the end of each step for the Studio
         self._frame_slots = {}  # slot -> (digest, url) of the last frame's picture of it
+        self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
 
     # ---- steps: the Lab's Studio draws the car at the end of each (CHECKLIST.md, "The Lab", 5) ----
 
@@ -366,14 +369,41 @@ class Skin:
         return {tset: sorted(ids) for tset, ids in out.items()}
 
     def _warn_shared(self, name, ids):
+        """Note the parts the paint also lands on, because they use the same texels: a mirror
+        twin, the four wheels, or another part (half of each front wing wears the floor's paint,
+        2026-09-26). Names each part that isn't chosen and would take SHARED_NOTE of its paint
+        or more, with how much: "floor: its paint also lands on front wing (left, right: 47 %)"."""
         chosen = set(ids)
-        for i in ids:
-            inst = self.parts.instances[i]
-            if inst["shared"] > 0.5:
-                twins = [j for j, o in enumerate(self.parts.instances) if o["name"] == inst["name"] and j != i]
-                if twins and not chosen.issuperset(twins):
-                    self.notes.append(f"{name}: its texels are shared with its twin(s), so the paint lands on all of them")
-                    return
+        hit = {}
+        for tset in {self.parts.instances[i]["mesh"] for i in ids}:
+            twins = self._twins(tset)
+            for j, (texels, _, others) in twins.items():
+                if j in chosen or not texels:
+                    continue
+                n = sum(c for i, c in others.items() if i in chosen)
+                if n >= SHARED_NOTE * texels:
+                    hit[j] = n / texels
+        if not hit:
+            return
+        by_name = {}
+        for j in sorted(hit, key=lambda j: (-hit[j], j)):
+            by_name.setdefault(self.parts.instances[j]["name"], []).append(j)
+        by_name = {k: sorted(js) for k, js in by_name.items()}  # the names by share, their sides in order
+        much =lambda x: "all of it" if x >= 0.95 else f"{round(x * 100)} %"
+        who = []
+        for pname, js in by_name.items():
+            if max(hit[j] for j in js) - min(hit[j] for j in js) < 0.03:  # twins: one share for all
+                tags = ", ".join(t for t in (self.parts.tag(j) for j in js) if t)
+                who.append(f"{pname} ({tags + ': ' if tags else ''}{much(hit[js[0]])})")
+            else:
+                who.append(f"{pname} ({', '.join(f'{self.parts.tag(j) or 'centre'} {much(hit[j])}' for j in js)})")
+        self.notes.append(f"{name}: its paint also lands on {', '.join(who)}")
+
+    def _twins(self, tset):
+        if tset not in self._twin_cache:
+            w, h = self.sizes[tset]
+            self._twin_cache[tset] = coverage.load(self.parts, tset, w, h).twins()
+        return self._twin_cache[tset]
 
     def _warn_reach(self, name, ids):
         """Note when a name reaches further than it seems: an assembly that shares its name with

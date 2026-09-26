@@ -128,11 +128,14 @@ PARTS = [
 
 # The groups, the top of the parts list (the user, 2026-09-26: "Wheel cover, Tyre, etc. should be
 # in a parent category called Wheels. Same with body ... the parent of sidepod, engine cover, tail
-# ... At least the external bits. Then there's Mechanicals ... cables, suspensions etc."). A group
+# ... At least the external bits. Then there's Mechanicals ... cables, suspensions etc."). The
+# floor is a group of its own (the user, 2026-09-26: "we could separate the bottom floor"); half
+# of each front wing wears the floor's paint all the same (Skin notes it when either is painted). A group
 # is a name for the list and for picking parts; the paint box's own words "body" and "wheels"
 # keep their meanings (tool/paintbox.py).
 GROUPS = [
     ("body", "the outside of the car"),
+    ("floor", "the underside"),
     ("wheels", "tyres, covers, rims and brakes"),
     ("mechanicals", "the frame and the suspension"),
     ("cockpit", "where the driver sits"),
@@ -146,7 +149,7 @@ ASSEMBLIES = [
     ("engine cover", "body", "the deck behind the cockpit"),
     ("tail", "body", "the back of the car"),
     ("front wing", "body", "the wing under the nose"),
-    ("floor", "body", "the flat underside"),
+    ("floor", "floor", "the flat underside, its planks and the diffuser under the tail"),
     ("wheel cover", "wheels", "the discs over the wheels"),
     ("tyre", "wheels", "the rubber"),
     ("rims and brakes", "wheels", "rims, hubs and brakes"),

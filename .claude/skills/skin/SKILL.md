@@ -132,8 +132,10 @@ user the Studio too.
   filters the braking red: keep it clear or warm.
 - `s.glass(colour, strength)` only tints. It also tints the lights behind the lenses.
 - Most inner parts share their paint with their twin on the other side, so `"…|left"` also
-  paints the right (`show` notes it). All four wheels and tyres share one paint, and writing on
-  a tyre reads backwards on one side.
+  paints the right, and some share with other parts: the front wing's panels wear the floor's
+  paint, and a small patch serves many inner parts (the front uprights among them). `show` names
+  every part a colour also lands on, with how much: read it. All four wheels and tyres share one
+  paint, and writing on a tyre reads backwards on one side.
 - `s.dirt(amount)`: how dirty the car gets on dirt (1 = stock, 0 never).
 - Say these can't be done, if asked: holographic or colour-shift paint, relief on the body,
   the player's number and name or their colour (the game mode sets it: white in a normal race), the turbo colour,

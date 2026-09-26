@@ -14,12 +14,12 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   define parts first. Can this be my next task to do before anything else?"). The user leads it,
   and may do it with another agent. What "define" covers is theirs to say: start from their
   thoughts, not from a plan of Claude's. Step by step, each agreed before it's built; the steps
-  are in `CHECKLIST.md`, "Defining the parts". Step 1 done (2026-09-26): four groups on top (Body,
-  Wheels, Mechanicals, Cockpit). Next: the user goes through each group's insides, and may split
-  them. What the tool has: `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 4
-  groups, made from `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's
-  UV map tabs show them. Known gaps, below under "The tool": some inner names are guesses, paint
-  shared beyond mirror twins, words on the inner car.
+  are in `CHECKLIST.md`, "Defining the parts". Done (2026-09-26): five groups on top (Body, Floor,
+  Wheels, Mechanicals, Cockpit), and the paint box names every part a colour also lands on. Next:
+  the user goes through each group's insides, and may split them. What the tool has:
+  `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 5 groups, made from
+  `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's UV map tabs show
+  them. Known gaps, below under "The tool": some inner names are guesses, words on the inner car.
 - **The Lab: paused** (the user, 2026-09-26: "we need to pause this page for a bit, or maybe it
   just updates as I share my thoughts"). No work on it unless the user brings a thought for it,
   and then only that. Built: the Studio (the timeline of the build, from clay), the painting rooms
@@ -35,12 +35,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   backwards on one side. Only marks that read the same both ways work there (the registration
   marks). Idea: list the inner parts' unshared areas big enough for a word (the tail frame's
   centre, the floor's centre plank?) and name them as spots, like `SPOTS` on the body.
-- **The shared-paint note knows only twins with one name** (2026-09-26, the UV map room). When
-  a design paints a part whose paint other parts share, `Skin._warn_shared` notes it only if the
-  sharer has the same name (the mirror twin). The UV map room showed more: the front wing shares
-  most of its paint with the floor, and 16 inner parts use one patch of the sidepod frame's and
-  floor's paint. Idea: take the sharers from `coverage.twins()` and name them in the note, as
-  `parts.Parts.share_words` does.
 - **Motifs lined up across panels** (2026-09-24, checkpoint 6). The tool can spread pictures or
   dots evenly, but not in rows that line up from panel to panel, like a regular grid. Idea: a
   `regular` switch on `Skin.scatter`, using `looks.surface_points(regular=True)`.
