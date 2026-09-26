@@ -15,6 +15,9 @@ Python's built-in web server serves two folders (ES modules don't load from file
              <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
              stock/*.png          Nadeo's stock textures, for anything a skin leaves out
              skins/<name>/        one skin's textures, and skin.json with the URL of every slot
+             skins/<name>/steps/  the Lab's Studio: the car at the end of each step of the design,
+                                  at half size, and steps.json (export_steps); studio.json names
+                                  the skin Claude painted last, which the Studio follows
 
 The game's textures become PNG "slots" laid out the way three.js reads them:
   <Set>_B      base colour, sRGB
@@ -34,6 +37,7 @@ import hashlib
 import http.server
 import json
 import threading
+import time
 import urllib.parse
 import urllib.request
 import webbrowser
@@ -281,6 +285,51 @@ def export_skin(name, textures):
         else:
             urls[slot] = None
     (folder / "skin.json").write_text(json.dumps({"name": name, "textures": urls, "own": sorted(own)}, indent=1))
+
+
+# ---- The Lab's Studio: the car at the end of each step of a design (paintbox.Skin.step) ----
+
+
+def start_steps(name):
+    """A design is about to be painted: clear its old frames, and point the Studio at it."""
+    import shutil
+    ensure_stock()
+    shutil.rmtree(DATA / "skins" / name / "steps", ignore_errors=True)
+    _write_json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
+
+
+def save_frame(name, k, slot, image, digest):
+    """One slot's picture for step k; returns its URL, which changes with the picture."""
+    folder = DATA / "skins" / name / "steps" / str(k)
+    folder.mkdir(parents=True, exist_ok=True)
+    image.save(folder / f"{slot}.png", compress_level=1)
+    return f"skins/{name}/steps/{k}/{slot}.png?v={digest}"
+
+
+def export_steps(name, steps, painting):
+    """steps.json: each step's name, what it does, the user's words, what it paints, how to look
+    at it, the line to copy for Claude, and the URL of every slot of its frame (its own pictures,
+    else the stock ones, as skin.json); a step still being painted has none yet."""
+    stock = set(json.loads((STOCK / "stock.json").read_text())) if (STOCK / "stock.json").exists() else set()
+    n = len(steps)
+    out = []
+    for k, st in enumerate(steps):
+        title = ("The start" if n > 1 else "The design") if st.get("implicit") else st["name"]
+        urls = None
+        if "textures" in st:
+            urls = {slot: st["textures"].get(slot) or (f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK else None)
+                    for slot in SLOTS}
+        out.append({"name": title, "does": st["does"], "words": st["words"], "look": st["look"], "paints": st["paints"],
+                    "line": f"{name}, step {k} of {n - 1}: {title}", "frame": st.get("frame"), "textures": urls})
+    _write_json(DATA / "skins" / name / "steps.json", {"name": name, "stamp": time.time(), "painting": painting, "steps": out})
+
+
+def _write_json(path, doc):
+    """Whole or not at all: the Studio reads these while they're being rewritten."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(doc, indent=1))
+    tmp.replace(path)
 
 
 def skin_from_build(name):

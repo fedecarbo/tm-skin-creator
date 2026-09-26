@@ -73,6 +73,8 @@ LIBRARY = {
     "metallic": _f("metallic", 0.35, 0.45, 1.0, look="flake", about="metallic paint: fine flakes under a varnish"),
     "pearl": _f("pearl", 0.3, 0.3, 1.0, look="pearl", about="a soft pearly sheen under a varnish (no colour shift: the game can't)"),
     "candy": _f("candy", 0.15, 0.3, 1.0, look="candy", about="deep, wet-looking colour under a thick varnish"),
+    "clay": _f("clay", 0.9, 0.0, 0.0, (0.855, 0.855, 0.847), source="eye",
+               about="the Lab's Studio clay, a neutral white (#dadad8): a car starts in it, and any part no step paints stays in it"),
     # metal
     "chrome": _f("chrome", 0.05, 1.0, 0.0, (0.9, 0.9, 0.92), about="a mirror"),
     "polished aluminium": _f("polished aluminium", 0.22, 1.0, 0.0, (0.85, 0.86, 0.88), about="bright metal, reflections a little soft"),
@@ -185,7 +187,7 @@ ALIASES = {
 # by its code (they copy a line from the Lab and paste it), so never reorder or remove: a new
 # finish goes at the end of its family, a retired one leaves None in its place. ----
 CATALOGUE = {
-    "PA": ("Paint", ["gloss", "semi-gloss", "satin", "matte", "chalk", "wet look", "metallic", "pearl", "candy"]),
+    "PA": ("Paint", ["gloss", "semi-gloss", "satin", "matte", "chalk", "wet look", "metallic", "pearl", "candy", "clay"]),
     "ME": ("Metal", ["chrome", "polished aluminium", "brushed steel", "brushed titanium", "stainless steel", "gunmetal",
                      "gold", "brass", "copper", "rose gold", "anodised", "black chrome", "bead-blasted titanium", "raw cast"]),
     "PL": ("Plastic", ["gloss plastic", "satin plastic", "matte plastic", "soft-touch", "textured plastic", "acrylic",

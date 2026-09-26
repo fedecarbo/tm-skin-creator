@@ -35,11 +35,23 @@ Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|fro
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
 "floor|left|part". The Lab's UV map room copies the phrase for any part (parts.Parts.token).
 
+Steps (the Lab's Studio, which shows the car at the end of each, in a filmstrip): a design made
+in the Studio starts with s.clay(), the car in the Studio's neutral white clay, which stays on any
+part no later step paints (in the game too). Then each step opens with a name, what it does and
+the user's words that asked for it:
+    s.clay()
+    s.step("The colour run", "Satin cyan to magenta to orange along the body.",
+           words="make the body ... reveal cmyk color")
+    s.paint("body", "satin", colour=C) ...
+    s.step("Lights", "...", look="rear night")      # a step the day's front view can't show
+Paint before the first step is a step of its own ("The design" when it's the only one).
+
 The result: Skin.textures() gives the game's textures as float arrays; show() puts them in the
 viewer and takes Claude's snapshot sheet; build() writes the DDS files and the zip; install()
 puts it in the game. Sets the design never touches aren't shipped, so they keep the stock look.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -207,10 +219,67 @@ class Skin:
         self.canvases = {}
         self.notes = []  # what the tool decided, for the record
         self.icon_colours = []
+        self.steps = []  # the design's steps (step()), for the Studio
+        self.frames = False  # skin.show sets it: write the car at the end of each step for the Studio
+        self._frame_slots = {}  # slot -> (digest, url) of the last frame's picture of it
+
+    # ---- steps: the Lab's Studio draws the car at the end of each (CHECKLIST.md, "The Lab", 5) ----
+
+    def step(self, name, does, words=None, look=None):
+        """Start a step of the design. name: a few words ("The colour run"); does: what it
+        paints, in plain words; words: the user's own words that asked for it; look: how the
+        Studio shows it when the day's front view can't: "rear", "night", "rear night"."""
+        self._end_step()
+        self.steps.append({"name": name, "does": does, "words": words or "", "look": look or "", "paints": []})
+        if self.frames:  # the Studio shows it as being painted
+            from tool import view
+            view.export_steps(self.name, self.steps, painting=True)
+        return self
+
+    def clay(self):
+        """The first step of a design made in the Studio: the body, wheel covers and inner car in
+        the Studio's clay, a neutral white (the user's pick, 2026-09-26). What no later step
+        paints stays clay, in the game too. The tyres and glass keep their own."""
+        self.step("Clay", "The car before any paint: all but the tyres and glass in the Studio's clay.")
+        for where in ("body", "wheel covers", "inner"):
+            self.paint(where, "clay")
+        return self
+
+    def end_steps(self):
+        """The design is done: the last step's frame, and the Studio's list marked finished."""
+        self._end_step(done=True)
+
+    def _end_step(self, done=False):
+        """The car as it is now becomes the open step's frame: its pictures in the viewer's data at
+        half size (only the ones that changed), and the Studio's list rewritten."""
+        if not self.frames or not self.steps:
+            return
+        from tool import view
+        k = len(self.steps) - 1
+        if "textures" not in self.steps[k]:
+            own = {}
+            for tex_name, (arr, _, _) in self.textures().items():
+                for slot, im in view.convert(tex_name, arr).items():
+                    if im.width >= 2048:
+                        im = im.resize((im.width // 2, im.height // 2), Image.NEAREST if slot.endswith("_Code") else Image.LANCZOS)
+                    digest = hashlib.sha1(im.tobytes()).hexdigest()[:12]
+                    if self._frame_slots.get(slot, ("",))[0] != digest:
+                        url = view.save_frame(self.name, k, slot, im, digest)
+                        self._frame_slots[slot] = (digest, url)
+                    own[slot] = self._frame_slots[slot][1]
+            self.steps[k]["textures"] = own
+            self.steps[k]["frame"] = hashlib.sha1(repr(sorted(self._frame_slots.items())).encode()).hexdigest()[:12]
+        view.export_steps(self.name, self.steps, painting=not done)
 
     # ---- selecting ----
 
+    def _open_step(self):
+        if not self.steps:  # paint before the first step is a step of its own
+            self.steps.append({"name": "The design", "does": "", "words": "", "look": "", "paints": [], "implicit": True})
+        return self.steps[-1]
+
     def canvas(self, tset):
+        self._open_step()
         if tset not in self.canvases:
             w, h = self.sizes[tset]
             self.canvases[tset] = Canvas(tset, w, h)
@@ -219,6 +288,8 @@ class Skin:
     def _ids(self, where):
         """(texture set, instance ids) pairs for a `where`."""
         names = [where] if isinstance(where, str) else list(where)
+        paints = self._open_step()["paints"]  # what the open step paints, for the Studio
+        paints += [n for n in names if n not in paints]
         out = {}
         for item in names:
             key = item.strip().lower()

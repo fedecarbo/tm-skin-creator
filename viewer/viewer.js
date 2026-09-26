@@ -3,6 +3,7 @@
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
 //   /?skin=<name>&embed=1  just the car, which another page lights and turns (the Lab's UV map
 //                          room, viewer/lab-uv.js, through window.viewer.light, aim and onPick)
+//                          or dresses step by step (the Studio, viewer/lab-studio.js: dress, picture)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -1427,6 +1428,18 @@ window.viewer = {
     setView({ dir: dir.toArray(), dist: VIEWS.front.dist }, true);
   },
   onPick: null,
+  // The Lab's Studio (viewer/lab-studio.js, ?embed=1): dress the car in one step's textures
+  // ({slot: url}, as skin.json's), and a picture of what's on screen (a blob URL).
+  async dress(urls) {
+    const tex = await loadTextures(urls);
+    dressCar(geometries, tex);
+    freeTexturesExcept(urls);
+    await frames(2);
+  },
+  picture() {
+    renderer.render(scene, camera);  // copied at toBlob's call, before the next frame draws
+    return new Promise((resolve) => canvas.toBlob((b) => resolve(URL.createObjectURL(b)), 'image/jpeg', 0.88));
+  },
   gpu() {
     const gl = renderer.getContext();
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
@@ -1460,7 +1473,10 @@ async function start() {
   setupAirbrakes(geoms);
   setupSpin();
   showAirbrakes(drive.airbrake);
-  await loadSkin(skinName);
+  if (embed && !params.has('skin')) {  // the Studio dresses it step by step; the stock car meanwhile
+    const slots = await (await fetch('data/stock/stock.json')).json();
+    await window.viewer.dress(Object.fromEntries(slots.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`])));
+  } else await loadSkin(skinName);
   setNight(false);
   if (!snap && !embed) {  // on unless this browser turned it off last time
     let on = true;

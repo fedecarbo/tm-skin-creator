@@ -1,7 +1,8 @@
 // The Lab: its rooms, and the materials room: every finish the tool knows (tool/swatches.py writes
 // the list and each ball's textures from tool/finishes.py), drawn on a ball with the viewer's
 // lighting, with its code and numbers and a line to copy for Claude.
-//   /lab.html                 the materials room, the first family
+//   /lab.html                 the Studio (lab-studio.js), the skin Claude painted last
+//   /lab.html?room=materials  the materials room, the first family
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
 //   /lab.html?room=uv         the UV map room (lab-uv.js)
 // Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png.
@@ -255,18 +256,19 @@ function failed(e) {
 
 // ---- the rooms ----
 
-const ROOMS = { materials: $('roomMaterials'), uv: $('roomUV') };
+const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials'), uv: $('roomUV') };
 const begun = {};
 function openRoom(name) {
   for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);
-  if (name === 'materials') u.searchParams.delete('room');
+  if (name === 'studio') u.searchParams.delete('room');
   else u.searchParams.set('room', name);
   history.replaceState(null, '', u);
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (name === 'uv') (begun.uv ||= import('./lab-uv.js')).then((room) => room.open({ copy })).catch(failed);
+  if (name === 'studio') (begun.studio ||= import('./lab-studio.js')).then((room) => room.open({ copy })).catch(failed);
 }
 for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
-openRoom(ROOMS[params.get('room')] ? params.get('room') : 'materials');
+openRoom(ROOMS[params.get('room')] ? params.get('room') : params.has('m') ? 'materials' : 'studio');

@@ -55,6 +55,8 @@ def wheels(s, take):
 
 def design(s, wheel_take="gradient", tip=None, hold=None):
     _peel.design(s, more=True, end=ORANGE, tip=tip, hold=hold)
+    s.step("Lights", "Cyan brake lights, magenta speed numbers, rear lights by gear in the run's colours, rims that glow orange when braking hard.",
+           words="You could update the cmyk one with more tailored lights if you want.", look="rear night")
     s.relight("brake lights", C)
     s.relight("speed numbers", M)
     # one colour per gear band, from the tail's corner inwards; unlit, the bars are dark (not the
@@ -65,4 +67,6 @@ def design(s, wheel_take="gradient", tip=None, hold=None):
     # so the rims go back to the dark satin
     s.glow("rim", ORANGE, "brake heat")
     s.paint("rim", "satin", colour=DARK)
+    s.step("Wheels", "Matte black covers, and a line round each tyre from cyan at the front to orange at the back.",
+           words="If you can actually do a radial effect of that line that gradients the cmyk.")
     wheels(s, wheel_take)

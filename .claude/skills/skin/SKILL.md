@@ -49,6 +49,14 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
   Before the first design in a session, read the docstrings of `tool/paintbox.py` (the key),
   `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names
   are in `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
+- **Built in steps, from clay (the Lab's Studio, the user's idea, 2026-09-26).** A new design
+  starts with `s.clay()`: the body, wheel covers and inner car in the Studio's neutral white
+  clay, which stays on any part no later step paints, in the game too (the user's choice). So
+  design every part, or say which stay clay. Then open each step with `s.step(name, does,
+  words=...)`: a few words, what it paints in plain words, and the user's verbatim words that
+  asked for it; `look="rear night"` for a step the day's front view can't show (lights). A
+  change the user asks for edits its step, so later steps stay on top. `show` draws the car at
+  the end of each step into the Studio's filmstrip as it paints.
 - **Lines from the Lab.** The user may paste a line copied from the Lab, like `ME-07 Gold (matte
   28%, metal 100%, varnish 0%)`. The code is that finish, exactly: put the code in the phrase
   (`s.paint("sidepod", "ME-07")`, `"ME-07 matte"`, or `s.paint("body", "PA-03", colour="#1a1c20")`
@@ -56,7 +64,8 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
   work in phrases too ("rose gold", "stainless steel"). A part copied from the Lab's UV map room,
   like `floor|left|part (Details map, 79% of its paint shared with ...)`: the phrase before the
   bracket is exactly that part as `where` (`s.paint("floor|left|part", ...)`); the bracket says
-  what else its paint lands on.
+  what else its paint lands on. A step copied from the Studio, like `TSC_CMYK_Peel_More, step 3
+  of 4: Lights`, is that `s.step` in that skin's design.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as
@@ -135,6 +144,9 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
   telling close views, and usually the driving camera. It opens on their screen.
 - Start `tool.gallery` in the background once per session, so they can spin each skin in 3D.
   After each round, tell them to refresh it.
+- The Lab's Studio (http://localhost:8765/lab.html, its first room) follows the skin being
+  painted and fills in its filmstrip while `show` runs, no refresh needed. Tell the user once
+  per session they can keep it open to watch the car being built.
 - Reply in a few sentences: what the car looks like, the takes numbered by title, and one line
   on what you checked close up. End with one bold question: which one, or what to change. Say
   that a yes puts it in the game.

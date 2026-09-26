@@ -1203,11 +1203,32 @@ the first room; steps 3 and 4 wait until the user has used it.
     `#ddd2c0`, B neutral white `#dadad8`, C cool white `#d0d9df` (a first try at three whites
     looked alike under the studio light); **the user chose B, neutral white `#dadad8`**, matte,
     on the body, wheel covers and inner car (tyres and glass keep their own).
-  - **Still to decide (Claude):** how a design marks its steps (a `s.step(...)` call in the paint
-    box is the obvious way); how each step's picture is made on both computers (the Mac has no
-    snapshots: the page could draw them with the viewer); how the Lab hears that the design
-    changed.
-  - **Next:** build it.
+  - **How it works (built 2026-09-26):**
+    - A design marks its steps: `s.clay()` (step 0, the clay finish, PA-10 in the Lab), then
+      `s.step(name, does, words=, look=)`. Paint before the first step is a step of its own
+      ("The design" if it's the only one). The paint box notes what each step paints (`_ids`).
+    - `tool.skin show` paints with frames on (`paint(name, frames=True)`; `install` doesn't):
+      at the end of each step the car's textures go to the viewer's data at half size, only the
+      slots that changed, each URL carrying its picture's digest (`view.save_frame`), and
+      `skins/<name>/steps.json` is rewritten (`view.export_steps`, written whole: the page reads
+      it while it changes). `studio.json` names the skin being painted. Frames cost about 15 s
+      more per show and 9 MB for TSC_CMYK_Peel_More.
+    - The Studio (`viewer/lab-studio.js`, the Lab's first room) asks for both every 1.5 s: the
+      filmstrip fills in while a design paints, a step still painting shows "painting…", the
+      step just painted is New, and when Claude starts another skin the Studio follows it.
+    - Two viewers in `?embed=1` with no skin (the stock car): the big one, and one hidden
+      behind it that draws the filmstrip's pictures (`viewer.dress(urls)`, `viewer.picture()`).
+      A step's `look` ("rear night") turns both. A skin painted before the Studio shows as one
+      step, "The design", until it's shown again.
+    - TSC_CMYK_Peel_More's chain now has steps (the colour run, the black wrap, torn open in
+      TSC_CMYK_Peel; lights, wheels in its own design), with the user's words from the notes.
+      It keeps Nadeo's paint where it paints nothing: it was made before the clay.
+  - **Checked on the Mac (2026-09-26)** in headless Chrome: TSC_CMYK_Peel_More's five steps; a
+    test car painted from clay while the Studio was open (clay, red body, stripe, gold wheels:
+    the filmstrip filled in step by step, "Claude is painting", then New on the last); opened on
+    another skin, it followed the new one; 390×844 with no sideways scroll; the materials and UV
+    map rooms as before; no page errors. The test car was removed.
+  - **Next:** the user tries it on a new car.
 
 ## Decisions (for Claude)
 

@@ -18,7 +18,7 @@ import time
 
 from PIL import Image
 
-from tool import gallery, install, paintbox, paths, snap
+from tool import gallery, install, paintbox, paths, snap, view
 
 
 def load_design(name):
@@ -32,17 +32,22 @@ def load_design(name):
     return mod.design
 
 
-def paint(name):
+def paint(name, frames=False):
+    """frames: also draw the car at the end of each step, for the Lab's Studio (show does)."""
     t0 = time.time()
     s = paintbox.Skin(name)
+    if frames:
+        view.start_steps(name)
+        s.frames = True
     load_design(name)(s)
+    s.end_steps()
     print(f"painted in {time.time() - t0:.0f} s")
     print(s.summary())
     return s
 
 
 def show(name, open_browser=False, snapshot=True):
-    s = paint(name)
+    s = paint(name, frames=True)
     t0 = time.time()
     paintbox.export_to_viewer(s)
     paintbox.save_painted(s)
@@ -55,7 +60,6 @@ def show(name, open_browser=False, snapshot=True):
         keep_version(name, thumb)
     gallery.refresh()
     if open_browser:
-        from tool import view
         import urllib.parse
         import webbrowser
         url = f"http://localhost:{view.PORT}/?skin={urllib.parse.quote(name)}"
