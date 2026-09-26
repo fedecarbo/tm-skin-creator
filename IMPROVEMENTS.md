@@ -45,6 +45,15 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
   the viewer.
 
+- **Worn paint that reads as worn** (2026-09-26, TSC_FlagPeel_CostaRica's worn takes: "none gets
+  me to think it's worn"). `s.wear` scatters chips, scrapes and fading by noise, so they sit on
+  the car like a pattern, not like damage. Real wear follows the car: paint rubbed through on
+  the sharp edges and creases (convex curvature from the bake), round panel gaps and fasteners,
+  where hands and walls touch; grime settles in the recesses and streaks back from the
+  openings; scratches catch the light. Idea: drive the wear by the car's own shape (edges,
+  recesses, contact points) and layer it (paint, primer, metal at the deepest), then test it on
+  a plain one-colour car before a livery.
+
 ## The viewer, from the user's screenshots and videos
 
 - **The game's cameras at speed** (2026-09-25, the user). Cam 1, 2 and 3 are fitted to the

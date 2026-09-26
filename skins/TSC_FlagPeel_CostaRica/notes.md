@@ -42,4 +42,7 @@ flag reads across the car in its order. Built from clay in six steps (the Studio
   along the sills; the clear coat patches, at a fifth of the top, read as camouflage.
 - Shown 2026-09-26: the two worn takes side by side, with close rows (nose, side, driving
   camera; bonnet, flank, driving camera). The pick goes into this skin.
+- The user, 2026-09-26: "Didnt really like any, none gets me to think it's worn. but it's fine, I
+  don't need the skin. Was just testing". Left here, not installed. The worn takes' shortfall is
+  on the improvement list ("Worn paint that reads as worn").
 
