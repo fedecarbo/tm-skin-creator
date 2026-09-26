@@ -11,8 +11,9 @@ On start it:
     than its design or art. No snapshots, so nothing in the repo is rewritten.
 
 Without official/CarSport-Model.zip (a Sketchfab login is needed to download it), the gallery
-shows the pictures already in the repo, with no 3D view. Snapshots (Edge), the picture maker
-(an NVIDIA card) and installing into the game stay on the Windows PC.
+shows the pictures already in the repo, with no 3D view. Snapshots come from the Mac's own Chrome
+(docker/snap.mjs). The picture maker (an NVIDIA card) and installing into the game stay on the
+Windows PC.
 """
 
 import http.server

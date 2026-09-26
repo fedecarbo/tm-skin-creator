@@ -10,17 +10,23 @@
 
 Look at the sheet before showing a skin to the user. Playwright drives the Edge installed on
 this PC (no browser download). The GPU line it prints says which renderer drew the pictures.
+
+On the Mac, `node docker/snap.mjs` takes the same pictures with the Mac's own Chrome and hands
+them to this module in the container: `--shots` gives it the list of views, `--tiles` makes the
+sheet from its pictures (and `--thumb` the gallery's picture, as `tool.skin show` does here).
 """
 
 import argparse
 import io
+import json
+import os
 import time
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 from playwright.sync_api import sync_playwright
 
-from tool import paths, view
+from tool import fonts, paths, view
 
 # (label, view, night, hidden meshes[, parts]). A view is a name from viewer.js's VIEWS, or
 # {"dir": [x, y, z], "dist": metres, "target": [x, y, z]} for a close look. parts is an optional
@@ -42,6 +48,14 @@ CLOSE = (("1 bonnet", {"dir": [0.35, 0.85, 0.4], "dist": 1.4, "target": [0, 0.66
          ("9 driving camera", {"dir": [0, 0.42, -1], "dist": 4.5, "target": [0, 0.55, 0.2]}, False, []))
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
 EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
+
+
+def _font(px):
+    """Arial Bold on Windows; in the Mac's container, which has no Windows fonts, Russo One."""
+    try:
+        return ImageFont.truetype("arialbd.ttf", px)
+    except OSError:
+        return fonts.font("russo", px)
 
 
 def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None):
@@ -75,6 +89,11 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
         server.shutdown()
     for e in errors:
         print(f"page error: {e}")
+    return sheet(name, tiles, out, size, thumb)
+
+
+def sheet(name, tiles, out=None, size=(960, 720), thumb=None):
+    """The sheet of labelled views, from (label, picture) pairs; thumb as snap()'s."""
     out = out or paths.BUILD / f"{name}_views.png"
     if thumb and tiles:
         Path(thumb).parent.mkdir(parents=True, exist_ok=True)
@@ -82,7 +101,7 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
     cols = 3
     rows = (len(tiles) + cols - 1) // cols
     sheet = Image.new("RGB", (cols * size[0], rows * size[1]))
-    font = ImageFont.truetype("arialbd.ttf", 24)
+    font = _font(24)
     for k, (label, tile) in enumerate(tiles):
         d = ImageDraw.Draw(tile)
         d.text((14, 10), label, fill=(255, 255, 255), font=font, stroke_width=3, stroke_fill=(0, 0, 0))
@@ -119,7 +138,7 @@ def picture(names, titles=None, views=("front", "rear", "top"), close=None, open
     tw, th = rows[0][1][0].size
     band = 70
     out = Image.new("RGB", (3 * tw, len(rows) * (th + band)), (24, 24, 26))
-    font = ImageFont.truetype("arialbd.ttf", 40)
+    font = _font(40)
     for i, (title, tiles) in enumerate(rows):
         y = i * (th + band)
         ImageDraw.Draw(out).text((20, y + 14), title, fill=(235, 235, 235), font=font)
@@ -128,8 +147,7 @@ def picture(names, titles=None, views=("front", "rear", "top"), close=None, open
     path = paths.BUILD / f"{names[0]}_picture.png"
     out.save(path)
     print(f"picture: {path}")
-    if open_it:
-        import os
+    if open_it and hasattr(os, "startfile"):  # Windows; on the Mac, docker/snap.mjs opens it
         os.startfile(path)
     return path
 
@@ -144,7 +162,25 @@ def main():
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
     ap.add_argument("--close-row", nargs="+", metavar="NAME N", help="a skin, then numbers from its close sheet")
+    ap.add_argument("--shots", action="store_true", help="the Mac: print the views to take, as JSON")
+    ap.add_argument("--tiles", metavar="DIR", help="the Mac: the sheet from DIR/0.png, 1.png... in --shots order")
+    ap.add_argument("--thumb", action="store_true", help="with --tiles: also the gallery's picture, and a version kept")
     args = ap.parse_args()
+    shots = CLOSE if args.close else SHOTS
+    if args.shots:
+        print(json.dumps({"build": str(paths.BUILD), "shots": [[label, v, night, hidden, *rest] for label, v, night, hidden, *rest in shots]}))
+        return
+    if args.tiles:
+        tiles = [(s[0], Image.open(Path(args.tiles) / f"{k}.png")) for k, s in enumerate(shots)]
+        w, h = tiles[0][1].size
+        out = paths.BUILD / f"{args.name}_{'close' if args.close else 'views'}.png"
+        thumb = paths.SKINS / args.name / "thumb.png" if args.thumb and not args.close else None
+        sheet(args.name, tiles, out, (w, h), thumb)
+        if thumb:
+            from tool import gallery, skin
+            skin.keep_version(args.name, thumb)
+            gallery.refresh()
+        return
     if args.picture:
         close = (args.close_row[0], args.close_row[1:]) if args.close_row else None
         picture([args.name] + args.more, args.titles, args.views, close)

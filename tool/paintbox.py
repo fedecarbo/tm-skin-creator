@@ -37,8 +37,9 @@ Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|fro
 
 Steps (the Lab's Studio, which shows the car at the end of each, in a filmstrip): a design made
 in the Studio starts with s.clay(), the car in the Studio's neutral white clay, which stays on any
-part no later step paints (in the game too). Then each step opens with a name, what it does and
-the user's words that asked for it:
+part no later step paints (in the game too): at the end, the paint box names the parts still in
+clay (a note, and the Studio's last step), since clay and white paint look alike. Then each step
+opens with a name, what it does and the user's words that asked for it:
     s.clay()
     s.step("The colour run", "Satin cyan to magenta to orange along the body.",
            words="make the body ... reveal cmyk color")
@@ -126,6 +127,7 @@ class Canvas:
             self.metal = np.ascontiguousarray(r[..., 1].reshape(n)).astype(np.float32) if r.shape[-1] > 1 else np.zeros(n, np.float32)
             self.coat = np.zeros(n, np.float32) if tset == "Skin" else None  # CoatR 0: glossy varnish all over, as with no file
         self.touched = np.zeros(n, bool)
+        self.clay = None  # texels still in the Studio's clay (Skin.clay), None when it wasn't used
         self.glow_rgb = self.glow_code = None
         self.glow_touched = False
         if tset == "Details":
@@ -157,6 +159,8 @@ class Canvas:
             if self.coat is not None and varnish is not None:
                 self.coat[idx] = self.coat[idx] * (1 - m) + (1 - varnish) * m
         self.touched[idx] |= m > 0.001
+        if self.clay is not None:
+            self.clay[idx[m > 0.5]] = False
 
     def textures(self):
         """The game's textures for this set, or {} when the design never touched it."""
@@ -220,6 +224,7 @@ class Skin:
         self.notes = []  # what the tool decided, for the record
         self.icon_colours = []
         self.steps = []  # the design's steps (step()), for the Studio
+        self.clay_left = None  # the parts still in clay when the design is done (end_steps)
         self.frames = False  # skin.show sets it: write the car at the end of each step for the Studio
         self._frame_slots = {}  # slot -> (digest, url) of the last frame's picture of it
 
@@ -243,10 +248,41 @@ class Skin:
         self.step("Clay", "The car before any paint: all but the tyres and glass in the Studio's clay.")
         for where in ("body", "wheel covers", "inner"):
             self.paint(where, "clay")
+            for tset, ids in self._ids(where).items():  # what later paint must cover
+                c = self.canvas(tset)
+                if c.clay is None:
+                    c.clay = np.zeros(c.w * c.h, bool)
+                idx, m = self._mask(tset, ids, None, c)
+                c.clay[idx[m > 0.5]] = True
         return self
 
+    def still_clay(self, least=0.2, texels=100):
+        """The parts no step painted: [(instance id, part name)] for each part with at least
+        `least` of its texels (and `texels` of them) still in clay. None for a design that didn't
+        start from clay. Clay is a neutral white, so a part left in it passes for white paint
+        and a white part looks forgotten (TSC_FlagPeel_CostaRica's cockpit rim, 2026-09-26)."""
+        found = None
+        for tset, c in self.canvases.items():
+            if c.clay is None:
+                continue
+            found = found or []
+            cov = coverage.load(self.parts, tset, c.w, c.h)
+            for i in cov.ids:
+                idx, val = cov.sparse.get(i, ((), ()))
+                if not len(idx):
+                    continue
+                inside = idx[val >= 128]
+                left = int(c.clay[inside].sum())
+                if left >= texels and left >= least * len(inside):
+                    found.append((i, self.parts.instances[i]["name"]))
+        return found
+
     def end_steps(self):
-        """The design is done: the last step's frame, and the Studio's list marked finished."""
+        """The design is done: the parts still in clay noted, the last step's frame, and the
+        Studio's list marked finished."""
+        self.clay_left = self.still_clay()
+        if self.clay_left:
+            self.notes.append("still clay (no step paints them): " + ", ".join(dict.fromkeys(n for _, n in self.clay_left)))
         self._end_step(done=True)
 
     def _end_step(self, done=False):
@@ -269,7 +305,7 @@ class Skin:
                     own[slot] = self._frame_slots[slot][1]
             self.steps[k]["textures"] = own
             self.steps[k]["frame"] = hashlib.sha1(repr(sorted(self._frame_slots.items())).encode()).hexdigest()[:12]
-        view.export_steps(self.name, self.steps, painting=not done)
+        view.export_steps(self.name, self.steps, painting=not done, clay=self.clay_left if done else None)
 
     # ---- selecting ----
 
@@ -319,6 +355,7 @@ class Skin:
             for i in ids:
                 out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
             self._warn_shared(bits[0], ids)
+            self._warn_reach(bits[0], ids)
         return {tset: sorted(ids) for tset, ids in out.items()}
 
     def _warn_shared(self, name, ids):
@@ -330,6 +367,27 @@ class Skin:
                 if twins and not chosen.issuperset(twins):
                     self.notes.append(f"{name}: its texels are shared with its twin(s), so the paint lands on all of them")
                     return
+
+    def _warn_reach(self, name, ids):
+        """Note when a name reaches further than it seems: an assembly that shares its name with
+        one of its parts ("front wing" is the wing, its endplates, brackets and the pylons under
+        the nose), or one whose parts are in more than one texture set. The wing's stripes
+        landed on the body's pylons, over the wrap (TSC_FlagPeel_CostaRica, 2026-09-26)."""
+        chosen = [self.parts.instances[i] for i in ids]
+        if not {o["name"] for o in chosen} - {name}:
+            return  # a part, or "|part"
+        ambiguous = any(o["name"] == name for o in self.parts.instances)
+        if not ambiguous and len({o["mesh"] for o in chosen}) < 2:
+            return  # an assembly's own name, all in one set: what it says
+        words = {"Skin": "body", "Details": "inner car", "Wheels": "tyres", "Glass": "glass"}
+        by_set = {}
+        for i in ids:
+            inst = self.parts.instances[i]
+            if inst["name"] != name:
+                by_set.setdefault(inst["mesh"], []).append(inst["name"])
+        also = "; ".join(f"{', '.join(dict.fromkeys(names))} ({words[s]})" for s, names in by_set.items())
+        hint = f"; '{name}|part' is the {name} alone" if any(self.parts.instances[i]["name"] == name for i in ids) else ""
+        self.notes.append(f"{name}: the whole assembly, so it also paints {also}{hint}")
 
     def _mask(self, tset, ids, zone, canvas):
         cov = coverage.load(self.parts, tset, canvas.w, canvas.h).share(ids).reshape(-1)
@@ -432,7 +490,7 @@ class Skin:
     def keep(self, tset="Skin"):
         """A copy of a texture set's paint so far: the layer a peel reveals (tool/peel.py)."""
         c = self.canvas(tset)
-        kept = {k: None if getattr(c, k) is None else getattr(c, k).copy() for k in ("colour", "rough", "metal", "coat")}
+        kept = {k: None if getattr(c, k) is None else getattr(c, k).copy() for k in ("colour", "rough", "metal", "coat", "clay")}
         return {**kept, "set": tset}
 
     def peel(self, under, where="body", **params):

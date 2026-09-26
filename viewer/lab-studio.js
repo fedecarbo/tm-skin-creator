@@ -117,12 +117,22 @@ function pick(k) {
   const later = doc.steps.slice(k + 1).map((s) => s.name);
   $('stAfter').textContent = later.length ? `${later.join(', ')}: they stay on top if this step changes` : 'Nothing yet: this is the car now';
   $('stLine').textContent = step.line;
+  clay(k === n - 1);
   if (params.has('skin') || params.has('step')) {
     const u = new URL(location.href);
     u.searchParams.set('step', k);
     history.replaceState(null, '', u);
   }
   showOnStage(step).catch((e) => console.error(e));
+}
+
+// The parts no step painted (paintbox.Skin.still_clay), on the last step: clay is a neutral white,
+// so a part left in it passes for white paint. They're lit on the car.
+function clay(last) {
+  const left = last && doc.clay ? doc.clay : null;
+  $('stClayRow').hidden = !left;
+  if (left) $('stClay').textContent = left.length ? [...new Set(left.map((p) => p.name))].join(', ') : 'Nothing: every part is painted';
+  if (stage && stage.light) stage.light(left ? left.map((p) => p.id) : []);
 }
 
 function live() {

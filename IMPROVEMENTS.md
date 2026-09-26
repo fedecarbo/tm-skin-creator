@@ -44,21 +44,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   wheel, with the brake light in its slot. Renaming them means updating
   `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
   the viewer.
-- **Clay and white paint look alike** (2026-09-26, TSC_FlagPeel_CostaRica, the Studio's first
-  car): the Studio's clay is a neutral white, so a part painted white (the cockpit rim, in the
-  flag's white) read as a part left undesigned, and a part left in clay would pass for white.
-  The paint box knows which parts no step painted. Idea: `end_steps` lists the parts still in
-  clay, and the Studio shows them on the last step ("still clay: ..."), lit on the car.
-- **A name that reaches another texture set** (2026-09-26, TSC_FlagPeel_CostaRica): "front
-  wing" names an assembly that holds the wing pylons, which are body paint, so the wing's
-  stripes landed on the pylons, over the wrap, and it took a close look to find. Idea: when a
-  `where` paints parts in more than one set, or an assembly's parts beyond its namesake, the
-  paint box notes which ("front wing: also the wing pylons (body)"), as it notes shared paint.
-- **Pictures on the Mac** (2026-09-26, TSC_FlagPeel_CostaRica): `tool.snap` drives Edge on the
-  Windows PC, so on the Mac there's no command for the six views, the close looks or the titled
-  picture for the user. Claude did them by hand, with a small Node script driving the Mac's
-  Chrome over CDP (`viewer.show` per view) and Pillow in the container for the sheets. Idea:
-  `tool.snap --mac`, or a script in `docker/` the Mac runs, with the same `SHOTS` and `CLOSE`.
 
 ## The viewer, from the user's screenshots and videos
 

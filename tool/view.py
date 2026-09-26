@@ -306,10 +306,12 @@ def save_frame(name, k, slot, image, digest):
     return f"skins/{name}/steps/{k}/{slot}.png?v={digest}"
 
 
-def export_steps(name, steps, painting):
+def export_steps(name, steps, painting, clay=None):
     """steps.json: each step's name, what it does, the user's words, what it paints, how to look
     at it, the line to copy for Claude, and the URL of every slot of its frame (its own pictures,
-    else the stock ones, as skin.json); a step still being painted has none yet."""
+    else the stock ones, as skin.json); a step still being painted has none yet. clay: when the
+    design is done, the parts still in clay, [(instance id, name)] (Skin.still_clay; None for a
+    design that didn't start from clay)."""
     stock = set(json.loads((STOCK / "stock.json").read_text())) if (STOCK / "stock.json").exists() else set()
     n = len(steps)
     out = []
@@ -321,7 +323,10 @@ def export_steps(name, steps, painting):
                     for slot in SLOTS}
         out.append({"name": title, "does": st["does"], "words": st["words"], "look": st["look"], "paints": st["paints"],
                     "line": f"{name}, step {k} of {n - 1}: {title}", "frame": st.get("frame"), "textures": urls})
-    _write_json(DATA / "skins" / name / "steps.json", {"name": name, "stamp": time.time(), "painting": painting, "steps": out})
+    doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out}
+    if clay is not None:
+        doc["clay"] = [{"id": i, "name": n} for i, n in clay]
+    _write_json(DATA / "skins" / name / "steps.json", doc)
 
 
 def _write_json(path, doc):

@@ -1307,6 +1307,32 @@ the first room; steps 3 and 4 wait until the user has used it.
 
 ## Things we learned
 
+- **2026-09-26, the first car built in the Studio (TSC_FlagPeel_CostaRica), and three fixes after
+  it (the user asked: "Are they quick to fix? Can you do them?").**
+  - **Clay and white paint look alike.** The flag's white on the cockpit rim read as parts left
+    in clay inside the cockpit. `Skin.clay()` now marks the clay texels, later paint clears them
+    (a peel puts back the layer's own), and `Skin.still_clay()` names every part with a fifth or
+    more of its texels still clay: a note from `show` and `install`, and on the Studio's last
+    step a "Still clay" row, the parts lit on the car ("Nothing: every part is painted" when
+    none). Painting a part "clay" on purpose counts as painting it. The Studio's rows had also
+    ignored `hidden` (`.row` is a flex box): an empty "Your words" showed on every step with no
+    words.
+  - **An assembly's name reaches further than it seems.** "front wing" is the wing, its
+    endplates and brackets (inner car) and the pylons under the nose (body): the wing's stripes
+    landed on the pylons, over the wrap. `Skin._warn_reach` notes it when a name is both an
+    assembly and a part, or its parts are in more than one texture set, and gives the `|part`
+    phrase. "floor" and "sidepod" reach as far.
+  - **A flag draped round a line along the car fans out near the line.** Stripes as angles round
+    a line at the floor's height looked right on the body, but on the nose's underside, close
+    to the line, they spread into a sunburst. The line drops 30 cm under the nose, so its tip is
+    red all over.
+  - **Snapshots on the Mac.** The container can't drive the Mac's Chrome: that needs Chrome's
+    DevTools port open beyond 127.0.0.1, which the safety check refused (rightly). So
+    `docker/snap.mjs` (Node 24, nothing to install) drives the Mac's Chrome headless on
+    127.0.0.1, takes the views `tool.snap --shots` lists, and hands the pictures to the
+    container through the repo's `.snap/` folder (git-ignored, `/app/.snap` inside), where
+    `tool.snap --tiles` makes the same sheets. The container has no Arial: its labels are in
+    Russo One. Six views take about 6 s on the M5.
 - **2026-09-26, the Lab (materials).**
   - **Finish names with a colour word in them were being split.** In "brushed titanium",
     "titanium" is a colour, so the phrase became the brushed steel finish in titanium grey.

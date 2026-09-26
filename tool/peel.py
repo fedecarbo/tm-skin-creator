@@ -118,6 +118,8 @@ def peel(skin, under, where="body", amount=0.2, scale=30.0, stretch=0.5, jag=0.0
         if k == "colour":
             u = u * (1 - shadow_dark * shade)[:, None]
         layer[idx] = layer[idx] * (1 - h) + u * h
+    if c.clay is not None and under.get("clay") is not None:  # a tear shows clay again where the layer was clay
+        c.clay[idx] = np.where(hole > 0.5, under["clay"][idx], c.clay[idx])
     c.touched[idx] = True
     torn = float((hole * m).sum() / max(m.sum(), 1))
     skin.notes.append(f"peel on {where}: {torn:.0%} of it torn open ({time.time() - t0:.0f} s)")

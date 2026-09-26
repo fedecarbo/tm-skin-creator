@@ -13,3 +13,6 @@ official/*.zip
 __pycache__/
 *.pyc
 .venv/
+
+# The Mac's snapshots on their way to the container (docker/snap.mjs)
+.snap/

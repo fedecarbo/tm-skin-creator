@@ -3,7 +3,8 @@
 FROM python:3.14-slim
 
 # Only what the viewer needs, at the versions pinned in requirements.txt. Playwright is there
-# because tool/skin.py imports tool/snap.py. No browser is downloaded, so snapshots don't run.
+# because tool/skin.py imports tool/snap.py. No browser is downloaded: the Mac's own Chrome takes
+# the snapshots (docker/snap.mjs) and tool.snap makes the sheets here.
 COPY requirements.txt /tmp/requirements.txt
 RUN grep -E '^(numpy|pillow|scipy|playwright|greenlet|pyee|typing_extensions)==' /tmp/requirements.txt > /tmp/viewer.txt \
  && pip install --no-cache-dir -r /tmp/viewer.txt
