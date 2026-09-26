@@ -22,7 +22,7 @@ or a whole scene is fine.
   three shades of one.
 - Plain words in replies: no code, file names, paths or tool output. Describe the car.
 - Ask only about taste. Decide everything technical. When a word is genuinely ambiguous
-  ("pearl", "metallic", "retro"), show it (two takes, or the materials page) rather than ask.
+  ("pearl", "metallic", "retro"), show it (two takes, or the Lab) rather than ask.
 
 ## Commands
 
@@ -35,7 +35,7 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks. Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
-| `PY -m tool.swatches` (background) | The materials page: every finish on a ball, by family. |
+| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: every material the tool knows on a ball, by family, with its code, numbers and a "Copy for Claude" button. |
 | `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
 | `PY -m tool.publish` | Puts the skins in the game on the page online (the user's phone and friends), about 10 s plus the upload. `--here` shows it on this computer only. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]` | Candidate cut-out pictures on one sheet, `build/pictures/<slug>.png`, about 20 s each. Styles: sticker (default), flat, print, painted, line art, retro, photo. |
@@ -49,11 +49,18 @@ From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/
   Before the first design in a session, read the docstrings of `tool/paintbox.py` (the key),
   `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names
   are in `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
+- **Lines from the Lab.** The user may paste a line copied from the Lab, like `ME-07 Gold (matte
+  28%, metal 100%, varnish 0%)`. The code is that finish, exactly: put the code in the phrase
+  (`s.paint("sidepod", "ME-07")`, `"ME-07 matte"`, or `s.paint("body", "PA-03", colour="#1a1c20")`
+  for one without its own colour). The numbers are there for the user to read. The Lab's names
+  work in phrases too ("rose gold", "stainless steel").
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as
   `skins/TSC_CMYK_Peel/design.py` does) rather than copy it.
-- When something isn't in the box, write it. A reusable pattern or placement goes in `tool/`.
+- When something isn't in the box, write it. A reusable pattern or placement goes in `tool/`. A
+  new finish goes in `finishes.LIBRARY` and at the end of its family in `finishes.CATALOGUE`
+  (never reorder it: the codes are what the user copies), so the Lab shows it.
   A shape for one skin only stays in its `design.py`. Keep it small. Record what the game or
   a test teaches under "Things we learned" in `CHECKLIST.md`.
 - Each picture-maker run needs its own wording or style: two runs with the same words share a

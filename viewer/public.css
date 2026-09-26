@@ -1,4 +1,4 @@
 /* The page online (tool/publish.py adds this to the copies it publishes): the skins in 3D for the
    user's phone and friends, without the workbench. */
-#togglePartsPanel, #partsPanel, #tip, #copyCam, #camMenu small, a[href="./materials.html"], .tool-only { display: none !important; }
+#togglePartsPanel, #partsPanel, #tip, #copyCam, #camMenu small, a[href="./lab.html"], .tool-only { display: none !important; }
 .words:empty { display: none; }

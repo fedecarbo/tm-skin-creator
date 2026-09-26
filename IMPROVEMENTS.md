@@ -10,7 +10,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
-Nothing.
+- **The Lab** (2026-09-26): the tool's own lists, each thing with a line to copy for Claude.
+  Step 1, the materials room, is built and waits for the user to look. The steps and notes are
+  in `CHECKLIST.md`, "The Lab".
 
 ## The tool
 

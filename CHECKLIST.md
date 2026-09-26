@@ -1033,6 +1033,109 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   - Checked with a picture of every inner part on its own and close looks from all sides, day,
     night and in a turbo, on TSC_CMYK_BlackTail and TSC_CMYK_EndsInK.
 
+### The Lab (started 2026-09-26)
+
+A page of the tool's own lists: what it can do, and a way to point at any of it. The user
+(2026-09-26) wanted "a whole catalog of types of plastic, types of metals, types of rubber", like
+the KeyShot library they used to render products with, showing "the matte %, metalness % etc
+for each". Then, from the first mockups: "click somewhere to just copy the material so I can
+paste it to Claude and Claude would know which I am talking about. That's the whole point of
+the lab." Its later rooms are the UV map, a car covered in named spots, and the parts.
+
+**The Lab's rule (the user, 2026-09-26).** Every room shows the tool's own data, never a list
+of its own: "If it doesn't come from the tool, then it will get outdated." The Lab also shows
+the user what the tool can do. If the Lab can't name a part, the tool can't either, and that's
+the thing to fix. Each room also gets the layout its job needs (the user: "other sections e.g
+UV or whatever can be different layouts depending on the need"). So each step opens with its
+own round of mockups, and only the Lab's header, its look and copy-for-Claude are shared.
+
+Each step is ticked when the user has seen it.
+
+#### [ ] 1. The materials room
+
+- **What it's for:** every material the tool knows, on a ball, by family, with its code and
+  its numbers (matte, metal and varnish, as %). One click copies a line to paste to Claude.
+- **What you'll see:** the Lab (the viewer's "The Lab" link, or http://localhost:8765/lab.html).
+  There are 70 materials in ten families, and each ball is painted by the same code that paints
+  the car. There's a copy button on every ball, and "Copy for Claude" in the panel. Later,
+  TSC_Lab_Materials in the game: every new material on a patch, to drive by day and at night.
+- **Model:** Opus 5.5.
+- **Notes for Claude:**
+  - **The mockups:** https://claude.ai/artifact/PypRSjC19UwhtK3QU4Zk9k.
+    - Round 1 offered A shelf and spec panel, B spec table and C on the car. The user loved "on
+      the car", but they think about a material for a particular part.
+    - Round 2 was about copying: A copy from the shelf, B part then material, C build a list.
+      **The user chose A** ("A is the one for materials, at least for now. If I need to
+      reiterate I can do it once I start actually using it to design").
+    - The mockups' balls and gold car were rendered in the real viewer on the Mac. Headless
+      Chrome over CDP, a `__THREE_DEVTOOLS__` hook to reach the scene, and a highlighted-part
+      render as the mask to paint one part.
+  - **Codes:** `finishes.CATALOGUE` holds each family's two letters and its finishes in order,
+    and the code is the family's letters plus the place in it (ME-07 is gold).
+    - **Never reorder or remove an entry:** the user copies codes. A new finish goes at the end
+      of its family; a retired one leaves None in its place.
+    - `finishes.get("ME-07")` and a code inside a phrase ("ME-07 matte") both work.
+    - The copied line is `finishes.line()`: `ME-07 Gold (matte 28%, metal 100%, varnish 0%)`.
+    - A finish changed by a shine word (`with_shine`) loses its code, because it's no longer
+      the Lab's own.
+  - **New finishes:** 28 new ones, the Lab's "New" tag (`source` "measured" or "eye"). The
+    looks grain, plain, denim, suede, perforated, knurl and muddy are in `tool/looks.py`. Colours
+    for stainless steel and brass start from Physically Based (physicallybased.info, CC0, API
+    `api.physicallybased.info/v2/materials`, updated 2026-09-01), then set by eye. Measured
+    colours are paler than ours: measured gold is sRGB (1, .89, .59), ours (1, .72, .25) was
+    set against the game.
+  - **Nothing paid:** the game takes only colour, matte, metal and varnish per texel, plus
+    relief on the inner car and wheels. KeyShot's library can't be exported, and Substance
+    and Poliigon are subscriptions whose detail the game can't show. ambientCG (CC0) is still
+    `tool.textures` for photographed surfaces.
+  - **`tool/swatches.py`** writes each ball's textures and `materials.json` (codes, numbers,
+    colour, where it works, source, line). The Edge screenshot step is gone: `viewer/lab.js`
+    draws the balls in the page, lit like the viewer (studio HDR, key light, ACES at 0.9). So
+    the Lab works on the Mac too, where `docker/serve.py` paints the balls at start.
+    `viewer/materials.html`, `swatch.html` and `swatch.js` were removed.
+  - **Checked on the Mac (2026-09-26)** in headless Chrome:
+    - every family at 1440×900, and the page at 390×844;
+    - a click on a copy button put `ME-07 Gold (matte 28%, metal 100%, varnish 0%)` on the
+      clipboard;
+    - no page errors.
+  - **Next:**
+    - the user opens the Lab;
+    - on Windows: `tool.skin show TSC_Lab_Materials` (for its snapshots), then `tool.skin
+      install TSC_Lab_Materials`;
+    - the user drives it. Each finish the game confirms gets `source="game"` (add "game" to
+      `SOURCE` in `viewer/lab.js`).
+
+#### [ ] 2. The UV map room
+
+- **What it's for:** the car's flat texture maps, as the tool paints them, with every part
+  named. Hover over a spot to see its name, and see it light up on a small 3D car. Copy a
+  part's name for Claude.
+- **What you'll see:** Nadeo's `UV_Skin` and `UV_Details` maps (the latter scaled from 2018²)
+  under the current skin's paint, with the part names from `car/parts.json`.
+- **Model:** Opus 5.5.
+- **Notes for Claude:** open with a round of mockups. Read the names from `car/parts.json` and
+  the texel masks from `tool/coverage.py`, never a copy.
+
+#### [ ] 3. The spots room
+
+- **What it's for:** the car covered in every named place the tool knows, so the user can say
+  "the logo on the left sidepod" and see exactly where that is.
+- **What you'll see:** the car with `paintbox.SPOTS` (11 decal spots), `shapes.REGIONS` (13
+  regions) and the parts marked, each with a copy button. It includes the inner car's unshared
+  areas: the queued "Words on the inner car" item names them as spots.
+- **Model:** Opus 5.5.
+- **Notes for Claude:** open with a round of mockups. A place the user wants that isn't there
+  is a spot to add to the tool.
+
+#### [ ] 4. The parts room
+
+- **What it's for:** the viewer's parts list and "colour by part", moved into the Lab, with
+  copy buttons.
+- **What you'll see:** every part by assembly, lit on the car when picked.
+- **Model:** Opus 5.5.
+- **Notes for Claude:** open with a round of mockups. The viewer's parts panel
+  (`window.viewer.showParts`, `#partsPanel`) is the start.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
@@ -1109,6 +1212,27 @@ leaves `IMPROVEMENTS.md` and its notes stay here as the record.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-26, the Lab (materials).**
+  - **Finish names with a colour word in them were being split.** In "brushed titanium",
+    "titanium" is a colour, so the phrase became the brushed steel finish in titanium grey.
+    "polished aluminium" became gloss paint in aluminium grey, with "polished" left over.
+    `finishes._pull` now takes out a Lab code, or a whole name (or alias) of two or more words
+    that holds a colour word, before the colour words are read. That covers only finishes with
+    their own colour; "piano black" would lose its black.
+  - **What that changed in existing designs.** Painted again with the old and new tool on the
+    Mac:
+    - TSC_RatRod's brushed-steel wheel covers and rims are about 18/255 lighter (the finish's
+      own steel, not the colour word's);
+    - TSC_Stealth_CMYK and TSC_CMYK_BlackTail's titanium exhausts are 13/255 rougher (brushed
+      titanium's own 0.5, not brushed steel's 0.45);
+    - TSC_Race is unchanged.
+
+    It shows in the game only if those skins are installed again.
+  - **Patterns must read at the car's scale.** A knurl at 3.5 mm vanished on the ball, and would
+    have on the car (a Skin texel is about 0.9 mm): 8 mm reads. The wear looks at their default
+    amount (scratched, dusty, faded, chipped) are faint on a 30 cm ball; the Lab's big ball
+    shows them.
 
 - **2026-09-25, finishing the inner car (TSC_CMYK_BlackTail, TSC_CMYK_EndsInK).**
   - **Nadeo's Details_N** is 2048² and three texels in four are rounding noise within 1.5/255 of

@@ -1,13 +1,18 @@
-"""The materials page: every finish on a ball, pictured, named and grouped.
+"""The Lab's materials: every finish the tool knows, painted on a ball, with its code and numbers.
 
-    python -m tool.swatches            build any swatches that are missing or stale, serve, open the page
-    python -m tool.swatches --all      rebuild every swatch
+    python -m tool.swatches            paint any balls that are missing or stale, serve, open the Lab
+    python -m tool.swatches --all      repaint every ball
+    python -m tool.swatches --no-open  just paint (docker/serve.py does this on the Mac)
 
-For each finish in tool/finishes.py (and each photographed surface named in tool/textures.py)
-the look is painted onto a 30 cm ball's texture with the same code that paints the car, then
-viewer/swatch.html renders the ball with the car's lighting and a hidden Edge takes its picture.
-viewer/materials.html shows them all. The page lives with the viewer's data:
-  <work>/viewer/materials/<slug>/{B,RM,Coat}.png + swatch.json + swatch.png, and materials.json.
+The Lab (viewer/lab.html) shows only what this writes, and this writes only what the tool has:
+each finish in tool/finishes.py, in `CATALOGUE` order, and each photographed surface named in
+tool/textures.py that no finish uses yet. So the Lab is the tool's own list: a finish added to
+the tool shows up here, and one missing here is missing from the tool (the user, 2026-09-26).
+
+Each ball is painted with the same code that paints the car (looks.apply on a 30 cm ball's
+texture). The page draws the balls itself with the viewer's lighting (viewer/lab.js), so this
+needs no browser and runs on the Mac too. Written to the viewer's data:
+  <work>/viewer/materials/<slug>/{B,RM,Coat}.png + swatch.json, and materials.json (the list).
 """
 
 import argparse
@@ -26,19 +31,10 @@ from tool import colours, finishes, looks, paths, textures, view
 FOLDER = view.DATA / "materials"
 RADIUS = 15.0  # cm: a 30 cm ball
 SIZE = (1024, 512)  # the ball's texture, equirectangular
-FAMILY = {
-    "paint": ["gloss", "satin", "matte", "semi-gloss", "metallic", "pearl", "candy"],
-    "metal": ["chrome", "mirror", "polished aluminium", "brushed steel", "brushed titanium", "gunmetal", "gold", "copper",
-              "anodised", "raw cast"],
-    "composites and plastics": ["carbon", "forged carbon", "kevlar", "gloss plastic", "matte plastic", "rubber", "vinyl"],
-    "inside": ["leather", "quilted leather", "cloth", "webbing"],
-    "wear": ["scratched", "chipped", "dusty", "faded", "rusted", "greasy", "race-worn"],
-    "light": ["neon", "reflective tape"],
-    "patterns": ["camo", "hexagons", "checks", "splatter", "polka dots", "pinstripes"],
-}
 # a colour for finishes that have none of their own, so the ball shows something
-SHOW_COLOUR = {"anodised": "electric blue", "neon": "neon pink", "camo": None, "vinyl": "racing red"}
+SHOW_COLOUR = {"anodised": "electric blue", "neon": "neon pink", "night glow": "neon blue", "camo": None, "vinyl": "racing red"}
 DEFAULT_COLOUR = (0.75, 0.12, 0.12)
+PHOTOS = "Photographed"  # the family for surfaces added with tool.textures that no finish uses yet
 
 
 def slug_of(name):
@@ -104,6 +100,25 @@ def _u8(a):
     return np.clip(np.rint(np.asarray(a, np.float32) * 255), 0, 255).astype(np.uint8)
 
 
+def _hex(rgb):
+    return "#" + "".join(f"{v:02X}" for v in _u8(np.asarray(rgb, np.float32)))
+
+
+def describe(name, family):
+    """What the Lab says about a finish: its code, numbers, colour, where it works, the line to copy."""
+    fin = finishes.get(name)
+    photo = family == PHOTOS
+    return {
+        "slug": slug_of(name), "code": fin.code, "name": finishes.title(fin), "family": family, "about": fin.about,
+        "matte": round(fin.roughness * 100), "metal": round(fin.metalness * 100), "varnish": round(fin.varnish * 100),
+        "colour": _hex(fin.colour) if fin.colour is not None else None,
+        "works_on": "Inner car only (it glows)" if fin.glow else "Body · Inner car · Wheels",
+        "source": "photo" if photo else fin.source,
+        "line": finishes.line(fin) if fin.code else f"The photographed surface “{name}” (matte {round(fin.roughness * 100)}%, "
+                                                      f"metal {round(fin.metalness * 100)}%)",
+    }
+
+
 def write_textures(name, family):
     slug = slug_of(name)
     folder = FOLDER / slug
@@ -118,87 +133,51 @@ def write_textures(name, family):
     coat = np.zeros(col.shape, np.uint8)
     coat[..., 0] = _u8(varnish)
     Image.fromarray(coat, "RGB").save(folder / "Coat.png", compress_level=1)
-    info = {"slug": slug, "name": name, "family": family, "about": fin.about,
-            "glow": [float(v) for v in colour] if fin.glow else None}
+    info = {**describe(name, family), "glow": [float(v) for v in colour] if fin.glow else None}
     (folder / "swatch.json").write_text(json.dumps(info), encoding="utf-8")
     return info
 
 
 def _stamp():
-    """Changes when the code that paints finishes changes: swatches older than it are rebuilt."""
+    """Changes when the code that paints finishes changes: balls older than it are repainted."""
     h = hashlib.sha256()
     for mod in (finishes, looks, textures):
         h.update(inspect.getsource(mod).encode())
     h.update(inspect.getsource(paint_ball).encode())
+    h.update(inspect.getsource(describe).encode())
     return h.hexdigest()[:12]
 
 
 def entries():
-    out = []
-    listed = set()
-    for family, names in FAMILY.items():
-        for name in names:
-            if name in finishes.LIBRARY or name in finishes.SHINES:
-                out.append((name, family))
-                listed.add(name)
-    for name in finishes.LIBRARY:
-        if name not in listed:
-            out.append((name, "more"))
-            listed.add(name)
+    """(name, family) for every finish in the Lab's order, then photographed surfaces no finish uses."""
+    out = [(name, family) for family, names in ((f, n) for f, n in finishes.CATALOGUE.values()) for name in names if name]
+    listed = {name for name, _ in out}
     used = set(looks.TEXTURE_OF.values())  # photos that a finish above already shows
     for name in textures.SETS:
         if name not in listed and name not in used and finishes.ALIASES.get(name, name) not in listed:
-            out.append((name, "photographed surfaces"))
+            out.append((name, PHOTOS))
     return out
 
 
 def build(all_=False):
     view.ensure_hdri()
     stamp = _stamp()
-    todo = []
     infos = []
     for name, family in entries():
         slug = slug_of(name)
         meta = FOLDER / slug / "swatch.json"
-        fresh = meta.exists() and (FOLDER / slug / "swatch.png").exists() and json.loads(meta.read_text(encoding="utf-8")).get("stamp") == stamp
+        fresh = meta.exists() and (FOLDER / slug / "B.png").exists() and json.loads(meta.read_text(encoding="utf-8")).get("stamp") == stamp
         if all_ or not fresh:
             t = time.time()
             info = write_textures(name, family)
             info["stamp"] = stamp
-            (FOLDER / slug / "swatch.json").write_text(json.dumps(info), encoding="utf-8")
-            todo.append(slug)
+            meta.write_text(json.dumps(info), encoding="utf-8")
             print(f"  painted {name} ({time.time() - t:.0f} s)", flush=True)
         else:
             info = json.loads(meta.read_text(encoding="utf-8"))
         infos.append(info)
-    if todo:
-        snapshot(todo)
-    for info in infos:
-        info["stamp"] = int((FOLDER / info["slug"] / "swatch.png").stat().st_mtime)
     (FOLDER / "materials.json").write_text(json.dumps(infos, indent=1), encoding="utf-8")
     return infos
-
-
-def snapshot(slugs, size=360):
-    """Picture each ball with a hidden Edge, through viewer/swatch.html."""
-    from playwright.sync_api import sync_playwright
-    from tool import snap
-    server = view.start_server(0)
-    url = f"http://127.0.0.1:{server.server_address[1]}/swatch.html?snap=1"
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(channel="msedge", headless=True, args=snap.EDGE_ARGS)
-            page = browser.new_page(viewport={"width": size, "height": size})
-            page.goto(url)
-            page.wait_for_function("window.swatch && (window.swatch.ready || window.swatch.error)", timeout=120_000)
-            if page.evaluate("window.swatch.error"):
-                raise RuntimeError(page.evaluate("window.swatch.error"))
-            for slug in slugs:
-                page.evaluate("(s) => swatch.show(s)", slug)
-                page.screenshot(path=str(FOLDER / slug / "swatch.png"))
-            browser.close()
-    finally:
-        server.shutdown()
 
 
 def main():
@@ -208,14 +187,14 @@ def main():
     args = ap.parse_args()
     infos = build(args.all)
     print(f"{len(infos)} materials")
-    url = f"http://localhost:{view.PORT}/materials.html"
+    url = f"http://localhost:{view.PORT}/lab.html"
     if args.no_open:
         return
     try:
         server = view.start_server(view.PORT)
     except OSError:
         server = None
-    print(f"materials: {url}", flush=True)
+    print(f"the Lab: {url}", flush=True)
     webbrowser.open(url)
     if server:
         import threading

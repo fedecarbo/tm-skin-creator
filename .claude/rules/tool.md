@@ -23,6 +23,11 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   the background. `tool/preview.py` renders flat views without materials, for texture layout.
 - Test skins: `PY -m tool.testskin` (checkpoint 1), `PY -m tool.partskin` (TSC_Parts),
   `tool/labskin.py` (the materials lab). `PY -m tool.install <name> ...` installs built zips.
+- The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
+  for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
+  **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
+  in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). The same goes for
+  its later rooms (UV map, spots, parts). Notes: "The Lab" in `CHECKLIST.md`.
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

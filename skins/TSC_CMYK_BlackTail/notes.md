@@ -48,3 +48,5 @@ tip), and one bold tear across the tail's top band shows the orange under it.
 
 - Shown 2026-09-25 next to TSC_CMYK_EndsInK: build/TSC_CMYK_tails_picture.png (the tails, the
   wheels, the seat, the turbo, night).
+
+- 2026-09-26, the Lab: "brushed titanium" now means the Lab's own brushed titanium (it was brushed steel in titanium grey), so the next rebuild makes the exhaust 5% more matte. The installed skin is unchanged until reinstalled.

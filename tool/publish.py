@@ -5,7 +5,7 @@
 
 What's on it: the 3D viewer (viewer/) with the skins in the game (skins/installed.json) that have
 a design in skins/, test cars left out. It opens on the newest one. viewer/public.css hides the
-workbench: the parts list, part names on click, copying a camera, the materials page.
+workbench: the parts list, part names on click, copying a camera, the Lab.
 
 Lighter for phones: every texture is at most 2048² (a set of 4096² paint runs a phone out of
 graphics memory) and a JPEG at quality 90 with full-resolution colour (4:4:4), except where

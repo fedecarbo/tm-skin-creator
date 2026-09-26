@@ -7,8 +7,8 @@ On start it:
   - checks and unpacks the official zips (tool.prepare) the first time;
   - serves the viewer on every interface (tool.view listens on 127.0.0.1 only, which Docker
     can't forward to);
-  - paints every skin whose viewer data is missing or older than its design or art. No
-    snapshots, so nothing in the repo is rewritten.
+  - paints the Lab's balls (tool.swatches) and every skin whose viewer data is missing or older
+    than its design or art. No snapshots, so nothing in the repo is rewritten.
 
 Without official/CarSport-Model.zip (a Sketchfab login is needed to download it), the gallery
 shows the pictures already in the repo, with no 3D view. Snapshots (Edge), the picture maker
@@ -20,7 +20,7 @@ import threading
 import traceback
 import urllib.request
 
-from tool import gallery, paths, prepare, skin, view
+from tool import gallery, paths, prepare, skin, swatches, view
 
 TEMPLATE_URL = "https://nadeo-download.cdn.ubi.com/trackmania/website/resources/Trackmania-Skin-Details-2021-02-18.zip"
 MODEL_PAGE = "https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf"
@@ -78,6 +78,10 @@ def main():
     fetch_template()
     gallery.refresh()
     serve()
+    try:
+        swatches.build()  # the Lab: http://localhost:8765/lab.html
+    except Exception:
+        traceback.print_exc()
     if model_ready():
         view.export_mesh()
         view.ensure_hdri()

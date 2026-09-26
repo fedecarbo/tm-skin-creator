@@ -144,6 +144,16 @@ def _twill(u, v, cell):
     return stripes * shade
 
 
+def _plain(u, v, cell):
+    """A plain (over-and-under) weave in 2D, 0..1: square cells whose threads alternate
+    direction, each thread rounded so it darkens at its edges."""
+    u, v = u / cell, v / cell
+    cu, cv = np.floor(u), np.floor(v)
+    along_u = ((cu + cv) % 2) == 0
+    across = np.where(along_u, v - cv, u - cu)
+    return 0.25 + 0.75 * np.sin(np.pi * across)
+
+
 @look("carbon")
 def carbon(pos, nrm, colour, finish, params):
     cell = params.get("scale", 0.5)
@@ -156,6 +166,23 @@ def weave(pos, nrm, colour, finish, params):
     cell = params.get("scale", 0.4)
     w = triplanar_value(pos, nrm, lambda u, v: _twill(u, v, cell), wrap=params.get("wrap", "planes"), uv=params.get("uv"))
     return {"colour": tint(colour, 0.6 + 0.5 * w)}
+
+
+@look("plain")
+def plain(pos, nrm, colour, finish, params):
+    cell = params.get("scale", 0.6)
+    w = triplanar_value(pos, nrm, lambda u, v: _plain(u, v, cell), wrap=params.get("wrap", "planes"), uv=params.get("uv"))
+    return {"colour": tint(colour, 0.5 + 0.55 * w)}
+
+
+@look("denim")
+def denim(pos, nrm, colour, finish, params):
+    """A fine twill with lighter threads showing between, and the dye a little uneven."""
+    cell = params.get("scale", 0.15)
+    w = triplanar_value(pos, nrm, lambda u, v: _twill(u, v, cell), wrap=params.get("wrap", "planes"), uv=params.get("uv"))
+    dye = noise.fbm(pos / 6, 3, params.get("seed", 0))
+    col = mix(colour, np.array([0.85, 0.87, 0.9], np.float32), 0.22 * (1 - w))
+    return {"colour": tint(col, 0.85 + 0.25 * dye)}
 
 
 @look("forged")
@@ -192,6 +219,49 @@ def leather(pos, nrm, colour, finish, params):
     return {"colour": tint(colour, v), "roughness": const(len(pos), finish.roughness) + 0.2 * (1 - crease)}
 
 
+@look("suede")
+def suede(pos, nrm, colour, finish, params):
+    """Napped suede: soft, cloudy light and dark where the nap lies different ways."""
+    seed = params.get("seed", 0)
+    nap = noise.fbm(pos / 1.5, 3, seed)
+    fine = noise.value(pos * 12, seed + 1)
+    return {"colour": tint(colour, 0.88 + 0.18 * nap + 0.06 * (fine - 0.5))}
+
+
+@look("perforated")
+def perforated(pos, nrm, colour, finish, params):
+    """Leather with small holes in staggered rows. scale: the rows' spacing in cm."""
+    out = leather(pos, nrm, colour, finish, params)
+    pitch = params.get("scale", 0.5)
+
+    def holes(u, v):
+        row = np.floor(v / pitch)
+        du = ((u / pitch + 0.5 * (row % 2)) % 1) - 0.5
+        dv = ((v / pitch) % 1) - 0.5
+        return smoothstep(0.2, 0.13, np.sqrt(du * du + dv * dv))
+
+    h = np.clip(triplanar_value(pos, nrm, holes, wrap=params.get("wrap", "planes"), uv=params.get("uv")), 0, 1)
+    out["colour"] = mix(out["colour"], np.array([0.02, 0.02, 0.02], np.float32), 0.9 * h)
+    out["roughness"] = out["roughness"] * (1 - h) + h
+    return out
+
+
+@look("knurl")
+def knurl(pos, nrm, colour, finish, params):
+    """A diamond grip pattern: two sets of grooves crossing, each diamond lit on one side (paint
+    only: the body takes no relief). scale: the grooves' spacing in cm."""
+    pitch = params.get("scale", 0.8)
+
+    def diamonds(u, v):
+        a, b = ((u + v) / pitch) % 1, ((u - v) / pitch) % 1
+        peak = np.minimum(np.minimum(a, 1 - a), np.minimum(b, 1 - b)) * 2  # 0 in a groove, 1 on a peak
+        lit = np.where(a < 0.5, 1.0, 0.75)  # the half of each diamond that faces the light
+        return peak * lit
+
+    d = triplanar_value(pos, nrm, diamonds, wrap=params.get("wrap", "planes"), uv=params.get("uv"))
+    return {"colour": tint(colour, 0.35 + 1.3 * d), "roughness": const(len(pos), finish.roughness) - 0.2 * (d - 0.5)}
+
+
 # ---- metals ----
 
 
@@ -218,6 +288,15 @@ def flake(pos, nrm, colour, finish, params):
     sparkle = h ** 6
     v = 0.92 + 0.35 * sparkle
     return {"colour": tint(colour, v), "roughness": const(len(pos), finish.roughness) - 0.2 * sparkle}
+
+
+@look("grain")
+def grain(pos, nrm, colour, finish, params):
+    """A fine even grain, as on moulded plastic or bead-blasted metal. scale: the grain's size in cm."""
+    seed = params.get("seed", 0)
+    size = params.get("scale", 0.05)
+    g = 0.6 * noise.value(pos / size, seed) + 0.4 * noise.value(pos / (size * 2.7) + 7, seed + 1)
+    return {"colour": tint(colour, 0.93 + 0.14 * g), "roughness": const(len(pos), finish.roughness) + 0.1 * (g - 0.5)}
 
 
 @look("cast")
@@ -329,6 +408,24 @@ def greasy(pos, nrm, colour, finish, params):
     smear = smoothstep(0.5, 0.72, g) * amt * 1.3
     smear = np.clip(smear, 0, 1)
     return {"colour": tint(colour, 1 - 0.4 * smear), "roughness": const(len(pos), finish.roughness) - 0.35 * smear}
+
+
+@look("muddy")
+def muddy(pos, nrm, colour, finish, params):
+    """Dried mud splashed on, heavier low down (pos y is the height in cm), in patches and drops."""
+    seed = params.get("seed", 0)
+    amt = _amount(params)
+    low = smoothstep(60, 10, pos[:, 1])
+    splash = noise.fbm(pos / 5, 5, seed)
+    thr = 0.78 - 0.5 * amt * (0.4 + 0.6 * low)
+    mud = smoothstep(thr, thr + 0.06, splash)
+    drops = smoothstep(0.7, 0.74, noise.value(pos / 0.7, seed + 3)) * amt
+    mud = np.clip(np.maximum(mud, drops), 0, 1)
+    tone = noise.fbm(pos / 2, 3, seed + 5)
+    mud_col = mix(np.array([0.36, 0.24, 0.14], np.float32), np.array([0.55, 0.41, 0.28], np.float32), tone)
+    n = len(pos)
+    return {"colour": mix(colour, mud_col, mud), "roughness": const(n, finish.roughness) * (1 - mud) + 0.95 * mud,
+            "metalness": const(n, finish.metalness) * (1 - mud), "varnish": const(n, finish.varnish) * (1 - mud)}
 
 
 @look("worn")
