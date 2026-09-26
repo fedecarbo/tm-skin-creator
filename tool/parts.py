@@ -6,15 +6,15 @@
 Names come from tool/naming.py. Pieces and groups come from tool/segment.py. Every triangle
 ends up in exactly one part instance: a name plus a side (left, right, centre) and, for the
 wheel-related assemblies, an end (front, rear). Pieces nobody named join the nearest named
-piece of their mesh. Each part sits in an assembly ("sidepod"), and each assembly in one of the
-car's groups (body, floor, wheels, mechanicals, cockpit): a group's name picks all its parts too,
-unless an assembly has that name ("floor" is the underside, the Floor group also the front wing).
+piece of their mesh. Each part sits in an assembly ("sidepod") and in a group, the map it's
+painted on (body, details, tyres, glass): a group's name picks all its parts too, unless a part
+or an assembly has that name.
 
     p = parts.load()
     p.mask(bake, "Details", "brake caliper")                  every caliper's texels
     p.mask(bake, "Details", "brake caliper", side="left", end="rear")
     p.mask(bake, "Skin", "sidepod")                            a whole assembly
-    p.select("mechanicals")                                    a whole group
+    p.select("details")                                        a whole group (a map)
 """
 
 import argparse
@@ -29,7 +29,6 @@ from tool.shapes import WHEEL_Y, WHEEL_Z  # the wheel centres, fitted to the tyr
 PARTS_JSON = paths.REPO / "car" / "parts.json"
 CACHE = paths.CACHE / "parts.npz"
 ENDED = {"rims and brakes", "tyre", "wheel cover", "front suspension", "rear suspension"}  # assemblies split front/rear
-GROUP_OF = {a: g for a, g, _ in naming.ASSEMBLIES}
 MESH_NAME = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
 MESH_TRIS = {"Skin": 27184, "Details": 65246, "Wheels": 4896, "Glass": 2239}
 
@@ -168,7 +167,7 @@ def resolve(seg):
     instances = []
     for u in uniq:
         p = naming.PARTS[int(u[0])]
-        inst = {"name": p["name"], "group": GROUP_OF[p["parent"]], "parent": p["parent"], "side": u[1], "end": u[2]}
+        inst = {"name": p["name"], "parent": p["parent"], "side": u[1], "end": u[2]}
         if p.get("rule") in CUTS:
             inst["cut"] = p["rule"]
         instances.append(inst)
@@ -176,11 +175,12 @@ def resolve(seg):
     for i, inst in enumerate(instances):
         sel = tri_part == i
         inst["mesh"] = segment.SETS[int(seg["mesh"][sel][0])]
+        inst["group"] = naming.GROUP_OF_SET[inst["mesh"]]
         inst["tris"] = int(sel.sum())
         inst["area_cm2"] = round(float(seg["area"][sel].sum()), 1)
         inst["pieces"] = [int(v) for v in np.unique(seg["piece"][sel])]
-    # order: by assembly (naming.ASSEMBLIES keeps each group's together), then name, side, end
-    order_of = {a: i for i, (a, _, _) in enumerate(naming.ASSEMBLIES)}
+    # order: by assembly, then name, then side, then end
+    order_of = {a: i for i, (a, _) in enumerate(naming.ASSEMBLIES)}
     order = sorted(range(len(instances)), key=lambda i: (order_of[instances[i]["parent"]], instances[i]["name"],
                                                           instances[i]["end"], instances[i]["side"]))
     remap = np.empty(len(order), np.int32)
@@ -232,7 +232,7 @@ def build(write=True):
                      "of them that other parts (the mirror twin, repeats) also use: a colour there lands on all of them. "
                      "The tree: group > assembly (parent) > part.",
             "groups": [{"name": g, "about": d} for g, d in naming.GROUPS],
-            "assemblies": [{"name": a, "group": g, "about": d} for a, g, d in naming.ASSEMBLIES],
+            "assemblies": [{"name": a, "about": d} for a, d in naming.ASSEMBLIES],
             "parts": [{"id": i, **inst} for i, inst in enumerate(instances)],
         }
         PARTS_JSON.write_text(json.dumps(doc, indent=1))
@@ -449,16 +449,16 @@ def main():
     ap.add_argument("--review", action="store_true")
     args = ap.parse_args()
     tri_part, instances, _ = build()
-    current = None
-    for inst in instances:
-        if inst["parent"] != current:
-            if current is None or GROUP_OF[current] != inst["group"]:
-                print(f"\n{inst['group'].upper()}")
-            current = inst["parent"]
-            print(f"  {current}")
-        tag = " ".join(v for v in (inst["end"], inst["side"]) if v and v != "centre")
-        print(f"    {inst['name']:<22} {tag:<12} {inst['mesh']:<8} {inst['tris']:>6} tris  {inst['area_cm2']:>7.0f} cm2  "
-              f"{inst['texels']:>7} texels  {int(inst['shared'] * 100):>3}% shared")
+    for group, _ in naming.GROUPS:
+        print(f"\n{group.upper()}")
+        current = None
+        for inst in (i for i in instances if i["group"] == group):
+            if inst["parent"] != current:
+                current = inst["parent"]
+                print(f"  {current}")
+            tag = " ".join(v for v in (inst["end"], inst["side"]) if v and v != "centre")
+            print(f"    {inst['name']:<22} {tag:<12} {inst['mesh']:<8} {inst['tris']:>6} tris  {inst['area_cm2']:>7.0f} cm2  "
+                  f"{inst['texels']:>7} texels  {int(inst['shared'] * 100):>3}% shared")
     print(f"\n{len(instances)} part instances, {len(set(i['name'] for i in instances))} names")
     if args.review:
         from tool import preview

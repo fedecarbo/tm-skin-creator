@@ -1066,23 +1066,25 @@ function partLabel(p) {
   return tag ? `${p.name} (${tag})` : p.name;
 }
 
-// The list: the car's groups (Body, Wheels, Mechanicals, Cockpit), their assemblies, then one row
-// per (name, end); the row's checkbox hides both sides together. An assembly alone in its group
-// and named like it (the cockpit) lists its parts right under the group.
+// The list: the car's groups (the game's maps: Body, Details, Tyres, Glass), their assemblies, then
+// one row per (name, end); the row's checkbox hides both sides together. A short group (Tyres,
+// Glass) lists its parts right under it.
+const SHORT_GROUP = 10;  // rows
 function buildPartsList() {
   const list = document.getElementById('partsList');
   list.textContent = '';
   const { parts, groups, assemblies } = partsState.doc;
   for (const grp of groups) {
-    const asms = assemblies.filter((a) => a.group === grp.name)
-      .map((asm) => ({ asm, rows: partRows(parts, asm.name) })).filter((a) => a.rows.length);
+    const asms = assemblies.map((asm) => ({ asm, rows: partRows(parts, asm.name, grp.name) })).filter((a) => a.rows.length);
     if (!asms.length) continue;
-    const [gbox, gitems] = listBox('group', grp.name, grp.about, asms.flatMap((a) => a.rows), 'show or hide the whole group');
+    const all = asms.flatMap((a) => a.rows);
+    const [gbox, gitems] = listBox('group', grp.name, grp.about, all, 'show or hide the whole group');
+    if (all.length <= SHORT_GROUP) {
+      gitems.append(...all.map((r) => r.row));
+      list.append(gbox);
+      continue;
+    }
     for (const { asm, rows } of asms) {
-      if (asms.length === 1 && asm.name === grp.name) {
-        gitems.append(...rows.map((r) => r.row));
-        continue;
-      }
       const [abox, aitems] = listBox('assembly closed', asm.name, asm.about, rows, 'show or hide the whole assembly');
       aitems.append(...rows.map((r) => r.row));
       gitems.append(abox);
@@ -1111,10 +1113,10 @@ function listBox(cls, name, about, rows, title) {
   return [box, items];
 }
 
-function partRows(parts, assembly) {
+function partRows(parts, assembly, group) {
   const rows = new Map();
   parts.forEach((p, i) => {
-    if (p.parent !== assembly) return;
+    if (p.parent !== assembly || p.group !== group) return;
     const key = `${p.name}|${p.end}`;
     if (!rows.has(key)) rows.set(key, { name: p.name, end: p.end, ids: [] });
     rows.get(key).ids.push(i);

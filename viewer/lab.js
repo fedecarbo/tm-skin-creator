@@ -4,7 +4,7 @@
 //   /lab.html                 the Studio (lab-studio.js), the skin Claude painted last
 //   /lab.html?room=materials  the materials room, the first family
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
-//   /lab.html?room=wheels     a painting room (lab-rooms.js: Body, Wheels, Details, Lights, from
+//   /lab.html?room=tyres      a painting room (lab-rooms.js: Body, Details, Tyres, Glass, from
 //                             tool/rooms.py); &tab=map for its flat maps
 // Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png.
 
@@ -290,6 +290,7 @@ async function rooms() {
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
   let want = params.get('room');
   if (want === 'uv') want = list.length ? list[0].key : null;  // the UV map room's old address: its maps are in the rooms now
+  want = { wheels: 'tyres', lights: 'details' }[want] || want;  // the rooms before the game's maps (2026-09-26)
   openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
 }
 rooms().catch(failed);

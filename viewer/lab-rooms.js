@@ -1,10 +1,11 @@
-// The Lab's painting rooms: Body, Wheels, Details, Lights (tool/rooms.py). Each room shows the car
-// Claude is working on with a camera framing its area (the Car tab; the Details room takes the
-// shell off), or its own flat maps with only its parts lit and named (the UV map tab). Point at a
-// part on the map to name it; click it, or click the car, to pick it and copy its line for Claude.
-// The Lights room is seen at night, and its map is the light map. The user's plan of 2026-09-26
-// (CHECKLIST.md, "The Lab rethought").
-//   /lab.html?room=wheels[&tab=map][&map=Details][&part=<id>][&skin=<name>]
+// The Lab's painting rooms: the game's maps, Body, Details, Tyres, Glass (tool/rooms.py). Each room
+// shows the car Claude is working on with a camera framing its area (the Car tab; the Details room
+// takes the shell off), or its own flat map with only its parts lit and named (the UV map tab). On
+// the car, click a part to pick it; on the map, point at a surface (a shape of its own) to see where
+// its paint goes on the car, and click to pick it; copy the line for Claude. Every room has a day
+// and night picker (the user, 2026-09-26, dropping the Lights room: "for each we can just have a
+// picker"). CHECKLIST.md, "The Lab" and "Defining the parts".
+//   /lab.html?room=tyres[&tab=map][&part=<id>][&skin=<name>]
 // Everything comes from the tool (tool/view.py, export_uvmap): uvmap.json (each map; each part in
 // words and numbers; the rooms, each with its parts and camera), <Set>_Parts.png (the part covering
 // each texel: R + 256 G = id + 1) and <Set>_Shared.png (texels several parts share). The skin is
@@ -27,7 +28,7 @@ let copyLine = null;     // lab.js's copy
 let room = null;         // doc.rooms entry
 let inRoom = new Uint8Array(256);
 let tab = params.get('tab') === 'map' ? 'map' : 'car';
-const mood = {};         // room key -> 'day' | 'night'
+const mood = {};         // room key -> 'day' | 'night' (the picker's; day at first)
 let skin = null;         // { name, title, textures, stamp, painting, step }
 let map = null;          // the open map: { set, slot, info, w, h, ids, shared, surf, sbox, paint, box }
 let base = null;         // the open map as shown (ImageData)
@@ -320,18 +321,15 @@ function heads() {
   buttons($('prTabs'), tabs, tab, (k) => showTab(k));
   $('prMaps').hidden = tab !== 'map' || room.maps.length < 2;
   if (tab === 'map') buttons($('prMaps'), room.maps.map((m) => ({ key: m.set, label: m.set })), map && map.set, (k) => openMap(k));
-  const lights = room.key === 'lights';
-  $('prMood').hidden = !lights;
-  if (lights) {
-    buttons($('prMood'), MOODS.map(([k, label]) => ({ key: k, label, off: k === 'day' || k === 'night' ? null : 'not in the viewer yet' })),
-      mood.lights || 'night', (k) => { mood.lights = k; heads(); aimCar(); });
-    $('prMood').insertAdjacentHTML('afterbegin', '<span class="say">Mood</span>');
-  }
+  $('prMood').hidden = false;
+  buttons($('prMood'), MOODS.map(([k, label]) => ({ key: k, label, off: k === 'day' || k === 'night' ? null : 'not in the viewer yet' })),
+    mood[room.key] || 'day', (k) => { mood[room.key] = k; heads(); aimCar(); });
+  $('prMood').insertAdjacentHTML('afterbegin', '<span class="say">Mood</span>');
 }
 
 function aimCar() {  // the room's camera, framing its parts (tool/rooms.py), and the parts it takes off
   if (!car || !room) return;
-  const night = room.key === 'lights' ? (mood.lights || 'night') === 'night' : false;
+  const night = (mood[room.key] || 'day') === 'night';
   car.hide(room.hides);
   car.show(room.view, night, []);
 }

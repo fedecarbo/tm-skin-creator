@@ -27,7 +27,7 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
   **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
   in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). The same goes for
-  its painting rooms (Body, Wheels, Details, Lights). Notes: "The Lab" in `CHECKLIST.md`. The rooms
+  its painting rooms (Body, Details, Tyres, Glass: the game's maps). Notes: "The Lab" in `CHECKLIST.md`. The rooms
   (`lab.html?room=wheels`, `viewer/lab-rooms.js`) come from `tool/rooms.py` (each room's parts and
   camera; every part must be in one) and read `view.export_uvmap`'s data (the UV map picks
   surfaces: `view._surfaces`, the shapes it outlines, `<Set>_Surfaces.png`), which `tool.view` and

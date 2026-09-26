@@ -1475,6 +1475,26 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     gets a "Surface" row, and the copied line names the surface. Checked in headless Chrome:
     the floor edge's strip lit alone on the map, "floor edge (left, right)", and on the car
     the line along both sides.
+- **Back to the game's maps** (the user, 2026-09-26: "Thing is that I'm overcomplicating the
+  interface. I think we can just for now go back to the default, Body, Details, Tyres, Glass. I
+  don't think we need a tab for lights because for each we can just have a picker. I'm just trying
+  to simplify things because I think it's now getting over engineered. I do like the work you did
+  for the uv map separating surfaces, that's going to be useful").
+  - [x] **Built (2026-09-26).** `naming.GROUPS` are the four maps; a part's group is the map it's
+    painted on (`GROUP_OF_SET`), so an assembly can sit in two (the sidepod's top in Body, its
+    grille in Details). The groups by what parts are (Body, Floor, Wheels, Mechanicals, Cockpit)
+    are gone; kept from that day: "tail frame" in the tail, "floor edge", "wing mounts", "rims and
+    brakes", the glass in the assemblies it sits in, the shared-paint note, the UV map's surfaces.
+    The viewer's list: the four groups, their assemblies; a short group (Tyres, Glass: 10 rows or
+    fewer) lists its parts right under it.
+  - [x] **The Lab's rooms are the maps too:** Body (Skin, wheel covers included now), Details
+    (all of it, rims and brakes too), Tyres, Glass, each with its one map. The Lights room is gone
+    (and `rooms.glowing`): every room has the Day/Night picker (sunrise and sunset shown, not in
+    the viewer yet). Cameras: Body and Details as picked; Tyres the Wheels room's, framing the
+    front left tyre; Glass has Body's until the user picks one. Old addresses ?room=wheels and
+    ?room=lights open Tyres and Details. Painting picks the same parts as before (checked). Checked
+    in headless Chrome: the viewer's list, each room, Details at night, 390 wide with no sideways
+    scroll.
 
 ## Decisions (for Claude)
 

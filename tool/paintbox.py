@@ -32,9 +32,8 @@ earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn
 rings: their own design step, never touched by body paint), "wheel covers", "inner" (Details),
 "tyres" (Wheels), "glass", "everything". The lights have plain words too (LIGHT_WORDS): "speed
 numbers", "brake lights", "rear lights".
-The groups (body, floor, wheels, mechanicals, cockpit) top the parts list; "body" and "wheels"
-here are the words above, not the groups (the Body group also holds the black inner parts of the
-sidepods and tail), and "floor" is the underside's assembly, not the Floor group with the front wing. An assembly or group leaves its glass out unless the glass is named.
+The parts list's groups are the game's maps (body, details, tyres, glass): the words above say the
+same, but "body" here leaves the wheel covers out. An assembly or group leaves its glass out unless the glass is named.
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front". "floor",
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
 "floor|left|part". The Lab's rooms copy the phrase for any part (parts.Parts.token).

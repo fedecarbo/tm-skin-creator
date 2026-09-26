@@ -14,19 +14,21 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   define parts first. Can this be my next task to do before anything else?"). The user leads it,
   and may do it with another agent. What "define" covers is theirs to say: start from their
   thoughts, not from a plan of Claude's. Step by step, each agreed before it's built; the steps
-  are in `CHECKLIST.md`, "Defining the parts". Done (2026-09-26): five groups on top (Body, Floor,
-  Wheels, Mechanicals, Cockpit), the paint box names every part a colour also lands on, and the
-  tail's frame left the floor ("tail frame"), and the front wing joined it (its mounts stay in
-  Body). Next:
+  are in `CHECKLIST.md`, "Defining the parts". Done (2026-09-26): the groups on top are the
+  game's maps (Body, Details, Tyres, Glass), after a day of groups by what parts are, which the
+  user found over-engineered; the paint box names every part a colour also lands on; the tail's
+  frame left the floor ("tail frame"); "floor edge" and "wing mounts" are parts; the Lab's UV map
+  picks surfaces. Next:
   the user goes through each group's insides, and may split them. What the tool has:
   `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 5 groups, made from
   `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's UV map tabs show
   them. Known gaps, below under "The tool": some inner names are guesses, words on the inner car.
 - **The Lab: paused** (the user, 2026-09-26: "we need to pause this page for a bit, or maybe it
   just updates as I share my thoughts"). No work on it unless the user brings a thought for it,
-  and then only that (2026-09-26: the UV map picks surfaces, the user's thought). Built: the Studio (the timeline of the build, from clay), the painting rooms
-  for Body, Wheels, Details and Lights (each the car with a camera on its area, picked by the user
-  from real renders, and its own UV map as a tab) and the Materials tab. Put off: takes side by
+  and then only that (2026-09-26, the user's thoughts: the UV map picks surfaces; the rooms are the
+  game's maps, Body, Details, Tyres, Glass, each with a day and night picker, no Lights room).
+  Built: the Studio (the timeline of the build, from clay), the painting rooms (each the car with a
+  camera on its area, picked by the user from real renders, and its own UV map as a tab) and the Materials tab. Put off: takes side by
   side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
   are in `CHECKLIST.md`, "The Lab".
 

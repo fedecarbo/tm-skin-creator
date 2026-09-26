@@ -1,83 +1,45 @@
-"""The Lab's painting rooms (viewer/lab-rooms.js): the areas of the car a design is worked on in,
-each with its parts and a camera that looks at them (the user, 2026-09-26: "the views should
-cover particular painting rooms. For example, the body, the wheels, the details ... each room
-provides the necessary views that tackle the objective"). Each room shows the car with its camera,
-and its own flat maps as a second tab.
+"""The Lab's painting rooms (viewer/lab-rooms.js): the game's four maps, Body, Details, Tyres and
+Glass, each with its parts and a camera that looks at them. Each room shows the car with its
+camera, and its own flat map as a second tab, where surfaces are picked (tool/view.py). Every room
+has a day and night picker (the viewer lights both; Trackmania has sunrise and sunset too).
 
-A room is an entry in ROOMS and a rule in _member. A new room ("cables and mechanicals") takes its
-parts from another. Every part is in at least one room: rooms() raises if one isn't, because a
-part the Lab can't place is a gap in the tool. Rooms cut across the texture sets: Wheels holds the
-tyres (Wheels), the wheel covers (Skin) and the rims, hubs and brakes (Details).
-
-The Lights room is the parts that glow in Nadeo's light map (Details_I) and the glass lenses, seen
-at night; its flat map is the light map, not the paint. Trackmania has four moods (sunrise, day,
-sunset, night); the viewer lights day and night so far.
+The user, 2026-09-26: "just for now go back to the default, Body, Details, Tyres, Glass. I don't
+think we need a tab for lights because for each we can just have a picker ... it's now getting
+over engineered." Before that the rooms were Body, Wheels, Details and Lights (CHECKLIST.md, "The
+Lab"). A room is an entry in ROOMS: its parts are the ones painted on its map. rooms() raises if
+a part is in no room, because a part the Lab can't place is a gap in the tool.
 
 The cameras are the user's picks of 2026-09-26, from real renders side by side
-(https://claude.ai/artifact/1j5ftfuzYn6TiZz7F5uddd): Body from higher up, the whole car; Wheels one
-front wheel, close (its outside, and the far wheel's inside with the rims and brakes); Details with
-the shell taken off (a camera alone saw mostly the body); Lights kept as it was."""
-
-import numpy as np
-
-from tool import paintbox
+(https://claude.ai/artifact/1j5ftfuzYn6TiZz7F5uddd): Body from higher up, the whole car; Details
+with the shell taken off (a camera alone saw mostly the body); Tyres the Wheels room's, one front
+wheel close. Glass has Body's until the user picks one."""
 
 # The camera: the viewer's view (viewer/viewer.js, setView). dir: the direction from the car to the
 # camera (the car faces +z, its left is +x, the front wheels' axle at z 1.79, the rear's at -1.20).
 # frame: what the camera frames, from FRAMES: the viewer sets the distance and aim so those parts
 # fill the room's picture with margin to spare at the nearest edge, whatever its size (a phone
 # too). Or a fixed view: dist and target, in metres. hides: a room whose parts this one takes off
-# (the Details room the shell, the Body room's parts). maps: the flat maps the room's UV map tab
-# offers, and the texture it shows on each (the paint unless said).
+# (the Details room the shell). set: the map the room is, its parts those painted on it.
 ROOMS = [
-    {"key": "body", "name": "Body", "about": "the painted shell, the canopy and the mirrors' glass",
-     "view": {"dir": [0.5, 0.62, 0.6], "frame": "car", "margin": 0.06}, "maps": [{"set": "Skin"}, {"set": "Glass"}]},
-    {"key": "wheels", "name": "Wheels", "about": "the tyres, the wheel covers, the rims, hubs and brakes",
-     "view": {"dir": [0.85, 0.15, 0.5], "frame": "front left wheel", "margin": 0.3},
-     "maps": [{"set": "Skin"}, {"set": "Details"}, {"set": "Wheels"}]},
-    {"key": "details", "name": "Details", "about": "the inner car: the frame, the suspension, the cockpit and the floor",
-     "view": {"dir": [0.62, 0.35, 0.72], "frame": "car", "margin": 0.05}, "hides": "body", "maps": [{"set": "Details"}]},
-    {"key": "lights", "name": "Lights", "about": "everything that glows, and the lenses over it",
-     "view": {"dir": [-0.62, 0.3, -0.72], "dist": 6.4}, "night": True,
-     "maps": [{"set": "Details", "slot": "Details_I"}, {"set": "Glass"}]},
+    {"key": "body", "name": "Body", "set": "Skin", "about": "the painted shell and the wheel covers",
+     "view": {"dir": [0.5, 0.62, 0.6], "frame": "car", "margin": 0.06}},
+    {"key": "details", "name": "Details", "set": "Details", "about": "the inner car, the floor, the rims and brakes",
+     "view": {"dir": [0.62, 0.35, 0.72], "frame": "car", "margin": 0.05}, "hides": "body"},
+    {"key": "tyres", "name": "Tyres", "set": "Wheels", "about": "the rubber: all four tyres share one paint",
+     "view": {"dir": [0.85, 0.15, 0.5], "frame": "front left tyre", "margin": 0.3}},
+    {"key": "glass", "name": "Glass", "set": "Glass", "about": "the canopy, the lenses and the mirrors: tint only",
+     "view": {"dir": [0.5, 0.62, 0.6], "frame": "car", "margin": 0.06}},
 ]
 FRAMES = {
     "car": lambda inst: True,
-    "front left wheel": lambda inst: inst["group"] == "wheels" and inst["side"] == "left" and inst["end"] == "front",
+    "front left tyre": lambda inst: inst["parent"] == "tyre" and inst["side"] == "left" and inst["end"] == "front",
 }
-BODY_GLASS = ("canopy", "mirror glass")  # the rest of the glass covers lights
-GLOW_MIN = 0.02  # a part glows when this share of its texels in the light map does
 
 
-def _member(key, inst, lit):
-    if key == "body":
-        return (inst["mesh"] == "Skin" and inst["name"] not in paintbox.WHEEL_COVER_PARTS) or inst["name"] in BODY_GLASS
-    if key == "wheels":
-        return inst["group"] == "wheels"
-    if key == "details":
-        return inst["mesh"] == "Details" and inst["group"] != "wheels"
-    if key == "lights":
-        return inst["name"] in lit or (inst["mesh"] == "Glass" and inst["name"] not in BODY_GLASS)
-    raise KeyError(key)
-
-
-def glowing(p, own):
-    """The names of the parts that glow in Nadeo's light map. own: the part id of each texel of the
-    Details map at some grid size (-1 for none), as the rooms' UV map data."""
-    h, w = own.shape
-    light = paintbox.stock("Details_I", (w, h))[..., :3].max(-1) > 0.08
-    ids = own.reshape(-1)
-    counted = ids >= 0
-    total = np.bincount(ids[counted], minlength=len(p.instances))
-    lit = np.bincount(ids[counted & light.reshape(-1)], minlength=len(p.instances))
-    # a shared texel names the lowest id, so a mirror twin glows with its twin: by name
-    return sorted({p.instances[i]["name"] for i in np.flatnonzero((lit >= 64) & (lit >= GLOW_MIN * np.maximum(total, 1)))})
-
-
-def rooms(p, lit):
-    """ROOMS with each room's part ids, for the Lab (view.export_uvmap). A framed view carries the
-    ids it frames (fit), and hides the ids of the parts the room takes off."""
-    ids = {r["key"]: [i for i, inst in enumerate(p.instances) if _member(r["key"], inst, lit)] for r in ROOMS}
+def rooms(p):
+    """ROOMS with each room's part ids and its map, for the Lab (view.export_uvmap). A framed view
+    carries the ids it frames (fit), and hides the ids of the parts the room takes off."""
+    ids = {r["key"]: [i for i, inst in enumerate(p.instances) if inst["mesh"] == r["set"]] for r in ROOMS}
     placed = set().union(*ids.values())
     missing = [p.label(i) for i in range(len(p.instances)) if i not in placed]
     if missing:
@@ -89,5 +51,6 @@ def rooms(p, lit):
             view["fit"] = [i for i, inst in enumerate(p.instances) if FRAMES[r["view"]["frame"]](inst)]
         own = set(ids[r["key"]])
         hides = [i for i in ids[r["hides"]] if i not in own] if "hides" in r else []
-        out.append({**r, "view": view, "night": r.get("night", False), "ids": ids[r["key"]], "hides": hides})
+        out.append({**{k: v for k, v in r.items() if k != "set"}, "maps": [{"set": r["set"]}], "view": view,
+                    "ids": ids[r["key"]], "hides": hides})
     return out

@@ -3,106 +3,88 @@
  "groups": [
   {
    "name": "body",
-   "about": "the outside of the car"
+   "about": "the painted shell and the wheel covers"
   },
   {
-   "name": "floor",
-   "about": "the underside and the front wing"
+   "name": "details",
+   "about": "the inner car, the underside, the rims and brakes"
   },
   {
-   "name": "wheels",
-   "about": "tyres, covers, rims and brakes"
+   "name": "tyres",
+   "about": "the rubber"
   },
   {
-   "name": "mechanicals",
-   "about": "the frame and the suspension"
-  },
-  {
-   "name": "cockpit",
-   "about": "where the driver sits"
+   "name": "glass",
+   "about": "the canopy, the lenses and the mirrors"
   }
  ],
  "assemblies": [
   {
    "name": "shell",
-   "group": "body",
    "about": "the nose, the sides and the canopy"
   },
   {
    "name": "wing mounts",
-   "group": "body",
    "about": "the struts holding the front wing under the nose"
   },
   {
    "name": "sidepod",
-   "group": "body",
    "about": "the boxes either side of the cockpit"
   },
   {
    "name": "engine cover",
-   "group": "body",
    "about": "the deck behind the cockpit"
   },
   {
    "name": "tail",
-   "group": "body",
    "about": "the back of the car"
   },
   {
+   "name": "wheel cover",
+   "about": "the discs over the wheels"
+  },
+  {
    "name": "floor",
-   "group": "floor",
    "about": "the flat underside and its planks"
   },
   {
    "name": "front wing",
-   "group": "floor",
    "about": "the wing under the nose, in the floor's paint"
   },
   {
-   "name": "wheel cover",
-   "group": "wheels",
-   "about": "the discs over the wheels"
-  },
-  {
-   "name": "tyre",
-   "group": "wheels",
-   "about": "the rubber"
-  },
-  {
-   "name": "rims and brakes",
-   "group": "wheels",
-   "about": "rims, hubs and brakes"
-  },
-  {
    "name": "chassis",
-   "group": "mechanicals",
    "about": "the inner shell under the body"
   },
   {
+   "name": "cockpit",
+   "about": "seat, belts, steering wheel, dashboard and mirrors"
+  },
+  {
    "name": "front suspension",
-   "group": "mechanicals",
    "about": "the arms holding the front wheels"
   },
   {
    "name": "rear suspension",
-   "group": "mechanicals",
    "about": "the arms holding the rear wheels"
   },
   {
-   "name": "cockpit",
-   "group": "cockpit",
-   "about": "seat, belts, steering wheel, dashboard and mirrors"
+   "name": "rims and brakes",
+   "about": "rims, hubs and brakes"
+  },
+  {
+   "name": "tyre",
+   "about": "the rubber"
   }
  ],
  "parts": [
   {
    "id": 0,
    "name": "body shell",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 2438,
    "area_cm2": 17634.2,
    "pieces": [
@@ -114,11 +96,11 @@
   {
    "id": 1,
    "name": "body shell",
-   "group": "body",
    "parent": "shell",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 96,
    "area_cm2": 4.0,
    "pieces": [
@@ -133,11 +115,11 @@
   {
    "id": 2,
    "name": "body shell",
-   "group": "body",
    "parent": "shell",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 96,
    "area_cm2": 4.0,
    "pieces": [
@@ -152,11 +134,11 @@
   {
    "id": 3,
    "name": "canopy",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 995,
    "area_cm2": 3262.3,
    "pieces": [
@@ -168,11 +150,11 @@
   {
    "id": 4,
    "name": "cockpit surround",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 696,
    "area_cm2": 2808.7,
    "pieces": [
@@ -184,11 +166,11 @@
   {
    "id": 5,
    "name": "cockpit surround",
-   "group": "body",
    "parent": "shell",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 192,
    "area_cm2": 4.5,
    "pieces": [
@@ -207,11 +189,11 @@
   {
    "id": 6,
    "name": "cockpit surround",
-   "group": "body",
    "parent": "shell",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 192,
    "area_cm2": 4.5,
    "pieces": [
@@ -230,11 +212,11 @@
   {
    "id": 7,
    "name": "fuel cap",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 142,
    "area_cm2": 78.7,
    "pieces": [
@@ -246,11 +228,11 @@
   {
    "id": 8,
    "name": "mirror mount",
-   "group": "body",
    "parent": "shell",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 60,
    "area_cm2": 18.2,
    "pieces": [
@@ -263,11 +245,11 @@
   {
    "id": 9,
    "name": "mirror mount",
-   "group": "body",
    "parent": "shell",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 60,
    "area_cm2": 18.2,
    "pieces": [
@@ -280,11 +262,11 @@
   {
    "id": 10,
    "name": "nose fin",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 314,
    "area_cm2": 487.2,
    "pieces": [
@@ -302,11 +284,11 @@
   {
    "id": 11,
    "name": "nose lens",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 442,
    "area_cm2": 7876.7,
    "pieces": [
@@ -325,11 +307,11 @@
   {
    "id": 12,
    "name": "nose panel",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 142,
    "area_cm2": 1016.5,
    "pieces": [
@@ -341,11 +323,11 @@
   {
    "id": 13,
    "name": "nose tip",
-   "group": "body",
    "parent": "shell",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 1134,
    "area_cm2": 3370.3,
    "pieces": [
@@ -357,11 +339,11 @@
   {
    "id": 14,
    "name": "rear flank",
-   "group": "body",
    "parent": "shell",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 919,
    "area_cm2": 5462.2,
    "pieces": [
@@ -373,11 +355,11 @@
   {
    "id": 15,
    "name": "rear flank",
-   "group": "body",
    "parent": "shell",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 919,
    "area_cm2": 5462.2,
    "pieces": [
@@ -389,11 +371,11 @@
   {
    "id": 16,
    "name": "rear quarter panel",
-   "group": "body",
    "parent": "shell",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 171,
    "area_cm2": 673.6,
    "pieces": [
@@ -405,11 +387,11 @@
   {
    "id": 17,
    "name": "rear quarter panel",
-   "group": "body",
    "parent": "shell",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 171,
    "area_cm2": 673.6,
    "pieces": [
@@ -421,11 +403,11 @@
   {
    "id": 18,
    "name": "side skirt",
-   "group": "body",
    "parent": "shell",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 780,
    "area_cm2": 4579.7,
    "pieces": [
@@ -437,11 +419,11 @@
   {
    "id": 19,
    "name": "side skirt",
-   "group": "body",
    "parent": "shell",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 780,
    "area_cm2": 4579.7,
    "pieces": [
@@ -453,11 +435,11 @@
   {
    "id": 20,
    "name": "wing bracket",
-   "group": "body",
    "parent": "wing mounts",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 135,
    "area_cm2": 169.0,
    "pieces": [
@@ -474,11 +456,11 @@
   {
    "id": 21,
    "name": "wing bracket",
-   "group": "body",
    "parent": "wing mounts",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 573,
    "area_cm2": 462.6,
    "pieces": [
@@ -513,11 +495,11 @@
   {
    "id": 22,
    "name": "wing bracket",
-   "group": "body",
    "parent": "wing mounts",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 676,
    "area_cm2": 596.8,
    "pieces": [
@@ -553,11 +535,11 @@
   {
    "id": 23,
    "name": "wing pylon",
-   "group": "body",
    "parent": "wing mounts",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 224,
    "area_cm2": 432.8,
    "pieces": [
@@ -569,11 +551,11 @@
   {
    "id": 24,
    "name": "wing pylon",
-   "group": "body",
    "parent": "wing mounts",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 452,
    "area_cm2": 573.1,
    "pieces": [
@@ -587,11 +569,11 @@
   {
    "id": 25,
    "name": "wing pylon",
-   "group": "body",
    "parent": "wing mounts",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 452,
    "area_cm2": 573.1,
    "pieces": [
@@ -605,11 +587,11 @@
   {
    "id": 26,
    "name": "sidepod boss",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 12,
    "area_cm2": 434.4,
    "pieces": [
@@ -621,11 +603,11 @@
   {
    "id": 27,
    "name": "sidepod boss",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 12,
    "area_cm2": 434.4,
    "pieces": [
@@ -637,11 +619,11 @@
   {
    "id": 28,
    "name": "sidepod frame",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 2113,
    "area_cm2": 7134.6,
    "pieces": [
@@ -767,11 +749,11 @@
   {
    "id": 29,
    "name": "sidepod frame",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 2093,
    "area_cm2": 7133.3,
    "pieces": [
@@ -892,11 +874,11 @@
   {
    "id": 30,
    "name": "sidepod grille",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 42,
    "area_cm2": 267.0,
    "pieces": [
@@ -908,11 +890,11 @@
   {
    "id": 31,
    "name": "sidepod grille",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 42,
    "area_cm2": 267.0,
    "pieces": [
@@ -924,11 +906,11 @@
   {
    "id": 32,
    "name": "sidepod grille plate",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 1676,
    "area_cm2": 551.9,
    "pieces": [
@@ -940,11 +922,11 @@
   {
    "id": 33,
    "name": "sidepod grille plate",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 1696,
    "area_cm2": 553.2,
    "pieces": [
@@ -961,11 +943,11 @@
   {
    "id": 34,
    "name": "sidepod inlet",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 184,
    "area_cm2": 1886.9,
    "pieces": [
@@ -977,11 +959,11 @@
   {
    "id": 35,
    "name": "sidepod inlet",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 184,
    "area_cm2": 1886.9,
    "pieces": [
@@ -993,11 +975,11 @@
   {
    "id": 36,
    "name": "sidepod panel",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 430,
    "area_cm2": 2419.7,
    "pieces": [
@@ -1014,11 +996,11 @@
   {
    "id": 37,
    "name": "sidepod panel",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 430,
    "area_cm2": 2419.7,
    "pieces": [
@@ -1035,11 +1017,11 @@
   {
    "id": 38,
    "name": "sidepod strut",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 12,
    "area_cm2": 363.7,
    "pieces": [
@@ -1051,11 +1033,11 @@
   {
    "id": 39,
    "name": "sidepod strut",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 12,
    "area_cm2": 363.7,
    "pieces": [
@@ -1067,11 +1049,11 @@
   {
    "id": 40,
    "name": "sidepod top",
-   "group": "body",
    "parent": "sidepod",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 428,
    "area_cm2": 2527.7,
    "pieces": [
@@ -1083,11 +1065,11 @@
   {
    "id": 41,
    "name": "sidepod top",
-   "group": "body",
    "parent": "sidepod",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 428,
    "area_cm2": 2527.7,
    "pieces": [
@@ -1099,11 +1081,11 @@
   {
    "id": 42,
    "name": "airbox",
-   "group": "body",
    "parent": "engine cover",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 1290,
    "area_cm2": 2104.9,
    "pieces": [
@@ -1130,11 +1112,11 @@
   {
    "id": 43,
    "name": "airbox",
-   "group": "body",
    "parent": "engine cover",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 1290,
    "area_cm2": 2104.9,
    "pieces": [
@@ -1161,11 +1143,11 @@
   {
    "id": 44,
    "name": "engine cover",
-   "group": "body",
    "parent": "engine cover",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 666,
    "area_cm2": 4411.1,
    "pieces": [
@@ -1177,11 +1159,11 @@
   {
    "id": 45,
    "name": "engine cover panel",
-   "group": "body",
    "parent": "engine cover",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 24,
    "area_cm2": 810.4,
    "pieces": [
@@ -1193,11 +1175,11 @@
   {
    "id": 46,
    "name": "engine cover panel",
-   "group": "body",
    "parent": "engine cover",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 24,
    "area_cm2": 810.7,
    "pieces": [
@@ -1209,11 +1191,11 @@
   {
    "id": 47,
    "name": "number panel",
-   "group": "body",
    "parent": "engine cover",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 12,
    "area_cm2": 218.0,
    "pieces": [
@@ -1225,11 +1207,11 @@
   {
    "id": 48,
    "name": "number panel",
-   "group": "body",
    "parent": "engine cover",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 15,
    "area_cm2": 218.5,
    "pieces": [
@@ -1241,11 +1223,11 @@
   {
    "id": 49,
    "name": "number panel",
-   "group": "body",
    "parent": "engine cover",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 15,
    "area_cm2": 218.5,
    "pieces": [
@@ -1257,11 +1239,11 @@
   {
    "id": 50,
    "name": "diffuser",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 290,
    "area_cm2": 2116.8,
    "pieces": [
@@ -1273,11 +1255,11 @@
   {
    "id": 51,
    "name": "diffuser strake",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 302,
    "area_cm2": 1013.5,
    "pieces": [
@@ -1291,11 +1273,11 @@
   {
    "id": 52,
    "name": "diffuser strake",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 302,
    "area_cm2": 1014.9,
    "pieces": [
@@ -1309,11 +1291,11 @@
   {
    "id": 53,
    "name": "digit display",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 80,
    "area_cm2": 147.9,
    "pieces": [
@@ -1335,11 +1317,11 @@
   {
    "id": 54,
    "name": "digit display",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 164,
    "area_cm2": 342.5,
    "pieces": [
@@ -1379,11 +1361,11 @@
   {
    "id": 55,
    "name": "digit display",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 164,
    "area_cm2": 342.5,
    "pieces": [
@@ -1423,11 +1405,11 @@
   {
    "id": 56,
    "name": "exhaust",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 32,
    "area_cm2": 740.8,
    "pieces": [
@@ -1442,11 +1424,11 @@
   {
    "id": 57,
    "name": "exhaust",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 32,
    "area_cm2": 740.8,
    "pieces": [
@@ -1461,11 +1443,11 @@
   {
    "id": 58,
    "name": "rear bumper",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 16,
    "area_cm2": 240.7,
    "pieces": [
@@ -1478,11 +1460,11 @@
   {
    "id": 59,
    "name": "rear bumper",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 176,
    "area_cm2": 2276.9,
    "pieces": [
@@ -1506,11 +1488,11 @@
   {
    "id": 60,
    "name": "rear bumper",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 176,
    "area_cm2": 2276.9,
    "pieces": [
@@ -1534,11 +1516,11 @@
   {
    "id": 61,
    "name": "rear bumper corner",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 28,
    "area_cm2": 671.8,
    "pieces": [
@@ -1550,11 +1532,11 @@
   {
    "id": 62,
    "name": "rear bumper corner",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 28,
    "area_cm2": 671.8,
    "pieces": [
@@ -1566,11 +1548,11 @@
   {
    "id": 63,
    "name": "rear light",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 107,
    "area_cm2": 572.4,
    "pieces": [
@@ -1583,11 +1565,11 @@
   {
    "id": 64,
    "name": "rear light",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 107,
    "area_cm2": 572.4,
    "pieces": [
@@ -1600,11 +1582,11 @@
   {
    "id": 65,
    "name": "rear light lens",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 99,
    "area_cm2": 682.1,
    "pieces": [
@@ -1617,11 +1599,11 @@
   {
    "id": 66,
    "name": "rear light lens",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 99,
    "area_cm2": 682.1,
    "pieces": [
@@ -1634,11 +1616,11 @@
   {
    "id": 67,
    "name": "rear strake",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 19,
    "area_cm2": 8.1,
    "pieces": [
@@ -1651,11 +1633,11 @@
   {
    "id": 68,
    "name": "rear strake",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 506,
    "area_cm2": 2028.5,
    "pieces": [
@@ -1677,11 +1659,11 @@
   {
    "id": 69,
    "name": "rear strake",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 487,
    "area_cm2": 2020.4,
    "pieces": [
@@ -1703,11 +1685,11 @@
   {
    "id": 70,
    "name": "rear undertray",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 144,
    "area_cm2": 1576.1,
    "pieces": [
@@ -1719,11 +1701,11 @@
   {
    "id": 71,
    "name": "rear undertray",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 171,
    "area_cm2": 1085.6,
    "pieces": [
@@ -1738,11 +1720,11 @@
   {
    "id": 72,
    "name": "rear undertray",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 171,
    "area_cm2": 1085.6,
    "pieces": [
@@ -1757,11 +1739,11 @@
   {
    "id": 73,
    "name": "side lens",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 48,
    "area_cm2": 539.2,
    "pieces": [
@@ -1774,11 +1756,11 @@
   {
    "id": 74,
    "name": "side lens",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 48,
    "area_cm2": 539.2,
    "pieces": [
@@ -1791,11 +1773,11 @@
   {
    "id": 75,
    "name": "side vent",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 160,
    "area_cm2": 675.8,
    "pieces": [
@@ -1815,11 +1797,11 @@
   {
    "id": 76,
    "name": "side vent",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 160,
    "area_cm2": 675.8,
    "pieces": [
@@ -1839,11 +1821,11 @@
   {
    "id": 77,
    "name": "tail corner",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 194,
    "area_cm2": 881.2,
    "pieces": [
@@ -1855,11 +1837,11 @@
   {
    "id": 78,
    "name": "tail corner",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 194,
    "area_cm2": 881.2,
    "pieces": [
@@ -1871,11 +1853,11 @@
   {
    "id": 79,
    "name": "tail frame",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 16,
    "area_cm2": 38.6,
    "pieces": [
@@ -1891,11 +1873,11 @@
   {
    "id": 80,
    "name": "tail frame",
-   "group": "body",
    "parent": "tail",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 2377,
    "area_cm2": 11843.2,
    "pieces": [
@@ -2091,11 +2073,11 @@
   {
    "id": 81,
    "name": "tail frame",
-   "group": "body",
    "parent": "tail",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 2344,
    "area_cm2": 11843.2,
    "pieces": [
@@ -2292,11 +2274,11 @@
   {
    "id": 82,
    "name": "tail panel",
-   "group": "body",
    "parent": "tail",
    "side": "centre",
    "end": "",
    "mesh": "Skin",
+   "group": "body",
    "tris": 140,
    "area_cm2": 1822.2,
    "pieces": [
@@ -2307,12 +2289,256 @@
   },
   {
    "id": 83,
+   "name": "wheel cover disc",
+   "parent": "wheel cover",
+   "side": "left",
+   "end": "front",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 882,
+   "area_cm2": 893.6,
+   "pieces": [
+    59
+   ],
+   "texels": 99948,
+   "shared": 1.0
+  },
+  {
+   "id": 84,
+   "name": "wheel cover disc",
+   "parent": "wheel cover",
+   "side": "right",
+   "end": "front",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 882,
+   "area_cm2": 893.6,
+   "pieces": [
+    74
+   ],
+   "texels": 99948,
+   "shared": 1.0
+  },
+  {
+   "id": 85,
+   "name": "wheel cover disc",
+   "parent": "wheel cover",
+   "side": "left",
+   "end": "rear",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 882,
+   "area_cm2": 893.6,
+   "pieces": [
+    96
+   ],
+   "texels": 99948,
+   "shared": 1.0
+  },
+  {
+   "id": 86,
+   "name": "wheel cover disc",
+   "parent": "wheel cover",
+   "side": "right",
+   "end": "rear",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 882,
+   "area_cm2": 893.6,
+   "pieces": [
+    109
+   ],
+   "texels": 99948,
+   "shared": 1.0
+  },
+  {
+   "id": 87,
+   "name": "wheel cover hub",
+   "parent": "wheel cover",
+   "side": "left",
+   "end": "front",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1231,
+   "area_cm2": 1021.7,
+   "pieces": [
+    34,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70
+   ],
+   "texels": 55245,
+   "shared": 0.97
+  },
+  {
+   "id": 88,
+   "name": "wheel cover hub",
+   "parent": "wheel cover",
+   "side": "right",
+   "end": "front",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1231,
+   "area_cm2": 1021.7,
+   "pieces": [
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86
+   ],
+   "texels": 55245,
+   "shared": 0.97
+  },
+  {
+   "id": 89,
+   "name": "wheel cover hub",
+   "parent": "wheel cover",
+   "side": "left",
+   "end": "rear",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1231,
+   "area_cm2": 1021.7,
+   "pieces": [
+    93,
+    94,
+    95,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105
+   ],
+   "texels": 55245,
+   "shared": 0.97
+  },
+  {
+   "id": 90,
+   "name": "wheel cover hub",
+   "parent": "wheel cover",
+   "side": "right",
+   "end": "rear",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1231,
+   "area_cm2": 1021.7,
+   "pieces": [
+    106,
+    107,
+    108,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118
+   ],
+   "texels": 55245,
+   "shared": 0.97
+  },
+  {
+   "id": 91,
+   "name": "wheel cover ring",
+   "parent": "wheel cover",
+   "side": "left",
+   "end": "front",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1236,
+   "area_cm2": 2391.5,
+   "pieces": [
+    71,
+    72,
+    73
+   ],
+   "texels": 126037,
+   "shared": 1.0
+  },
+  {
+   "id": 92,
+   "name": "wheel cover ring",
+   "parent": "wheel cover",
+   "side": "right",
+   "end": "front",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1236,
+   "area_cm2": 2391.7,
+   "pieces": [
+    87,
+    88,
+    89
+   ],
+   "texels": 126037,
+   "shared": 1.0
+  },
+  {
+   "id": 93,
+   "name": "wheel cover ring",
+   "parent": "wheel cover",
+   "side": "left",
+   "end": "rear",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1236,
+   "area_cm2": 2391.7,
+   "pieces": [
+    90,
+    91,
+    92
+   ],
+   "texels": 126037,
+   "shared": 1.0
+  },
+  {
+   "id": 94,
+   "name": "wheel cover ring",
+   "parent": "wheel cover",
+   "side": "right",
+   "end": "rear",
+   "mesh": "Skin",
+   "group": "body",
+   "tris": 1236,
+   "area_cm2": 2391.5,
+   "pieces": [
+    119,
+    120,
+    121
+   ],
+   "texels": 126037,
+   "shared": 1.0
+  },
+  {
+   "id": 95,
    "name": "floor",
-   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 54,
    "area_cm2": 36.9,
    "pieces": [
@@ -2323,13 +2549,13 @@
    "shared": 0.14
   },
   {
-   "id": 84,
+   "id": 96,
    "name": "floor",
-   "group": "floor",
    "parent": "floor",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 1538,
    "area_cm2": 29105.1,
    "pieces": [
@@ -2354,13 +2580,13 @@
    "shared": 0.78
   },
   {
-   "id": 85,
+   "id": 97,
    "name": "floor",
-   "group": "floor",
    "parent": "floor",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 1546,
    "area_cm2": 29105.2,
    "pieces": [
@@ -2385,13 +2611,13 @@
    "shared": 0.78
   },
   {
-   "id": 86,
+   "id": 98,
    "name": "floor edge",
-   "group": "floor",
    "parent": "floor",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 294,
    "area_cm2": 676.8,
    "pieces": [
@@ -2401,13 +2627,13 @@
    "shared": 0.9
   },
   {
-   "id": 87,
+   "id": 99,
    "name": "floor edge",
-   "group": "floor",
    "parent": "floor",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 294,
    "area_cm2": 676.8,
    "pieces": [
@@ -2417,13 +2643,13 @@
    "shared": 0.9
   },
   {
-   "id": 88,
+   "id": 100,
    "name": "floor plank",
-   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 2,
    "area_cm2": 13.9,
    "pieces": [
@@ -2433,13 +2659,13 @@
    "shared": 0.0
   },
   {
-   "id": 89,
+   "id": 101,
    "name": "floor plank",
-   "group": "floor",
    "parent": "floor",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 51,
    "area_cm2": 392.1,
    "pieces": [
@@ -2452,13 +2678,13 @@
    "shared": 0.84
   },
   {
-   "id": 90,
+   "id": 102,
    "name": "floor plank",
-   "group": "floor",
    "parent": "floor",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 51,
    "area_cm2": 392.1,
    "pieces": [
@@ -2471,13 +2697,13 @@
    "shared": 0.84
   },
   {
-   "id": 91,
+   "id": 103,
    "name": "floor rail",
-   "group": "floor",
    "parent": "floor",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 18,
    "area_cm2": 117.6,
    "pieces": [
@@ -2487,13 +2713,13 @@
    "shared": 0.0
   },
   {
-   "id": 92,
+   "id": 104,
    "name": "front wing",
-   "group": "floor",
    "parent": "front wing",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 2,
    "area_cm2": 13.9,
    "pieces": [
@@ -2503,13 +2729,13 @@
    "shared": 0.0
   },
   {
-   "id": 93,
+   "id": 105,
    "name": "front wing",
-   "group": "floor",
    "parent": "front wing",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 760,
    "area_cm2": 2087.7,
    "pieces": [
@@ -2529,13 +2755,13 @@
    "shared": 0.99
   },
   {
-   "id": 94,
+   "id": 106,
    "name": "front wing",
-   "group": "floor",
    "parent": "front wing",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 760,
    "area_cm2": 2087.7,
    "pieces": [
@@ -2555,13 +2781,13 @@
    "shared": 0.99
   },
   {
-   "id": 95,
+   "id": 107,
    "name": "front wing endplate",
-   "group": "floor",
    "parent": "front wing",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 29,
    "area_cm2": 29.8,
    "pieces": [
@@ -2571,13 +2797,13 @@
    "shared": 0.8
   },
   {
-   "id": 96,
+   "id": 108,
    "name": "front wing endplate",
-   "group": "floor",
    "parent": "front wing",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 29,
    "area_cm2": 29.8,
    "pieces": [
@@ -2587,13 +2813,13 @@
    "shared": 0.8
   },
   {
-   "id": 97,
+   "id": 109,
    "name": "wing lens",
-   "group": "floor",
    "parent": "front wing",
    "side": "left",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 182,
    "area_cm2": 131.5,
    "pieces": [
@@ -2603,13 +2829,13 @@
    "shared": 0.98
   },
   {
-   "id": 98,
+   "id": 110,
    "name": "wing lens",
-   "group": "floor",
    "parent": "front wing",
    "side": "right",
    "end": "",
    "mesh": "Glass",
+   "group": "glass",
    "tris": 182,
    "area_cm2": 131.5,
    "pieces": [
@@ -2619,823 +2845,13 @@
    "shared": 0.98
   },
   {
-   "id": 99,
-   "name": "wheel cover disc",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "left",
-   "end": "front",
-   "mesh": "Skin",
-   "tris": 882,
-   "area_cm2": 893.6,
-   "pieces": [
-    59
-   ],
-   "texels": 99948,
-   "shared": 1.0
-  },
-  {
-   "id": 100,
-   "name": "wheel cover disc",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "right",
-   "end": "front",
-   "mesh": "Skin",
-   "tris": 882,
-   "area_cm2": 893.6,
-   "pieces": [
-    74
-   ],
-   "texels": 99948,
-   "shared": 1.0
-  },
-  {
-   "id": 101,
-   "name": "wheel cover disc",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Skin",
-   "tris": 882,
-   "area_cm2": 893.6,
-   "pieces": [
-    96
-   ],
-   "texels": 99948,
-   "shared": 1.0
-  },
-  {
-   "id": 102,
-   "name": "wheel cover disc",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Skin",
-   "tris": 882,
-   "area_cm2": 893.6,
-   "pieces": [
-    109
-   ],
-   "texels": 99948,
-   "shared": 1.0
-  },
-  {
-   "id": 103,
-   "name": "wheel cover hub",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "left",
-   "end": "front",
-   "mesh": "Skin",
-   "tris": 1231,
-   "area_cm2": 1021.7,
-   "pieces": [
-    34,
-    60,
-    61,
-    62,
-    63,
-    64,
-    65,
-    66,
-    67,
-    68,
-    69,
-    70
-   ],
-   "texels": 55245,
-   "shared": 0.97
-  },
-  {
-   "id": 104,
-   "name": "wheel cover hub",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "right",
-   "end": "front",
-   "mesh": "Skin",
-   "tris": 1231,
-   "area_cm2": 1021.7,
-   "pieces": [
-    75,
-    76,
-    77,
-    78,
-    79,
-    80,
-    81,
-    82,
-    83,
-    84,
-    85,
-    86
-   ],
-   "texels": 55245,
-   "shared": 0.97
-  },
-  {
-   "id": 105,
-   "name": "wheel cover hub",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Skin",
-   "tris": 1231,
-   "area_cm2": 1021.7,
-   "pieces": [
-    93,
-    94,
-    95,
-    97,
-    98,
-    99,
-    100,
-    101,
-    102,
-    103,
-    104,
-    105
-   ],
-   "texels": 55245,
-   "shared": 0.97
-  },
-  {
-   "id": 106,
-   "name": "wheel cover hub",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Skin",
-   "tris": 1231,
-   "area_cm2": 1021.7,
-   "pieces": [
-    106,
-    107,
-    108,
-    110,
-    111,
-    112,
-    113,
-    114,
-    115,
-    116,
-    117,
-    118
-   ],
-   "texels": 55245,
-   "shared": 0.97
-  },
-  {
-   "id": 107,
-   "name": "wheel cover ring",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "left",
-   "end": "front",
-   "mesh": "Skin",
-   "tris": 1236,
-   "area_cm2": 2391.5,
-   "pieces": [
-    71,
-    72,
-    73
-   ],
-   "texels": 126037,
-   "shared": 1.0
-  },
-  {
-   "id": 108,
-   "name": "wheel cover ring",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "right",
-   "end": "front",
-   "mesh": "Skin",
-   "tris": 1236,
-   "area_cm2": 2391.7,
-   "pieces": [
-    87,
-    88,
-    89
-   ],
-   "texels": 126037,
-   "shared": 1.0
-  },
-  {
-   "id": 109,
-   "name": "wheel cover ring",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Skin",
-   "tris": 1236,
-   "area_cm2": 2391.7,
-   "pieces": [
-    90,
-    91,
-    92
-   ],
-   "texels": 126037,
-   "shared": 1.0
-  },
-  {
-   "id": 110,
-   "name": "wheel cover ring",
-   "group": "wheels",
-   "parent": "wheel cover",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Skin",
-   "tris": 1236,
-   "area_cm2": 2391.5,
-   "pieces": [
-    119,
-    120,
-    121
-   ],
-   "texels": 126037,
-   "shared": 1.0
-  },
-  {
    "id": 111,
-   "name": "sidewall",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "left",
-   "end": "front",
-   "cut": "tyre_sidewall",
-   "mesh": "Wheels",
-   "tris": 744,
-   "area_cm2": 2843.1,
-   "pieces": [
-    2051
-   ],
-   "texels": 151869,
-   "shared": 1.0
-  },
-  {
-   "id": 112,
-   "name": "sidewall",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "right",
-   "end": "front",
-   "cut": "tyre_sidewall",
-   "mesh": "Wheels",
-   "tris": 744,
-   "area_cm2": 2843.1,
-   "pieces": [
-    2052
-   ],
-   "texels": 151869,
-   "shared": 1.0
-  },
-  {
-   "id": 113,
-   "name": "sidewall",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "left",
-   "end": "rear",
-   "cut": "tyre_sidewall",
-   "mesh": "Wheels",
-   "tris": 744,
-   "area_cm2": 2960.7,
-   "pieces": [
-    2053
-   ],
-   "texels": 151869,
-   "shared": 1.0
-  },
-  {
-   "id": 114,
-   "name": "sidewall",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "right",
-   "end": "rear",
-   "cut": "tyre_sidewall",
-   "mesh": "Wheels",
-   "tris": 744,
-   "area_cm2": 2960.7,
-   "pieces": [
-    2054
-   ],
-   "texels": 151869,
-   "shared": 1.0
-  },
-  {
-   "id": 115,
-   "name": "tread",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "left",
-   "end": "front",
-   "cut": "tyre_tread",
-   "mesh": "Wheels",
-   "tris": 480,
-   "area_cm2": 6522.9,
-   "pieces": [
-    2051
-   ],
-   "texels": 372419,
-   "shared": 1.0
-  },
-  {
-   "id": 116,
-   "name": "tread",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "right",
-   "end": "front",
-   "cut": "tyre_tread",
-   "mesh": "Wheels",
-   "tris": 480,
-   "area_cm2": 6522.9,
-   "pieces": [
-    2052
-   ],
-   "texels": 372419,
-   "shared": 1.0
-  },
-  {
-   "id": 117,
-   "name": "tread",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "left",
-   "end": "rear",
-   "cut": "tyre_tread",
-   "mesh": "Wheels",
-   "tris": 480,
-   "area_cm2": 7160.2,
-   "pieces": [
-    2053
-   ],
-   "texels": 372419,
-   "shared": 1.0
-  },
-  {
-   "id": 118,
-   "name": "tread",
-   "group": "wheels",
-   "parent": "tyre",
-   "side": "right",
-   "end": "rear",
-   "cut": "tyre_tread",
-   "mesh": "Wheels",
-   "tris": 480,
-   "area_cm2": 7160.2,
-   "pieces": [
-    2054
-   ],
-   "texels": 372419,
-   "shared": 1.0
-  },
-  {
-   "id": 119,
-   "name": "brake caliper",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 140,
-   "area_cm2": 92.0,
-   "pieces": [
-    670,
-    671,
-    672,
-    673,
-    674,
-    675,
-    676,
-    677,
-    678,
-    679
-   ],
-   "texels": 1962,
-   "shared": 1.0
-  },
-  {
-   "id": 120,
-   "name": "brake caliper",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 140,
-   "area_cm2": 92.0,
-   "pieces": [
-    708,
-    709,
-    710,
-    711,
-    712,
-    713,
-    714,
-    715,
-    716,
-    717
-   ],
-   "texels": 1962,
-   "shared": 1.0
-  },
-  {
-   "id": 121,
-   "name": "brake caliper",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 140,
-   "area_cm2": 92.0,
-   "pieces": [
-    760,
-    761,
-    762,
-    763,
-    764,
-    765,
-    766,
-    767,
-    768,
-    769
-   ],
-   "texels": 1962,
-   "shared": 1.0
-  },
-  {
-   "id": 122,
-   "name": "brake caliper",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 140,
-   "area_cm2": 92.0,
-   "pieces": [
-    872,
-    873,
-    874,
-    875,
-    876,
-    877,
-    878,
-    879,
-    880,
-    881
-   ],
-   "texels": 1962,
-   "shared": 1.0
-  },
-  {
-   "id": 123,
-   "name": "brake light",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 70,
-   "area_cm2": 277.0,
-   "pieces": [
-    461,
-    462
-   ],
-   "texels": 5730,
-   "shared": 1.0
-  },
-  {
-   "id": 124,
-   "name": "brake light",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 70,
-   "area_cm2": 277.0,
-   "pieces": [
-    481,
-    482
-   ],
-   "texels": 5730,
-   "shared": 1.0
-  },
-  {
-   "id": 125,
-   "name": "hub",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 1580,
-   "area_cm2": 5536.9,
-   "pieces": [
-    449,
-    450,
-    451,
-    452,
-    453,
-    454,
-    455,
-    456,
-    457,
-    458,
-    459,
-    460,
-    463,
-    464,
-    465,
-    466,
-    467,
-    468
-   ],
-   "texels": 115118,
-   "shared": 0.99
-  },
-  {
-   "id": 126,
-   "name": "hub",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 1580,
-   "area_cm2": 5536.9,
-   "pieces": [
-    469,
-    470,
-    471,
-    472,
-    473,
-    474,
-    475,
-    476,
-    477,
-    478,
-    479,
-    480,
-    483,
-    484,
-    485,
-    486,
-    487,
-    488
-   ],
-   "texels": 115118,
-   "shared": 0.99
-  },
-  {
-   "id": 127,
-   "name": "hub",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 1112,
-   "area_cm2": 5572.1,
-   "pieces": [
-    770,
-    771,
-    772,
-    773,
-    774,
-    775,
-    776,
-    777,
-    778,
-    779
-   ],
-   "texels": 116136,
-   "shared": 0.99
-  },
-  {
-   "id": 128,
-   "name": "hub",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 1112,
-   "area_cm2": 5572.1,
-   "pieces": [
-    861,
-    862,
-    863,
-    864,
-    865,
-    866,
-    867,
-    868,
-    869,
-    870
-   ],
-   "texels": 116136,
-   "shared": 0.99
-  },
-  {
-   "id": 129,
-   "name": "rim",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 954,
-   "area_cm2": 8046.7,
-   "pieces": [
-    669,
-    680,
-    681
-   ],
-   "texels": 165892,
-   "shared": 1.0
-  },
-  {
-   "id": 130,
-   "name": "rim",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 954,
-   "area_cm2": 8046.7,
-   "pieces": [
-    707,
-    731,
-    732
-   ],
-   "texels": 165892,
-   "shared": 1.0
-  },
-  {
-   "id": 131,
-   "name": "rim",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 954,
-   "area_cm2": 8787.8,
-   "pieces": [
-    745,
-    746,
-    759
-   ],
-   "texels": 166383,
-   "shared": 0.99
-  },
-  {
-   "id": 132,
-   "name": "rim",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 954,
-   "area_cm2": 8787.8,
-   "pieces": [
-    871,
-    883,
-    884
-   ],
-   "texels": 166383,
-   "shared": 0.99
-  },
-  {
-   "id": 133,
-   "name": "wheel ring",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 120,
-   "area_cm2": 190.8,
-   "pieces": [
-    682,
-    683,
-    684,
-    685,
-    686,
-    687,
-    688,
-    689,
-    690,
-    691,
-    692,
-    693
-   ],
-   "texels": 1345,
-   "shared": 0.99
-  },
-  {
-   "id": 134,
-   "name": "wheel ring",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "front",
-   "mesh": "Details",
-   "tris": 120,
-   "area_cm2": 191.9,
-   "pieces": [
-    733,
-    734,
-    735,
-    736,
-    737,
-    738,
-    739,
-    740,
-    741,
-    742,
-    743,
-    744
-   ],
-   "texels": 1345,
-   "shared": 0.99
-  },
-  {
-   "id": 135,
-   "name": "wheel ring",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "left",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 120,
-   "area_cm2": 190.7,
-   "pieces": [
-    747,
-    748,
-    749,
-    750,
-    751,
-    752,
-    753,
-    754,
-    755,
-    756,
-    757,
-    758
-   ],
-   "texels": 1345,
-   "shared": 0.99
-  },
-  {
-   "id": 136,
-   "name": "wheel ring",
-   "group": "wheels",
-   "parent": "rims and brakes",
-   "side": "right",
-   "end": "rear",
-   "mesh": "Details",
-   "tris": 120,
-   "area_cm2": 190.8,
-   "pieces": [
-    885,
-    886,
-    887,
-    888,
-    889,
-    890,
-    891,
-    892,
-    893,
-    894,
-    895,
-    896
-   ],
-   "texels": 1345,
-   "shared": 0.99
-  },
-  {
-   "id": 137,
    "name": "antenna",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 236,
    "area_cm2": 29.7,
    "pieces": [
@@ -3450,14 +2866,14 @@
    "shared": 0.0
   },
   {
-   "id": 138,
+   "id": 112,
    "name": "cockpit tub",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "centre",
    "end": "",
    "cut": "chassis_cockpit",
    "mesh": "Details",
+   "group": "details",
    "tris": 598,
    "area_cm2": 637.5,
    "pieces": [
@@ -3519,14 +2935,14 @@
    "shared": 0.99
   },
   {
-   "id": 139,
+   "id": 113,
    "name": "cockpit tub",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "cut": "chassis_cockpit",
    "mesh": "Details",
+   "group": "details",
    "tris": 3487,
    "area_cm2": 18624.6,
    "pieces": [
@@ -3587,14 +3003,14 @@
    "shared": 0.92
   },
   {
-   "id": 140,
+   "id": 114,
    "name": "cockpit tub",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "cut": "chassis_cockpit",
    "mesh": "Details",
+   "group": "details",
    "tris": 3503,
    "area_cm2": 18624.2,
    "pieces": [
@@ -3655,14 +3071,14 @@
    "shared": 0.92
   },
   {
-   "id": 141,
+   "id": 115,
    "name": "engine bay",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "cut": "chassis_engine",
    "mesh": "Details",
+   "group": "details",
    "tris": 369,
    "area_cm2": 1122.6,
    "pieces": [
@@ -3685,14 +3101,14 @@
    "shared": 1.0
   },
   {
-   "id": 142,
+   "id": 116,
    "name": "engine bay",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "cut": "chassis_engine",
    "mesh": "Details",
+   "group": "details",
    "tris": 369,
    "area_cm2": 1122.6,
    "pieces": [
@@ -3715,13 +3131,13 @@
    "shared": 1.0
   },
   {
-   "id": 143,
+   "id": 117,
    "name": "front bulkhead",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 162,
    "area_cm2": 309.8,
    "pieces": [
@@ -3747,13 +3163,13 @@
    "shared": 0.48
   },
   {
-   "id": 144,
+   "id": 118,
    "name": "front bulkhead",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 370,
    "area_cm2": 1326.1,
    "pieces": [
@@ -3767,13 +3183,13 @@
    "shared": 0.99
   },
   {
-   "id": 145,
+   "id": 119,
    "name": "front bulkhead",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 370,
    "area_cm2": 1326.1,
    "pieces": [
@@ -3787,14 +3203,14 @@
    "shared": 0.99
   },
   {
-   "id": 146,
+   "id": 120,
    "name": "nose inner",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "centre",
    "end": "",
    "cut": "chassis_nose",
    "mesh": "Details",
+   "group": "details",
    "tris": 28,
    "area_cm2": 122.1,
    "pieces": [
@@ -3815,14 +3231,14 @@
    "shared": 1.0
   },
   {
-   "id": 147,
+   "id": 121,
    "name": "nose inner",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "cut": "chassis_nose",
    "mesh": "Details",
+   "group": "details",
    "tris": 1630,
    "area_cm2": 4650.4,
    "pieces": [
@@ -3893,14 +3309,14 @@
    "shared": 1.0
   },
   {
-   "id": 148,
+   "id": 122,
    "name": "nose inner",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "cut": "chassis_nose",
    "mesh": "Details",
+   "group": "details",
    "tris": 1629,
    "area_cm2": 4650.7,
    "pieces": [
@@ -3972,13 +3388,13 @@
    "shared": 1.0
   },
   {
-   "id": 149,
+   "id": 123,
    "name": "nose plate",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 220,
    "area_cm2": 1052.5,
    "pieces": [
@@ -3989,13 +3405,13 @@
    "shared": 0.0
   },
   {
-   "id": 150,
+   "id": 124,
    "name": "nose plate",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 657,
    "area_cm2": 749.6,
    "pieces": [
@@ -4016,13 +3432,13 @@
    "shared": 0.95
   },
   {
-   "id": 151,
+   "id": 125,
    "name": "nose plate",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 657,
    "area_cm2": 749.6,
    "pieces": [
@@ -4043,13 +3459,13 @@
    "shared": 0.95
   },
   {
-   "id": 152,
+   "id": 126,
    "name": "nose sensor",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "centre",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 136,
    "area_cm2": 25.6,
    "pieces": [
@@ -4063,13 +3479,13 @@
    "shared": 0.56
   },
   {
-   "id": 153,
+   "id": 127,
    "name": "nose sensor",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 236,
    "area_cm2": 94.4,
    "pieces": [
@@ -4086,13 +3502,13 @@
    "shared": 0.96
   },
   {
-   "id": 154,
+   "id": 128,
    "name": "nose sensor",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 236,
    "area_cm2": 94.4,
    "pieces": [
@@ -4108,13 +3524,13 @@
    "shared": 0.96
   },
   {
-   "id": 155,
+   "id": 129,
    "name": "side vane",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "left",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 72,
    "area_cm2": 717.9,
    "pieces": [
@@ -4124,13 +3540,13 @@
    "shared": 0.99
   },
   {
-   "id": 156,
+   "id": 130,
    "name": "side vane",
-   "group": "mechanicals",
    "parent": "chassis",
    "side": "right",
    "end": "",
    "mesh": "Details",
+   "group": "details",
    "tris": 72,
    "area_cm2": 717.9,
    "pieces": [
@@ -4140,13 +3556,622 @@
    "shared": 0.99
   },
   {
+   "id": 131,
+   "name": "belt buckle",
+   "parent": "cockpit",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 58,
+   "area_cm2": 87.4,
+   "pieces": [
+    1129
+   ],
+   "texels": 1823,
+   "shared": 0.0
+  },
+  {
+   "id": 132,
+   "name": "belt buckle",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 152,
+   "area_cm2": 37.3,
+   "pieces": [
+    1131
+   ],
+   "texels": 800,
+   "shared": 0.95
+  },
+  {
+   "id": 133,
+   "name": "belt buckle",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 152,
+   "area_cm2": 37.3,
+   "pieces": [
+    1133
+   ],
+   "texels": 800,
+   "shared": 0.95
+  },
+  {
+   "id": 134,
+   "name": "cockpit rim",
+   "parent": "cockpit",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 136,
+   "area_cm2": 171.2,
+   "pieces": [
+    1228,
+    1229
+   ],
+   "texels": 3679,
+   "shared": 0.0
+  },
+  {
+   "id": 135,
+   "name": "cockpit rim",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 614,
+   "area_cm2": 818.3,
+   "pieces": [
+    566,
+    568,
+    569,
+    574,
+    575,
+    576,
+    577,
+    987,
+    988,
+    991,
+    992,
+    993,
+    994,
+    995,
+    996,
+    1070,
+    1184,
+    1185
+   ],
+   "texels": 18594,
+   "shared": 0.97
+  },
+  {
+   "id": 136,
+   "name": "cockpit rim",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 614,
+   "area_cm2": 818.3,
+   "pieces": [
+    570,
+    572,
+    573,
+    579,
+    580,
+    581,
+    582,
+    989,
+    990,
+    997,
+    998,
+    999,
+    1000,
+    1001,
+    1002,
+    1071,
+    1186,
+    1187
+   ],
+   "texels": 18594,
+   "shared": 0.97
+  },
+  {
+   "id": 137,
+   "name": "dashboard",
+   "parent": "cockpit",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 302,
+   "area_cm2": 453.0,
+   "pieces": [
+    512,
+    513,
+    515,
+    519,
+    521,
+    523,
+    527,
+    529
+   ],
+   "texels": 8318,
+   "shared": 0.21
+  },
+  {
+   "id": 138,
+   "name": "dashboard",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 162,
+   "area_cm2": 24.1,
+   "pieces": [
+    530,
+    531,
+    532,
+    533,
+    534,
+    535,
+    536,
+    537,
+    538,
+    539,
+    540,
+    541,
+    542,
+    543,
+    544,
+    545,
+    546,
+    547
+   ],
+   "texels": 2024,
+   "shared": 0.99
+  },
+  {
+   "id": 139,
+   "name": "dashboard",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 162,
+   "area_cm2": 24.1,
+   "pieces": [
+    548,
+    549,
+    550,
+    551,
+    552,
+    553,
+    554,
+    555,
+    556,
+    557,
+    558,
+    559,
+    560,
+    561,
+    562,
+    563,
+    564,
+    565
+   ],
+   "texels": 2024,
+   "shared": 0.99
+  },
+  {
+   "id": 140,
+   "name": "gear display",
+   "parent": "cockpit",
+   "side": "centre",
+   "end": "",
+   "mesh": "Glass",
+   "group": "glass",
+   "tris": 12,
+   "area_cm2": 6.7,
+   "pieces": [
+    2058
+   ],
+   "texels": 5758,
+   "shared": 0.0
+  },
+  {
+   "id": 141,
+   "name": "gear display",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Glass",
+   "group": "glass",
+   "tris": 54,
+   "area_cm2": 67.6,
+   "pieces": [
+    2063,
+    2064,
+    2065,
+    2066,
+    2067,
+    2068,
+    2069
+   ],
+   "texels": 57824,
+   "shared": 0.0
+  },
+  {
+   "id": 142,
+   "name": "gear display",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Glass",
+   "group": "glass",
+   "tris": 54,
+   "area_cm2": 67.6,
+   "pieces": [
+    2055,
+    2056,
+    2057,
+    2059,
+    2060,
+    2061,
+    2062
+   ],
+   "texels": 57801,
+   "shared": 0.0
+  },
+  {
+   "id": 143,
+   "name": "mirror",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 91,
+   "area_cm2": 183.6,
+   "pieces": [
+    1092,
+    1093,
+    1094,
+    1095,
+    1096
+   ],
+   "texels": 3893,
+   "shared": 0.96
+  },
+  {
+   "id": 144,
+   "name": "mirror",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 91,
+   "area_cm2": 183.6,
+   "pieces": [
+    1103,
+    1104,
+    1105,
+    1106,
+    1107
+   ],
+   "texels": 3893,
+   "shared": 0.96
+  },
+  {
+   "id": 145,
+   "name": "mirror arm",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 236,
+   "area_cm2": 29.5,
+   "pieces": [
+    1097,
+    1098,
+    1099,
+    1100,
+    1101,
+    1102
+   ],
+   "texels": 631,
+   "shared": 0.96
+  },
+  {
+   "id": 146,
+   "name": "mirror arm",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 236,
+   "area_cm2": 29.5,
+   "pieces": [
+    1108,
+    1109,
+    1110,
+    1111,
+    1112,
+    1113
+   ],
+   "texels": 631,
+   "shared": 0.96
+  },
+  {
+   "id": 147,
+   "name": "mirror glass",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Glass",
+   "group": "glass",
+   "tris": 12,
+   "area_cm2": 0.7,
+   "pieces": [
+    2084
+   ],
+   "texels": 372,
+   "shared": 0.98
+  },
+  {
+   "id": 148,
+   "name": "mirror glass",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Glass",
+   "group": "glass",
+   "tris": 12,
+   "area_cm2": 0.7,
+   "pieces": [
+    2085
+   ],
+   "texels": 372,
+   "shared": 0.98
+  },
+  {
+   "id": 149,
+   "name": "seat",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 515,
+   "area_cm2": 3580.8,
+   "pieces": [
+    1134,
+    1135,
+    1136
+   ],
+   "texels": 74431,
+   "shared": 0.99
+  },
+  {
+   "id": 150,
+   "name": "seat",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 515,
+   "area_cm2": 3580.8,
+   "pieces": [
+    1137,
+    1138,
+    1139
+   ],
+   "texels": 74431,
+   "shared": 0.99
+  },
+  {
+   "id": 151,
+   "name": "seat belt",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 266,
+   "area_cm2": 359.2,
+   "pieces": [
+    1125,
+    1126,
+    1130
+   ],
+   "texels": 7605,
+   "shared": 0.97
+  },
+  {
+   "id": 152,
+   "name": "seat belt",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 266,
+   "area_cm2": 359.2,
+   "pieces": [
+    1127,
+    1128,
+    1132
+   ],
+   "texels": 7605,
+   "shared": 0.97
+  },
+  {
+   "id": 153,
+   "name": "steering column",
+   "parent": "cockpit",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 876,
+   "area_cm2": 164.1,
+   "pieces": [
+    599,
+    600,
+    601,
+    602,
+    603,
+    604,
+    605,
+    606,
+    607,
+    608,
+    609,
+    610,
+    611,
+    613,
+    615,
+    616,
+    617,
+    619,
+    621,
+    625,
+    629,
+    660
+   ],
+   "texels": 5861,
+   "shared": 0.15
+  },
+  {
+   "id": 154,
+   "name": "steering column",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 13,
+   "area_cm2": 2.4,
+   "pieces": [
+    612,
+    614
+   ],
+   "texels": 192,
+   "shared": 0.99
+  },
+  {
+   "id": 155,
+   "name": "steering column",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 13,
+   "area_cm2": 2.4,
+   "pieces": [
+    618,
+    620
+   ],
+   "texels": 192,
+   "shared": 0.99
+  },
+  {
+   "id": 156,
+   "name": "steering wheel",
+   "parent": "cockpit",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 200,
+   "area_cm2": 44.0,
+   "pieces": [
+    638,
+    643,
+    655,
+    658,
+    659
+   ],
+   "texels": 4098,
+   "shared": 0.16
+  },
+  {
    "id": 157,
+   "name": "steering wheel",
+   "parent": "cockpit",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 827,
+   "area_cm2": 146.8,
+   "pieces": [
+    633,
+    634,
+    635,
+    636,
+    637,
+    639,
+    640,
+    641,
+    642,
+    644,
+    645
+   ],
+   "texels": 12095,
+   "shared": 0.98
+  },
+  {
+   "id": 158,
+   "name": "steering wheel",
+   "parent": "cockpit",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 827,
+   "area_cm2": 146.8,
+   "pieces": [
+    646,
+    647,
+    648,
+    649,
+    650,
+    651,
+    652,
+    653,
+    654,
+    656,
+    657
+   ],
+   "texels": 12095,
+   "shared": 0.98
+  },
+  {
+   "id": 159,
    "name": "brake line",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 120,
    "area_cm2": 29.2,
    "pieces": [
@@ -4156,13 +4181,13 @@
    "shared": 1.0
   },
   {
-   "id": 158,
+   "id": 160,
    "name": "brake line",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 120,
    "area_cm2": 29.2,
    "pieces": [
@@ -4172,13 +4197,13 @@
    "shared": 1.0
   },
   {
-   "id": 159,
+   "id": 161,
    "name": "damper",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "centre",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 10,
    "area_cm2": 1.0,
    "pieces": [
@@ -4188,13 +4213,13 @@
    "shared": 0.95
   },
   {
-   "id": 160,
+   "id": 162,
    "name": "damper",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 338,
    "area_cm2": 400.4,
    "pieces": [
@@ -4216,13 +4241,13 @@
    "shared": 0.97
   },
   {
-   "id": 161,
+   "id": 163,
    "name": "damper",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 328,
    "area_cm2": 399.3,
    "pieces": [
@@ -4244,13 +4269,13 @@
    "shared": 0.97
   },
   {
-   "id": 162,
+   "id": 164,
    "name": "lower wishbone",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 178,
    "area_cm2": 2916.5,
    "pieces": [
@@ -4262,13 +4287,13 @@
    "shared": 1.0
   },
   {
-   "id": 163,
+   "id": 165,
    "name": "lower wishbone",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 178,
    "area_cm2": 2916.5,
    "pieces": [
@@ -4280,13 +4305,13 @@
    "shared": 1.0
   },
   {
-   "id": 164,
+   "id": 166,
    "name": "pushrod",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "centre",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 20,
    "area_cm2": 2.0,
    "pieces": [
@@ -4297,13 +4322,13 @@
    "shared": 0.95
   },
   {
-   "id": 165,
+   "id": 167,
    "name": "pushrod",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 328,
    "area_cm2": 399.3,
    "pieces": [
@@ -4324,13 +4349,13 @@
    "shared": 0.92
   },
   {
-   "id": 166,
+   "id": 168,
    "name": "pushrod",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 328,
    "area_cm2": 399.3,
    "pieces": [
@@ -4351,13 +4376,13 @@
    "shared": 0.92
   },
   {
-   "id": 167,
+   "id": 169,
    "name": "tie rod",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 57,
    "area_cm2": 779.3,
    "pieces": [
@@ -4370,13 +4395,13 @@
    "shared": 0.99
   },
   {
-   "id": 168,
+   "id": 170,
    "name": "tie rod",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 57,
    "area_cm2": 779.3,
    "pieces": [
@@ -4389,13 +4414,13 @@
    "shared": 0.99
   },
   {
-   "id": 169,
+   "id": 171,
    "name": "upper wishbone",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 110,
    "area_cm2": 2880.4,
    "pieces": [
@@ -4405,13 +4430,13 @@
    "shared": 1.0
   },
   {
-   "id": 170,
+   "id": 172,
    "name": "upper wishbone",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 110,
    "area_cm2": 2880.4,
    "pieces": [
@@ -4421,13 +4446,13 @@
    "shared": 1.0
   },
   {
-   "id": 171,
+   "id": 173,
    "name": "upright",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "left",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 68,
    "area_cm2": 2.8,
    "pieces": [
@@ -4438,13 +4463,13 @@
    "shared": 0.98
   },
   {
-   "id": 172,
+   "id": 174,
    "name": "upright",
-   "group": "mechanicals",
    "parent": "front suspension",
    "side": "right",
    "end": "front",
    "mesh": "Details",
+   "group": "details",
    "tris": 68,
    "area_cm2": 2.8,
    "pieces": [
@@ -4455,13 +4480,13 @@
    "shared": 0.98
   },
   {
-   "id": 173,
+   "id": 175,
    "name": "driveshaft",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "left",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 232,
    "area_cm2": 168.5,
    "pieces": [
@@ -4484,13 +4509,13 @@
    "shared": 0.99
   },
   {
-   "id": 174,
+   "id": 176,
    "name": "driveshaft",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "right",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 250,
    "area_cm2": 198.1,
    "pieces": [
@@ -4514,13 +4539,13 @@
    "shared": 0.99
   },
   {
-   "id": 175,
+   "id": 177,
    "name": "hub bracket",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "left",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 140,
    "area_cm2": 2331.2,
    "pieces": [
@@ -4535,13 +4560,13 @@
    "shared": 0.99
   },
   {
-   "id": 176,
+   "id": 178,
    "name": "hub bracket",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "right",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 140,
    "area_cm2": 2331.2,
    "pieces": [
@@ -4556,13 +4581,13 @@
    "shared": 0.99
   },
   {
-   "id": 177,
+   "id": 179,
    "name": "rear arm",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "centre",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 57,
    "area_cm2": 23.7,
    "pieces": [
@@ -4577,13 +4602,13 @@
    "shared": 0.98
   },
   {
-   "id": 178,
+   "id": 180,
    "name": "rear arm",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "left",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 1602,
    "area_cm2": 1500.5,
    "pieces": [
@@ -4690,13 +4715,13 @@
    "shared": 0.97
   },
   {
-   "id": 179,
+   "id": 181,
    "name": "rear arm",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "right",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 1527,
    "area_cm2": 1447.3,
    "pieces": [
@@ -4802,13 +4827,13 @@
    "shared": 0.97
   },
   {
-   "id": 180,
+   "id": 182,
    "name": "rear damper",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "left",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 174,
    "area_cm2": 179.0,
    "pieces": [
@@ -4821,13 +4846,13 @@
    "shared": 0.97
   },
   {
-   "id": 181,
+   "id": 183,
    "name": "rear damper",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "right",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 174,
    "area_cm2": 179.0,
    "pieces": [
@@ -4840,13 +4865,13 @@
    "shared": 0.97
   },
   {
-   "id": 182,
+   "id": 184,
    "name": "upright cover",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "left",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 60,
    "area_cm2": 263.5,
    "pieces": [
@@ -4856,13 +4881,13 @@
    "shared": 0.98
   },
   {
-   "id": 183,
+   "id": 185,
    "name": "upright cover",
-   "group": "mechanicals",
    "parent": "rear suspension",
    "side": "right",
    "end": "rear",
    "mesh": "Details",
+   "group": "details",
    "tris": 60,
    "area_cm2": 263.5,
    "pieces": [
@@ -4872,613 +4897,570 @@
    "shared": 0.98
   },
   {
-   "id": 184,
-   "name": "belt buckle",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "centre",
-   "end": "",
-   "mesh": "Details",
-   "tris": 58,
-   "area_cm2": 87.4,
-   "pieces": [
-    1129
-   ],
-   "texels": 1823,
-   "shared": 0.0
-  },
-  {
-   "id": 185,
-   "name": "belt buckle",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 152,
-   "area_cm2": 37.3,
-   "pieces": [
-    1131
-   ],
-   "texels": 800,
-   "shared": 0.95
-  },
-  {
    "id": 186,
-   "name": "belt buckle",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "right",
-   "end": "",
+   "name": "brake caliper",
+   "parent": "rims and brakes",
+   "side": "left",
+   "end": "front",
    "mesh": "Details",
-   "tris": 152,
-   "area_cm2": 37.3,
+   "group": "details",
+   "tris": 140,
+   "area_cm2": 92.0,
    "pieces": [
-    1133
+    670,
+    671,
+    672,
+    673,
+    674,
+    675,
+    676,
+    677,
+    678,
+    679
    ],
-   "texels": 800,
-   "shared": 0.95
+   "texels": 1962,
+   "shared": 1.0
   },
   {
    "id": 187,
-   "name": "cockpit rim",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "centre",
-   "end": "",
+   "name": "brake caliper",
+   "parent": "rims and brakes",
+   "side": "right",
+   "end": "front",
    "mesh": "Details",
-   "tris": 136,
-   "area_cm2": 171.2,
+   "group": "details",
+   "tris": 140,
+   "area_cm2": 92.0,
    "pieces": [
-    1228,
-    1229
+    708,
+    709,
+    710,
+    711,
+    712,
+    713,
+    714,
+    715,
+    716,
+    717
    ],
-   "texels": 3679,
-   "shared": 0.0
+   "texels": 1962,
+   "shared": 1.0
   },
   {
    "id": 188,
-   "name": "cockpit rim",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "brake caliper",
+   "parent": "rims and brakes",
    "side": "left",
-   "end": "",
+   "end": "rear",
    "mesh": "Details",
-   "tris": 614,
-   "area_cm2": 818.3,
+   "group": "details",
+   "tris": 140,
+   "area_cm2": 92.0,
    "pieces": [
-    566,
-    568,
-    569,
-    574,
-    575,
-    576,
-    577,
-    987,
-    988,
-    991,
-    992,
-    993,
-    994,
-    995,
-    996,
-    1070,
-    1184,
-    1185
+    760,
+    761,
+    762,
+    763,
+    764,
+    765,
+    766,
+    767,
+    768,
+    769
    ],
-   "texels": 18594,
-   "shared": 0.97
+   "texels": 1962,
+   "shared": 1.0
   },
   {
    "id": 189,
-   "name": "cockpit rim",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "brake caliper",
+   "parent": "rims and brakes",
    "side": "right",
-   "end": "",
+   "end": "rear",
    "mesh": "Details",
-   "tris": 614,
-   "area_cm2": 818.3,
+   "group": "details",
+   "tris": 140,
+   "area_cm2": 92.0,
    "pieces": [
-    570,
-    572,
-    573,
-    579,
-    580,
-    581,
-    582,
-    989,
-    990,
-    997,
-    998,
-    999,
-    1000,
-    1001,
-    1002,
-    1071,
-    1186,
-    1187
+    872,
+    873,
+    874,
+    875,
+    876,
+    877,
+    878,
+    879,
+    880,
+    881
    ],
-   "texels": 18594,
-   "shared": 0.97
+   "texels": 1962,
+   "shared": 1.0
   },
   {
    "id": 190,
-   "name": "dashboard",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "centre",
-   "end": "",
+   "name": "brake light",
+   "parent": "rims and brakes",
+   "side": "left",
+   "end": "front",
    "mesh": "Details",
-   "tris": 302,
-   "area_cm2": 453.0,
+   "group": "details",
+   "tris": 70,
+   "area_cm2": 277.0,
    "pieces": [
-    512,
-    513,
-    515,
-    519,
-    521,
-    523,
-    527,
-    529
+    461,
+    462
    ],
-   "texels": 8318,
-   "shared": 0.21
+   "texels": 5730,
+   "shared": 1.0
   },
   {
    "id": 191,
-   "name": "dashboard",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "left",
-   "end": "",
+   "name": "brake light",
+   "parent": "rims and brakes",
+   "side": "right",
+   "end": "front",
    "mesh": "Details",
-   "tris": 162,
-   "area_cm2": 24.1,
+   "group": "details",
+   "tris": 70,
+   "area_cm2": 277.0,
    "pieces": [
-    530,
-    531,
-    532,
-    533,
-    534,
-    535,
-    536,
-    537,
-    538,
-    539,
-    540,
-    541,
-    542,
-    543,
-    544,
-    545,
-    546,
-    547
+    481,
+    482
    ],
-   "texels": 2024,
-   "shared": 0.99
+   "texels": 5730,
+   "shared": 1.0
   },
   {
    "id": 192,
-   "name": "dashboard",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "right",
-   "end": "",
+   "name": "hub",
+   "parent": "rims and brakes",
+   "side": "left",
+   "end": "front",
    "mesh": "Details",
-   "tris": 162,
-   "area_cm2": 24.1,
+   "group": "details",
+   "tris": 1580,
+   "area_cm2": 5536.9,
    "pieces": [
-    548,
-    549,
-    550,
-    551,
-    552,
-    553,
-    554,
-    555,
-    556,
-    557,
-    558,
-    559,
-    560,
-    561,
-    562,
-    563,
-    564,
-    565
+    449,
+    450,
+    451,
+    452,
+    453,
+    454,
+    455,
+    456,
+    457,
+    458,
+    459,
+    460,
+    463,
+    464,
+    465,
+    466,
+    467,
+    468
    ],
-   "texels": 2024,
+   "texels": 115118,
    "shared": 0.99
   },
   {
    "id": 193,
-   "name": "gear display",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "centre",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 12,
-   "area_cm2": 6.7,
+   "name": "hub",
+   "parent": "rims and brakes",
+   "side": "right",
+   "end": "front",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 1580,
+   "area_cm2": 5536.9,
    "pieces": [
-    2058
+    469,
+    470,
+    471,
+    472,
+    473,
+    474,
+    475,
+    476,
+    477,
+    478,
+    479,
+    480,
+    483,
+    484,
+    485,
+    486,
+    487,
+    488
    ],
-   "texels": 5758,
-   "shared": 0.0
+   "texels": 115118,
+   "shared": 0.99
   },
   {
    "id": 194,
-   "name": "gear display",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "hub",
+   "parent": "rims and brakes",
    "side": "left",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 54,
-   "area_cm2": 67.6,
+   "end": "rear",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 1112,
+   "area_cm2": 5572.1,
    "pieces": [
-    2063,
-    2064,
-    2065,
-    2066,
-    2067,
-    2068,
-    2069
+    770,
+    771,
+    772,
+    773,
+    774,
+    775,
+    776,
+    777,
+    778,
+    779
    ],
-   "texels": 57824,
-   "shared": 0.0
+   "texels": 116136,
+   "shared": 0.99
   },
   {
    "id": 195,
-   "name": "gear display",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "hub",
+   "parent": "rims and brakes",
    "side": "right",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 54,
-   "area_cm2": 67.6,
+   "end": "rear",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 1112,
+   "area_cm2": 5572.1,
    "pieces": [
-    2055,
-    2056,
-    2057,
-    2059,
-    2060,
-    2061,
-    2062
+    861,
+    862,
+    863,
+    864,
+    865,
+    866,
+    867,
+    868,
+    869,
+    870
    ],
-   "texels": 57801,
-   "shared": 0.0
+   "texels": 116136,
+   "shared": 0.99
   },
   {
    "id": 196,
-   "name": "mirror",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "rim",
+   "parent": "rims and brakes",
    "side": "left",
-   "end": "",
+   "end": "front",
    "mesh": "Details",
-   "tris": 91,
-   "area_cm2": 183.6,
+   "group": "details",
+   "tris": 954,
+   "area_cm2": 8046.7,
    "pieces": [
-    1092,
-    1093,
-    1094,
-    1095,
-    1096
+    669,
+    680,
+    681
    ],
-   "texels": 3893,
-   "shared": 0.96
+   "texels": 165892,
+   "shared": 1.0
   },
   {
    "id": 197,
-   "name": "mirror",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "rim",
+   "parent": "rims and brakes",
    "side": "right",
-   "end": "",
+   "end": "front",
    "mesh": "Details",
-   "tris": 91,
-   "area_cm2": 183.6,
+   "group": "details",
+   "tris": 954,
+   "area_cm2": 8046.7,
    "pieces": [
-    1103,
-    1104,
-    1105,
-    1106,
-    1107
+    707,
+    731,
+    732
    ],
-   "texels": 3893,
-   "shared": 0.96
+   "texels": 165892,
+   "shared": 1.0
   },
   {
    "id": 198,
-   "name": "mirror arm",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "rim",
+   "parent": "rims and brakes",
    "side": "left",
-   "end": "",
+   "end": "rear",
    "mesh": "Details",
-   "tris": 236,
-   "area_cm2": 29.5,
+   "group": "details",
+   "tris": 954,
+   "area_cm2": 8787.8,
    "pieces": [
-    1097,
-    1098,
-    1099,
-    1100,
-    1101,
-    1102
+    745,
+    746,
+    759
    ],
-   "texels": 631,
-   "shared": 0.96
+   "texels": 166383,
+   "shared": 0.99
   },
   {
    "id": 199,
-   "name": "mirror arm",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "rim",
+   "parent": "rims and brakes",
    "side": "right",
-   "end": "",
+   "end": "rear",
    "mesh": "Details",
-   "tris": 236,
-   "area_cm2": 29.5,
+   "group": "details",
+   "tris": 954,
+   "area_cm2": 8787.8,
    "pieces": [
-    1108,
-    1109,
-    1110,
-    1111,
-    1112,
-    1113
+    871,
+    883,
+    884
    ],
-   "texels": 631,
-   "shared": 0.96
+   "texels": 166383,
+   "shared": 0.99
   },
   {
    "id": 200,
-   "name": "mirror glass",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "wheel ring",
+   "parent": "rims and brakes",
    "side": "left",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 12,
-   "area_cm2": 0.7,
+   "end": "front",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 120,
+   "area_cm2": 190.8,
    "pieces": [
-    2084
+    682,
+    683,
+    684,
+    685,
+    686,
+    687,
+    688,
+    689,
+    690,
+    691,
+    692,
+    693
    ],
-   "texels": 372,
-   "shared": 0.98
+   "texels": 1345,
+   "shared": 0.99
   },
   {
    "id": 201,
-   "name": "mirror glass",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "wheel ring",
+   "parent": "rims and brakes",
    "side": "right",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 12,
-   "area_cm2": 0.7,
+   "end": "front",
+   "mesh": "Details",
+   "group": "details",
+   "tris": 120,
+   "area_cm2": 191.9,
    "pieces": [
-    2085
+    733,
+    734,
+    735,
+    736,
+    737,
+    738,
+    739,
+    740,
+    741,
+    742,
+    743,
+    744
    ],
-   "texels": 372,
-   "shared": 0.98
+   "texels": 1345,
+   "shared": 0.99
   },
   {
    "id": 202,
-   "name": "seat",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "wheel ring",
+   "parent": "rims and brakes",
    "side": "left",
-   "end": "",
+   "end": "rear",
    "mesh": "Details",
-   "tris": 515,
-   "area_cm2": 3580.8,
+   "group": "details",
+   "tris": 120,
+   "area_cm2": 190.7,
    "pieces": [
-    1134,
-    1135,
-    1136
+    747,
+    748,
+    749,
+    750,
+    751,
+    752,
+    753,
+    754,
+    755,
+    756,
+    757,
+    758
    ],
-   "texels": 74431,
+   "texels": 1345,
    "shared": 0.99
   },
   {
    "id": 203,
-   "name": "seat",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "wheel ring",
+   "parent": "rims and brakes",
    "side": "right",
-   "end": "",
+   "end": "rear",
    "mesh": "Details",
-   "tris": 515,
-   "area_cm2": 3580.8,
+   "group": "details",
+   "tris": 120,
+   "area_cm2": 190.8,
    "pieces": [
-    1137,
-    1138,
-    1139
+    885,
+    886,
+    887,
+    888,
+    889,
+    890,
+    891,
+    892,
+    893,
+    894,
+    895,
+    896
    ],
-   "texels": 74431,
+   "texels": 1345,
    "shared": 0.99
   },
   {
    "id": 204,
-   "name": "seat belt",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "sidewall",
+   "parent": "tyre",
    "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 266,
-   "area_cm2": 359.2,
+   "end": "front",
+   "cut": "tyre_sidewall",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 744,
+   "area_cm2": 2843.1,
    "pieces": [
-    1125,
-    1126,
-    1130
+    2051
    ],
-   "texels": 7605,
-   "shared": 0.97
+   "texels": 151869,
+   "shared": 1.0
   },
   {
    "id": 205,
-   "name": "seat belt",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "sidewall",
+   "parent": "tyre",
    "side": "right",
-   "end": "",
-   "mesh": "Details",
-   "tris": 266,
-   "area_cm2": 359.2,
+   "end": "front",
+   "cut": "tyre_sidewall",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 744,
+   "area_cm2": 2843.1,
    "pieces": [
-    1127,
-    1128,
-    1132
+    2052
    ],
-   "texels": 7605,
-   "shared": 0.97
+   "texels": 151869,
+   "shared": 1.0
   },
   {
    "id": 206,
-   "name": "steering column",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "centre",
-   "end": "",
-   "mesh": "Details",
-   "tris": 876,
-   "area_cm2": 164.1,
+   "name": "sidewall",
+   "parent": "tyre",
+   "side": "left",
+   "end": "rear",
+   "cut": "tyre_sidewall",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 744,
+   "area_cm2": 2960.7,
    "pieces": [
-    599,
-    600,
-    601,
-    602,
-    603,
-    604,
-    605,
-    606,
-    607,
-    608,
-    609,
-    610,
-    611,
-    613,
-    615,
-    616,
-    617,
-    619,
-    621,
-    625,
-    629,
-    660
+    2053
    ],
-   "texels": 5861,
-   "shared": 0.15
+   "texels": 151869,
+   "shared": 1.0
   },
   {
    "id": 207,
-   "name": "steering column",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 13,
-   "area_cm2": 2.4,
+   "name": "sidewall",
+   "parent": "tyre",
+   "side": "right",
+   "end": "rear",
+   "cut": "tyre_sidewall",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 744,
+   "area_cm2": 2960.7,
    "pieces": [
-    612,
-    614
+    2054
    ],
-   "texels": 192,
-   "shared": 0.99
+   "texels": 151869,
+   "shared": 1.0
   },
   {
    "id": 208,
-   "name": "steering column",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "right",
-   "end": "",
-   "mesh": "Details",
-   "tris": 13,
-   "area_cm2": 2.4,
+   "name": "tread",
+   "parent": "tyre",
+   "side": "left",
+   "end": "front",
+   "cut": "tyre_tread",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 480,
+   "area_cm2": 6522.9,
    "pieces": [
-    618,
-    620
+    2051
    ],
-   "texels": 192,
-   "shared": 0.99
+   "texels": 372419,
+   "shared": 1.0
   },
   {
    "id": 209,
-   "name": "steering wheel",
-   "group": "cockpit",
-   "parent": "cockpit",
-   "side": "centre",
-   "end": "",
-   "mesh": "Details",
-   "tris": 200,
-   "area_cm2": 44.0,
+   "name": "tread",
+   "parent": "tyre",
+   "side": "right",
+   "end": "front",
+   "cut": "tyre_tread",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 480,
+   "area_cm2": 6522.9,
    "pieces": [
-    638,
-    643,
-    655,
-    658,
-    659
+    2052
    ],
-   "texels": 4098,
-   "shared": 0.16
+   "texels": 372419,
+   "shared": 1.0
   },
   {
    "id": 210,
-   "name": "steering wheel",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "tread",
+   "parent": "tyre",
    "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 827,
-   "area_cm2": 146.8,
+   "end": "rear",
+   "cut": "tyre_tread",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 480,
+   "area_cm2": 7160.2,
    "pieces": [
-    633,
-    634,
-    635,
-    636,
-    637,
-    639,
-    640,
-    641,
-    642,
-    644,
-    645
+    2053
    ],
-   "texels": 12095,
-   "shared": 0.98
+   "texels": 372419,
+   "shared": 1.0
   },
   {
    "id": 211,
-   "name": "steering wheel",
-   "group": "cockpit",
-   "parent": "cockpit",
+   "name": "tread",
+   "parent": "tyre",
    "side": "right",
-   "end": "",
-   "mesh": "Details",
-   "tris": 827,
-   "area_cm2": 146.8,
+   "end": "rear",
+   "cut": "tyre_tread",
+   "mesh": "Wheels",
+   "group": "tyres",
+   "tris": 480,
+   "area_cm2": 7160.2,
    "pieces": [
-    646,
-    647,
-    648,
-    649,
-    650,
-    651,
-    652,
-    653,
-    654,
-    656,
-    657
+    2054
    ],
-   "texels": 12095,
-   "shared": 0.98
+   "texels": 372419,
+   "shared": 1.0
   }
  ]
 }

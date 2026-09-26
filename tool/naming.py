@@ -134,38 +134,34 @@ PARTS = [
     dict(name="mirror glass", parent="cockpit", group=[477]),
 ]
 
-# The groups, the top of the parts list (the user, 2026-09-26: "Wheel cover, Tyre, etc. should be
-# in a parent category called Wheels. Same with body ... the parent of sidepod, engine cover, tail
-# ... At least the external bits. Then there's Mechanicals ... cables, suspensions etc."). The
-# floor is a group of its own (the user, 2026-09-26: "we could separate the bottom floor"), with the
-# front wing, whose panels wear the floor's paint ("I still see the front wing objects in body ... All
-# should be floor I would assume. Except for wing pylon. And wing bracket": those hold the wing under
-# the nose, in Body's "wing mounts"). A group
-# is a name for the list and for picking parts; the paint box's own words "body" and "wheels"
-# keep their meanings (tool/paintbox.py).
+# The groups, the top of the parts list: the game's four maps, each part in the one it's painted
+# on (the user, 2026-09-26: "just for now go back to the default, Body, Details, Tyres, Glass ...
+# I'm just trying to simplify things"). A day of groups by what parts are (Body, Floor, Wheels,
+# Mechanicals, Cockpit) came before: CHECKLIST.md, "Defining the parts". The paint box's words
+# "body", "details", "tyres" and "glass" name the same maps ("body" leaves the wheel covers out).
 GROUPS = [
-    ("body", "the outside of the car"),
-    ("floor", "the underside and the front wing"),
-    ("wheels", "tyres, covers, rims and brakes"),
-    ("mechanicals", "the frame and the suspension"),
-    ("cockpit", "where the driver sits"),
+    ("body", "the painted shell and the wheel covers"),
+    ("details", "the inner car, the underside, the rims and brakes"),
+    ("tyres", "the rubber"),
+    ("glass", "the canopy, the lenses and the mirrors"),
 ]
+GROUP_OF_SET = {"Skin": "body", "Details": "details", "Wheels": "tyres", "Glass": "glass"}
 
-# Assemblies, in the order the viewer lists them: (name, group, a plain description). The user
-# may split them further (2026-09-26); a group keeps its assemblies' order.
+# Assemblies, in the order the viewer lists them, with a plain description. An assembly may have
+# parts in more than one group (the sidepod's top is body paint, its grille the inner car's).
 ASSEMBLIES = [
-    ("shell", "body", "the nose, the sides and the canopy"),
-    ("wing mounts", "body", "the struts holding the front wing under the nose"),
-    ("sidepod", "body", "the boxes either side of the cockpit"),
-    ("engine cover", "body", "the deck behind the cockpit"),
-    ("tail", "body", "the back of the car"),
-    ("floor", "floor", "the flat underside and its planks"),
-    ("front wing", "floor", "the wing under the nose, in the floor's paint"),
-    ("wheel cover", "wheels", "the discs over the wheels"),
-    ("tyre", "wheels", "the rubber"),
-    ("rims and brakes", "wheels", "rims, hubs and brakes"),
-    ("chassis", "mechanicals", "the inner shell under the body"),
-    ("front suspension", "mechanicals", "the arms holding the front wheels"),
-    ("rear suspension", "mechanicals", "the arms holding the rear wheels"),
-    ("cockpit", "cockpit", "seat, belts, steering wheel, dashboard and mirrors"),
+    ("shell", "the nose, the sides and the canopy"),
+    ("wing mounts", "the struts holding the front wing under the nose"),
+    ("sidepod", "the boxes either side of the cockpit"),
+    ("engine cover", "the deck behind the cockpit"),
+    ("tail", "the back of the car"),
+    ("wheel cover", "the discs over the wheels"),
+    ("floor", "the flat underside and its planks"),
+    ("front wing", "the wing under the nose, in the floor's paint"),
+    ("chassis", "the inner shell under the body"),
+    ("cockpit", "seat, belts, steering wheel, dashboard and mirrors"),
+    ("front suspension", "the arms holding the front wheels"),
+    ("rear suspension", "the arms holding the rear wheels"),
+    ("rims and brakes", "rims, hubs and brakes"),
+    ("tyre", "the rubber"),
 ]

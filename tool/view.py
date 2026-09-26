@@ -169,13 +169,12 @@ def export_uvmap():
     if not _stale(out, parts.PARTS_JSON, here / "parts.py", here / "coverage.py", here / "paintbox.py", here / "rooms.py"):
         return
     p = parts.load()
-    maps, rows, owners = [], [], {}
+    maps, rows = [], []
     for tset, (gw, gh) in parts.BAKE_SIZE.items():
         pw, ph = paintbox.SIZES[tset]
         cov = coverage.load(p, tset, pw, ph)
         sx, sy = pw // gw, ph // gh
         own = cov.owners()[sy // 2::sy, sx // 2::sx] + 1
-        owners[tset] = own - 1
         DATA.mkdir(parents=True, exist_ok=True)
         Image.fromarray(np.stack([own & 255, own >> 8, np.zeros_like(own)], -1).astype(np.uint8), "RGB").save(DATA / f"{tset}_Parts.png")
         labels, grown, surfaces = _surfaces(own, *cov.sets(sx, sy, least=191))
@@ -192,7 +191,7 @@ def export_uvmap():
                          "sharp": round((texels / inst["area_cm2"]) ** 0.5, 1) if inst["area_cm2"] else 0,
                          "area": round(inst["area_cm2"])})
     assemblies = {a["name"]: a["about"] for a in json.loads(parts.PARTS_JSON.read_text())["assemblies"]}
-    lab_rooms = rooms.rooms(p, rooms.glowing(p, owners["Details"]))
+    lab_rooms = rooms.rooms(p)
     out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms,
                                "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
 
