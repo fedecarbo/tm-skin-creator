@@ -1052,6 +1052,9 @@ own round of mockups, and only the Lab's header, its look and copy-for-Claude ar
 
 Each step is ticked when the user has seen it.
 
+**Paused (the user, 2026-09-26),** after the room cameras: the parts get defined first (see
+`IMPROVEMENTS.md`, "Under way"). The Lab changes only when the user shares a thought for it.
+
 **Where the Lab may go (the user, 2026-09-26, while step 2 was being built):** "What if we treat
 this "lab" as the place to design a car. Let's assume I ask claude to design a car, so basically
 the car passes through the lab in a way (obviously in a non linear matter) but I can see how

@@ -10,12 +10,20 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
-- **The Lab** (2026-09-26): where a car gets designed, live. The Studio (the timeline of the build,
-  from clay) and the Materials tab are built. The user rethought the rest (2026-09-26): painting
-  rooms for Body, Wheels, Details and Lights, each the car with a camera on its area and its own
-  UV map as a tab (built). The cameras were tuned with the user from real renders (2026-09-26):
-  Body from higher up, Wheels one front wheel close, Details with the shell taken off, Lights as it
-  was. Later: takes side by side, the parts painted over, sunrise and sunset. The steps and notes are in `CHECKLIST.md`, "The Lab".
+- **Defining the parts: next, before anything else** (the user, 2026-09-26: "I think we need to
+  define parts first. Can this be my next task to do before anything else?"). The user leads it,
+  and may do it with another agent. What "define" covers is theirs to say: start from their
+  thoughts, not from a plan of Claude's. What the tool has today: `car/parts.json`, 210 parts under
+  88 names in 14 assemblies, made from `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts
+  list and the Lab's UV map tabs show them. Known gaps, below under "The tool": some inner names
+  are guesses, paint shared beyond mirror twins, words on the inner car.
+- **The Lab: paused** (the user, 2026-09-26: "we need to pause this page for a bit, or maybe it
+  just updates as I share my thoughts"). No work on it unless the user brings a thought for it,
+  and then only that. Built: the Studio (the timeline of the build, from clay), the painting rooms
+  for Body, Wheels, Details and Lights (each the car with a camera on its area, picked by the user
+  from real renders, and its own UV map as a tab) and the Materials tab. Put off: takes side by
+  side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
+  are in `CHECKLIST.md`, "The Lab".
 
 ## The tool
 
