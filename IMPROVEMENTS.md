@@ -13,7 +13,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **The Lab** (2026-09-26): the tool's own lists, each thing with a line to copy for Claude.
   Steps 1 and 2, the materials room and the UV map room, are built and wait for the user to
   look. The user's new idea (2026-09-26): the Lab as the place a car gets designed, starting
-  from a clay model. The steps and notes are in `CHECKLIST.md`, "The Lab".
+  from a clay model: the Studio (step 5), layout B chosen, to build next. The steps and notes
+  are in `CHECKLIST.md`, "The Lab".
 
 ## The tool
 

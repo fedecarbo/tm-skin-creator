@@ -1056,8 +1056,9 @@ this "lab" as the place to design a car. Let's assume I ask claude to design a c
 the car passes through the lab in a way (obviously in a non linear matter) but I can see how
 things are getting built, etc. So in essence it basically starts as a blank car, like a clay
 model in some sort, and the "lab" gives me the necessary views to work with claude to build the
-car and better describe things etc". Not decided yet: talk it over with the user, then a round
-of mockups, before steps 3 and 4.
+car and better describe things etc". Claude suggested starting small: the clay start with a car
+that follows Claude's work, and the design's steps to click through. The Studio is step 5 below,
+the first room; steps 3 and 4 wait until the user has used it.
 
 #### [ ] 1. The materials room
 
@@ -1178,6 +1179,29 @@ of mockups, before steps 3 and 4.
 - **Model:** Opus 5.5.
 - **Notes for Claude:** open with a round of mockups. The viewer's parts panel
   (`window.viewer.showParts`, `#partsPanel`) is the start.
+
+#### [ ] 5. The Studio: a car built from clay
+
+- **What it's for:** the room where a car gets designed with Claude. It starts as a clay car,
+  and each step of the design (the colour run, a wrap, the lights, the wheels) becomes a frame
+  of the car. The user watches it being built, goes back to any step to ask for a change there,
+  and uses the other rooms to point at parts, places and materials.
+- **What you'll see:** the Lab's first room. The car at the picked step, big; a filmstrip of
+  the car at every step under it, clay first; the step's words, what it does and a line to copy
+  on the right; a note when Claude has just changed something.
+- **Model:** Opus 5.5.
+- **Notes for Claude:**
+  - **The mockups:** https://claude.ai/artifact/GLHzbyTXCwtP3C3Wg6tBc6. Round 1 offered A steps
+    down the side, B a filmstrip under the car, C the design's story (each step with the user's
+    words). **The user chose B** (2026-09-26), as Claude recommended. The pictures were real:
+    TSC_CMYK_Peel_More painted step by step over clay (matte `#b3a089` on body, wheel covers
+    and inner car; tyres and glass left alone), each step exported to the viewer and drawn over
+    CDP. The lights step only shows at night (a rear view at night).
+  - **Still to decide:** how a design marks its steps (a `s.step(name, words)` call in the paint
+    box is the obvious way); how each step's picture is made on both computers (the Mac has
+    no snapshots: the page could draw them with the viewer); how the Lab hears that the design
+    changed; and whether parts no step has painted stay clay in the game or keep Nadeo's look.
+  - **Next:** build it.
 
 ## Decisions (for Claude)
 
