@@ -1424,6 +1424,14 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     (TSC_CMYK_BlackTail, TSC_FlagPeel_CostaRica, TSC_Stealth_CMYK, _Bold) and `tool/relief.py`
     say "tail frame" now; their notes keep the old name. The Floor group is the floor, its
     planks and the rail (a thin rod on top of the floor, ahead of the cockpit).
+- **One-sided surfaces** (the user, 2026-09-26: "Are there non 3d elements in the model? the
+  floor's center looks like a hole, but when I look from the bottom, it looks like a full
+  object"). The model's surfaces are one-sided, as in games: the floor's middle (|x| < 25 cm,
+  z -60..60, 11 cm up) is a sheet facing the ground (98 % of its area faces down; the whole floor
+  part 69 % down, 28 % up: the rim has a top). The viewer draws front faces only (three.js's
+  default on the car's materials), as the game does, so from above, with the car around it
+  hidden, the middle vanishes and the ground's shadow shows through. Painting the floor paints
+  its underside and the rim; there's no top to the middle, and nothing sees it from above.
 
 ## Decisions (for Claude)
 
