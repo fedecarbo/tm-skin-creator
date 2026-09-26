@@ -1,8 +1,9 @@
 // The Lab's painting rooms: Body, Wheels, Details, Lights (tool/rooms.py). Each room shows the car
 // Claude is working on with a camera framing its area (the Car tab; the Details room takes the
 // shell off), or its own flat maps with only its parts lit and named (the UV map tab). Point at a
-// part on the map to name it; click it, or click the car, to pick it and copy its line for Claude. The Lights room is seen at night, and its map
-// is the light map. The user's plan of 2026-09-26 (CHECKLIST.md, "The Lab rethought").
+// part on the map to name it; click it, or click the car, to pick it and copy its line for Claude.
+// The Lights room is seen at night, and its map is the light map. The user's plan of 2026-09-26
+// (CHECKLIST.md, "The Lab rethought").
 //   /lab.html?room=wheels[&tab=map][&map=Details][&part=<id>][&skin=<name>]
 // Everything comes from the tool (tool/view.py, export_uvmap): uvmap.json (each map; each part in
 // words and numbers; the rooms, each with its parts and camera), <Set>_Parts.png (the part covering
