@@ -1210,7 +1210,20 @@ worked on, live; not one page. What was settled the same day:
       cut there (the crease shows through the letters). The notes stay in the design's run.
     - `decal` and `text` don't go through `_ids`, so a step that only places pictures and words
       records no `paints`: the Studio's "Paints" row is empty for it.
-  - **Next:** a round of mockups of the Wheels room.
+  - **The mockups:** https://claude.ai/artifact/47FiUhMQm3yN4sqn6ryqC4. Round 1 is the view the room
+    opens on: A the rest of the car faded, B the wheel taken apart, C as in the game (Cam 1). Every
+    option has the same frame: the views down the rail (faded, taken apart, in the game, outside,
+    inside, flat map), the big view, the takes under it (the car now, then A, B, C), the picked
+    take's paint per piece with the tool's warnings, copy for Claude. The takes were real: three
+    wheel designs over TSC_IceCreamTruck, painted by the tool and exported to the viewer as
+    TSC_Mock_Wheels_A/B/C (the work folder only; remove them when the round is done). Faded and
+    taken apart were prototyped in the render script (the viewer can't fade yet): the car at 30 %
+    under the wheels drawn over black and white and keyed out; one wheel of four by redirecting
+    the other wheels' part ids.
+  - **What the room showed:** the front hubs share their paint with 14 other kinds of inner part
+    (sidepod frames and panels, floor, wishbones...), so painting them in the Wheels room changes
+    the Details room: a warning that crosses rooms.
+  - **Next:** the user picks.
 
 #### [ ] 4. The Body, Details and Lights rooms
 
