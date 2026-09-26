@@ -91,6 +91,33 @@ class Coverage:
             best[idx[win]] = val[win]
         return out.reshape(self.h, self.w)
 
+    def sets(self, sx, sy, least=128):
+        """Per texel of a coarser grid (one texel in sx by sy, from each cell's middle, as the
+        Lab's maps sample owners()), the parts covering it by `least`/255 or more: (index (h, w), -1 for
+        none, and the list of id tuples it points into). The Lab's surfaces are made from these
+        (view._surfaces): each names only the parts on its own texels, not every part its parts
+        share any paint with (the user, 2026-09-26: "I can't select that surface because it
+        selects almost all details surfaces")."""
+        gw, gh = self.w // sx, self.h // sy
+        cells, who = [], []
+        for i, (t, v) in self.sparse.items():
+            y, x = np.divmod(t[v >= least].astype(np.int64), self.w)
+            keep = (y % sy == sy // 2) & (x % sx == sx // 2)
+            cells.append((y[keep] // sy) * gw + x[keep] // sx)
+            who.append(np.full(int(keep.sum()), i, np.int32))
+        cells, who = np.concatenate(cells), np.concatenate(who)
+        order = np.lexsort((who, cells))
+        cells, who = cells[order], who[order]
+        start = np.flatnonzero(np.r_[True, cells[1:] != cells[:-1]])
+        size = np.diff(np.r_[start, len(cells)])
+        rows = np.full((len(start), size.max()), -1, np.int32)  # each cell's parts, padded
+        at = np.arange(len(cells)) - np.repeat(start, size)
+        rows[np.repeat(np.arange(len(start)), size), at] = who
+        uniq, inv = np.unique(rows, axis=0, return_inverse=True)
+        index = np.full(gw * gh, -1, np.int32)
+        index[cells[start]] = inv.reshape(-1)
+        return index.reshape(gh, gw), [tuple(int(i) for i in r if i >= 0) for r in uniq]
+
     def twins(self, least=64):
         """Which parts share paint: {id: (texels, shared, {other id: texels both use})}. Counts
         texels a part covers by three quarters or more, so where two parts meet on one island,

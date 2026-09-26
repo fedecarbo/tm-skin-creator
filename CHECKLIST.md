@@ -1455,6 +1455,26 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
   several islands across the map, and a shared texel lights the part with every part it shares
   anything with (`hit()` in `viewer/lab-rooms.js`: `twins`), so the tiny patch ties the floor to
   about 17 parts all over the car.
+- **Surfaces on the UV map** (the user, 2026-09-26: "I've seen many car skins that have the
+  surface that go around the floor. That surface they something paint it to glow for example.
+  But in the uv map, I can't select that surface because it selects almost all details surfaces
+  ... in the 3d to select parts, but in the uv map to be able to select surfaces").
+  - [x] **"floor edge"** (2026-09-26): the band round the floor's side, its own crease-bounded
+    piece (1446 and its twin 1455, 677 cm² each, 44 % facing out, z -110 to 194), taken from the
+    floor. Its paint is its own, shared only with its mirror twin; it can glow (Details). A test
+    car (removed) with it glowing cyan showed the thin line along each side.
+  - [x] **The UV map picks surfaces, the car picks parts.** A surface is a shape the Lab outlines
+    on the map: touching texels with the same part on top (`view._surfaces`; touching texels
+    alone merged the body shell with the cockpit surround, and every tyre's paint into one).
+    Each lists the parts that cover 3/4 of its texels on 16 or more (`coverage.sets`; a seam's
+    texels are half each side's). 48 on Skin, 511 on Details, 3 on Wheels, 20 on Glass; only
+    three Details surfaces hold more than one name (floor + front wing, driveshaft + rear arm,
+    and the tiny patch of 15 names). `<Set>_Surfaces.png` numbers them, grown 2 texels into the
+    gaps; the viewer lights one on the car by that map (`viewer.lightSurface`, a shader test on
+    the part's UV), so the car shows exactly where the paint goes, not whole parts. The card
+    gets a "Surface" row, and the copied line names the surface. Checked in headless Chrome:
+    the floor edge's strip lit alone on the map, "floor edge (left, right)", and on the car
+    the line along both sides.
 
 ## Decisions (for Claude)
 

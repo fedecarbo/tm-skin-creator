@@ -320,7 +320,7 @@ async function loadTexture(slot, url) {
   const t = await textureLoader.loadAsync('data/' + url);
   t.colorSpace = COLOUR_SLOTS.has(slot) ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.anisotropy = maxAniso;
-  if (slot.endsWith('_Code') || slot.endsWith('_Shared')) {  // read exactly: never blended with a neighbour
+  if (slot.endsWith('_Code') || slot.endsWith('_Shared') || slot.endsWith('_Surfaces')) {  // read exactly: never blended with a neighbour
     t.minFilter = t.magFilter = THREE.NearestFilter;
     t.generateMipmaps = false;
   }
@@ -405,12 +405,19 @@ function setPartFlag(ids, channel, on) {  // channel 0: visible, 1: highlighted
   partsState.table.needsUpdate = true;
 }
 
-function addParts(material, sharedMap) {
+// One surface of a flat map lit where its paint shows on the car (the Lab's UV map, lightSurface):
+// per texture set, <Set>_Surfaces.png (each texel's surface number + 1, tool/view.py) and the
+// number lit, -1 for none. Loaded when first lit: the viewer itself never needs them.
+const surfaceState = Object.fromEntries(['Skin', 'Details', 'Wheels', 'Glass'].map((set) =>
+  [set, { map: { value: null }, id: { value: -1 } }]));
+
+function addParts(material, sharedMap, surface) {
   const previous = material.onBeforeCompile;
   material.onBeforeCompile = (shader) => {
     if (previous) previous(shader);
     Object.assign(shader.uniforms, { partTable: { value: partTable() }, partMode: partsState.mode,
-      showShared: partsState.shared, sharedMap: { value: sharedMap || null } });
+      showShared: partsState.shared, sharedMap: { value: sharedMap || null },
+      surfaceMap: surface.map, surfaceId: surface.id });
     shader.vertexShader = shader.vertexShader
       .replace('#include <uv_pars_vertex>', `#include <uv_pars_vertex>
         attribute float part; varying float vPart; varying vec2 vPartUv;`)
@@ -420,7 +427,8 @@ function addParts(material, sharedMap) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
         varying float vPart; varying vec2 vPartUv;
-        uniform sampler2D partTable; uniform sampler2D sharedMap; uniform int partMode; uniform int showShared;`)
+        uniform sampler2D partTable; uniform sampler2D sharedMap; uniform int partMode; uniform int showShared;
+        uniform sampler2D surfaceMap; uniform float surfaceId;`)
       .replace('#include <map_fragment>', `#include <map_fragment>
         {
           float px = (vPart + 0.5) / 256.0;
@@ -432,6 +440,11 @@ function addParts(material, sharedMap) {
             diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 1.0, 0.0, 0.85 ), 0.6 * stripe );
           }
           if ( flags.g > 0.5 ) diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 1.0, 0.85, 0.2 ), 0.65 );
+          if ( surfaceId >= 0.0 ) {
+            vec4 sv = texture2D( surfaceMap, vPartUv );
+            float sid = floor( sv.r * 255.0 + 0.5 ) + 256.0 * floor( sv.g * 255.0 + 0.5 ) - 1.0;
+            if ( abs( sid - surfaceId ) < 0.5 ) diffuseColor.rgb = mix( diffuseColor.rgb, vec3( 1.0, 0.85, 0.2 ), 0.65 );
+          }
         }`);
   };
   material.customProgramCacheKey = () => 'parts';
@@ -1216,7 +1229,7 @@ function makeMaterials(tex) {
     addGlow(glass, tex.Glass_Code);
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
-  for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name]);
+  for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name], surfaceState[name]);
   addPlate(skin);
   if (tex.Details_I) addDisplays(details);
   addWing(skin);
@@ -1514,6 +1527,12 @@ window.viewer = {
     setPartFlag(litIds, 1, false);
     litIds = [...ids];
     setPartFlag(litIds, 1, true);
+  },
+  // light one surface of a texture set's flat map (its number in uvmap.json), or none (set null)
+  async lightSurface(set, id) {
+    for (const [name, s] of Object.entries(surfaceState)) s.id.value = name === set ? id : -1;
+    const s = surfaceState[set];
+    if (s && id >= 0 && !s.map.value) s.map.value = await loadTexture(`${set}_Surfaces`, `${set}_Surfaces.png`);
   },
   aim(ids) {
     const c = new THREE.Vector3();

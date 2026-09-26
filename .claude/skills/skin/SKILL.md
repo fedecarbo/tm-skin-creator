@@ -71,7 +71,10 @@ user the Studio too.
   work in phrases too ("rose gold", "stainless steel"). A part copied from one of the Lab's rooms,
   like `floor|left|part (Details map, 79% of its paint shared with ...)`: the phrase before the
   bracket is exactly that part as `where` (`s.paint("floor|left|part", ...)`); the bracket says
-  what else its paint lands on. A step copied from the Studio, like `TSC_CMYK_Peel_More, step 3
+  what else its paint lands on. A surface picked on a room's UV map adds `; the Details map's
+  surface 278, used by floor edge (left, right)`: the user pointed at that one shape of paint.
+  Paint it by the parts it names; if it's only part of a part (the part names other surfaces
+  too), say so and paint the part, or ask whether the whole part will do. A step copied from the Studio, like `TSC_CMYK_Peel_More, step 3
   of 4: Lights`, is that `s.step` in that skin's design.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.

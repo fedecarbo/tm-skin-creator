@@ -24,7 +24,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   them. Known gaps, below under "The tool": some inner names are guesses, words on the inner car.
 - **The Lab: paused** (the user, 2026-09-26: "we need to pause this page for a bit, or maybe it
   just updates as I share my thoughts"). No work on it unless the user brings a thought for it,
-  and then only that. Built: the Studio (the timeline of the build, from clay), the painting rooms
+  and then only that (2026-09-26: the UV map picks surfaces, the user's thought). Built: the Studio (the timeline of the build, from clay), the painting rooms
   for Body, Wheels, Details and Lights (each the car with a camera on its area, picked by the user
   from real renders, and its own UV map as a tab) and the Materials tab. Put off: takes side by
   side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes

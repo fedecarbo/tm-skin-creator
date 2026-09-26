@@ -155,6 +155,10 @@ def export_uvmap():
     """The Lab's painting rooms (viewer/lab-rooms.js), from the tool's own parts and texel coverage:
       <Set>_Parts.png  per texel of the <Set>_Shared.png grid, the part that covers it most
                        (coverage.owners at the paint's size), R + 256 G = the part's id + 1
+      <Set>_Surfaces.png per texel of that grid, the surface it's on, R + 256 G = its number + 1:
+                       a surface is a shape of its own on the flat map (texels that touch), what
+                       the Lab's UV map picks (surfaces(), below); grown 2 texels into the gaps
+                       so the car lights its edges too
       uvmap.json       each map (its paint's size, the grid, its assemblies), each part in
                        words (parts.Parts: its label, whose paint it shares, the line to copy for
                        Claude) and numbers (its share of the map, dots per cm, cm2 on the car), and
@@ -174,8 +178,10 @@ def export_uvmap():
         owners[tset] = own - 1
         DATA.mkdir(parents=True, exist_ok=True)
         Image.fromarray(np.stack([own & 255, own >> 8, np.zeros_like(own)], -1).astype(np.uint8), "RGB").save(DATA / f"{tset}_Parts.png")
+        labels, grown, surfaces = _surfaces(own, *cov.sets(sx, sy, least=191))
+        Image.fromarray(np.stack([grown & 255, grown >> 8, np.zeros_like(grown)], -1).astype(np.uint8), "RGB").save(DATA / f"{tset}_Surfaces.png")
         twins = cov.twins()
-        maps.append({"set": tset, "size": [pw, ph], "grid": [gw, gh], "parts": len(cov.ids),
+        maps.append({"set": tset, "size": [pw, ph], "grid": [gw, gh], "parts": len(cov.ids), "surfaces": surfaces,
                      "holds": list(dict.fromkeys(p.instances[i]["parent"] for i in cov.ids))})
         for i in cov.ids:
             inst = p.instances[i]
@@ -189,6 +195,48 @@ def export_uvmap():
     lab_rooms = rooms.rooms(p, rooms.glowing(p, owners["Details"]))
     out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms,
                                "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
+
+
+SURFACE_LEAST = 16
+
+
+def _surfaces(own, on, sets):
+    """The flat map's surfaces: the shapes the Lab outlines on it, each a run of touching texels with
+    the same part on top (own: the owners, + 1), so what's seen is what's picked (the user,
+    2026-09-26: "in the 3d to select parts, but in the uv map to be able to select surfaces").
+    Touching texels alone merged the body shell with the cockpit surround, and every tyre's paint
+    into one. on, sets: the parts covering each texel by 3/4 (coverage.sets), twins and overlaps;
+    a part counts on a surface from SURFACE_LEAST texels (a seam's texels are half each side's).
+    Returns the labels (0 none, else the surface's number + 1), the same grown 2 texels into the
+    gaps, and per surface {parts: ids on it, texels}."""
+    from scipy import ndimage
+    labels = np.zeros(own.shape, np.int32)
+    n = 0
+    for i, box in enumerate(ndimage.find_objects(own), start=1):
+        if box is None:
+            continue
+        lab, k = ndimage.label(own[box] == i)
+        labels[box][lab > 0] = lab[lab > 0] + n
+        n += k
+    if n >= 65535:
+        raise ValueError(f"{n} surfaces: more than the Surfaces.png can number")
+    dist, (iy, ix) = ndimage.distance_transform_edt(labels == 0, return_indices=True)
+    grown = np.where(dist <= 2, labels[iy, ix], 0)
+    k = (labels > 0) & (on >= 0)
+    count = {}
+    pairs, n_on = np.unique(np.stack([labels[k], on[k]], 1), axis=0, return_counts=True)
+    for (lab, s), c in zip(pairs.tolist(), n_on.tolist()):
+        for i in sets[s]:
+            count[lab, i] = count.get((lab, i), 0) + c
+    parts_of = [set() for _ in range(n + 1)]
+    for (lab, i), c in count.items():
+        if c >= SURFACE_LEAST:
+            parts_of[lab].add(i)
+    top = ndimage.labeled_comprehension(own, labels, np.arange(1, n + 1), np.max, np.int32, 0)
+    for lab, o in enumerate(top.tolist(), start=1):  # its part on top, always
+        parts_of[lab].add(o - 1)
+    texels = np.bincount(labels.reshape(-1), minlength=n + 1)
+    return labels, grown, [{"parts": sorted(parts_of[i]), "texels": int(texels[i])} for i in range(1, n + 1)]
 
 
 def ensure_hdri():

@@ -49,6 +49,10 @@ PARTS = [
     dict(name="front wing", parent="front wing", rule="floor_wing"),
     dict(name="front wing endplate", parent="front wing", group=[359]),
     dict(name="wing bracket", parent="wing mounts", group=[253, 269, 270, 206, 265, 204]),
+    # the band round the floor's side, seen from the side as a thin line under the body: skins make
+    # it glow (the user, 2026-09-26: "the surface that go around the floor ... they something paint
+    # it to glow"). Its own piece, mostly facing out; before the floor, as the first name wins
+    dict(name="floor edge", parent="floor", piece=[1446]),
     dict(name="floor", parent="floor", rule="floor_main"),
     dict(name="floor plank", parent="floor", rule="floor_plank"),
     # the frame the tail hangs on: the face round the speed numbers, the channels under it and the two

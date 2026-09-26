@@ -29,7 +29,7 @@ let inRoom = new Uint8Array(256);
 let tab = params.get('tab') === 'map' ? 'map' : 'car';
 const mood = {};         // room key -> 'day' | 'night'
 let skin = null;         // { name, title, textures, stamp, painting, step }
-let map = null;          // the open map: { set, slot, info, w, h, ids, shared, paint, box }
+let map = null;          // the open map: { set, slot, info, w, h, ids, shared, surf, sbox, paint, box }
 let base = null;         // the open map as shown (ImageData)
 let picked = null;       // { id, lit: [ids] }
 let pointed = null;
@@ -65,15 +65,27 @@ async function grid(set) {
   if (grids.has(set)) return grids.get(set);
   const info = doc.maps.find((m) => m.set === set);
   const [w, h] = info.grid;
-  const [idPx, sharedPx] = await Promise.all([pixels(`data/${set}_Parts.png`), pixels(`data/${set}_Shared.png`)]);
+  const [idPx, sharedPx, surfPx] = await Promise.all([pixels(`data/${set}_Parts.png`), pixels(`data/${set}_Shared.png`),
+    pixels(`data/${set}_Surfaces.png`)]);
   const n = w * h;
-  const ids = new Int32Array(n), shared = new Uint8Array(n);
+  const ids = new Int32Array(n), shared = new Uint8Array(n), surf = new Int32Array(n);
+  const sbox = new Int32Array(info.surfaces.length * 4);  // each surface's box on the map
+  for (let i = 0; i < info.surfaces.length; i++) sbox.set([w, h, -1, -1], i * 4);
   const box = new Int32Array(256 * 4);
   for (let i = 0; i < 256; i++) box.set([w, h, -1, -1], i * 4);
   for (let k = 0; k < n; k++) {
     const id = idPx[k * 4] + 256 * idPx[k * 4 + 1] - 1;
     ids[k] = id;
     shared[k] = sharedPx[k * 4] > 127 ? 1 : 0;
+    const s = surfPx[k * 4] + 256 * surfPx[k * 4 + 1] - 1;
+    surf[k] = s;
+    if (s >= 0) {
+      const x = k % w, y = (k - x) / w, b = s * 4;
+      if (x < sbox[b]) sbox[b] = x;
+      if (y < sbox[b + 1]) sbox[b + 1] = y;
+      if (x > sbox[b + 2]) sbox[b + 2] = x;
+      if (y > sbox[b + 3]) sbox[b + 3] = y;
+    }
     if (id < 0) continue;
     const x = k % w, y = (k - x) / w, b = id * 4;
     if (x < box[b]) box[b] = x;
@@ -81,7 +93,7 @@ async function grid(set) {
     if (x > box[b + 2]) box[b + 2] = x;
     if (y > box[b + 3]) box[b + 3] = y;
   }
-  const g = { info, w, h, ids, shared, box };
+  const g = { info, w, h, ids, shared, surf, sbox, box };
   grids.set(set, g);
   return g;
 }
@@ -127,17 +139,20 @@ let drawQueued = false;
 function drawLit() {
   if (drawQueued) return;
   drawQueued = true;
-  requestAnimationFrame(() => { drawQueued = false; if (map) paintLit((pointed || picked || { lit: [] }).lit); });
+  requestAnimationFrame(() => { drawQueued = false; if (map) paintLit(pointed || picked || { lit: [] }); });
 }
 
-function paintLit(lit) {
-  const c = $('prLit'), { w, h, ids, box } = map;
+// What's lit on the map: a surface picked on it (sel.surface), or parts (sel.lit: a pick on the car).
+function paintLit(sel) {
+  const c = $('prLit'), { w, h, ids, box, surf, sbox } = map;
   if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
   const g = c.getContext('2d');
   g.clearRect(0, 0, w, h);
   const on = new Uint8Array(256);
   let x0 = w, y0 = h, x1 = -1, y1 = -1;
-  for (const id of lit) {
+  const one = sel.surface >= 0 && sel.set === map.set;
+  if (one) [x0, y0, x1, y1] = sbox.subarray(sel.surface * 4, sel.surface * 4 + 4);
+  else for (const id of sel.lit) {
     if (box[id * 4 + 2] < 0) continue;
     on[id] = 1;
     x0 = Math.min(x0, box[id * 4]); y0 = Math.min(y0, box[id * 4 + 1]);
@@ -151,8 +166,8 @@ function paintLit(lit) {
   const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
   const inside = new Uint8Array(bw * bh);
   for (let y = 0; y < bh; y++) for (let x = 0; x < bw; x++) {
-    const id = ids[(y + y0) * w + x + x0];
-    inside[y * bw + x] = id >= 0 && on[id];
+    const k = (y + y0) * w + x + x0, id = ids[k];
+    inside[y * bw + x] = one ? surf[k] === sel.surface : id >= 0 && on[id];
   }
   const img = g.createImageData(bw, bh), o = img.data, b = base.data;
   for (let y = 0; y < bh; y++) {
@@ -187,7 +202,26 @@ function fit() {
 // ---- pointing, picking, the car ----
 
 function lightCar() {
-  if (car) car.light((pointed || picked || { lit: [] }).lit);
+  if (!car) return;
+  const sel = pointed || picked || { lit: [] };
+  if (sel.surface >= 0) {  // where the surface's paint shows, not the whole parts
+    car.light([]);
+    car.lightSurface(sel.set, sel.surface);
+  } else {
+    car.lightSurface(null, -1);
+    car.light(sel.lit);
+  }
+}
+
+// Parts in words, by name: "floor edge (left, right), front wing (left)".
+function partsWords(ids) {
+  const by = new Map();
+  for (const i of ids) {
+    const p = byId[i];
+    if (!by.has(p.name)) by.set(p.name, []);
+    if (p.tag) by.get(p.name).push(p.tag);
+  }
+  return [...by].map(([name, tags]) => (tags.length ? `${name} (${tags.join(', ')})` : name)).join(', ');
 }
 
 function point(p, e) {
@@ -197,12 +231,12 @@ function point(p, e) {
     if (pointed) { pointed = null; drawLit(); lightCar(); }
     return;
   }
-  if (!pointed || pointed.id !== p.id || pointed.lit.length !== p.lit.length) {
+  if (!pointed || pointed.id !== p.id || pointed.surface !== p.surface) {
     pointed = p;
     drawLit();
     lightCar();
   }
-  tag.textContent = byId[p.id].label + (p.here ? ' · shared paint' : '');
+  tag.textContent = p.surface >= 0 ? partsWords(p.lit) : byId[p.id].label;
   tag.hidden = false;
   const r = $('prMap').getBoundingClientRect();
   const x = e.clientX - r.left, y = e.clientY - r.top;
@@ -217,8 +251,12 @@ function hit(e) {
   if (x < 0 || y < 0 || x >= map.w || y >= map.h) return null;
   const k = y * map.w + x, id = map.ids[k];
   if (id < 0 || !inRoom[id]) return null;
-  const here = map.shared[k] === 1 && byId[id].twins.length > 0;  // this texel's paint lands on the twins too
-  return { id, here, lit: here ? [id, ...byId[id].twins] : [id] };
+  // the surface under the pointer: a shape of its own on the map, and the parts that use it (the
+  // user, 2026-09-26: "in the 3d to select parts, but in the uv map to be able to select surfaces")
+  const s = map.surf[k];
+  if (s < 0) return { id, surface: -1, here: false, lit: [id] };
+  const lit = map.info.surfaces[s].parts;
+  return { id, set: map.set, surface: s, here: lit.length > 1, lit };
 }
 
 function roomsOf(id) {
@@ -239,7 +277,14 @@ function pick(p) {
   $('prPaint').textContent = part.paint[0].toUpperCase() + part.paint.slice(1);
   $('prSharp').textContent = `${part.sharp} dots per cm`;
   $('prSize').textContent = `${part.area.toLocaleString('en-GB')} cm² on the car`;
-  $('prLine').textContent = part.line;
+  const surface = p.surface >= 0 ? map.info.surfaces[p.surface] : null;
+  $('prSurfaceRow').hidden = !surface;
+  if (surface) {
+    const pct = (100 * surface.texels) / (map.w * map.h);
+    $('prSurface').textContent = `${partsWords(surface.parts)} · ${pct < 0.1 ? 'under 0.1' : pct.toFixed(1)} % of the map`;
+  }
+  // a surface: the part's line, and the surface in words, so Claude knows what was pointed at
+  $('prLine').textContent = surface ? `${part.line}; the ${p.set} map's surface ${p.surface + 1}, used by ${partsWords(surface.parts)}` : part.line;
   const u = new URL(location.href);
   u.searchParams.set('part', p.id);
   history.replaceState(null, '', u);
@@ -251,7 +296,7 @@ async function pickId(id) {  // from a click on the car, or the address
   const part = byId[id];
   if (!part) return;
   if (tab === 'map' && inRoom[id] && map && map.set !== part.mesh && room.maps.some((m) => m.set === part.mesh)) await openMap(part.mesh);
-  pick({ id, here: false, lit: [id] });
+  pick({ id, surface: -1, here: false, lit: [id] });
 }
 
 // ---- the room ----
@@ -444,7 +489,7 @@ async function begin(helpers) {
   frame.addEventListener('pointermove', (e) => point(hit(e), e));
   frame.addEventListener('pointerleave', () => point(null));
   frame.addEventListener('click', (e) => { const p = hit(e); if (p) pick(p); });
-  $('prCopy').addEventListener('click', (e) => picked && copyLine({ line: byId[picked.id].line }, e.currentTarget));
+  $('prCopy').addEventListener('click', (e) => picked && copyLine({ line: $('prLine').textContent }, e.currentTarget));  // a surface's too
   addEventListener('resize', fit);
   setInterval(poll, POLL);
   $('status').textContent = '';
