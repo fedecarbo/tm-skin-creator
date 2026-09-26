@@ -1412,6 +1412,18 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     half. The front uprights sit wholly in the small patch many inner parts share, so painting
     the floor, the tail, the engine cover, the cockpit or the sidepod frames also paints them.
     1.7 s for 21 names, once per set.
+- **What the floor holds** (the user, 2026-09-26, looking at it): "there's quite a few parts for
+  the floor, you have the front wing left and right as well. And also you are including a big
+  portion of the rear. That's not the floor." Seen with the floor alone, coloured by part: the
+  "rear diffuser" (a rule cutting the floor's smooth piece behind z -100) was the frame the tail
+  hangs on: the face round the speed numbers, the channels under it and two arms reaching
+  forward, as big as half the floor. The front wing is not in the floor; it shows beside it
+  where the tool lists who shares the floor's paint (the Lab's part card).
+  - [x] **Moved (2026-09-26):** "rear diffuser" is now **"tail frame"**, in Body › tail (the
+    tail had a "diffuser" already). Same triangles; the designs that named it
+    (TSC_CMYK_BlackTail, TSC_FlagPeel_CostaRica, TSC_Stealth_CMYK, _Bold) and `tool/relief.py`
+    say "tail frame" now; their notes keep the old name. The Floor group is the floor, its
+    planks and the rail (a thin rod on top of the floor, ahead of the cockpit).
 
 ## Decisions (for Claude)
 

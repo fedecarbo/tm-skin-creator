@@ -1,5 +1,5 @@
 """TSC_Stealth_CMYK, bolder: the run also on the cockpit rim and mirrors, the front wing cyan,
-the rear diffuser and bumper yellow."""
+the tail frame and bumper yellow."""
 import importlib.util
 from tool import paths
 

@@ -15,7 +15,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   and may do it with another agent. What "define" covers is theirs to say: start from their
   thoughts, not from a plan of Claude's. Step by step, each agreed before it's built; the steps
   are in `CHECKLIST.md`, "Defining the parts". Done (2026-09-26): five groups on top (Body, Floor,
-  Wheels, Mechanicals, Cockpit), and the paint box names every part a colour also lands on. Next:
+  Wheels, Mechanicals, Cockpit), the paint box names every part a colour also lands on, and the
+  tail's frame left the floor ("tail frame"). Next:
   the user goes through each group's insides, and may split them. What the tool has:
   `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 5 groups, made from
   `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's UV map tabs show

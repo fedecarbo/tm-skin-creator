@@ -158,7 +158,7 @@ def design(s, flag="costa rica", wear=None):
     # which keeps its own (red), as on the CMYK car
     s.glow(_tail.TURBO_WHEELS, centre, "exhaust heat", replacing="turbo", keep_level=True)
     s.glow(_tail.TURBO_REST, outer, "exhaust heat", replacing="turbo", keep_level=True)
-    s.glow("rear diffuser", centre, "exhaust heat", zone=_tail.PORTS)
+    s.glow("tail frame", centre, "exhaust heat", zone=_tail.PORTS)
     s.no_glow("rear bumper")
 
     s.step("Inside", f"The exhaust heat-tinted, the tail in {'the wrap' if wear is None else 'bare carbon'}, a quilted seat.",

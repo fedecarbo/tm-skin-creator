@@ -30,7 +30,7 @@ TURBO_REST = ["rear strake", "rear undertray", "front bulkhead", "antenna", "bra
               "nose inner", "exhaust"]
 # inside the tail's two openings, beside the speed digits: their walls, not the frame's face
 PORTS = shapes.box((-50, 20, -158), (50, 49, -120)) & ~shapes.facing((0, 0, -1), 0.7)
-TAIL = ["rear diffuser", "rear bumper", "rear strake"]
+TAIL = ["tail frame", "rear bumper", "rear strake"]
 # the few tears in the tail's black (the user's take): big enough to read as torn wrap, not spots
 TAIL_TEARS = dict(amount=0.15, scale=18, seed=8, jag=0.1, shadow=0.4)  # one bold tear across the top band
 
@@ -95,7 +95,7 @@ def design(s, tail="tears"):
     s.relight(["hub", "brake light"], C, keep_level=True)
     s.glow(TURBO_WHEELS, M, "exhaust heat", replacing="turbo", keep_level=True)
     turbo_run(s, TURBO_REST, ORANGE)
-    s.glow("rear diffuser", ORANGE, "exhaust heat", zone=PORTS)  # the openings, orange-hot in a turbo
+    s.glow("tail frame", ORANGE, "exhaust heat", zone=PORTS)  # the openings, orange-hot in a turbo
     s.no_glow("rear bumper")  # under the deck, hidden by the body: it glowed white all the time
     # the exhaust was bare titanium, the one bright silver part inside: heat-tinted now, as real
     # titanium pipes go, straw gold at the engine through magenta-purple to blue at the tips
@@ -108,10 +108,10 @@ def design(s, tail="tears"):
     under = s.keep("Details")
     s.paint(TAIL, "matte", colour=BLACK)
     if not k:
-        s.peel(under, where="rear diffuser", **TAIL_TEARS)
+        s.peel(under, where="tail frame", **TAIL_TEARS)
     # the openings under the quarter panels, seen whenever the air brakes lift, were still the
     # stock grey: dark like the rest of the inside
     s.paint("airbox", "matte", colour="#1a1b1d")
     # relief: a quilted seat, and a registration mark raised at each end of the tail's top band
     s.relief("seat", "quilted", depth=0.5, scale=7, replace=True)
-    s.emboss(None, "rear diffuser", at=(38, 56, -157), right=(-1, 0, 0), picture=registration_mark(), width=5.5, depth=0.15)
+    s.emboss(None, "tail frame", at=(38, 56, -157), right=(-1, 0, 0), picture=registration_mark(), width=5.5, depth=0.15)

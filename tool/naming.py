@@ -51,7 +51,11 @@ PARTS = [
     dict(name="wing bracket", parent="front wing", group=[253, 269, 270, 206, 265, 204]),
     dict(name="floor", parent="floor", rule="floor_main"),
     dict(name="floor plank", parent="floor", rule="floor_plank"),
-    dict(name="rear diffuser", parent="floor", rule="floor_diffuser"),
+    # the frame the tail hangs on: the face round the speed numbers, the channels under it and the two
+    # arms reaching forward. Cut from the floor's piece by its rule, it was "rear diffuser" in the
+    # floor until the user saw it (2026-09-26: "you are including a big portion of the rear.
+    # That's not the floor")
+    dict(name="tail frame", parent="tail", rule="floor_diffuser"),
     dict(name="floor rail", parent="floor", group=[254]),
     dict(name="nose inner", parent="chassis", rule="chassis_nose"),
     dict(name="cockpit tub", parent="chassis", rule="chassis_cockpit"),
@@ -149,7 +153,7 @@ ASSEMBLIES = [
     ("engine cover", "body", "the deck behind the cockpit"),
     ("tail", "body", "the back of the car"),
     ("front wing", "body", "the wing under the nose"),
-    ("floor", "floor", "the flat underside, its planks and the diffuser under the tail"),
+    ("floor", "floor", "the flat underside and its planks"),
     ("wheel cover", "wheels", "the discs over the wheels"),
     ("tyre", "wheels", "the rubber"),
     ("rims and brakes", "wheels", "rims, hubs and brakes"),

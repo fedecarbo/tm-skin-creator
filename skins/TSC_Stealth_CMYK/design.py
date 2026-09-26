@@ -38,7 +38,7 @@ def design(s, bold=False, seams=True, end=Y):
     s.paint(["side vent", "rear strake"], "satin", colour=end)
     if bold:
         s.paint("front wing", "satin", colour=C)
-        s.paint(["rear diffuser", "rear bumper", "rear light"], "satin", colour=end)
+        s.paint(["tail frame", "rear bumper", "rear light"], "satin", colour=end)
         run(s, ["cockpit rim", "mirror", "mirror arm"], end)
     # the plate each grille sits in goes black, to break up the run (user, 2026-09-24)
     s.paint("sidepod grille plate", "satin", colour="#1e1f22")
