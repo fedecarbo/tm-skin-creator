@@ -187,7 +187,7 @@ def main():
     args = ap.parse_args()
     infos = build(args.all)
     print(f"{len(infos)} materials")
-    view.export_mesh()  # the car, and the UV map room's data (view.export_uvmap)
+    view.export_mesh()  # the car, and the Lab's rooms' data (view.export_uvmap)
     url = f"http://localhost:{view.PORT}/lab.html"
     if args.no_open:
         return

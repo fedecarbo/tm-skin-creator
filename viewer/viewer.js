@@ -1,8 +1,8 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
-//   /?skin=<name>&embed=1  just the car, which another page lights and turns (the Lab's UV map
-//                          room, viewer/lab-uv.js, through window.viewer.light, aim and onPick)
+//   /?skin=<name>&embed=1  just the car, which another page lights and turns (the Lab's painting
+//                          rooms, viewer/lab-rooms.js, through window.viewer.show, light and onPick)
 //                          or dresses step by step (the Studio, viewer/lab-studio.js: dress, picture)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
@@ -1409,8 +1409,8 @@ window.viewer = {
     if (opts.highlight) highlight(match(opts.highlight));
     await frames(3);
   },
-  // The Lab's UV map room (viewer/lab-uv.js, ?embed=1): light parts by id, turn the car to face
-  // them, and hear which part a click on the car picks.
+  // The Lab's painting rooms (viewer/lab-rooms.js, ?embed=1): light parts by id, turn the car to
+  // face them, and hear which part a click on the car picks.
   light(ids) {
     setPartFlag(litIds, 1, false);
     litIds = [...ids];

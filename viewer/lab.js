@@ -4,7 +4,8 @@
 //   /lab.html                 the Studio (lab-studio.js), the skin Claude painted last
 //   /lab.html?room=materials  the materials room, the first family
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
-//   /lab.html?room=uv         the UV map room (lab-uv.js)
+//   /lab.html?room=wheels     a painting room (lab-rooms.js: Body, Wheels, Details, Lights, from
+//                             tool/rooms.py); &tab=map for its flat maps
 // Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png.
 
 import * as THREE from 'three';
@@ -256,10 +257,12 @@ function failed(e) {
 
 // ---- the rooms ----
 
-const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials'), uv: $('roomUV') };
+const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials') };
+const painting = new Set();  // the painting rooms' keys (tool/rooms.py), all shown in #roomPaint
 const begun = {};
 function openRoom(name) {
   for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
+  $('roomPaint').hidden = !painting.has(name);
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);
   if (name === 'studio') u.searchParams.delete('room');
@@ -267,8 +270,26 @@ function openRoom(name) {
   history.replaceState(null, '', u);
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
-  if (name === 'uv') (begun.uv ||= import('./lab-uv.js')).then((room) => room.open({ copy })).catch(failed);
+  if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
   if (name === 'studio') (begun.studio ||= import('./lab-studio.js')).then((room) => room.open({ copy })).catch(failed);
 }
-for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
-openRoom(ROOMS[params.get('room')] ? params.get('room') : params.has('m') ? 'materials' : 'studio');
+
+async function rooms() {
+  const list = await (await import('./lab-rooms.js')).list();
+  const materials = document.querySelector('#rooms [data-room="materials"]');
+  for (const r of list) {
+    painting.add(r.key);
+    const b = document.createElement('button');
+    b.className = 'sk';
+    b.dataset.room = r.key;
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<span></span>';
+    b.querySelector('span').textContent = r.name;
+    materials.before(b);
+  }
+  for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
+  let want = params.get('room');
+  if (want === 'uv') want = list.length ? list[0].key : null;  // the UV map room's old address: its maps are in the rooms now
+  openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
+}
+rooms().catch(failed);

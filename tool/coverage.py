@@ -10,7 +10,7 @@ in the work folder, and rebuilds when car/parts.json changes.
     cov.share([id, ...])     -> the parts' share of what covers each texel: 1 on an island's edge
                                 that only they reach, where get() gives the part inside the island
     cov.owners()             -> int32 (h, w), the part that covers each texel most, -1 for none
-    cov.twins()              -> which parts share texels with which (the Lab's UV map room)
+    cov.twins()              -> which parts share texels with which (the Lab's rooms, their UV map tab)
 """
 
 import hashlib

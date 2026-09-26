@@ -34,7 +34,7 @@ rings: their own design step, never touched by body paint), "wheel covers", "inn
 numbers", "brake lights", "rear lights".
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front". "floor",
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
-"floor|left|part". The Lab's UV map room copies the phrase for any part (parts.Parts.token).
+"floor|left|part". The Lab's rooms copy the phrase for any part (parts.Parts.token).
 
 Steps (the Lab's Studio, which shows the car at the end of each, in a filmstrip): a design made
 in the Studio starts with s.clay(), the car in the Studio's neutral white clay, which stays on any

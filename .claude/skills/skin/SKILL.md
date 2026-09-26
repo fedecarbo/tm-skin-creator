@@ -68,7 +68,7 @@ user the Studio too.
   28%, metal 100%, varnish 0%)`. The code is that finish, exactly: put the code in the phrase
   (`s.paint("sidepod", "ME-07")`, `"ME-07 matte"`, or `s.paint("body", "PA-03", colour="#1a1c20")`
   for one without its own colour). The numbers are there for the user to read. The Lab's names
-  work in phrases too ("rose gold", "stainless steel"). A part copied from the Lab's UV map room,
+  work in phrases too ("rose gold", "stainless steel"). A part copied from one of the Lab's rooms,
   like `floor|left|part (Details map, 79% of its paint shared with ...)`: the phrase before the
   bracket is exactly that part as `where` (`s.paint("floor|left|part", ...)`); the bracket says
   what else its paint lands on. A step copied from the Studio, like `TSC_CMYK_Peel_More, step 3

@@ -79,7 +79,7 @@ def refresh():
             "words": words_of(folder),
             "thumb": f"skins/{folder.name}/thumb.png" if thumb.exists() else None,
             "installed": f"{folder.name}.zip" in manifest,
-            "installed_at": manifest.get(f"{folder.name}.zip", {}).get("installed"),  # the Lab's UV map room paints the latest
+            "installed_at": manifest.get(f"{folder.name}.zip", {}).get("installed"),  # when the skin was last put in the game
             "viewable": (target / "skin.json").exists(),
             "stamp": stamp,  # the picture's time, so pages reload it when it changes
             "made": made,

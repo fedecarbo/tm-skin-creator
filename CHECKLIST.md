@@ -1188,12 +1188,12 @@ worked on, live; not one page. What was settled the same day:
     repainted (TSC_Seams_Black) as before.
   - **Next:** the user looks.
 
-#### [ ] 3. The painting rooms: Wheels first
+#### [ ] 3. The painting rooms
 
-- **What it's for:** the rooms of "The Lab rethought" (above). Wheels comes first: it's small and
-  self-contained, and it settles what every room has.
-- **What you'll see:** the Lab's Wheels tab: the wheels alone, live as Claude paints them, with
-  Claude's takes side by side when there are several.
+- **What it's for:** the rooms of "The Lab rethought" (above), Wheels first to settle what every
+  room has; then all four were built the same way.
+- **What you'll see:** the Lab's Body, Wheels, Details and Lights tabs: each the car with a camera
+  on its area, or (UV map) its own flat maps, live as Claude paints.
 - **Model:** Opus 5.5.
 - **Notes for Claude:**
   - **What came before (replaced):** a spots room and a parts room, live. Their mockups:
@@ -1223,15 +1223,52 @@ worked on, live; not one page. What was settled the same day:
   - **What the room showed:** the front hubs share their paint with 14 other kinds of inner part
     (sidepod frames and panels, floor, wishbones...), so painting them in the Wheels room changes
     the Details room: a warning that crosses rooms.
-  - **Next:** the user picks.
+  - **The user's answer (2026-09-26):** "Let's not do faded for now, let's focus on the rooms
+    first, what you can do is just have a camera more focused to e.g wheels, each having their
+    uv map as a different view but not as you have it on the left, just like a tab." So no fading,
+    no takes side by side and no rail of views for now: each room is its camera and its UV map,
+    as two tabs.
+  - **Built (2026-09-26):**
+    - `tool/rooms.py`: ROOMS (key, name, what it holds, the camera as a viewer view, night, the
+      maps its UV map tab offers and the texture each shows) and `_member`, the rule for each
+      room's parts. Body: the Skin set without the wheel covers, the canopy and the mirrors'
+      glass. Wheels: the tyre, wheel cover and wheel assemblies. Details: the Details set without
+      the wheel assembly. Lights: the parts that glow in Nadeo's light map (2 % of their texels,
+      64 at least, by name so mirror twins go together: 35 kinds of part) and the other glass
+      (lenses, gear display), at night, its map the light map (Details_I). `rooms()` raises when
+      a part is in no room. 40, 38, 122 and 86 parts; a part may be in two (a rim: Wheels and
+      Lights).
+    - `view.export_uvmap` adds `rooms` to uvmap.json (rebuilt when `rooms.py` changes).
+    - The Lab's tabs: Studio, the rooms from uvmap.json, Materials. The UV map room is gone
+      (`lab-uv.js`); `?room=uv` opens the first room. `viewer/lab-rooms.js` is every room: the car
+      (the viewer, `?embed=1`, dressed in the skin's textures, `viewer.show(room.view, night)`) or
+      the room's maps (only its parts drawn, the rest of the map empty; a map button per set when
+      there are several), the picked part in the panel with the room(s) it's in and its line to
+      copy. Clicking the car picks a part; nothing is lit until one is picked, so the paint shows
+      as it is. The Lights room has the moods: day and night work, sunrise and sunset are greyed
+      ("not in the viewer yet").
+    - Live as the Studio: the skin in the address, else the one Claude painted last, followed
+      when Claude starts another (studio.json); while it's painted, the newest step's frame.
+  - **Checked on the Mac (2026-09-26)** in headless Chrome: every room's Car and UV map tabs at
+    1440×900 (Flag Peel Costa Rica Sun Faded), the Wheels room at 390×844, no sideways scroll, no
+    page errors. The mock takes (TSC_Mock_Wheels_*) were removed from the work folder.
+  - **Next:** the user looks. The cameras were set by eye and are the first thing to tune; the
+    Details room's camera still sees mostly the body.
 
-#### [ ] 4. The Body, Details and Lights rooms
+#### [ ] 4. What the rooms do next
 
-- **What it's for:** the other painting rooms, after Wheels has settled the frame.
+- **What it's for:** what the user described for the rooms and put off for now (2026-09-26:
+  "let's focus on the rooms first"), each when the user asks, opening with its own mockups.
 - **Model:** Opus 5.5.
-- **Notes for Claude:** each opens with its own round of mockups. The Body room takes the named
-  places for stickers and words; the Lights room the four moods (sunrise and sunset lighting to
-  add to the viewer).
+- **Notes for Claude:**
+  - Claude's takes for a room side by side (A, B, C), as in the Wheels mockups.
+  - A view that fades the rest of the car (the Body room with the wheels faded): the viewer
+    would need a fade per part (a third channel in its part table).
+  - The parts painted over (named in one step, repainted by a broader word in a later one) and
+    the paint box's notes (a fold under a sticker) shown in the room: the paint box would record
+    what each step put on each part (`decal` and `text` record no `paints` yet).
+  - The named places for stickers and words (`paintbox.SPOTS`) in the Body room.
+  - Sunrise and sunset lighting in the viewer, for the Lights room's moods.
 
 #### [ ] 5. The Studio: a car built from clay
 

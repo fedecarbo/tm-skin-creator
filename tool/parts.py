@@ -261,7 +261,7 @@ class Parts:
             ids = [i for i in ids if self.instances[i]["end"] == end]
         return ids
 
-    # ---- a part in words: the Lab's UV map room shows these, and copies line() for Claude ----
+    # ---- a part in words: the Lab's rooms show these, and copies line() for Claude ----
 
     def tag(self, i):
         """"front left", "right", or "" for a part on the centre line."""
