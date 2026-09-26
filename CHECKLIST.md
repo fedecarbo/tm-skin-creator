@@ -1392,6 +1392,16 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     group. The Lab's part card says "Body › sidepod". Part ids changed order (by group), so the
     viewer's `car.bin` was rebuilt with `parts.json`. Checked in headless Chrome, 1440×900 and
     390×844: no sideways scroll, no page errors.
+- **The floor** (the user, 2026-09-26): "I have a feeling we could separate the bottom floor, but
+  at the moment it in details, but it covers the floor and front wings I believe." Measured on
+  the Details paint (`coverage.twins()`): 47 % of each front wing's paint is the floor's (both
+  sides), 4 % of the floor's is the wing's; the endplates and brackets share only with their
+  twins. A throwaway car with only the floor red (removed) showed where: the whole underside,
+  the floor's edge as a thin line along each side, and the flat panels on the front wing's top
+  and its underside. The list can separate them; the paint can't (Nadeo's layout). Claude's
+  proposal, waiting on the user: Floor as a fifth group (the floor, its planks and rail, the
+  rear diffuser), the front wing staying in Body, and the tie said aloud when either is painted
+  (`IMPROVEMENTS.md`, "The shared-paint note knows only twins with one name").
 
 ## Decisions (for Claude)
 
