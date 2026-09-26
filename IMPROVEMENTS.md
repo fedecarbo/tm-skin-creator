@@ -44,6 +44,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   wheel, with the brake light in its slot. Renaming them means updating
   `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
   the viewer.
+- **Pictures on the Mac** (2026-09-26, TSC_FlagPeel_CostaRica): `tool.snap` drives Edge on the
+  Windows PC, so on the Mac there's no command for the six views, the close looks or the titled
+  picture for the user. Claude did them by hand, with a small Node script driving the Mac's
+  Chrome over CDP (`viewer.show` per view) and Pillow in the container for the sheets. Idea:
+  `tool.snap --mac`, or a script in `docker/` the Mac runs, with the same `SHOTS` and `CLOSE`.
 
 ## The viewer, from the user's screenshots and videos
 
