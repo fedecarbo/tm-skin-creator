@@ -1443,6 +1443,18 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     _RatRod, _Race, _Stealth_CMYK, _Tricolore) name ["front wing", "wing mounts"], the same
     parts as before (checked), and `tool/labskin.py` does the same by ids. TSC_Parts
     (`tool/partskin.py`) paints the tail frame grey as it did as the floor's.
+- **Parts and surfaces** (the user, 2026-09-26: "Should we reconsider how we are separating
+  things? ... we have parts and then we have surfaces, for example in UV map, there are
+  "surfaces" that are visually separate but when I hover it hovers a lot of elements that are not
+  even together"). Measured, per texel the parts' names covering it by 3/4 or more, at paint size:
+  Skin 100 % and Wheels 100 % of the painted texels belong to one name (a part, its mirror twin,
+  the four wheels); Details 99.2 %. The mixes: floor + front wing 0.75 % of the Details map (now
+  one group), driveshaft + rear arm 0.02 %, body shell + mirror mount 0.02 % of Skin, and one tiny
+  patch (under 0.005 %) that 15 names use (the front uprights wholly). So the parts are the
+  surfaces, by name. The Lab's hover looks otherwise for two reasons: a part's paint may sit in
+  several islands across the map, and a shared texel lights the part with every part it shares
+  anything with (`hit()` in `viewer/lab-rooms.js`: `twins`), so the tiny patch ties the floor to
+  about 17 parts all over the car.
 
 ## Decisions (for Claude)
 
