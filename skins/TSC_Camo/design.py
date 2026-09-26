@@ -10,7 +10,7 @@ def design(s):
     s.paint("inner", "jet black matte")
     s.paint("rim", "gunmetal")
     s.paint("brake caliper", "neon orange satin")
-    s.paint("front wing", "camo matte", palette=["charcoal", "slate", "light grey", "jet black"], scale=26)
+    s.paint(["front wing", "wing mounts"], "camo matte", palette=["charcoal", "slate", "light grey", "jet black"], scale=26)
     s.paint("seat", "cloth", colour="charcoal")
     s.paint("seat belt", "webbing", colour="neon orange")
     s.text("URBAN", "left side", colour="neon orange", font="black ops", height=11)

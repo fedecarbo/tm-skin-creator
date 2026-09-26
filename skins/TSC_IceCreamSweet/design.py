@@ -23,7 +23,7 @@ def design(s):
     s.paint(["hub", "brake light"], "gloss cream")
     s.paint("brake caliper", pink)
     s.paint("inner", "charcoal satin")
-    s.paint("front wing", "gloss mint")
+    s.paint(["front wing", "wing mounts"], "gloss mint")
     s.paint("seat", "black leather")
     s.text("ICE CREAM", "left flank", colour="white", font="bangers", height=10, outline=pink, outline_width=0.08, at=(35, 62, 60))
     s.text("ICE CREAM", "right flank", colour="white", font="bangers", height=10, outline=pink, outline_width=0.08, at=(-35, 62, 60))

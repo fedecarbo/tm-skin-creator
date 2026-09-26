@@ -7,7 +7,8 @@ Names come from tool/naming.py. Pieces and groups come from tool/segment.py. Eve
 ends up in exactly one part instance: a name plus a side (left, right, centre) and, for the
 wheel-related assemblies, an end (front, rear). Pieces nobody named join the nearest named
 piece of their mesh. Each part sits in an assembly ("sidepod"), and each assembly in one of the
-car's groups (body, floor, wheels, mechanicals, cockpit): a group's name picks all its parts too.
+car's groups (body, floor, wheels, mechanicals, cockpit): a group's name picks all its parts too,
+unless an assembly has that name ("floor" is the underside, the Floor group also the front wing).
 
     p = parts.load()
     p.mask(bake, "Details", "brake caliper")                  every caliper's texels
@@ -244,10 +245,13 @@ class Parts:
     def __init__(self, tri_part, instances, mesh_offset):
         self.tri_part, self.instances, self.mesh_offset = tri_part, instances, mesh_offset
         self.by_name = {}
+        by_part = {n for inst in instances for n in (inst["name"], inst["parent"])}
         for i, inst in enumerate(instances):
             self.by_name.setdefault(inst["name"], []).append(i)
             self.by_name.setdefault(inst["parent"], []).append(i)
-            self.by_name.setdefault(inst["group"], []).append(i)
+        for i, inst in enumerate(instances):  # a group by its name, where no part or assembly has it
+            if inst["group"] not in by_part:
+                self.by_name.setdefault(inst["group"], []).append(i)
 
     def names(self):
         return sorted(set(i["name"] for i in self.instances))

@@ -13,7 +13,7 @@ def design(s):
     s.paint("rim", "brushed steel")
     s.paint("exhaust", "copper")
     s.paint("brake caliper", "rusted", colour="brick", amount=0.8)
-    s.paint("front wing", "rusted", colour="cream", amount=0.6)
+    s.paint(["front wing", "wing mounts"], "rusted", colour="cream", amount=0.6)
     s.paint("seat", "leather", colour="tan")
     s.text("13", "left side", colour="cream", font="bangers", height=28, finish="matte")
     s.text("13", "right side", colour="cream", font="bangers", height=28, finish="matte")

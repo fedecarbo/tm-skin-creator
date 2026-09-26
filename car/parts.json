@@ -7,7 +7,7 @@
   },
   {
    "name": "floor",
-   "about": "the underside"
+   "about": "the underside and the front wing"
   },
   {
    "name": "wheels",
@@ -29,6 +29,11 @@
    "about": "the nose, the sides and the canopy"
   },
   {
+   "name": "wing mounts",
+   "group": "body",
+   "about": "the struts holding the front wing under the nose"
+  },
+  {
    "name": "sidepod",
    "group": "body",
    "about": "the boxes either side of the cockpit"
@@ -44,14 +49,14 @@
    "about": "the back of the car"
   },
   {
-   "name": "front wing",
-   "group": "body",
-   "about": "the wing under the nose"
-  },
-  {
    "name": "floor",
    "group": "floor",
    "about": "the flat underside and its planks"
+  },
+  {
+   "name": "front wing",
+   "group": "floor",
+   "about": "the wing under the nose, in the floor's paint"
   },
   {
    "name": "wheel cover",
@@ -447,6 +452,158 @@
   },
   {
    "id": 20,
+   "name": "wing bracket",
+   "group": "body",
+   "parent": "wing mounts",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "tris": 135,
+   "area_cm2": 169.0,
+   "pieces": [
+    1120,
+    1192,
+    1202,
+    1203,
+    1205,
+    1243
+   ],
+   "texels": 4056,
+   "shared": 0.7
+  },
+  {
+   "id": 21,
+   "name": "wing bracket",
+   "group": "body",
+   "parent": "wing mounts",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "tris": 573,
+   "area_cm2": 462.6,
+   "pieces": [
+    695,
+    703,
+    1052,
+    1056,
+    1062,
+    1064,
+    1144,
+    1145,
+    1146,
+    1147,
+    1152,
+    1155,
+    1156,
+    1157,
+    1158,
+    1159,
+    1160,
+    1191,
+    1193,
+    1194,
+    1204,
+    1206,
+    1207,
+    1208
+   ],
+   "texels": 10945,
+   "shared": 0.96
+  },
+  {
+   "id": 22,
+   "name": "wing bracket",
+   "group": "body",
+   "parent": "wing mounts",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "tris": 676,
+   "area_cm2": 596.8,
+   "pieces": [
+    722,
+    727,
+    1053,
+    1057,
+    1063,
+    1065,
+    1166,
+    1167,
+    1168,
+    1169,
+    1174,
+    1177,
+    1178,
+    1179,
+    1180,
+    1181,
+    1182,
+    1212,
+    1213,
+    1214,
+    1222,
+    1223,
+    1224,
+    1225,
+    1226
+   ],
+   "texels": 13889,
+   "shared": 0.96
+  },
+  {
+   "id": 23,
+   "name": "wing pylon",
+   "group": "body",
+   "parent": "wing mounts",
+   "side": "centre",
+   "end": "",
+   "mesh": "Skin",
+   "tris": 224,
+   "area_cm2": 432.8,
+   "pieces": [
+    25
+   ],
+   "texels": 13712,
+   "shared": 0.0
+  },
+  {
+   "id": 24,
+   "name": "wing pylon",
+   "group": "body",
+   "parent": "wing mounts",
+   "side": "left",
+   "end": "",
+   "mesh": "Skin",
+   "tris": 452,
+   "area_cm2": 573.1,
+   "pieces": [
+    30,
+    31,
+    32
+   ],
+   "texels": 17844,
+   "shared": 0.0
+  },
+  {
+   "id": 25,
+   "name": "wing pylon",
+   "group": "body",
+   "parent": "wing mounts",
+   "side": "right",
+   "end": "",
+   "mesh": "Skin",
+   "tris": 452,
+   "area_cm2": 573.1,
+   "pieces": [
+    24,
+    27,
+    28
+   ],
+   "texels": 17843,
+   "shared": 0.0
+  },
+  {
+   "id": 26,
    "name": "sidepod boss",
    "group": "body",
    "parent": "sidepod",
@@ -462,7 +619,7 @@
    "shared": 0.99
   },
   {
-   "id": 21,
+   "id": 27,
    "name": "sidepod boss",
    "group": "body",
    "parent": "sidepod",
@@ -478,7 +635,7 @@
    "shared": 0.99
   },
   {
-   "id": 22,
+   "id": 28,
    "name": "sidepod frame",
    "group": "body",
    "parent": "sidepod",
@@ -608,7 +765,7 @@
    "shared": 0.98
   },
   {
-   "id": 23,
+   "id": 29,
    "name": "sidepod frame",
    "group": "body",
    "parent": "sidepod",
@@ -733,7 +890,7 @@
    "shared": 0.98
   },
   {
-   "id": 24,
+   "id": 30,
    "name": "sidepod grille",
    "group": "body",
    "parent": "sidepod",
@@ -749,7 +906,7 @@
    "shared": 1.0
   },
   {
-   "id": 25,
+   "id": 31,
    "name": "sidepod grille",
    "group": "body",
    "parent": "sidepod",
@@ -765,7 +922,7 @@
    "shared": 1.0
   },
   {
-   "id": 26,
+   "id": 32,
    "name": "sidepod grille plate",
    "group": "body",
    "parent": "sidepod",
@@ -781,7 +938,7 @@
    "shared": 0.96
   },
   {
-   "id": 27,
+   "id": 33,
    "name": "sidepod grille plate",
    "group": "body",
    "parent": "sidepod",
@@ -802,7 +959,7 @@
    "shared": 0.96
   },
   {
-   "id": 28,
+   "id": 34,
    "name": "sidepod inlet",
    "group": "body",
    "parent": "sidepod",
@@ -818,7 +975,7 @@
    "shared": 0.0
   },
   {
-   "id": 29,
+   "id": 35,
    "name": "sidepod inlet",
    "group": "body",
    "parent": "sidepod",
@@ -834,7 +991,7 @@
    "shared": 0.0
   },
   {
-   "id": 30,
+   "id": 36,
    "name": "sidepod panel",
    "group": "body",
    "parent": "sidepod",
@@ -855,7 +1012,7 @@
    "shared": 1.0
   },
   {
-   "id": 31,
+   "id": 37,
    "name": "sidepod panel",
    "group": "body",
    "parent": "sidepod",
@@ -876,7 +1033,7 @@
    "shared": 1.0
   },
   {
-   "id": 32,
+   "id": 38,
    "name": "sidepod strut",
    "group": "body",
    "parent": "sidepod",
@@ -892,7 +1049,7 @@
    "shared": 0.99
   },
   {
-   "id": 33,
+   "id": 39,
    "name": "sidepod strut",
    "group": "body",
    "parent": "sidepod",
@@ -908,7 +1065,7 @@
    "shared": 0.99
   },
   {
-   "id": 34,
+   "id": 40,
    "name": "sidepod top",
    "group": "body",
    "parent": "sidepod",
@@ -924,7 +1081,7 @@
    "shared": 0.0
   },
   {
-   "id": 35,
+   "id": 41,
    "name": "sidepod top",
    "group": "body",
    "parent": "sidepod",
@@ -940,7 +1097,7 @@
    "shared": 0.0
   },
   {
-   "id": 36,
+   "id": 42,
    "name": "airbox",
    "group": "body",
    "parent": "engine cover",
@@ -971,7 +1128,7 @@
    "shared": 0.98
   },
   {
-   "id": 37,
+   "id": 43,
    "name": "airbox",
    "group": "body",
    "parent": "engine cover",
@@ -1002,7 +1159,7 @@
    "shared": 0.98
   },
   {
-   "id": 38,
+   "id": 44,
    "name": "engine cover",
    "group": "body",
    "parent": "engine cover",
@@ -1018,7 +1175,7 @@
    "shared": 0.0
   },
   {
-   "id": 39,
+   "id": 45,
    "name": "engine cover panel",
    "group": "body",
    "parent": "engine cover",
@@ -1034,7 +1191,7 @@
    "shared": 0.0
   },
   {
-   "id": 40,
+   "id": 46,
    "name": "engine cover panel",
    "group": "body",
    "parent": "engine cover",
@@ -1050,7 +1207,7 @@
    "shared": 0.0
   },
   {
-   "id": 41,
+   "id": 47,
    "name": "number panel",
    "group": "body",
    "parent": "engine cover",
@@ -1066,7 +1223,7 @@
    "shared": 0.0
   },
   {
-   "id": 42,
+   "id": 48,
    "name": "number panel",
    "group": "body",
    "parent": "engine cover",
@@ -1082,7 +1239,7 @@
    "shared": 0.0
   },
   {
-   "id": 43,
+   "id": 49,
    "name": "number panel",
    "group": "body",
    "parent": "engine cover",
@@ -1098,7 +1255,7 @@
    "shared": 0.0
   },
   {
-   "id": 44,
+   "id": 50,
    "name": "diffuser",
    "group": "body",
    "parent": "tail",
@@ -1114,7 +1271,7 @@
    "shared": 0.0
   },
   {
-   "id": 45,
+   "id": 51,
    "name": "diffuser strake",
    "group": "body",
    "parent": "tail",
@@ -1132,7 +1289,7 @@
    "shared": 0.0
   },
   {
-   "id": 46,
+   "id": 52,
    "name": "diffuser strake",
    "group": "body",
    "parent": "tail",
@@ -1150,7 +1307,7 @@
    "shared": 0.0
   },
   {
-   "id": 47,
+   "id": 53,
    "name": "digit display",
    "group": "body",
    "parent": "tail",
@@ -1176,7 +1333,7 @@
    "shared": 0.94
   },
   {
-   "id": 48,
+   "id": 54,
    "name": "digit display",
    "group": "body",
    "parent": "tail",
@@ -1220,7 +1377,7 @@
    "shared": 0.94
   },
   {
-   "id": 49,
+   "id": 55,
    "name": "digit display",
    "group": "body",
    "parent": "tail",
@@ -1264,7 +1421,7 @@
    "shared": 0.94
   },
   {
-   "id": 50,
+   "id": 56,
    "name": "exhaust",
    "group": "body",
    "parent": "tail",
@@ -1283,7 +1440,7 @@
    "shared": 0.99
   },
   {
-   "id": 51,
+   "id": 57,
    "name": "exhaust",
    "group": "body",
    "parent": "tail",
@@ -1302,7 +1459,7 @@
    "shared": 0.99
   },
   {
-   "id": 52,
+   "id": 58,
    "name": "rear bumper",
    "group": "body",
    "parent": "tail",
@@ -1319,7 +1476,7 @@
    "shared": 0.0
   },
   {
-   "id": 53,
+   "id": 59,
    "name": "rear bumper",
    "group": "body",
    "parent": "tail",
@@ -1347,7 +1504,7 @@
    "shared": 0.78
   },
   {
-   "id": 54,
+   "id": 60,
    "name": "rear bumper",
    "group": "body",
    "parent": "tail",
@@ -1375,7 +1532,7 @@
    "shared": 0.78
   },
   {
-   "id": 55,
+   "id": 61,
    "name": "rear bumper corner",
    "group": "body",
    "parent": "tail",
@@ -1391,7 +1548,7 @@
    "shared": 1.0
   },
   {
-   "id": 56,
+   "id": 62,
    "name": "rear bumper corner",
    "group": "body",
    "parent": "tail",
@@ -1407,7 +1564,7 @@
    "shared": 1.0
   },
   {
-   "id": 57,
+   "id": 63,
    "name": "rear light",
    "group": "body",
    "parent": "tail",
@@ -1424,7 +1581,7 @@
    "shared": 0.98
   },
   {
-   "id": 58,
+   "id": 64,
    "name": "rear light",
    "group": "body",
    "parent": "tail",
@@ -1441,7 +1598,7 @@
    "shared": 0.98
   },
   {
-   "id": 59,
+   "id": 65,
    "name": "rear light lens",
    "group": "body",
    "parent": "tail",
@@ -1458,7 +1615,7 @@
    "shared": 0.0
   },
   {
-   "id": 60,
+   "id": 66,
    "name": "rear light lens",
    "group": "body",
    "parent": "tail",
@@ -1475,7 +1632,7 @@
    "shared": 0.0
   },
   {
-   "id": 61,
+   "id": 67,
    "name": "rear strake",
    "group": "body",
    "parent": "tail",
@@ -1492,7 +1649,7 @@
    "shared": 0.94
   },
   {
-   "id": 62,
+   "id": 68,
    "name": "rear strake",
    "group": "body",
    "parent": "tail",
@@ -1518,7 +1675,7 @@
    "shared": 0.99
   },
   {
-   "id": 63,
+   "id": 69,
    "name": "rear strake",
    "group": "body",
    "parent": "tail",
@@ -1544,7 +1701,7 @@
    "shared": 0.99
   },
   {
-   "id": 64,
+   "id": 70,
    "name": "rear undertray",
    "group": "body",
    "parent": "tail",
@@ -1560,7 +1717,7 @@
    "shared": 0.0
   },
   {
-   "id": 65,
+   "id": 71,
    "name": "rear undertray",
    "group": "body",
    "parent": "tail",
@@ -1579,7 +1736,7 @@
    "shared": 0.95
   },
   {
-   "id": 66,
+   "id": 72,
    "name": "rear undertray",
    "group": "body",
    "parent": "tail",
@@ -1598,7 +1755,7 @@
    "shared": 0.95
   },
   {
-   "id": 67,
+   "id": 73,
    "name": "side lens",
    "group": "body",
    "parent": "tail",
@@ -1615,7 +1772,7 @@
    "shared": 1.0
   },
   {
-   "id": 68,
+   "id": 74,
    "name": "side lens",
    "group": "body",
    "parent": "tail",
@@ -1632,7 +1789,7 @@
    "shared": 1.0
   },
   {
-   "id": 69,
+   "id": 75,
    "name": "side vent",
    "group": "body",
    "parent": "tail",
@@ -1656,7 +1813,7 @@
    "shared": 0.99
   },
   {
-   "id": 70,
+   "id": 76,
    "name": "side vent",
    "group": "body",
    "parent": "tail",
@@ -1680,7 +1837,7 @@
    "shared": 0.99
   },
   {
-   "id": 71,
+   "id": 77,
    "name": "tail corner",
    "group": "body",
    "parent": "tail",
@@ -1696,7 +1853,7 @@
    "shared": 0.0
   },
   {
-   "id": 72,
+   "id": 78,
    "name": "tail corner",
    "group": "body",
    "parent": "tail",
@@ -1712,7 +1869,7 @@
    "shared": 0.0
   },
   {
-   "id": 73,
+   "id": 79,
    "name": "tail frame",
    "group": "body",
    "parent": "tail",
@@ -1732,7 +1889,7 @@
    "shared": 0.39
   },
   {
-   "id": 74,
+   "id": 80,
    "name": "tail frame",
    "group": "body",
    "parent": "tail",
@@ -1932,7 +2089,7 @@
    "shared": 0.74
   },
   {
-   "id": 75,
+   "id": 81,
    "name": "tail frame",
    "group": "body",
    "parent": "tail",
@@ -2133,7 +2290,7 @@
    "shared": 0.74
   },
   {
-   "id": 76,
+   "id": 82,
    "name": "tail panel",
    "group": "body",
    "parent": "tail",
@@ -2149,291 +2306,7 @@
    "shared": 0.0
   },
   {
-   "id": 77,
-   "name": "front wing",
-   "group": "body",
-   "parent": "front wing",
-   "side": "centre",
-   "end": "",
-   "mesh": "Details",
-   "tris": 2,
-   "area_cm2": 13.9,
-   "pieces": [
-    1710
-   ],
-   "texels": 203,
-   "shared": 0.0
-  },
-  {
-   "id": 78,
-   "name": "front wing",
-   "group": "body",
-   "parent": "front wing",
-   "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 760,
-   "area_cm2": 2087.7,
-   "pieces": [
-    1387,
-    1440,
-    1442,
-    1444,
-    1448,
-    1449,
-    1450,
-    1452,
-    1453,
-    1454,
-    1710
-   ],
-   "texels": 48433,
-   "shared": 0.99
-  },
-  {
-   "id": 79,
-   "name": "front wing",
-   "group": "body",
-   "parent": "front wing",
-   "side": "right",
-   "end": "",
-   "mesh": "Details",
-   "tris": 760,
-   "area_cm2": 2087.7,
-   "pieces": [
-    1390,
-    1441,
-    1443,
-    1445,
-    1457,
-    1458,
-    1459,
-    1461,
-    1462,
-    1463,
-    1710
-   ],
-   "texels": 48431,
-   "shared": 0.99
-  },
-  {
-   "id": 80,
-   "name": "front wing endplate",
-   "group": "body",
-   "parent": "front wing",
-   "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 29,
-   "area_cm2": 29.8,
-   "pieces": [
-    1564
-   ],
-   "texels": 705,
-   "shared": 0.8
-  },
-  {
-   "id": 81,
-   "name": "front wing endplate",
-   "group": "body",
-   "parent": "front wing",
-   "side": "right",
-   "end": "",
-   "mesh": "Details",
-   "tris": 29,
-   "area_cm2": 29.8,
-   "pieces": [
-    1565
-   ],
-   "texels": 705,
-   "shared": 0.8
-  },
-  {
-   "id": 82,
-   "name": "wing bracket",
-   "group": "body",
-   "parent": "front wing",
-   "side": "centre",
-   "end": "",
-   "mesh": "Details",
-   "tris": 135,
-   "area_cm2": 169.0,
-   "pieces": [
-    1120,
-    1192,
-    1202,
-    1203,
-    1205,
-    1243
-   ],
-   "texels": 4056,
-   "shared": 0.7
-  },
-  {
    "id": 83,
-   "name": "wing bracket",
-   "group": "body",
-   "parent": "front wing",
-   "side": "left",
-   "end": "",
-   "mesh": "Details",
-   "tris": 573,
-   "area_cm2": 462.6,
-   "pieces": [
-    695,
-    703,
-    1052,
-    1056,
-    1062,
-    1064,
-    1144,
-    1145,
-    1146,
-    1147,
-    1152,
-    1155,
-    1156,
-    1157,
-    1158,
-    1159,
-    1160,
-    1191,
-    1193,
-    1194,
-    1204,
-    1206,
-    1207,
-    1208
-   ],
-   "texels": 10945,
-   "shared": 0.96
-  },
-  {
-   "id": 84,
-   "name": "wing bracket",
-   "group": "body",
-   "parent": "front wing",
-   "side": "right",
-   "end": "",
-   "mesh": "Details",
-   "tris": 676,
-   "area_cm2": 596.8,
-   "pieces": [
-    722,
-    727,
-    1053,
-    1057,
-    1063,
-    1065,
-    1166,
-    1167,
-    1168,
-    1169,
-    1174,
-    1177,
-    1178,
-    1179,
-    1180,
-    1181,
-    1182,
-    1212,
-    1213,
-    1214,
-    1222,
-    1223,
-    1224,
-    1225,
-    1226
-   ],
-   "texels": 13889,
-   "shared": 0.96
-  },
-  {
-   "id": 85,
-   "name": "wing lens",
-   "group": "body",
-   "parent": "front wing",
-   "side": "left",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 182,
-   "area_cm2": 131.5,
-   "pieces": [
-    2082
-   ],
-   "texels": 8607,
-   "shared": 0.98
-  },
-  {
-   "id": 86,
-   "name": "wing lens",
-   "group": "body",
-   "parent": "front wing",
-   "side": "right",
-   "end": "",
-   "mesh": "Glass",
-   "tris": 182,
-   "area_cm2": 131.5,
-   "pieces": [
-    2083
-   ],
-   "texels": 8607,
-   "shared": 0.98
-  },
-  {
-   "id": 87,
-   "name": "wing pylon",
-   "group": "body",
-   "parent": "front wing",
-   "side": "centre",
-   "end": "",
-   "mesh": "Skin",
-   "tris": 224,
-   "area_cm2": 432.8,
-   "pieces": [
-    25
-   ],
-   "texels": 13712,
-   "shared": 0.0
-  },
-  {
-   "id": 88,
-   "name": "wing pylon",
-   "group": "body",
-   "parent": "front wing",
-   "side": "left",
-   "end": "",
-   "mesh": "Skin",
-   "tris": 452,
-   "area_cm2": 573.1,
-   "pieces": [
-    30,
-    31,
-    32
-   ],
-   "texels": 17844,
-   "shared": 0.0
-  },
-  {
-   "id": 89,
-   "name": "wing pylon",
-   "group": "body",
-   "parent": "front wing",
-   "side": "right",
-   "end": "",
-   "mesh": "Skin",
-   "tris": 452,
-   "area_cm2": 573.1,
-   "pieces": [
-    24,
-    27,
-    28
-   ],
-   "texels": 17843,
-   "shared": 0.0
-  },
-  {
-   "id": 90,
    "name": "floor",
    "group": "floor",
    "parent": "floor",
@@ -2450,7 +2323,7 @@
    "shared": 0.14
   },
   {
-   "id": 91,
+   "id": 84,
    "name": "floor",
    "group": "floor",
    "parent": "floor",
@@ -2482,7 +2355,7 @@
    "shared": 0.78
   },
   {
-   "id": 92,
+   "id": 85,
    "name": "floor",
    "group": "floor",
    "parent": "floor",
@@ -2514,7 +2387,7 @@
    "shared": 0.78
   },
   {
-   "id": 93,
+   "id": 86,
    "name": "floor plank",
    "group": "floor",
    "parent": "floor",
@@ -2530,7 +2403,7 @@
    "shared": 0.0
   },
   {
-   "id": 94,
+   "id": 87,
    "name": "floor plank",
    "group": "floor",
    "parent": "floor",
@@ -2549,7 +2422,7 @@
    "shared": 0.84
   },
   {
-   "id": 95,
+   "id": 88,
    "name": "floor plank",
    "group": "floor",
    "parent": "floor",
@@ -2568,7 +2441,7 @@
    "shared": 0.84
   },
   {
-   "id": 96,
+   "id": 89,
    "name": "floor rail",
    "group": "floor",
    "parent": "floor",
@@ -2582,6 +2455,138 @@
    ],
    "texels": 2635,
    "shared": 0.0
+  },
+  {
+   "id": 90,
+   "name": "front wing",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "centre",
+   "end": "",
+   "mesh": "Details",
+   "tris": 2,
+   "area_cm2": 13.9,
+   "pieces": [
+    1710
+   ],
+   "texels": 203,
+   "shared": 0.0
+  },
+  {
+   "id": 91,
+   "name": "front wing",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "tris": 760,
+   "area_cm2": 2087.7,
+   "pieces": [
+    1387,
+    1440,
+    1442,
+    1444,
+    1448,
+    1449,
+    1450,
+    1452,
+    1453,
+    1454,
+    1710
+   ],
+   "texels": 48433,
+   "shared": 0.99
+  },
+  {
+   "id": 92,
+   "name": "front wing",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "tris": 760,
+   "area_cm2": 2087.7,
+   "pieces": [
+    1390,
+    1441,
+    1443,
+    1445,
+    1457,
+    1458,
+    1459,
+    1461,
+    1462,
+    1463,
+    1710
+   ],
+   "texels": 48431,
+   "shared": 0.99
+  },
+  {
+   "id": 93,
+   "name": "front wing endplate",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "left",
+   "end": "",
+   "mesh": "Details",
+   "tris": 29,
+   "area_cm2": 29.8,
+   "pieces": [
+    1564
+   ],
+   "texels": 705,
+   "shared": 0.8
+  },
+  {
+   "id": 94,
+   "name": "front wing endplate",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "right",
+   "end": "",
+   "mesh": "Details",
+   "tris": 29,
+   "area_cm2": 29.8,
+   "pieces": [
+    1565
+   ],
+   "texels": 705,
+   "shared": 0.8
+  },
+  {
+   "id": 95,
+   "name": "wing lens",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "left",
+   "end": "",
+   "mesh": "Glass",
+   "tris": 182,
+   "area_cm2": 131.5,
+   "pieces": [
+    2082
+   ],
+   "texels": 8607,
+   "shared": 0.98
+  },
+  {
+   "id": 96,
+   "name": "wing lens",
+   "group": "floor",
+   "parent": "front wing",
+   "side": "right",
+   "end": "",
+   "mesh": "Glass",
+   "tris": 182,
+   "area_cm2": 131.5,
+   "pieces": [
+    2083
+   ],
+   "texels": 8607,
+   "shared": 0.98
   },
   {
    "id": 97,

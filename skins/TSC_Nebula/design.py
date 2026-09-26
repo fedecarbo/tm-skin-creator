@@ -11,7 +11,7 @@ def design(s):
     s.paint("inner", "jet black satin")
     s.paint("rim", "chrome")
     s.paint("brake caliper", "hot pink gloss")
-    s.paint("front wing", "candy teal")
+    s.paint(["front wing", "wing mounts"], "candy teal")
     s.paint("seat", "quilted leather", colour="plum")
     s.glow("sidepod frame", "hot pink")
     s.glow("rear strake", "ice blue")

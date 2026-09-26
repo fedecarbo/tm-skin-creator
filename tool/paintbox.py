@@ -34,7 +34,7 @@ rings: their own design step, never touched by body paint), "wheel covers", "inn
 numbers", "brake lights", "rear lights".
 The groups (body, floor, wheels, mechanicals, cockpit) top the parts list; "body" and "wheels"
 here are the words above, not the groups (the Body group also holds the black inner parts of the
-sidepods and tail). An assembly or group leaves its glass out unless the glass is named.
+sidepods and tail), and "floor" is the underside's assembly, not the Floor group with the front wing. An assembly or group leaves its glass out unless the glass is named.
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front". "floor",
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
 "floor|left|part". The Lab's rooms copy the phrase for any part (parts.Parts.token).
@@ -407,8 +407,9 @@ class Skin:
 
     def _warn_reach(self, name, ids):
         """Note when a name reaches further than it seems: an assembly that shares its name with
-        one of its parts ("front wing" is the wing, its endplates, brackets and the pylons under
-        the nose), or one whose parts are in more than one texture set. The wing's stripes
+        one of its parts ("front wing" is the wing, its endplates and lenses; the brackets and the
+        pylons under the nose were in it until 2026-09-26), or one whose parts are in more than one
+        texture set. The wing's stripes
         landed on the body's pylons, over the wrap (TSC_FlagPeel_CostaRica, 2026-09-26)."""
         chosen = [self.parts.instances[i] for i in ids]
         if not {o["name"] for o in chosen} - {name}:

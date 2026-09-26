@@ -36,7 +36,7 @@ def design(s):
     s.paint(["hub", "brake light"], "gloss cream")
     s.paint("brake caliper", mint)
     s.paint("inner", "charcoal satin")
-    s.paint("front wing", "gloss ivory")
+    s.paint(["front wing", "wing mounts"], "gloss ivory")
     s.paint("seat", "black leather")
     # the pictures: a cone on each rear flank, a lolly on the bonnet
     # a cone standing up is 70 cm tall at 30 wide, and the flank's flat patch is 34 cm high,

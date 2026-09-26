@@ -176,8 +176,9 @@ def details_textures(p):
     colour[:] = DARK
     rm = np.zeros((s, s, 2), np.float32)
     rm[:] = (0.5, 0.0)
-    # the front wing: light and matte, where the relief test goes
-    m = p.mask(b, "Details", "front wing")
+    # the front wing and its mounts: light and matte, where the relief test goes
+    wing_ids = p.select("front wing") + p.select("wing mounts")
+    m = p.mask(b, "Details", ids=wing_ids)
     colour[m] = (0.75, 0.75, 0.75)
     rm[m] = (0.55, 0.0)
     # glow parts: a dark version of their glow colour, so they can be found when off
@@ -205,7 +206,7 @@ def details_textures(p):
     # too coarse for letters). A bake of the wing's own triangles gives the wing's positions
     # (Details texels are mostly shared, and the main bake's position may belong to another part).
     normal = stock("Details_N")
-    wing = p.local_bake("Details", 2048, 2048, "front wing")
+    wing = p.local_bake("Details", 2048, 2048, ids=wing_ids)
     wp = wing["position"]
     # The wing's centre is under the body's pylon, so the domes sit either side of it, at |x| = 45.
     top = (wing["tri"] >= 0) & (wing["normal"][..., 1] > 0.5) & (np.abs(wp[..., 0]) > 36) & (np.abs(wp[..., 0]) < 54)
@@ -216,10 +217,10 @@ def details_textures(p):
     normal[top] = n[top]
     textures["Details_N"] = (normal, "ATI2", {"normal": True})
 
-    # dirt: the front wing and the front suspension can get dirty, nothing else
+    # dirt: the front wing (with its mounts) and the front suspension can get dirty, nothing else
     dirt = np.zeros((2048, 2048), np.float32)
-    for name in ("front wing", "front suspension"):
-        dirt[p.mask(b2, "Details", name)] = 1
+    for ids in (wing_ids, p.select("front suspension")):
+        dirt[p.mask(b2, "Details", ids=ids)] = 1
     textures["Details_DirtMask"] = (raster.fill_holes(dirt, cov2), "ATI1", {})
     return textures
 

@@ -1432,6 +1432,17 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
   default on the car's materials), as the game does, so from above, with the car around it
   hidden, the middle vanishes and the ground's shadow shows through. Painting the floor paints
   its underside and the rim; there's no top to the middle, and nothing sees it from above.
+- **The front wing joins the floor** (the user, 2026-09-26: "I still see the front wing objects in
+  body ... All should be floor I would assume. Except for wing pylon. And wing bracket").
+  - [x] **Built (2026-09-26).** Floor holds two assemblies: floor (the underside, planks, rail)
+    and front wing (the wing, its endplates, its lenses). The pylons and brackets that hold it
+    under the nose are Body's new "wing mounts". A group's name no longer picks its parts when a
+    part or assembly has that name (`Parts.__init__`, the viewer's `showParts`): "floor" is still
+    the underside, not the Floor group. "front wing" now paints the wing and endplates only;
+    the eight designs that painted it (TSC_Camo, _IceCreamSweet, _IceCreamTruck, _Nebula,
+    _RatRod, _Race, _Stealth_CMYK, _Tricolore) name ["front wing", "wing mounts"], the same
+    parts as before (checked), and `tool/labskin.py` does the same by ids. TSC_Parts
+    (`tool/partskin.py`) paints the tail frame grey as it did as the floor's.
 
 ## Decisions (for Claude)
 

@@ -1488,10 +1488,12 @@ window.viewer = {
     await frames(3);
   },
   // Parts settings: { colourBy, shared, hidden: [part names], only: [part names], highlight: [part names] }.
-  // A name matches a part, its assembly, its group, or "name|side|end".
+  // A name matches a part, its assembly, its group (unless a part or assembly has that name, as the
+  // paint box reads it: "floor"), or "name|side|end".
   async showParts(opts = {}) {
+    const own = new Set(partsState.doc.parts.flatMap((p) => [p.name, p.parent]));
     const match = (names) => partsState.doc.parts.map((p, i) => [p, i]).filter(([p]) => names.some((n) =>
-      n === p.name || n === p.parent || n === p.group || n === `${p.name}|${p.side}|${p.end}`)).map(([, i]) => i);
+      n === p.name || n === p.parent || (n === p.group && !own.has(n)) || n === `${p.name}|${p.side}|${p.end}`)).map(([, i]) => i);
     partsState.mode.value = opts.colourBy ? 1 : 0;
     partsState.shared.value = opts.shared ? 1 : 0;
     const hidden = new Set(match(opts.hidden || []));

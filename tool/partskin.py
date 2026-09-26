@@ -48,6 +48,7 @@ PAINT = [
     ("Skin", "wheel cover hub", "red", SATIN),
     ("Details", "chassis", "dark", PLAIN),
     ("Details", "floor", "grey", PLAIN),
+    ("Details", "tail frame", "grey", PLAIN),  # "rear diffuser" in the floor until 2026-09-26
     ("Details", "front wing", "red", SATIN),
     ("Details", "front wing endplate", "yellow", SATIN),
     ("Details", "wing bracket", "silver", METAL),

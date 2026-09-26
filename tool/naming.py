@@ -41,14 +41,14 @@ PARTS = [
     dict(name="tail corner", parent="tail", piece=[7]),
     dict(name="diffuser", parent="tail", piece=[52]),
     dict(name="diffuser strake", parent="tail", piece=[53, 129, 131]),
-    dict(name="wing pylon", parent="front wing", piece=[24, 25, 27, 28]),
+    dict(name="wing pylon", parent="wing mounts", piece=[24, 25, 27, 28]),
     dict(name="wheel cover ring", parent="wheel cover", rule="cover_ring"),
     dict(name="wheel cover disc", parent="wheel cover", rule="cover_disc"),
     dict(name="wheel cover hub", parent="wheel cover", rule="cover_hub"),
     # ---- Details: the inner car ----
     dict(name="front wing", parent="front wing", rule="floor_wing"),
     dict(name="front wing endplate", parent="front wing", group=[359]),
-    dict(name="wing bracket", parent="front wing", group=[253, 269, 270, 206, 265, 204]),
+    dict(name="wing bracket", parent="wing mounts", group=[253, 269, 270, 206, 265, 204]),
     dict(name="floor", parent="floor", rule="floor_main"),
     dict(name="floor plank", parent="floor", rule="floor_plank"),
     # the frame the tail hangs on: the face round the speed numbers, the channels under it and the two
@@ -133,13 +133,15 @@ PARTS = [
 # The groups, the top of the parts list (the user, 2026-09-26: "Wheel cover, Tyre, etc. should be
 # in a parent category called Wheels. Same with body ... the parent of sidepod, engine cover, tail
 # ... At least the external bits. Then there's Mechanicals ... cables, suspensions etc."). The
-# floor is a group of its own (the user, 2026-09-26: "we could separate the bottom floor"); half
-# of each front wing wears the floor's paint all the same (Skin notes it when either is painted). A group
+# floor is a group of its own (the user, 2026-09-26: "we could separate the bottom floor"), with the
+# front wing, whose panels wear the floor's paint ("I still see the front wing objects in body ... All
+# should be floor I would assume. Except for wing pylon. And wing bracket": those hold the wing under
+# the nose, in Body's "wing mounts"). A group
 # is a name for the list and for picking parts; the paint box's own words "body" and "wheels"
 # keep their meanings (tool/paintbox.py).
 GROUPS = [
     ("body", "the outside of the car"),
-    ("floor", "the underside"),
+    ("floor", "the underside and the front wing"),
     ("wheels", "tyres, covers, rims and brakes"),
     ("mechanicals", "the frame and the suspension"),
     ("cockpit", "where the driver sits"),
@@ -149,11 +151,12 @@ GROUPS = [
 # may split them further (2026-09-26); a group keeps its assemblies' order.
 ASSEMBLIES = [
     ("shell", "body", "the nose, the sides and the canopy"),
+    ("wing mounts", "body", "the struts holding the front wing under the nose"),
     ("sidepod", "body", "the boxes either side of the cockpit"),
     ("engine cover", "body", "the deck behind the cockpit"),
     ("tail", "body", "the back of the car"),
-    ("front wing", "body", "the wing under the nose"),
     ("floor", "floor", "the flat underside and its planks"),
+    ("front wing", "floor", "the wing under the nose, in the floor's paint"),
     ("wheel cover", "wheels", "the discs over the wheels"),
     ("tyre", "wheels", "the rubber"),
     ("rims and brakes", "wheels", "rims, hubs and brakes"),
