@@ -10,11 +10,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
-- **The Lab** (2026-09-26): the tool's own lists, each thing with a line to copy for Claude.
-  Steps 1 and 2, the materials room and the UV map room, are built and wait for the user to
-  look. The user's new idea (2026-09-26): the Lab as the place a car gets designed, starting
-  from a clay model: the Studio (step 5), built, waits for the user to try it on a new car. The
-  steps and notes are in `CHECKLIST.md`, "The Lab".
+- **The Lab** (2026-09-26): where a car gets designed, live. The Studio (the timeline of the build,
+  from clay) and the Materials tab are built. The user rethought the rest (2026-09-26): painting
+  rooms for Body, Wheels, Details and Lights, each with the views its job needs and Claude's
+  takes side by side; the UV map goes into the rooms. Wheels comes first, opening with a round
+  of mockups. The steps and notes are in `CHECKLIST.md`, "The Lab".
 
 ## The tool
 

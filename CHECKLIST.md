@@ -1040,7 +1040,8 @@ A page of the tool's own lists: what it can do, and a way to point at any of it.
 the KeyShot library they used to render products with, showing "the matte %, metalness % etc
 for each". Then, from the first mockups: "click somewhere to just copy the material so I can
 paste it to Claude and Claude would know which I am talking about. That's the whole point of
-the lab." Its later rooms are the UV map, a car covered in named spots, and the parts.
+the lab." Since the user's rethink (below, "The Lab rethought"), the rooms after the Studio
+are painting rooms, one per area of the car; Materials stays a tab of its own.
 
 **The Lab's rule (the user, 2026-09-26).** Every room shows the tool's own data, never a list
 of its own: "If it doesn't come from the tool, then it will get outdated." The Lab also shows
@@ -1058,7 +1059,34 @@ things are getting built, etc. So in essence it basically starts as a blank car,
 model in some sort, and the "lab" gives me the necessary views to work with claude to build the
 car and better describe things etc". Claude suggested starting small: the clay start with a car
 that follows Claude's work, and the design's steps to click through. The Studio is step 5 below,
-the first room; steps 3 and 4 wait until the user has used it.
+the first room.
+
+**The Lab rethought (the user, 2026-09-26, after the parts and spots mockups).** "When I ask for a
+new car skin, or to work on an existing car skin, or design a variation of a car skin, the lab is
+the place to see things live. I'm ok that the first tab is all about the building process, it
+serves like a timeline, which is cool. But I think the views should cover particular "painting"
+rooms. For example, the body, the wheels, the details, etc. My vision is that each room provides
+the necessary views that tackle the objective. It could also provide concepts. For example, the
+wheels view could be tailored to what's necessary for me to see only the wheels, (we can always
+iterate on what to show). Or the body is could be wheels ghosted so that my eyes are on the body
+for example. [...] Maybe each view can even display the concepts that the ai provides (like a
+option a b and c). [...] I might eventually have a cables and mechanicals or whatever room,
+instead of a whole Details room." Before that, "tabs like views": every tab shows the car being
+worked on, live; not one page. What was settled the same day:
+- **The rooms:** the Studio (the timeline) first, then Body, Wheels, Details and Lights. Wheels is
+  its own room, not part of Details. Lights has a choice of Trackmania's four moods (sunrise, day,
+  sunset, night); the viewer lights day and night so far.
+- **The rooms come from the tool:** a list of rooms, each with the parts it covers, its views and
+  what it fades (the Body room fades the wheels and the inner car). Rooms cut across the texture
+  sets: Wheels is the tyres (Wheels set), the wheel covers (Skin) and the rims, hubs and brakes
+  (the wheel assembly, on Details). A part in no room is a gap to fix; a new room ("cables and
+  mechanicals") is a line in the list.
+- **The UV map goes into the rooms** (each room's flat map of its own area). **Materials stays its
+  own tab**, apart from the rooms.
+- **Each room:** its views, Claude's takes for that area side by side (A, B, C), its parts with
+  their paint and the step that painted them, the tool's warnings for its area, copy for Claude.
+- Live costs no tokens: the tool writes what the page reads as it paints (a few seconds per
+  step); Claude doesn't watch the page.
 
 #### [ ] 1. The materials room
 
@@ -1160,25 +1188,37 @@ the first room; steps 3 and 4 wait until the user has used it.
     repainted (TSC_Seams_Black) as before.
   - **Next:** the user looks.
 
-#### [ ] 3. The spots room
+#### [ ] 3. The painting rooms: Wheels first
 
-- **What it's for:** the car covered in every named place the tool knows, so the user can say
-  "the logo on the left sidepod" and see exactly where that is.
-- **What you'll see:** the car with `paintbox.SPOTS` (11 decal spots), `shapes.REGIONS` (13
-  regions) and the parts marked, each with a copy button. It includes the inner car's unshared
-  areas: the queued "Words on the inner car" item names them as spots.
+- **What it's for:** the rooms of "The Lab rethought" (above). Wheels comes first: it's small and
+  self-contained, and it settles what every room has.
+- **What you'll see:** the Lab's Wheels tab: the wheels alone, live as Claude paints them, with
+  Claude's takes side by side when there are several.
 - **Model:** Opus 5.5.
-- **Notes for Claude:** open with a round of mockups. A place the user wants that isn't there
-  is a spot to add to the tool.
+- **Notes for Claude:**
+  - **What came before (replaced):** a spots room and a parts room, live. Their mockups:
+    https://claude.ai/artifact/TK9zZ8RL28oWKRTaxvYgEE (the ice cream truck painted in five
+    steps in memory, every paint call recorded; not picked, the user rethought the Lab instead).
+    Their lists and warnings move into the rooms; the named places for stickers and words
+    (`paintbox.SPOTS`) into the Body room.
+  - **What the tool knows but never showed the user** (found making those mockups):
+    - TSC_IceCreamTruck's mint brake calipers and cream rims, hubs and brake lights never showed:
+      `s.paint("inner", "charcoal satin")` comes after them and paints the whole inner car, which
+      holds the wheel assembly. A room marks a part painted over: named in one step, repainted
+      by a broader word in a later one.
+    - Its "ICE CREAM" on the flanks sits over a 5 cm fold, and the paint box noted it would look
+      cut there (the crease shows through the letters). The notes stay in the design's run.
+    - `decal` and `text` don't go through `_ids`, so a step that only places pictures and words
+      records no `paints`: the Studio's "Paints" row is empty for it.
+  - **Next:** a round of mockups of the Wheels room.
 
-#### [ ] 4. The parts room
+#### [ ] 4. The Body, Details and Lights rooms
 
-- **What it's for:** the viewer's parts list and "colour by part", moved into the Lab, with
-  copy buttons.
-- **What you'll see:** every part by assembly, lit on the car when picked.
+- **What it's for:** the other painting rooms, after Wheels has settled the frame.
 - **Model:** Opus 5.5.
-- **Notes for Claude:** open with a round of mockups. The viewer's parts panel
-  (`window.viewer.showParts`, `#partsPanel`) is the start.
+- **Notes for Claude:** each opens with its own round of mockups. The Body room takes the named
+  places for stickers and words; the Lights room the four moods (sunrise and sunset lighting to
+  add to the viewer).
 
 #### [ ] 5. The Studio: a car built from clay
 
