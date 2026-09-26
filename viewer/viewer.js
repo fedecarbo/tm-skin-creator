@@ -1,6 +1,8 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
+//   /?skin=<name>&embed=1  just the car, which another page lights and turns (the Lab's UV map
+//                          room, viewer/lab-uv.js, through window.viewer.light, aim and onPick)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -13,7 +15,8 @@ import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || 'TSC_Test';
 const snap = params.has('snap');
-document.body.classList.toggle('snap', snap);
+const embed = params.has('embed');
+document.body.classList.toggle('snap', snap || embed);
 const statusBox = document.getElementById('status');
 
 // Coordinates: metres, y up, the car faces +z, and its left is +x. The wheels touch y = 0.
@@ -111,7 +114,7 @@ let glide = null;
 function setView(view, smooth = false) {
   const v = typeof view === 'string' ? VIEWS[view] : view;
   const target = new THREE.Vector3(...(v.target || CENTRE.toArray()));
-  const offset = new THREE.Vector3(...v.dir).normalize().multiplyScalar(v.dist * (snap ? 1 : v.roomy || 1));
+  const offset = new THREE.Vector3(...v.dir).normalize().multiplyScalar(v.dist * (snap || embed ? 1 : v.roomy || 1));
   const fov = v.fov || FOV;
   if (!smooth) {
     glide = null;
@@ -173,7 +176,7 @@ function frame(w, h, plain) {
 function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
   renderer.setSize(w, h, false);
-  frame(w, h, snap);
+  frame(w, h, snap || embed);
 }
 window.addEventListener('resize', resize);
 
@@ -1032,6 +1035,25 @@ function buildPartsList() {
 }
 
 let litIds = [];
+let centres = null;
+function partCentres() {  // per part id, the middle of its corners, for viewer.aim
+  if (centres) return centres;
+  const sum = new Float64Array(256 * 4);
+  for (const g of Object.values(geometries)) {
+    const pos = g.getAttribute('position').array, part = g.getAttribute('part').array;
+    for (let v = 0; v < part.length; v++) {
+      const k = part[v] * 4;
+      sum[k] += pos[v * 3]; sum[k + 1] += pos[v * 3 + 1]; sum[k + 2] += pos[v * 3 + 2]; sum[k + 3]++;
+    }
+  }
+  centres = [];
+  for (let i = 0; i < 256; i++) {
+    const n = sum[i * 4 + 3];
+    if (n) centres[i] = new THREE.Vector3(sum[i * 4] / n, sum[i * 4 + 1] / n, sum[i * 4 + 2] / n);
+  }
+  return centres;
+}
+
 function highlight(ids, row) {
   setPartFlag(litIds, 1, false);
   for (const r of partsState.rows) r.row.classList.remove('lit');
@@ -1059,6 +1081,10 @@ canvas.addEventListener('pointerup', (e) => {
   raycaster.setFromCamera(ndc, camera);
   const hit = raycaster.intersectObjects(Object.values(parts).filter((m) => m.visible))
     .find((h) => partsState.data[partOfHit(h) * 4] > 0);
+  if (embed) {  // the page around it picks the part
+    if (hit && window.viewer.onPick) window.viewer.onPick(partOfHit(hit));
+    return;
+  }
   tip.textContent = '';
   if (!hit) { highlight([]); return; }
   const id = partOfHit(hit);
@@ -1163,6 +1189,9 @@ async function loadSkin(name) {
   freeTexturesExcept(skin.textures);
   skinName = name;
   showSkinName();
+  const lab = document.querySelector('#railFoot a[href*="lab.html"]');  // the Lab shows this skin's paint
+  if (lab) lab.href = `./lab.html?skin=${encodeURIComponent(name)}`;
+  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-skin', name); } catch {}
 }
 
 function markSkin(name) {
@@ -1379,6 +1408,25 @@ window.viewer = {
     if (opts.highlight) highlight(match(opts.highlight));
     await frames(3);
   },
+  // The Lab's UV map room (viewer/lab-uv.js, ?embed=1): light parts by id, turn the car to face
+  // them, and hear which part a click on the car picks.
+  light(ids) {
+    setPartFlag(litIds, 1, false);
+    litIds = [...ids];
+    setPartFlag(litIds, 1, true);
+  },
+  aim(ids) {
+    const c = new THREE.Vector3();
+    const known = ids.map((i) => partCentres()[i]).filter(Boolean);
+    if (!known.length) return;
+    for (const k of known) c.add(k);
+    c.divideScalar(known.length);
+    const dir = new THREE.Vector3(c.x - CENTRE.x, 0, c.z - CENTRE.z);  // from the side the part faces
+    if (dir.lengthSq() < 0.01) dir.set(VIEWS.front.dir[0], 0, VIEWS.front.dir[2]);
+    dir.normalize().setY(c.y < 0.12 ? -0.35 : 0.42);  // from below for the floor
+    setView({ dir: dir.toArray(), dist: VIEWS.front.dist }, true);
+  },
+  onPick: null,
   gpu() {
     const gl = renderer.getContext();
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
@@ -1414,21 +1462,21 @@ async function start() {
   showAirbrakes(drive.airbrake);
   await loadSkin(skinName);
   setNight(false);
-  if (!snap) {  // on unless this browser turned it off last time
+  if (!snap && !embed) {  // on unless this browser turned it off last time
     let on = true;
     try { on = localStorage.getItem('tsc-viewer-number') !== '0'; } catch {}
     setPlate(on);
   }
   renderer.setAnimationLoop((now) => {
     stepGlide();
-    if (!snap) stepDrive(now);
+    if (!snap && !embed) stepDrive(now);
     controls.update();
     renderer.render(scene, camera);
   });
   await frames(2);
   statusBox.textContent = '';
   window.viewer.ready = true;
-  if (!snap) buildSkinList().catch((err) => console.error(err));
+  if (!snap && !embed) buildSkinList().catch((err) => console.error(err));
 }
 
 start().catch(fail);

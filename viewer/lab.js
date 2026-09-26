@@ -1,8 +1,9 @@
-// The Lab's materials room: every finish the tool knows (tool/swatches.py writes the list and
-// each ball's textures from tool/finishes.py), drawn on a ball with the viewer's lighting, with its
-// code and numbers and a line to copy for Claude.
-//   /lab.html                 the first family
+// The Lab: its rooms, and the materials room: every finish the tool knows (tool/swatches.py writes
+// the list and each ball's textures from tool/finishes.py), drawn on a ball with the viewer's
+// lighting, with its code and numbers and a line to copy for Claude.
+//   /lab.html                 the materials room, the first family
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
+//   /lab.html?room=uv         the UV map room (lab-uv.js)
 // Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png.
 
 import * as THREE from 'three';
@@ -217,6 +218,7 @@ async function copy(m, button) {
 $('copy').addEventListener('click', (e) => picked && copy(picked, e.currentTarget));
 
 // Back to the viewer on the skin it came from, if it came from the viewer.
+if (params.get('skin')) $('back').href = `./index.html?skin=${encodeURIComponent(params.get('skin'))}`;
 try {
   const from = document.referrer && new URL(document.referrer);
   if (from && from.origin === location.origin && /\/(index\.html)?$/.test(from.pathname)) $('back').href = from.pathname + from.search;
@@ -245,8 +247,26 @@ async function start() {
   await first;
   window.lab.ready = true;
 }
-start().catch((e) => {
+function failed(e) {
   window.lab.error = String(e && e.stack || e);
   $('status').textContent = e.message || String(e);
   console.error(e);
-});
+}
+
+// ---- the rooms ----
+
+const ROOMS = { materials: $('roomMaterials'), uv: $('roomUV') };
+const begun = {};
+function openRoom(name) {
+  for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
+  for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
+  const u = new URL(location.href);
+  if (name === 'materials') u.searchParams.delete('room');
+  else u.searchParams.set('room', name);
+  history.replaceState(null, '', u);
+  $('status').textContent = '';
+  if (name === 'materials') begun.materials ||= start().catch(failed);
+  if (name === 'uv') (begun.uv ||= import('./lab-uv.js')).then((room) => room.open({ copy })).catch(failed);
+}
+for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
+openRoom(ROOMS[params.get('room')] ? params.get('room') : 'materials');

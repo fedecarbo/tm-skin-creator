@@ -1051,6 +1051,14 @@ own round of mockups, and only the Lab's header, its look and copy-for-Claude ar
 
 Each step is ticked when the user has seen it.
 
+**Where the Lab may go (the user, 2026-09-26, while step 2 was being built):** "What if we treat
+this "lab" as the place to design a car. Let's assume I ask claude to design a car, so basically
+the car passes through the lab in a way (obviously in a non linear matter) but I can see how
+things are getting built, etc. So in essence it basically starts as a blank car, like a clay
+model in some sort, and the "lab" gives me the necessary views to work with claude to build the
+car and better describe things etc". Not decided yet: talk it over with the user, then a round
+of mockups, before steps 3 and 4.
+
 #### [ ] 1. The materials room
 
 - **What it's for:** every material the tool knows, on a ball, by family, with its code and
@@ -1110,11 +1118,46 @@ Each step is ticked when the user has seen it.
 - **What it's for:** the car's flat texture maps, as the tool paints them, with every part
   named. Hover over a spot to see its name, and see it light up on a small 3D car. Copy a
   part's name for Claude.
-- **What you'll see:** Nadeo's `UV_Skin` and `UV_Details` maps (the latter scaled from 2018²)
-  under the current skin's paint, with the part names from `car/parts.json`.
+- **What you'll see:** the Lab's "UV map" button (`lab.html?room=uv`). The four maps (Skin,
+  Details, Wheels, Glass) in a skin's own paint, every part outlined. Point at one: its name
+  shows, and it lights up on the map and on the small car. Click to pick it (or click the car):
+  the panel gives its map, assembly, whose paint it shares, sharpness (dots per cm) and size,
+  and "Copy for Claude" copies a line like `sidepod top|left (Skin map, its own paint)`. Show:
+  Paint, Parts (the viewer's colour by part) or Shared (striped where parts share paint).
 - **Model:** Opus 5.5.
-- **Notes for Claude:** open with a round of mockups. Read the names from `car/parts.json` and
-  the texel masks from `tool/coverage.py`, never a copy.
+- **Notes for Claude:**
+  - **The mockups:** https://claude.ai/artifact/YaEE5LWwsb8qHYCAtMeJui. Round 1 offered A the
+    map first (the materials room's frame), B map and car side by side, C the car first. Claude
+    recommended B; **the user chose A** (2026-09-26). The map and car pictures in it were the
+    real ones: coverage masks over TSC_CMYK_Peel_More's paint, and the viewer over CDP.
+  - **The tool's data** (`view.export_uvmap`, rebuilt when `car/parts.json`, `parts.py`,
+    `coverage.py`, `paintbox.py` or `view.py` change; `tool.swatches` and `tool.view` run it):
+    `<Set>_Parts.png`, the part covering each texel (`coverage.owners()` at the paint's size,
+    sampled on the `<Set>_Shared.png` grid; R + 256 G = id + 1), and `uvmap.json`: each part's
+    `label`, `line` and `paint` words (`parts.Parts`), its sharers (`coverage.twins()`), its
+    share of the map, dots per cm and cm².
+  - **The copied phrase is exact:** `Parts.token()` is the shortest `name|side|end` that picks
+    that part alone; all 210 were checked through the paint box. "floor", "front wing" and
+    "engine cover" name both an assembly and a part in it, so the paint box learnt `|part`
+    ("floor|left|part"); the bare names still paint the whole assembly.
+  - **Sharers** count texels both parts cover by three quarters or more (where two parts meet
+    on one island, the texel they split counts for neither), at least 64 at the paint's size.
+    A shared texel names the lowest id (the centre, then the left twin); pointing at one lights
+    all its sharers.
+  - **The car** is the viewer itself, `index.html?embed=1` (just the car, the viewer's own
+    lighting): `window.viewer.light(ids)`, `aim(ids)` (glides to face the part's middle, from
+    below for the floor) and `onPick`.
+  - **Which skin's paint:** `?skin=`, else the one the viewer showed last (`localStorage`
+    `tsc-viewer-skin`), else the one installed last (`installed_at` in `gallery.json`). The
+    viewer's "The Lab" link carries its skin.
+  - **What the room showed:** shared paint isn't only mirror twins. The front wing shares most
+    of its paint with the floor, one patch of paint is used by 16 inner parts, and the floor
+    shares 79 % of its own. On the list: the paint box's note about shared paint.
+  - **Checked on the Mac (2026-09-26)** in headless Chrome: each map at 1440×900, pointing and
+    clicking (sidepod top), picking from the car (the floor), Paint, Parts and Shared, 390×844
+    with no sideways scroll, the materials room and the viewer as before, no page errors; a skin
+    repainted (TSC_Seams_Black) as before.
+  - **Next:** the user looks.
 
 #### [ ] 3. The spots room
 

@@ -9,6 +9,8 @@ in the work folder, and rebuilds when car/parts.json changes.
     cov.get([id, id, ...])   -> float32 (h, w), 0..1, the parts' coverage added up (clipped to 1)
     cov.share([id, ...])     -> the parts' share of what covers each texel: 1 on an island's edge
                                 that only they reach, where get() gives the part inside the island
+    cov.owners()             -> int32 (h, w), the part that covers each texel most, -1 for none
+    cov.twins()              -> which parts share texels with which (the Lab's UV map room)
 """
 
 import hashlib
@@ -75,6 +77,50 @@ class Coverage:
             self._all = self.get(self.ids).reshape(-1)
         mine = self.get(ids).reshape(-1)
         return np.minimum(mine / np.maximum(self._all, 1e-6), 1).reshape(self.h, self.w)
+
+    def owners(self):
+        """Per texel, the part that covers it most, -1 where none covers half of it. Where
+        several cover it fully (a shared texel), the lowest id wins: centre before left before
+        right, so a mirrored texel names the left twin."""
+        best = np.full(self.w * self.h, 128, np.uint8)
+        out = np.full(self.w * self.h, -1, np.int32)
+        for i in sorted(self.sparse, reverse=True):
+            idx, val = self.sparse[i]
+            win = val >= best[idx]
+            out[idx[win]] = i
+            best[idx[win]] = val[win]
+        return out.reshape(self.h, self.w)
+
+    def twins(self, least=64):
+        """Which parts share paint: {id: (texels, shared, {other id: texels both use})}. Counts
+        texels a part covers by three quarters or more, so where two parts meet on one island,
+        the texel they split counts for neither. texels: the part's; shared: how many of those
+        another part uses too; the pairs are those sharing at least `least` texels. Not always
+        mirror twins with one name: the front wing and the floor share most of theirs."""
+        idx, who = [], []
+        for i, (t, v) in self.sparse.items():
+            t = t[v >= 191]
+            idx.append(t)
+            who.append(np.full(len(t), i, np.int32))
+        idx, who = np.concatenate(idx), np.concatenate(who)
+        order = np.lexsort((who, idx))
+        idx, who = idx[order], who[order]
+        texels = np.bincount(who, minlength=len(self.p.instances))
+        on_shared = np.zeros(len(idx), bool)
+        pairs = {}
+        for k in range(1, 64):  # the k-th part after this one on the same texel
+            same = np.flatnonzero(idx[k:] == idx[:-k])
+            if not len(same):
+                break
+            on_shared[same] = on_shared[same + k] = True
+            keys, n = np.unique(who[same].astype(np.int64) * 65536 + who[same + k], return_counts=True)
+            for key, c in zip(keys.tolist(), n.tolist()):
+                if c >= least:
+                    a, b = divmod(key, 65536)
+                    pairs.setdefault(a, {})[b] = c
+                    pairs.setdefault(b, {})[a] = c
+        shared = np.bincount(who[on_shared], minlength=len(self.p.instances))
+        return {i: (int(texels[i]), int(shared[i]), pairs.get(i, {})) for i in self.ids}
 
 
 _loaded = {}

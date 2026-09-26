@@ -27,7 +27,9 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
   **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
   in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). The same goes for
-  its later rooms (UV map, spots, parts). Notes: "The Lab" in `CHECKLIST.md`.
+  its later rooms (UV map, spots, parts). Notes: "The Lab" in `CHECKLIST.md`. The UV map room
+  (`lab.html?room=uv`, `viewer/lab-uv.js`) reads `view.export_uvmap`'s data, which `tool.view`
+  and `tool.swatches` rebuild when the parts or their code change.
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

@@ -10,6 +10,8 @@ Python's built-in web server serves two folders (ES modules don't load from file
                                   corner tagged with its part (and on Details, its speed-display
                                   segment); parts.json lists the parts
              <Set>_Shared.png     the texels that several parts share (mirrored or repeated)
+             <Set>_Parts.png,     the Lab's UV map room: which part covers each texel, and every
+             uvmap.json           part's words and numbers (export_uvmap)
              <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
              stock/*.png          Nadeo's stock textures, for anything a skin leaves out
              skins/<name>/        one skin's textures, and skin.json with the URL of every slot
@@ -106,7 +108,8 @@ def export_mesh():
     """car.bin: per mesh, one vertex per triangle corner (no index), with float32 positions,
     normals, UVs and the part id of its triangle (car/parts.json); on Details also its segment of
     the speed display (digit_segments). Also parts.json and, per texture set, <Set>_Shared.png:
-    the texels several parts share, for the viewer's overlay."""
+    the texels several parts share, for the viewer's overlay. And the UV map room's data."""
+    export_uvmap()
     out_json, out_bin = DATA / "car.json", DATA / "car.bin"
     sources = (fbx.CACHE, paths.FBX, parts.PARTS_JSON, parts.CACHE, paths.REPO / "tool" / "naming.py")
     if not _stale(out_json, *sources):
@@ -142,6 +145,42 @@ def export_mesh():
         shared = ((b["tri"] >= 0) & (b["count"] > 1)).astype(np.uint8) * 255
         Image.fromarray(shared, "L").save(DATA / f"{tset}_Shared.png", compress_level=1)
     out_json.write_text(json.dumps({"units": "m", "lift_cm": float(lift), "meshes": index}, indent=1))
+
+
+def export_uvmap():
+    """The Lab's UV map room (viewer/lab-uv.js), from the tool's own parts and texel coverage:
+      <Set>_Parts.png  per texel of the <Set>_Shared.png grid, the part that covers it most
+                       (coverage.owners at the paint's size), R + 256 G = the part's id + 1
+      uvmap.json       each map (its paint's size, the grid, its assemblies), and each part in
+                       words (parts.Parts: its label, whose paint it shares, the line to copy for
+                       Claude) and numbers (its share of the map, dots per cm, cm2 on the car)"""
+    from tool import coverage, paintbox
+    out = DATA / "uvmap.json"
+    here = paths.REPO / "tool"
+    if not _stale(out, parts.PARTS_JSON, here / "parts.py", here / "coverage.py", here / "paintbox.py"):
+        return
+    p = parts.load()
+    maps, rows = [], []
+    for tset, (gw, gh) in parts.BAKE_SIZE.items():
+        pw, ph = paintbox.SIZES[tset]
+        cov = coverage.load(p, tset, pw, ph)
+        sx, sy = pw // gw, ph // gh
+        own = cov.owners()[sy // 2::sy, sx // 2::sx] + 1
+        DATA.mkdir(parents=True, exist_ok=True)
+        Image.fromarray(np.stack([own & 255, own >> 8, np.zeros_like(own)], -1).astype(np.uint8), "RGB").save(DATA / f"{tset}_Parts.png")
+        twins = cov.twins()
+        maps.append({"set": tset, "size": [pw, ph], "grid": [gw, gh], "parts": len(cov.ids),
+                     "holds": list(dict.fromkeys(p.instances[i]["parent"] for i in cov.ids))})
+        for i in cov.ids:
+            inst = p.instances[i]
+            texels, _, others = twins[i]
+            rows.append({"id": i, **{k: inst[k] for k in ("name", "parent", "side", "end", "mesh")},
+                         "label": p.label(i), "tag": p.tag(i), "line": p.line(i, twins), "paint": p.share_words(i, twins),
+                         "twins": sorted(others), "pct": round(100 * texels / (pw * ph), 2),
+                         "sharp": round((texels / inst["area_cm2"]) ** 0.5, 1) if inst["area_cm2"] else 0,
+                         "area": round(inst["area_cm2"])})
+    assemblies = {a["name"]: a["about"] for a in json.loads(parts.PARTS_JSON.read_text())["assemblies"]}
+    out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
 
 
 def ensure_hdri():

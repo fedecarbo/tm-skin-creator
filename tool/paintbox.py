@@ -31,7 +31,9 @@ earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn
 rings: their own design step, never touched by body paint), "wheel covers", "inner" (Details),
 "tyres" (Wheels), "glass", "everything". The lights have plain words too (LIGHT_WORDS): "speed
 numbers", "brake lights", "rear lights".
-Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front".
+Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front". "floor",
+"front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
+"floor|left|part". The Lab's UV map room copies the phrase for any part (parts.Parts.token).
 
 The result: Skin.textures() gives the game's textures as float arrays; show() puts them in the
 viewer and takes Claude's snapshot sheet; build() writes the DDS files and the zip; install()
@@ -242,7 +244,7 @@ class Skin:
             bits[0] = LIGHT_WORDS.get(bits[0], bits[0])
             side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
             end = next((b for b in bits[1:] if b in ("front", "rear")), None)
-            ids = self.parts.select(bits[0], side=side, end=end)
+            ids = self.parts.select(bits[0], side=side, end=end, exact="part" in bits[1:])
             for i in ids:
                 out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
             self._warn_shared(bits[0], ids)

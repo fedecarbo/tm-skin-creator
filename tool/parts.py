@@ -246,17 +246,66 @@ class Parts:
     def names(self):
         return sorted(set(i["name"] for i in self.instances))
 
-    def select(self, name, side=None, end=None):
+    def select(self, name, side=None, end=None, exact=False):
         """Instance ids matching a part or assembly name, narrowed by side ('left'/'right'/'centre')
-        and end ('front'/'rear')."""
+        and end ('front'/'rear'). exact: only parts called that, not the assembly of the same name
+        ("floor", "front wing" and "engine cover" are both)."""
         if name not in self.by_name:
             raise KeyError(f"no part called {name!r}; see car/parts.json")
-        ids = self.by_name[name]
+        ids = sorted(set(self.by_name[name]))
+        if exact:
+            ids = [i for i in ids if self.instances[i]["name"] == name]
         if side:
             ids = [i for i in ids if self.instances[i]["side"] == side]
         if end:
             ids = [i for i in ids if self.instances[i]["end"] == end]
         return ids
+
+    # ---- a part in words: the Lab's UV map room shows these, and copies line() for Claude ----
+
+    def tag(self, i):
+        """"front left", "right", or "" for a part on the centre line."""
+        inst = self.instances[i]
+        return " ".join(b for b in (inst["end"], inst["side"] if inst["side"] != "centre" else "") if b)
+
+    def label(self, i):
+        """"brake caliper (front left)", as the viewer names a part."""
+        tag = self.tag(i)
+        return f"{self.instances[i]['name']} ({tag})" if tag else self.instances[i]["name"]
+
+    def token(self, i):
+        """The shortest phrase that picks exactly this part in the paint box: "sidepod top|left",
+        "brake caliper|left|front", "floor|left|part" (|part: the part, not its assembly)."""
+        inst = self.instances[i]
+        bits = [inst["name"]]
+        exact = inst["name"] in {o["parent"] for o in self.instances}
+        if len(self.select(inst["name"], exact=exact)) > 1:
+            bits.append(inst["side"])
+            if len(self.select(inst["name"], side=inst["side"], exact=exact)) > 1:
+                bits.append(inst["end"])
+        if exact and len(self.select(inst["name"])) > len(self.select(inst["name"], exact=True)):
+            bits.append("part")
+        return "|".join(bits)
+
+    def share_words(self, i, twins):
+        """Whose paint part i shares, from coverage.twins(): "its own paint", or "paint shared
+        with sidepod frame (right)", with the share when it's partial ("78% of its paint ...")."""
+        texels, shared, others = twins.get(i, (0, 0, {}))
+        if not others or shared < 0.01 * texels:
+            return "its own paint"
+        groups = {}
+        for j in sorted(others, key=lambda j: (-others[j], j)):  # the biggest sharers first
+            groups.setdefault(self.instances[j]["name"], []).append(self.tag(j))
+        who = [name + (f" ({', '.join(t for t in tags if t)})" if any(tags) else "") for name, tags in groups.items()]
+        if len(who) > 4:
+            who = who[:3] + [f"{len(who) - 3} more parts"]
+        who = ", ".join(who[:-1]) + " and " + who[-1] if len(who) > 1 else who[0]
+        share = shared / max(texels, 1)
+        return ("paint shared with " if share >= 0.95 else f"{round(share * 100)}% of its paint shared with ") + who
+
+    def line(self, i, twins):
+        """The line the Lab copies for Claude: "sidepod top|left (Skin map, its own paint)"."""
+        return f"{self.token(i)} ({self.instances[i]['mesh']} map, {self.share_words(i, twins)})"
 
     def tri_mask(self, texture_set, name, side=None, end=None, ids=None):
         """Boolean over the local triangles of one mesh."""

@@ -11,8 +11,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 ## Under way
 
 - **The Lab** (2026-09-26): the tool's own lists, each thing with a line to copy for Claude.
-  Step 1, the materials room, is built and waits for the user to look. The steps and notes are
-  in `CHECKLIST.md`, "The Lab".
+  Steps 1 and 2, the materials room and the UV map room, are built and wait for the user to
+  look. The user's new idea (2026-09-26): the Lab as the place a car gets designed, starting
+  from a clay model. The steps and notes are in `CHECKLIST.md`, "The Lab".
 
 ## The tool
 
@@ -21,6 +22,12 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   backwards on one side. Only marks that read the same both ways work there (the registration
   marks). Idea: list the inner parts' unshared areas big enough for a word (the tail frame's
   centre, the floor's centre plank?) and name them as spots, like `SPOTS` on the body.
+- **The shared-paint note knows only twins with one name** (2026-09-26, the UV map room). When
+  a design paints a part whose paint other parts share, `Skin._warn_shared` notes it only if the
+  sharer has the same name (the mirror twin). The UV map room showed more: the front wing shares
+  most of its paint with the floor, and 16 inner parts use one patch of the sidepod frame's and
+  floor's paint. Idea: take the sharers from `coverage.twins()` and name them in the note, as
+  `parts.Parts.share_words` does.
 - **Motifs lined up across panels** (2026-09-24, checkpoint 6). The tool can spread pictures or
   dots evenly, but not in rows that line up from panel to panel, like a regular grid. Idea: a
   `regular` switch on `Skin.scatter`, using `looks.surface_points(regular=True)`.
