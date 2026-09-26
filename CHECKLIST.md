@@ -1365,11 +1365,33 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
   are too broken down ... Wheel cover, Tyre, etc. should be in a parent category called Wheels.
   Same with body ... the parent of sidepod, engine cover, tail ... At least the external bits.
   Then there's Mechanicals (or some other name you think is best) which covers cables,
-  suspensions etc." Claude's proposal, waiting on the user: Body (shell, sidepods, engine
-  cover, tail, front wing, floor), Wheels (tyres, wheel covers, rims hubs and brakes),
-  Mechanicals (inner frame, front and rear suspension, the brake lines with them), Cockpit
-  (seat, belts, steering wheel, dashboard, mirrors); no Glass group, each glass piece where it
-  sits. The Lab's rooms (Body, Wheels, Details, Lights) already cut the car nearly this way.
+  suspensions etc." Then: "or we can have external body, and internal, or something. I don't
+  know what would be best." Claude recommended groups by what a part is, not where: a brief
+  names things ("gold wheels", "black suspension"), and outside and inside blur on this car (the
+  suspension arms, the sidepod grilles, the exhausts and the floor are inner parts seen from
+  outside). The user: "ok sounds good. Something to note is that I might be breaking things
+  apart from the child after putting together the parent categories."
+  - [x] **Built (2026-09-26).** `naming.GROUPS` over `naming.ASSEMBLIES` (each now names its
+    group): **Body** (shell, sidepod, engine cover, tail, front wing, floor), **Wheels** (wheel
+    cover, tyre, rims and brakes), **Mechanicals** (chassis, front and rear suspension, with the
+    brake lines), **Cockpit** (the cockpit). The old assembly "body" is now "shell" and "wheel"
+    is "rims and brakes", so no assembly is named like a group. The Glass assembly is gone: each
+    glass piece joined the assembly it sits in, by its nearest parts (canopy and nose lens: shell;
+    rear light and side lenses: tail; wing lenses: front wing; mirror glass and the gear display:
+    cockpit). Every part carries its `group`; a group's name picks its parts (`Parts.select`,
+    the viewer's `showParts`).
+  - **Painting didn't change.** The paint box's words "body" (the paint set without the wheel
+    covers) and "wheels" (no tyres) keep their meanings over the groups of the same name: the Body
+    group also holds the floor and the black inner parts of the sidepods and tail, which "paint
+    the body red" must not reach. An assembly or group leaves its glass out unless the glass is
+    named, so painting the tail doesn't tint the rear light lenses. Checked: all 210 parts kept
+    their triangles, texels and sides; 17 paint-box names picked the same parts as before; the
+    Lab's four rooms hold the same parts.
+  - The viewer's Parts list: the groups on top (open), their assemblies under them (closed); an
+    assembly alone in its group and named like it (the cockpit) lists its parts right under the
+    group. The Lab's part card says "Body › sidepod". Part ids changed order (by group), so the
+    viewer's `car.bin` was rebuilt with `parts.json`. Checked in headless Chrome, 1440×900 and
+    390×844: no sideways scroll, no page errors.
 
 ## Decisions (for Claude)
 

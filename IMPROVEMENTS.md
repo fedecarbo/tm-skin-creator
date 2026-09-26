@@ -13,10 +13,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **Defining the parts: next, before anything else** (the user, 2026-09-26: "I think we need to
   define parts first. Can this be my next task to do before anything else?"). The user leads it,
   and may do it with another agent. What "define" covers is theirs to say: start from their
-  thoughts, not from a plan of Claude's. What the tool has today: `car/parts.json`, 210 parts under
-  88 names in 14 assemblies, made from `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts
-  list and the Lab's UV map tabs show them. Known gaps, below under "The tool": some inner names
-  are guesses, paint shared beyond mirror twins, words on the inner car.
+  thoughts, not from a plan of Claude's. Step by step, each agreed before it's built; the steps
+  are in `CHECKLIST.md`, "Defining the parts". Step 1 done (2026-09-26): four groups on top (Body,
+  Wheels, Mechanicals, Cockpit). Next: the user goes through each group's insides, and may split
+  them. What the tool has: `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 4
+  groups, made from `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's
+  UV map tabs show them. Known gaps, below under "The tool": some inner names are guesses, paint
+  shared beyond mirror twins, words on the inner car.
 - **The Lab: paused** (the user, 2026-09-26: "we need to pause this page for a bit, or maybe it
   just updates as I share my thoughts"). No work on it unless the user brings a thought for it,
   and then only that. Built: the Studio (the timeline of the build, from clay), the painting rooms

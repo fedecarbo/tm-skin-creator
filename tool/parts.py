@@ -6,12 +6,14 @@
 Names come from tool/naming.py. Pieces and groups come from tool/segment.py. Every triangle
 ends up in exactly one part instance: a name plus a side (left, right, centre) and, for the
 wheel-related assemblies, an end (front, rear). Pieces nobody named join the nearest named
-piece of their mesh.
+piece of their mesh. Each part sits in an assembly ("sidepod"), and each assembly in one of the
+car's groups (body, wheels, mechanicals, cockpit): a group's name picks all its parts too.
 
     p = parts.load()
     p.mask(bake, "Details", "brake caliper")                  every caliper's texels
     p.mask(bake, "Details", "brake caliper", side="left", end="rear")
     p.mask(bake, "Skin", "sidepod")                            a whole assembly
+    p.select("mechanicals")                                    a whole group
 """
 
 import argparse
@@ -25,7 +27,8 @@ from tool.shapes import WHEEL_Y, WHEEL_Z  # the wheel centres, fitted to the tyr
 
 PARTS_JSON = paths.REPO / "car" / "parts.json"
 CACHE = paths.CACHE / "parts.npz"
-ENDED = {"wheel", "tyre", "wheel cover", "front suspension", "rear suspension"}  # assemblies split front/rear
+ENDED = {"rims and brakes", "tyre", "wheel cover", "front suspension", "rear suspension"}  # assemblies split front/rear
+GROUP_OF = {a: g for a, g, _ in naming.ASSEMBLIES}
 MESH_NAME = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
 MESH_TRIS = {"Skin": 27184, "Details": 65246, "Wheels": 4896, "Glass": 2239}
 
@@ -164,7 +167,7 @@ def resolve(seg):
     instances = []
     for u in uniq:
         p = naming.PARTS[int(u[0])]
-        inst = {"name": p["name"], "parent": p["parent"], "side": u[1], "end": u[2]}
+        inst = {"name": p["name"], "group": GROUP_OF[p["parent"]], "parent": p["parent"], "side": u[1], "end": u[2]}
         if p.get("rule") in CUTS:
             inst["cut"] = p["rule"]
         instances.append(inst)
@@ -175,8 +178,8 @@ def resolve(seg):
         inst["tris"] = int(sel.sum())
         inst["area_cm2"] = round(float(seg["area"][sel].sum()), 1)
         inst["pieces"] = [int(v) for v in np.unique(seg["piece"][sel])]
-    # order: by assembly, then name, then side, then end
-    order_of = {a: i for i, (a, _) in enumerate(naming.ASSEMBLIES)}
+    # order: by assembly (naming.ASSEMBLIES keeps each group's together), then name, side, end
+    order_of = {a: i for i, (a, _, _) in enumerate(naming.ASSEMBLIES)}
     order = sorted(range(len(instances)), key=lambda i: (order_of[instances[i]["parent"]], instances[i]["name"],
                                                           instances[i]["end"], instances[i]["side"]))
     remap = np.empty(len(order), np.int32)
@@ -225,8 +228,10 @@ def build(write=True):
             "about": "Every part of the CarSport, named by eye from the model (tool/naming.py). "
                      "Sides: left is +x, the driver's left. Ids are piece ids from tool/segment.py. "
                      "texels: the part's texels at 2048 (Wheels 512x1024, Glass 1024); shared: the share "
-                     "of them that other parts (the mirror twin, repeats) also use: a colour there lands on all of them.",
-            "assemblies": [{"name": a, "about": d} for a, d in naming.ASSEMBLIES],
+                     "of them that other parts (the mirror twin, repeats) also use: a colour there lands on all of them. "
+                     "The tree: group > assembly (parent) > part.",
+            "groups": [{"name": g, "about": d} for g, d in naming.GROUPS],
+            "assemblies": [{"name": a, "group": g, "about": d} for a, g, d in naming.ASSEMBLIES],
             "parts": [{"id": i, **inst} for i, inst in enumerate(instances)],
         }
         PARTS_JSON.write_text(json.dumps(doc, indent=1))
@@ -242,14 +247,15 @@ class Parts:
         for i, inst in enumerate(instances):
             self.by_name.setdefault(inst["name"], []).append(i)
             self.by_name.setdefault(inst["parent"], []).append(i)
+            self.by_name.setdefault(inst["group"], []).append(i)
 
     def names(self):
         return sorted(set(i["name"] for i in self.instances))
 
     def select(self, name, side=None, end=None, exact=False):
-        """Instance ids matching a part or assembly name, narrowed by side ('left'/'right'/'centre')
-        and end ('front'/'rear'). exact: only parts called that, not the assembly of the same name
-        ("floor", "front wing" and "engine cover" are both)."""
+        """Instance ids matching a part, assembly or group name, narrowed by side ('left'/'right'/
+        'centre') and end ('front'/'rear'). exact: only parts called that, not the assembly of the
+        same name ("floor", "front wing" and "engine cover" are both)."""
         if name not in self.by_name:
             raise KeyError(f"no part called {name!r}; see car/parts.json")
         ids = sorted(set(self.by_name[name]))
@@ -278,7 +284,7 @@ class Parts:
         "brake caliper|left|front", "floor|left|part" (|part: the part, not its assembly)."""
         inst = self.instances[i]
         bits = [inst["name"]]
-        exact = inst["name"] in {o["parent"] for o in self.instances}
+        exact = inst["name"] in {o[k] for o in self.instances for k in ("parent", "group")}
         if len(self.select(inst["name"], exact=exact)) > 1:
             bits.append(inst["side"])
             if len(self.select(inst["name"], side=inst["side"], exact=exact)) > 1:
@@ -442,10 +448,12 @@ def main():
     current = None
     for inst in instances:
         if inst["parent"] != current:
+            if current is None or GROUP_OF[current] != inst["group"]:
+                print(f"\n{inst['group'].upper()}")
             current = inst["parent"]
-            print(f"\n{current}")
+            print(f"  {current}")
         tag = " ".join(v for v in (inst["end"], inst["side"]) if v and v != "centre")
-        print(f"   {inst['name']:<22} {tag:<12} {inst['mesh']:<8} {inst['tris']:>6} tris  {inst['area_cm2']:>7.0f} cm2  "
+        print(f"    {inst['name']:<22} {tag:<12} {inst['mesh']:<8} {inst['tris']:>6} tris  {inst['area_cm2']:>7.0f} cm2  "
               f"{inst['texels']:>7} texels  {int(inst['shared'] * 100):>3}% shared")
     print(f"\n{len(instances)} part instances, {len(set(i['name'] for i in instances))} names")
     if args.review:

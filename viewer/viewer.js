@@ -1053,55 +1053,77 @@ function partLabel(p) {
   return tag ? `${p.name} (${tag})` : p.name;
 }
 
-// The list: one row per (name, end); the row's checkbox hides both sides together.
+// The list: the car's groups (Body, Wheels, Mechanicals, Cockpit), their assemblies, then one row
+// per (name, end); the row's checkbox hides both sides together. An assembly alone in its group
+// and named like it (the cockpit) lists its parts right under the group.
 function buildPartsList() {
   const list = document.getElementById('partsList');
   list.textContent = '';
-  const parts = partsState.doc.parts;
-  for (const asm of partsState.doc.assemblies) {
-    const rows = new Map();
-    parts.forEach((p, i) => {
-      if (p.parent !== asm.name) return;
-      const key = `${p.name}|${p.end}`;
-      if (!rows.has(key)) rows.set(key, { name: p.name, end: p.end, ids: [] });
-      rows.get(key).ids.push(i);
-    });
-    if (!rows.size) continue;
-    const box = document.createElement('div');
-    box.className = 'assembly closed';
-    const head = document.createElement('div');
-    head.className = 'head';
-    const all = document.createElement('input');
-    all.type = 'checkbox';
-    all.checked = true;
-    all.title = 'show or hide the whole assembly';
-    all.onclick = (e) => { e.stopPropagation(); for (const r of rows.values()) r.setVisible(all.checked); };
-    head.append(all, Object.assign(document.createElement('span'), { textContent: asm.name }),
-      Object.assign(document.createElement('span'), { className: 'about', textContent: asm.about }));
-    head.onclick = () => box.classList.toggle('closed');
-    const items = document.createElement('div');
-    items.className = 'items';
-    for (const r of rows.values()) {
-      const row = document.createElement('div');
-      row.className = 'part';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = true;
-      r.setVisible = (on) => { cb.checked = on; row.classList.toggle('off', !on); setPartFlag(r.ids, 0, on); };
-      cb.onclick = (e) => { e.stopPropagation(); r.setVisible(cb.checked); };
-      const name = Object.assign(document.createElement('span'), { className: 'name', textContent: r.name });
-      const tag = Object.assign(document.createElement('span'), { className: 'tag', textContent: r.end || '' });
-      const only = Object.assign(document.createElement('button'), { className: 'only', textContent: 'only', title: 'show only this' });
-      only.onclick = (e) => { e.stopPropagation(); for (const o of partsState.rows) o.setVisible(o === r); box.classList.remove('closed'); };
-      row.onclick = () => highlight(r.ids, r);
-      row.append(cb, name, tag, only);
-      r.row = row;
-      items.append(row);
-      partsState.rows.push(r);
+  const { parts, groups, assemblies } = partsState.doc;
+  for (const grp of groups) {
+    const asms = assemblies.filter((a) => a.group === grp.name)
+      .map((asm) => ({ asm, rows: partRows(parts, asm.name) })).filter((a) => a.rows.length);
+    if (!asms.length) continue;
+    const [gbox, gitems] = listBox('group', grp.name, grp.about, asms.flatMap((a) => a.rows), 'show or hide the whole group');
+    for (const { asm, rows } of asms) {
+      if (asms.length === 1 && asm.name === grp.name) {
+        gitems.append(...rows.map((r) => r.row));
+        continue;
+      }
+      const [abox, aitems] = listBox('assembly closed', asm.name, asm.about, rows, 'show or hide the whole assembly');
+      aitems.append(...rows.map((r) => r.row));
+      gitems.append(abox);
     }
-    box.append(head, items);
-    list.append(box);
+    list.append(gbox);
   }
+}
+
+// A heading that opens and closes its items, with a checkbox for all its rows.
+function listBox(cls, name, about, rows, title) {
+  const box = document.createElement('div');
+  box.className = cls;
+  const head = document.createElement('div');
+  head.className = 'head';
+  const all = document.createElement('input');
+  all.type = 'checkbox';
+  all.checked = true;
+  all.title = title;
+  all.onclick = (e) => { e.stopPropagation(); for (const r of rows) r.setVisible(all.checked); };
+  head.append(all, Object.assign(document.createElement('span'), { className: 'label', textContent: name }),
+    Object.assign(document.createElement('span'), { className: 'about', textContent: about }));
+  head.onclick = () => box.classList.toggle('closed');
+  const items = document.createElement('div');
+  items.className = 'items';
+  box.append(head, items);
+  return [box, items];
+}
+
+function partRows(parts, assembly) {
+  const rows = new Map();
+  parts.forEach((p, i) => {
+    if (p.parent !== assembly) return;
+    const key = `${p.name}|${p.end}`;
+    if (!rows.has(key)) rows.set(key, { name: p.name, end: p.end, ids: [] });
+    rows.get(key).ids.push(i);
+  });
+  for (const r of rows.values()) {
+    const row = document.createElement('div');
+    row.className = 'part';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = true;
+    r.setVisible = (on) => { cb.checked = on; row.classList.toggle('off', !on); setPartFlag(r.ids, 0, on); };
+    cb.onclick = (e) => { e.stopPropagation(); r.setVisible(cb.checked); };
+    const name = Object.assign(document.createElement('span'), { className: 'name', textContent: r.name });
+    const tag = Object.assign(document.createElement('span'), { className: 'tag', textContent: r.end || '' });
+    const only = Object.assign(document.createElement('button'), { className: 'only', textContent: 'only', title: 'show only this' });
+    only.onclick = (e) => { e.stopPropagation(); for (const o of partsState.rows) o.setVisible(o === r); };
+    row.onclick = () => highlight(r.ids, r);
+    row.append(cb, name, tag, only);
+    r.row = row;
+    partsState.rows.push(r);
+  }
+  return [...rows.values()];
 }
 
 let litIds = [];
@@ -1133,7 +1155,7 @@ function highlight(ids, row) {
     const r = row || partsState.rows.find((o) => o.ids.includes(ids[0]));
     if (r) {
       r.row.classList.add('lit');
-      r.row.parentElement.parentElement.classList.remove('closed');
+      for (let el = r.row.closest('.closed'); el; el = el.closest('.closed')) el.classList.remove('closed');
       r.row.scrollIntoView({ block: 'nearest' });
     }
   }
@@ -1466,10 +1488,10 @@ window.viewer = {
     await frames(3);
   },
   // Parts settings: { colourBy, shared, hidden: [part names], only: [part names], highlight: [part names] }.
-  // A name matches a part, its assembly, or "name|side|end".
+  // A name matches a part, its assembly, its group, or "name|side|end".
   async showParts(opts = {}) {
     const match = (names) => partsState.doc.parts.map((p, i) => [p, i]).filter(([p]) => names.some((n) =>
-      n === p.name || n === p.parent || n === `${p.name}|${p.side}|${p.end}`)).map(([, i]) => i);
+      n === p.name || n === p.parent || n === p.group || n === `${p.name}|${p.side}|${p.end}`)).map(([, i]) => i);
     partsState.mode.value = opts.colourBy ? 1 : 0;
     partsState.shared.value = opts.shared ? 1 : 0;
     const hidden = new Set(match(opts.hidden || []));

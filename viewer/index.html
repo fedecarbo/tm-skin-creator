@@ -114,11 +114,14 @@
   #partsTools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   #partsTools .sk, #partsHead .sk { font-size: 16px; padding: 6px 10px 3px; }
   #partsList { overflow-y: auto; margin-top: 8px; font-size: 13px; padding-right: 4px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+  .group { margin-top: 12px; }
+  .group:first-child { margin-top: 0; }
   .assembly { margin-top: 6px; }
-  .assembly > .head { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 4px; border-radius: 3px; }
-  .assembly > .head:hover { background: rgba(255, 255, 255, 0.08); }
-  .assembly > .head .about { opacity: 0.55; font-size: 12px; flex: 1; text-align: right; }
-  .assembly.closed > .items { display: none; }
+  .group > .head, .assembly > .head { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 4px; border-radius: 3px; }
+  .group > .head:hover, .assembly > .head:hover { background: rgba(255, 255, 255, 0.08); }
+  .group > .head .label { font-family: Teko, Bahnschrift, "DIN Condensed", sans-serif; text-transform: uppercase; letter-spacing: 0.03em; font-size: 19px; line-height: 1; padding-top: 3px; }
+  .group > .head .about, .assembly > .head .about { opacity: 0.55; font-size: 12px; flex: 1; text-align: right; }
+  .group.closed > .items, .assembly.closed > .items { display: none; }
   .items { margin-left: 18px; }
   .part { display: flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 3px; cursor: pointer; }
   .part:hover, .part.lit { background: rgba(232, 255, 71, 0.18); }

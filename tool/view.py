@@ -180,7 +180,7 @@ def export_uvmap():
         for i in cov.ids:
             inst = p.instances[i]
             texels, _, others = twins[i]
-            rows.append({"id": i, **{k: inst[k] for k in ("name", "parent", "side", "end", "mesh")},
+            rows.append({"id": i, **{k: inst[k] for k in ("name", "group", "parent", "side", "end", "mesh")},
                          "label": p.label(i), "tag": p.tag(i), "line": p.line(i, twins), "paint": p.share_words(i, twins),
                          "twins": sorted(others), "pct": round(100 * texels / (pw * ph), 2),
                          "sharp": round((texels / inst["area_cm2"]) ** 0.5, 1) if inst["area_cm2"] else 0,

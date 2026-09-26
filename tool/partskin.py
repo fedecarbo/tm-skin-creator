@@ -22,7 +22,7 @@ COLOURS = {
 }
 # (texture set, part or assembly name, colour, finish), painted in this order: later ones win.
 PAINT = [
-    ("Skin", "body", "white", SATIN),
+    ("Skin", "shell", "white", SATIN),
     ("Skin", "body shell", "blue", SATIN),
     ("Skin", "nose tip", "white", SATIN),
     ("Skin", "nose panel", "black", SATIN),

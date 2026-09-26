@@ -234,7 +234,8 @@ function pick(p) {
   const rooms = roomsOf(p.id);
   $('prRooms').textContent = inRoom[p.id] ? rooms.join(', ') : `${rooms.join(', ')}: not this room's`;
   $('prWhere').textContent = `${part.mesh}, ${part.pct < 0.1 ? 'under 0.1' : part.pct} % of it`;
-  $('prParent').textContent = `${part.parent}: ${doc.assemblies[part.parent] || ''}`;
+  const group = part.group === part.parent ? '' : `${part.group[0].toUpperCase()}${part.group.slice(1)} › `;
+  $('prParent').textContent = `${group}${part.parent}: ${doc.assemblies[part.parent] || ''}`;
   $('prPaint').textContent = part.paint[0].toUpperCase() + part.paint.slice(1);
   $('prSharp').textContent = `${part.sharp} dots per cm`;
   $('prSize').textContent = `${part.area.toLocaleString('en-GB')} cm² on the car`;

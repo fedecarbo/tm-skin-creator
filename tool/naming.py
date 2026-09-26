@@ -22,18 +22,18 @@ PARTS = [
     # no fold in it (measured: no crease over 10 degrees except its centre seam). Splitting it by
     # slope or by a line gave ragged borders in the game (2026-09-24), so it stays one part;
     # zones on it (nose, bonnet, sides) are the paint box's job, with soft edges in 3D.
-    dict(name="body shell", parent="body", piece=[21]),
-    dict(name="nose tip", parent="body", piece=[23]),
-    dict(name="nose panel", parent="body", piece=[51]),
-    dict(name="nose fin", parent="body", piece=[5, 9, 26], group=[260]),
-    dict(name="cockpit surround", parent="body", piece=[122]),
-    dict(name="mirror mount", parent="body", piece=[13, 18]),
-    dict(name="side skirt", parent="body", piece=[19]),
+    dict(name="body shell", parent="shell", piece=[21]),
+    dict(name="nose tip", parent="shell", piece=[23]),
+    dict(name="nose panel", parent="shell", piece=[51]),
+    dict(name="nose fin", parent="shell", piece=[5, 9, 26], group=[260]),
+    dict(name="cockpit surround", parent="shell", piece=[122]),
+    dict(name="mirror mount", parent="shell", piece=[13, 18]),
+    dict(name="side skirt", parent="shell", piece=[19]),
     dict(name="sidepod top", parent="sidepod", piece=[55]),
     dict(name="sidepod inlet", parent="sidepod", piece=[15]),
-    dict(name="rear flank", parent="body", piece=[29]),
-    dict(name="rear quarter panel", parent="body", piece=[58]),
-    dict(name="fuel cap", parent="body", piece=[33]),
+    dict(name="rear flank", parent="shell", piece=[29]),
+    dict(name="rear quarter panel", parent="shell", piece=[58]),
+    dict(name="fuel cap", parent="shell", piece=[33]),
     dict(name="engine cover", parent="engine cover", piece=[22]),
     dict(name="engine cover panel", parent="engine cover", piece=[1, 3]),
     dict(name="number panel", parent="engine cover", piece=[0, 2, 4]),
@@ -101,11 +101,11 @@ PARTS = [
     dict(name="upright", parent="front suspension", group=[415, 416]),
     # the slotted crescent inside each front wheel that the stock Details_I marks as brake lights
     # (code 0): dim all the time, flaring when braking (checkpoint 1). Part of the hub's group.
-    dict(name="brake light", parent="wheel", piece=[461, 462]),
-    dict(name="hub", parent="wheel", group=[421, 434]),
-    dict(name="rim", parent="wheel", group=[442, 443, 440, 444]),
-    dict(name="brake caliper", parent="wheel", group=[445, 446, 450, 451]),
-    dict(name="wheel ring", parent="wheel", group=[447, 448, 449, 452, 453, 454]),
+    dict(name="brake light", parent="rims and brakes", piece=[461, 462]),
+    dict(name="hub", parent="rims and brakes", group=[421, 434]),
+    dict(name="rim", parent="rims and brakes", group=[442, 443, 440, 444]),
+    dict(name="brake caliper", parent="rims and brakes", group=[445, 446, 450, 451]),
+    dict(name="wheel ring", parent="rims and brakes", group=[447, 448, 449, 452, 453, 454]),
     # rear suspension
     dict(name="hub bracket", parent="rear suspension", group=[408, 409]),
     dict(name="upright cover", parent="rear suspension", group=[376]),
@@ -116,30 +116,42 @@ PARTS = [
     # ---- Tyres (the Wheels mesh) ----
     dict(name="tread", parent="tyre", rule="tyre_tread"),
     dict(name="sidewall", parent="tyre", rule="tyre_sidewall"),
-    # ---- Glass ----
-    dict(name="canopy", parent="glass", piece=[2070]),
-    dict(name="gear display", parent="glass", rule="glass_digits"),
-    dict(name="nose lens", parent="glass", group=[465, 466, 468, 470, 471, 469]),
-    dict(name="rear light lens", parent="glass", group=[472, 473]),
-    dict(name="side lens", parent="glass", group=[475, 476]),
-    dict(name="wing lens", parent="glass", group=[474]),
-    dict(name="mirror glass", parent="glass", group=[477]),
+    # ---- Glass: each piece in the assembly it sits in (placed by its nearest parts, 2026-09-26) ----
+    dict(name="canopy", parent="shell", piece=[2070]),
+    dict(name="gear display", parent="cockpit", rule="glass_digits"),
+    dict(name="nose lens", parent="shell", group=[465, 466, 468, 470, 471, 469]),
+    dict(name="rear light lens", parent="tail", group=[472, 473]),
+    dict(name="side lens", parent="tail", group=[475, 476]),
+    dict(name="wing lens", parent="front wing", group=[474]),
+    dict(name="mirror glass", parent="cockpit", group=[477]),
 ]
 
-# Assemblies, in the order the viewer lists them, with a plain description.
-ASSEMBLIES = [
-    ("body", "the painted outer shell"),
-    ("sidepod", "the boxes either side of the cockpit"),
-    ("engine cover", "the deck behind the cockpit"),
-    ("tail", "the back of the car"),
-    ("wheel cover", "the discs over the wheels"),
-    ("front wing", "the wing under the nose"),
-    ("floor", "the flat underside"),
-    ("chassis", "the inner shell under the body"),
+# The groups, the top of the parts list (the user, 2026-09-26: "Wheel cover, Tyre, etc. should be
+# in a parent category called Wheels. Same with body ... the parent of sidepod, engine cover, tail
+# ... At least the external bits. Then there's Mechanicals ... cables, suspensions etc."). A group
+# is a name for the list and for picking parts; the paint box's own words "body" and "wheels"
+# keep their meanings (tool/paintbox.py).
+GROUPS = [
+    ("body", "the outside of the car"),
+    ("wheels", "tyres, covers, rims and brakes"),
+    ("mechanicals", "the frame and the suspension"),
     ("cockpit", "where the driver sits"),
-    ("front suspension", "the arms holding the front wheels"),
-    ("rear suspension", "the arms holding the rear wheels"),
-    ("wheel", "hubs, rims and brakes"),
-    ("tyre", "the rubber"),
-    ("glass", "the see-through parts"),
+]
+
+# Assemblies, in the order the viewer lists them: (name, group, a plain description). The user
+# may split them further (2026-09-26); a group keeps its assemblies' order.
+ASSEMBLIES = [
+    ("shell", "body", "the nose, the sides and the canopy"),
+    ("sidepod", "body", "the boxes either side of the cockpit"),
+    ("engine cover", "body", "the deck behind the cockpit"),
+    ("tail", "body", "the back of the car"),
+    ("front wing", "body", "the wing under the nose"),
+    ("floor", "body", "the flat underside"),
+    ("wheel cover", "wheels", "the discs over the wheels"),
+    ("tyre", "wheels", "the rubber"),
+    ("rims and brakes", "wheels", "rims, hubs and brakes"),
+    ("chassis", "mechanicals", "the inner shell under the body"),
+    ("front suspension", "mechanicals", "the arms holding the front wheels"),
+    ("rear suspension", "mechanicals", "the arms holding the rear wheels"),
+    ("cockpit", "cockpit", "seat, belts, steering wheel, dashboard and mirrors"),
 ]

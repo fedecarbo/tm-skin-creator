@@ -41,10 +41,9 @@ ROOMS = [
      "view": {"dir": [-0.62, 0.3, -0.72], "dist": 6.4}, "night": True,
      "maps": [{"set": "Details", "slot": "Details_I"}, {"set": "Glass"}]},
 ]
-WHEEL = ("tyre", "wheel cover", "wheel")  # a wheel's assemblies
 FRAMES = {
     "car": lambda inst: True,
-    "front left wheel": lambda inst: inst["parent"] in WHEEL and inst["side"] == "left" and inst["end"] == "front",
+    "front left wheel": lambda inst: inst["group"] == "wheels" and inst["side"] == "left" and inst["end"] == "front",
 }
 BODY_GLASS = ("canopy", "mirror glass")  # the rest of the glass covers lights
 GLOW_MIN = 0.02  # a part glows when this share of its texels in the light map does
@@ -54,9 +53,9 @@ def _member(key, inst, lit):
     if key == "body":
         return (inst["mesh"] == "Skin" and inst["name"] not in paintbox.WHEEL_COVER_PARTS) or inst["name"] in BODY_GLASS
     if key == "wheels":
-        return inst["parent"] in WHEEL
+        return inst["group"] == "wheels"
     if key == "details":
-        return inst["mesh"] == "Details" and inst["parent"] != "wheel"
+        return inst["mesh"] == "Details" and inst["group"] != "wheels"
     if key == "lights":
         return inst["name"] in lit or (inst["mesh"] == "Glass" and inst["name"] not in BODY_GLASS)
     raise KeyError(key)

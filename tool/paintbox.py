@@ -27,11 +27,14 @@ tool/shapes.REGIONS). Every painted area is a colour plus a finish; a finish may
 colour (carbon black, chrome silver), which a stated colour overrides. Later calls paint over
 earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn in 3D.
 
-`where`: a part or assembly name from car/parts.json, a list of them, or one of the words
+`where`: a part, assembly or group name from car/parts.json, a list of them, or one of the words
 "body" (the paint set without the wheel covers), "wheels" (the covers, rims, hubs and wheel
 rings: their own design step, never touched by body paint), "wheel covers", "inner" (Details),
 "tyres" (Wheels), "glass", "everything". The lights have plain words too (LIGHT_WORDS): "speed
 numbers", "brake lights", "rear lights".
+The groups (body, wheels, mechanicals, cockpit) top the parts list; "body" and "wheels" here are
+the words above, not the groups (the Body group also holds the floor and the black inner parts
+of the sidepods and tail). An assembly or group leaves its glass out unless the glass is named.
 Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|front". "floor",
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
 "floor|left|part". The Lab's rooms copy the phrase for any part (parts.Parts.token).
@@ -353,6 +356,9 @@ class Skin:
             side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
             end = next((b for b in bits[1:] if b in ("front", "rear")), None)
             ids = self.parts.select(bits[0], side=side, end=end, exact="part" in bits[1:])
+            # an assembly or group tints its glass only when the glass is named: painting the tail
+            # must not darken the rear lights' lenses (the glass joined the assemblies, 2026-09-26)
+            ids = [i for i in ids if self.parts.instances[i]["mesh"] != "Glass" or self.parts.instances[i]["name"] == bits[0]]
             for i in ids:
                 out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
             self._warn_shared(bits[0], ids)
