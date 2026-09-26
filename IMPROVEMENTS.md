@@ -28,8 +28,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   and then only that (2026-09-26, the user's thoughts: the UV map picks surfaces; the rooms are the
   game's maps, Body, Details, Tyres, Glass, each with a day and night picker, no Lights room).
   Built: the Studio (the timeline of the build, from clay), the painting rooms (each the car with a
-  camera on its area, picked by the user from real renders, and its own UV map as a tab) and the Materials tab. Put off: takes side by
-  side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
+  camera on its area, picked by the user from real renders, and its own UV map as a tab), the Materials tab, and a
+  round of concepts' switch (A, B, C) in the Studio and every room (the user's pick after a whole concept round,
+  2026-09-26). Put off: takes side by side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
   are in `CHECKLIST.md`, "The Lab".
 
 ## The tool
@@ -63,6 +64,20 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   openings; scratches catch the light. Idea: drive the wear by the car's own shape (edges,
   recesses, contact points) and layer it (paint, primer, metal at the deepest), then test it on
   a plain one-colour car before a livery.
+
+- **A step that covers an earlier step's paint says nothing** (2026-09-26, TSC_ChaosElegance_
+  Kintsugi: a borrowed inner-car helper painted the body black over the porcelain and gold). The
+  Studio's filmstrip shows it, but only if someone looks. Idea: at the end of each step, note any
+  part an earlier step painted that this step covered for the most part ("Inner car covered
+  Porcelain, Mended with gold on the body shell"), as `show` notes shared paint.
+- **The rough rounds show live in the Studio** (2026-09-26, the concept round): Claude's own fix
+  rounds before showing (Kintsugi black, Thrown in crimson, Thrown painted four times) played in
+  the Studio as they happened. Ask the user whether that's worth watching; if not, idea: a
+  `show --quiet` for Claude's checks that skips the frames and studio.json.
+- **The comparison picture's labels and views** (2026-09-26, the concept round): it numbers the
+  takes 1, 2, 3 on top of Claude's A, B, C ("1 A Kintsugi"), and a fourth view asked for is left
+  out without a word (the sheet is three tiles wide). Idea: letter the takes as the Lab's round
+  does, and wrap extra views to a second row.
 
 ## The viewer, from the user's screenshots and videos
 

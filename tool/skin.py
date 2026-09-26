@@ -4,6 +4,9 @@
     python -m tool.skin show <name> --open     ... and open the viewer in the browser
     python -m tool.skin install <name>         write the DDS files and the zip, install it
     python -m tool.skin list                   every skin, newest first
+    python -m tool.skin round "<title>" <skin> <skin> ... [--words "..."]
+                                               record a round of concepts, lettered A, B, C in
+                                               that order, so the Lab shows a switch between them
 
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),
 notes.md (the user's words and each change they asked for), thumb.png (the latest picture),
@@ -106,24 +109,33 @@ def do_install(name):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["show", "install", "list", "paint"])
-    ap.add_argument("name", nargs="?")
+    ap.add_argument("command", choices=["show", "install", "list", "paint", "round"])
+    ap.add_argument("name", nargs="*", help="the skin; for round, its title and then its skins")
     ap.add_argument("--open", action="store_true")
     ap.add_argument("--no-snap", action="store_true")
+    ap.add_argument("--words", default="", help="round: the user's words that asked for it")
     args = ap.parse_args()
     if args.command == "list":
         for entry in gallery.refresh():
             mark = " (in the game)" if entry["installed"] else ""
             print(f"{entry['name']:<24} {entry['when']}{mark}  {entry['words']}")
         return
-    if not args.name:
+    if args.command == "round":
+        if len(args.name) < 3:
+            sys.exit("a round: its title, then two skins or more")
+        r = gallery.record_round(args.name[0], args.name[1:], args.words)
+        gallery.refresh()
+        print(f"{r['title']}: " + ", ".join(f"{chr(65 + k)} {t['title']} ({t['name']})" for k, t in enumerate(r["takes"])))
+        return
+    if len(args.name) != 1:
         sys.exit("which skin?")
+    name = args.name[0]
     if args.command == "show":
-        show(args.name, args.open, snapshot=not args.no_snap)
+        show(name, args.open, snapshot=not args.no_snap)
     elif args.command == "paint":
-        paint(args.name)
+        paint(name)
     else:
-        do_install(args.name)
+        do_install(name)
 
 
 if __name__ == "__main__":

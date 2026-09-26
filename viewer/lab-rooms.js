@@ -11,8 +11,11 @@
 // each texel: R + 256 G = id + 1) and <Set>_Shared.png (texels several parts share). The skin is
 // the one in the address (the viewer's "The Lab" link), else the one Claude painted last
 // (studio.json), else the one the viewer showed last; as in the Studio, when Claude starts painting
-// another, the rooms follow it, and they show each step as it lands (steps.json).
+// another, the rooms follow it, and they show each step as it lands (steps.json). A take in a round
+// of concepts shows the switch between its takes (lab-round.js), as in the Studio.
 // The car is the viewer itself (?embed=1).
+
+import { note, render, wanted } from './lab-round.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -417,6 +420,7 @@ async function wear(next) {  // dress the car and the map in a skin's textures
   skin = next;
   live();
   if (!skin) return;
+  if (!before || before.name !== skin.name) render($('prRound'), skin.name).catch((e) => console.error(e));
   if (car) await car.dress(skin.textures);
   if (before && before.name !== skin.name) paints.clear();
   if (map) {
@@ -438,7 +442,7 @@ async function poll() {
   try {
     const now = await followed();
     let name = skin && skin.name;
-    if (now.stamp && now.stamp !== following) { following = now.stamp; name = now.skin; }
+    if (now.stamp && now.stamp !== following) { following = now.stamp; name = now.skin; note(name); }
     if (!name) return;
     const next = await readSkin(name);
     if (!next) return;
@@ -479,10 +483,11 @@ async function begin(helpers) {
   for (const p of doc.parts) byId[p.id] = p;
   const now = await followed();
   following = now.stamp;
-  let name = params.get('skin') || now.skin;
+  let name = wanted() || now.skin;  // the address now: the Studio's switch may have changed it
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
   const [first] = await Promise.all([name ? readSkin(name) : null, embedCar()]);
   await wear(first);
+  addEventListener('lab:skin', (e) => readSkin(e.detail).then((next) => next && wear(next)).catch((err) => console.error(err)));
   const frame = $('prMap');
   frame.addEventListener('pointermove', (e) => point(hit(e), e));
   frame.addEventListener('pointerleave', () => point(null));

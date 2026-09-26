@@ -38,6 +38,7 @@ user the Studio too.
 | Command | What it does |
 |---|---|
 | `PY -m tool.skin list` | Every skin, newest first, with the user's words; marks those in the game. |
+| `PY -m tool.skin round "<title>" <A> <B> [<C>] --words "…"` | Records a round of concepts (`skins/rounds.json`), so the Lab shows a switch between them. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
@@ -76,6 +77,10 @@ user the Studio too.
   Paint it by the parts it names; if it's only part of a part (the part names other surfaces
   too), say so and paint the part, or ask whether the whole part will do. A step copied from the Studio, like `TSC_CMYK_Peel_More, step 3
   of 4: Lights`, is that `s.step` in that skin's design.
+- **A round of concepts** (a loose idea's 2 or 3 takes): once they're painted, record them with
+  `tool.skin round "<the idea in a few words>" <A> <B> <C> --words "<the user's words>"` (lettered
+  in that order). The Lab then shows the round's title and a switch between the takes in the
+  Studio and every room (the user's pick, 2026-09-26); name them A, B, C in replies too.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as

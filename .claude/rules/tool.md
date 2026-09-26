@@ -33,7 +33,9 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   surfaces: `view._surfaces`, the shapes it outlines, `<Set>_Surfaces.png`), which `tool.view` and
   `tool.swatches` rebuild when the parts, the rooms or their code change. The Studio (the first room,
   `viewer/lab-studio.js`) reads the frames `tool.skin show` writes at each `Skin.step`
-  (`view.export_steps`, `studio.json`); `install` paints without them.
+  (`view.export_steps`, `studio.json`); `install` paints without them. A round of concepts
+  (`skins/rounds.json`, `tool.skin round`, on each take's `gallery.json` entry) puts a switch
+  between its takes in the Studio and the rooms (`viewer/lab-round.js`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

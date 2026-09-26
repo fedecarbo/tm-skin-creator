@@ -1296,7 +1296,8 @@ worked on, live; not one page. What was settled the same day:
   "let's focus on the rooms first"), each when the user asks, opening with its own mockups.
 - **Model:** Opus 5.5.
 - **Notes for Claude:**
-  - Claude's takes for a room side by side (A, B, C), as in the Wheels mockups.
+  - Claude's takes for a room side by side (A, B, C), as in the Wheels mockups. For a round of
+    concepts the user chose a switch instead (step 6); side by side stays unbuilt.
   - A view that fades the rest of the car (the Body room with the wheels faded): the viewer
     would need a fade per part (a third channel in its part table). Taking parts off is built
     (the Details room, 2026-09-26: `hides`, `viewer.hide`).
@@ -1355,6 +1356,39 @@ worked on, live; not one page. What was settled the same day:
     another skin, it followed the new one; 390×844 with no sideways scroll; the materials and UV
     map rooms as before; no page errors. The test car was removed.
   - **Next:** the user tries it on a new car.
+
+#### [ ] 6. Concepts in the Lab: a switch between a round's takes
+
+- **What it's for:** a loose idea gets two or three concepts, and the Lab showed only the one
+  painted last; the user saw them together only in the picture Claude opened ("I see the options
+  because you launched Preview in mac with the 3 concepts. But in the lab I only see one").
+- **What you'll see:** in the Studio, the round's title ("Chaos and elegance") and a button per
+  concept, A · Kintsugi, B · Thrown, C · Unravelled; the same buttons in Body, Details, Tyres and
+  Glass. Picking one shows it in the whole Lab, at the step the Studio was on.
+- **Model:** Opus 5.5.
+- **Notes for Claude:**
+  - **How it came about (2026-09-26):** the user asked to run a whole concept round "from start to
+    finish ... and see how you feel about the workflow (if there are any improvement from a
+    backend and frontend)". Their brief, "I want chaos and elegance", gave TSC_ChaosElegance_
+    Kintsugi, _Thrown and _Unravelled (the snags Claude hit are on `IMPROVEMENTS.md`).
+  - **The mockups:** https://claude.ai/artifact/Cu34iPj7nZVy4WXrJRe4Ji, the real Studio with the
+    three concepts (captured over CDP: the stage, the filmstrip's pictures and the markup, in the
+    Lab's own stylesheet). A a switch in the title, B the concepts side by side (front and rear),
+    C a filmstrip per concept. Claude recommended B; **the user chose A** (2026-09-26).
+  - **How it works:** `python -m tool.skin round "<title>" <skin> <skin> ... --words "..."` writes
+    `skins/rounds.json` (title, words, date, takes lettered A, B, C in that order; a take's title is
+    what its name adds to the others', or `name=Title`). `gallery.refresh` puts each take's round
+    on its `gallery.json` entry. `viewer/lab-round.js` draws the switch (`.show` of `.sk`) in the
+    Studio's head (`#stRound`, the round's title as the heading) and the rooms' (`#prRound`); a
+    pick sets `?skin=` (keeping `?step=`) and sends `lab:skin`, which the Studio and the rooms
+    (each keeps its own car) both open. Following Claude's painting (studio.json) now updates
+    `?skin=` too, so a room opened later shows the same car. The rooms' head wraps to two lines
+    when the switch leaves the pickers no room (1100 px).
+  - **Checked on the Mac (2026-09-26)** in headless Chrome: A to B at the Wheels step (B opens at
+    Wheels), B carried into the Body room, C picked there and carried back to the Studio, a skin
+    in no round shows no switch, 390 × 844 (Studio and Tyres, no sideways scroll), 1100 × 800 and
+    1440 × 900 (the rooms' head on two lines, then one), no page errors.
+  - **Next:** the user looks.
 
 ### Defining the parts (started 2026-09-26)
 
@@ -1572,6 +1606,23 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-26, a whole concept round (TSC_ChaosElegance_Kintsugi, _Thrown, _Unravelled).**
+  - **A borrowed helper can repaint what a step just painted.** TSC_Stealth_CMYK's `stealth_base`
+    ("the inner car") also paints the body matte black: it covered Kintsugi's porcelain and gold
+    with no note. Read a helper before reusing it; the tool doesn't warn yet (`IMPROVEMENTS.md`).
+  - **Value noise finer than a few cm makes facets.** `noise.value` flattens at every lattice
+    point, so a drop's edge wobbled by noise at 1.25 cm came out many-sided; at 3 cm it's round.
+    Only the close looks showed it.
+  - **Small glossy shapes on a dark matte body catch the sky as white dots from behind** (the
+    chase camera's side): Thrown's drops in wet look. Satin fixed it. A wet-look or gloss deck
+    also washes out from behind in the viewer's studio light.
+  - **Paint in 3D, then pushed, folds lines into loops.** Contour lines of a stripe field with
+    noise added only go wavy; moving the points by a noise vector before measuring the stripe
+    (domain warping) folds them into marbled swirls (Unravelled's tail).
+  - **Crimson drops on black read as blood.** An "elegant" brief took ultramarine instead.
+  - Painting took 60 to 100 s per concept; most of the round's time was Claude's own fix rounds
+    (seven paints for three concepts), each shown live in the Studio.
 
 - **2026-09-26, the first car built in the Studio (TSC_FlagPeel_CostaRica), and three fixes after
   it (the user asked: "Are they quick to fix? Can you do them?").**

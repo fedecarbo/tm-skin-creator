@@ -4,15 +4,18 @@
 // (CHECKLIST.md, "The Lab", step 5).
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
-// Either way, when Claude starts painting a skin, the Studio follows it.
+// Either way, when Claude starts painting a skin, the Studio follows it. A take in a round of
+// concepts shows the round's title and a switch between its takes (lab-round.js), which opens the
+// picked take at the same step.
 // Everything comes from the tool: tool.skin show paints a design step by step (paintbox.Skin.step)
 // and writes each step's frame and skins/<name>/steps.json (tool/view.py, export_steps), and
 // studio.json, the skin it painted last. The page asks for both every 1.5 s, so the filmstrip
 // fills in while a design is being painted. Both cars are the viewer itself (?embed=1): one big,
 // one hidden behind it that draws the filmstrip's pictures.
 
+import { note, render, wanted } from './lab-round.js';
+
 const $ = (id) => document.getElementById(id);
-const params = new URLSearchParams(location.search);
 const POLL = 1500;
 
 let copyLine = null;
@@ -118,6 +121,7 @@ function pick(k) {
   $('stAfter').textContent = later.length ? `${later.join(', ')}: they stay on top if this step changes` : 'Nothing yet: this is the car now';
   $('stLine').textContent = step.line;
   clay(k === n - 1);
+  const params = new URLSearchParams(location.search);
   if (params.has('skin') || params.has('step')) {
     const u = new URL(location.href);
     u.searchParams.set('step', k);
@@ -155,6 +159,7 @@ function apply(next) {
   if (Object.keys(was).length) {
     changed = new Set(doc.steps.map((s, k) => (s.frame && s.frame !== was[k] ? k : -1)).filter((k) => k >= 0));
   }
+  const params = new URLSearchParams(location.search);  // now: a take picked on the switch keeps the step
   const wantStep = Number(params.get('step'));
   const done = doc.steps.filter((s) => s.textures).length;
   if (!before && params.has('step') && doc.steps[wantStep] && doc.steps[wantStep].textures) picked = wantStep;
@@ -181,7 +186,8 @@ async function openSkin(name) {
   const list = await (await fetch('data/gallery.json')).json();
   const entry = list.find((s) => s.name === name);
   skin = { name, title: entry ? entry.title : titleOf(name) };
-  $('stTitle').textContent = skin.title;
+  const round = await render($('stRound'), name);
+  $('stTitle').textContent = round ? round.title : skin.title;
   try { seen = JSON.parse(localStorage.getItem(`tsc-studio-${name}`) || '{}'); } catch { seen = {}; }
   doc = null; picked = -1; changed = new Set(); stageLook = '';
   if (!stage) [stage, thumbs] = await Promise.all([viewer($('stCar')), viewer($('stThumbs'))]);
@@ -203,7 +209,7 @@ async function poll() {
     const now = await followed();
     if (now.stamp && now.stamp !== following) {
       following = now.stamp;
-      if (skin && now.skin !== skin.name) { await openSkin(now.skin); return; }
+      if (skin && now.skin !== skin.name) { note(now.skin); await openSkin(now.skin); return; }
     }
     const res = await fetch(`data/skins/${encodeURIComponent(skin.name)}/steps.json`, { cache: 'no-store' });
     if (res.ok) {
@@ -222,10 +228,11 @@ export async function open(helpers) {
   $('stCopy').addEventListener('click', (e) => doc && picked >= 0 && copyLine({ line: doc.steps[picked].line }, e.currentTarget));
   const now = await followed();
   following = now.stamp;
-  let name = params.get('skin') || now.skin;
+  let name = wanted() || now.skin;
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
   if (!name) { $('stLiveText').textContent = 'No skin yet: ask Claude for one'; return; }
   await openSkin(name);
+  addEventListener('lab:skin', (e) => openSkin(e.detail).catch((err) => console.error(err)));
   setInterval(poll, POLL);
   window.lab.studioReady = true;
 }
