@@ -1333,6 +1333,15 @@ the first room; steps 3 and 4 wait until the user has used it.
     container through the repo's `.snap/` folder (git-ignored, `/app/.snap` inside), where
     `tool.snap --tiles` makes the same sheets. The container has no Arial: its labels are in
     Russo One. Six views take about 6 s on the M5.
+  - **Worn paint (`tool/wear.py`, the user: "more on looking worn, the flag? Instead of torn
+    paint?").** Chips down to bare aluminium mirrored the dark room and read as black specks:
+    light grey primer reads as worn paint (and hides, rightly, on white). Chips low on the sides
+    up to a fixed height made a speckled band that read as a pattern: the line now wanders and
+    the chips come in patches. Clear coat failure over a fifth of the top in 20 cm patches read
+    as camouflage: a few big patches on the highest faces, chalky inside, with a lighter lifting
+    edge, read as sun damage. Scrapes need their gate (outer side, wall height, patch) as a
+    hard switch, not a sum: summed, almost none got through. The picture takes a close row
+    per take now (`--close-row` again).
 - **2026-09-26, the Lab (materials).**
   - **Finish names with a colour word in them were being split.** In "brushed titanium",
     "titanium" is a colour, so the phrase became the brushed steel finish in titanium grey.

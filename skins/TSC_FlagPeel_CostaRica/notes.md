@@ -28,3 +28,18 @@ flag reads across the car in its order. Built from clay in six steps (the Studio
   inside the cockpit: red.
 - Shown 2026-09-26: a picture of nine views (front, rear, side, above, driving camera, night,
   cockpit, front wing, wheel), and the Studio.
+- Change 1 (user, 2026-09-26): "Kind of a yes. It's an interesting concept but I think the black
+  is too much of a colour do be on top of the flag. Not sure if there's another alternative?",
+  then "the colour I meant". Two takes painted, not shown: the flag on top torn to bare carbon,
+  and a brushed silver wrap (its white stripes barely showed against the silver). Before they
+  were shown the user wrote: "Maybe in this concept its more on looking worn, the flag? Instead
+  of torn paint?" So the flag is now the paint itself, over light grey primer, aged: new in the
+  paint box, `s.wear` (tool/wear.py). Two takes: TSC_FlagPeel_CostaRica_RaceWorn (stone chips at
+  the nose, the forward faces and low on the sides, scrapes along the sidepods from the walls,
+  a little faded) and TSC_FlagPeel_CostaRica_SunFaded (washed out most on top, the clear coat
+  gone chalky in a few big patches, a few chips). The inlet rings, mirrors and tail are carbon
+  in both. Rounds before showing: chips to bare aluminium read as black specks, in a band
+  along the sills; the clear coat patches, at a fifth of the top, read as camouflage.
+- Shown 2026-09-26: the two worn takes side by side, with close rows (nose, side, driving
+  camera; bonnet, flank, driving camera). The pick goes into this skin.
+

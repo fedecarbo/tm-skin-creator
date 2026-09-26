@@ -1,5 +1,6 @@
 """The CMYK peel with a country's flag under the wrap (2026-09-26): matte black torn open in
-ragged patches, as TSC_CMYK_Peel_More, showing the flag underneath. Costa Rica's blue, white,
+ragged patches, as TSC_CMYK_Peel_More, showing the flag underneath; or (wear=, the user's next
+idea) the flag as the paint itself, worn (WEAR). Costa Rica's blue, white,
 red (double), white, blue, draped over the car from one side to the other: red down the spine
 to the nose tip, white over the shoulders, blue down the sides, so the chase camera sees the
 whole flag across the car. (Stacked by height instead, so each side showed the whole flag, it
@@ -81,34 +82,66 @@ def flag_colours(flag):
     return st[0][0], st[1][0], st[len(st) // 2][0]
 
 
-def design(s, flag="costa rica"):
-    stripes = FLAGS[flag]["stripes"]
-    outer, second, centre = flag_colours(flag)
-    s.clay()
-    s.step("The flag", f"{FLAGS[flag]['name']}'s flag in satin, draped over the body from side to side: "
-           "red down the spine, white over the shoulders, blue down the sides.",
-           words="instead of cmyk, we could do country flags, for example Costa Rica")
-    drape(s, "body", stripes)
-    under = s.keep()
+# the flag worn rather than torn (the user, 2026-09-26: "the black is too much of a colour do be
+# on top of the flag", then "Maybe in this concept its more on looking worn, the flag? Instead of
+# torn paint?"): the flag is the paint, over light grey primer, aged (tool/wear.py). "race"
+# (TSC_FlagPeel_CostaRica_RaceWorn): stone chips where a race car takes hits, scrapes along the
+# sides from the walls, the colours a little faded. "sun" (_SunFaded): washed out by years of
+# sun, the clear coat failed in chalky patches on top, a few chips.
+WEAR = {"race": dict(fade=0.15, chips=0.06, scrapes=0.6), "sun": dict(fade=0.7, clearcoat=0.08, chips=0.02)}
+PRIMER = "#c9c9c4"
+WORN_WORDS = "Maybe in this concept its more on looking worn, the flag? Instead of torn paint?"
 
-    s.step("The black wrap", "Matte black over the whole body, no seam lines. The inner car dark, its accents in the flag's colours.",
-           words="Give me another proposition for cmyk tearing concept")
+
+def inner_car(s, stripes, match):
+    """The inner car dark, its accents in the flag's colours; the parts beside the wrap match it."""
+    outer, second, centre = stripes[0][0], stripes[1][0], stripes[len(stripes) // 2][0]
     _cmyk.stealth_base(s, seams=False)
-    s.paint("sidepod frame", "matte", colour=BLACK)
+    s.paint(["sidepod frame", "mirror", "mirror arm"], match[0], colour=match[1])  # in a flag's colour, the mirrors read as scraps of it
     s.paint(["sidepod grille", "seat belt", "side vent"], "satin", colour=centre)
     s.paint("sidepod panel", "satin", colour=second)
     s.paint("sidepod grille plate", "satin", colour=DARK)
     s.paint(["brake caliper", "brake line", "front wing endplate"], "satin", colour=outer)
     s.paint("cockpit rim", "satin", colour=centre)  # in white, its corners inside the cockpit read as leftover clay
-    s.paint(["mirror", "mirror arm"], "matte", colour=BLACK)  # in a flag's colour they read as scraps of it
     # the front wing (its plane only, 51 cm each side of the middle): the flag across it
     across(s, "front wing|part", stripes, 51)
     s.glow(["sidepod grille", "side vent"], None, "always on")
     s.glow("brake caliper", None, "brake lights")
 
-    s.step("Torn open", "The wrap torn off in ragged patches (about half), hard edges and a thin even shadow, the flag showing through.",
-           words="cmyk tearing concept")
-    s.peel(under, amount=0.45, scale=40, seed=11)
+
+def design(s, flag="costa rica", wear=None):
+    """wear None: the black wrap torn open over the flag. "race" or "sun": the flag worn (WEAR)."""
+    stripes = FLAGS[flag]["stripes"]
+    outer, second, centre = flag_colours(flag)
+    match = ("matte", BLACK) if wear is None else ("carbon", None)  # the sidepods' inlet rings, the mirrors, the tail
+    flag_does = (f"{FLAGS[flag]['name']}'s flag in satin, draped over the body from side to side: "
+                 "red down the spine, white over the shoulders, blue down the sides.")
+    flag_words = "instead of cmyk, we could do country flags, for example Costa Rica"
+    s.clay()
+    if wear is None:
+        s.step("The flag", flag_does, words=flag_words)
+        drape(s, "body", stripes)
+        under = s.keep()
+        s.step("The black wrap", "Matte black over the whole body, no seam lines. The inner car dark, its accents in the flag's colours.",
+               words="Give me another proposition for cmyk tearing concept")
+        inner_car(s, stripes, match)
+        s.step("Torn open", "The wrap torn off in ragged patches (about half), hard edges and a thin even shadow, the flag showing through.",
+               words="cmyk tearing concept")
+        s.peel(under, amount=0.45, scale=40, seed=11)
+    else:
+        s.step("Primer", "The body in light grey primer, the inner car dark with its accents in the flag's colours: "
+               "what shows where the paint wears through.", words=WORN_WORDS)
+        inner_car(s, stripes, match)
+        s.paint("body", "matte", colour=PRIMER)
+        under = s.keep()
+        s.step("The flag", flag_does, words=flag_words)
+        drape(s, "body", stripes)
+        s.step("Worn", {"race": "Stone chips down to the primer on the nose, the faces turned forward and low on the sides, "
+                                "scrapes along the sides from the walls, the colours a little sun-faded.",
+                        "sun": "The flag washed out by years of sun, palest on top, the clear coat gone chalky in patches; "
+                               "a few chips."}[wear],
+               words=WORN_WORDS)
+        s.wear(under, **WEAR[wear])
 
     s.step("Lights", "Blue brake lights, white speed numbers, rear lights through the flag as the gears climb "
            "(blue, white, red), rims that glow red when braking hard; the inside's lamps in the flag's colours.",
@@ -128,12 +161,12 @@ def design(s, flag="costa rica"):
     s.glow("rear diffuser", centre, "exhaust heat", zone=_tail.PORTS)
     s.no_glow("rear bumper")
 
-    s.step("Inside", "The exhaust heat-tinted, the tail matte black like the wrap, a quilted seat.",
+    s.step("Inside", f"The exhaust heat-tinted, the tail in {'the wrap' if wear is None else 'bare carbon'}, a quilted seat.",
            words="what matters is the quality of the entire car")  # the user on the CMYK car, 2026-09-25
     s.paint("exhaust", "brushed titanium", colour="#c9a24a")
     s.paint("exhaust", "brushed titanium", colour="#9a4f9e", zone=shapes.fade("z", -115, -130))
     s.paint("exhaust", "brushed titanium", colour="#3f6fd0", zone=shapes.fade("z", -130, -145))
-    s.paint(_tail.TAIL, "matte", colour=BLACK)
+    s.paint(_tail.TAIL, match[0], colour=match[1])
     s.paint("airbox", "matte", colour="#1a1b1d")
     s.relief("seat", "quilted", depth=0.5, scale=7, replace=True)
 

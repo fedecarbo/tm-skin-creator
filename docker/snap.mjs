@@ -6,7 +6,7 @@
 //                                                tool.skin show's snapshot does on the PC)
 //   node docker/snap.mjs <name> --close          the close looks -> build/<name>_close.png
 // Each sheet is copied to .snap/ too, for Claude to look at on the Mac.
-//   node docker/snap.mjs <name> [<more> ...] --picture --titles "…" [--views …] [--close-row <name> 3 4 9]
+//   node docker/snap.mjs <name> [<more> ...] --picture --titles "…" [--views …] [--close-row <name> 3 4 9 ...]
 //                                                the picture for the user, opened on the screen
 //
 // The container has no browser, so the Mac's own Chrome takes the pictures: headless, on a

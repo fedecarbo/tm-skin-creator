@@ -40,7 +40,7 @@ user the Studio too.
 | `PY -m tool.skin list` | Every skin, newest first, with the user's words; marks those in the game. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
-| `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks. Opens it on their screen. |
+| `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
 | `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: every material the tool knows on a ball, by family, with its code, numbers and a "Copy for Claude" button. |
 | `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
@@ -115,6 +115,9 @@ user the Studio too.
 - Keep lettering and detail off "number panel" and "engine cover panel": the game draws the
   player's number and name there.
 - Crisp edges. The zone edge is 0.2 cm (about two texels). A fade along an edge reads as soft.
+- Aged paint: `under = s.keep()` of the primer, paint the livery, then `s.wear(under, fade=,
+  chips=, scrapes=, clearcoat=)` (stone chips, wall scrapes, sun). Light primer under chips, not
+  bare metal: metal mirrors the dark and reads as black specks.
 - Paint can't fake big 3D shapes (curls, folds): use small, crisp cues. A painted shadow must be
   the same width all round (as if lit from above), or it looks wrong from the other camera.
 - Glow is for the inner car only: `s.glow(part, colour, kind)`. Seen working: "always on",

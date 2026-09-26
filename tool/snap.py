@@ -4,7 +4,7 @@
     python -m tool.snap TSC_Test --size 1280x960
     python -m tool.snap TSC_Test --close  -> build/TSC_Test_close.png: the close looks (CLOSE)
     python -m tool.snap TSC_Test --picture [TSC_Other ...] [--titles ...] [--views ...]
-                                             [--close-row TSC_Test 2 5 9]
+                                             [--close-row TSC_Test 2 5 9 [--close-row TSC_Other 2 5 9]]
         -> build/TSC_Test_picture.png, a row per skin from its views sheet (and a row of close
            looks), opened on the screen: the picture shown to the user
 
@@ -122,16 +122,18 @@ def _tile(sheet, k):
 
 def picture(names, titles=None, views=("front", "rear", "top"), close=None, open_it=True):
     """The picture for the user: a titled row per skin (views from its views sheet) and, with
-    close = (name, [numbers from its close sheet]), rows of close looks. Opens it on the screen."""
+    close = (name, [numbers from its close sheet]) or a list of them (one per take), rows of close
+    looks. Opens it on the screen."""
     titles = list(titles or [])
     rows = []
     for k, name in enumerate(names):
         title = f"{k + 1}  {titles[k] if k < len(titles) else name}" if len(names) > 1 else (titles[0] if titles else name)
         c, r = zip(*(VIEW_TILES[v] for v in views))
         rows.append((title, [_tile(paths.BUILD / f"{name}_views.png", r[i] * 3 + c[i]) for i in range(len(views))]))
-    if close:
-        name, numbers = close
+    for name, numbers in ([close] if close and isinstance(close[0], str) else close or []):
         label = titles[names.index(name)] if name in names and names.index(name) < len(titles) else name
+        if len(names) > 1 and name in names:
+            label = f"{names.index(name) + 1}  {label}"
         tiles = [_tile(paths.BUILD / f"{name}_close.png", int(n) - 1) for n in numbers]
         for i in range(0, len(tiles), 3):
             rows.append((f"Up close: {label}" if i == 0 else "", tiles[i:i + 3]))
@@ -161,7 +163,8 @@ def main():
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
-    ap.add_argument("--close-row", nargs="+", metavar="NAME N", help="a skin, then numbers from its close sheet")
+    ap.add_argument("--close-row", nargs="+", action="append", metavar="NAME N",
+                    help="a skin, then numbers from its close sheet (again for another skin)")
     ap.add_argument("--shots", action="store_true", help="the Mac: print the views to take, as JSON")
     ap.add_argument("--tiles", metavar="DIR", help="the Mac: the sheet from DIR/0.png, 1.png... in --shots order")
     ap.add_argument("--thumb", action="store_true", help="with --tiles: also the gallery's picture, and a version kept")
@@ -182,7 +185,7 @@ def main():
             gallery.refresh()
         return
     if args.picture:
-        close = (args.close_row[0], args.close_row[1:]) if args.close_row else None
+        close = [(row[0], row[1:]) for row in args.close_row or []]
         picture([args.name] + args.more, args.titles, args.views, close)
         return
     w, h = (int(v) for v in args.size.split("x"))
