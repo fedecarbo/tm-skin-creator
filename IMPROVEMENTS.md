@@ -32,6 +32,10 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   round of concepts' switch (A, B, C) in the Studio and every room (the user's pick after a whole concept round,
   2026-09-26). Put off: takes side by side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
   are in `CHECKLIST.md`, "The Lab".
+  **A thought from the user (2026-09-27):** the rooms (Body, Details...) aren't helping, and the
+  panel on the right went unused while making skins. Mockups of the Studio without the rooms, three
+  things in place of the panel: A just the car, B the game's views, C notes on the car. Waiting
+  for the user's pick (`CHECKLIST.md`, The Lab, step 7).
 
 ## The tool
 
@@ -71,10 +75,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   Studio's filmstrip shows it, but only if someone looks. Idea: at the end of each step, note any
   part an earlier step painted that this step covered for the most part ("Inner car covered
   Porcelain, Mended with gold on the body shell"), as `show` notes shared paint.
-- **The rough rounds show live in the Studio** (2026-09-26, the concept round): Claude's own fix
-  rounds before showing (Kintsugi black, Thrown in crimson, Thrown painted four times) played in
-  the Studio as they happened. Ask the user whether that's worth watching; if not, idea: a
-  `show --quiet` for Claude's checks that skips the frames and studio.json.
 - **The comparison picture's labels and views** (2026-09-26, the concept round): it numbers the
   takes 1, 2, 3 on top of Claude's A, B, C ("1 A Kintsugi"), and a fourth view asked for is left
   out without a word (the sheet is three tiles wide). Idea: letter the takes as the Lab's round

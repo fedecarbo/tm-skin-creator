@@ -1356,6 +1356,9 @@ worked on, live; not one page. What was settled the same day:
     another skin, it followed the new one; 390×844 with no sideways scroll; the materials and UV
     map rooms as before; no page errors. The test car was removed.
   - **Next:** the user tries it on a new car.
+  - **Claude's rough rounds stay live** (the user, 2026-09-27, asked whether the fix rounds before
+    showing were worth watching in the Studio: "I like to see the work going on, so yes"). So no
+    quiet mode: every `tool.skin show` paints its frames and moves the Studio.
 
 #### [ ] 6. Concepts in the Lab: a switch between a round's takes
 
@@ -1392,6 +1395,24 @@ worked on, live; not one page. What was settled the same day:
     in no round shows no switch, 390 × 844 (Studio and Tyres, no sideways scroll), 1100 × 800 and
     1440 × 900 (the rooms' head on two lines, then one), no page errors.
   - **Next:** the user looks.
+
+#### [ ] 7. The Lab without the rooms
+
+- **What it's for:** the user, 2026-09-27: "I'm starting to not find the views (body, details,
+  etc) so helpful. And also, not sure I find the sidebar on the right useful. I like the design,
+  but when doing skins I haven't used that, so I'm wondering we replace that for something more
+  useful?" So the room tabs go and the Studio's right panel (the step's words, what it paints,
+  copy for Claude) gives way to something the user would use.
+- **Model:** Opus 5.5.
+- **Notes for Claude:**
+  - **The mockups:** https://claude.ai/artifact/RDHpVhtt3SYTP8X2t21zQ9, the real Studio (its
+    stylesheet and markup captured over CDP, TSC_ChaosElegance_Unravelled_CMYKRise at step 5) with
+    only Studio and Materials on top. A just the car (the whole width; Around, Cam 1, 2, 3 and day
+    or night as buttons over it), B the game's views (Cam 1, Cam 1 at night, Cam 2, Cam 3 at the
+    picked step down the side, cropped from 1280×720 renders around the car; click one to see it
+    big), C notes on the car (click the car to pin a note; Claude reads them with the user's next
+    message, which needs a store on the Mac's server and a hook). Claude recommended B.
+  - Waiting for the user's pick.
 
 ### Defining the parts (started 2026-09-26)
 
