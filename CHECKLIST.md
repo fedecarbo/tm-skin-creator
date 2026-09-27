@@ -1614,6 +1614,16 @@ worked on, live; not one page. What was settled the same day:
       - The baselines were unchanged.
     - **Found on the way:** a skin painted before the Studio has no steps.json. The stand now asks
       for it only when Claude starts a paint, not every 1.5 s.
+    - **On the PC:** two old servers were still listening on port 8765 (yesterday's `tool.view` and
+      `tool.swatches`, both allowed to by the reuse flag), with the old notes code in memory. They
+      were stopped, and `tool.swatches` was started afresh. After a change to the server, restart
+      whatever serves 8765.
+    - **Next on the Mac:**
+      - `docker compose restart` after the pull, so the container serves the new notes code;
+      - the concurrency test with the server in the container and the hook on the host;
+      - check that start-up no longer moves the Lab;
+      - check that the stand renders.
+    - **Next:** the user tries the stand; then 9.2.
 
 ### Defining the parts (started 2026-09-26)
 
