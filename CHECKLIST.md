@@ -1480,6 +1480,18 @@ worked on, live; not one page. What was settled the same day:
     path for Claude to look at; taking a note back or marking it done deletes it. Checked on the
     Mac: the picture showed the car as seen with pin 1 on the sidepod grille, the hook named it,
     `done` removed it.
+  - **Brighter day and night (the user, 2026-09-27: "night is too dark though, and the lighting is
+    too dimmed", "maybe the day could be brighter or maybe the background is too grey").** The
+    mockups: https://claude.ai/artifact/Gfm17Zv9rUL5WX2D53PE1V, TSC_ChaosElegance_Unravelled_CMYKRise
+    and TSC_IceCreamSweet through the viewer's own address settings. Day: A as it was, B brighter
+    paint, C a light grey room, D a white room; night: A as it was, B twice the moonlight, C much
+    brighter, D a bright car in a near-black room. Claude recommended C and D; **the user chose day
+    B, and night B with brighter glows.** Each look now has its own exposure and glow (`LOOKS` in
+    `viewer/viewer.js`; `TUNE`'s exposure, env, key and glow multiply them): day exposure 1.2 and
+    env 1.25; night env 4.4, key 0.44 and every glow ×1.8 (`glowScale`, the rear lights too).
+    Glows tried at 1, 1.8 and 2.6 close up (the speed digits, the wheel rings): at 2.6 the tinted
+    digits had turned white. Claude's snapshots go through the same viewer, so they're brighter
+    too.
 
 ### Defining the parts (started 2026-09-26)
 

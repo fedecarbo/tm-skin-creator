@@ -51,16 +51,22 @@ const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
 // the car and shows in its reflections. Night is a moonlit sky with a dim blue key. Both HDRIs
 // are from Poly Haven (CC0). key: the one light that casts a shadow. The room around the car is a
-// plain grey cove lit by the same light, so it darkens with the car (the user's wish).
+// plain grey cove lit by the same light, so it darkens with the car (the user's wish). Brighter
+// since 2026-09-27 (the user: "night is too dark though, and the lighting is too dimmed"; picked
+// from renders, https://claude.ai/artifact/Gfm17Zv9rUL5WX2D53PE1V): by day the paint about a third
+// brighter (exposure 0.9 -> 1.2, env 1 -> 1.25), the room still dark grey; at night twice the
+// moonlight (env and key x2) and the glows brighter (glow: every glow's gain at night; at 2.6 the
+// coloured ones had begun to turn white, so 1.8).
 const LOOKS = {
-  day: { hdr: 'studio_small_09', env: 1, key: 1.1, keyColour: 0xfff4e8 },
-  night: { hdr: 'dikhololo_night', env: 2.2, key: 0.22, keyColour: 0xb9c9ff },
+  day: { hdr: 'studio_small_09', env: 1.25, key: 1.1, keyColour: 0xfff4e8, exposure: 1.2, glow: 1 },
+  night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.9, glow: 1.8 },
 };
 const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car's front left
 
-// Settings any of which can be tried from the address, e.g. ?exposure=1&env=0.8, when matching
-// the game again. env and key scale both looks. room: how light the room's grey is (linear).
-const TUNE = { exposure: 0.9, env: 1, key: 1, coat: 1, room: 0.035 };
+// Settings any of which can be tried from the address, e.g. ?exposure=1.1&env=0.8, when matching
+// the game again. exposure, env, key and glow scale both looks' own. room: how light the room's
+// grey is (linear).
+const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 0.035 };
 for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(params.get(key));
 
 // The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on a car that's just
@@ -85,6 +91,7 @@ const GLOW = [
   { code: 255, day: 0, night: 1.4 },  // night only. Coloured glows above ~1.5 wash out under the tone mapping
 ];
 const glowUniforms = {
+  glowScale: { value: 1 },  // the look's glow (LOOKS), over every code's gain
   glowGain: { value: GLOW.map((g) => g.day) },
   glowTint: { value: GLOW.map((g) => new THREE.Vector3(...(g.tint || [1, 1, 1]))) },
 };
@@ -95,7 +102,7 @@ const canvas = document.getElementById('view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(snap ? 1 : Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = TUNE.exposure;
+renderer.toneMappingExposure = LOOKS.day.exposure * TUNE.exposure;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;  // soft already; PCFSoftShadowMap is gone in 0.186
 const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -366,12 +373,13 @@ function addGlow(material, codeMap) {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <emissivemap_pars_fragment>', `#include <emissivemap_pars_fragment>
         uniform sampler2D glowCodeMap;
+        uniform float glowScale;
         uniform float glowGain[ 9 ];
         uniform vec3 glowTint[ 9 ];`)
       .replace('#include <emissivemap_fragment>', `#ifdef USE_EMISSIVEMAP
           vec3 glowColour = texture2D( emissiveMap, vEmissiveMapUv ).rgb;
           int glowIndex = int( floor( texture2D( glowCodeMap, vEmissiveMapUv ).r * 255.0 / 32.0 + 0.5 ) );
-          totalEmissiveRadiance *= glowColour * glowGain[ glowIndex ] * glowTint[ glowIndex ];
+          totalEmissiveRadiance *= glowColour * glowGain[ glowIndex ] * glowTint[ glowIndex ] * glowScale;
         #endif`);
   };
 }
@@ -946,7 +954,7 @@ function applyBraking() {
   // after a turbo pad the rear lights go red as when braking, with no brake pressed
   const red = braking || drive.brake || drive.turbo > TURBO.glow - TURBO.red;
   rearUniforms.rearBrake.value = red ? 1 : 0;
-  rearUniforms.rearLevel.value = (red ? REAR.brake : REAR.on)[look];
+  rearUniforms.rearLevel.value = (red ? REAR.brake : REAR.on)[look] * glowUniforms.glowScale.value;
   // the turbo colour (code 160) and exhaust heat (192): full on, fading over the last half second
   const turbo = Math.min(1, drive.turbo / TURBO.fade);
   glowUniforms.glowGain.value[5] = turbo * TURBO.gain[look];
@@ -1271,6 +1279,8 @@ function setNight(on) {
   night = on;
   const look = LOOKS[night ? 'night' : 'day'];
   GLOW.forEach((g, i) => { glowUniforms.glowGain.value[i] = night ? g.night : g.day; });
+  glowUniforms.glowScale.value = look.glow * TUNE.glow;
+  renderer.toneMappingExposure = look.exposure * TUNE.exposure;
   setBraking(braking);
   scene.environment = envMaps[night ? 'night' : 'day'] || null;
   scene.environmentIntensity = look.env * TUNE.env;

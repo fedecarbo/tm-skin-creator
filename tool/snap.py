@@ -59,7 +59,7 @@ def _font(px):
 
 
 def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None):
-    """query: extra page settings, e.g. "exposure=0.9&coat=0.5" (TUNE in viewer.js).
+    """query: extra page settings, e.g. "exposure=1.1&coat=0.5" (TUNE in viewer.js, over each look's own).
     prepare=False: the skin is already in the viewer's data (the paint box exports it itself).
     thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture)."""
     if prepare:
