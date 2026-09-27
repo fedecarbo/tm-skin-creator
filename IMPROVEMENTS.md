@@ -10,6 +10,29 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
+- **The viewer on smaller screens: next** (the user, 2026-09-27, right after the studio render: "I
+  think I need to change something around how the viewer is responsive. I don't like the current
+  way because when the screen gets smaller, the viewer of the car shrinks and get's distorted").
+  Start from the user's thoughts and how they see it; nothing is planned. What the code does
+  (`frame()` in `viewer/viewer.js`): the lens is fixed top to bottom (`FOV` 32°), so a narrower
+  window sees less across, and `camera.zoom = f.zoom * min(1, (w - rail) / h / 1.3)` (16/9 for a
+  Driving camera) zooms the whole picture out until the car fits across; a view offset centres the
+  car beside the skin list (`--rail`, 300 px, 0 under 900 px wide, where the list folds away).
+  Measured 2026-09-27 (FRAMED zoom 0.92 at full size): 1600x900 the car at full size, 1100x800 at
+  77 %, 850x800 at 82 %, a phone held upright (400x850) at 36 %; the title wraps at 1100 wide. The
+  distortion didn't show in still pictures at those sizes: ask the user for a screenshot, or the
+  window size and view, where it does (suspects: the canvas is 100vw x 100vh, and on a phone 100vh
+  includes the browser's bar; the picture while the window is being resized; the zoom-out reading
+  as a wider lens, which the user disliked on the Driving cameras, see `throughOurLens`). An idea:
+  frame the car by its own outline in the space the page leaves it (beside the list, between the
+  top buttons and the bottom bar), moving the camera rather than zooming, as the Lab's rooms do
+  (`fitView`); check it at desktop, 900 px and phone sizes.
+- **The page online, the new studio** (2026-09-27): the studio render changed the viewer's look
+  (one studio the colour of the game's track, the skies as the game's), and the page online
+  (https://fedecarbo.github.io/tm-skin-creator/) still has the old one. The user chose to publish it
+  after the smaller-screens work, which the phone page needs: then `PY -m tool.publish` (it now
+  carries `studio.js` and the floor's grain).
+
 - **Defining the parts: next, before anything else** (the user, 2026-09-26: "I think we need to
   define parts first. Can this be my next task to do before anything else?"). The user leads it,
   and may do it with another agent. What "define" covers is theirs to say: start from their
