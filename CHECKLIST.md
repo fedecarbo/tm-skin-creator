@@ -1724,9 +1724,11 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   refresh). Then "Maybe make the whole thing a bit whiter but with some kind of vignette so that
   the buttons dont dissapear. and also I need the grid smaller in scale. but a bit farther
   covering": the light shade is now 0.34 (near white behind the car) with a vignette on the studio
-  only (not the car: the paint stays true), centred on the car's middle on the screen, down to 0.2
-  of the grey by the edges; the buttons over it get a dark glass and the title a soft shadow
-  (`body.lightStudio`); the grid is a line every 50 cm (7 mm wide), fading between 8 and 13.8 m.
+  only (not the car: the paint stays true), centred on the car's middle on the screen; the buttons
+  over it get a dark glass (`body.lightStudio`); the grid is a line every 50 cm (7 mm wide), fading
+  between 8 and 13.8 m. Then "the vignette is very strong": now gentle, 0.6 of the grey by the
+  corners (it was 0.2), since the buttons read by their glass; by day the car's name and the speed
+  are in dark ink over the near-white studio (`body.brightStudio`, white again at night).
   The viewer opens on the grainy grid, light (`tsc-viewer-floor-3`). Next: the user confirms; then
   it's the only floor (snapshots, the Lab, the page online) and the menu goes, unless they want to
   keep it.

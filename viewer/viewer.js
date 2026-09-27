@@ -1359,9 +1359,20 @@ function setMood(m) {
   const picked = document.getElementById(mood);
   document.getElementById('moodIcon').setAttribute('href', picked.querySelector('use').getAttribute('href'));
   document.getElementById('moodName').textContent = picked.lastElementChild.textContent;
+  markStudio();
 }
 
 // ---- The floor: viewer/floors.js, picked from the Floor menu (the user, 2026-09-27) ----
+
+// The page's lettering over the light studio (index.html): the buttons on a dark glass, and by day,
+// when the studio is near white, the car's name and the speed in dark ink.
+function markStudio() {
+  if (!floors) return;
+  const { name, shade } = parseFloor(floors.get());
+  const light = name !== 'today' && shade === 'light';
+  document.body.classList.toggle('lightStudio', light);
+  document.body.classList.toggle('brightStudio', light && mood === 'day');
+}
 
 // text: a surface and a shade, "rubber-light", or "today".
 let floors = null;
@@ -1369,7 +1380,7 @@ let floorShade = 'dark';  // kept while "as today" is on, for the next surface p
 function setFloor(text) {
   const { name, shade } = floors.set(text);
   if (name !== 'today') floorShade = shade;
-  document.body.classList.toggle('lightStudio', name !== 'today' && shade === 'light');
+  markStudio();
   for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.setAttribute('aria-pressed', String(b.dataset.floor === name));
   for (const b of document.querySelectorAll('#floorMenu [data-shade]')) {
     b.setAttribute('aria-pressed', String(b.dataset.shade === floorShade));

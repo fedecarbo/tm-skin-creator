@@ -32,9 +32,9 @@ const RADIUS = 14;  // the room's flat floor (viewer.js's addRoom: the cove curv
 const LIGHT_GREY = 0.34;  // the light studio (linear): near white on the screen by day, behind the car
 // The light studio's vignette, shared by every studio surface: the car's middle on the screen and
 // half the picture's height (pixels), set as each frame is drawn; strength 0 in the dark shade.
-// Within about 0.4 of the picture's height of the car the studio keeps its grey; by the edges, where
-// the title and the buttons are, it's down to 0.2 of it. (viewer.js also gives the buttons over the
-// light studio a dark glass: body.lightStudio.)
+// Gentle (the user: "the vignette is very strong"): the studio keeps its grey within about half the
+// picture's height of the car and is down to 0.6 of it by the corners. The buttons over the light
+// studio read by their own dark glass (viewer.js, body.lightStudio).
 const VIGNETTE = { vignetteAt: { value: new THREE.Vector3(0, 0, 1) }, vignetteStrength: { value: 0 } };
 const TABLE = { r: 2.6, h: 0.08 };  // the turntable: 5.2 m across, 8 cm high
 
@@ -69,8 +69,8 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
       varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange, fadeEnds; uniform float floorGrey, grainPower; uniform vec3 grainMean;
       uniform vec3 vignetteAt; uniform float vignetteStrength;`)
       .replace('#include <opaque_fragment>', `#include <opaque_fragment>
-        float vignette = smoothstep( 0.42, 1.0, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
-        gl_FragColor.rgb *= mix( 1.0, 0.2, vignette * vignetteStrength );`);
+        float vignette = smoothstep( 0.5, 1.4, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
+        gl_FragColor.rgb *= mix( 1.0, 0.6, vignette * vignetteStrength );`);
     if (grain) {
       frag = frag.replace('#include <map_fragment>', `#include <map_fragment>
         diffuseColor.rgb = floorGrey * pow( max( texture2D( map, vMapUv ).rgb / grainMean, 0.0 ), vec3( grainPower ) );`);
