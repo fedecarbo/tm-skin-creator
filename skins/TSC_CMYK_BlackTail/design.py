@@ -10,7 +10,7 @@ import importlib.util
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import paths, shapes
+from tool import finishes, paths, shapes
 
 _spec = importlib.util.spec_from_file_location("cmyk_more", paths.SKINS / "TSC_CMYK_Peel_More" / "design.py")
 _more = importlib.util.module_from_spec(_spec)
@@ -32,6 +32,13 @@ TURBO_REST = ["rear strake", "rear undertray", "front bulkhead", "antenna", "bra
 # inside the tail's two openings, beside the speed digits: their walls, not the frame's face
 PORTS = shapes.box((-50, 20, -158), (50, 49, -120)) & ~shapes.facing((0, 0, -1), 0.7)
 TAIL = ["tail frame", "rear bumper", "rear strake"]
+# the colour inside that had a run of its own over the sidepod's length (TSC_Stealth_CMYK's), so
+# the mirrors and sidepod grilles were cyan where the body is magenta; and the floor's edges,
+# plain dark till now. They take the body's run where they sit (the user's notes, 2026-09-27)
+ACCENTS = ["sidepod grille", "sidepod panel", "seat belt", "cockpit rim", "mirror", "mirror arm", "floor edge"]
+ACCENT_WORDS = ("I think these need to follow the gradient.  Not sure why it's blue. This as well need to follow the "
+                "gradient.  Basically the mirror and grill would be within the magenta. Would be nice to have that also "
+                "follow the gradient and make it glow at night")
 # the few tears in the tail's black (the user's take): big enough to read as torn wrap, not spots
 TAIL_TEARS = dict(amount=0.15, scale=18, seed=8, jag=0.1, shadow=0.4)  # one bold tear across the top band
 
@@ -63,6 +70,30 @@ def light_run(s, where, end):
     s.relight(where, end, zone=back, keep_level=True)
 
 
+def paint_run(s, where, end):
+    """Paint parts in the body's run: each takes the body's colour where it sits along the car."""
+    mid, back = run_zones()
+    s.paint(where, "satin", colour=C)
+    s.paint(where, "satin", colour=M, zone=mid)
+    s.paint(where, "satin", colour=end, zone=back)
+
+
+# the fasteners on the cockpit, the engine cover, the nose and the front wing all wear one tiny strip
+# of the inner car's paint (u, v in texels of 4096), which the parts list gives to the front wing:
+# they came out cyan wherever they sat (the user's note on the mirrors, 2026-09-27, showed them)
+FASTENERS = (2247, 2253, 2565, 2609)
+
+
+def fasteners(s, what="gunmetal"):
+    """Paint the fasteners' strip: one strip can't follow the run, so they're a metal, as
+    fasteners are."""
+    c = s.canvas("Details")
+    x0, x1, y0, y1 = (round(v * c.w / 4096) for v in FASTENERS)
+    idx = (np.arange(y0, y1)[:, None] * c.w + np.arange(x0, x1)[None, :]).ravel()
+    f = finishes.get(what)
+    c.blend(idx, np.ones(len(idx), np.float32), np.asarray(f.colour, np.float32), f.roughness, f.metalness, f.varnish)
+
+
 def turbo_run(s, where, end):
     """The parts the game lights in the turbo pad's colour light in the run's colours instead:
     exhaust heat, which keeps its own colour and comes on in a turbo ("ON when Turbo is enabled",
@@ -84,13 +115,13 @@ def wheels(s):
     s.paint("sidewall", "satin", colour=ORANGE, zone=line & _more.round_wheel(0.5, 1))
 
 
-def design(s, tail="tears"):
+def design(s, tail="tears", wrap=None):
     k = tail == "k"
     # the body: yours holds the wrap over the tail's last 40 cm (tears shrink away towards the
     # tip); mine tears it right to the tail, over the run all the way back. The run once went
     # into black at the tip, so the tears there showed nothing (the user, 2026-09-27: "the cmyk
     # gradient doesnt go through to the far back"): the black wrap is the K
-    _more.design(s, hold=None if k else shapes.fade("z", -110, -150))
+    _more.design(s, hold=None if k else shapes.fade("z", -110, -150), wrap=wrap)
     s.relight("speed numbers", ORANGE)
     wheels(s)
     # the inside's lights, and the turbo
@@ -118,3 +149,12 @@ def design(s, tail="tears"):
     # relief: a quilted seat, and a registration mark raised at each end of the tail's top band
     s.relief("seat", "quilted", depth=0.5, scale=7, replace=True)
     s.emboss(None, "tail frame", at=(38, 56, -157), right=(-1, 0, 0), picture=registration_mark(), width=5.5, depth=0.15)
+    s.step("In the body's run", "The mirrors, sidepod grilles, cockpit rim, belts and the floor's edges in the body's colour "
+           "where they sit; the floor's edges glow at night.", words=ACCENT_WORDS, look="night")
+    paint_run(s, ACCENTS, ORANGE)
+    # the cockpit rim and sidepod panels share a small patch of paint with many inner parts (all of
+    # the front uprights'): it goes back to the airbox's dark it had, or the uprights turned pink
+    s.paint("upright", "matte", colour="#1a1b1d")
+    s.glow("sidepod grille", None, "always on")  # the grilles glow in their new colours
+    s.glow("floor edge", None, "night only")
+    fasteners(s)

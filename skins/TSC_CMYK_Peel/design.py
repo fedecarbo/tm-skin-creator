@@ -12,10 +12,11 @@ _spec.loader.exec_module(_cmyk)
 C, M, Y = _cmyk.C, _cmyk.M, _cmyk.Y
 
 
-def design(s, more=False, end=Y, tip=None, hold=None):
+def design(s, more=False, end=Y, tip=None, hold=None, wrap=None):
     """end: the colour the run ends in at the tail (yellow; TSC_CMYK_Peel_More's is orange).
-    tip: a last colour it fades into at the very tail (TSC_CMYK_EndsInK's black). hold: a zone
-    where the wrap holds, no tears (TSC_CMYK_BlackTail's tail)."""
+    tip: a last colour it fades into at the very tail (TSC_CMYK_EndsInK's once). hold: a zone
+    where the wrap holds, no tears (TSC_CMYK_BlackTail's tail). wrap: wrap(s) paints a texture
+    on the black wrap, as a step before it's torn (the TSC_CMYK_Texture takes)."""
     # underneath: the CMY run along the whole body (satin, so the colour holds at every angle)
     s.step("The colour run", "Satin cyan to magenta to the end colour along the body, under the wrap to come.",
            words="I wonder if you can make the body of the car as if the skin is peeling off and it reveals cmyk color.")
@@ -32,6 +33,8 @@ def design(s, more=False, end=Y, tip=None, hold=None):
     # the ring round each sidepod inlet in the wrap's black, so the colour comes only through
     # the tears (user); the glowing grille inside keeps its colour
     s.paint("sidepod frame", "matte", colour="#232528")
+    if wrap is not None:
+        wrap(s)
     s.step("Torn open", f"The wrap torn off in ragged patches ({'about half' if more else 'about a fifth'}), hard edges and a thin even shadow, the run showing through.",
            words="Make the edges of the torn sharper.")
     if more:

@@ -27,3 +27,14 @@ blotches, like dirt.
   turns black at the tip: it runs cyan, magenta, orange right to the tail, so the tears at the
   back show orange like the rest. The black wrap is the K now. Shown 2026-09-27:
   build/TSC_CMYK_EndsInK_picture.png (rear, top, left; deck and tail, rear flank, driving camera).
+- Installed 2026-09-27 on the user's "Yes." (after change 3).
+- Change 4 (user, notes 4 and 5, and a line from the UV map): "I think these need to follow the
+  gradient.  Not sure why it's blue" (the mirror); "This as well need to follow the gradient.
+  Basically the mirror and grill would be within the magenta" (the sidepod grille); "floor
+  edge|left ... Would be nice to have that also follow the gradient and make it glow at night".
+  The mirrors, sidepod grilles and panels, cockpit rim and belts had a run of their own over the
+  sidepod's length (cyan to magenta); they now take the body's colour where they sit (magenta by
+  the cockpit), and so do the floor's edge strips, which glow in it at night. The small fasteners
+  on the cockpit, engine cover, nose and front wing were cyan too: they all wear one tiny strip of
+  the front wing's paint, so they're dark metal now. A small patch the cockpit rim shares with the
+  front uprights stays dark. In TSC_CMYK_BlackTail's design, so both tails have it.

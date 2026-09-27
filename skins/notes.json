@@ -70,5 +70,53 @@
   ],
   "made": "2026-09-27T14:14:45Z",
   "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 4,
+  "text": "I think these need to follow the gradient.  Not sure why it's blue",
+  "step": 4,
+  "step_name": "Wheels",
+  "part": {
+   "id": 143,
+   "label": "mirror (left)",
+   "token": "mirror|left"
+  },
+  "at": [
+   0.3594,
+   0.6934,
+   0.5683
+  ],
+  "normal": [
+   -0.0008,
+   0.9916,
+   0.129
+  ],
+  "made": "2026-09-27T14:22:49Z",
+  "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 5,
+  "text": "This as well need to follow the gradient.  Basically the mirror and grill would be within the magenta",
+  "step": 4,
+  "step_name": "Wheels",
+  "part": {
+   "id": 30,
+   "label": "sidepod grille (left)",
+   "token": "sidepod grille|left"
+  },
+  "at": [
+   0.7383,
+   0.3876,
+   0.1022
+  ],
+  "normal": [
+   0.6558,
+   0.2177,
+   0.7229
+  ],
+  "made": "2026-09-27T14:23:34Z",
+  "state": "done"
  }
 ]

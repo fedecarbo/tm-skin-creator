@@ -53,8 +53,8 @@ def wheels(s, take):
         s.paint("sidewall", "satin", colour=ORANGE, zone=line & round_wheel(0.5, 1))
 
 
-def design(s, wheel_take="gradient", tip=None, hold=None):
-    _peel.design(s, more=True, end=ORANGE, tip=tip, hold=hold)
+def design(s, wheel_take="gradient", tip=None, hold=None, wrap=None):
+    _peel.design(s, more=True, end=ORANGE, tip=tip, hold=hold, wrap=wrap)
     s.step("Lights", "Cyan brake lights, magenta speed numbers, rear lights by gear in the run's colours, rims that glow orange when braking hard.",
            words="You could update the cmyk one with more tailored lights if you want.", look="rear night")
     s.relight("brake lights", C)

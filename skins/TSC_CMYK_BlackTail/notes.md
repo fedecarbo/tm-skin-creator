@@ -50,3 +50,6 @@ tip), and one bold tear across the tail's top band shows the orange under it.
   wheels, the seat, the turbo, night).
 
 - 2026-09-26, the Lab: "brushed titanium" now means the Lab's own brushed titanium (it was brushed steel in titanium grey), so the next rebuild makes the exhaust 5% more matte. The installed skin is unchanged until reinstalled.
+- 2026-09-27: the user's notes on TSC_CMYK_EndsInK changed the shared design, so this take has
+  them too: the colour inside follows the body's run, the floor's edges glow at night, the
+  fasteners are dark metal (TSC_CMYK_EndsInK's notes, change 4).

@@ -13,5 +13,5 @@ _tail = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_tail)
 
 
-def design(s):
-    _tail.design(s, tail="k")
+def design(s, wrap=None):
+    _tail.design(s, tail="k", wrap=wrap)
