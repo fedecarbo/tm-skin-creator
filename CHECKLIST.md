@@ -2013,6 +2013,9 @@ under "Things we learned"; what was built:
     runs over, `build_zip` halves `Wheels_R` before any other roughness map.
   - The long Python heredocs the Bash tool sends through Git Bash get cut off after a few hundred
     lines with "unexpected EOF": write the script to the scratchpad with the Write tool and run it.
+    Two more that corrupted a pushed file: GNU sed reads a backslash-backtick as "the start of the
+    text" (it put a backtick before every line), and a Python string that isn't raw reads a Windows
+    path's "" as a character code. Edit docs with the Edit tool, or copy lines from git.
 
 - **2026-09-27, the viewer on smaller screens (`CHECKLIST.md`, "The viewer on smaller screens").**
   - **Zooming never distorts the car; moving the camera does.** A fixed lens top to bottom (32°)
