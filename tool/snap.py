@@ -199,7 +199,8 @@ def main():
         return
     w, h = (int(v) for v in (args.size or (CAM_SIZE if args.cams else "960x720")).split("x"))
     if args.close or args.cams:
-        snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False)
+        snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
+             query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
     else:
         snap(args.name, size=(w, h))
 

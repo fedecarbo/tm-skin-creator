@@ -85,7 +85,7 @@ async function snap(name, kind, size) {  // kind: views, close or cams
   try {
     await b.send('Emulation.setDeviceMetricsOverride', { width: size[0], height: size[1], deviceScaleFactor: 1, mobile: false });
     const start = Date.now();
-    await b.send('Page.navigate', { url: `${VIEWER}/?skin=${encodeURIComponent(name)}&snap=1` });
+    await b.send('Page.navigate', { url: `${VIEWER}/?skin=${encodeURIComponent(name)}&snap=1${kind === 'cams' ? '&lens=game' : ''}` });
     for (let i = 0; i < 900; i++) {  // up to 3 minutes, as on the PC
       await sleep(200);
       try { if (await b.evaluate('!!(window.viewer && (window.viewer.ready || window.viewer.error))')) break; } catch { /* still loading */ }

@@ -40,19 +40,42 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // 2.47 m up at 12° down, Cam 2 1.82 m up at 6°, through the narrower lens, which drew the car
   // about 1.4 times too big.
   // Cam 1, the chase camera: 3.36 m up, 5.21 m behind the car's centre, 10.9° down.
-  cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.238, 0.652], fov: 72.8 },
+  cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.238, 0.652], fov: 72.8, ours: 14.03 },
   // Cam 1 again (its key pressed twice), closer: 2.03 m up, 3.00 m behind, 7.7° down. Fitted on
   // 2026-09-27 to the calibration car's screenshot by day (the tyres' outlines, exactly, and the
   // track's vanishing point), within 1.2 px; the same fit gave Cam 1 and 2 within 6 cm and 0.4°.
-  cam1alt: { dir: [0, 0.1331, -0.9911], dist: 3.533, target: [0, 1.559, 0.500], fov: 75.0 },
+  cam1alt: { dir: [0, 0.1331, -0.9911], dist: 3.533, target: [0, 1.559, 0.500], fov: 75.0, ours: 7.22 },
   // Cam 2: lower and closer, 2.22 m up, 4.56 m behind, 3.4° down.
-  cam2: { dir: [0, 0.0588, -0.9983], dist: 4.962, target: [0, 1.941, 0.390], fov: 74.1 },
+  cam2: { dir: [0, 0.0588, -0.9983], dist: 4.962, target: [0, 1.941, 0.390], fov: 74.1, ours: 11.48 },
   // Cam 2 again: lower and closer still, 1.53 m up, 3.20 m behind, 3.3° down, within 1.8 px (as
   // Cam 1 again). Cam 3, over the cockpit, left the menu on 2026-09-27 (the user): the game hides
   // the cockpit there, the viewer didn't.
-  cam2alt: { dir: [0, 0.0569, -0.9984], dist: 3.709, target: [0, 1.317, 0.500], fov: 69.9 },
+  cam2alt: { dir: [0, 0.0569, -0.9984], dist: 3.709, target: [0, 1.317, 0.500], fov: 69.9, ours: 6.87 },
 };
 const FOV = 32;  // every other view's lens
+// The Driving cameras through that lens too (the user, 2026-09-27: "the car in the viewer looks
+// really badly distorted" through the game's wide one). Each keeps the game camera's line to the
+// car's middle and the middle's height in the picture, further back along that line: `ours` metres
+// from the middle, where the tyres' widths across the picture (rear and front, averaged) are the
+// game's (the wide lens drew the near rear tyres bigger, the front ones smaller). The game's own
+// poses stay above. ?lens=game draws them as the game does, for pictures set beside the game's
+// screenshots (tool.snap --cams).
+const CAR_MIDDLE = new THREE.Vector3(0, 0.55, 0.27);
+function throughOurLens(v) {
+  const back = new THREE.Vector3(...v.dir).normalize();
+  const cam = new THREE.Vector3(...v.target).addScaledVector(back, v.dist);
+  const toMid = CAR_MIDDLE.clone().sub(cam);
+  const d = toMid.length();
+  toMid.divideScalar(d);
+  const half = THREE.MathUtils.degToRad(v.fov) / 2, ours = THREE.MathUtils.degToRad(FOV) / 2;
+  const pitch = Math.asin(back.y), drop = Math.asin(-toMid.y);  // the view's tilt down; the car's middle's
+  const tilt = drop - Math.atan(Math.tan(drop - pitch) * Math.tan(ours) / Math.tan(half));
+  const dist = v.ours;
+  const dir = new THREE.Vector3(0, Math.sin(tilt), -Math.cos(tilt));
+  const target = CAR_MIDDLE.clone().addScaledVector(toMid, -dist).addScaledVector(dir, -dist);
+  return { dir: dir.toArray(), dist, target: target.toArray() };
+}
+if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', 'cam2alt']) VIEWS[k] = throughOurLens(VIEWS[k]);
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
 // the car and shows in its reflections. Night is a moonlit sky with a dim blue key. Both HDRIs
 // are from Poly Haven (CC0). key: the one light that casts a shadow. The room around the car is a

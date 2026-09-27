@@ -1737,7 +1737,15 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
   lifted 12 % so the pad doesn't cover the tail. Next: the pull-back at speed (`IMPROVEMENTS.md`).
   **Since 2026-09-27 (the user):** Cam 1, Cam 1 alt, Cam 2 and Cam 2 alt (each key pressed
   again), fitted to the calibration car's screenshots; Cam 3 is out (the game hides the cockpit
-  there).
+  there). **The same day, the viewer's own lens for them** (the user: "I honestly hate the cam
+  lenses... the car in the viewer looks really badly distorted"): the game's 70 to 75° lens,
+  right on a big screen, bends the car in the viewer's smaller picture. Each Driving camera keeps
+  the game camera's line to the car's middle (so its angle on the car) and the middle's height in
+  the picture, through the 32° lens, 7 to 14 m back (`VIEWS`' `ours`), where the tyres' widths
+  across the picture, rear and front averaged, are the game's. Keeping the middle's size alone
+  drew the car too small: the wide lens enlarges the near rear tyres. The game's poses stay in
+  `VIEWS`; `?lens=game` (and `tool.snap --cams`) still draws them for pictures set beside the
+  game's.
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.
