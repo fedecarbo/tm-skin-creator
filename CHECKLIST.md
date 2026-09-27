@@ -1771,6 +1771,29 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   set now (a metre a repeat needs no more), and the page online carries it. The ground shadow is
   drawn only when a mesh is shown or hidden (its depth pass sees the car at rest anyway), not every
   frame.
+- [x] **5. Every mood as the day (the user, 2026-09-27: "I would like to apply that approach to the
+  other moods").** Read from the user's Cam 2 screenshots of the calibration car in each mood (the
+  third of each six: 09:19:11, 09:20:20, 09:21:24, 09:22:09) beside the viewer's at 2560x1440
+  (`?lens=game`), the tail's grey strip, its back face and a tyre:
+  - **A sheen on the paint lifted every dark colour** in every mood (pure black 64 by day against
+    the game's 53, 37 at sunrise against 17, 20 at night against 10) while the whites matched: the
+    body's `specularIntensity` is now half (`SHEEN` 0.5, the Lab's balls alike). By day Black to
+    N6.5 then read 81 117 158 204 against 80 114 158 204.
+  - **Each sky turned so its glow is where the key comes from** (`envTurn`; three.js turns the sky
+    the other way to the Euler: turn = the sky's sun azimuth - the key's). Sunrise's hazy sky had its
+    sun on the horizon 76 degrees round from the key, sunset's dusk glow in front of the car with the
+    key behind: -75.8 and 170. Night's sky has no moon (its brightest texel is a lamp on the horizon).
+  - **Sunrise** env 1 -> 0.37, key 1 -> 5.8, cooler (0xf8f8ff): the strip 29 49 70 96 125 157 (the
+    game's 17 38 60 86 119 157), N8 (155, 156, 161) against (155, 156, 160), the back 34 and 31 (21
+    and 31; were 59 and 54). **Sunset** the sun lower behind the car (keyFrom y 0.45 -> 0.17), env 0.8,
+    key 1.6 -> 8: the strip 22 49 75 105 139 176 (18 40 64 97 134 173), N8 (210, 165, 154) against
+    (203, 162, 156), the back warm (97, 74, 66); the game's back is warmer still (85-107, 45-62,
+    29-42), its sky bluer on the top than on the back. **Night** kept the user's brightness (the
+    strip twice the game's) with deeper shade: env 4.4 -> 2.64, key 0.44 -> 1.5, a paler blue.
+  - **The "deck" spot beside the engine cover's panel reads the game's lettering** (the player's
+    "FCP 00", light grey) in Cam 2, not the deck's paint: so the 2026-09-27 note that at night "the
+    deck and the tail's back face are 3 to 8 times brighter than the flat top" rests on the lettering
+    for the deck; the back face at night is as dark as the top (10 and 22 against N5 20).
   - **The Lab's numbers read "undefined" on this PC:** its materials data predated the fields
     (`tool.swatches` hadn't run here since); `PY -m tool.swatches --no-open` rebuilt it (72).
   - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror

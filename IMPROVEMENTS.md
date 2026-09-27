@@ -49,8 +49,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   (`viewer/floors.js`) still has the rest. Then "the car itself looks a little hazy" and "can it
   actually be day time but not realistic, something like in trackmania": day is now a sky with a
   sun (`CHECKLIST.md`, "The studio render", steps 2 and 3). Then one studio, the grainy grid, light
-  or dark (step 4), and "I would like to apply that approach to the other moods": next, sunrise,
-  sunset and night each a sky whose sun (or moon) is the key, matched to the user's screenshots. The steps are
+  or dark (step 4), and every mood the same way, a sky whose sun (or moon) is the key, with half the
+  paint's sheen (step 5). Waiting for the user's look at the moods. The steps are
   in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
   "The viewer matched to the game's moods"):
   the viewer maps light straight as the game does (`LinearToneMapping`; by day its greys match

@@ -78,50 +78,49 @@ function throughOurLens(v) {
   return { dir: dir.toArray(), dist, target: target.toArray() };
 }
 if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', 'cam2alt']) VIEWS[k] = throughOurLens(VIEWS[k]);
-// The look the user chose on 2026-09-24, after a studio they like: a neutral photo studio lit the
-// car by day (Studio Small 09, until 2026-09-27: now a sky, below). Night is a moonlit sky with a
-// dim blue key. The HDRIs are from Poly Haven (CC0). key: the one light that casts a shadow. The room around the car is a
-// plain grey cove lit by the same light, so it darkens with the car (the user's wish). Brighter
-// since 2026-09-27 (the user: "night is too dark though, and the lighting is too dimmed"; picked
-// from renders, https://claude.ai/artifact/Gfm17Zv9rUL5WX2D53PE1V): by day the paint about a third
-// brighter (exposure 0.9 -> 1.2, env 1 -> 1.25), the room still dark grey; at night twice the
-// moonlight (env and key x2) and the glows brighter (glow: every glow's gain at night; at 2.6 the
-// coloured ones had begun to turn white, so 1.8).
-// Matched to the game on 2026-09-27 (the calibration car in the four moods, CHECKLIST.md): the game
-// maps light to the screen straight, clipping each colour channel at white (LinearToneMapping, not
-// the ACES curve before): its greys by day match within a few levels, and a bright light blue turns
-// cyan, not white. exposure: by day the grey scale's (1.44); at night the game's darker car.
-// Sunrise and sunset too (the user, 2026-09-27), each a Poly Haven sky (CC0) like the game's: at
-// sunrise hazy with a low golden sun, the car's light neutral and dimmer than by day; at sunset a
-// pink dusk, the light warm. lights: which glows are on (GLOW's day or night): the game lights the
-// night glows at sunset, not at sunrise. keyFrom: where the key comes from, lower at both: at sunrise
-// ahead of the car, at sunset behind it, warming its back as the game's did. tint: the sky's colour
-// corrected so the calibration car's white patch reads as the game's (within 5 levels).
-// Less haze by day (the user, 2026-09-27: "the car itself looks a little hazy, can it be a bit more
-// dehazed?"): the studio's all-round light halved (env 1.25 -> 0.625) and the key 2.8 times (1.1 ->
-// 3.08), so the tops keep the game's greys (the calibration car's tail from Cam 2: 60 88 119 158 201
-// 247 against the game's 53 80 114 158 204 247) while the faces the key misses fall into shade: its
-// back 66 and 61 (were 93 and 86; the game's 29 and 40, where its sun lights one side), the tyres 74
-// (104; the game's 48). env 0.35 with key 3.3 came closer still, and looked harsh for a studio.
-// A day sky since 2026-09-27 (the user: "can it actually be day time but not realistic, something
-// like in trackmania"): Kloofendal 48d Partly Cloudy (Pure Sky, Poly Haven, CC0), a blue sky with
-// white clouds, its sun 48 degrees up over the car's front left, where the key already came from.
-// sunless: the sky's sun disc cut to that luminance, so the key alone is the sun (its shadow and its
-// highlight) and the sky gives the cool fill in the shade and the clouds in the paint.
+// The four moods, each a Poly Haven sky (CC0) lighting the car, matched to the user's screenshots of
+// the calibration car in the game (CHECKLIST.md, "The viewer matched to the game's moods" and "The
+// studio render"). The game maps light to the screen straight, clipping each channel at white
+// (LinearToneMapping). Since 2026-09-27 every mood is a sky whose sun (or moon) is the key, the one
+// light that casts a shadow, with the sky only a fill (the user: "the car itself looks a little hazy",
+// "day time but not realistic, something like in trackmania", "apply that approach to the other
+// moods"): the tops keep the game's greys and the faces the key misses fall into shade.
+//   day      Kloofendal 48d Partly Cloudy: a blue sky with white clouds, its sun 48 degrees up over the
+//            car's front left; sunless cuts the sky's own sun disc to that luminance, so the key alone
+//            is the sun (its shadow and its highlight). Was a photo studio (Studio Small 09) until then.
+//   sunrise  Belfast Sunset: hazy, its sun low ahead of the car, the back in deep shade, the light a
+//            little cool, as the game's.
+//   sunset   Qwantani Dusk 2: the sky lights the car's top pink and warm; the sun, low behind it,
+//            warms its back.
+//   night    Dikhololo Night (no moon in it): a dim blue moonlight from the front left; brighter than
+//            the game's, as the user asked ("night is too dark though").
+// env and key: the sky's and the key's strength. keyFrom: where the key comes from. envTurn: the sky
+// turned about the vertical (degrees) so its sun or glow is where the key comes from (three.js turns
+// the sky the other way to the Euler: turn = the sky's sun azimuth - the key's, atan2(z, x)). tint:
+// the sky's colour corrected so the calibration car's greys read as the game's. lights: which glows
+// are on (GLOW's day or night column): the game lights the night glows at sunset, not at sunrise.
 const LOOKS = {
   day: { hdr: 'kloofendal_48d_partly_cloudy_puresky', sunless: 8, env: 0.44, key: 4.4, keyColour: 0xfffcf1, exposure: 1.44,
     keyFrom: [0.555, 0.742, 0.377] },
-  sunrise: { hdr: 'belfast_sunset_puresky', tint: [0.91, 1, 0.82], env: 1, key: 1, keyColour: 0xfff0dc, exposure: 0.48, lights: 'day', keyFrom: [-0.35, 0.45, 0.8] },
-  sunset: { hdr: 'qwantani_dusk_2_puresky', tint: [1.33, 1, 0.66], env: 1, key: 1.6, keyColour: 0xffb080, exposure: 0.6, lights: 'night', keyFrom: [-0.6, 0.45, -0.55] },
-  night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.6 },
+  sunrise: { hdr: 'belfast_sunset_puresky', tint: [0.91, 1, 0.82], env: 0.37, key: 5.8, keyColour: 0xf8f8ff, exposure: 0.48, lights: 'day', keyFrom: [-0.35, 0.45, 0.8],
+    envTurn: -75.8 },
+  sunset: { hdr: 'qwantani_dusk_2_puresky', tint: [1.33, 1, 0.66], env: 0.8, key: 8, keyColour: 0xffb080, exposure: 0.6, lights: 'night', keyFrom: [-0.6, 0.17, -0.55],
+    envTurn: 170 },
+  night: { hdr: 'dikhololo_night', env: 2.64, key: 1.5, keyColour: 0xd4dcff, exposure: 0.6 },
 };
 const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car's front left
 const MOODS = Object.keys(LOOKS);
 
 // Settings any of which can be tried from the address, e.g. ?exposure=1.1&env=0.8, when matching
-// the game again. exposure, env, key and glow scale both looks' own. room: how light the room's
-// grey is (linear). ?tone=aces (or neutral, agx...) tries another tone mapping.
-const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 0.035 };
+// the game again. exposure, env, key and glow scale the moods' own; spec the paint's sheen; room how
+// light the dark studio's grey is (linear). Also ?turn=<degrees>, added to the sky's envTurn,
+// ?keyFrom=x,y,z for the key's direction, and ?tone=aces (or neutral, agx...) for another tone mapping.
+const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 0.035, spec: 1 };
+// The paint's own sheen (the body's specularIntensity, under any varnish), half three.js's: at full
+// strength it lifted every dark colour like a veil (the calibration car's pure black 64 by day against
+// the game's 53, 37 at sunrise against 17); at half, Black to N6.5 read 81 117 158 204 by day against
+// the game's 80 114 158 204 (2026-09-27, the user: "its still a bit hazy"). spec in the address scales it.
+const SHEEN = 0.5;
 for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(params.get(key));
 
 // The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on the screen on a car
@@ -1281,7 +1280,7 @@ function makeMaterials(tex) {
   // (checked with the lab skins, 2026-09-24, CHECKLIST.md). Skin_Coat holds 255 - CoatR in R,
   // which three.js reads as the coat's amount.
   const skin = new THREE.MeshPhysicalMaterial(std('Skin', {
-    clearcoat: TUNE.coat, clearcoatRoughness: 0, clearcoatMap: tex.Skin_Coat || null,
+    clearcoat: TUNE.coat, clearcoatRoughness: 0, clearcoatMap: tex.Skin_Coat || null, specularIntensity: SHEEN * TUNE.spec,
   }));
   const details = new THREE.MeshStandardMaterial(std('Details', { normalMap: tex.Details_N }));
   if (tex.Details_I) {
@@ -1342,10 +1341,13 @@ function setMood(m) {
   renderer.toneMappingExposure = look.exposure * TUNE.exposure;
   setBraking(braking);
   scene.environment = envMaps[mood] || null;
+  // envTurn: the sky turned about the vertical (degrees) so its sun or glow is where the key comes from
+  scene.environmentRotation.set(0, THREE.MathUtils.degToRad((look.envTurn || 0) + Number(params.get('turn') || 0)), 0);
   scene.environmentIntensity = look.env * TUNE.env;
   key.color.set(look.keyColour);
   key.intensity = look.key * TUNE.key;
-  key.position.copy(CENTRE).addScaledVector(look.keyFrom ? new THREE.Vector3(...look.keyFrom).normalize() : KEY_FROM, 15);
+  const keyFrom = params.get('keyFrom') ? params.get('keyFrom').split(',').map(Number) : look.keyFrom;  // ?keyFrom=x,y,z to try one
+  key.position.copy(CENTRE).addScaledVector(keyFrom ? new THREE.Vector3(...keyFrom).normalize() : KEY_FROM, 15);
   for (const m of MOODS) document.getElementById(m).setAttribute('aria-pressed', String(m === mood));
   // the menu's button shows the mood picked: its icon and name
   const picked = document.getElementById(mood);

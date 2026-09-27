@@ -68,7 +68,7 @@ function dress(ball, m, tex) {
   const old = ball.material;
   ball.material = new THREE.MeshPhysicalMaterial({
     map: tex.map, roughnessMap: tex.rm, metalnessMap: tex.rm, roughness: 1, metalness: 1,
-    clearcoat: 1, clearcoatRoughness: 0, clearcoatMap: tex.coat,
+    clearcoat: 1, clearcoatRoughness: 0, clearcoatMap: tex.coat, specularIntensity: 0.5,  // the paint's sheen, viewer.js's SHEEN
     emissive: m.glow ? new THREE.Color(...m.glow) : new THREE.Color(0), emissiveIntensity: m.glow ? 0.63 / EXPOSURE : 0,
   });
   old.dispose();
