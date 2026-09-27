@@ -1659,6 +1659,17 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
     game's three cameras by day and at night at 16:9, the viewer's side of the comparison.
 - [ ] **2. The drive (the user, on the PC).** Install it, then each of the four moods standing
   still, F12 in Cam 1, 2 and 3 (the steps are in its `notes.md`).
+  - **How to get the four moods** (a lookup, 2026-09-27, untried): one map in the editor, its mood
+    changed in Light settings ("calculate shadows and change the mood of your track"; Map Options
+    → Edit Light Settings; Mood: Morning, Day, Sunset, Night), so the car keeps its spot and
+    heading while the sun moves. The shadows (the lightmap) must be computed after every change,
+    or the light isn't the map's; test mode is Enter, then a click where the car starts. The game
+    adjusts its exposure by itself ("Stabilize autoexposure… especially on night", March 2023):
+    wait a few seconds before F12. Official maps mix moods (Winter 2026: 02 Day, 05 Sunrise, 06
+    Night, 07 Sunset) but each faces the sun its own way. Openplanet's mood plugins set any time of
+    day, not the four moods: not for this. Sources: wiki.trackmania.io (map editor, settings
+    menu), 22ndcorner.wordpress.com (map editor basics, 2020), the Maniaplanet docs on lightmaps,
+    trackmania.com news 7444, 7901, 8256, trackmania.com/access.
 - [ ] **3. The match.** The screenshots beside `--cams` renders at 2560x1440; the grey scale sets
   each look's exposure and the light's colour, the finishes the sky's share against the key, the
   colours the tone mapping, the glow row `GLOW`'s gains. Sunrise and sunset get compared with the

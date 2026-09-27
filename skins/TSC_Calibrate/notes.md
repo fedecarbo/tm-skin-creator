@@ -38,6 +38,34 @@ From behind, as the chase cameras see it, the car's left is on the picture's lef
 - **Everything else:** Neutral 5 `#7a7a79` matte: the body, the wheel covers, the inner car. The
   tyres are stock.
 
+## What to do in the game (the PC)
+
+All four moods on one small map in the editor, so the car stands on the same spot facing the
+same way each time: the sun comes from a different side in each mood, and official maps can't
+give that. Twelve screenshots in all. (From a lookup on 2026-09-27; the steps haven't been tried
+in the game yet, so if a menu has another name, go by what the game shows.)
+
+1. Claude installs it (`tool.skin install TSC_Calibrate`). In the game: Garage → My Skins →
+   Upload skin, pick TSC_Calibrate.
+2. Create → Map Editor (newer builds say Track Editor) → Create a map → Mouse and Keyboard →
+   Advanced → **Sunrise** (the game may call it Morning). If the editor skips these choices, its
+   quick start is on (Settings, Map Editor Quick Start): the mood is set there, or use step 5's
+   light settings.
+3. Put down one flat road piece out in the open.
+4. Light settings on the bottom bar (or Map Options → Edit Light Settings): compute the shadows
+   (Default or High, the same for all four moods). Without it the light isn't the map's real
+   light.
+5. Press Enter (test), click the road to put the car down, and don't touch the throttle.
+6. Press 1, wait about 3 seconds (the game's exposure settles, slowest at night), F12. Then 2,
+   then 3. A camera key pressed twice gives that camera's second view: take the first.
+7. Esc back to the editor, Light settings → the next mood → compute the shadows again → Enter,
+   the car on the same spot, facing the same way → 1, 2, 3. In order: Sunrise, Day, Sunset,
+   Night.
+8. Keep the same graphics settings throughout, as for the earlier Cam 1, 2, 3 screenshots.
+
+Worth knowing: a free account can test in the editor; only playing a saved map from Local needs
+Club. TSC_Lab_Materials can come on the same drive (its finishes by day and at night).
+
 ## What the viewer shows
 
 `tool.snap TSC_Calibrate --cams` (on the Mac `node docker/snap.mjs TSC_Calibrate --cams`, with
