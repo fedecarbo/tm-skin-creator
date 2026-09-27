@@ -40,7 +40,8 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   (`viewer/lab-round.js`).
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
-  (the paint box's `Canvas.normal`). `PY -m tool.tyres` photographs the library
+  (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
+  on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres` photographs the library
   (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",

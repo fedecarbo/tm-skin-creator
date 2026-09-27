@@ -125,7 +125,8 @@ user the Studio too.
 - **Tyre markings: the library, `s.tyre_marks("TY-07")`** (`tool/tyres.py`: 95 of them, F1 rings to
   whitewalls, raised letters and tread patterns). A code the user pastes, like `TY-01 ring soft
   (tyre marking)`, is that marking; `colour=` and `words=` change it where its layout takes them.
-  All four tyres wear one marking. Words on a tyre read backwards on the right-hand wheels unless
+  A tread from the Lab's Treads, like `TR-04 Wet tread (...)`, is \`s.tyre_tread("TR-04")\`, or a
+  marking's \`tread="TR-04"\` (the Formula 1 ring on a slick). All four tyres wear one marking. Words on a tyre read backwards on the right-hand wheels unless
   every letter is one of B C D E H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.

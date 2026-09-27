@@ -37,6 +37,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the car: click the Studio's car, write what you want there, and the note reaches Claude with the
   next message, with a picture of what the user saw (step 8). The four rooms became one UV map room
   (the surfaces stay). `CHECKLIST.md`, The Lab, steps 7 and 8.
+  **Another (2026-09-27):** "In the material library, can we add a tread library as well?": the
+  Treads family, each tread on the car's own tyre (`CHECKLIST.md`, "Tyre markings").
 
 ## The tool
 

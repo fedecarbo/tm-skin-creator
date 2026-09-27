@@ -6,7 +6,9 @@
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
 //   /lab.html?room=uv         the UV map room (lab-rooms.js, from tool/rooms.py): the game's four
 //                             flat maps; &tab=car for the car
-// Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png.
+// Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png. A tread (the
+// Treads family, shape "tyre") goes on the car's own tyre instead of a ball: tyre.json's
+// cross-section on a lathe, with {B,RM,N,AO}.png (tool/swatches.py: write_tread).
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -21,6 +23,7 @@ const SOURCE = {
   measured: 'Colour measured from the real metal (Physically Based), then set by eye. Not yet seen in the game.',
   eye: 'Set by eye in the viewer. Not yet seen in the game.',
   photo: 'A photographed surface you added (ambientCG). Not yet seen in the game.',
+  tread: 'Drawn by the tool as relief on the tyres (27 Sep 2026). Not yet seen in the game.',
 };
 
 window.lab = { ready: false, error: null };
@@ -43,10 +46,39 @@ function stage(canvas, size) {
   const key = new THREE.DirectionalLight(0xfffcf1, 4.4);  // the viewer's sun by day (LOOKS.day), from its side
   key.position.set(0.555, 0.742, 0.377).multiplyScalar(5);
   scene.add(key);
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), new THREE.MeshPhysicalMaterial());
-  ball.rotation.set(0.35, -0.5, 0);
-  scene.add(ball);
-  return { renderer, scene, camera, ball };
+  const ball = new THREE.Mesh(SPHERE, new THREE.MeshPhysicalMaterial());
+  const holder = new THREE.Group();  // tilts a tyre so its tread and outer sidewall face the camera
+  holder.add(ball);
+  scene.add(holder);
+  const st = { renderer, scene, camera, ball, holder, shape: null, big: size > THUMB };
+  shape(st, 'ball');
+  return st;
+}
+
+// ---- the shapes: a ball, or the car's own tyre for a tread ----
+
+const SPHERE = new THREE.SphereGeometry(1, 128, 96);
+let TYRE = null;  // built from tyre.json the first time a tread shows
+async function tyreGeometry() {
+  if (TYRE) return TYRE;
+  const doc = await (await fetch('data/materials/tyre.json', { cache: 'no-store' })).json();
+  TYRE = new THREE.LatheGeometry(doc.points.map(([r, x]) => new THREE.Vector2(r, x)), 256);
+  return TYRE;
+}
+function shape(st, kind) {
+  if (st.shape === kind) return;
+  st.shape = kind;
+  if (kind === 'tyre') {  // the axle across the picture, the tread rolling toward the camera and filling it
+    st.ball.geometry = TYRE;
+    st.ball.rotation.set(0, 0, 0);
+    st.ball.scale.setScalar(st.big ? 1.3 : 2.3);
+    st.holder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, -0.18).normalize());
+  } else {
+    st.ball.geometry = SPHERE;
+    st.ball.scale.setScalar(1);
+    st.ball.rotation.set(0.35, -0.5, 0);
+    st.holder.quaternion.identity();
+  }
 }
 
 const loader = new THREE.TextureLoader();
@@ -58,17 +90,23 @@ async function textures(m) {
     t.anisotropy = 8;
     return t;
   };
-  const [map, rm, coat] = await Promise.all([load('B.png', true), load('RM.png'), load('Coat.png')]);
-  return { map, rm, coat };
+  const names = m.maps || ['B', 'RM', 'Coat'];
+  const got = await Promise.all(names.map((n) => load(`${n}.png`, n === 'B')));
+  const t = Object.fromEntries(names.map((n, i) => [n, got[i]]));
+  if (m.shape === 'tyre') await tyreGeometry();
+  return { map: t.B, rm: t.RM, coat: t.Coat || null, normal: t.N || null, ao: t.AO || null };
 }
 
 function dress(ball, m, tex) {
   // The car's body material (viewer.js makeMaterials): colour, roughness and metalness from the
   // maps, and the varnish as a clear coat whose amount is the varnish map.
   const old = ball.material;
+  // A tyre is the viewer's Wheels material: no varnish, its relief in the normal map, Nadeo's
+  // shading in the ambient occlusion as the game adds it.
   ball.material = new THREE.MeshPhysicalMaterial({
     map: tex.map, roughnessMap: tex.rm, metalnessMap: tex.rm, roughness: 1, metalness: 1,
-    clearcoat: 1, clearcoatRoughness: 0, clearcoatMap: tex.coat, specularIntensity: 0.5,  // the paint's sheen, viewer.js's SHEEN
+    clearcoat: tex.coat ? 1 : 0, clearcoatRoughness: 0, clearcoatMap: tex.coat, specularIntensity: 0.5,  // the paint's sheen, viewer.js's SHEEN
+    normalMap: tex.normal, aoMap: tex.ao, side: m.shape === 'tyre' ? THREE.DoubleSide : THREE.FrontSide,
     emissive: m.glow ? new THREE.Color(...m.glow) : new THREE.Color(0), emissiveIntensity: m.glow ? 0.63 / EXPOSURE : 0,
   });
   old.dispose();
@@ -83,10 +121,11 @@ function picture(m) {
   const job = queue.then(async () => {
     if (pictures.has(m.slug)) return pictures.get(m.slug);
     const tex = await textures(m);
+    shape(shelf, m.shape || 'ball');
     dress(shelf.ball, m, tex);
     shelf.renderer.render(shelf.scene, shelf.camera);
     const blob = await new Promise((r) => shelf.renderer.domElement.toBlob(r, 'image/png'));
-    Object.values(tex).forEach((t) => t.dispose());
+    Object.values(tex).forEach((t) => t && t.dispose());
     const url = URL.createObjectURL(blob);
     pictures.set(m.slug, url);
     return url;
@@ -141,8 +180,8 @@ function tile(m) {
     <span class="tn teko"></span><span class="tv"></span>`;
   t.querySelector('.code').textContent = m.code;
   t.querySelector('.tn').textContent = m.name;
-  if (m.source === 'measured' || m.source === 'eye') t.querySelector('.code').insertAdjacentHTML('beforeend', ' <em>New</em>');
-  t.querySelector('.tv').innerHTML = `Matte ${m.matte} · Metal ${m.metal}<br>${m.varnish ? `Varnish ${m.varnish}` : 'No varnish'}`;
+  if (['measured', 'eye', 'tread'].includes(m.source)) t.querySelector('.code').insertAdjacentHTML('beforeend', ' <em>New</em>');
+  t.querySelector('.tv').innerHTML = m.sub ? `${m.sub}<br>Rubber` : `Matte ${m.matte} · Metal ${m.metal}<br>${m.varnish ? `Varnish ${m.varnish}` : 'No varnish'}`;
   t.addEventListener('click', () => pick(m));
   t.querySelector('.copyBtn').addEventListener('click', (e) => {
     e.stopPropagation();
@@ -175,7 +214,8 @@ async function pick(m) {
   $('specName').querySelector('span').textContent = m.name;
   $('meters').innerHTML = [['Matte', m.matte], ['Metal', m.metal], ['Varnish', m.varnish]].map(([k, v]) =>
     `<div><div class="mk teko"><span>${k}</span><b>${v}%</b></div><div class="track"><i style="width:${v}%"></i></div></div>`).join('');
-  $('colour').innerHTML = m.colour ? `<span class="chip" style="background:${m.colour}"></span>${m.colour}` : 'Any colour: say which';
+  $('colour').innerHTML = m.colour ? `<span class="chip" style="background:${m.colour}"></span>${m.colour}`
+    : m.shape === 'tyre' ? 'Black rubber, or say a colour' : 'Any colour: say which';
   $('works').textContent = m.works_on + (m.varnish && !m.works_on.startsWith('Inner') ? '. The varnish shows on the body only.' : '');
   $('source').textContent = SOURCE[m.source] || '';
   $('about').textContent = m.about ? m.about[0].toUpperCase() + m.about.slice(1) + '.' : '';
@@ -184,9 +224,10 @@ async function pick(m) {
   u.searchParams.set('m', m.slug);
   history.replaceState(null, '', u);
   const tex = await textures(m);
-  if (picked !== m) { Object.values(tex).forEach((t) => t.dispose()); return; }
+  if (picked !== m) { Object.values(tex).forEach((t) => t && t.dispose()); return; }
+  shape(big, m.shape || 'ball');
   dress(big.ball, m, tex);
-  if (bigTex) Object.values(bigTex).forEach((t) => t.dispose());
+  if (bigTex) Object.values(bigTex).forEach((t) => t && t.dispose());
   bigTex = tex;
 }
 

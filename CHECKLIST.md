@@ -1881,6 +1881,18 @@ under "Things we learned"; what was built:
   skins in the page); `build/tyres/library.png`, and the page (`viewer/tyres.html`, filled by
   `tyresheet.page()`) published privately for the user: https://claude.ai/artifact/2TdLiRLDGKxUkMiKBo89ko
   (republish to that link, with `url`, when the library changes).
+- [x] **The tread library, in the Lab's materials (the user, 2026-09-27: "In the material library,
+  can we add a tread library as well?")**: `tyres.TREAD_LIBRARY`, TR-01 to TR-13 (Nadeo's own, slick,
+  grooved, wet, intermediate, rally asphalt, gravel blocks, snow studs, mud lugs, semi-slick, ribbed,
+  vintage diamond, round lugs), a family "Treads" in the Materials room. Each is on the car's own
+  tyre rather than a ball: `tool.swatches` writes the tyre's cross-section (`tyre.json`, from the
+  map's columns) and each tread's maps as the paint box paints them, turned so a lathe reads them
+  (round the tyre along u, across it along v, the normal's channels swapped to match), with Nadeo's
+  shading as the ambient occlusion; `viewer/lab.js` turns the section on a lathe, the axle across the
+  picture and the tread filling each tile (the whole tyre rolling in the big view). A first try, the
+  whole tyre small in each tile, read as a dark ring with no pattern. Treads have their own stamp,
+  so changing the tyres' code repaints 13 tyres, not the 73 balls. `s.tyre_tread("TR-04")`, and any
+  marking's `tread=` takes a TR code.
 - [ ] **In the game** (IMPROVEMENTS.md, "To check in the game"): the first skin that uses a marking.
 
 ## Decisions (for Claude)

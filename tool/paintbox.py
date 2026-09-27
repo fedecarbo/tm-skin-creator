@@ -692,6 +692,18 @@ class Skin:
         self.notes += tyres.apply(self.canvas("Wheels"), art, reads)
         return self
 
+    def tyre_tread(self, tread):
+        """A tread from the tread library (tool/tyres.py; the Lab's Treads): "TR-04" or its name
+        ("wet"), on all four tyres in place of Nadeo's grooves. The sidewalls go plain (Nadeo's
+        lettering off), as under any marking."""
+        from tool import tyres
+        code, entry = tyres.tread_find(tread)
+        art = tyres.Art()
+        entry["fn"](art)
+        self._open_step()["paints"].append(f"tyres: {code} {entry['name']} tread")
+        self.notes += tyres.apply(self.canvas("Wheels"), art)
+        return self
+
     # ---- relief (the inner car only: the game's normal map, tool/relief.py) ----
 
     def _relief(self, where, make_h, zone=None, replace=False, what="relief"):

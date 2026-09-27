@@ -5,14 +5,18 @@
     python -m tool.swatches --no-open  just paint (docker/serve.py does this on the Mac)
 
 The Lab (viewer/lab.html) shows only what this writes, and this writes only what the tool has:
-each finish in tool/finishes.py, in `CATALOGUE` order, and each photographed surface named in
-tool/textures.py that no finish uses yet. So the Lab is the tool's own list: a finish added to
+each finish in tool/finishes.py, in `CATALOGUE` order, each photographed surface named in
+tool/textures.py that no finish uses yet, and each tread in tool/tyres.py's TREAD_LIBRARY (the
+user, 2026-09-27: "In the material library, can we add a tread library as well?"). So the Lab is the tool's own list: a finish added to
 the tool shows up here, and one missing here is missing from the tool (the user, 2026-09-26).
 
 Each ball is painted with the same code that paints the car (looks.apply on a 30 cm ball's
-texture). The page draws the balls itself with the viewer's lighting (viewer/lab.js), so this
+texture). A tread goes on a tyre instead of a ball: the car's own tyre shape (tyre.json, its
+cross-section from the mesh) turned on a lathe, wearing the tyres' map as the paint box paints it
+(with Nadeo's shading, which the game adds), turned so the lathe can read it. The page draws the balls itself with the viewer's lighting (viewer/lab.js), so this
 needs no browser and runs on the Mac too. Written to the viewer's data:
-  <work>/viewer/materials/<slug>/{B,RM,Coat}.png + swatch.json, and materials.json (the list).
+  <work>/viewer/materials/<slug>/{B,RM,Coat}.png + swatch.json, and materials.json (the list);
+  a tread's folder has {B,RM,N,AO}.png, and tyre.json is the tyre's shape.
 """
 
 import argparse
@@ -26,7 +30,7 @@ import webbrowser
 import numpy as np
 from PIL import Image
 
-from tool import colours, finishes, looks, paths, textures, view
+from tool import colours, finishes, looks, paths, textures, tyres, view
 
 FOLDER = view.DATA / "materials"
 RADIUS = 15.0  # cm: a 30 cm ball
@@ -35,6 +39,8 @@ SIZE = (1024, 512)  # the ball's texture, equirectangular
 SHOW_COLOUR = {"anodised": "electric blue", "neon": "neon pink", "night glow": "neon blue", "camo": None, "vinyl": "racing red"}
 DEFAULT_COLOUR = (0.75, 0.12, 0.12)
 PHOTOS = "Photographed"  # the family for surfaces added with tool.textures that no finish uses yet
+TREADS = "Treads"  # the tread library (tool/tyres.py), each on a tyre
+TYRE_POINTS = 129  # the tyre's cross-section, evenly across its map (u 0 to 1)
 
 
 def slug_of(name):
@@ -119,6 +125,66 @@ def describe(name, family):
     }
 
 
+def _turned(a):
+    """The tyres' map (rows round the tyre, columns across it) turned for the Lab's lathe: across
+    it bottom (the inner bead) to top, round it left to right."""
+    return np.ascontiguousarray(np.swapaxes(a, 0, 1)[::-1])
+
+
+def _half(a):
+    im = Image.fromarray(_u8(a) if a.dtype != np.uint8 else a)
+    return np.asarray(im.resize((im.width // 2, im.height // 2), Image.LANCZOS))
+
+
+def write_tyre():
+    """tyre.json: the tyre's cross-section, (radius, across) in tyre radii at TYRE_POINTS points
+    evenly across its map, which a lathe turns into the Lab's tyre."""
+    g = tyres.geometry()
+    u = np.linspace(0, 1, TYRE_POINTS)
+    col = np.clip(u * g["w"] - 0.5, 0, g["w"] - 1)
+    r, across = np.interp(col, np.arange(g["w"]), g["r"]), np.interp(col, np.arange(g["w"]), g["across"])
+    scale = float(r.max())
+    FOLDER.mkdir(parents=True, exist_ok=True)
+    (FOLDER / "tyre.json").write_text(json.dumps({"points": [[round(float(a) / scale, 5), round(float(b) / scale, 5)]
+                                                             for a, b in zip(r, across)]}), encoding="utf-8")
+
+
+def describe_tread(code):
+    e = tyres.tread_library()[code]
+    depth = e["fn"].depth
+    sub = "Nadeo's grooves" if e["name"] == "Nadeo's own" else f"Grooves {depth * 10:.1f} mm" if depth else "No grooves"
+    return {"slug": slug_of(f"tread {e['name']}"), "code": code, "name": e["name"][:1].upper() + e["name"][1:],
+            "family": TREADS, "about": e["about"], "matte": 90, "metal": 0, "varnish": 0, "colour": None,
+            "works_on": "The tyres' tread, all four", "source": "tread", "shape": "tyre", "maps": ["B", "RM", "N", "AO"],
+            "sub": sub, "line": f"{code} {e['name'][:1].upper() + e['name'][1:]} tread ({e['about']})"}
+
+
+def write_tread(code):
+    """A tread's maps for the Lab's tyre, painted by the paint box as on the car."""
+    from tool.paintbox import Skin
+    from tool.testskin import stock
+    info = describe_tread(code)
+    folder = FOLDER / info["slug"]
+    folder.mkdir(parents=True, exist_ok=True)
+    sk = Skin("LabTread")
+    sk.tyre_tread(code)
+    tex = {k: arr for k, (arr, _, _) in sk.textures().items()}
+    Image.fromarray(_half(_turned(tex["Wheels_B"])), "RGB").save(folder / "B.png", compress_level=1)
+    r = _half(_turned(tex["Wheels_R"]))
+    rm = np.zeros(r.shape[:2] + (3,), np.uint8)
+    rm[..., 0], rm[..., 1], rm[..., 2] = 255, r[..., 0], r[..., 1]
+    Image.fromarray(rm, "RGB").save(folder / "RM.png", compress_level=1)
+    n = _turned(tex["Wheels_N"]).astype(np.float32)
+    x, y = 1 - n[..., 1], n[..., 0]  # round the tyre is the lathe's u (the map's -v), across it its v (the map's u)
+    x, y = x * 2 - 1, y * 2 - 1
+    z = np.sqrt(np.clip(1 - x * x - y * y, 0, 1))
+    Image.fromarray(_half(np.stack([x, y, z], -1) * 0.5 + 0.5), "RGB").save(folder / "N.png", compress_level=1)
+    ao = _turned(stock("Wheels_AO")[..., 0] if stock("Wheels_AO").ndim == 3 else stock("Wheels_AO"))
+    Image.fromarray(_u8(ao), "L").convert("RGB").save(folder / "AO.png", compress_level=1)
+    (folder / "swatch.json").write_text(json.dumps(info), encoding="utf-8")
+    return info
+
+
 def write_textures(name, family):
     slug = slug_of(name)
     folder = FOLDER / slug
@@ -138,13 +204,14 @@ def write_textures(name, family):
     return info
 
 
-def _stamp():
-    """Changes when the code that paints finishes changes: balls older than it are repainted."""
+def _stamp(treads=False):
+    """Changes when the code that paints finishes (or treads) changes: swatches older than it are
+    repainted."""
     h = hashlib.sha256()
-    for mod in (finishes, looks, textures):
+    for mod in (tyres,) if treads else (finishes, looks, textures):
         h.update(inspect.getsource(mod).encode())
-    h.update(inspect.getsource(paint_ball).encode())
-    h.update(inspect.getsource(describe).encode())
+    for fn in (describe_tread, write_tread, _turned) if treads else (paint_ball, describe):
+        h.update(inspect.getsource(fn).encode())
     return h.hexdigest()[:12]
 
 
@@ -156,20 +223,23 @@ def entries():
     for name in textures.SETS:
         if name not in listed and name not in used and finishes.ALIASES.get(name, name) not in listed:
             out.append((name, PHOTOS))
+    out += [(code, TREADS) for code in tyres.tread_library()]
     return out
 
 
 def build(all_=False):
     view.ensure_hdri()
-    stamp = _stamp()
+    stamps = {False: _stamp(), True: _stamp(treads=True)}
     infos = []
+    write_tyre()
     for name, family in entries():
-        slug = slug_of(name)
+        stamp = stamps[family == TREADS]
+        slug = describe_tread(name)["slug"] if family == TREADS else slug_of(name)
         meta = FOLDER / slug / "swatch.json"
         fresh = meta.exists() and (FOLDER / slug / "B.png").exists() and json.loads(meta.read_text(encoding="utf-8")).get("stamp") == stamp
         if all_ or not fresh:
             t = time.time()
-            info = write_textures(name, family)
+            info = write_tread(name) if family == TREADS else write_textures(name, family)
             info["stamp"] = stamp
             meta.write_text(json.dumps(info), encoding="utf-8")
             print(f"  painted {name} ({time.time() - t:.0f} s)", flush=True)

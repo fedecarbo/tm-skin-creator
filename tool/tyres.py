@@ -1,7 +1,8 @@
 """Tyre markings: a library of looks for the tyres (TY-01 ...), drawn on the tyres' own map.
 
     s.tyre_marks("TY-01")                             a marking from the library, by code or name
-    s.tyre_marks("ring soft", colour="lime", words=("OXIDE", "BOX BOX"))
+    s.tyre_marks("ring soft", colour="lime", words=("OXIDE", "BOX BOX"), tread="TR-02")
+    s.tyre_tread("TR-04")                             a tread from the tread library on its own
     python -m tool.tyres                              every marking on the car -> build/tyres/
     python -m tool.tyres TY-01 TY-30                  just those
 
@@ -295,7 +296,7 @@ class Art:
     outside). Replayed on each face of the tyre when it's laid on the map (apply)."""
 
     def __init__(self):
-        self.side, self.tread = [], []
+        self.side, self.tread_ops = [], []
         self.tread_kind = None  # a tread pattern replacing Nadeo's grooves (tread())
         self.words = []  # every word written, to check it's flip-proof
         self.notes = []
@@ -475,7 +476,16 @@ class Art:
                 rows = np.flatnonzero(ca > 0)
                 cov = ca[rows, None] * cx[None]
             g.paint(rows, cov, rgb, ro, me)
-        self.tread.append(op)
+        self.tread_ops.append(op)
+        return self
+
+    def tread(self, name):
+        """A tread from the tread library (TREAD_LIBRARY: "TR-04" or its name, "wet"), or one of
+        TREADS by its key ("rain"), or "slick"."""
+        key = str(name).strip().lower()
+        if key in TREADS or key == "slick":
+            return self.tread_grooves(key)
+        tread_find(name)[1]["fn"](self)
         return self
 
     def tread_grooves(self, kind, colour=None, **p):
@@ -492,7 +502,7 @@ class Art:
             g.groove = np.maximum(g.groove, depth)
             if colour is not None:
                 g.paint(slice(None), depth.astype(np.float32), _colour(colour), *SHINE["paint"])
-        self.tread.append(op)
+        self.tread_ops.append(op)
         return self
 
     def studs(self, colour="#b8bcc2", spacing=4.0, size=0.45):
@@ -508,7 +518,7 @@ class Art:
             cov = np.clip((size / 2 - d) / 0.04 + 0.5, 0, 1).astype(np.float32)
             g.paint(slice(None), cov, rgb, ro, me)
             g.lift(slice(None), cov, 0.08)
-        self.tread.append(op)
+        self.tread_ops.append(op)
         return self
 
 
@@ -606,6 +616,49 @@ TREADS = {"grooved": _t_grooved, "rain": _t_rain, "inter": _t_inter, "gravel": _
           "lugs": _t_lugs}
 
 
+def _tr(kind, studs=False, **p):
+    def fn(t):
+        if kind != "stock":
+            t.tread_grooves(kind, **p)
+        if studs:
+            t.studs()
+    fn.depth = 0 if kind in ("stock", "slick") else p.get("deep", 0.25)
+    return fn
+
+
+# The tread library: the Lab's "Treads" (tool/swatches.py), a tread on its own for s.tyre_tread(),
+# or any marking's tread= ("ring soft" on "TR-02"). Codes as the finishes': never reorder or remove,
+# a new one goes at the end.
+TREAD_LIBRARY = [
+    ("Nadeo's own", "the car's own tread, as it comes: grooves like a road tyre's", _tr("stock")),
+    ("slick", "no grooves at all: a dry racing tyre (the game still shades faint lines where Nadeo's grooves were)", _tr("slick")),
+    ("grooved", "four grooves round the tread: Formula 1's dry tyres from 1998 to 2008", _tr("grooved")),
+    ("wet", "a deep wet tread: a groove round the middle and grooves swept back to the shoulders", _tr("rain")),
+    ("intermediate", "a shallow wet tread: finer swept grooves, a slick middle", _tr("inter")),
+    ("rally asphalt", "nearly slick: two grooves round it and a few short cuts", _tr("asphalt")),
+    ("gravel blocks", "chunky staggered blocks, for loose ground", _tr("gravel")),
+    ("snow studs", "narrow blocks and metal studs, for ice", _tr("snow", studs=True)),
+    ("mud lugs", "big lugs in a V with deep gaps between", _tr("mud", deep=0.35)),
+    ("semi-slick", "a slick middle, a channel each side and blocks at the shoulders: a drift tyre's", _tr("semi-slick")),
+    ("ribbed", "ribs round the tread: a vintage or a skinny front tyre's", _tr("ribs")),
+    ("vintage diamond", "diamonds of crossed grooves: a 1920s balloon tyre's", _tr("diamond")),
+    ("round lugs", "round lugs standing proud: a toy monster truck's", _tr("lugs", deep=0.4)),
+]
+
+
+def tread_library():
+    """{code: entry}: TR-01, TR-02, ..."""
+    return {f"TR-{k:02d}": {"name": n, "about": a, "fn": fn} for k, (n, a, fn) in enumerate(TREAD_LIBRARY, 1)}
+
+
+def tread_find(name):
+    key = " ".join(str(name).strip().lower().replace("-", " ").split())
+    for code, e in tread_library().items():
+        if key in (code.lower().replace("-", " "), code.lower().replace("-", ""), e["name"].lower().replace("-", " ")):
+            return code, e
+    raise KeyError(f"no tread called {name!r}; see tool/tyres.py (TREAD_LIBRARY)")
+
+
 # ---- laying a marking on the tyres' map ----
 
 
@@ -642,7 +695,7 @@ def apply(canvas, art, reads="left"):
     height = np.zeros((h, w), np.float32)
     groove = np.zeros((h, w), np.float32)
     faces = [(g["outer"], art.side, "r", SS_A, SS_R), (g["inner"], art.side, "r", SS_A, SS_R),
-             (g["tread"], art.tread, "across", 2, 2)]
+             (g["tread"], art.tread_ops, "across", 2, 2)]
     for cols, ops, key, sa, sx in faces:
         if not ops:
             continue
@@ -715,7 +768,7 @@ def _ring(t, colour, words=(MAKER, "BOX BOX"), letters=None, arcs=True, heavy=Fa
             for lo, hi in spans:
                 t.band(0.04, 0.96, colour, arcs=[(lo, lo + 1.3), (hi - 1.3, hi)])
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _marks(t, colour, words=(MAKER, "CHECK"), cap=2.2, font="russo", model=True, s=0.5, lift=0.0,
@@ -725,7 +778,7 @@ def _marks(t, colour, words=(MAKER, "CHECK"), cap=2.2, font="russo", model=True,
     if model and len(words) > 1:
         t.text(words[1], s, cap * 0.75, [90, 270], colour=colour, font=font, lift=lift, finish=finish, outline=outline)
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _grooved(t, colour=WHITE, words=(MAKER, "CHECK"), line=None, line_at=2.5):
@@ -763,14 +816,14 @@ def _stripe(t, colour, s0, s1, words=(MAKER, "CODEX"), letters=WHITE, cap=1.8, s
     if words:
         _marks(t, letters, words, cap=cap, s=s)
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _stock(t, colour, words=(MAKER, "HEX 8"), tread=None):
     """American stock cars: bold wide capitals twice round, glossy paint."""
     _marks(t, colour, words, cap=2.6, font=BIG, finish="gloss")
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _sticker(t, words=(MAKER, "HEX 8")):
@@ -810,7 +863,7 @@ def _endurance(t, colour, words=(MAKER, "ECHO"), tread=None):
     for a in (0, 180):
         t.band(0.18, 0.82, colour, arcs=[(a - h - 2.2, a - h), (a + h, a + h + 2.2)])
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _dot(t, colour=RED, words=(MAKER, "ECHO")):
@@ -825,7 +878,7 @@ def _moto(t, colour, words=(MAKER, "BIKE"), tread=None):
     t.band(0.86, 0.95, colour)
     _marks(t, WHITE, words, cap=1.8, s=0.42)
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _war(t, colour, words=(MAKER,), cap=3.3, bar=True):
@@ -903,14 +956,14 @@ def _whitewall(t, s0, s1, colour=CREAM, pin=None, tread=None):
     if pin:
         t.band(s1 + 0.04, s1 + 0.09, pin)
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _lines(t, bands, tread=None):
     for s0, s1, colour in bands:
         t.band(s0, s1, colour)
     if tread:
-        t.tread_grooves(tread)
+        t.tread(tread)
 
 
 def _balloon(t, words=(MAKER, "DECO")):
