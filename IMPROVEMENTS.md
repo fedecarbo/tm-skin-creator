@@ -88,9 +88,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   on" never says so (they're a handful of texels). The skin paints the strip by hand
   (`fasteners()` in TSC_CMYK_BlackTail's design). Idea, with the user's parts work: name them
   ("fasteners") so any design can paint them.
-- **`show` fails when the Studio reads its steps at that moment** (2026-09-27): on Windows,
-  replacing `steps.json` while the open Studio page was reading it stopped the paint with "Access
-  is denied"; running it again worked. Idea: retry the replace a few times, a moment apart.
+- **Writing a file something else has open fails on Windows** (2026-09-27): replacing
+  `steps.json` while the open Studio page was reading it stopped `show` ("Access is denied"), and
+  saving the user's picture while it was still open on their screen stopped `tool.snap --picture`
+  ("Invalid argument"). Both worked when run again. Idea: retry the write a few times, a moment
+  apart.
 
 - **A tidy-up, from a code check** (2026-09-27, the user: "it's been forever I have refactored, so
   not sure if things need to be optimised a bit more?"). The code is in fair shape; no big
