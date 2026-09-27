@@ -57,7 +57,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the viewer.
 
 - **Worn paint that reads as worn** (2026-09-26, TSC_FlagPeel_CostaRica's worn takes: "none gets
-  me to think it's worn"). `s.wear` scatters chips, scrapes and fading by noise, so they sit on
+  me to think it's worn"; the Costa Rica skins were deleted on 2026-09-27, they're in the git history). `s.wear` scatters chips, scrapes and fading by noise, so they sit on
   the car like a pattern, not like damage. Real wear follows the car: paint rubbed through on
   the sharp edges and creases (convex curvature from the bake), round panel gaps and fasteners,
   where hands and walls touch; grime settles in the recesses and streaks back from the
@@ -66,7 +66,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   a plain one-colour car before a livery.
 
 - **A step that covers an earlier step's paint says nothing** (2026-09-26, TSC_ChaosElegance_
-  Kintsugi: a borrowed inner-car helper painted the body black over the porcelain and gold). The
+  Kintsugi, deleted 2026-09-27: a borrowed inner-car helper painted the body black over the
+  porcelain and gold). The
   Studio's filmstrip shows it, but only if someone looks. Idea: at the end of each step, note any
   part an earlier step painted that this step covered for the most part ("Inner car covered
   Porcelain, Mended with gold on the body shell"), as `show` notes shared paint.

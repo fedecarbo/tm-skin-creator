@@ -1384,6 +1384,9 @@ worked on, live; not one page. What was settled the same day:
     (each keeps its own car) both open. Following Claude's painting (studio.json) now updates
     `?skin=` too, so a room opened later shows the same car. The rooms' head wraps to two lines
     when the switch leaves the pickers no room (1100 px).
+  - **What came of the round:** the user picked Unravelled, then asked for it in CMYK on dark grey
+    (two takes, the round "Unravelled"), and on 2026-09-27 kept only the two CMYK takes to install;
+    Kintsugi, Thrown and the ivory Unravelled were deleted (in the git history).
   - **Checked on the Mac (2026-09-26)** in headless Chrome: A to B at the Wheels step (B opens at
     Wheels), B carried into the Body room, C picked there and carried back to the Studio, a skin
     in no round shows no switch, 390 × 844 (Studio and Tyres, no sideways scroll), 1100 × 800 and
