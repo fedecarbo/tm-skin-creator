@@ -5,7 +5,8 @@
 // "was thinking like a matte floor with a bit of texture?", and last "Matte, tiny bit grainy texture
 // in the grid one, and the grid make it tiny bit smaller"). The viewer's Floor menu picks a surface
 // and a shade of grey; the light on the car is the same under every one.
-//   gridgrain  the user's pick: the rubber's fine grain, fainter, under a line every 75 cm
+//   gridgrain  the user's pick: the rubber's fine grain, fainter, under a line every 50 cm, reaching
+//              nearly to the walls ("the grid smaller in scale. but a bit farther covering")
 //   today      the grey cove as before: floor and walls lit as they face, so the bend shows
 //   keyshot    KeyShot's ground: no edge anywhere, a soft shadow and a faint reflection
 //   concrete, asphalt, rubber, speckle
@@ -14,8 +15,10 @@
 //   grid       a faint line every metre, fading out
 // Every floor but today's lights the whole cove as if it were flat floor, one even grey that runs
 // up the walls with no line where the floor bends (KeyShot has no wall at all), and puts a soft
-// shadow under the car in place of today's dark patch. The shade: the viewer's dark grey, or
-// KeyShot's light grey.
+// shadow under the car in place of today's dark patch. The shade: the viewer's dark grey, or a
+// light studio ("a bit whiter but with some kind of vignette so that the buttons dont dissapear"):
+// near white behind the car, darkening towards the picture's edges, where the title and the buttons
+// are. The vignette darkens the studio only, never the car, so the paint's colours stay true.
 
 import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
@@ -26,7 +29,13 @@ import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 export const FLOORS = ['gridgrain', 'today', 'keyshot', 'concrete', 'asphalt', 'rubber', 'speckle', 'turntable', 'grid'];
 export const SHADES = ['dark', 'light'];
 const RADIUS = 14;  // the room's flat floor (viewer.js's addRoom: the cove curves up from here)
-const LIGHT_GREY = 0.2;  // KeyShot's light grey (linear): about 190 on the screen by day
+const LIGHT_GREY = 0.34;  // the light studio (linear): near white on the screen by day, behind the car
+// The light studio's vignette, shared by every studio surface: the car's middle on the screen and
+// half the picture's height (pixels), set as each frame is drawn; strength 0 in the dark shade.
+// Within about 0.4 of the picture's height of the car the studio keeps its grey; by the edges, where
+// the title and the buttons are, it's down to 0.2 of it. (viewer.js also gives the buttons over the
+// light studio a dark glass: body.lightStudio.)
+const VIGNETTE = { vignetteAt: { value: new THREE.Vector3(0, 0, 1) }, vignetteStrength: { value: 0 } };
 const TABLE = { r: 2.6, h: 0.08 };  // the turntable: 5.2 m across, 8 cm high
 
 // The matte floors: ambientCG sets (CC0), downloaded by tool/view.py (FLOOR_SETS). mean: the colour
@@ -55,9 +64,13 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
   };
   material.userData.studio = uniforms;
   material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
+    Object.assign(shader.uniforms, uniforms, VIGNETTE);
     let frag = shader.fragmentShader.replace('#include <common>', `#include <common>
-      varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange, fadeEnds; uniform float floorGrey, grainPower; uniform vec3 grainMean;`);
+      varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange, fadeEnds; uniform float floorGrey, grainPower; uniform vec3 grainMean;
+      uniform vec3 vignetteAt; uniform float vignetteStrength;`)
+      .replace('#include <opaque_fragment>', `#include <opaque_fragment>
+        float vignette = smoothstep( 0.42, 1.0, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
+        gl_FragColor.rgb *= mix( 1.0, 0.2, vignette * vignetteStrength );`);
     if (grain) {
       frag = frag.replace('#include <map_fragment>', `#include <map_fragment>
         diffuseColor.rgb = floorGrey * pow( max( texture2D( map, vMapUv ).rgb / grainMean, 0.0 ), vec3( grainPower ) );`);
@@ -217,22 +230,23 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
         { y: -TABLE.h, z, size: 7, height: 0.3, blur: 3, opacity: grey > 0.1 ? 0.6 : 0.8, power: 1.2, order: 4 });
       return [table, under];
     },
-    grid: (grey, metres = 1) => {
+    grid: (grey, metres = 1, fade = { r0: 5, r1: 12 }) => {
       // A faint line every `metres`, one under the car's middle, and nothing between them: the
-      // backdrop shows through. Fading out between 5 and 12 m, before the lines crowd.
+      // backdrop shows through. Fading out (by default between 5 and 12 m) before the lines crowd.
+      // The lines are 7/512 of a square wide: 1.4 cm a metre apart, 7 mm at 50 cm.
       const c = document.createElement('canvas');
       c.width = c.height = 512;
       const g = c.getContext('2d');
       g.fillStyle = '#ffffff';
-      g.fillRect(0, 0, 512, 5);
-      g.fillRect(0, 0, 5, 512);
+      g.fillRect(0, 0, 512, 7);
+      g.fillRect(0, 0, 7, 512);
       const map = new THREE.CanvasTexture(c);
       map.wrapS = map.wrapT = THREE.RepeatWrapping;
       map.repeat.set(RADIUS * 2 / metres, RADIUS * 2 / metres);
       map.offset.setScalar(-((RADIUS / metres) % 1));
       map.anisotropy = aniso;
       const material = fadeFrom(studio(new THREE.MeshStandardMaterial({ alphaMap: map, transparent: true, roughness: 1, metalness: 0,
-        depthWrite: false }), { flat: true, fade: { r0: 5, r1: 12 } }));
+        depthWrite: false }), { flat: true, fade }));
       material.color.setScalar(grey > 0.1 ? grey * 0.55 : grey * 2.6);  // lines a little darker, or lighter, than the backdrop
       const floor = new THREE.Mesh(disc(RADIUS, z), material);
       floor.renderOrder = 1;
@@ -243,12 +257,12 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
   for (const [name, s] of Object.entries(SURFACES)) {
     // A matte floor averaging the backdrop's grey, its grain fading out between 4 and 13 m, so no
     // ring shows where it ends.
-    build[name] = (grey, grain = s.grain) => {
+    build[name] = (grey, grain = s.grain, fade = { r0: 4, r1: 13 }) => {
       const base = `data/floor/${s.asset}/${s.asset}_2K-JPG`, n = RADIUS * 2 / s.metres;
       const material = fadeFrom(studio(new THREE.MeshStandardMaterial({
         map: texture(`${base}_Color.jpg`, n, true), normalMap: texture(`${base}_NormalGL.jpg`, n, false),
         normalScale: new THREE.Vector2(s.relief, s.relief), roughness: 1, metalness: 0, transparent: true,
-      }), { matte: true, fade: { r0: 4, r1: 13 }, grain: { grey, mean: s.mean, power: grain } }));
+      }), { matte: true, fade, grain: { grey, mean: s.mean, power: grain } }));
       const floor = new THREE.Mesh(disc(RADIUS, z), material);
       floor.receiveShadow = true;
       floor.renderOrder = 1;
@@ -256,7 +270,17 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
     };
   }
 
-  build.gridgrain = (grey) => [...build.rubber(grey, 0.45), ...build.grid(grey, 0.75)];
+  const far = { r0: 8, r1: 13.8 };  // the cove bends up at 14 m
+  build.gridgrain = (grey) => [...build.rubber(grey, 0.45, far), ...build.grid(grey, 0.5, far)];
+
+  // the vignette's centre, each time the room is drawn on the screen (not in the mirror's picture)
+  const mid = new THREE.Vector3(), px = new THREE.Vector2();
+  room.onBeforeRender = (r, s, cam) => {
+    if (r.getRenderTarget() !== null) return;
+    r.getDrawingBufferSize(px);
+    mid.copy(centre).project(cam);
+    VIGNETTE.vignetteAt.value.set((mid.x + 1) / 2 * px.x, (mid.y + 1) / 2 * px.y, px.y / 2);
+  };
 
   let current = 'today';
   function set(text) {
@@ -271,6 +295,7 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
       return { name, shade };
     }
     const grey = greyOf(shade);
+    VIGNETTE.vignetteStrength.value = shade === 'light' ? 1 : 0;
     if (!built[current]) {
       built[current] = build[name](grey);
       for (const o of built[current]) scene.add(o);

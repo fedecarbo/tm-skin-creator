@@ -1369,6 +1369,7 @@ let floorShade = 'dark';  // kept while "as today" is on, for the next surface p
 function setFloor(text) {
   const { name, shade } = floors.set(text);
   if (name !== 'today') floorShade = shade;
+  document.body.classList.toggle('lightStudio', name !== 'today' && shade === 'light');
   for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.setAttribute('aria-pressed', String(b.dataset.floor === name));
   for (const b of document.querySelectorAll('#floorMenu [data-shade]')) {
     b.setAttribute('aria-pressed', String(b.dataset.shade === floorShade));
@@ -1376,7 +1377,7 @@ function setFloor(text) {
   }
   const picked = document.querySelector(`#floorMenu [data-floor="${name}"]`);
   if (picked) document.getElementById('floorName').textContent = picked.textContent + (name === 'today' ? '' : ` · ${floorShade}`);
-  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor-2', floors.get()); } catch {}
+  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor-3', floors.get()); } catch {}
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1739,10 +1740,10 @@ async function start() {
   partTable();
   buildPartsList();
   floors = createFloors({ scene, renderer, ...addRoom(), centre: CENTRE, roomGrey: TUNE.room });
-  // the user's pick opens the viewer (2026-09-27: the grainy grid); snapshots keep today's for now
+  // the user's pick opens the viewer (2026-09-27: the grainy grid, light); snapshots keep today's for now
   let floor = params.get('floor');
-  if (!floor && !snap) try { floor = localStorage.getItem('tsc-viewer-floor-2'); } catch {}
-  setFloor(floor || (snap ? 'today' : 'gridgrain-dark'));
+  if (!floor && !snap) try { floor = localStorage.getItem('tsc-viewer-floor-3'); } catch {}
+  setFloor(floor || (snap ? 'today' : 'gridgrain-light'));
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();

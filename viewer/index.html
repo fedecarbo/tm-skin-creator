@@ -33,6 +33,13 @@
   .sk.acc { background: var(--acc); color: var(--ground); font-weight: 600; }
   .sk.acc:hover { background: #f1ff8a; }
   .gap { width: 14px; flex: none; }
+  /* Over the light studio (viewer/floors.js) the buttons floating on the picture get a dark glass,
+     and the title a soft shadow, so they read wherever the car is. */
+  body.lightStudio #top .sk:not([aria-pressed="true"]):not(.acc), body.lightStudio #bar .sk:not([aria-pressed="true"]):not(.acc),
+  body.lightStudio #pad .sk:not([aria-pressed="true"]) { background: rgba(10, 12, 16, 0.36); }
+  body.lightStudio #top .sk:not([aria-pressed="true"]):not(.acc):hover, body.lightStudio #bar .sk:not([aria-pressed="true"]):not(.acc):hover,
+  body.lightStudio #pad .sk:not([aria-pressed="true"]):hover { background: rgba(10, 12, 16, 0.55); }
+  body.lightStudio #title, body.lightStudio #speedo { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.45); }
 
   /* My skins */
   #rail { position: fixed; left: 0; top: 0; bottom: 0; width: var(--rail); box-sizing: border-box; padding: 28px 44px 0 24px; z-index: 3;
@@ -238,7 +245,7 @@
       <button class="sk" data-floor="grid" aria-pressed="false"><span>Grid</span></button>
       <div class="shades">
         <button class="sk" data-shade="dark" aria-pressed="true" title="the viewer's dark grey"><span>Dark</span></button>
-        <button class="sk" data-shade="light" aria-pressed="false" title="KeyShot's light grey"><span>Light</span></button>
+        <button class="sk" data-shade="light" aria-pressed="false" title="a light studio, darker towards the edges"><span>Light</span></button>
       </div>
     </div>
   </div>

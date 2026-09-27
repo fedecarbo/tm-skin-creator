@@ -1721,8 +1721,15 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   texture in the grid one, and the grid make it tiny bit smaller"): **the grainy grid**, the
   rubber's grain at 0.45 under a line every 75 cm (one under the car's middle), now what the viewer
   opens with (dark; the choice is kept under a new key, `tsc-viewer-floor-2`, so the pick showed on
-  refresh). Next: the user confirms it and the shade; then it's the only floor (snapshots, the Lab,
-  the page online) and the menu goes, unless they want to keep it.
+  refresh). Then "Maybe make the whole thing a bit whiter but with some kind of vignette so that
+  the buttons dont dissapear. and also I need the grid smaller in scale. but a bit farther
+  covering": the light shade is now 0.34 (near white behind the car) with a vignette on the studio
+  only (not the car: the paint stays true), centred on the car's middle on the screen, down to 0.2
+  of the grey by the edges; the buttons over it get a dark glass and the title a soft shadow
+  (`body.lightStudio`); the grid is a line every 50 cm (7 mm wide), fading between 8 and 13.8 m.
+  The viewer opens on the grainy grid, light (`tsc-viewer-floor-3`). Next: the user confirms; then
+  it's the only floor (snapshots, the Lab, the page online) and the menu goes, unless they want to
+  keep it.
   - **"A bit of texture":** each matte floor averages the backdrop's grey (its colour picture
     divided by its own mean, so the rubber's blue cast goes too) and keeps part of the picture's
     contrast, a power of each texel's ratio to the mean (asphalt 0.4, rubber 0.6, speckle 0.36,
