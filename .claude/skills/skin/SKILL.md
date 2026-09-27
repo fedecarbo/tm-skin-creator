@@ -212,5 +212,5 @@ user the Studio too.
    it's there for their phone and friends.
 4. Add the `Installed` line to `notes.md`.
 5. Screenshots are in
-   `C:\Program Files (x86)\Steam\userdata\53610290\760\remote5070\screenshots\`. Look
+   `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`. Look
    only at ones taken after the install.
