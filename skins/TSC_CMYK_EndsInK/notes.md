@@ -39,3 +39,10 @@ blotches, like dirt.
   the front wing's paint, so they're dark metal now. A small patch the cockpit rim shares with the
   front uprights stays dark. In TSC_CMYK_BlackTail's design, so both tails have it.
 - Installed again 2026-09-27 with change 4, and put on the page online.
+- Change 5 (user): "Yes.  Can we start adding some texture, more like for the black paint?", then
+  after the round of takes (TSC_CMYK_Carbon, TSC_CMYK_Halftone, TSC_CMYK_Brushed): "I was just
+  thinking tiny grain just to have a bit of texture." The black wrap (and the ring round each
+  sidepod inlet) is now "textured wrap", a new finish (WT-07): specks of 3.5 mm a little less
+  matte than the rest, in the sheen only, the colour even. Drawn for the game: a grain in the
+  colour would be lost to its compression, and the zip's budget halves the sheen map. The zip
+  comes to 7.1 MB. Shown 2026-09-27: build/TSC_CMYK_EndsInK_picture.png.

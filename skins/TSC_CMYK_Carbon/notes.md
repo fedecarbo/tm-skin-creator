@@ -15,3 +15,5 @@ was redone.
 
 - Shown 2026-09-27 next to the other two: build/TSC_CMYK_Carbon_picture.png (front, rear, right;
   sidepod, deck and tail, driving camera).
+- 2026-09-27: the user wanted less, "I was just thinking tiny grain just to have a bit of texture":
+  TSC_CMYK_EndsInK's change 5. This take stays as a record of the round.

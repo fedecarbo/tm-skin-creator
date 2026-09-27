@@ -118,6 +118,8 @@ LIBRARY = {
     "matte wrap": _f("matte wrap", 0.8, 0.0, 0.0, about="a flat vinyl wrap", source="eye"),
     "chrome wrap": _f("chrome wrap", 0.1, 1.0, 0.0, (0.85, 0.86, 0.88), about="mirror vinyl: a little softer than real chrome", source="eye"),
     "brushed wrap": _f("brushed wrap", 0.4, 0.8, 0.0, (0.7, 0.71, 0.72), look="brushed", about="brushed-metal vinyl", source="eye"),
+    "textured wrap": _f("textured wrap", 0.95, 0.0, 0.0, look="sheen grain",
+                        about="a matte vinyl wrap with a tiny grain you see in its sheen", source="eye"),
     "quilted leather": _f("quilted leather", 0.6, 0.0, 0.0, (0.12, 0.09, 0.08), look="texture", about="diamond-stitched leather (photo)"),
     # inside
     "leather": _f("leather", 0.65, 0.0, 0.0, (0.12, 0.09, 0.08), look="texture", about="smooth leather (photo)"),
@@ -195,7 +197,7 @@ CATALOGUE = {
     "RU": ("Rubber", ["rubber", "soft rubber", "silicone", "knurled grip", "worn rubber"]),
     "CF": ("Carbon & fibre", ["carbon", "gloss carbon", "plain-weave carbon", "forged carbon", "kevlar", "fibreglass"]),
     "LF": ("Leather & fabric", ["leather", "quilted leather", "perforated leather", "suede", "cloth", "webbing", "denim"]),
-    "WT": ("Wraps & tape", ["vinyl", "gloss wrap", "matte wrap", "chrome wrap", "brushed wrap", "reflective tape"]),
+    "WT": ("Wraps & tape", ["vinyl", "gloss wrap", "matte wrap", "chrome wrap", "brushed wrap", "reflective tape", "textured wrap"]),
     "WE": ("Wear", ["scratched", "chipped", "dusty", "faded", "rusted", "greasy", "race-worn", "muddy"]),
     "PT": ("Patterns", ["camo", "hexagons", "checks", "splatter", "polka dots", "pinstripes"]),
     "LI": ("Light", ["neon", "night glow"]),

@@ -2238,6 +2238,21 @@ distorted". Each choice was made from real renders of the viewer, side by side o
     (a 3D lookup, so it still works across seams). And where the paint under a tear looks like
     the wrap (the black tip), the shadow alone read as "an outline and the paint is not there":
     it fades out as the two come to look alike, so tears dissolve into a matching colour.
+- **2026-09-27, texture in a black wrap (TSC_CMYK_EndsInK and its round of takes).**
+  - A grain in the colour of dark paint doesn't survive the game's colour map: BC1 keeps two
+    5-6-bit colours per 4x4 block, so a few levels of variation on #232528 come out as flat or
+    blocky steps. A grain in the sheen (the roughness map, BC5, 8-bit per channel) holds: the
+    "sheen grain" look and the "textured wrap" finish (WT-07).
+  - A fine grain fills the roughness map with detail zip can't squeeze, so the budget halves it
+    (and the Details normal map) to 2048²: EndsInK went from 7.3 to 7.1 MB, Skin_R from 0.25 to
+    1.2 MB zipped. Draw a grain for half size (3.5 mm specks, two texels at 2048²): its spread
+    measured 0.103 at full size and 0.100 at half.
+  - The first carbon weave (0.5 cm, in the wrap's own black) couldn't be seen beyond arm's
+    length: 0.8 cm and a touch lighter than the wrap read. Glossy dots on matte black read
+    clearly, but a dot on a tight curve (the sidepod inlet's lip) shows the highlight as a row
+    of bright dashes: leave out any dot whose normals spread more than about 14 degrees.
+  - Pictures of the car look banded when shrunk for a quick look, and not at full size: judge
+    gradients from full-size crops.
 
 - **2026-09-24, pictures on the car (checkpoint 6).**
   - A decal restricted to one named panel stops dead at the next panel; the user saw the
