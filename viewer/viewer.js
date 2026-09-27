@@ -3,8 +3,8 @@
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
-//                          or dresses step by step and pins notes to (the Studio,
-//                          viewer/lab-studio.js: dress, picture, onPick, pins)
+//                          or dresses step by step and hangs notes on (the Lab's stand,
+//                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -300,36 +300,47 @@ function railWidth() {
 // Where the car is framed from: the pose the view last set puts the camera in (while it glides
 // there, the end of the glide), or where the user left it.
 let framedFrom = null;
+// The Lab's stand (embed) leaves the car a box between its tags and its strip: viewer.inset.
+let embedBox = null;
 function frame(w, h, plain) {
-  if (plain) {
+  if (plain && !(embed && embedBox)) {
     camera.clearViewOffset();
     camera.aspect = w / h;
     camera.zoom = 1;
     camera.updateProjectionMatrix();
     return;
   }
-  framedTo = framing(w, h);
+  framedTo = framing(w, h, embed ? embedBox : null);
   if (!glide) showFraming(framedTo);
 }
-// The zoom, and the view offset (x, y) that moves the picture's centre, for a window w x h.
-function framing(w, h) {
-  const rail = railWidth();
+// The zoom, and the view offset (x, y) that moves the picture's centre, for a window w x h. box: the
+// space the Lab leaves the car ({ left, right, top, bottom } in pixels); else beside the list, between
+// the name and the buttons.
+function framing(w, h, box = null) {
+  const left = box ? box.left : railWidth(), right = box ? box.right : 0;
   const pos = framedFrom?.pos || camera.position, target = framedFrom?.target || controls.target;
   const own = !camPicked && outline(pos, target), round = own && outline(pos, target, true);
   if (!own) {  // a Driving camera, or the car not loaded yet: fits across as on the game's 16:9
     const f = camPicked ? GAME_FRAMED : { up: 0.05, zoom: FRAMED.zoom };
-    return { w, h, x: -rail / 2, y: f.up * h, zoom: f.zoom * Math.min(1, (w - rail) / h / (camPicked ? 16 / 9 : 1.3)) };
+    const top = box ? box.top : 0, bottom = box ? box.bottom : 0, freeH = h - top - bottom;
+    return { w, h, x: -(left - right) / 2, y: f.up * freeH - (top - bottom) / 2,
+      zoom: f.zoom * Math.min(freeH / h, (w - left - right) / h / (camPicked ? 16 / 9 : 1.3)) };
   }
-  const name = byId('name').getBoundingClientRect(), dock = byId('dock').getBoundingClientRect();
-  let top = Math.max(0, name.bottom), bottom = dock.top;
-  if (bottom - top < 0.35 * h) [top, bottom] = [0, h];
-  const across = (w - rail) * FRAMED.fill / ((round.x1 - round.x0) * h / 2);
+  let top, bottom;
+  if (box) [top, bottom] = [box.top, h - box.bottom];
+  else {
+    const name = byId('name').getBoundingClientRect(), dock = byId('dock').getBoundingClientRect();
+    [top, bottom] = [Math.max(0, name.bottom), dock.top];
+    if (bottom - top < 0.35 * h) [top, bottom] = [0, h];
+  }
+  const free = w - left - right;
+  const across = free * FRAMED.fill / ((round.x1 - round.x0) * h / 2);
   const down = (bottom - top) * FRAMED.fill / ((round.y1 - round.y0) * h / 2);
-  const closer = 1 + FRAMED.closer * Math.max(0, FRAMED.tall - (w - rail) / h);
-  const run = (w - rail) * FRAMED.run / ((own.x1 - own.x0) * h / 2);
+  const closer = 1 + FRAMED.closer * Math.max(0, FRAMED.tall - free / h);
+  const run = free * FRAMED.run / ((own.x1 - own.x0) * h / 2);
   const zoom = Math.min(FRAMED.zoom, down, across * closer, Math.max(across, run));
   // Move the middle of the car's own outline to the middle of the space.
-  const dx = (rail + w) / 2 - (w / 2 + (own.x0 + own.x1) / 2 * zoom * h / 2);
+  const dx = (left + w - right) / 2 - (w / 2 + (own.x0 + own.x1) / 2 * zoom * h / 2);
   const dy = (top + bottom) / 2 - (h / 2 - (own.y0 + own.y1) / 2 * zoom * h / 2);
   return { w, h, x: -dx, y: -dy, zoom };
 }
@@ -1652,6 +1663,7 @@ window.viewer = {
   },
   async show(view, night = false, hidden = []) {  // night: true, false or a mood's name
     setMood(night);
+    if (embed) pickCam(view);
     setView(view);
     for (const [name, mesh] of Object.entries(parts)) mesh.visible = !hidden.includes(name);
     await frames(3);
@@ -1678,7 +1690,7 @@ window.viewer = {
     const off = new Set(ids);
     partsState.doc.parts.forEach((p, i) => { partsState.data[i * 4] = off.has(i) ? 0 : 255; });
     partsState.table.needsUpdate = true;
-    pinsDirty = true;  // a part taken off may have hidden a pin
+    for (const a of tracked) a.behind = undefined;  // a part taken off may have hidden a tag's point
   },
   light(ids) {
     setPartFlag(litIds, 1, false);
@@ -1703,32 +1715,63 @@ window.viewer = {
     setView({ dir: dir.toArray(), dist: VIEWS.front.dist }, true);
   },
   onPick: null,
-  // The Studio's notes on the car: a pin per note, [{ n, at: [x, y, z], normal, writing }], kept on
-  // its point as the car turns.
-  pins(list) {
-    const box = document.getElementById('pins');
-    box.textContent = '';
-    pinList = list.filter((p) => p.at).map((p) => {
-      const el = document.createElement('span');
-      el.className = 'pin' + (p.writing ? ' writing' : '');
-      el.textContent = p.n;
-      box.append(el);
-      return { el, at: new THREE.Vector3(...p.at), normal: p.normal && new THREE.Vector3(...p.normal) };
-    });
-    pinsDirty = true;
-    placePins();
+  // The Lab's stand (viewer/lab-studio.js, ?embed=1), which draws its own tags over this page.
+  // inset: the box the car is framed in, the rest of the page left to the tags ({ left, right, top,
+  // bottom } in pixels, or null for the whole page).
+  inset(box) {
+    embedBox = box && { left: box.left || 0, right: box.right || 0, top: box.top || 0, bottom: box.bottom || 0 };
+    resize();
   },
-  // The Lab's Studio (viewer/lab-studio.js, ?embed=1): dress the car in one step's textures
-  // ({slot: url}, as skin.json's), and a picture of what's on screen (a blob URL).
+  // track: points on the car ([{ key, at: [x, y, z], normal }]); onMove([{ key, x, y, shown, away }])
+  // runs at the end of every frame in which one of them moved on the page, so the tags drawn from it
+  // land in the same frame as the car. shown: in the picture; away: facing away, or hidden by the car.
+  track(list, onMove) {
+    tracked = list.filter((a) => a.at).map((a) => ({ key: a.key, at: new THREE.Vector3(...a.at), normal: a.normal ? new THREE.Vector3(...a.normal) : null }));
+    onTrack = onMove;
+    trackSig = '';
+    stillFor = 0;
+    if (onTrack) trackAnchors();
+  },
+  project(points) {  // [[x, y, z]] -> [{ x, y, shown }] in this page's pixels, now
+    return points.map((p) => {
+      trackV.set(...p).project(camera);
+      return { x: (trackV.x + 1) / 2 * innerWidth, y: (1 - trackV.y) / 2 * innerHeight, shown: trackV.z < 1 };
+    });
+  },
+  // Where the camera is, as a view show() and go() take back, with the mood and the framing
+  // (the view offset as shares of the page, and the zoom) that put the car where the user saw it.
+  camera() {
+    const rel = camera.position.clone().sub(controls.target), r = (v) => Math.round(v * 1e4) / 1e4;
+    const v = camera.view && camera.view.enabled ? camera.view : null;
+    return { dir: rel.clone().normalize().toArray().map(r), dist: r(rel.length()), target: controls.target.toArray().map(r),
+      fov: r(camera.fov), mood, framing: v ? { x: r(v.offsetX / v.fullWidth), y: r(v.offsetY / v.fullHeight), zoom: r(camera.zoom) } : null };
+  },
+  go(view) {  // glide there; the game's cameras frame the car as the game does
+    pickCam(view);
+    setView(view, true);
+  },
+  mood(m) { setMood(m); },  // day or night, the camera left where it is
+  views() {  // the game's cameras, as the viewer's own buttons name them
+    return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
+  },
+  // The Lab's stand: dress the car in one step's textures ({slot: url}, as skin.json's).
   async dress(urls) {
     const tex = await loadTextures(urls);
     dressCar(geometries, tex);
     freeTexturesExcept(urls);
     await frames(2);
   },
-  picture() {
-    renderer.render(scene, camera);  // copied at toBlob's call, before the next frame draws
-    return new Promise((resolve) => canvas.toBlob((b) => resolve(URL.createObjectURL(b)), 'image/jpeg', 0.88));
+  // A picture of what's on screen (a JPEG blob URL); crop: 'inset', only the box the car is framed in.
+  picture(opts = {}) {
+    renderer.render(scene, camera);  // copied below, before the next frame draws
+    let src = canvas;
+    if (opts.crop === 'inset' && embedBox) {
+      const k = canvas.width / canvas.clientWidth, b = embedBox;
+      const w = Math.round((canvas.clientWidth - b.left - b.right) * k), h = Math.round((canvas.clientHeight - b.top - b.bottom) * k);
+      src = Object.assign(document.createElement('canvas'), { width: w, height: h });
+      src.getContext('2d').drawImage(canvas, b.left * k, b.top * k, w, h, 0, 0, w, h);
+    }
+    return new Promise((resolve) => src.toBlob((b) => resolve(URL.createObjectURL(b)), 'image/jpeg', 0.88));
   },
   gpu() {
     const gl = renderer.getContext();
@@ -1737,32 +1780,47 @@ window.viewer = {
   },
 };
 
-// The Studio's notes: { el, at, normal, behind }. A pin fades while its spot faces away or the car
-// hides it; whether the car hides it is a ray from the camera, checked when the camera has moved.
-let pinList = [];
-const pinAt = new THREE.Vector3(), toPin = new THREE.Vector3(), pinRay = new THREE.Raycaster();
-const pinCam = new THREE.Matrix4();
-let pinsChecked = 0, pinsDirty = true;
-function placePins() {
-  if (!pinCam.equals(camera.matrixWorld)) { pinCam.copy(camera.matrixWorld); pinsDirty = true; }
-  const check = pinsDirty && performance.now() - pinsChecked > 150;
-  if (check) { pinsChecked = performance.now(); pinsDirty = false; }
-  const meshes = check ? Object.values(parts).filter((m) => m.visible) : null;
-  for (const p of pinList) {
-    pinAt.copy(p.at).project(camera);
-    p.el.hidden = pinAt.z > 1 || Math.abs(pinAt.x) > 1.05 || Math.abs(pinAt.y) > 1.05;
-    p.el.style.left = `${(pinAt.x + 1) / 2 * innerWidth}px`;
-    p.el.style.top = `${(1 - pinAt.y) / 2 * innerHeight}px`;
-    toPin.subVectors(p.at, camera.position);
-    const away = !!p.normal && toPin.dot(p.normal) > 0;
-    if (check) {
-      const d = toPin.length();
-      pinRay.set(camera.position, toPin.normalize());
-      pinRay.far = d - 0.03;
-      p.behind = pinRay.intersectObjects(meshes, false).some((h) => partsState.data[partOfHit(h) * 4] > 0);
+// The Lab's tags: { key, at, normal, behind }, projected at the end of each frame. Whether the car
+// hides a point is a ray from the camera against the car (about 99k triangles, no index), so it waits
+// for the camera to settle (10 still frames) and casts at most 4 a frame; a move forgets them.
+let tracked = [], onTrack = null, trackSig = '', stillFor = 0;
+const trackV = new THREE.Vector3(), trackTo = new THREE.Vector3(), trackRay = new THREE.Raycaster();
+const trackCam = new THREE.Matrix4(), trackProj = new THREE.Matrix4();
+function trackAnchors() {
+  if (!trackCam.equals(camera.matrixWorld) || !trackProj.equals(camera.projectionMatrix)) {
+    trackCam.copy(camera.matrixWorld);
+    trackProj.copy(camera.projectionMatrix);
+    stillFor = 0;
+    for (const a of tracked) a.behind = undefined;
+  } else stillFor++;
+  let rays = stillFor >= 10 ? 4 : 0;
+  const meshes = rays ? Object.values(parts).filter((m) => m.visible) : null;
+  const out = tracked.map((a) => {
+    trackV.copy(a.at).project(camera);
+    const shown = trackV.z < 1 && Math.abs(trackV.x) <= 1.05 && Math.abs(trackV.y) <= 1.05;
+    trackTo.subVectors(a.at, camera.position);
+    const facing = !a.normal || trackTo.dot(a.normal) <= 0;
+    if (a.behind === undefined && shown && rays > 0) {
+      rays--;
+      const d = trackTo.length();
+      trackRay.set(camera.position, trackTo.normalize());
+      trackRay.far = d - 0.03;
+      a.behind = trackRay.intersectObjects(meshes, false).some((h) => partsState.data[partOfHit(h) * 4] > 0);
     }
-    p.el.classList.toggle('away', away || !!p.behind);
+    return { key: a.key, x: Math.round((trackV.x + 1) / 2 * innerWidth * 10) / 10, y: Math.round((1 - trackV.y) / 2 * innerHeight * 10) / 10,
+      shown, away: !facing || !!a.behind };
+  });
+  const sig = JSON.stringify(out);
+  if (sig !== trackSig) {
+    trackSig = sig;
+    onTrack(out);
   }
+}
+// The Lab's go() and show(): the game's cameras (the viewer's Cam buttons) frame the car as the game
+// does, any other view by its own outline.
+function pickCam(view) {
+  camPicked = typeof view === 'string' && viewButtons.some((b) => b.dataset.view === view && 'cam' in b.dataset) ? view : null;
+  controls.minDistance = camPicked ? DRIVING_MIN : 1;
 }
 
 function fail(err) {
@@ -1806,7 +1864,7 @@ async function start() {
     if (!snap && !embed) stepDrive(now);
     controls.update();
     renderer.render(scene, camera);
-    if (pinList.length) placePins();
+    if (onTrack && tracked.length) trackAnchors();
   });
   await frames(2);
   statusBox.textContent = '';

@@ -507,7 +507,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._json(503, {"error": str(e)})
 
     # What a POST to /api/notes can do: the first of these keys in the body picks it, else a new note.
-    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture")
+    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture", "view")
     ACTIONS = {
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }

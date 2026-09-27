@@ -140,15 +140,6 @@
   input[type=checkbox] { accent-color: var(--acc); margin: 0; }
   #tip { position: fixed; pointer-events: none; padding: 5px 10px; font-size: 13px; z-index: 5; }
   #tip:empty { display: none; }
-  /* The Lab's notes on the car (the Studio, ?embed=1): a numbered pin where the user clicked, faded
-     while its spot faces away; the one being written is white */
-  #pins { position: fixed; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
-  .pin { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%; display: grid; place-items: center;
-         box-sizing: border-box; padding-top: 3px; background: var(--acc); color: #0d0f12; font: 600 17px/1 Teko, sans-serif;
-         box-shadow: 0 0 0 4px rgba(232, 255, 71, 0.25), 0 2px 10px rgba(0, 0, 0, 0.6); transition: opacity 0.15s; }
-  .pin.away { opacity: 0.3; }
-  .pin.writing { background: #f2f4f7; box-shadow: 0 0 0 4px rgba(242, 244, 247, 0.25), 0 2px 10px rgba(0, 0, 0, 0.6); }
-  .pin[hidden] { display: none; }
 
   /* Smaller windows: the list folds away behind a button, and the car takes the whole width. Under
      1280 px the list would cost the car some size (the user's pick, B, from three renders, 2026-09-27:
@@ -266,7 +257,6 @@
   <div id="partsList"></div>
 </div>
 <div id="tip" class="panel"></div>
-<div id="pins"></div>
 <div id="credit" class="panel">
   Car model: <a href="https://sketchfab.com/3d-models/trackmania-2020-carsport-c8b80bfc1ed1427eb37f3eba8d1ecfbf">Trackmania 2020 CarSport</a>
   by <a href="https://sketchfab.com/amogusstrikesback2">amogusstrikesback2</a>,

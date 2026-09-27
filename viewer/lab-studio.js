@@ -1,40 +1,44 @@
-// The Lab's Studio: the car a design builds, step by step from clay, while Claude works on it.
-// The car at the picked step, big; a filmstrip of the car at every step under it (layout B of the
-// mockups the user chose on 2026-09-26); the user's notes beside it: click the car where you mean,
-// write what you want there, and the note is pinned to that spot (C of the mockups of 2026-09-27,
-// in place of the step's words and a line to copy). The notes live in .notes/notes.json through the
-// viewer's server (tool/notes.py, /api/notes), each with a picture of the stage as the user saw it,
-// and reach Claude with the user's next message.
-// CHECKLIST.md, "The Lab", steps 5 and 7.
+// The Lab's stand, its first room: the car a design builds, step by step, while Claude works on it,
+// with the user's notes hanging on it as tags (the user's pick, B, of the factory mockups,
+// 2026-09-27: CHECKLIST.md, "The Lab", step 9; before it, the Studio of steps 5 and 7). The car fills
+// the room, framed between two gutters where the tags hang (lab-tags.js). Click the car where you
+// mean and write what you want there: the note keeps the point, the part under it, the step, the
+// view (a click on its tag turns the car back to it) and a picture of what the user saw, in
+// .notes/notes.json through the viewer's server (tool/notes.py, /api/notes), and reaches Claude with
+// the user's next message. Along the bottom: the build's steps, the game's cameras (the viewer's own
+// Cam buttons, viewer.views) and the car in the game (gallery.json).
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
-// Either way, when Claude starts painting a skin, the Studio follows it. A take in a round of
-// concepts shows the round's title and a switch between its takes (lab-round.js), which opens the
-// picked take at the same step.
+// Either way, when Claude starts painting a skin, the stand follows it, unless a note is being written
+// or a tag is open. A take in a round of concepts shows the round's title and a switch between its
+// takes (lab-round.js), which opens the picked take at the same step.
 // Everything comes from the tool: tool.skin show paints a design step by step (paintbox.Skin.step)
 // and writes each step's frame and skins/<name>/steps.json (tool/view.py, export_steps), and
-// studio.json, the skin it painted last. The page asks for both every 1.5 s, so the filmstrip
-// fills in while a design is being painted. Both cars are the viewer itself (?embed=1): one big,
-// one hidden behind it that draws the filmstrip's pictures.
+// studio.json, the skin it painted last. The page asks for both every 1.5 s, so the strip fills in
+// while a design is being painted. Both cars are the viewer itself (?embed=1): the stage, and a
+// second one behind it at half its size and the same shape, which draws the strip's pictures.
 
 import { note, render, wanted } from './lab-round.js';
+import { createTags } from './lab-tags.js';
 
 const $ = (id) => document.getElementById(id);
 const POLL = 1500;
 
-let skin = null;          // { name, title }
+let skin = null;          // { name, title, entry: gallery.json's }
 let doc = null;           // steps.json
 let picked = -1;
 let stage = null, thumbs = null;  // the two viewers' window.viewer
 let seen = {};            // step -> frame, when this browser last saw the skin: newer ones are New
 let changed = new Set();
-const pics = new Map();   // frame -> picture URL
+const pics = new Map();   // frame (and view) -> picture URL
 let queue = Promise.resolve();
 let stageLook = '';
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
-let writing = null;       // the note being written: { part: { id, label, token }, at, normal, step, step_name, picture }
+let writing = null;       // the note being written: { part, at, normal, step, step_name, view, picture }
 let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a click
+let cams = [];            // the game's cameras, as the viewer names them: [{ view, label, title }]
+let tags = null;          // lab-tags.js
 
 const lookOf = (step) => {
   const words = (step.look || '').split(/\s+/);
@@ -45,8 +49,17 @@ const ago = (t) => {
   const s = Math.max(0, Date.now() / 1000 - t);
   return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
 };
+const when = (iso) => new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-// ---- the two viewers ----
+// ---- the stage: the car framed between the gutters, a second car behind it for the pictures ----
+
+const gutter = () => (matchMedia('(max-width: 1000px)').matches ? 0 : innerWidth <= 1280 ? 250 : 300);
+const box = (k = 1) => ({ left: gutter() * k, right: gutter() * k, top: 10 * k, bottom: 10 * k });
+
+function fitThumbs() {  // the picture car: half the stage, the same shape, so its pictures crop alike
+  const r = $('stStage').getBoundingClientRect();
+  Object.assign($('stThumbs').style, { width: `${Math.max(2, Math.round(r.width / 2))}px`, height: `${Math.max(2, Math.round(r.height / 2))}px` });
+}
 
 function viewer(frame) {
   return new Promise((resolve) => {
@@ -62,15 +75,21 @@ function viewer(frame) {
   });
 }
 
-function picture(step) {  // the filmstrip's picture of a step, drawn once per frame
-  if (pics.has(step.frame)) return Promise.resolve(pics.get(step.frame));
+function framed() {  // the box each car frames itself in, after a resize
+  fitThumbs();
+  if (stage) stage.inset(box());
+  if (thumbs) thumbs.inset(box(0.5));
+  if (tags) tags.restack();
+}
+
+function picture(key, textures, view, night) {  // a picture of the car, drawn once per key
+  if (pics.has(key)) return Promise.resolve(pics.get(key));
   const job = queue.then(async () => {
-    if (pics.has(step.frame)) return pics.get(step.frame);
-    const look = lookOf(step);
-    await thumbs.dress(step.textures);
-    await thumbs.show(look.view, look.night);
-    const url = await thumbs.picture();
-    pics.set(step.frame, url);
+    if (pics.has(key)) return pics.get(key);
+    await thumbs.dress(textures);
+    await thumbs.show(view, night);
+    const url = await thumbs.picture({ crop: 'inset' });
+    pics.set(key, url);
     return url;
   });
   queue = job.catch(() => {});
@@ -85,34 +104,68 @@ async function showOnStage(step) {
     const l = lookOf(step);
     await stage.show(l.view, l.night);
     stageLook = look;
+    moodShown(l.night ? 'night' : 'day');
   }
 }
 
-// ---- the page ----
+function moodShown(m) {
+  $('stand').classList.toggle('night', m === 'night');
+  for (const b of $('stMood').querySelectorAll('[data-mood]')) b.setAttribute('aria-pressed', String(b.dataset.mood === m));
+}
+
+// ---- the strip: the build's steps, the game's cameras, the car in the game ----
+
+function still(label, cls = '') {
+  const b = document.createElement('button');
+  b.className = `still ${cls}`;
+  b.innerHTML = '<img alt=""><div class="fn teko"><span></span></div>';
+  b.querySelector('.fn span').textContent = label;
+  return b;
+}
+const gap = () => Object.assign(document.createElement('span'), { className: 'gap' });
 
 function strip() {
-  const box = $('stStrip');
-  box.textContent = '';
+  const box = document.createElement('div'), side = document.createElement('div');
+  box.className = 'steps';
+  side.className = 'side';
+  $('stStrip').replaceChildren(box, gap(), side);
   doc.steps.forEach((step, k) => {
-    const b = document.createElement('button');
-    b.className = 'still' + (step.textures ? '' : ' wip');
+    const b = still(step.name, step.textures ? 'step' : 'step wip');
     b.setAttribute('aria-current', String(k === picked));
-    b.innerHTML = `<img alt=""><span class="k teko">${k}</span><div class="fn teko"><span></span></div>`;
-    b.querySelector('.fn span').textContent = step.name;
+    b.insertAdjacentHTML('afterbegin', `<span class="k teko">${k}</span>`);
     if (!step.textures) b.querySelector('.fn').insertAdjacentHTML('beforeend', ' <small>painting…</small>');
     else if (changed.has(k)) b.querySelector('.fn').insertAdjacentHTML('beforeend', ' <em class="newTag">New</em>');
     if (step.textures) {
       b.addEventListener('click', () => pick(k));
-      if (thumbs) picture(step).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
+      const l = lookOf(step);
+      if (thumbs) picture(step.frame, step.textures, l.view, l.night).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
     }
     box.append(b);
   });
+  const last = [...doc.steps].reverse().find((s) => s.textures);
+  if (cams.length && last) {  // the game's cameras, on the car as built so far
+    for (const c of cams) {
+      const b = still(c.label, 'cam');
+      b.title = c.title;
+      b.addEventListener('click', () => stage && stage.go(c.view));
+      if (thumbs) picture(`${last.frame}|${c.view}`, last.textures, c.view, false).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
+      side.append(b);
+    }
+  }
+  const e = skin.entry;
+  const game = still('In the game', 'plain');
+  game.querySelector('.fn').insertAdjacentHTML('beforeend', `<br><small>${e && e.installed_at ? `since ${when(e.installed_at)}` : 'not yet'}</small>`);
+  if (e && e.installed && e.thumb) game.querySelector('img').src = `data/${e.thumb}`;
+  side.append(game);
 }
 
 function pick(k) {
   picked = k;
   const step = doc.steps[k], n = doc.steps.length;
-  for (const [i, b] of [...$('stStrip').children].entries()) b.setAttribute('aria-current', String(i === k));
+  $('stStrip').querySelectorAll('.still.step').forEach((b, i) => {
+    b.setAttribute('aria-current', String(i === k));
+    if (i === k) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
   $('stAt').innerHTML = '<span></span><small></small>';
   $('stAt').querySelector('span').textContent = step.name;
   $('stAt').querySelector('small').textContent = `step ${k} of ${n - 1}`;
@@ -125,60 +178,101 @@ function pick(k) {
   showOnStage(step).catch((e) => console.error(e));
 }
 
-// ---- notes on the car ----
+// ---- notes on the car, as tags ----
 
 const post = (body) => fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
-async function loadNotes() {
+async function loadNotes(force = false) {
   if (!skin) return;
   const name = skin.name;
   try {
     const r = await fetch(`api/notes?skin=${encodeURIComponent(name)}`, { cache: 'no-store' });
     if (!r.ok || !skin || skin.name !== name) return;
     const got = await r.json();
-    if (JSON.stringify(got.notes) === JSON.stringify(notes) && got.next === nextN) return;
+    if (!force && JSON.stringify(got.notes) === JSON.stringify(notes) && got.next === nextN) return;
     notes = got.notes;
     nextN = got.next;
   } catch { return; }  /* a server from before the notes */
   drawNotes();
 }
 
-function drawNotes() {
-  const box = $('ntList');
-  box.textContent = '';
-  for (const x of notes) {
-    const row = document.createElement('div');
-    row.className = 'note';
-    row.innerHTML = '<span class="pinDot"></span><div class="nt"><span class="t"></span><small></small></div><button class="x" title="Take this note back" aria-label="Take this note back">×</button>';
-    row.querySelector('.pinDot').textContent = x.n;
-    row.querySelector('.t').textContent = x.text;
-    row.querySelector('small').textContent = [x.part.label || 'the car', x.step_name && `at ${x.step_name}`, x.state === 'sent' && 'Claude has it'].filter(Boolean).join(' · ');
-    row.querySelector('.x').addEventListener('click', () => post({ skin: skin.name, remove: x.n }).then(loadNotes));
-    box.append(row);
+const stateOf = (x) => (x.state === 'sent' ? 'Claude has it' : 'Goes to Claude with your next message');
+
+function renderNote(el, x, open) {
+  if (!open) {
+    el.innerHTML = '<div class="tagRow"><span class="pinDot"></span><span class="tn"></span></div>';
+    el.querySelector('.pinDot').textContent = x.n;
+    el.querySelector('.tn').textContent = x.text;
+    return;
   }
-  $('ntCount').textContent = notes.length || '';
-  $('ntAsk').hidden = !!writing;
-  $('ntNew').hidden = !writing;
-  $('ntNum').textContent = nextN;
-  if (writing) $('ntPart').textContent = writing.part.label || 'the car';
-  if (stage) stage.pins([...notes.map((x) => ({ n: x.n, at: x.at, normal: x.normal })),
-    ...(writing ? [{ n: nextN, at: writing.at, normal: writing.normal, writing: true }] : [])]);
+  el.innerHTML = '<div class="tagRow"><span class="pinDot"></span><span class="teko"></span>'
+    + '<button class="x" title="Close" aria-label="Close">×</button></div><p class="words"></p><span class="state"></span>'
+    + '<div class="tagButtons teko"><button class="sk"><span>Take it back</span></button></div>';
+  el.querySelector('.pinDot').textContent = x.n;
+  el.querySelector('.teko').textContent = x.part.label || 'the car';
+  el.querySelector('.words').textContent = x.text;
+  el.querySelector('.state').textContent = [x.step_name && `At ${x.step_name}`, stateOf(x)].filter(Boolean).join(' · ');
+  el.querySelector('.x').addEventListener('click', () => tags.close());
+  el.querySelector('.tagButtons .sk').addEventListener('click', () => post({ skin: skin.name, remove: x.n }).then(() => loadNotes(true)));
 }
 
-function startNote(id, hit) {  // a click on the car: the part under it, and the point for the pin
+function renderNew(el) {
+  el.innerHTML = '<div class="tagRow"><span class="pinDot writing"></span><span class="teko"></span>'
+    + '<button class="x" title="Cancel" aria-label="Cancel">×</button></div>'
+    + '<textarea rows="3" placeholder="What do you want here?"></textarea>'
+    + '<div class="tagButtons teko"><button class="sk acc"><span>Add note</span></button><button class="sk"><span>Cancel</span></button></div>'
+    + '<span class="state">Claude reads it with your next message.</span>';
+  el.querySelector('.pinDot').textContent = nextN;
+  el.querySelector('.teko').textContent = writing.part.label || 'the car';
+  const text = el.querySelector('textarea'), say = el.querySelector('.state');
+  const add = () => addNote(text.value, say);
+  text.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); add(); }  // Shift+Enter for a new line
+    if (e.key === 'Escape') cancelNote();
+  });
+  const [ok, no] = el.querySelectorAll('.tagButtons .sk');
+  ok.addEventListener('click', add);
+  no.addEventListener('click', cancelNote);
+  el.querySelector('.x').addEventListener('click', cancelNote);
+  setTimeout(() => text.focus());
+}
+
+function drawNotes() {
+  const list = notes.map((x) => ({
+    key: `n${x.n}`, dot: String(x.n), dotClass: x.state, title: x.text, note: x,
+    sig: JSON.stringify([x.text, x.state, x.part.label, x.step_name]),
+    render: (el, open) => renderNote(el, x, open),
+  }));
+  if (writing) list.push({ key: 'new', dot: String(nextN), dotClass: 'writing', sig: `new ${nextN}`, render: renderNew, open: true });
+  tags.set(list);
+  $('stHint').hidden = list.length > 0;
+  if (!stage) return;
+  stage.track([...notes.filter((x) => x.at).map((x) => ({ key: `n${x.n}`, at: x.at, normal: x.normal })),
+    ...(writing ? [{ key: 'new', at: writing.at, normal: writing.normal }] : [])], tags.place);
+}
+
+function goToNote(key) {  // a click on a note's tag or dot: the car as the user saw it when they wrote it
+  const x = notes.find((n) => `n${n.n}` === key);
+  if (!x || !x.view || !stage) return;
+  const { mood, framing, ...view } = x.view;
+  stage.mood(mood || 'day');
+  moodShown(mood || 'day');
+  stage.go(view);
+}
+
+function startNote(id, hit) {  // a click on the car: the part under it, and the point for its dot
   const p = partInfo.get(id);
   const step = doc && picked >= 0 ? doc.steps[picked] : null;  // what the user was looking at, now
   writing = { part: { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' }, at: hit.at, normal: hit.normal,
-              step: step ? picked : null, step_name: step ? step.name : '' };
+              step: step ? picked : null, step_name: step ? step.name : '', view: stage.camera() };
+  if (tags.openKey && tags.openKey !== 'new') tags.close();
   drawNotes();
-  $('ntText').focus();
-  writing.picture = notePicture().catch((err) => { console.error(err); return null; });  // as seen at the click
+  writing.picture = notePicture(hit.at, nextN).catch((err) => { console.error(err); return null; });  // as seen at the click
 }
 
-// What the user sees on the stage, the note's pin drawn on, for Claude (a JPEG data: URL). The list
-// stays words only (the user's pick, 2026-09-27).
-async function notePicture() {
-  const url = await stage.picture();
+// What the user sees in the car's box, the note's dot drawn on, for Claude (a JPEG data: URL).
+async function notePicture(at, n) {
+  const url = await stage.picture({ crop: 'inset' });
   try {
     const img = new Image();
     img.src = url;
@@ -188,11 +282,10 @@ async function notePicture() {
     c.height = img.height;
     const g = c.getContext('2d');
     g.drawImage(img, 0, 0);
-    const frame = $('stCar');
-    const pin = frame.contentDocument.querySelector('#pins .pin.writing');
-    if (pin && !pin.hidden) {
-      const k = img.width / frame.clientWidth;
-      const x = parseFloat(pin.style.left) * k, y = parseFloat(pin.style.top) * k, r = 13 * k;
+    const b = box(), [p] = stage.project([at]);
+    const k = img.width / ($('stStage').clientWidth - b.left - b.right);
+    if (p.shown) {
+      const x = (p.x - b.left) * k, y = (p.y - b.top) * k, r = 12 * k;
       g.beginPath();
       g.arc(x, y, r + 4 * k, 0, 2 * Math.PI);
       g.fillStyle = 'rgba(232, 255, 71, 0.3)';
@@ -202,10 +295,10 @@ async function notePicture() {
       g.fillStyle = '#e8ff47';
       g.fill();
       g.fillStyle = '#0d0f12';
-      g.font = `600 ${Math.round(17 * k)}px Teko, sans-serif`;
+      g.font = `600 ${Math.round(16 * k)}px Teko, sans-serif`;
       g.textAlign = 'center';
       g.textBaseline = 'middle';
-      g.fillText(String(nextN), x, y + 1.5 * k);
+      g.fillText(String(n), x, y + 1.5 * k);
     }
     return c.toDataURL('image/jpeg', 0.85);
   } finally {
@@ -213,27 +306,25 @@ async function notePicture() {
   }
 }
 
-async function addNote(e) {
-  e.preventDefault();
-  const text = $('ntText').value.trim();
+async function addNote(value, say) {
+  const text = value.trim();
   if (!text || !writing || !skin) return;
   const { picture, ...note } = writing;
   const r = await post({ skin: skin.name, text, ...note, picture: await picture });
   if (!r.ok) {
-    $('ntPart').textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
+    say.textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
     return;
   }
   writing = null;
-  $('ntText').value = '';
-  await loadNotes();
-  drawNotes();
+  await loadNotes(true);
 }
 
 function cancelNote() {
   writing = null;
-  $('ntText').value = '';
   drawNotes();
 }
+
+// ---- following Claude's painting ----
 
 function live() {
   const box = $('stLive'), text = $('stLiveText');
@@ -281,20 +372,28 @@ async function load(name) {
 async function openSkin(name) {
   const list = await (await fetch('data/gallery.json')).json();
   const entry = list.find((s) => s.name === name);
-  skin = { name, title: entry ? entry.title : titleOf(name) };
+  skin = { name, title: entry ? entry.title : titleOf(name), entry };
   const round = await render($('stRound'), name);
   $('stTitle').textContent = round ? round.title : skin.title;
   try { seen = JSON.parse(localStorage.getItem(`tsc-studio-${name}`) || '{}'); } catch { seen = {}; }
   doc = null; picked = -1; changed = new Set(); stageLook = '';
   notes = []; nextN = 1; writing = null;
   if (!stage) {
+    fitThumbs();
     [stage, thumbs] = await Promise.all([viewer($('stCar')), viewer($('stThumbs'))]);
-    if (stage) stage.onPick = startNote;
+    if (stage) {
+      stage.onPick = startNote;
+      cams = stage.views();
+      const credit = $('stCar').contentDocument.getElementById('credit');
+      if (credit) $('stCredit').innerHTML = credit.innerHTML;  // the car model's licence asks for it
+    }
+    framed();
   } else if (stage) {
     await stage.show('front', false);  // a step's own look (the rear at night) mustn't carry over
   }
+  moodShown('day');
   drawNotes();
-  loadNotes();
+  loadNotes(true);
   const first = await load(name);
   if (first) apply(first);
   else $('stLiveText').textContent = 'Not shown in the viewer yet';
@@ -310,13 +409,17 @@ async function followed() {  // the skin Claude painted last: { skin, stamp }
 
 async function poll() {
   if ($('roomStudio').hidden) return;  // another room is open
-  loadNotes();  // Claude reads them (Claude has it) and marks them done (their pins go)
+  loadNotes();  // Claude reads them (Claude has it) and marks them done (their dots go)
   try {
     const now = await followed();
-    if (now.stamp && now.stamp !== following && !writing) {  // a note being written holds the car
+    // a note being written, or a tag open, holds the car until it's done
+    let fresh = false;
+    if (now.stamp && now.stamp !== following && !writing && !tags.openKey) {
       following = now.stamp;
+      fresh = true;
       if (skin && now.skin !== skin.name) { note(now.skin); await openSkin(now.skin); return; }
     }
+    if (doc && !doc.stamp && !fresh) return;  // made before the Studio: nothing to ask for until Claude paints it
     const res = await fetch(`data/skins/${encodeURIComponent(skin.name)}/steps.json`, { cache: 'no-store' });
     if (res.ok) {
       const next = await res.json();
@@ -330,12 +433,17 @@ let opened = false;
 export async function open() {
   if (opened) return;
   opened = true;
-  $('ntNew').addEventListener('submit', addNote);
-  $('ntCancel').addEventListener('click', cancelNote);
-  $('ntText').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) addNote(e);  // Shift+Enter for a new line
-    if (e.key === 'Escape') cancelNote();
+  tags = createTags({ stage: $('stStage'), lines: $('stLines'), dots: $('stDots'), tags: $('stTags'), list: $('stList'), gutter, onOpen: goToNote });
+  for (const b of $('stMood').querySelectorAll('[data-mood]')) {
+    b.addEventListener('click', () => { if (stage) { stage.mood(b.dataset.mood); moodShown(b.dataset.mood); } });
+  }
+  $('stFront').addEventListener('click', () => stage && stage.go('front'));
+  addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || $('roomStudio').hidden) return;
+    if (writing) cancelNote();
+    else if (tags.openKey) tags.close();
   });
+  new ResizeObserver(framed).observe($('stStage'));
   fetch('data/uvmap.json').then((r) => r.json()).then((d) => { partInfo = new Map(d.parts.map((p) => [p.id, p])); }).catch(() => {});
   const now = await followed();
   following = now.stamp;

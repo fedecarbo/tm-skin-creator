@@ -1571,6 +1571,49 @@ worked on, live; not one page. What was settled the same day:
       - a note's step and picture are taken at the click.
     - **Checks:** 16 passed, in Edge on the PC, and the baselines were unchanged (the six views,
       two close looks, Cam 1 and the standalone viewer).
+  - **9.1, the stand (built 2026-09-28):**
+    - **What you'll see:** the Lab opens on the car, framed between two gutters. The notes hang in
+      the gutters as tags, each joined by a line to a dot on its point. Under the car: the build's
+      steps, the game's Cam 1 and Cam 2, and when the car went into the game. Day, Night and Front
+      are over the car. The model's credit shows.
+    - **Using it:**
+      - Click the car and write: the note hangs there, and Enter keeps it.
+      - Click a tag or its dot: it opens, and the car turns back to the view the note was
+        written from.
+      - Escape closes a tag. The stand doesn't follow Claude to another car while a tag is open or
+        a note is being written.
+    - **The viewer, embed only:**
+      - `inset(box)`: `framing()` takes a box, and it's the standalone viewer's framing by the car's
+        own outline.
+      - `track(list, onMove)`: the points projected at the end of each frame that moves them.
+        Behind-the-car raycasts wait for 10 still frames, at most 4 a frame.
+      - `project`, `camera()` (dir, dist, target, fov, mood and framing), `go`, `mood`, `views`,
+        and `picture({ crop: 'inset' })`.
+      - `pins()` and `#pins` are gone.
+    - **The Lab:**
+      - `lab-tags.js` handles the gutters, the order by height, and one tag open at a time.
+      - Under 1000 px the tags become a list under the car.
+      - The picture car behind the stage is half its size and the same shape, so its pictures
+        crop to the car's box as the stage does.
+      - The first room's button is "The car".
+    - **The note's `view`** is checked in `notes._view`; a bad value drops the view, not the note.
+    - **The picture sent with a note** is the car's box only, with its dot drawn on.
+    - **Checks:** 23 passed, in Edge on the PC, with six of the user's real notes copied into a
+      scratch notes folder:
+      - no two tags overlap, and every line ends on its dot, at the front and left views;
+      - the notes' points fall in the car's box at the front, rear and left;
+      - while the car glides, the dots stay on their points (0.05 px at worst);
+      - a click on the tail panel starts a note there, and the dot lands where the click was;
+      - the note keeps its view, and its picture is the box's size;
+      - the hook prints it;
+      - an open tag holds the car against a new studio.json;
+      - the cameras in the strip are the viewer's;
+      - at 1100×800 and 390×844 nothing scrolls sideways;
+      - the UV map room's car still picks parts and shows the credit;
+      - no page errors.
+      - The baselines were unchanged.
+    - **Found on the way:** a skin painted before the Studio has no steps.json. The stand now asks
+      for it only when Claude starts a paint, not every 1.5 s.
 
 ### Defining the parts (started 2026-09-26)
 

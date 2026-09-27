@@ -33,7 +33,7 @@ the Mac's own Chrome: `node docker/snap.mjs <name>` (the six views and the galle
 what `show` snaps on the PC), `node docker/snap.mjs <name> --close`, and `node docker/snap.mjs
 <name> --picture ...` (as `tool.snap`'s, opened on the screen). Each sheet is copied to `.snap/`
 to look at. No picture maker or game there: install from the Windows PC after a push. Show the
-user the Studio too.
+user the Lab's stand too.
 
 | Command | What it does |
 |---|---|
@@ -44,7 +44,7 @@ user the Studio too.
 | `PY -m tool.snap <name> --cams` | The game's Cam 1 and 2 and their alts (the key pressed twice) standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). On the Mac `node docker/snap.mjs <name> --cams`. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
-| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: every material the tool knows on a ball, by family, with its code, numbers and a "Copy for Claude" button. |
+| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car on its stand (the first room: the user's notes hang on it as tags, the build's steps and the game's cameras under it), the UV map, and every material the tool knows on a ball, with its code, numbers and a "Copy for Claude" button. |
 | `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
 | `PY -m tool.publish` | Puts the skins in the game on the page online (the user's phone and friends), about 10 s plus the upload. `--here` shows it on this computer only. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]` | Candidate cut-out pictures on one sheet, `build/pictures/<slug>.png`, about 20 s each. Styles: sticker (default), flat, print, painted, line art, retro, photo. |
@@ -59,14 +59,14 @@ user the Studio too.
   Before the first design in a session, read the docstrings of `tool/paintbox.py` (the key),
   `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names
   are in `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
-- **Built in steps, from clay (the Lab's Studio, the user's idea, 2026-09-26).** A new design
-  starts with `s.clay()`: the body, wheel covers and inner car in the Studio's neutral white
+- **Built in steps, from clay (the Lab, the user's idea, 2026-09-26).** A new design
+  starts with `s.clay()`: the body, wheel covers and inner car in the Lab's neutral white
   clay, which stays on any part no later step paints, in the game too (the user's choice). So
   design every part, or say which stay clay. Then open each step with `s.step(name, does,
   words=...)`: a few words, what it paints in plain words, and the user's verbatim words that
   asked for it; `look="rear night"` for a step the day's front view can't show (lights). A
   change the user asks for edits its step, so later steps stay on top. `show` draws the car at
-  the end of each step into the Studio's filmstrip as it paints.
+  the end of each step into the strip under the car on the Lab's stand as it paints.
 - **Lines from the Lab.** The user may paste a line copied from the Lab, like `ME-07 Gold (matte
   28%, metal 100%, varnish 0%)`. The code is that finish, exactly: put the code in the phrase
   (`s.paint("sidepod", "ME-07")`, `"ME-07 matte"`, or `s.paint("body", "PA-03", colour="#1a1c20")`
@@ -78,19 +78,21 @@ user the Studio too.
   surface 278, used by floor edge (left, right)`: the user pointed at that one shape of paint.
   Paint it by the parts it names; if it's only part of a part (the part names other surfaces
   too), say so and paint the part, or ask whether the whole part will do.
-- **Notes on the car (the Studio, the user's pick, 2026-09-27).** The user clicks the Studio's car
-  where they mean and writes what they want there. New notes arrive with their next message (a
+- **Notes on the car (the Lab's stand, the user's picks, 2026-09-27).** The user clicks the car on
+  the stand where they mean and writes what they want there; the note hangs on the car as a tag
+  and keeps the view they wrote it from. New notes arrive with their next message (a
   hook prints them): the skin, the note's number, the step it was written at, the part clicked as
   a `where` phrase (`sidepod top|left`), their words, and a picture of what they were looking at
-  with the pin drawn on: look at it before acting. They're the user's words about that spot,
+  with the note's dot drawn on: look at it before acting. They're the user's words about that spot,
   as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user, note N):
   "…"`), answer a question in the reply, and once a note is handled mark it done, `PY -m tool.notes
-  done <skin> <n>` (on the Mac `python3 -m tool.notes done …`, no container needed), so its pin
-  leaves the car. `PY -m tool.notes` lists the ones not done.
+  done <skin> <n>` (on the Mac `python3 -m tool.notes done …`, no container needed), so its tag
+  leaves the car. `PY -m tool.notes` lists the ones not done. The notes stay on the computer
+  they were written on (`.notes/`, off git).
 - **A round of concepts** (a loose idea's 2 or 3 takes): once they're painted, record them with
   `tool.skin round "<the idea in a few words>" <A> <B> <C> --words "<the user's words>"` (lettered
-  in that order). The Lab then shows the round's title and a switch between the takes in the
-  Studio and the UV map (the user's pick, 2026-09-26); name them A, B, C in replies too.
+  in that order). The Lab then shows the round's title and a switch between the takes on the
+  stand and in the UV map (the user's pick, 2026-09-26); name them A, B, C in replies too.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as
@@ -188,10 +190,10 @@ user the Studio too.
   telling close views, and usually the driving camera. It opens on their screen.
 - Start `tool.gallery` in the background once per session, so they can spin each skin in 3D.
   After each round, tell them to refresh it.
-- The Lab's Studio (http://localhost:8765/lab.html, its first room) follows the skin being
-  painted and fills in its filmstrip while `show` runs, no refresh needed. Tell the user once
-  per session they can keep it open to watch the car being built, and click the car to leave a
-  note on a spot.
+- The Lab (http://localhost:8765/lab.html) opens on the car on its stand, which follows the skin
+  being painted and fills in the strip of steps under it while `show` runs, no refresh needed. Tell
+  the user once per session they can keep it open to watch the car being built, and click the car
+  to leave a note on a spot (it hangs there as a tag).
 - Reply in a few sentences: what the car looks like, the takes numbered by title, and one line
   on what you checked close up. End with one bold question: which one, or what to change. Say
   that a yes puts it in the game.

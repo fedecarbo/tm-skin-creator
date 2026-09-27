@@ -31,13 +31,18 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `tool/rooms.py` (its maps, parts and camera; every part must be in a room) and reads
   `view.export_uvmap`'s data (the map picks surfaces: `view._surfaces`, the shapes it outlines,
   `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
-  their code change. The Studio (the first room, `viewer/lab-studio.js`) reads the frames `tool.skin
-  show` writes at each `Skin.step` (`view.export_steps`, `studio.json`); `install` paints without
-  them. Its notes on the car (`tool/notes.py`, `.notes/notes.json`: git-ignored, each computer
+  their code change. The stand (the first room, `viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`)
+  reads the frames `tool.skin show` writes at each `Skin.step` (`view.export_steps`, `studio.json`);
+  `install` paints without them. It drives the embedded viewer (`index.html?embed=1`) through
+  `window.viewer`: `inset` (the box the car is framed in, the rest left to the tags), `track` (its
+  points' places on the page, pushed at the end of each frame that moves them), `project`, `camera`,
+  `go`, `mood`, `views` (the viewer's own Cam buttons) and `picture({ crop: 'inset' })`. All of it is
+  embed-only: the page online and Claude's snapshots mustn't change (compare a snapshot before and
+  after). Its notes on the car (`tool/notes.py`, `.notes/notes.json`: git-ignored, each computer
   keeps its own, writers take an mkdir lock) go through the viewer's server
   (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook
   (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
-  take's `gallery.json` entry) puts a switch between its takes in the Studio and the UV map
+  take's `gallery.json` entry) puts a switch between its takes on the stand and in the UV map
   (`viewer/lab-round.js`).
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`

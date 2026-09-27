@@ -357,6 +357,7 @@ async function showTab(k) {
   if (k === 'car') { u.searchParams.set('tab', 'car'); u.searchParams.delete('map'); } else u.searchParams.delete('tab');
   history.replaceState(null, '', u);
   $('prCar').hidden = k !== 'car';
+  $('prCredit').hidden = k !== 'car';
   $('prMap').hidden = k !== 'map';
   $('prTag').hidden = true;
   if (k === 'map') {  // the picked part's map, else the one open, else the address's
@@ -465,6 +466,8 @@ function embedCar() {
         if (v.error) { resolve(null); return; }
         car = v;
         car.onPick = (id) => pickId(id);
+        const credit = frame.contentDocument.getElementById('credit');
+        if (credit) $('prCredit').innerHTML = credit.innerHTML;  // the car model's licence asks for it
         resolve(car);
       }, 150);
     }, { once: true });

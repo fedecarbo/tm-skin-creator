@@ -43,7 +43,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   are at a factory building a car", and allowed changes behind the scenes that keep the quality.
   From three rendered directions they chose B, the car on the stand: notes, answers with a
   before and after, options and Claude's checks as tags on the car (`CHECKLIST.md`, The Lab,
-  step 9).
+  step 9). Built: 9.0, the groundwork, and 9.1, the stand with the notes as tags (2026-09-28).
+  Next, once the user has tried the stand: 9.2, answers on the tags and the status line.
 
 ## The tool
 

@@ -27,6 +27,7 @@ has (the Mac's own python3 has no numpy)."""
 import base64
 import contextlib
 import json
+import math
 import os
 import re
 import sys
@@ -134,6 +135,30 @@ def _picture(data_url):
     return data
 
 
+def _view(v):
+    """The camera the user saw the car from (the viewer's camera(): dir, dist, target, fov, mood and
+    the framing), checked; None when it isn't one, and the note is kept without it."""
+    if not isinstance(v, dict):
+        return None
+    try:
+        def num(x):
+            x = float(x)
+            if not math.isfinite(x):
+                raise ValueError("not a number")
+            return x
+        vec = lambda k: [round(num(x), 4) for x in v[k]] if isinstance(v[k], list) and len(v[k]) == 3 else None
+        out = {"dir": vec("dir"), "dist": round(num(v["dist"]), 4), "target": vec("target"), "fov": round(num(v["fov"]), 3)}
+        if None in (out["dir"], out["target"]) or not 0.05 < out["dist"] < 100 or not 1 < out["fov"] < 170:
+            return None
+        out["mood"] = v.get("mood") if v.get("mood") in ("day", "night", "sunrise", "sunset") else "day"
+        f = v.get("framing")
+        if isinstance(f, dict):
+            out["framing"] = {k: round(num(f[k]), 4) for k in ("x", "y", "zoom")}
+        return out
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def _drop_picture(note):
     pic = picture_path(note)
     if pic:
@@ -141,10 +166,11 @@ def _drop_picture(note):
     note.pop("picture", None)
 
 
-def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None):
+def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None):
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
-    the surface's facing, in the viewer's metres; picture: the stage as the user saw it, the pin
-    drawn on (a JPEG data: URL). Returns the note."""
+    the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
+    on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it). Returns the
+    note."""
     text = str(text or "").strip()[:LONGEST]
     if not text:
         raise ValueError("an empty note")
@@ -164,6 +190,7 @@ def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, pi
                      "label": str(part.get("label") or "")[:80], "token": str(part.get("token") or "")[:80]},
             "at": vec(at),
             "normal": vec(normal),
+            "view": _view(view),
             "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": "new",  # new -> sent (Claude has read it) -> done (handled)
         }
