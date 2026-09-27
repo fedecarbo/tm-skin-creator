@@ -125,16 +125,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **The page online, a lighter first visit** (2026-09-25): about 20 MB before the car shows
   (the car's shape 11 MB, the studio lighting 6 MB), slow on mobile data. Idea: the mesh in
   half floats or meshopt-compressed, and the 1K studio HDR on phones.
-- **A car to match the viewer's day and night to the game** (the user, 2026-09-27: "a car that
-  will help you calibrate the moods? Something I can do later with my pc"; then "maybe you can
-  compare the 4 moods that trackmania has"). The day and night looks were set by taste (brighter
-  on 2026-09-27, `CHECKLIST.md`, The Lab, step 8), never against the game. **The car is made**
-  (2026-09-27, on the Mac): TSC_Calibrate, a grey scale, colours, finishes and glows where the
-  chase cameras see them; its `notes.md` has the key and the steps in the game. Next, on the PC:
-  install it, the user takes Cam 1, 2 and 3 standing still in each of the four moods, and Claude
-  sets `LOOKS`, `TUNE` and `GLOW` in `viewer/viewer.js` against them (`tool.snap --cams`). Working
-  notes: `CHECKLIST.md`, "The viewer matched to the game's moods". The same drive can take
-  TSC_Lab_Materials, still waiting to be installed (its finishes by day and at night).
+- **Cam 3 shows the cockpit the game hides** (2026-09-27, TSC_Calibrate's screenshots). In the
+  game's Cam 3 there's no steering wheel and no canopy lamps: the canopy's glass sits dark over
+  the cockpit and the nose runs to the middle. The viewer's Cam 3 shows the white wheel and the
+  lamps through clear glass. Idea: hide the steering wheel and the cockpit's inside in Cam 3 and
+  draw the canopy's glass darker there, checked against the screenshot (Cam 3 by day, 09:20:26).
 
 ## To check in the game
 
@@ -154,6 +149,9 @@ These need the user to drive or look, so they're tested when a skin uses them.
   skin with a pattern on the covers, driven slowly past the camera, would show it.
 - **How see-through the glass is** (2026-09-24, checkpoint 4): the glass file's alpha made no
   visible difference, so the tool treats glass as tint only.
+- **The Lab's finishes in the game** (2026-09-27): TSC_Lab_Materials, made for this, isn't
+  installed yet. Its finishes by day and at night would check the viewer's matte, satin, gloss
+  and chrome against the game (the calibration car matched only the light and the glows).
 - **The upload size limit.** Zips stay under 8.5 MB until a limit shows up (2026-09-24,
   checkpoint 1); the install halves the roughness maps to fit (2026-09-25). Undocumented;
   Ubisoft said in 2022 that 9 MB "may be too big".

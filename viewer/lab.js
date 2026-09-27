@@ -27,13 +27,15 @@ window.lab = { ready: false, error: null };
 
 // ---- the balls: one renderer draws every tile's picture; the picked one spins in its own ----
 
+const EXPOSURE = 1.44;  // the viewer's by day; a glow shows as "always on" by day (0.63 on the screen)
+
 function stage(canvas, size) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: !canvas.isConnected });
   renderer.setPixelRatio(1);
   renderer.setSize(size, size, false);
   renderer.setClearColor(BALL);
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;  // the viewer's (viewer.js: TUNE.exposure)
-  renderer.toneMappingExposure = 0.9;
+  renderer.toneMapping = THREE.LinearToneMapping;  // the viewer's day, matched to the game (viewer.js: LOOKS)
+  renderer.toneMappingExposure = EXPOSURE;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
   camera.position.set(1.0, 0.7, 3.9).setLength(size > THUMB ? 4.35 : 5.1);
@@ -67,7 +69,7 @@ function dress(ball, m, tex) {
   ball.material = new THREE.MeshPhysicalMaterial({
     map: tex.map, roughnessMap: tex.rm, metalnessMap: tex.rm, roughness: 1, metalness: 1,
     clearcoat: 1, clearcoatRoughness: 0, clearcoatMap: tex.coat,
-    emissive: m.glow ? new THREE.Color(...m.glow) : new THREE.Color(0), emissiveIntensity: m.glow ? 1.2 : 0,
+    emissive: m.glow ? new THREE.Color(...m.glow) : new THREE.Color(0), emissiveIntensity: m.glow ? 0.63 / EXPOSURE : 0,
   });
   old.dispose();
 }
@@ -236,7 +238,7 @@ async function start() {
   $('count').textContent = items.length;
   const hdr = await new HDRLoader().loadAsync('data/studio_small_09.hdr');
   hdr.mapping = THREE.EquirectangularReflectionMapping;
-  for (const s of [shelf, big]) s.scene.environment = hdr;
+  for (const s of [shelf, big]) Object.assign(s.scene, { environment: hdr, environmentIntensity: 1.25 });
   $('status').textContent = '';
   const want = items.find((m) => m.slug === params.get('m')) || items[0];
   const first = openFamily(want.family, false);

@@ -137,8 +137,10 @@ user the Studio too.
   bare metal: metal mirrors the dark and reads as black specks.
 - Paint can't fake big 3D shapes (curls, folds): use small, crisp cues. A painted shadow must be
   the same width all round (as if lit from above), or it looks wrong from the other camera.
-- Glow is for the inner car only: `s.glow(part, colour, kind)`. Seen working: "always on",
-  "night only", "front lights" (white), "energy" (the game tints it), "brake lights", "brake
+- Glow is for the inner car only: `s.glow(part, colour, kind)`. Seen working: "always on" (day
+  and night), "night only" (at night and sunset), "front lights" (at night and sunset only, the
+  brightest), "brake lights" (at night, and when braking), "energy" (only in the garage, tinted by
+  the game; dark on the track), "brake
   heat" (rims glow while braking hard, building over about 1.5 s), "turbo" (glows in the
   turbo pad's colour, yellow for a yellow pad, for about 3 s after it: the stock hubs carry it,
   seen inside the wheels). Exhaust heat and boost were never seen to light up, so don't

@@ -57,41 +57,49 @@ const FOV = 32;  // every other view's lens
 // brighter (exposure 0.9 -> 1.2, env 1 -> 1.25), the room still dark grey; at night twice the
 // moonlight (env and key x2) and the glows brighter (glow: every glow's gain at night; at 2.6 the
 // coloured ones had begun to turn white, so 1.8).
+// Matched to the game on 2026-09-27 (the calibration car in the four moods, CHECKLIST.md): the game
+// maps light to the screen straight, clipping each colour channel at white (LinearToneMapping, not
+// the ACES curve before): its greys by day match within a few levels, and a bright light blue turns
+// cyan, not white. exposure: by day the grey scale's (1.44); at night the game's darker car.
 const LOOKS = {
-  day: { hdr: 'studio_small_09', env: 1.25, key: 1.1, keyColour: 0xfff4e8, exposure: 1.2, glow: 1 },
-  night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.9, glow: 1.8 },
+  day: { hdr: 'studio_small_09', env: 1.25, key: 1.1, keyColour: 0xfff4e8, exposure: 1.44 },
+  night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.6 },
 };
 const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car's front left
 
 // Settings any of which can be tried from the address, e.g. ?exposure=1.1&env=0.8, when matching
 // the game again. exposure, env, key and glow scale both looks' own. room: how light the room's
-// grey is (linear).
+// grey is (linear). ?tone=aces (or neutral, agx...) tries another tone mapping.
 const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 0.035 };
 for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(params.get(key));
 
-// The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on a car that's just
-// driving, by day and at night, and the colour the game supplies for codes whose RGB must be
-// grey. From the user's game screenshots (2026-09-24, CHECKLIST.md): brake lights glow dimly
-// all the time and flare towards white when braking (checkpoint 1's stock strips); the front lights are
-// bright white by day and at night; "always on" keeps its colour; "night only" comes on at night
-// (and on a dusk map); energy is dim and tinted by the game (red for this player). Brake heat
-// lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT). Turbo lights only after
-// a turbo pad, in the pad's colour (the turbo videos, 2026-09-25: the hubs yellow for about 3 s
-// after a yellow pad): the pad's Turbo button (TURBO). Exhaust heat ("ON when Turbo is enabled",
-// xrayjay's table) lights with it there, a guess until the game shows it. Boost stays off.
+// The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on the screen on a car
+// standing or driving, by day and at night, and the colour the game supplies for codes whose RGB
+// must be grey. A gain is a level on the screen whatever the exposure: 1 shows the texel's own
+// colour; above 1 its brightest channel clips and the colour shifts, as in the game (light blue
+// goes cyan). From the calibration car in the editor's test drive, standing still (2026-09-27):
+// "always on" keeps its colour, a little brighter at night; "night only", the front lights and
+// the brake lights are off by day and bright at night (and at sunset), the front lights the
+// brightest; energy stayed dark in all four moods (it had glowed dim red at rest in the garage,
+// 2026-09-24). Braking flares the brake lights (checkpoint 1's stock strips went towards white:
+// BRAKING). Brake heat lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT).
+// Turbo lights only after a turbo pad, in the pad's colour (the turbo videos, 2026-09-25: the hubs
+// yellow for about 3 s after a yellow pad): the pad's Turbo button (TURBO). Exhaust heat ("ON when
+// Turbo is enabled", xrayjay's table) lights with it there, a guess until the game shows it. Boost
+// stays off.
 const GLOW = [
-  { code: 0, day: 1.2, night: 1.8 },  // brake lights: dim all the time, brighter when braking
-  { code: 32, day: 0.6, night: 1, tint: [1, 0.2, 0.2] },  // energy, tinted by the game
+  { code: 0, day: 0, night: 1.6 },  // brake lights: off by day, on at night; BRAKING when braking
+  { code: 32, day: 0, night: 0, tint: [1, 0.2, 0.2] },  // energy, tinted by the game (red here)
   { code: 64, day: 0, night: 0 },  // brake heat: while braking (BRAKE_HEAT)
-  { code: 96, day: 1.2, night: 1.8 },  // always glowing, its own colour
-  { code: 128, day: 4, night: 8 },  // front lights, bright white day and night
+  { code: 96, day: 0.63, night: 0.8 },  // always glowing, its own colour
+  { code: 128, day: 0, night: 2.5 },  // front lights: at night, the brightest
   { code: 160, day: 0, night: 0, tint: [1, 0.78, 0.1] },  // turbo: the pad's colour (a yellow pad here)
   { code: 192, day: 0, night: 0 },  // exhaust heat: only during turbo
   { code: 224, day: 0, night: 0 },  // boost colour
-  { code: 255, day: 0, night: 1.4 },  // night only. Coloured glows above ~1.5 wash out under the tone mapping
+  { code: 255, day: 0, night: 1.6 },  // night only
 ];
 const glowUniforms = {
-  glowScale: { value: 1 },  // the look's glow (LOOKS), over every code's gain
+  glowScale: { value: 1 },  // 1 / the exposure, so the gains are levels on the screen
   glowGain: { value: GLOW.map((g) => g.day) },
   glowTint: { value: GLOW.map((g) => new THREE.Vector3(...(g.tint || [1, 1, 1]))) },
 };
@@ -101,7 +109,9 @@ const glowUniforms = {
 const canvas = document.getElementById('view');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(snap ? 1 : Math.min(window.devicePixelRatio, 2));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const TONES = { aces: THREE.ACESFilmicToneMapping, neutral: THREE.NeutralToneMapping, agx: THREE.AgXToneMapping,
+  linear: THREE.LinearToneMapping, reinhard: THREE.ReinhardToneMapping, cineon: THREE.CineonToneMapping };
+renderer.toneMapping = TONES[params.get('tone')] ?? THREE.LinearToneMapping;
 renderer.toneMappingExposure = LOOKS.day.exposure * TUNE.exposure;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;  // soft already; PCFSoftShadowMap is gone in 0.186
@@ -612,7 +622,8 @@ showSpeed(SPEED);
 // filters that red as in the game, with nothing more here: the glass's transmission multiplies
 // what's behind it by Glass_T (behind cyan, dark by night and teal by day, as in the lights
 // test's videos; checked 2026-09-25).
-const REAR = { colour: [1, 0.015, 0.025], lens: [0.55, 0.06, 0.05], on: { day: 1.2, night: 1.8 }, brake: { day: 4, night: 4.5 } };
+// Levels on the screen, as GLOW's: on, as "always on"; braking, a red well past full.
+const REAR = { colour: [1, 0.015, 0.025], lens: [0.55, 0.06, 0.05], on: { day: 0.63, night: 0.8 }, brake: { day: 3, night: 3 } };
 // Gear changes, from the video: up at these speeds under full throttle, down at the lower ones
 // while coasting, and the speed pauses for a moment at each change up.
 const GEAR_UP = [101, 162, 236, 342], GEAR_DOWN = [90, 142, 200, 279], SHIFT_PAUSE = 0.2;
@@ -938,8 +949,10 @@ function wingDepthMaterial() {
 // faint. Show → Braking shows it full on.
 // Turbo (code 160) isn't on the pad: it comes from turbo pads. A first try lit it from 100 km/h,
 // but the lights test's videos (2026-09-25) show nothing green on a straight up to 357 km/h.
-const BRAKING = { day: 8, night: 10 };
-const BRAKE_HEAT = { up: 1.5, down: 1.3, day: 1.5, night: 2 };
+// Levels on the screen (GLOW); set under the ACES curve and carried over to the straight one
+// (2026-09-27): braking well past white, brake heat and turbo about their own colour.
+const BRAKING = { day: 6, night: 6 };
+const BRAKE_HEAT = { up: 1.5, down: 1.3, day: 1.1, night: 1.3 };
 let braking = false, night = false;
 function setBraking(on) {
   braking = on;
@@ -972,7 +985,7 @@ function applyBraking() {
 // A yellow turbo pad, from the turbo videos (2026-09-25): the turbo colour glows for about 3 s, fading
 // over the last half second; the rear lights go red for the first 1.5 s; the speed climbs from about
 // 130 to 400 km/h in 2 s. ?turbo=1 holds it on in snapshots.
-const TURBO = { glow: 3, fade: 0.5, red: 1.5, push: 2, climb: 135, gain: { day: 0.9, night: 1.2 } };
+const TURBO = { glow: 3, fade: 0.5, red: 1.5, push: 2, climb: 135, gain: { day: 0.9, night: 1 } };
 // km/h per second from each speed up. The video stops at 372: past it the last pace goes on, a guess.
 const PACE = [[0, 56], [101, 37], [162, 40], [200, 25]];
 const climb = (kmh) => PACE.findLast(([v]) => kmh >= v)[1];
@@ -1279,7 +1292,7 @@ function setNight(on) {
   night = on;
   const look = LOOKS[night ? 'night' : 'day'];
   GLOW.forEach((g, i) => { glowUniforms.glowGain.value[i] = night ? g.night : g.day; });
-  glowUniforms.glowScale.value = look.glow * TUNE.glow;
+  glowUniforms.glowScale.value = TUNE.glow / (look.exposure * TUNE.exposure);
   renderer.toneMappingExposure = look.exposure * TUNE.exposure;
   setBraking(braking);
   scene.environment = envMaps[night ? 'night' : 'day'] || null;

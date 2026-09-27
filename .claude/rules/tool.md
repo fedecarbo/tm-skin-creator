@@ -92,11 +92,11 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
 
   | Alpha | Behaviour |
   |---|---|
-  | 0 | Brake lights, on when braking |
-  | 32 | Energy, tinted in game (team colour); the RGB must be grey |
+  | 0 | Brake lights: on at night, flaring when braking |
+  | 32 | Energy, tinted in game (team colour); the RGB must be grey. Dark on the track (2026-09-27) |
   | 64 | Brake heat, on when braking hard (builds over ~1.5 s) |
   | 96 | Always glowing |
-  | 128 | Front lights, bright at night |
+  | 128 | Front lights: off by day, the brightest at night |
   | 160 | Turbo colour; the RGB must be grey |
   | 192 | Exhaust heat, on during turbo |
   | 224 | Boost colour; the RGB must be grey |

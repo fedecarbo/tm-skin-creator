@@ -71,7 +71,9 @@ Club. TSC_Lab_Materials can come on the same drive (its finishes by day and at n
 `tool.snap TSC_Calibrate --cams` (on the Mac `node docker/snap.mjs TSC_Calibrate --cams`, with
 `--size 2560x1440` for the screenshots' size): Cam 1, 2 and 3 by day and at night, as the viewer's
 looks stood when the car was made (`LOOKS` in `viewer/viewer.js`: day exposure 1.2, env 1.25,
-key 1.1; night env 4.4, key 0.44, exposure 0.9, glows x1.8).
+key 1.1; night env 4.4, key 0.44, exposure 0.9, glows x1.8, under ACES). Matched to the game on
+2026-09-27: the tone mapping straight (linear), day exposure 1.44, night 0.6, the glows as levels
+on the screen.
 
 ## Record
 
@@ -79,5 +81,8 @@ key 1.1; night env 4.4, key 0.44, exposure 0.9, glows x1.8).
   three chase cameras by day and at night. Every patch is where Cam 1 and 2 see it; Cam 3 sees
   the cockpit, the white wheel and the lamps.
 - Installed 2026-09-27 on the PC (painted there first: the Mac's paint stays on the Mac), 1.26 MB.
-  Kept off the page online, as a test chart (`TEST_CARS` in `tool/publish.py`). The user is
-  taking the mood screenshots.
+  Kept off the page online, as a test chart (`TEST_CARS` in `tool/publish.py`).
+- Driven 2026-09-27 (the user): the four moods on one editor map, the steps as written, plus each
+  camera's second view: 24 screenshots, 09:18 to 09:22 (sunrise, day, sunset, night; each Cam 1,
+  1 again, 2, 2 again, 3, 3 again). Read on Cam 2; the viewer matched to them the same day (what
+  they showed: `CHECKLIST.md`, Things we learned, "the four moods").

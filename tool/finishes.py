@@ -362,22 +362,27 @@ def resolve(phrase, default="gloss"):
 GLOWS = {
     "brake lights": {"code": 0, "keeps colour": True,
                      "seen": "the slots inside the front wheels, recoloured blue (the lights test, 2026-09-25): "
-                             "dim blue all the time, flaring blue to white while braking, dim again at once"},
+                             "dim blue all the time, flaring blue to white while braking, dim again at once; "
+                             "the calibration car (2026-09-27): off by day at rest, on at night and at sunset"},
     "energy": {"code": 32, "keeps colour": False,
-               "seen": "dim, tinted red by the game (the player's colour), on at rest"},
+               "seen": "dim, tinted red by the game (the player's colour), at rest in the garage; "
+                       "dark on the track in all four moods (the calibration car, 2026-09-27)"},
     "brake heat": {"code": 64, "keeps colour": True,
                    "seen": "orange rims (the lights test, 2026-09-25): dim red within a moment of braking hard, "
                            "full colour after about 1.5 s, fading about 1 s after letting go"},
     "always on": {"code": 96, "keeps colour": True,
                   "seen": "magenta as painted, day and night; the speed digits and rear lights are this code"},
-    "front lights": {"code": 128, "keeps colour": True, "seen": "bright white by day and at night"},
+    "front lights": {"code": 128, "keeps colour": True,
+                     "seen": "off by day; at night and at sunset the brightest glow (the calibration car, 2026-09-27; "
+                             "the 'bright white by day' of 2026-09-24 was white paint)"},
     "turbo": {"code": 160, "keeps colour": False,
               "seen": "the hubs (stock) in the pad's colour after a yellow turbo pad (the lights test, 2026-09-25): "
                       "yellow for about 3 s, fading over the last half second; seen inside the wheels from the chase cameras"},
     "exhaust heat": {"code": 192, "keeps colour": True,
                      "seen": "not seen: the side vents that carry it in the lights test are hidden from the chase cameras"},
     "boost": {"code": 224, "keeps colour": False, "seen": "not seen"},
-    "night only": {"code": 255, "keeps colour": True, "seen": "yellow as painted at night, and on a dusk map"},
+    "night only": {"code": 255, "keeps colour": True,
+                   "seen": "yellow as painted at night, and on a dusk map; on at sunset, off at sunrise (2026-09-27)"},
 }
 GLOW_ALIASES = {"always": "always on", "on": "always on", "neon": "always on", "night": "night only", "at night": "night only",
                 "headlights": "front lights", "lights": "front lights", "brake": "brake lights", "brakes": "brake lights",

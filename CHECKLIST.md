@@ -1633,7 +1633,7 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     in headless Chrome: the viewer's list, each room, Details at night, 390 wide with no sideways
     scroll.
 
-### The viewer matched to the game's moods (started 2026-09-27)
+### The viewer matched to the game's moods (done 2026-09-27)
 
 The user, 2026-09-27: "a car that will help you calibrate the moods? Something I can do later
 with my pc", then, on the Mac: "maybe you can compare the 4 moods that trackmania has. I am not in
@@ -1657,8 +1657,11 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
     dark paint too, or the unlit segments show "888" in the body's grey.
   - **`tool.snap <name> --cams`** (and `node docker/snap.mjs <name> --cams` on the Mac): the
     game's three cameras by day and at night at 16:9, the viewer's side of the comparison.
-- [ ] **2. The drive (the user, on the PC).** Install it, then each of the four moods standing
-  still, F12 in Cam 1, 2 and 3 (the steps are in its `notes.md`).
+- [x] **2. The drive (the user, on the PC, 2026-09-27).** Installed, then each of the four moods
+  standing still, F12 in Cam 1, 2 and 3 (the steps are in its `notes.md`; they worked as written).
+  The user also took each camera's second view (the key pressed again): 24 screenshots,
+  09:18 to 09:22, in the order sunrise, day, sunset, night, each Cam 1, 1 again, 2, 2 again, 3, 3
+  again.
   - **How to get the four moods** (a lookup, 2026-09-27, untried): one map in the editor, its mood
     changed in Light settings ("calculate shadows and change the mood of your track"; Map Options
     → Edit Light Settings; Mood: Morning, Day, Sunset, Night), so the car keeps its spot and
@@ -1670,10 +1673,16 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
     day, not the four moods: not for this. Sources: wiki.trackmania.io (map editor, settings
     menu), 22ndcorner.wordpress.com (map editor basics, 2020), the Maniaplanet docs on lightmaps,
     trackmania.com news 7444, 7901, 8256, trackmania.com/access.
-- [ ] **3. The match.** The screenshots beside `--cams` renders at 2560x1440; the grey scale sets
-  each look's exposure and the light's colour, the finishes the sky's share against the key, the
-  colours the tone mapping, the glow row `GLOW`'s gains. Sunrise and sunset get compared with the
-  day and night too (the user asked); the viewer keeps its two looks unless the user asks again.
+- [x] **3. The match (2026-09-27).** The screenshots beside `--cams` renders at 2560x1440, read
+  on Cam 2 (the closest to the tail): the grey scale on the tail's top, the deck's colours, the
+  glow row. What it showed is under "Things we learned". The viewer maps light straight now
+  (`LinearToneMapping`), by day at exposure 1.44 (greys within a few levels of the game's), at
+  night 0.6 (a middle: the game's night light is uneven, see below), and `GLOW`'s gains are levels
+  on the screen (the glow scale is 1 / the exposure). The Lab's balls take the same day look.
+  Not matched: the finishes (their reflections are the stadium's in the game, the studio's here)
+  and the light's direction (the game's sun lights one side; the studio all round). The viewer
+  keeps its two looks; sunrise and sunset are recorded, not built. A trial tone mapping is
+  `?tone=aces` (or neutral, agx) in the viewer's address.
 
 ## Decisions (for Claude)
 
@@ -1751,6 +1760,29 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-27, the four moods (TSC_Calibrate in the editor's test drive, standing still).**
+  - **The game maps light to the screen straight, clipping each channel at white.** By day the
+    grey scale on the tail's top reads 54 81 115 158 205 248 255 255 (pure black, the six
+    ColorChecker greys, pure white): mid-grey where the viewer's ACES had it, but N8 and white
+    clip where ACES rolled them off (216, 230). A light blue (#00b4ff) glow turns cyan (7, 254,
+    254) when bright, never white; yellow and magenta clip to (253, 253, 70) and (254, 130, 206).
+    Three.js's `LinearToneMapping` at exposure 1.44 lands within 4 levels on average; Khronos
+    Neutral, AgX and ACES were 9 to 27 off.
+  - **Glows, standing still:** "always on" shows its own colour a little dimmed (0.63 of it on the
+    screen by day, 0.8 at night). "Night only", the front lights and the brake lights are off by
+    day and on at night and at sunset (1.6, 2.5 clipped to cyan, 1.6); sunrise is like day. So the
+    front lights aren't lit by day: the "bright white by day" of 2026-09-24 was white paint.
+    **Energy stayed dark in all four moods** on the track (it glowed dim red in the garage).
+  - **The moods' light on the tail's top, against the day:** sunrise about 0.28 and neutral;
+    sunset about 0.35 and warm (the white patch 245, 199, 193, mid grey 120, 87, 85);
+    night about 0.03 there, but not even: the deck and the tail's back face, which see the lit
+    stadium, are 3 to 8 times brighter than the flat top, which sees the dark sky. By day the
+    back faces are in shade (N5 at 48 against the top's 158): on this map the sun is ahead.
+  - **Cam 3 hides the cockpit** in the game: no steering wheel, no canopy lamps, the canopy's
+    glass dark over it (`IMPROVEMENTS.md`).
+  - **The game letters the player's name and number** ("FCP 00") on the engine cover even in the
+    editor, over the paint.
 
 - **2026-09-27, a faster show (the code check's first two clean-ups).**
   - **The gaps between UV islands were filled from scratch at every build.** `raster.fill_holes`
