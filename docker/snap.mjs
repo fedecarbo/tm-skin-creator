@@ -5,6 +5,8 @@
 //                                                gallery's picture with a version kept (what
 //                                                tool.skin show's snapshot does on the PC)
 //   node docker/snap.mjs <name> --close          the close looks -> build/<name>_close.png
+//   node docker/snap.mjs <name> --cams           the game's Cam 1, 2 and 3, day and night, at
+//                                                16:9 -> build/<name>_cams.png
 // Each sheet is copied to .snap/ too, for Claude to look at on the Mac.
 //   node docker/snap.mjs <name> [<more> ...] --picture --titles "…" [--views …] [--close-row <name> 3 4 9 ...]
 //                                                the picture for the user, opened on the screen
@@ -73,8 +75,9 @@ async function chrome() {
   return { send, evaluate, errors, close };
 }
 
-async function snap(name, close, size) {
-  const { build, shots } = JSON.parse(tool(['-m', 'tool.snap', name, ...(close ? ['--close'] : []), '--shots'], true));
+async function snap(name, kind, size) {  // kind: views, close or cams
+  const flag = kind === 'views' ? [] : [`--${kind}`];
+  const { build, shots } = JSON.parse(tool(['-m', 'tool.snap', name, ...flag, '--shots'], true));
   const dir = join(ROOT, '.snap', name);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
@@ -100,8 +103,8 @@ async function snap(name, close, size) {
   } finally {
     b.close();
   }
-  tool(['-m', 'tool.snap', name, ...(close ? ['--close'] : ['--thumb']), '--tiles', `/app/.snap/${name}`]);
-  console.log(`copied: ${copyOut(build, `${name}_${close ? 'close' : 'views'}.png`)}`);
+  tool(['-m', 'tool.snap', name, ...(flag.length ? flag : ['--thumb']), '--tiles', `/app/.snap/${name}`]);
+  console.log(`copied: ${copyOut(build, `${name}_${kind}.png`)}`);
 }
 
 function picture(args) {
@@ -114,12 +117,13 @@ function picture(args) {
 
 const args = process.argv.slice(2);
 if (!args.length || args[0].startsWith('-')) {
-  console.log('node docker/snap.mjs <name> [--close] [--size 960x720] | <name> [<more> ...] --picture [--titles ...] [--views ...] [--close-row <name> N ...]');
+  console.log('node docker/snap.mjs <name> [--close | --cams] [--size 960x720] | <name> [<more> ...] --picture [--titles ...] [--views ...] [--close-row <name> N ...]');
   process.exit(1);
 }
 if (args.includes('--picture')) picture(args);
 else {
+  const kind = args.includes('--close') ? 'close' : args.includes('--cams') ? 'cams' : 'views';
   const i = args.indexOf('--size');
-  const size = (i >= 0 ? args[i + 1] : '960x720').split('x').map(Number);
-  await snap(args[0], args.includes('--close'), size);
+  const size = (i >= 0 ? args[i + 1] : kind === 'cams' ? '1280x720' : '960x720').split('x').map(Number);
+  await snap(args[0], kind, size);
 }

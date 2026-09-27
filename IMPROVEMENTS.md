@@ -126,17 +126,15 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   (the car's shape 11 MB, the studio lighting 6 MB), slow on mobile data. Idea: the mesh in
   half floats or meshopt-compressed, and the 1K studio HDR on phones.
 - **A car to match the viewer's day and night to the game** (the user, 2026-09-27: "a car that
-  will help you calibrate the moods? Something I can do later with my pc"). The day and night
-  looks were set by taste (brighter on 2026-09-27, `CHECKLIST.md`, The Lab, step 8), never
-  against the game. Idea: a calibration skin, TSC_Calibrate: a grey scale from black to white and
-  pure colour patches (a colour-checker's) on the big body panels, the same colour in matte, satin,
-  gloss and chrome side by side, and a patch of each glow kind (always on, night only, front
-  lights, brake lights) in known colours on the inner car. The user, on the PC: install it, stand
-  still on a day map and a night map, F12 in Cam 1, 2 and 3 (the viewer's poses are fitted to
-  those). Claude renders the same poses in the viewer and tunes each look's exposure, sky, key
-  and glow (`LOOKS`, `TUNE` in `viewer/viewer.js`) until the patches match; the glow patches also
-  settle how bright each glow kind is (`GLOW`). The same drive can take TSC_Lab_Materials, which
-  is still waiting to be installed (its finishes by day and at night).
+  will help you calibrate the moods? Something I can do later with my pc"; then "maybe you can
+  compare the 4 moods that trackmania has"). The day and night looks were set by taste (brighter
+  on 2026-09-27, `CHECKLIST.md`, The Lab, step 8), never against the game. **The car is made**
+  (2026-09-27, on the Mac): TSC_Calibrate, a grey scale, colours, finishes and glows where the
+  chase cameras see them; its `notes.md` has the key and the steps in the game. Next, on the PC:
+  install it, the user takes Cam 1, 2 and 3 standing still in each of the four moods, and Claude
+  sets `LOOKS`, `TUNE` and `GLOW` in `viewer/viewer.js` against them (`tool.snap --cams`). Working
+  notes: `CHECKLIST.md`, "The viewer matched to the game's moods". The same drive can take
+  TSC_Lab_Materials, still waiting to be installed (its finishes by day and at night).
 
 ## To check in the game
 

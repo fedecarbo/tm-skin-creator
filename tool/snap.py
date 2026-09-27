@@ -3,6 +3,9 @@
     python -m tool.snap TSC_Test          -> build/TSC_Test_views.png
     python -m tool.snap TSC_Test --size 1280x960
     python -m tool.snap TSC_Test --close  -> build/TSC_Test_close.png: the close looks (CLOSE)
+    python -m tool.snap TSC_Test --cams   -> build/TSC_Test_cams.png: the game's Cam 1, 2 and 3,
+                                             by day and at night, at 16:9 (CAMS), to set beside
+                                             the game's F12 screenshots
     python -m tool.snap TSC_Test --picture [TSC_Other ...] [--titles ...] [--views ...]
                                              [--close-row TSC_Test 2 5 9 [--close-row TSC_Other 2 5 9]]
         -> build/TSC_Test_picture.png, a row per skin from its views sheet (and a row of close
@@ -46,6 +49,10 @@ CLOSE = (("1 bonnet", {"dir": [0.35, 0.85, 0.4], "dist": 1.4, "target": [0, 0.66
          ("7 right side", {"dir": [-0.85, 0.4, 0.2], "dist": 2.4, "target": [-0.55, 0.45, -0.1]}, False, []),
          ("8 front wheel", {"dir": [1, 0.2, 0.25], "dist": 1.3, "target": [0.9, 0.35, 1.79]}, False, []),
          ("9 driving camera", {"dir": [0, 0.42, -1], "dist": 4.5, "target": [0, 0.55, 0.2]}, False, []))
+# The game's chase cameras standing still (viewer.js's VIEWS, fitted to the user's screenshots),
+# by day and at night, at the screenshots' 16:9: what the calibration car is read through.
+CAMS = tuple((f"Cam {n} {'night' if night else 'day'}", f"cam{n}", night, []) for night in (False, True) for n in (1, 2, 3))
+CAM_SIZE = "1280x720"
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
 EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
 
@@ -158,8 +165,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("name")
     ap.add_argument("more", nargs="*", help="with --picture: the other takes, in order")
-    ap.add_argument("--size", default="960x720")
+    ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
+    ap.add_argument("--cams", action="store_true", help="the game's Cam 1, 2 and 3, day and night, at 16:9")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
@@ -169,15 +177,15 @@ def main():
     ap.add_argument("--tiles", metavar="DIR", help="the Mac: the sheet from DIR/0.png, 1.png... in --shots order")
     ap.add_argument("--thumb", action="store_true", help="with --tiles: also the gallery's picture, and a version kept")
     args = ap.parse_args()
-    shots = CLOSE if args.close else SHOTS
+    shots, kind = (CLOSE, "close") if args.close else (CAMS, "cams") if args.cams else (SHOTS, "views")
     if args.shots:
         print(json.dumps({"build": str(paths.BUILD), "shots": [[label, v, night, hidden, *rest] for label, v, night, hidden, *rest in shots]}))
         return
     if args.tiles:
         tiles = [(s[0], Image.open(Path(args.tiles) / f"{k}.png")) for k, s in enumerate(shots)]
         w, h = tiles[0][1].size
-        out = paths.BUILD / f"{args.name}_{'close' if args.close else 'views'}.png"
-        thumb = paths.SKINS / args.name / "thumb.png" if args.thumb and not args.close else None
+        out = paths.BUILD / f"{args.name}_{kind}.png"
+        thumb = paths.SKINS / args.name / "thumb.png" if args.thumb and kind == "views" else None
         sheet(args.name, tiles, out, (w, h), thumb)
         if thumb:
             from tool import gallery, skin
@@ -188,9 +196,9 @@ def main():
         close = [(row[0], row[1:]) for row in args.close_row or []]
         picture([args.name] + args.more, args.titles, args.views, close)
         return
-    w, h = (int(v) for v in args.size.split("x"))
-    if args.close:
-        snap(args.name, out=paths.BUILD / f"{args.name}_close.png", size=(w, h), shots=CLOSE, prepare=False)
+    w, h = (int(v) for v in (args.size or (CAM_SIZE if args.cams else "960x720")).split("x"))
+    if args.close or args.cams:
+        snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False)
     else:
         snap(args.name, size=(w, h))
 

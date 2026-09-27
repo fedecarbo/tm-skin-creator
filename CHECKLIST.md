@@ -1633,6 +1633,37 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
     in headless Chrome: the viewer's list, each room, Details at night, 390 wide with no sideways
     scroll.
 
+### The viewer matched to the game's moods (started 2026-09-27)
+
+The user, 2026-09-27: "a car that will help you calibrate the moods? Something I can do later
+with my pc", then, on the Mac: "maybe you can compare the 4 moods that trackmania has. I am not in
+my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENTS.md`.
+
+- [x] **1. The calibration car, TSC_Calibrate (2026-09-27, on the Mac).** A test chart where the
+  chase cameras see it standing still: the grey scale on the tail's flat top, six colours on the
+  deck beside the engine cover's panel, four finishes beside the cockpit, a row of the five glow
+  kinds on the back under the tail, the rest one mid grey (the key: its `notes.md`).
+  - **What the chase cameras see** (the viewer's Cam 1 and 2 at 2560x1440, with the parts
+    coloured and lit one by one): the tail panel is the tail's flat *top* (y 62 to 65, facing
+    up), not its back; the deck's sides are the "engine cover" part (|x| 20 to 58 cm, round the
+    engine cover's and number's panels, where the game letters); the back face round the speed
+    numbers and the two openings is the inner car's "tail frame" (74 % shared with its twin, so
+    mirrored); its top bar (y above 48) is the one clean band across the whole back. Cam 3 sees
+    the cockpit tub (its stock always-on slashes along the canopy's front), the steering wheel,
+    the front tyres; the nose top only at a grazing angle. Anything long along the car is
+    foreshortened about half from Cam 1, so patches there go side by side across the car.
+  - **Glow patches on black paint:** `glow()` also tints the paint, so a "night only" patch read
+    as lit by day; black paint after the glow leaves only the light. The digit display needs its
+    dark paint too, or the unlit segments show "888" in the body's grey.
+  - **`tool.snap <name> --cams`** (and `node docker/snap.mjs <name> --cams` on the Mac): the
+    game's three cameras by day and at night at 16:9, the viewer's side of the comparison.
+- [ ] **2. The drive (the user, on the PC).** Install it, then each of the four moods standing
+  still, F12 in Cam 1, 2 and 3 (the steps are in its `notes.md`).
+- [ ] **3. The match.** The screenshots beside `--cams` renders at 2560x1440; the grey scale sets
+  each look's exposure and the light's colour, the finishes the sky's share against the key, the
+  colours the tone mapping, the glow row `GLOW`'s gains. Sunrise and sunset get compared with the
+  day and night too (the user asked); the viewer keeps its two looks unless the user asks again.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every

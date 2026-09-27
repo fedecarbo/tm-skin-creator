@@ -41,6 +41,7 @@ user the Studio too.
 | `PY -m tool.skin round "<title>" <A> <B> [<C>] --words "…"` | Records a round of concepts (`skins/rounds.json`), so the Lab shows a switch between them. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
+| `PY -m tool.snap <name> --cams` | The game's Cam 1, 2 and 3 standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). On the Mac `node docker/snap.mjs <name> --cams`. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
 | `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: every material the tool knows on a ball, by family, with its code, numbers and a "Copy for Claude" button. |
