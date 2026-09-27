@@ -303,12 +303,12 @@ def grain(pos, nrm, colour, finish, params):
 def sheen_grain(pos, nrm, colour, finish, params):
     """A tiny grain in the sheen only, the colour even, as on a textured vinyl wrap: specks a
     little less matte than the rest, seen where the light falls. Not in the colour: on dark paint
-    the game's colour compression (BC1) flattens a fine grain into blocky steps. 3.5 mm by
-    default, so it holds when the zip's budget halves the roughness map (a grain fills it with
-    detail that won't compress). scale: the specks' size in cm; amount: how much shinier they
-    are (roughness)."""
+    the game's colour compression (BC1) flattens a fine grain into blocky steps. 2 mm by default
+    (the user found 3.5 mm too big): it still holds when the zip's budget halves the roughness map,
+    which a grain fills with detail that won't compress (its spread 0.092 at half size, 0.097 at
+    full). scale: the specks' size in cm; amount: how much shinier they are (roughness)."""
     seed = params.get("seed", 0)
-    size = params.get("scale", 0.35)
+    size = params.get("scale", 0.2)
     g = 0.7 * noise.value(pos / size, seed) + 0.3 * noise.value(pos / (size * 2.3) + 7, seed + 1)
     speck = smoothstep(0.45, 0.75, g)
     return {"colour": tint(colour, const(len(pos), 1.0)), "roughness": const(len(pos), finish.roughness) - params.get("amount", 0.25) * speck}

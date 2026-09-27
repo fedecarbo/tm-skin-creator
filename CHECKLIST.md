@@ -2245,8 +2245,8 @@ distorted". Each choice was made from real renders of the viewer, side by side o
     "sheen grain" look and the "textured wrap" finish (WT-07).
   - A fine grain fills the roughness map with detail zip can't squeeze, so the budget halves it
     (and the Details normal map) to 2048²: EndsInK went from 7.3 to 7.1 MB, Skin_R from 0.25 to
-    1.2 MB zipped. Draw a grain for half size (3.5 mm specks, two texels at 2048²): its spread
-    measured 0.103 at full size and 0.100 at half.
+    1.2 MB zipped. Draw a grain for half size: 3.5 mm specks kept a spread of 0.100 of 0.103,
+    and 2 mm (the user's "smaller") still 0.092 of 0.097.
   - The first carbon weave (0.5 cm, in the wrap's own black) couldn't be seen beyond arm's
     length: 0.8 cm and a touch lighter than the wrap read. Glossy dots on matte black read
     clearly, but a dot on a tight curve (the sidepod inlet's lip) shows the highlight as a row

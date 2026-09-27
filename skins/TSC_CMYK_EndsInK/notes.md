@@ -46,3 +46,9 @@ blotches, like dirt.
   matte than the rest, in the sheen only, the colour even. Drawn for the game: a grain in the
   colour would be lost to its compression, and the zip's budget halves the sheen map. The zip
   comes to 7.1 MB. Shown 2026-09-27: build/TSC_CMYK_EndsInK_picture.png.
+- Change 6 (user, notes 6 and 7, and a message): "I would have these normal matte black" (the
+  ring round each sidepod inlet), "Same with this" (the band round the cockpit), "would be great
+  if the grain could be smaller". Those trims are plain matte black now, the grain only on the
+  panels; the specks are 2 mm instead of 3.5 (the finish's default now). In the game the sheen
+  map is at half size (the zip's budget), where the grain keeps nearly all its strength; the zip
+  is 6.6 MB.

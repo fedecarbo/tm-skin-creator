@@ -15,9 +15,12 @@ _spec.loader.exec_module(_tail)
 
 def grain(s):
     """The user's pick over the round of textures (carbon, halftone, brushed: TSC_CMYK_Carbon ...)."""
-    s.step("A fine grain", "A tiny grain in the black wrap's sheen, like textured vinyl: seen up close where the light falls.",
+    s.step("A fine grain", "A tiny grain in the black wrap's sheen, like textured vinyl: seen up close where the light falls. The trims plain matte.",
            words="I was just thinking tiny grain just to have a bit of texture.")
-    s.paint(["body", "sidepod frame"], "textured wrap", colour=_tail.BLACK)
+    s.paint("body", "textured wrap", colour=_tail.BLACK)
+    # the trims stay plain matte, the ring round each sidepod inlet and the band round the cockpit
+    # (the user's notes: "I would have these normal matte black", "Same with this")
+    s.paint(["sidepod frame", "cockpit surround"], "matte", colour=_tail.BLACK)
     s.paint("wing pylon", "satin", colour=_tail.C)  # the front wing's supports stay cyan
 
 

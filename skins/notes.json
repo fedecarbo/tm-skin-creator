@@ -118,5 +118,53 @@
   ],
   "made": "2026-09-27T14:23:34Z",
   "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 6,
+  "text": "I would have these normal matte black",
+  "step": 5,
+  "step_name": "Wheels",
+  "part": {
+   "id": 28,
+   "label": "sidepod frame (left)",
+   "token": "sidepod frame|left"
+  },
+  "at": [
+   0.498,
+   0.471,
+   0.2901
+  ],
+  "normal": [
+   0.8738,
+   0.1453,
+   0.4641
+  ],
+  "made": "2026-09-27T15:17:03Z",
+  "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 7,
+  "text": "Same with this",
+  "step": 5,
+  "step_name": "Wheels",
+  "part": {
+   "id": 4,
+   "label": "cockpit surround",
+   "token": "cockpit surround|centre"
+  },
+  "at": [
+   0.1973,
+   0.792,
+   0.3287
+  ],
+  "normal": [
+   0.1884,
+   0.9701,
+   0.1529
+  ],
+  "made": "2026-09-27T15:17:18Z",
+  "state": "done"
  }
 ]
