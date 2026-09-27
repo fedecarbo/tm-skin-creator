@@ -1493,6 +1493,59 @@ worked on, live; not one page. What was settled the same day:
     digits had turned white. Claude's snapshots go through the same viewer, so they're brighter
     too.
 
+#### [ ] 9. The Lab as a factory: the car on the stand
+
+- **What it's for:** the user, 2026-09-27, after Claude described how a car gets built: "I was
+  kind of thinking on redesigning the lab ... since it's an iterative process then im not sure the
+  current interface serves the purpose ... it seems there are options that you provide as well as
+  you go ... if you were to not even take influence on the current one. How would you define the
+  perfect interface that resembles like as if you are at a factory building a car?", then "you
+  could even change the workflow in the backend if that helps as well. Without affecting quality".
+- **What you'll see:** the car fills the Lab. Your notes, Claude's answers (with a before and
+  after), the options Claude brings and Claude's own checks hang on the car as tags where they
+  apply. The build's steps run small along the bottom, then the inspection, the test track and the
+  car in the game.
+- **Model:** Opus 5.5.
+- **Notes for Claude:**
+  - **What a replay of TSC_CMYK_EndsInK's build showed** (27 Sep, 14:03 to 15:48 UTC):
+    - 10 notes, about 18 repaints (`show` painted in 90 to 127 s each) and 4 installs (the zip
+      built in 196 to 258 s). Claude looked at about 46 pictures. The user's messages were mostly
+      "added comments" and "Yes", and every change came through a note.
+    - The gaps:
+      - Claude's answer never came back to the note: the pin just went.
+      - There was no before and after. The Studio shows the current version's steps only, and
+        `versions/` keeps a picture per round that the Lab never shows.
+      - The texture round was three separate skins behind the round switch.
+      - `show`'s notes (shared paint, folds, still clay) and the close-ups reached only Claude.
+      - The wheels' pieces were in three places, and the game test was outside the Lab.
+  - **The factory, as Claude defined it:**
+    - the line: Body, Inner car, Wheels, Lights, Glass, then Inspection, Test track and In the
+      game;
+    - the user's notes as rework tickets: open, then Claude on it, then answered with a before and
+      after, then accepted or reopened;
+    - options (A, B, C) held where they apply until the pick, the others kept;
+    - Claude's checks visible, and one status line;
+    - the test track: the user's F12 screenshots after an install, with notes on them;
+    - the paint store: materials, treads and markings.
+  - **The mockups:** https://claude.ai/artifact/LL5JJx8EqoHhAUeFNDrZXu, at the moment just after
+    the texture round (A Carbon, B Halftone, C Brushed), with notes 4 and 5 answered.
+    - A, the assembly line: stations across the top, the open station below.
+    - B, the car on the stand: everything as tags on the car.
+    - C, the review bay: the round's options side by side, the rounds as history.
+    - Claude recommended A. **The user chose B** ("Let's try the car on the stand. Looks
+      interesting").
+  - **How the mockups were made** (for another round): a scratchpad script drove the viewer in
+    Edge through Playwright, as `snap.snap()` does but without `view.prepare`, which re-exports the
+    skin from the last built DDS files.
+    - Cameras: `viewer.show` with view names or `{dir, dist, target}`.
+    - A step's picture: `viewer.dress` with `steps.json`'s textures. TSC_CMYK_EndsInK's step 5
+      against step 6 gave the mirror's before and after for notes 4 and 5.
+    - Pins: `viewer.pins` projected 3D points onto the page. In `?snap=1` a pin's bounding rect
+      reads as zeros, so the script read its `style.left` and `style.top` instead.
+    - The mockups used the Lab's own stylesheet (lab.html's `<style>`) plus the new layouts, each
+      at 1440×900 in its own frame on a plain sheet.
+  - **Next:** B gets its own plan, agreed step by step before it's built.
+
 ### Defining the parts (started 2026-09-26)
 
 Led by the user, step by step ("I honestly don't know how we are going to do this, but maybe we

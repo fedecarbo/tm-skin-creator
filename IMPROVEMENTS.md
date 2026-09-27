@@ -39,6 +39,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   (the surfaces stay). `CHECKLIST.md`, The Lab, steps 7 and 8.
   **Another (2026-09-27):** "In the material library, can we add a tread library as well?": the
   Treads family, each tread on the car's own tyre (`CHECKLIST.md`, "Tyre markings").
+  **The redesign, under way (2026-09-27):** the user asked for the Lab from scratch, "as if you
+  are at a factory building a car", and allowed changes behind the scenes that keep the quality.
+  From three rendered directions they chose B, the car on the stand: notes, answers with a
+  before and after, options and Claude's checks as tags on the car (`CHECKLIST.md`, The Lab,
+  step 9).
 
 ## The tool
 
