@@ -41,9 +41,10 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   render with another agent"). Start from the user's thoughts on what's wrong with it; nothing is
   planned. **Their thoughts so far (2026-09-27):** "i kind of feel we need a floor, it could still
   be studio like", then "Keyshot has always been a nice default background and surface that i've
-  liked". Six floors are rendered for the pick (the trial, `viewer/floor-trial.js`, `?floor=`), on
-  a page: https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP. Waiting for their letter; the steps
-  are in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
+  liked", and, of six floors rendered for them (https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP):
+  no line where the floor bends into the wall, and "apply all… I pick… from the actual viewer".
+  The viewer's Floor menu has all six (`viewer/floors.js`); waiting for their pick. The steps are
+  in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
   "The viewer matched to the game's moods"):
   the viewer maps light straight as the game does (`LinearToneMapping`; by day its greys match
   the game's within a few levels); four moods in one menu (day the Poly Haven studio, sunrise and

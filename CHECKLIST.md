@@ -1706,15 +1706,22 @@ The user, 2026-09-27: "I want to make the studio render nicer", then "i kind of 
 floor, it could still be studio like" and "Keyshot has always been a nice default background and
 surface that i've liked". The item is in `IMPROVEMENTS.md`.
 
-- [ ] **1. A floor.** Six floors rendered in the viewer on TSC_CMYK_Peel_More (front, side, Cam 2
-  alt, night) and TSC_IceCreamSweet (front), on a page to pick from:
-  https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP. A as today; B KeyShot light grey (room 0.2);
-  C KeyShot in today's dark grey (Claude's pick); D concrete (ambientCG Concrete034, CC0, in the
-  work folder's `viewer/floor/`, this PC only); E a turntable 5.2 m across; F a grid a metre apart.
-  The light on the car is unchanged in all six. The trial is `viewer/floor-trial.js`, loaded by
-  `?floor=keyshot|keyshot-dark|concrete|turntable|grid`; once the user picks, it moves into
-  `addRoom` and the file goes, with the add-ons it alone uses (`objects/Reflector.js`,
-  `postprocessing/Pass.js`, the two blur shaders, three.js 0.186.0 as the rest; 0.186.1 is out).
+- [ ] **1. A floor.** Six floors rendered on TSC_CMYK_Peel_More and TSC_IceCreamSweet, on a page:
+  https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP. The user liked them all, but not the line
+  where the floor bends up into the wall ("is there one that actually you can't tell the spheric
+  to the background"), and asked for all of them in the viewer to pick from there. So the viewer
+  has a **Floor menu** (`viewer/floors.js`, beside the moods; `?floor=` for snapshots, which keep
+  today's otherwise; the choice is remembered in the browser, and the Lab's Studio follows it;
+  hidden on the page online until the pick): as today; KeyShot light (0.2); KeyShot dark (today's
+  0.035); concrete (ambientCG Concrete034, CC0, `view.ensure_floor`); a turntable 5.2 m across; a
+  grid a metre apart. The light on the car is the same under all of them. Next: the user picks;
+  the rest go, and the menu with them unless they want to keep it.
+  - **No line where the floor bends:** every floor but today's lights the whole cove as flat floor
+    (the normal straight up, no shine), so it's one even grey up the walls, in every mood; the
+    floors on it fade to see-through (concrete, grid) or to the cove's own grey (KeyShot's skin),
+    and the concrete averages the cove's grey so no ring shows where it ends. Materials with
+    `onBeforeCompile` need their own `customProgramCacheKey` when their code differs, or three.js
+    reuses the first one's program; the fade distances are uniforms.
   - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror
     (`Reflector`) under it shows through 22 % by the car and none 6 m out, drawn at half the
     screen's size, which softens it. `Reflector` takes the mesh's own +z as the mirror's normal:

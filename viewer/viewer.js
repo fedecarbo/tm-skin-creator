@@ -1,6 +1,7 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
+//   &floor=<name>          what the car stands on (viewer/floors.js; snapshots: today's unless set)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and pins notes to (the Studio,
@@ -13,6 +14,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { createFloors } from './floors.js';
 
 const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || 'TSC_Test';
@@ -1359,6 +1361,17 @@ function setMood(m) {
   document.getElementById('moodName').textContent = picked.lastElementChild.textContent;
 }
 
+// ---- The floor: viewer/floors.js, picked from the Floor menu (the user, 2026-09-27) ----
+
+let floors = null;
+function setFloor(name) {
+  const f = floors.set(name);
+  for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.setAttribute('aria-pressed', String(b.dataset.floor === f));
+  const picked = document.querySelector(`#floorMenu [data-floor="${f}"]`);
+  if (picked) document.getElementById('floorName').textContent = picked.textContent;
+  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor', f); } catch {}
+}
+
 // ---- Skins: the list down the left, and switching the car's paint in place ----
 
 let geometries = null;
@@ -1491,6 +1504,9 @@ const byId = (id) => document.getElementById(id);
 const openMoods = (open) => { byId('moodMenu').hidden = !open; byId('mood').setAttribute('aria-expanded', String(open)); };
 byId('mood').onclick = (e) => { e.stopPropagation(); openMoods(byId('moodMenu').hidden); };
 for (const m of MOODS) byId(m).onclick = () => { setMood(m); openMoods(false); };
+const openFloors = (open) => { byId('floorMenu').hidden = !open; byId('floor').setAttribute('aria-expanded', String(open)); };
+byId('floor').onclick = (e) => { e.stopPropagation(); openFloors(byId('floorMenu').hidden); };
+for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.onclick = () => { setFloor(b.dataset.floor); openFloors(false); };
 byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
   pressed(byId('colourBy'), partsState.mode.value === 1);
@@ -1515,6 +1531,7 @@ document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
   if (!byId('camWrap').contains(e.target)) openCams(false);
   if (!byId('moodWrap').contains(e.target)) openMoods(false);
+  if (!byId('floorWrap').contains(e.target)) openFloors(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
 for (const b of document.querySelectorAll('#showMenu [data-part]')) {
@@ -1712,11 +1729,10 @@ async function start() {
   partsState.doc = doc;
   partTable();
   buildPartsList();
-  const studio = addRoom();
-  if (params.has('floor')) {  // a trial floor (viewer/floor-trial.js), for the user's pick
-    const { trialFloor } = await import('./floor-trial.js');
-    await trialFloor(params.get('floor'), { scene, renderer, ...studio, centre: CENTRE, roomGrey: TUNE.room });
-  }
+  floors = createFloors({ scene, renderer, ...addRoom(), centre: CENTRE, roomGrey: TUNE.room });
+  let floor = params.get('floor');
+  if (!floor && !snap) try { floor = localStorage.getItem('tsc-viewer-floor'); } catch {}
+  setFloor(floor || 'today');
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();

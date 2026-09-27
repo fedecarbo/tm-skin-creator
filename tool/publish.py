@@ -36,7 +36,7 @@ from tool import gallery, install, paths, view
 
 SITE = paths.WORK / "site"
 BRANCH = "gh-pages"
-PAGE = ("index.html", "gallery.html", "viewer.js", "public.css")
+PAGE = ("index.html", "gallery.html", "viewer.js", "floors.js", "public.css")
 MAX = 2048
 JPEG = {"quality": 90, "subsampling": 0, "optimize": True}
 PORT = 8766
