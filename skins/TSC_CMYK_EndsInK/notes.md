@@ -38,3 +38,4 @@ blotches, like dirt.
   on the cockpit, engine cover, nose and front wing were cyan too: they all wear one tiny strip of
   the front wing's paint, so they're dark metal now. A small patch the cockpit rim shares with the
   front uprights stays dark. In TSC_CMYK_BlackTail's design, so both tails have it.
+- Installed again 2026-09-27 with change 4, and put on the page online.
