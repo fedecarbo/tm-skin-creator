@@ -33,19 +33,24 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   top: { dir: [0, 1, -0.0001], dist: 7.6, roomy: 1.3 },
   // The game's cameras that show the car, under Driving (the user, 2026-09-25: not the cockpit
   // ones), standing still, fitted to the user's 2560x1440 screenshots of each (2026-09-25): the
-  // tyres' outer edges and tops, the horizon, and for Cam 3 the nose fin and a mirror, projected
-  // from the model, the lens free, then raised 1.2 cm with the car (car.json's lift_cm). Cam 1 and 2 land within 1.5 px, Cam 3 within about 8. The
-  // game's lens is wider than the 58.7° tall (90° wide) first assumed: 73 to 77° tall, 105 to
-  // 110° wide at 16:9. The user had set all three by eye in the viewer first ("Copy Cam N",
-  // below): Cam 1 2.47 m up at 12° down, Cam 2 1.82 m up at 6°, Cam 3 1.08 m up at 2°, all
-  // through the narrower lens, which drew the car about 1.4 times too big.
+  // tyres' outer edges and tops and the horizon, projected from the model, the lens free, then
+  // raised 1.2 cm with the car (car.json's lift_cm). Cam 1 and 2 land within 1.5 px. The game's
+  // lens is wider than the 58.7° tall (90° wide) first assumed: 70 to 75° tall, 100 to 110° wide
+  // at 16:9. The user had set Cam 1 and 2 by eye in the viewer first ("Copy Cam N", below): Cam 1
+  // 2.47 m up at 12° down, Cam 2 1.82 m up at 6°, through the narrower lens, which drew the car
+  // about 1.4 times too big.
   // Cam 1, the chase camera: 3.36 m up, 5.21 m behind the car's centre, 10.9° down.
   cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.238, 0.652], fov: 72.8 },
+  // Cam 1 again (its key pressed twice), closer: 2.03 m up, 3.00 m behind, 7.7° down. Fitted on
+  // 2026-09-27 to the calibration car's screenshot by day (the tyres' outlines, exactly, and the
+  // track's vanishing point), within 1.2 px; the same fit gave Cam 1 and 2 within 6 cm and 0.4°.
+  cam1alt: { dir: [0, 0.1331, -0.9911], dist: 3.533, target: [0, 1.559, 0.500], fov: 75.0 },
   // Cam 2: lower and closer, 2.22 m up, 4.56 m behind, 3.4° down.
   cam2: { dir: [0, 0.0588, -0.9983], dist: 4.962, target: [0, 1.941, 0.390], fov: 74.1 },
-  // Cam 3, over the cockpit: 0.94 m up at the front of the canopy, level, the nose and front
-  // tyres filling the bottom of the picture. Driving cameras may come this close (DRIVING_MIN).
-  cam3: { dir: [0, 0, -1], dist: 0.900, target: [0, 0.940, 0.923], fov: 76.9 },
+  // Cam 2 again: lower and closer still, 1.53 m up, 3.20 m behind, 3.3° down, within 1.8 px (as
+  // Cam 1 again). Cam 3, over the cockpit, left the menu on 2026-09-27 (the user): the game hides
+  // the cockpit there, the viewer didn't.
+  cam2alt: { dir: [0, 0.0569, -0.9984], dist: 3.709, target: [0, 1.317, 0.500], fov: 69.9 },
 };
 const FOV = 32;  // every other view's lens
 // The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
@@ -61,11 +66,20 @@ const FOV = 32;  // every other view's lens
 // maps light to the screen straight, clipping each colour channel at white (LinearToneMapping, not
 // the ACES curve before): its greys by day match within a few levels, and a bright light blue turns
 // cyan, not white. exposure: by day the grey scale's (1.44); at night the game's darker car.
+// Sunrise and sunset too (the user, 2026-09-27), each a Poly Haven sky (CC0) like the game's: at
+// sunrise hazy with a low golden sun, the car's light neutral and dimmer than by day; at sunset a
+// pink dusk, the light warm. lights: which glows are on (GLOW's day or night): the game lights the
+// night glows at sunset, not at sunrise. keyFrom: where the key comes from, lower at both: at sunrise
+// ahead of the car, at sunset behind it, warming its back as the game's did. tint: the sky's colour
+// corrected so the calibration car's white patch reads as the game's (within 5 levels).
 const LOOKS = {
   day: { hdr: 'studio_small_09', env: 1.25, key: 1.1, keyColour: 0xfff4e8, exposure: 1.44 },
+  sunrise: { hdr: 'belfast_sunset_puresky', tint: [0.91, 1, 0.82], env: 1, key: 1, keyColour: 0xfff0dc, exposure: 0.48, lights: 'day', keyFrom: [-0.35, 0.45, 0.8] },
+  sunset: { hdr: 'qwantani_dusk_2_puresky', tint: [1.33, 1, 0.66], env: 1, key: 1.6, keyColour: 0xffb080, exposure: 0.6, lights: 'night', keyFrom: [-0.6, 0.45, -0.55] },
   night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.6 },
 };
 const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car's front left
+const MOODS = Object.keys(LOOKS);
 
 // Settings any of which can be tried from the address, e.g. ?exposure=1.1&env=0.8, when matching
 // the game again. exposure, env, key and glow scale both looks' own. room: how light the room's
@@ -123,7 +137,7 @@ const controls = new OrbitControls(camera, canvas);
 controls.target.copy(CENTRE);
 controls.enableDamping = true;
 controls.minDistance = 1;
-const DRIVING_MIN = 0.2;  // closer, with a Driving camera picked: Cam 3 sits over the driver's shoulder
+const DRIVING_MIN = 0.2;  // closer, with a Driving camera picked
 controls.maxDistance = 18;
 controls.autoRotateSpeed = 1.5;  // one turn in about 40 s
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
@@ -299,13 +313,25 @@ function addRoom() {
   scene.add(contact);
 }
 
-const envMaps = {};  // day, night -> HDRI texture
+const envMaps = {};  // a mood -> its HDRI texture
+
+// A sky's colour times tint ([r, g, b]), in place: the HDR's half floats (or floats), RGBA.
+function tintSky(hdr, tint) {
+  const d = hdr.image.data, half = d instanceof Uint16Array;
+  for (let i = 0; i < d.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      d[i + c] = half ? THREE.DataUtils.toHalfFloat(THREE.DataUtils.fromHalfFloat(d[i + c]) * tint[c]) : d[i + c] * tint[c];
+    }
+  }
+  hdr.needsUpdate = true;
+}
 
 async function loadLighting() {
   const loader = new HDRLoader();
   await Promise.all(Object.entries(LOOKS).map(async ([id, look]) => {
     const hdr = await loader.loadAsync(`data/${look.hdr}.hdr`);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
+    if (look.tint) tintSky(hdr, look.tint);
     envMaps[id] = hdr;
   }));
 }
@@ -953,7 +979,8 @@ function wingDepthMaterial() {
 // (2026-09-27): braking well past white, brake heat and turbo about their own colour.
 const BRAKING = { day: 6, night: 6 };
 const BRAKE_HEAT = { up: 1.5, down: 1.3, day: 1.1, night: 1.3 };
-let braking = false, night = false;
+let braking = false, mood = 'day';
+const lightsNow = () => LOOKS[mood].lights || mood;  // 'day' or 'night': GLOW's column
 function setBraking(on) {
   braking = on;
   if (on) drive.heat = 1;
@@ -961,7 +988,7 @@ function setBraking(on) {
   applyBraking();
 }
 function applyBraking() {
-  const look = night ? 'night' : 'day';
+  const look = lightsNow();
   glowUniforms.glowGain.value[0] = braking || drive.brake ? BRAKING[look] : GLOW[0][look];
   glowUniforms.glowGain.value[2] = drive.heat ** 2 * BRAKE_HEAT[look];
   // after a turbo pad the rear lights go red as when braking, with no brake pressed
@@ -1286,21 +1313,26 @@ function dressCar(geoms, tex) {
   }
 }
 
-// ---- Day and night ----
+// ---- Day, sunrise, sunset and night ----
 
-function setNight(on) {
-  night = on;
-  const look = LOOKS[night ? 'night' : 'day'];
-  GLOW.forEach((g, i) => { glowUniforms.glowGain.value[i] = night ? g.night : g.day; });
+// m: a name from LOOKS, or true / false for night / day (what snapshots pass).
+function setMood(m) {
+  mood = m === true ? 'night' : m === false || !LOOKS[m] ? 'day' : m;
+  const look = LOOKS[mood];
+  GLOW.forEach((g, i) => { glowUniforms.glowGain.value[i] = g[lightsNow()]; });
   glowUniforms.glowScale.value = TUNE.glow / (look.exposure * TUNE.exposure);
   renderer.toneMappingExposure = look.exposure * TUNE.exposure;
   setBraking(braking);
-  scene.environment = envMaps[night ? 'night' : 'day'] || null;
+  scene.environment = envMaps[mood] || null;
   scene.environmentIntensity = look.env * TUNE.env;
   key.color.set(look.keyColour);
   key.intensity = look.key * TUNE.key;
-  document.getElementById('day').setAttribute('aria-pressed', String(!night));
-  document.getElementById('night').setAttribute('aria-pressed', String(night));
+  key.position.copy(CENTRE).addScaledVector(look.keyFrom ? new THREE.Vector3(...look.keyFrom).normalize() : KEY_FROM, 15);
+  for (const m of MOODS) document.getElementById(m).setAttribute('aria-pressed', String(m === mood));
+  // the menu's button shows the mood picked: its icon and name
+  const picked = document.getElementById(mood);
+  document.getElementById('moodIcon').setAttribute('href', picked.querySelector('use').getAttribute('href'));
+  document.getElementById('moodName').textContent = picked.lastElementChild.textContent;
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1432,8 +1464,9 @@ async function copyCamera() {
 
 const pressed = (el, on) => el.setAttribute('aria-pressed', String(on));
 const byId = (id) => document.getElementById(id);
-byId('day').onclick = () => setNight(false);
-byId('night').onclick = () => setNight(true);
+const openMoods = (open) => { byId('moodMenu').hidden = !open; byId('mood').setAttribute('aria-expanded', String(open)); };
+byId('mood').onclick = (e) => { e.stopPropagation(); openMoods(byId('moodMenu').hidden); };
+for (const m of MOODS) byId(m).onclick = () => { setMood(m); openMoods(false); };
 byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
   pressed(byId('colourBy'), partsState.mode.value === 1);
@@ -1457,6 +1490,7 @@ byId('show').onclick = (e) => {
 document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
   if (!byId('camWrap').contains(e.target)) openCams(false);
+  if (!byId('moodWrap').contains(e.target)) openMoods(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
 for (const b of document.querySelectorAll('#showMenu [data-part]')) {
@@ -1521,8 +1555,8 @@ const frames = (n) => new Promise((done) => {
 window.viewer = {
   ready: false,
   error: null,
-  async show(view, night = false, hidden = []) {
-    setNight(night);
+  async show(view, night = false, hidden = []) {  // night: true, false or a mood's name
+    setMood(night);
     setView(view);
     for (const [name, mesh] of Object.entries(parts)) mesh.visible = !hidden.includes(name);
     await frames(3);
@@ -1665,7 +1699,7 @@ async function start() {
     const slots = await (await fetch('data/stock/stock.json')).json();
     await window.viewer.dress(Object.fromEntries(slots.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`])));
   } else await loadSkin(skinName);
-  setNight(false);
+  setMood('day');
   if (!snap && !embed) {  // on unless this browser turned it off last time
     let on = true;
     try { on = localStorage.getItem('tsc-viewer-number') !== '0'; } catch {}

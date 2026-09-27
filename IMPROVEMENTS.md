@@ -103,12 +103,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## The viewer, from the user's screenshots and videos
 
-- **The game's cameras at speed** (2026-09-25, the user). Cam 1, 2 and 3 are fitted to the
-  user's screenshots standing still (Things we learned, "the game's lens"). In the game they
+- **The game's cameras at speed** (2026-09-25, the user). Cam 1 and 2 and their alts are fitted
+  to the user's screenshots standing still (Things we learned, "the game's lens" and "fitting a
+  game camera"). In the game they
   pull back and lower as the speed rises and close in again when the car slows (the
   straight-line video; the lights test's and turbo videos show Cam 1 through whole runs, up to
   about 440 km/h). Idea: fit Cam 1 at a few speeds from those videos' frames the same way (the
-  tyres and the horizon), ask for a short run in Cam 2 and Cam 3, and let the viewer slide
+  tyres and the horizon), ask for a short run in Cam 2 and the alts, and let the viewer slide
   between the poses with the pad's speed. `tool/snap.py`'s close look 9 ("driving camera") is
   still an older, narrower view.
 - **The car number's lettering is a guess** (2026-09-25) until a close-up of the engine cover.
@@ -125,12 +126,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **The page online, a lighter first visit** (2026-09-25): about 20 MB before the car shows
   (the car's shape 11 MB, the studio lighting 6 MB), slow on mobile data. Idea: the mesh in
   half floats or meshopt-compressed, and the 1K studio HDR on phones.
-- **Cam 3 shows the cockpit the game hides** (2026-09-27, TSC_Calibrate's screenshots). In the
-  game's Cam 3 there's no steering wheel and no canopy lamps: the canopy's glass sits dark over
-  the cockpit and the nose runs to the middle. The viewer's Cam 3 shows the white wheel and the
-  lamps through clear glass. Idea: hide the steering wheel and the cockpit's inside in Cam 3 and
-  draw the canopy's glass darker there, checked against the screenshot (Cam 3 by day, 09:20:26).
-
 ## To check in the game
 
 These need the user to drive or look, so they're tested when a skin uses them.

@@ -1680,9 +1680,25 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
   night 0.6 (a middle: the game's night light is uneven, see below), and `GLOW`'s gains are levels
   on the screen (the glow scale is 1 / the exposure). The Lab's balls take the same day look.
   Not matched: the finishes (their reflections are the stadium's in the game, the studio's here)
-  and the light's direction (the game's sun lights one side; the studio all round). The viewer
-  keeps its two looks; sunrise and sunset are recorded, not built. A trial tone mapping is
-  `?tone=aces` (or neutral, agx) in the viewer's address.
+  and the light's direction (the game's sun lights one side; the studio all round). A trial tone
+  mapping is `?tone=aces` (or neutral, agx) in the viewer's address.
+- [x] **4. Sunrise and sunset in the viewer (the user, 2026-09-27: "lets add them").** Each a
+  Poly Haven sky (CC0) chosen beside the screenshots: Belfast Sunset (Pure Sky) for sunrise, hazy
+  with a low golden sun, and Qwantani Dusk 2 (Pure Sky) for sunset, a pink dusk. Both skies came
+  out too purple on the car, so `LOOKS` takes a `tint` for each sky (`tintSky`, on its half
+  floats at load): the white patch then reads 190, 190, 195 at sunrise (the game's 193, 194,
+  196) and 241, 200, 195 at sunset (245, 199, 193). Exposure 0.48 and 0.6; `lights` picks GLOW's
+  day or night column (sunset lights the night glows, sunrise doesn't); `keyFrom` puts the sun
+  low, ahead at sunrise and behind at sunset (the game's sunset warmed the car's back), key 1.6
+  there. The dark end stays lighter than the game's (black 40 against 20): the skies' bright
+  horizons sheen on matte at the chase cameras' grazing angle.
+- [x] **5. The moods in one menu (the user, 2026-09-27: "the interface is getting busy").** Day,
+  Sunrise, Sunset and Night moved from four buttons into a drop-down beside Show, its button
+  showing the mood picked (icon and name; the icon alone on a phone). Lucide's sunrise and
+  sunset icons (lucide-static 1.48.0, ISC), as the others.
+- [x] **6. Cam 1 alt and Cam 2 alt; Cam 3 out (the user, 2026-09-27).** The Driving menu is now
+  Cam 1, Cam 1 alt, Cam 2, Cam 2 alt (each camera's key pressed again). Fitted to the daytime
+  screenshots (below, "fitting a game camera"); `tool.snap --cams` takes all four.
 
 ## Decisions (for Claude)
 
@@ -1719,6 +1735,9 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
   and all (Things we learned, "the game's lens"); their by-eye settings are in the comment on
   `VIEWS`. A Driving camera now frames the car at the game's size (`GAME_FRAMED`: no zoom-out),
   lifted 12 % so the pad doesn't cover the tail. Next: the pull-back at speed (`IMPROVEMENTS.md`).
+  **Since 2026-09-27 (the user):** Cam 1, Cam 1 alt, Cam 2 and Cam 2 alt (each key pressed
+  again), fitted to the calibration car's screenshots; Cam 3 is out (the game hides the cockpit
+  there).
 - **The user helps with in-game tests (2026-09-23).**
 - **The tool is Python.** Each library is the latest release at the time it's added, pinned in
   `requirements.txt`. The venv lives outside OneDrive.
@@ -1780,9 +1799,21 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
     stadium, are 3 to 8 times brighter than the flat top, which sees the dark sky. By day the
     back faces are in shade (N5 at 48 against the top's 158): on this map the sun is ahead.
   - **Cam 3 hides the cockpit** in the game: no steering wheel, no canopy lamps, the canopy's
-    glass dark over it (`IMPROVEMENTS.md`).
+    glass dark over it. The viewer showed them; Cam 3 left its menu the same day (the user).
   - **The game letters the player's name and number** ("FCP 00") on the engine cover even in the
     editor, over the paint.
+  - **Fitting a game camera** (Cam 1 alt and Cam 2 alt): the tyres' outlines and the track's
+    vanishing point, solved for height, distance, pitch and lens (`scipy.optimize.least_squares`,
+    a soft L1 loss). What made it work: each tyre's outer edge on 15 rows and top on 9 columns,
+    scanned in from the track (dark = under 0.6 of the track's own brightness, so the grey
+    sidewall counts); the model's outline at the same rows and columns found exactly, where the
+    projected triangles' edges cross them (a rasterised outline gives the solver nothing to follow
+    for small moves); the game's overlays masked (the inputs, the timer, Ubisoft Connect); the
+    horizon from the green strips along both track edges, fitted as lines with outliers dropped.
+    Tyres alone can't tell a closer camera from a wider lens; the horizon settles it. Checked on
+    Cam 1 and 2 (within 6 cm, 0.4° and 1.5° of lens of their 2026-09-25 fits); Cam 1 alt 2.03 m
+    up, 3.00 m behind, 7.7° down, 75.0° lens, 1.2 px; Cam 2 alt 1.53 m up, 3.20 m behind, 3.3°
+    down, 69.9°, 1.8 px. By day only: at night the track is as dark as the tyres.
 
 - **2026-09-27, a faster show (the code check's first two clean-ups).**
   - **The gaps between UV islands were filled from scratch at every build.** `raster.fill_holes`

@@ -3,7 +3,7 @@
     python -m tool.snap TSC_Test          -> build/TSC_Test_views.png
     python -m tool.snap TSC_Test --size 1280x960
     python -m tool.snap TSC_Test --close  -> build/TSC_Test_close.png: the close looks (CLOSE)
-    python -m tool.snap TSC_Test --cams   -> build/TSC_Test_cams.png: the game's Cam 1, 2 and 3,
+    python -m tool.snap TSC_Test --cams   -> build/TSC_Test_cams.png: the game's Cam 1 and 2 and their alts,
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
     python -m tool.snap TSC_Test --picture [TSC_Other ...] [--titles ...] [--views ...]
@@ -51,7 +51,8 @@ CLOSE = (("1 bonnet", {"dir": [0.35, 0.85, 0.4], "dist": 1.4, "target": [0, 0.66
          ("9 driving camera", {"dir": [0, 0.42, -1], "dist": 4.5, "target": [0, 0.55, 0.2]}, False, []))
 # The game's chase cameras standing still (viewer.js's VIEWS, fitted to the user's screenshots),
 # by day and at night, at the screenshots' 16:9: what the calibration car is read through.
-CAMS = tuple((f"Cam {n} {'night' if night else 'day'}", f"cam{n}", night, []) for night in (False, True) for n in (1, 2, 3))
+CAMS = tuple((f"{title} {'night' if night else 'day'}", view, night, []) for night in (False, True)
+             for title, view in (("Cam 1", "cam1"), ("Cam 1 alt", "cam1alt"), ("Cam 2", "cam2"), ("Cam 2 alt", "cam2alt")))
 CAM_SIZE = "1280x720"
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
 EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
@@ -167,7 +168,7 @@ def main():
     ap.add_argument("more", nargs="*", help="with --picture: the other takes, in order")
     ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
-    ap.add_argument("--cams", action="store_true", help="the game's Cam 1, 2 and 3, day and night, at 16:9")
+    ap.add_argument("--cams", action="store_true", help="the game's Cam 1 and 2 and their alts, day and night, at 16:9")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))

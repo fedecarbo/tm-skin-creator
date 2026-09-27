@@ -5,7 +5,7 @@
 //                                                gallery's picture with a version kept (what
 //                                                tool.skin show's snapshot does on the PC)
 //   node docker/snap.mjs <name> --close          the close looks -> build/<name>_close.png
-//   node docker/snap.mjs <name> --cams           the game's Cam 1, 2 and 3, day and night, at
+//   node docker/snap.mjs <name> --cams           the game's Cam 1 and 2 and their alts, day and night, at
 //                                                16:9 -> build/<name>_cams.png
 // Each sheet is copied to .snap/ too, for Claude to look at on the Mac.
 //   node docker/snap.mjs <name> [<more> ...] --picture --titles "…" [--views …] [--close-row <name> 3 4 9 ...]

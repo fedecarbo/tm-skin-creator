@@ -53,9 +53,12 @@ DATA = paths.WORK / "viewer"
 STOCK = DATA / "stock"
 # The lighting, Poly Haven HDRIs (CC0): name -> (resolution, md5 from api.polyhaven.com/files/<name>).
 # The user picked this studio look on 2026-09-24: the neutral studio by day, a moonlit sky at night.
+# Sunrise and sunset since 2026-09-27 (the user), skies like the game's (viewer.js: LOOKS).
 HDRIS = {
     "studio_small_09": ("2k", "b056fea247bc84b81d2e0987d44c87d8"),
     "dikhololo_night": ("1k", "4a760813214ec4d97da8e1739bb616a5"),
+    "belfast_sunset_puresky": ("1k", "38890f597727936a44d17a97f7f73354"),
+    "qwantani_dusk_2_puresky": ("1k", "d400530e33f683654e70b4a087b6fe8d"),
 }
 HDRI_URL = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/{res}/{name}_{res}.hdr"
 PORT = 8765
