@@ -1,7 +1,6 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
-//   &studio=light|dark     the studio's shade (viewer/studio.js; snapshots: light unless set)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and pins notes to (the Studio,
@@ -14,7 +13,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import { createStudio } from './studio.js';
+import { createStudio, setStudioTint } from './studio.js';
 
 const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || 'TSC_Test';
@@ -99,23 +98,27 @@ if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', '
 // the sky the other way to the Euler: turn = the sky's sun azimuth - the key's, atan2(z, x)). tint:
 // the sky's colour corrected so the calibration car's greys read as the game's. lights: which glows
 // are on (GLOW's day or night column): the game lights the night glows at sunset, not at sunrise.
+// studio: the studio's colour corrected in that mood (linear, per channel) so its floor reads as the
+// game's track in the user's Cam 2 screenshot of the mood (viewer/studio.js); by day the light alone
+// does it. Night's is a third: the car is lit brighter than the game's (the user's wish), its
+// surroundings as dark as the game's.
 const LOOKS = {
   day: { hdr: 'kloofendal_48d_partly_cloudy_puresky', sunless: 8, env: 0.44, key: 4.4, keyColour: 0xfffcf1, exposure: 1.44,
     keyFrom: [0.555, 0.742, 0.377] },
   sunrise: { hdr: 'belfast_sunset_puresky', tint: [0.91, 1, 0.82], env: 0.37, key: 5.8, keyColour: 0xf8f8ff, exposure: 0.48, lights: 'day', keyFrom: [-0.35, 0.45, 0.8],
-    envTurn: -75.8 },
+    envTurn: -75.8, studio: [1.02, 1.07, 1.01] },
   sunset: { hdr: 'qwantani_dusk_2_puresky', tint: [1.33, 1, 0.66], env: 0.8, key: 8, keyColour: 0xffb080, exposure: 0.6, lights: 'night', keyFrom: [-0.6, 0.17, -0.55],
-    envTurn: 170 },
-  night: { hdr: 'dikhololo_night', env: 2.64, key: 1.5, keyColour: 0xd4dcff, exposure: 0.6 },
+    envTurn: 170, studio: [0.918, 1.1, 1.184] },
+  night: { hdr: 'dikhololo_night', env: 2.64, key: 1.5, keyColour: 0xd4dcff, exposure: 0.6, studio: [0.335, 0.326, 0.3] },
 };
 const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car's front left
 const MOODS = Object.keys(LOOKS);
 
 // Settings any of which can be tried from the address, e.g. ?exposure=1.1&env=0.8, when matching
 // the game again. exposure, env, key and glow scale the moods' own; spec the paint's sheen; room how
-// light the dark studio's grey is (linear). Also ?turn=<degrees>, added to the sky's envTurn,
+// light the studio is (a scale on its colour, viewer/studio.js). Also ?turn=<degrees>, added to the sky's envTurn,
 // ?keyFrom=x,y,z for the key's direction, and ?tone=aces (or neutral, agx...) for another tone mapping.
-const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 0.035, spec: 1 };
+const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 1, spec: 1 };
 // The paint's own sheen (the body's specularIntensity, under any varnish), half three.js's: at full
 // strength it lifted every dark colour like a veil (the calibration car's pure black 64 by day against
 // the game's 53, 37 at sunrise against 17); at half, Black to N6.5 read 81 117 158 204 by day against
@@ -1341,6 +1344,7 @@ function setMood(m) {
   renderer.toneMappingExposure = look.exposure * TUNE.exposure;
   setBraking(braking);
   scene.environment = envMaps[mood] || null;
+  setStudioTint(look.studio || [1, 1, 1]);
   // envTurn: the sky turned about the vertical (degrees) so its sun or glow is where the key comes from
   scene.environmentRotation.set(0, THREE.MathUtils.degToRad((look.envTurn || 0) + Number(params.get('turn') || 0)), 0);
   scene.environmentIntensity = look.env * TUNE.env;
@@ -1356,24 +1360,13 @@ function setMood(m) {
   markStudio();
 }
 
-// ---- The studio's shade, light or dark: viewer/studio.js, the Studio menu (the user, 2026-09-27) ----
+// ---- The page's lettering over the studio (viewer/studio.js; index.html) ----
 
-// The page's lettering over the light studio (index.html): the buttons on a dark glass, and by day,
-// when the studio is near white, the car's name and the speed in dark ink.
+// The buttons on a dark glass always (body.lightStudio), and where the studio is light (by day, the
+// track's 205, and at sunset, 155), the car's name and the speed in dark ink (body.brightStudio).
 function markStudio() {
-  if (!studio) return;
-  const light = studio.get() === 'light';
-  document.body.classList.toggle('lightStudio', light);
-  document.body.classList.toggle('brightStudio', light && mood === 'day');
-}
-
-let studio = null;
-function setStudio(shade) {
-  const s = studio.set(shade);
-  markStudio();
-  for (const b of document.querySelectorAll('#studioMenu [data-shade]')) b.setAttribute('aria-pressed', String(b.dataset.shade === s));
-  document.getElementById('studioName').textContent = document.querySelector(`#studioMenu [data-shade="${s}"]`).textContent;
-  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-studio', s); } catch {}
+  document.body.classList.add('lightStudio');
+  document.body.classList.toggle('brightStudio', mood === 'day' || mood === 'sunset');
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1508,9 +1501,6 @@ const byId = (id) => document.getElementById(id);
 const openMoods = (open) => { byId('moodMenu').hidden = !open; byId('mood').setAttribute('aria-expanded', String(open)); };
 byId('mood').onclick = (e) => { e.stopPropagation(); openMoods(byId('moodMenu').hidden); };
 for (const m of MOODS) byId(m).onclick = () => { setMood(m); openMoods(false); };
-const openStudio = (open) => { byId('studioMenu').hidden = !open; byId('studio').setAttribute('aria-expanded', String(open)); };
-byId('studio').onclick = (e) => { e.stopPropagation(); openStudio(byId('studioMenu').hidden); };
-for (const b of document.querySelectorAll('#studioMenu [data-shade]')) b.onclick = () => { setStudio(b.dataset.shade); openStudio(false); };
 byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
   pressed(byId('colourBy'), partsState.mode.value === 1);
@@ -1535,7 +1525,6 @@ document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
   if (!byId('camWrap').contains(e.target)) openCams(false);
   if (!byId('moodWrap').contains(e.target)) openMoods(false);
-  if (!byId('studioWrap').contains(e.target)) openStudio(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
 for (const b of document.querySelectorAll('#showMenu [data-part]')) {
@@ -1733,10 +1722,7 @@ async function start() {
   partsState.doc = doc;
   partTable();
   buildPartsList();
-  studio = createStudio({ scene, renderer, centre: CENTRE, roomGrey: TUNE.room });
-  let shade = params.get('studio');
-  if (!shade && !snap) try { shade = localStorage.getItem('tsc-viewer-studio'); } catch {}
-  setStudio(shade || 'light');
+  createStudio({ scene, renderer, centre: CENTRE, light: TUNE.room });
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();

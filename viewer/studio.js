@@ -1,8 +1,11 @@
 // The studio the car stands in (the user, 2026-09-27, from floors tried in the viewer: "Matte, tiny bit
 // grainy texture in the grid one, and the grid make it tiny bit smaller", "a bit whiter but with some
 // kind of vignette so that the buttons dont dissapear", "the grid smaller in scale. but a bit farther
-// covering", then "we can have the grainy grid, and have the dark and light options"). One room in
-// two shades: the viewer's dark grey, or a light studio near white behind the car.
+// covering", then "we can have the grainy grid, and have the dark and light options", "Maybe we keep
+// one floor, but meet in the middle?" and last "Or maybe just meet the color that the screenshots
+// have"). One room, the colour of the game's track in the user's screenshots: FLOOR, lit by the mood,
+// reads the track's (205, 200, 204) by day and its (124, 123, 128) at sunrise from Cam 2; each mood's
+// `studio` in viewer.js's LOOKS corrects the rest (setStudioTint).
 //   The room: a seamless cove, the floor curving up into the walls and a ceiling (floor radius 14 m,
 //     curve 6 m, 14 m high), lit as if it were all flat floor (the normal straight up, no shine), so
 //     it's one even grey with no line where the floor bends, in every mood.
@@ -11,8 +14,8 @@
 //     out between 8 and 13.8 m.
 //   The ground shadow: a soft shadow right under the car (KeyShot's ground occlusion), drawn again
 //     only when the car's parts come or go.
-//   The vignette (the light shade only): the studio, never the car, darkening gently towards the
-//     picture's corners, around the car's middle on the screen.
+//   The vignette: the studio, never the car, darkening gently towards the picture's corners, around
+//     the car's middle on the screen.
 // The other floors tried (KeyShot's reflection, concrete, asphalt, rubber, a turntable, a plain grid)
 // are in the git history, 2026-09-27.
 
@@ -21,28 +24,31 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { HorizontalBlurShader } from 'three/addons/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 
-export const SHADES = ['light', 'dark'];
 const RADIUS = 14;  // the room's flat floor: the cove curves up from here
-const LIGHT_GREY = 0.34;  // the light studio (linear): near white on the screen by day, behind the car
+// The studio's colour (linear): a light grey with the track's faint warm-pink cast.
+const FLOOR = [0.353, 0.329, 0.349];
 const GRAIN = { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.45, metres: 1, relief: 0.3 };
 const GRID = 0.5;  // metres between the lines
 const FADE = { r0: 8, r1: 13.8 };
-// The light studio's vignette, shared by every studio surface: the car's middle on the screen and
-// half the picture's height (pixels), set as each frame is drawn; strength 0 in the dark shade.
-// Gentle (the user: "the vignette is very strong"): the studio keeps its grey within about half the
-// picture's height of the car and is down to 0.6 of it by the corners. The buttons over the light
-// studio read by their own dark glass (viewer.js, body.lightStudio).
-const VIGNETTE = { vignetteAt: { value: new THREE.Vector3(0, 0, 1) }, vignetteStrength: { value: 0 } };
+// The vignette, shared by every studio surface: the car's middle on the screen and half the
+// picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
+// strong"): the studio keeps its grey within about half the picture's height of the car and is down to
+// 0.6 of it by the corners. The buttons over the studio read by their own dark glass (viewer.js,
+// body.lightStudio).
+// studioTint: the mood's correction (setStudioTint), on everything the studio draws.
+const VIGNETTE = { vignetteAt: { value: new THREE.Vector3(0, 0, 1) }, vignetteStrength: { value: 1 },
+  studioTint: { value: new THREE.Vector3(1, 1, 1) } };
+export function setStudioTint(rgb) { VIGNETTE.studioTint.value.set(...rgb); }
 
 // A studio surface. flat: lit as flat floor wherever it is (the normal straight up); matte: no shine
 // at all (a satin floor catches the sky's bright spots as blotches the grey room doesn't have); fade:
 // the alpha going from 1 to 0 between r0 and r1 metres from the car; grain: the colour picture as
-// grey * (texel / mean)^power, "a tiny bit grainy".
+// colour * (texel / mean)^power, "a tiny bit grainy".
 function studio(material, { flat = false, matte = flat, fade = null, grain = null } = {}) {
   const uniforms = {
     fadeCentre: { value: new THREE.Vector2() },
     fadeRange: { value: new THREE.Vector2(...(fade ? [fade.r0, fade.r1] : [0, 1])) },
-    floorGrey: { value: grain ? grain.grey : 0 },
+    floorGrey: { value: new THREE.Vector3(...(grain ? grain.colour : [0, 0, 0])) },
     grainMean: { value: new THREE.Vector3(...(grain ? grain.mean : [1, 1, 1])) },
     grainPower: { value: grain ? grain.power : 1 },
   };
@@ -50,11 +56,11 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, VIGNETTE);
     let frag = shader.fragmentShader.replace('#include <common>', `#include <common>
-      varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange; uniform float floorGrey, grainPower; uniform vec3 grainMean;
-      uniform vec3 vignetteAt; uniform float vignetteStrength;`)
+      varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange; uniform vec3 floorGrey; uniform float grainPower; uniform vec3 grainMean;
+      uniform vec3 vignetteAt, studioTint; uniform float vignetteStrength;`)
       .replace('#include <opaque_fragment>', `#include <opaque_fragment>
         float vignette = smoothstep( 0.5, 1.4, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
-        gl_FragColor.rgb *= mix( 1.0, 0.6, vignette * vignetteStrength );`);
+        gl_FragColor.rgb *= mix( 1.0, 0.6, vignette * vignetteStrength ) * studioTint;`);
     if (grain) {
       frag = frag.replace('#include <map_fragment>', `#include <map_fragment>
         diffuseColor.rgb = floorGrey * pow( max( texture2D( map, vMapUv ).rgb / grainMean, 0.0 ), vec3( grainPower ) );`);
@@ -147,11 +153,11 @@ function groundShadow(scene, pick, { z = 0, size = 5.6, height = 0.9, blur = 3.2
   return shadow;
 }
 
-// The studio in the scene; set(shade) picks the grey. roomGrey: the dark shade's (viewer.js: TUNE.room).
-export function createStudio({ scene, renderer, centre, roomGrey }) {
+// The studio in the scene. light: FLOOR's scale (viewer.js's ?room= to try another).
+export function createStudio({ scene, renderer, centre, light = 1 }) {
+  const colour = FLOOR.map((c) => c * light);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const z = centre.z;
-  const greyOf = (shade) => (shade === 'dark' ? roomGrey : LIGHT_GREY);
 
   // the cove, drawn from inside: from under the floor it isn't drawn at all, and the car's
   // underside stays in view
@@ -162,6 +168,7 @@ export function createStudio({ scene, renderer, centre, roomGrey }) {
   }
   profile.push(new THREE.Vector2(RADIUS + 6, 14), new THREE.Vector2(0, 14));
   const cove = studio(new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0, side: THREE.BackSide }), { flat: true });
+  cove.color.setRGB(...colour);
   const room = new THREE.Mesh(new THREE.LatheGeometry(profile, 128), cove);
   room.position.set(0, -0.003, z);  // just under the floor
   room.receiveShadow = true;
@@ -190,7 +197,7 @@ export function createStudio({ scene, renderer, centre, roomGrey }) {
   const grain = fadeFrom(studio(new THREE.MeshStandardMaterial({
     map: load(`${base}_Color.jpg`, n, true), normalMap: load(`${base}_NormalGL.jpg`, n, false),
     normalScale: new THREE.Vector2(GRAIN.relief, GRAIN.relief), roughness: 1, metalness: 0, transparent: true,
-  }), { matte: true, fade: FADE, grain: { grey: 0, mean: GRAIN.mean, power: GRAIN.power } }));
+  }), { matte: true, fade: FADE, grain: { colour, mean: GRAIN.mean, power: GRAIN.power } }));
   const floor = new THREE.Mesh(disc(), grain);
   floor.receiveShadow = true;
   floor.renderOrder = 1;
@@ -209,6 +216,7 @@ export function createStudio({ scene, renderer, centre, roomGrey }) {
   lines.anisotropy = aniso;
   const grid = fadeFrom(studio(new THREE.MeshStandardMaterial({ alphaMap: lines, transparent: true, roughness: 1, metalness: 0,
     depthWrite: false }), { flat: true, fade: FADE }));
+  grid.color.setRGB(...colour.map((c) => c * 0.6));  // lines a little darker than the room
   const gridMesh = new THREE.Mesh(disc(), grid);
   gridMesh.renderOrder = 1;
   gridMesh.position.y = 0.001;
@@ -219,15 +227,4 @@ export function createStudio({ scene, renderer, centre, roomGrey }) {
   groundShadow(scene, isCar, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
   groundShadow(scene, isCar, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
 
-  let current = 'light';
-  function set(shade) {
-    current = SHADES.includes(shade) ? shade : 'light';
-    const grey = greyOf(current);
-    cove.color.setScalar(grey);
-    grain.userData.studio.floorGrey.value = grey;
-    grid.color.setScalar(current === 'dark' ? grey * 2.6 : grey * 0.55);  // lines a little lighter, or darker, than the room
-    VIGNETTE.vignetteStrength.value = current === 'light' ? 1 : 0;
-    return current;
-  }
-  return { set, get: () => current };
 }

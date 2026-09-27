@@ -1700,13 +1700,13 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
   Cam 1, Cam 1 alt, Cam 2, Cam 2 alt (each camera's key pressed again). Fitted to the daytime
   screenshots (below, "fitting a game camera"); `tool.snap --cams` takes all four.
 
-### The studio render (under way, 2026-09-27)
+### The studio render (done 2026-09-27)
 
 The user, 2026-09-27: "I want to make the studio render nicer", then "i kind of feel we need a
 floor, it could still be studio like" and "Keyshot has always been a nice default background and
 surface that i've liked". The item is in `IMPROVEMENTS.md`.
 
-- [ ] **1. A floor.** Six floors rendered on TSC_CMYK_Peel_More and TSC_IceCreamSweet, on a page:
+- [x] **1. A floor.** Six floors rendered on TSC_CMYK_Peel_More and TSC_IceCreamSweet, on a page:
   https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP. The user liked them all, but not the line
   where the floor bends up into the wall ("is there one that actually you can't tell the spheric
   to the background"), and asked for all of them in the viewer to pick from there. So the viewer
@@ -1794,6 +1794,17 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
     "FCP 00", light grey) in Cam 2, not the deck's paint: so the 2026-09-27 note that at night "the
     deck and the tail's back face are 3 to 8 times brighter than the flat top" rests on the lettering
     for the deck; the back face at night is as dark as the top (10 and 22 against N5 20).
+- [x] **6. One studio, the colour of the game's track (the user, 2026-09-27: "Maybe we keep one
+  floor, but meet in the middle?", then "Or maybe just meet the color that the screenshots
+  have").** No Studio menu: one room (`viewer/studio.js`, `FLOOR` 0.353 0.329 0.349 linear, a light
+  grey with the track's faint warm-pink cast). Read on the road round the car in the user's Cam 2
+  screenshots and the viewer's (four spots clear of the car, its shadow and the overlays): lit by
+  the moods alone it read the track's colour by day (205, 198, 203 against 205, 200, 204) and at
+  sunrise; each mood's `studio` in `LOOKS` corrects the rest (sunrise 1.02 1.07 1.01, sunset 0.918
+  1.1 1.184, night 0.335 0.326 0.3: the car lit brighter than the game's at night, its surroundings
+  as dark), so the floor reads 124 123 127 at sunrise (the game's 124 123 128), 155 129 129 at sunset
+  (155 129 129), 54 52 56 at night (54 52 56). The car's name and the speed in dark ink by day and at
+  sunset, where the floor is light; the vignette and the buttons' dark glass always.
   - **The Lab's numbers read "undefined" on this PC:** its materials data predated the fields
     (`tool.swatches` hadn't run here since); `PY -m tool.swatches --no-open` rebuilt it (72).
   - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror
@@ -1896,6 +1907,25 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-27, the studio render (`CHECKLIST.md`, "The studio render").**
+  - **Haze came from light, not from the picture.** The studio HDR lit the car from every side (76 %
+    of the light on its top), so faces the key missed were nearly as light as the tops; and the
+    paint's full dielectric sheen lifted every dark colour by a near-constant amount, like a veil.
+    A sky whose sun is the key (the sky's own sun disc cut out) and half the sheen matched the
+    game's greys from black to white, by day within a few levels.
+  - **A seamless cove shows its bend** where the floor turns into the wall, however smooth, because
+    the two face the light differently: lit as flat floor everywhere (the normal up, no shine) it's
+    one even colour and no line shows.
+  - **A shiny or satin floor catches the sky's bright spots** as blotches the room doesn't have;
+    the studio's surfaces are matte.
+  - **three.js:** materials whose `onBeforeCompile` code differs need their own
+    `customProgramCacheKey`, or the first one's program is reused; `Reflector` takes the mesh's own
+    +z as the mirror's normal (turn the mesh, not the geometry); a ground shadow's depth pass must
+    be depth-tested; `scene.environmentRotation` turns the sky the other way to its Euler (the sun's
+    new azimuth is the old minus the turn).
+  - **In the game's Cam 2 screenshots, the spot beside the engine cover's panel is the player's
+    lettering** ("FCP 00"), not paint: measure the deck elsewhere.
 
 - **2026-09-27, the four moods (TSC_Calibrate in the editor's test drive, standing still).**
   - **The game maps light to the screen straight, clipping each channel at white.** By day the

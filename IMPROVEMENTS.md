@@ -37,32 +37,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the car: click the Studio's car, write what you want there, and the note reaches Claude with the
   next message, with a picture of what the user saw (step 8). The four rooms became one UV map room
   (the surfaces stay). `CHECKLIST.md`, The Lab, steps 7 and 8.
-- **The studio render: next** (the user, 2026-09-27: "I want to continue with improving the studio
-  render with another agent"). Start from the user's thoughts on what's wrong with it; nothing is
-  planned. **Their thoughts so far (2026-09-27):** "i kind of feel we need a floor, it could still
-  be studio like", then "Keyshot has always been a nice default background and surface that i've
-  liked", and, of six floors rendered for them (https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP):
-  no line where the floor bends into the wall, "apply all… I pick… from the actual viewer", and "a
-  matte floor with a bit of texture", then "Matte, tiny bit grainy texture in the grid one, and the
-  grid make it tiny bit smaller", then whiter with a vignette, the grid smaller and reaching
-  further: the grainy grid in a light studio, which the viewer now opens with; the Floor menu
-  (`viewer/floors.js`) still has the rest. Then "the car itself looks a little hazy" and "can it
-  actually be day time but not realistic, something like in trackmania": day is now a sky with a
-  sun (`CHECKLIST.md`, "The studio render", steps 2 and 3). Then one studio, the grainy grid, light
-  or dark (step 4), and every mood the same way, a sky whose sun (or moon) is the key, with half the
-  paint's sheen (step 5). Waiting for the user's look at the moods. The steps are
-  in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
-  "The viewer matched to the game's moods"):
-  the viewer maps light straight as the game does (`LinearToneMapping`; by day its greys match
-  the game's within a few levels); four moods in one menu (day the Poly Haven studio, a sky like the game's since the dehaze, sunrise and
-  sunset skies tinted to the game's light, night a moonlit sky; `LOOKS` in `viewer/viewer.js`);
-  the glows as the calibration car showed them (`GLOW`, levels on the screen); the Driving
-  cameras through the viewer's own 32° lens (the user disliked the game's wide one). Known gaps:
-  the light's direction (the game's sun lights one side, the studio all round; closer since the
-  dehaze of 2026-09-27, the key now the main light by day) and the finishes'
-  reflections (the stadium's in the game) aren't matched. The Lab's balls and its Studio's frames
-  use the same look. `tool.snap TSC_Calibrate --cams` and the user's mood screenshots (09:18 to
-  09:22 on 2026-09-27) measure any change against the game.
 
 ## The tool
 
