@@ -1664,6 +1664,19 @@ can go step by step"). The steps are theirs; each is agreed before it's built.
 
 ## Things we learned
 
+- **2026-09-27, a faster show (the code check's first two clean-ups).**
+  - **The gaps between UV islands were filled from scratch at every build.** `raster.fill_holes`
+    found each texel's nearest covered texel (a distance transform, 0.9 s at 4096²) for every map
+    of every set, every time textures were built: each step's Studio frame, then four more times
+    at the end (the last frame, `summary()`, the viewer, `save_painted`). The Canvas had already
+    found the same nearest texels for its positions; it keeps them now (`Canvas.near`, flat int32),
+    and `Skin.textures()` is built once when the design is done (`end_steps`) and reused. On
+    TSC_ChaosElegance_Unravelled_CMYKRise (5 steps) a show went from 112 s painting + 17 s export
+    (+ an untimed summary) to 87 s + 6 s, with `painted.npz` identical, texel for texel.
+  - **The UV map's data (23 s) no longer rebuilds after every edit to `paintbox.py` or
+    `view.py`:** of those it takes only `paintbox.SIZES` and `UVMAP_VERSION` (bump it when
+    `export_uvmap` or `_surfaces` change what they write), in `uvmap.key`.
+
 - **2026-09-26, a whole concept round (TSC_ChaosElegance_Kintsugi, _Thrown, _Unravelled).**
   - **A borrowed helper can repaint what a step just painted.** TSC_Stealth_CMYK's `stealth_base`
     ("the inner car") also paints the body matte black: it covered Kintsugi's porcelain and gold

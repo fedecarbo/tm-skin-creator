@@ -68,11 +68,12 @@ SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO",
 NO_STOCK = {"Skin_Coat"}  # left out, the viewer varnishes everything, as the game does
 
 
-def _stale(target, *sources):
-    """True when target is missing or older than any source (this file counts as a source)."""
+def _stale(target, *sources, this_file=True):
+    """True when target is missing or older than any source (this file counts as a source, unless
+    this_file is False)."""
     if not target.exists():
         return True
-    newest = max(p.stat().st_mtime for p in (*sources, Path(__file__)) if p.exists())
+    newest = max(p.stat().st_mtime for p in (*sources, *([Path(__file__)] if this_file else [])) if p.exists())
     return target.stat().st_mtime < newest
 
 
@@ -152,6 +153,9 @@ def export_mesh():
     out_json.write_text(json.dumps({"units": "m", "lift_cm": float(lift), "meshes": index}, indent=1))
 
 
+UVMAP_VERSION = 1  # bump when export_uvmap or _surfaces change what they write
+
+
 def export_uvmap():
     """The Lab's UV map room (viewer/lab-rooms.js), from the tool's own parts and texel coverage:
       <Set>_Parts.png  per texel of the <Set>_Shared.png grid, the part that covers it most
@@ -165,9 +169,14 @@ def export_uvmap():
                        Claude) and numbers (its share of the map, dots per cm, cm2 on the car), and
                        the Lab's rooms (tool/rooms.py: the UV map, its maps, parts and camera)"""
     from tool import coverage, paintbox, rooms
-    out = DATA / "uvmap.json"
+    out, stamp = DATA / "uvmap.json", DATA / "uvmap.key"
     here = paths.REPO / "tool"
-    if not _stale(out, parts.PARTS_JSON, here / "parts.py", here / "coverage.py", here / "paintbox.py", here / "rooms.py"):
+    # Rebuilt (23 s) when the parts, their coverage or words, or the rooms change, not after every
+    # edit to paintbox.py or this file, the two most edited: of those it takes only the paint's
+    # sizes, and UVMAP_VERSION for its own code.
+    key = hashlib.sha1(repr((UVMAP_VERSION, paintbox.SIZES)).encode()).hexdigest()[:12]
+    if (not _stale(out, parts.PARTS_JSON, here / "parts.py", here / "coverage.py", here / "rooms.py", this_file=False)
+            and stamp.exists() and stamp.read_text() == key):
         return
     p = parts.load()
     maps, rows = [], []
@@ -195,6 +204,7 @@ def export_uvmap():
     lab_rooms = rooms.rooms(p)
     out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms,
                                "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
+    stamp.write_text(key)
 
 
 SURFACE_LEAST = 16

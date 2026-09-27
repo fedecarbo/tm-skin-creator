@@ -85,14 +85,25 @@ def interpolate(tri, bary, corner_values):
     return out
 
 
-def fill_holes(image, mask):
+def fill_holes(image, mask, near=None):
     """Fill every texel outside the UV islands with the colour of the nearest painted texel.
 
     Covered texels keep their value. Each island's edge colour spreads outwards until it meets
     the next island's, so the game's filtering and the mips never blend one island's colour into
     another's at a seam. (An average of the surrounding islands, tried first, put a fringe of
     mixed colour along every seam where two parts meet.)
+
+    near: each texel's nearest covered texel as a flat index, when the caller has it already
+    (nearest(mask); the paint box's Canvas keeps it): finding it is most of the cost, 0.9 s at 4096².
     """
+    image = np.asarray(image, np.float32)
+    if near is None:
+        near = nearest(mask)
+    return image.reshape(near.size, *image.shape[2:])[near].reshape(image.shape)
+
+
+def nearest(mask):
+    """Each texel's nearest texel inside mask (itself when inside), as a flat index (int32)."""
     from scipy import ndimage
     iy, ix = ndimage.distance_transform_edt(~mask, return_distances=False, return_indices=True)
-    return np.asarray(image, np.float32)[iy, ix]
+    return (iy * mask.shape[1] + ix).astype(np.int32).ravel()

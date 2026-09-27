@@ -114,11 +114,11 @@ class Canvas:
         self.cov = self.bake["tri"] >= 0
         # a texel on an island's edge can be partly covered by a part (coverage samples 2x2)
         # while its centre misses every triangle, so the bake left it at the origin and a
-        # pattern drawn there came out as a speck along the seam: it takes the nearest texel's
-        from scipy.ndimage import distance_transform_edt
-        near = distance_transform_edt(~self.cov, return_distances=False, return_indices=True)
-        self.pos = self.bake["position"][near[0], near[1]].reshape(-1, 3)
-        self.nrm = self.bake["normal"][near[0], near[1]].reshape(-1, 3)
+        # pattern drawn there came out as a speck along the seam: it takes the nearest texel's.
+        # The same nearest texels fill the gaps between islands in textures() (raster.fill_holes).
+        self.near = raster.nearest(self.cov)
+        self.pos = self.bake["position"].reshape(-1, 3)[self.near]
+        self.nrm = self.bake["normal"].reshape(-1, 3)[self.near]
         self._uv_cm = None
         n = w * h
         b = stock(f"{tset}_B" if tset != "Glass" else "Glass_T", (w, h))
@@ -172,18 +172,18 @@ class Canvas:
         if not self.touched.any() and not self.glow_touched and self.dirt is None and self.slope is None:
             return {}
         h, w = self.h, self.w
-        cov = self.cov
+        fill = lambda image: raster.fill_holes(image, self.cov, self.near)
         out = {}
         if self.set == "Glass":
             rgba = np.concatenate([self.colour, self.alpha[:, None]], 1).reshape(h, w, 4)
-            out["Glass_T"] = (raster.fill_holes(rgba, cov), "DXT5", {"srgb": False})
+            out["Glass_T"] = (fill(rgba), "DXT5", {"srgb": False})
             return out
         if self.touched.any():
-            out[f"{self.set}_B"] = (raster.fill_holes(self.colour.reshape(h, w, 3), cov), "DXT1", {"srgb": True})
+            out[f"{self.set}_B"] = (fill(self.colour.reshape(h, w, 3)), "DXT1", {"srgb": True})
             rm = np.stack([self.rough, self.metal], 1).reshape(h, w, 2)
-            out[f"{self.set}_R"] = (raster.fill_holes(rm, cov), "ATI2", {})
+            out[f"{self.set}_R"] = (fill(rm), "ATI2", {})
             if self.coat is not None:
-                out["Skin_CoatR"] = (raster.fill_holes(self.coat.reshape(h, w), cov), "ATI1", {})
+                out["Skin_CoatR"] = (fill(self.coat.reshape(h, w)), "ATI1", {})
         if self.glow_touched:
             rgba = np.concatenate([self.glow_rgb, dark_take_codes(self.glow_rgb, self.glow_code, w, h)[:, None].astype(np.float32) / 255],
                                   1).reshape(h, w, 4)
@@ -233,6 +233,7 @@ class Skin:
         self.frames = False  # skin.show sets it: write the car at the end of each step for the Studio
         self._frame_slots = {}  # slot -> (digest, url) of the last frame's picture of it
         self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
+        self._final = None  # the finished textures, built once when the design is done (end_steps)
 
     # ---- steps: the Lab's Studio draws the car at the end of each (CHECKLIST.md, "The Lab", 5) ----
 
@@ -289,6 +290,9 @@ class Skin:
         self.clay_left = self.still_clay()
         if self.clay_left:
             self.notes.append("still clay (no step paints them): " + ", ".join(dict.fromkeys(n for _, n in self.clay_left)))
+        # nothing paints after this: the last frame, summary(), the viewer and save_painted all
+        # take these, where each used to build them again (15 to 25 s a show)
+        self._final = self.textures()
         self._end_step(done=True)
 
     def _end_step(self, done=False):
@@ -1020,6 +1024,8 @@ class Skin:
     # ---- output ----
 
     def textures(self):
+        if self._final is not None:
+            return self._final
         out = {}
         for c in self.canvases.values():
             out |= c.textures()

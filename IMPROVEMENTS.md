@@ -83,27 +83,22 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **A tidy-up, from a code check** (2026-09-27, the user: "it's been forever I have refactored, so
   not sure if things need to be optimised a bit more?"). The code is in fair shape; no big
-  rewrite. What would pay off, most first:
-  1. `show` builds the finished textures four times (the last step's frame, `summary()`,
-     `export_to_viewer`, `save_painted` in `tool/paintbox.py`), each with `raster.fill_holes`
-     recomputing the distance transform `Canvas.__init__` already made. Build once and pass it on:
-     about 15 to 25 s off every show. Check `painted.npz` is the same before and after.
-  2. `view.export_uvmap` (23 s, 17 of them the Details surfaces) reruns on the first show after
-     any edit to `paintbox.py` or `view.py` (`_stale` always counts `view.py`). Narrow its sources.
-  3. The test-skin scripts from before the paint box (`testskin.py`, `partskin.py`, `labskin.py`,
+  rewrite. The two the user would feel are done (2026-09-27: a show about 35 s faster, the UV
+  map's data rebuilt only when it changes; "Things we learned"). Left, most useful first:
+  1. The test-skin scripts from before the paint box (`testskin.py`, `partskin.py`, `labskin.py`,
      `carbonskin.py`, 774 lines; `partskin.py` holds a copy of ~70 part names). Move `stock()`
      from `testskin` to `dds.py` first (`paintbox.py` imports it), then retire them.
-  4. About 100 lines nothing calls: `dds.fix_bc1`, `pictures.mend_seams` and `art_path`,
+  2. About 100 lines nothing calls: `dds.fix_bc1`, `pictures.mend_seams` and `art_path`,
      `noise.worley2`, `parts._tub`, `paths.VENV`, the viewer's `aim()` and `partCentres()`.
-  5. Stale defaults and docs: `tool.view <name>` and plain `tool.snap <name>` read the last
+  3. Stale defaults and docs: `tool.view <name>` and plain `tool.snap <name>` read the last
      installed DDS files (old paint, or none); the viewer's bare address opens TSC_Test, which has
      no design; `paintbox.py`'s docstring names `Skin.show/build/install`, which don't exist.
-  6. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
+  4. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
      lines, and the Mac's container repaints a skin only when its own design changed, not one it
      borrows from. One `borrow()` helper, and `serve.py`'s `stale()` following it.
-  7. The Docker image installs Playwright only because `skin.py` imports `snap.py` at the top: a
+  5. The Docker image installs Playwright only because `skin.py` imports `snap.py` at the top: a
      lazy import drops it.
-  8. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
+  6. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
      250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
 
 ## The viewer, from the user's screenshots and videos
