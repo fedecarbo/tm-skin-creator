@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import { createFloors } from './floors.js';
+import { createFloors, parseFloor } from './floors.js';
 
 const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || 'TSC_Test';
@@ -1363,13 +1363,20 @@ function setMood(m) {
 
 // ---- The floor: viewer/floors.js, picked from the Floor menu (the user, 2026-09-27) ----
 
+// text: a surface and a shade, "rubber-light", or "today".
 let floors = null;
-function setFloor(name) {
-  const f = floors.set(name);
-  for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.setAttribute('aria-pressed', String(b.dataset.floor === f));
-  const picked = document.querySelector(`#floorMenu [data-floor="${f}"]`);
-  if (picked) document.getElementById('floorName').textContent = picked.textContent;
-  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor', f); } catch {}
+let floorShade = 'dark';  // kept while "as today" is on, for the next surface picked
+function setFloor(text) {
+  const { name, shade } = floors.set(text);
+  if (name !== 'today') floorShade = shade;
+  for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.setAttribute('aria-pressed', String(b.dataset.floor === name));
+  for (const b of document.querySelectorAll('#floorMenu [data-shade]')) {
+    b.setAttribute('aria-pressed', String(b.dataset.shade === floorShade));
+    b.disabled = name === 'today';
+  }
+  const picked = document.querySelector(`#floorMenu [data-floor="${name}"]`);
+  if (picked) document.getElementById('floorName').textContent = picked.textContent + (name === 'today' ? '' : ` · ${floorShade}`);
+  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor', floors.get()); } catch {}
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1506,7 +1513,9 @@ byId('mood').onclick = (e) => { e.stopPropagation(); openMoods(byId('moodMenu').
 for (const m of MOODS) byId(m).onclick = () => { setMood(m); openMoods(false); };
 const openFloors = (open) => { byId('floorMenu').hidden = !open; byId('floor').setAttribute('aria-expanded', String(open)); };
 byId('floor').onclick = (e) => { e.stopPropagation(); openFloors(byId('floorMenu').hidden); };
-for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.onclick = () => { setFloor(b.dataset.floor); openFloors(false); };
+for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.onclick = () => { setFloor(`${b.dataset.floor}-${floorShade}`); openFloors(false); };
+// the shade keeps the menu open, to flip between the two
+for (const b of document.querySelectorAll('#floorMenu [data-shade]')) b.onclick = () => setFloor(`${parseFloor(floors.get()).name}-${b.dataset.shade}`);
 byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
   pressed(byId('colourBy'), partsState.mode.value === 1);

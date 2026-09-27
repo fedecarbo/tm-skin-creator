@@ -14,7 +14,7 @@ Studio's notes on the car (/api/notes, tool/notes.py):
              <Set>_Parts.png,     the Lab's painting rooms: which part covers each texel, every
              uvmap.json           part's words and numbers, the rooms (export_uvmap)
              <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
-             floor/               the concrete floor's pictures (ambientCG, CC0), see FLOOR
+             floor/               the textured floors' pictures (ambientCG, CC0), see FLOOR_SETS
              stock/*.png          Nadeo's stock textures, for anything a skin leaves out
              skins/<name>/        one skin's textures, and skin.json with the URL of every slot
              skins/<name>/steps/  the Lab's Studio: the car at the end of each step of the design,
@@ -64,10 +64,10 @@ HDRIS = {
     "qwantani_dusk_2_puresky": ("1k", "d400530e33f683654e70b4a087b6fe8d"),
 }
 HDRI_URL = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/{res}/{name}_{res}.hdr"
-# The concrete floor (viewer/floors.js, 2026-09-27): an ambientCG set (CC0), the 2K JPG zip, of
-# which the viewer reads three maps, unpacked into DATA/floor/<asset>/.
-FLOOR = "Concrete034"
-FLOOR_MAPS = ("Color", "Roughness", "NormalGL")
+# The textured floors (viewer/floors.js, SURFACES, 2026-09-27): ambientCG sets (CC0), the 2K JPG
+# zips, of which the viewer reads the colour and the relief, unpacked into DATA/floor/<asset>/.
+FLOOR_SETS = ("Concrete034", "Asphalt031", "Rubber004", "Rubber001")
+FLOOR_MAPS = ("Color", "NormalGL")
 FLOOR_URL = "https://ambientcg.com/get?file={asset}_2K-JPG.zip"
 PORT = 8765
 MESHES = (("Skin", "Skin_01"), ("Details", "Details_01"), ("Wheels", "Wheels_01"), ("Glass", "Glass_01"))
@@ -274,15 +274,16 @@ def ensure_hdri():
 
 
 def ensure_floor():
-    folder = DATA / "floor" / FLOOR
-    wanted = [f"{FLOOR}_2K-JPG_{m}.jpg" for m in FLOOR_MAPS]
-    if all((folder / w).exists() for w in wanted):
-        return
-    request = urllib.request.Request(FLOOR_URL.format(asset=FLOOR), headers={"User-Agent": "tm-skin-creator"})
-    with zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(request, timeout=120).read())) as z:
-        folder.mkdir(parents=True, exist_ok=True)
-        for w in wanted:
-            (folder / w).write_bytes(z.read(w))
+    for asset in FLOOR_SETS:
+        folder = DATA / "floor" / asset
+        wanted = [f"{asset}_2K-JPG_{m}.jpg" for m in FLOOR_MAPS]
+        if all((folder / w).exists() for w in wanted):
+            continue
+        request = urllib.request.Request(FLOOR_URL.format(asset=asset), headers={"User-Agent": "tm-skin-creator"})
+        with zipfile.ZipFile(io.BytesIO(urllib.request.urlopen(request, timeout=180).read())) as z:
+            folder.mkdir(parents=True, exist_ok=True)
+            for w in wanted:
+                (folder / w).write_bytes(z.read(w))
 
 
 # ---- Textures ----

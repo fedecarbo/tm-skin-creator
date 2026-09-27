@@ -70,6 +70,9 @@
   #showMenu .sk, #moodMenu .sk, #floorMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
   #showMenu .sk:hover, #moodMenu .sk:hover, #floorMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
   #showMenu .sk[aria-pressed="true"], #moodMenu .sk[aria-pressed="true"], #floorMenu .sk[aria-pressed="true"] { background: var(--text); }
+  #floorMenu .shades { display: flex; gap: 4px; margin-top: 6px; }
+  #floorMenu .shades .sk { flex: 1; justify-content: center; }
+  #floorMenu .sk:disabled { opacity: 0.35; cursor: default; }
   #showMenu .box { width: 10px; height: 10px; border: 2px solid currentColor; margin-top: -3px; }
   #showMenu .sk[aria-pressed="true"] .box { background: currentColor; }
 
@@ -225,11 +228,17 @@
     <button id="floor" class="sk" aria-expanded="false" title="what the car stands on"><svg class="ic"><use href="#i-floor"/></svg><span id="floorName">As today</span><svg class="ic"><use href="#i-down"/></svg></button>
     <div id="floorMenu" hidden>
       <button class="sk" data-floor="today" aria-pressed="true"><span>As today</span></button>
-      <button class="sk" data-floor="keyshot" aria-pressed="false"><span>KeyShot light</span></button>
-      <button class="sk" data-floor="keyshot-dark" aria-pressed="false"><span>KeyShot dark</span></button>
+      <button class="sk" data-floor="keyshot" aria-pressed="false"><span>KeyShot</span></button>
       <button class="sk" data-floor="concrete" aria-pressed="false"><span>Concrete</span></button>
+      <button class="sk" data-floor="asphalt" aria-pressed="false"><span>Fine asphalt</span></button>
+      <button class="sk" data-floor="rubber" aria-pressed="false"><span>Rubber</span></button>
+      <button class="sk" data-floor="speckle" aria-pressed="false"><span>Speckled rubber</span></button>
       <button class="sk" data-floor="turntable" aria-pressed="false"><span>Turntable</span></button>
       <button class="sk" data-floor="grid" aria-pressed="false"><span>Grid</span></button>
+      <div class="shades">
+        <button class="sk" data-shade="dark" aria-pressed="true" title="the viewer's dark grey"><span>Dark</span></button>
+        <button class="sk" data-shade="light" aria-pressed="false" title="KeyShot's light grey"><span>Light</span></button>
+      </div>
     </div>
   </div>
   <div id="moodWrap">

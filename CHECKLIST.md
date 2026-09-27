@@ -1712,10 +1712,18 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   to the background"), and asked for all of them in the viewer to pick from there. So the viewer
   has a **Floor menu** (`viewer/floors.js`, beside the moods; `?floor=` for snapshots, which keep
   today's otherwise; the choice is remembered in the browser, and the Lab's Studio follows it;
-  hidden on the page online until the pick): as today; KeyShot light (0.2); KeyShot dark (today's
-  0.035); concrete (ambientCG Concrete034, CC0, `view.ensure_floor`); a turntable 5.2 m across; a
-  grid a metre apart. The light on the car is the same under all of them. Next: the user picks;
-  the rest go, and the menu with them unless they want to keep it.
+  hidden on the page online until the pick). Then the user: "was thinking like a matte floor with
+  a bit of texture?", so the menu is a surface and a shade (dark, today's 0.035, or KeyShot's light
+  0.2): as today, KeyShot, four matte textured floors (`SURFACES`: concrete Concrete034, fine
+  asphalt Asphalt031, rubber Rubber004, speckled rubber Rubber001, ambientCG CC0, fetched by
+  `view.ensure_floor`), a turntable 5.2 m across, a grid a metre apart. The light on the car is the
+  same under all of them. Next: the user picks; the rest go, and the menu with them unless they
+  want to keep it.
+  - **"A bit of texture":** each matte floor averages the backdrop's grey (its colour picture
+    divided by its own mean, so the rubber's blue cast goes too) and keeps part of the picture's
+    contrast, a power of each texel's ratio to the mean (asphalt 0.4, rubber 0.6, speckle 0.36,
+    concrete 1.3), with the normal map faint; no shine at all, and the grain fades out 4 to 13 m
+    from the car.
   - **No line where the floor bends:** every floor but today's lights the whole cove as flat floor
     (the normal straight up, no shine), so it's one even grey up the walls, in every mood; the
     floors on it fade to see-through (concrete, grid) or to the cove's own grey (KeyShot's skin),
