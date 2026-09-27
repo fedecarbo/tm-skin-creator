@@ -2015,7 +2015,8 @@ under "Things we learned"; what was built:
     lines with "unexpected EOF": write the script to the scratchpad with the Write tool and run it.
     Two more that corrupted a pushed file: GNU sed reads a backslash-backtick as "the start of the
     text" (it put a backtick before every line), and a Python string that isn't raw reads a Windows
-    path's backslash-and-digits (the screenshots folder's "2225070") as a character code. Edit docs with the Edit tool, or copy lines from git.
+    path's backslash-and-digits (the screenshots folder's "2225070") as a character code. Edit docs
+    with the Edit tool, or copy lines from git.
 
 - **2026-09-27, the viewer on smaller screens (`CHECKLIST.md`, "The viewer on smaller screens").**
   - **Zooming never distorts the car; moving the camera does.** A fixed lens top to bottom (32°)
