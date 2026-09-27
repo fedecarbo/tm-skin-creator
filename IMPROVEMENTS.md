@@ -48,9 +48,6 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **Motifs lined up across panels** (2026-09-24, checkpoint 6). The tool can spread pictures or
   dots evenly, but not in rows that line up from panel to panel, like a regular grid. Idea: a
   `regular` switch on `Skin.scatter`, using `looks.surface_points(regular=True)`.
-- **Writing on the tyres** (2026-09-24, checkpoint 5). Not built: all four tyres share one
-  paint and the left and right ones aren't mirrored, so text reads backwards on one side.
-  Idea: symmetric words and logos only, or no text on tyres at all.
 - **Some inner part names are guesses** (2026-09-24, checkpoint 3): side vent, side vane, nose
   sensor, airbox. Check them the first time a design paints them. Known since the air brakes
   (2026-09-25): "nose sensor" is the nose panel's lifting arms, "rear damper" the rear quarter
@@ -176,6 +173,11 @@ These need the user to drive or look, so they're tested when a skin uses them.
 - **The Lab's finishes in the game** (2026-09-27): TSC_Lab_Materials, made for this, isn't
   installed yet. Its finishes by day and at night would check the viewer's matte, satin, gloss
   and chrome against the game (the calibration car matched only the light and the glows).
+- **Tyre markings** (2026-09-27, the library, `tool/tyres.py`): never in the game yet. The first
+  skin with one shows whether the game takes the tyres' own relief (`Wheels_N` from a skin: raised
+  letters, the tread patterns, Nadeo's lettering gone), whether the lettering reads at 2 to 2.5 cm
+  from the chase cameras and in the garage, and whether the band (30.9 to 35.3 cm from the axle)
+  clears the wheel covers' edge and the three dark patches of the game's own shading.
 - **The upload size limit.** Zips stay under 8.5 MB until a limit shows up (2026-09-24,
   checkpoint 1); the install halves the roughness maps to fit (2026-09-25). Undocumented;
   Ubisoft said in 2022 that 9 MB "may be too big".

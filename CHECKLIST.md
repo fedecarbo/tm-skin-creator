@@ -1851,6 +1851,38 @@ distorted". Each choice was made from real renders of the viewer, side by side o
   Cam 2. `tool.snap --cams` still draws all four. The menus on the light studio are solid now (the
   buttons' see-through glass rule reached their items).
 
+### Tyre markings (done 2026-09-27)
+
+The user, 2026-09-27: "You can actually change the mapping of the tyres. Can you research that and
+provide a vast library of tyre markings to use". The research (two web searches and the mesh) is
+under "Things we learned"; what was built:
+
+- [x] **`tool/tyres.py`, the library: 95 markings, TY-01 to TY-95, in 11 families** (Formula 1's
+  ring and its compounds 2011 on, Formula 1 before 2011, American racing, other single-seaters,
+  endurance, bikes and touring cars, rally, drift/drag/karts, road and show, fun, treads). Each is a
+  layout function after a real tyre's, in our own words and shapes: the maker's name is OXIDE on
+  every one, the models' names change with the family (BOX BOX, CHECK, CODEX, ECHO, HEX 8...), all
+  flip-proof. Codes never reorder (as the Lab's finishes). Hex colours per compound from the
+  research, judged from photos (no series publishes them).
+- [x] **Drawn on the tyre's own map, not in 3D.** The map is separable (each row is an angle round
+  the wheel, each column a radius or a place across the tread), so a marking is drawn as seen on the
+  car's left, in cm from the axle and degrees clockwise from 12 o'clock, sampled 4 x 2 per texel,
+  and each face (outer, inner sidewall, tread) replays the same calls. Lettering and symbols are
+  masks at 60 px/cm placed along the arc (their verticals radial). Nadeo's sidewall lettering (NADEO
+  on the inner face, three marks near the outer bead) comes off, in colour and relief, by setting
+  each sidewall column to its median round the tyre; a tread pattern does the same to the tread.
+- [x] **Relief in `Wheels_N`**: raised letters (0.6 to 1 mm, a 0.5 mm bevel), grooves (tread
+  patterns: grooved, rain, inter, gravel, snow, mud, asphalt, ribs, diamond, semi-slick, lugs), studs.
+  The paint box's Wheels canvas now keeps a normal map (`Canvas.normal`) and ships it.
+- [x] **`s.tyre_marks("TY-07", colour=..., words=..., reads="left")`** in the paint box.
+- [x] **The pictures: `PY -m tool.tyres`** (`tool/tyresheet.py`): each marking on the car with the
+  wheels a plain dark grey (`TyreLib_<code>` in the viewer's data, no gallery lists it), the front
+  wheels from both sides and the rear tread from behind, one Edge session (`viewer.load()` swaps
+  skins in the page); `build/tyres/library.png`, and the page (`viewer/tyres.html`, filled by
+  `tyresheet.page()`) published privately for the user: https://claude.ai/artifact/2TdLiRLDGKxUkMiKBo89ko
+  (republish to that link, with `url`, when the library changes).
+- [ ] **In the game** (IMPROVEMENTS.md, "To check in the game"): the first skin that uses a marking.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
@@ -1938,6 +1970,37 @@ distorted". Each choice was made from real renders of the viewer, side by side o
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-27, the tyres' map and the markings (`CHECKLIST.md`, "Tyre markings").**
+  - **A skin can't change how the tyres are mapped.** Only a "3D skin" (a whole car model through
+    NadeoImporter and a community fix-up script) gives each wheel its own mesh and UVs; Nadeo
+    disabled uploaded 3D skins in May 2024 (Eole on the Ubisoft Discord, quoted on Steam): they
+    show only on the PC that installed them by hand, not on consoles, and can crash. Nadeo's 2020
+    post promised UV maps "for each set"; its link is dead, and today's download has no wheel
+    template. Nobody online describes the wheel map: the mesh is the source.
+  - **The map** (1024x2048 as shipped): columns across the tyre, the inner bead (u 0, 29.8 cm from
+    the axle) to the outer bead (u 1), the tread u 0.2 to 0.83 (35.6 to 36.4 cm, 26 cm across on the
+    front tyre); rows once round, row 0 at 10 o'clock seen from the left, anticlockwise from there,
+    about 45° per 256 rows but not exactly even (43.9 to 45.4), so the tool reads each row's angle
+    from the bake. The rear tyres are the front's 10 % wider in x, the same radii, the same texels.
+  - **The right tyres are the left's mirror image** (the same angle maps to the same row on both
+    sides, and the outer sidewall uses the same columns). A word reads backwards on the right, but
+    the mirror of a word whose letters are the same upside down (B C D E H I K O X, 0 3 8, - + = <
+    > |) is that word turned half a turn with its letters' tops toward the hub: it reads right on
+    both sides (seen in the viewer: on the right, the copy at 6 o'clock reads upright). Drawn upright
+    (a slant flips), and symmetric top to bottom (the bottom half mirrored up: B's bowls and K's arms
+    differ in most fonts). Arrows round the wheel point the way it rolls on both sides for free (the
+    mirror keeps forward forward); rings, dots, stars, chequers don't mind.
+  - **What shows:** the wheel covers hide the sidewall inside 30.2 cm; the stock `Wheels_AO`, which
+    the game applies and a skin can't replace, darkens three patches inside 31 cm (under Nadeo's
+    marks) and faintly lines the stock grooves (80 %) on any tread; the tread starts at 35.6. So
+    markings live in 30.9 to 35.3 cm, 4.4 cm: the band on this car is thin, so lettering wants caps
+    of 2 to 2.5 cm (half the band) to read at all.
+  - **Zip cost:** a marking over the stock tread adds about 1.7 MB zipped (the upsampled stock tread's
+    scuffs in `Wheels_R` and `_B`); one with its own tread pattern 0.3 MB, a slick 0.05 MB. When a zip
+    runs over, `build_zip` halves `Wheels_R` before any other roughness map.
+  - The long Python heredocs the Bash tool sends through Git Bash get cut off after a few hundred
+    lines with "unexpected EOF": write the script to the scratchpad with the Write tool and run it.
 
 - **2026-09-27, the viewer on smaller screens (`CHECKLIST.md`, "The viewer on smaller screens").**
   - **Zooming never distorts the car; moving the camera does.** A fixed lens top to bottom (32°)

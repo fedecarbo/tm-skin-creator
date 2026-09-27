@@ -143,6 +143,7 @@ class Canvas:
         # the design's relief (tool/relief.py): slopes along u and v, and how much of Nadeo's own
         # relief stays under it; None until a design asks for relief
         self.slope = self.keep_stock = None
+        self.normal = None  # the tyres' normal map (n, 2), once a marking brings relief (tool/tyres.py)
         self.dirt = None  # None: ship the stock mask untouched
 
     @property
@@ -169,7 +170,7 @@ class Canvas:
 
     def textures(self):
         """The game's textures for this set, or {} when the design never touched it."""
-        if not self.touched.any() and not self.glow_touched and self.dirt is None and self.slope is None:
+        if not self.touched.any() and not self.glow_touched and self.dirt is None and self.slope is None and self.normal is None:
             return {}
         h, w = self.h, self.w
         fill = lambda image: raster.fill_holes(image, self.cov, self.near)
@@ -195,6 +196,8 @@ class Canvas:
             ours = np.flatnonzero(np.abs(self.slope).max(1) > 1e-4)
             n[ours] = relief.combine(n[ours], relief.to_normal(self.slope[ours]))
             out["Details_N"] = (n.reshape(h, w, 2), "ATI2", {"normal": True})
+        if self.normal is not None:
+            out[f"{self.set}_N"] = (fill(self.normal.reshape(h, w, 2)), "ATI2", {"normal": True})
         if self.dirt is not None:
             out[f"{self.set}_DirtMask"] = (np.clip(stock(f"{self.set}_DirtMask") * self.dirt, 0, 1), "ATI1", {})
         return out
@@ -677,6 +680,18 @@ class Skin:
     def tyres(self, what="black rubber", **params):
         return self.paint("tyres", what, **params)
 
+    def tyre_marks(self, marking, reads="left", **options):
+        """A tyre marking from the library (tool/tyres.py): "TY-07" or its name ("ring soft"), on
+        all four tyres' sidewalls and tread, over the tyres' paint so far. options reach its layout
+        where it takes them: colour="lime", words=("OXIDE", "BOX BOX"). The right-hand tyres show it
+        mirrored: words read right on the side `reads` names, and on both when every letter is the
+        same upside down (the library's are)."""
+        from tool import tyres
+        code, entry, art = tyres.draw(marking, **options)
+        self._open_step()["paints"].append(f"tyres: {code} {entry['name']}")
+        self.notes += tyres.apply(self.canvas("Wheels"), art, reads)
+        return self
+
     # ---- relief (the inner car only: the game's normal map, tool/relief.py) ----
 
     def _relief(self, where, make_h, zone=None, replace=False, what="relief"):
@@ -1124,7 +1139,9 @@ def build_zip(name, icon_image=None):
     while zip_path.stat().st_size > ZIP_BUDGET and (normals or rough):
         sizes = pack.sizes(zip_path)
         group = normals or rough
-        t = max(group, key=lambda t: sizes.get(f"{t}.dds", 0))
+        # the tyres' roughness first: it carries only the lettering's shine, where the body's
+        # carries a grain that needs its full size (TSC_CMYK_EndsInK, 2026-09-27)
+        t = max(group, key=lambda t: (t.startswith("Wheels"), sizes.get(f"{t}.dds", 0)))
         group.remove(t)
         fourcc, spec = specs[t]
         half = dds.halve(data[t].astype(np.float32) / 255)

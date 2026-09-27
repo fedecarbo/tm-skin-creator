@@ -51,6 +51,7 @@ user the Studio too.
 | `PY -m tool.pictures tile "<words>"` | Seamless tiles, for a continuous print. |
 | `PY -m tool.pictures keep <slug> <k> <skin> <name>` | Keeps candidate k as `skins/<skin>/art/<name>.png`, for `s.art("<name>")`. |
 | `PY -m tool.textures search "<surface>"`, then `add "<surface>" <Id> --scale <cm>` | Adds a photographed surface (ambientCG, CC0) to the library by name. Do this rather than say no. |
+| `PY -m tool.tyres [TY-01 ...]` | The tyre markings library on the car (about 6 s each): `build/tyres/library.png`, each one's three views. After adding or changing markings, rebuild the user's page (`tyresheet.page()` into the scratchpad) and republish it to https://claude.ai/artifact/2TdLiRLDGKxUkMiKBo89ko (`url`). |
 
 ## Designing
 
@@ -121,6 +122,13 @@ user the Studio too.
 
 - **The wheels are their own step.** "body" leaves out the wheel covers. Paint "wheels"
   (covers, rims, hubs, rings) and "tyres" with their own calls.
+- **Tyre markings: the library, `s.tyre_marks("TY-07")`** (`tool/tyres.py`: 95 of them, F1 rings to
+  whitewalls, raised letters and tread patterns). A code the user pastes, like `TY-01 ring soft
+  (tyre marking)`, is that marking; `colour=` and `words=` change it where its layout takes them.
+  All four tyres wear one marking. Words on a tyre read backwards on the right-hand wheels unless
+  every letter is one of B C D E H I K O X 0 3 8 (the library's are): for the user's own word, say
+  which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
+  tyres goes in the library (its layouts are short), not in a design.
 - The user prefers illustrations, prints and decals to photographs. "sticker" is the default.
 - A print made of objects: `s.scatter` (whole copies, each inside one panel, spread evenly).
   A continuous texture: a tile through `s.print`. Ask the picture maker for a few large
@@ -154,7 +162,7 @@ user the Studio too.
   paints the right, and some share with other parts: the front wing's panels wear the floor's
   paint, and a small patch serves many inner parts (the front uprights among them). `show` names
   every part a colour also lands on, with how much: read it. All four wheels and tyres share one
-  paint, and writing on a tyre reads backwards on one side.
+  paint.
 - `s.dirt(amount)`: how dirty the car gets on dirt (1 = stock, 0 never).
 - Say these can't be done, if asked: holographic or colour-shift paint, relief on the body,
   the player's number and name or their colour (the game mode sets it: white in a normal race), the turbo colour,

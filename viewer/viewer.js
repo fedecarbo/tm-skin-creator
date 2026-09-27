@@ -1642,6 +1642,10 @@ const frames = (n) => new Promise((done) => {
 window.viewer = {
   ready: false,
   error: null,
+  async load(name) {  // another skin in the same page: the tyre library's sheet (tool/tyresheet.py)
+    await loadSkin(name);
+    await frames(3);
+  },
   async show(view, night = false, hidden = []) {  // night: true, false or a mood's name
     setMood(night);
     setView(view);

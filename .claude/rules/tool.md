@@ -38,6 +38,10 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
   take's `gallery.json` entry) puts a switch between its takes in the Studio and the UV map
   (`viewer/lab-round.js`).
+- Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
+  its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
+  (the paint box's `Canvas.normal`). `PY -m tool.tyres` photographs the library
+  (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

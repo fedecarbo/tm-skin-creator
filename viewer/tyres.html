@@ -1,0 +1,194 @@
+<title>Oxide Tyre Library</title>
+<!-- The tyre markings library's page (tool/tyresheet.py fills in __DATA__ and writes img/<code>.jpg:
+     the car's left, its right and the tread, side by side). Published as a private claude.ai page. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Saira+Condensed:wght@600;700&family=Saira:wght@400;500;600&display=swap">
+<style>
+:root {
+  --ground: #e8eaec; --surface: #ffffff; --ink: #15171a; --muted: #585e66; --rule: #d2d6db;
+  --chip: #f2f3f5; --accent: #d1002a; --accent-ink: #ffffff; --shot: #cfd2d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0f1113; --surface: #181b1e; --ink: #e8ebee; --muted: #9aa1a9; --rule: #2a2f34;
+    --chip: #202428; --accent: #ff3553; --accent-ink: #14060a; --shot: #26292d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0f1113; --surface: #181b1e; --ink: #e8ebee; --muted: #9aa1a9; --rule: #2a2f34;
+  --chip: #202428; --accent: #ff3553; --accent-ink: #14060a; --shot: #26292d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--ground); color: var(--ink); margin: 0;
+  font: 400 15px/1.5 Saira, "Segoe UI", system-ui, sans-serif;
+  padding-inline: max(16px, 3vw); padding-block: 0 48px;
+}
+.wrap { max-width: 1320px; margin: 0 auto; }
+header.top { padding-block: 28px 18px; display: grid; gap: 14px; }
+h1 {
+  font: 700 clamp(34px, 6vw, 58px)/0.95 "Saira Condensed", "Arial Narrow", sans-serif;
+  letter-spacing: 0.01em; margin: 0; text-wrap: balance; text-transform: uppercase;
+}
+h1 .mark { color: var(--accent); }
+.lede { max-width: 68ch; margin: 0; color: var(--muted); }
+.lede strong { color: var(--ink); font-weight: 600; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.facts li { max-width: 68ch; }
+.facts b { font: 700 14px "Chakra Petch", monospace; letter-spacing: 0.04em; }
+.flip { font: 700 15px "Chakra Petch", monospace; letter-spacing: 0.18em; }
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--ground);
+  padding-block: 10px; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 520px; }
+.chip {
+  font: 600 13px Saira, sans-serif; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+  border-radius: 999px; padding: 4px 11px; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+.chip:focus-visible, .views button:focus-visible, .copy:focus-visible, #find:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#find {
+  flex: 0 1 240px; min-width: 0; font: 500 14px Saira, sans-serif; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 8px; padding: 6px 10px;
+}
+section.family { padding-block: 26px 4px; }
+section.family h2 {
+  font: 700 24px/1 "Saira Condensed", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: 0.03em;
+  margin: 0 0 14px; display: flex; gap: 10px; align-items: baseline; text-wrap: balance;
+}
+section.family h2 small { font: 600 13px "Chakra Petch", monospace; color: var(--muted); letter-spacing: 0.06em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+.shot { position: relative; aspect-ratio: 4 / 3; max-width: 100%; overflow: hidden; background: var(--shot); }
+.shot img { position: absolute; top: 0; left: 0; width: 300%; height: 100%; max-width: none; transition: transform 0.18s ease; }
+.shot[data-view="right"] img { transform: translateX(-33.3333%); }
+.shot[data-view="tread"] img { transform: translateX(-66.6667%); }
+.views { display: flex; border-bottom: 1px solid var(--rule); }
+.views button {
+  flex: 1; font: 600 12px Saira, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+  background: none; border: 0; border-right: 1px solid var(--rule); padding: 7px 4px; cursor: pointer;
+}
+.views button:last-child { border-right: 0; }
+.views button[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.body { padding: 12px 14px 14px; display: grid; gap: 6px; flex: 1; align-content: start; }
+.head { display: flex; align-items: baseline; gap: 10px; }
+.code { font: 700 16px "Chakra Petch", monospace; letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
+.name { font: 600 16px/1.2 Saira, sans-serif; text-transform: capitalize; }
+.about { margin: 0; color: var(--muted); font-size: 14px; }
+.foot { display: flex; justify-content: flex-end; margin-top: 4px; }
+.copy {
+  font: 600 13px Saira, sans-serif; border: 1px solid var(--rule); background: var(--chip); color: var(--ink);
+  border-radius: 7px; padding: 4px 12px; cursor: pointer;
+}
+.copy.done { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.empty { padding-block: 40px; color: var(--muted); }
+footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: reduce) { .shot img { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Oxide <span class="mark">Tyre</span> Library</h1>
+    <p class="lede">Markings for the tyres of your Trackmania car, each photographed on the front wheel from both
+      sides of the car and on the tread from behind. <strong>Copy a code and paste it in the chat</strong> with the
+      skin it's for; say so if you want other colours or other words.</p>
+    <ul class="facts">
+      <li><b id="count">95</b> markings in <b id="families">11</b> families</li>
+      <li>All four tyres wear the same one</li>
+      <li>Every word uses only <span class="flip">B C D E H I K O X 0 3 8</span>, letters that look the same upside down, so it reads the right way on both sides</li>
+      <li>Your own words work too, but read backwards on the right-hand wheels</li>
+      <li>Tyres can't glow: the neon ones are bright paint</li>
+    </ul>
+  </header>
+  <div class="bar" role="search">
+    <div class="chips" id="chips"></div>
+    <input id="find" type="search" placeholder="Find: whitewall, wet, red…" aria-label="Find a marking">
+  </div>
+  <main id="list"></main>
+  <p class="empty" id="empty" hidden>No marking matches. Try another word, or pick “All”.</p>
+  <footer>
+    <span>Real tyre makers' names and logos are left out: every marking is our own lettering, after the real layouts.</span>
+    <span>The car is Nadeo's Trackmania stadium car, from the model by amogusstrikesback2 (CC-BY-4.0).</span>
+  </footer>
+</div>
+
+<script>
+const DATA = __DATA__;
+const families = [...new Set(DATA.map((d) => d.family))];
+document.getElementById('count').textContent = DATA.length;
+document.getElementById('families').textContent = families.length;
+let family = 'All';
+const chips = document.getElementById('chips');
+for (const f of ['All', ...families]) {
+  const b = Object.assign(document.createElement('button'), { className: 'chip', textContent: f, type: 'button' });
+  b.setAttribute('aria-pressed', String(f === family));
+  b.onclick = () => { family = f; for (const c of chips.children) c.setAttribute('aria-pressed', String(c === b)); filter(); };
+  chips.append(b);
+}
+const list = document.getElementById('list');
+const cards = [];
+for (const f of families) {
+  const sec = document.createElement('section');
+  sec.className = 'family';
+  sec.dataset.family = f;
+  const items = DATA.filter((d) => d.family === f);
+  sec.innerHTML = `<h2>${f}<small>${items[0].code} to ${items[items.length - 1].code}</small></h2>`;
+  const grid = Object.assign(document.createElement('div'), { className: 'grid' });
+  for (const d of items) {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.id = d.code;
+    card.innerHTML = `
+      <div class="shot" data-view="left"><img src="img/${d.code}.jpg" alt="${d.code} ${d.name} on the car's front wheel" loading="lazy" width="1440" height="360"></div>
+      <div class="views" role="group" aria-label="View">
+        <button type="button" data-v="left" aria-pressed="true">Left side</button>
+        <button type="button" data-v="right" aria-pressed="false">Right side</button>
+        <button type="button" data-v="tread" aria-pressed="false">Tread</button>
+      </div>
+      <div class="body">
+        <div class="head"><span class="code">${d.code}</span><span class="name">${d.name}</span></div>
+        <p class="about">${d.about}</p>
+        <div class="foot"><button type="button" class="copy">Copy ${d.code}</button></div>
+      </div>`;
+    const shot = card.querySelector('.shot');
+    card.querySelectorAll('.views button').forEach((b) => b.onclick = () => {
+      shot.dataset.view = b.dataset.v;
+      card.querySelectorAll('.views button').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+    });
+    const copy = card.querySelector('.copy');
+    copy.onclick = () => {
+      const text = `${d.code} ${d.name} (tyre marking)`;
+      const done = () => { copy.textContent = 'Copied'; copy.classList.add('done');
+        setTimeout(() => { copy.textContent = `Copy ${d.code}`; copy.classList.remove('done'); }, 1600); };
+      const fallback = () => { const r = document.createRange(); r.selectNodeContents(card.querySelector('.head'));
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r); copy.textContent = 'Selected: copy it'; };
+      try { navigator.clipboard.writeText(text).then(done, fallback); } catch { fallback(); }
+    };
+    card.dataset.find = `${d.code} ${d.name} ${d.about} ${d.family}`.toLowerCase();
+    cards.push(card);
+    grid.append(card);
+  }
+  sec.append(grid);
+  list.append(sec);
+}
+const find = document.getElementById('find');
+find.oninput = filter;
+function filter() {
+  const q = find.value.trim().toLowerCase();
+  let shown = 0;
+  for (const sec of list.children) {
+    let n = 0;
+    for (const card of sec.querySelectorAll('.card')) {
+      const on = (family === 'All' || sec.dataset.family === family) && (!q || card.dataset.find.includes(q));
+      card.hidden = !on;
+      n += on;
+    }
+    sec.hidden = !n;
+    shown += n;
+  }
+  document.getElementById('empty').hidden = shown > 0;
+}
+if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+</script>
