@@ -69,18 +69,25 @@ user the Studio too.
   28%, metal 100%, varnish 0%)`. The code is that finish, exactly: put the code in the phrase
   (`s.paint("sidepod", "ME-07")`, `"ME-07 matte"`, or `s.paint("body", "PA-03", colour="#1a1c20")`
   for one without its own colour). The numbers are there for the user to read. The Lab's names
-  work in phrases too ("rose gold", "stainless steel"). A part copied from one of the Lab's rooms,
+  work in phrases too ("rose gold", "stainless steel"). A part copied from the Lab's UV map room,
   like `floor|left|part (Details map, 79% of its paint shared with ...)`: the phrase before the
   bracket is exactly that part as `where` (`s.paint("floor|left|part", ...)`); the bracket says
-  what else its paint lands on. A surface picked on a room's UV map adds `; the Details map's
+  what else its paint lands on. A surface picked on the UV map adds `; the Details map's
   surface 278, used by floor edge (left, right)`: the user pointed at that one shape of paint.
   Paint it by the parts it names; if it's only part of a part (the part names other surfaces
-  too), say so and paint the part, or ask whether the whole part will do. A step copied from the Studio, like `TSC_CMYK_Peel_More, step 3
-  of 4: Lights`, is that `s.step` in that skin's design.
+  too), say so and paint the part, or ask whether the whole part will do.
+- **Notes on the car (the Studio, the user's pick, 2026-09-27).** The user clicks the Studio's car
+  where they mean and writes what they want there. New notes arrive with their next message (a
+  hook prints them): the skin, the note's number, the step it was written at, the part clicked as
+  a `where` phrase (`sidepod top|left`), and their words. They're the user's words about that spot,
+  as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user, note N):
+  "…"`), answer a question in the reply, and once a note is handled mark it done, `PY -m tool.notes
+  done <skin> <n>` (on the Mac `python3 -m tool.notes done …`, no container needed), so its pin
+  leaves the car. `PY -m tool.notes` lists the ones not done.
 - **A round of concepts** (a loose idea's 2 or 3 takes): once they're painted, record them with
   `tool.skin round "<the idea in a few words>" <A> <B> <C> --words "<the user's words>"` (lettered
   in that order). The Lab then shows the round's title and a switch between the takes in the
-  Studio and every room (the user's pick, 2026-09-26); name them A, B, C in replies too.
+  Studio and the UV map (the user's pick, 2026-09-26); name them A, B, C in replies too.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as
@@ -166,7 +173,8 @@ user the Studio too.
   After each round, tell them to refresh it.
 - The Lab's Studio (http://localhost:8765/lab.html, its first room) follows the skin being
   painted and fills in its filmstrip while `show` runs, no refresh needed. Tell the user once
-  per session they can keep it open to watch the car being built.
+  per session they can keep it open to watch the car being built, and click the car to leave a
+  note on a spot.
 - Reply in a few sentences: what the car looks like, the takes numbered by title, and one line
   on what you checked close up. End with one bold question: which one, or what to change. Say
   that a yes puts it in the game.

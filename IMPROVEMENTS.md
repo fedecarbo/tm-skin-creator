@@ -32,10 +32,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   round of concepts' switch (A, B, C) in the Studio and every room (the user's pick after a whole concept round,
   2026-09-26). Put off: takes side by side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
   are in `CHECKLIST.md`, "The Lab".
-  **A thought from the user (2026-09-27):** the rooms (Body, Details...) aren't helping, and the
-  panel on the right went unused while making skins. Mockups of the Studio without the rooms, three
-  things in place of the panel: A just the car, B the game's views, C notes on the car. Waiting
-  for the user's pick (`CHECKLIST.md`, The Lab, step 7).
+  **A thought from the user (2026-09-27):** the rooms (Body, Details...) weren't helping, and the
+  panel on the right went unused while making skins. From the mockups the user chose C, notes on
+  the car: click the Studio's car, write what you want there, and the note reaches Claude with the
+  next message. The four rooms became one UV map room (the surfaces stay). `CHECKLIST.md`, The
+  Lab, step 7.
 
 ## The tool
 
@@ -79,6 +80,31 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   takes 1, 2, 3 on top of Claude's A, B, C ("1 A Kintsugi"), and a fourth view asked for is left
   out without a word (the sheet is three tiles wide). Idea: letter the takes as the Lab's round
   does, and wrap extra views to a second row.
+
+- **A tidy-up, from a code check** (2026-09-27, the user: "it's been forever I have refactored, so
+  not sure if things need to be optimised a bit more?"). The code is in fair shape; no big
+  rewrite. What would pay off, most first:
+  1. `show` builds the finished textures four times (the last step's frame, `summary()`,
+     `export_to_viewer`, `save_painted` in `tool/paintbox.py`), each with `raster.fill_holes`
+     recomputing the distance transform `Canvas.__init__` already made. Build once and pass it on:
+     about 15 to 25 s off every show. Check `painted.npz` is the same before and after.
+  2. `view.export_uvmap` (23 s, 17 of them the Details surfaces) reruns on the first show after
+     any edit to `paintbox.py` or `view.py` (`_stale` always counts `view.py`). Narrow its sources.
+  3. The test-skin scripts from before the paint box (`testskin.py`, `partskin.py`, `labskin.py`,
+     `carbonskin.py`, 774 lines; `partskin.py` holds a copy of ~70 part names). Move `stock()`
+     from `testskin` to `dds.py` first (`paintbox.py` imports it), then retire them.
+  4. About 100 lines nothing calls: `dds.fix_bc1`, `pictures.mend_seams` and `art_path`,
+     `noise.worley2`, `parts._tub`, `paths.VENV`, the viewer's `aim()` and `partCentres()`.
+  5. Stale defaults and docs: `tool.view <name>` and plain `tool.snap <name>` read the last
+     installed DDS files (old paint, or none); the viewer's bare address opens TSC_Test, which has
+     no design; `paintbox.py`'s docstring names `Skin.show/build/install`, which don't exist.
+  6. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
+     lines, and the Mac's container repaints a skin only when its own design changed, not one it
+     borrows from. One `borrow()` helper, and `serve.py`'s `stale()` following it.
+  7. The Docker image installs Playwright only because `skin.py` imports `snap.py` at the top: a
+     lazy import drops it.
+  8. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
+     250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
 
 ## The viewer, from the user's screenshots and videos
 

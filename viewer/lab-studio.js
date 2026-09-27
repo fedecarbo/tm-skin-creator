@@ -1,7 +1,10 @@
 // The Lab's Studio: the car a design builds, step by step from clay, while Claude works on it.
-// The car at the picked step, big; a filmstrip of the car at every step under it; the step's words
-// and a line to copy for Claude beside it. Layout B of the mockups the user chose on 2026-09-26
-// (CHECKLIST.md, "The Lab", step 5).
+// The car at the picked step, big; a filmstrip of the car at every step under it (layout B of the
+// mockups the user chose on 2026-09-26); the user's notes beside it: click the car where you mean,
+// write what you want there, and the note is pinned to that spot (C of the mockups of 2026-09-27,
+// in place of the step's words and a line to copy). The notes live in skins/notes.json through the
+// viewer's server (tool/notes.py, /api/notes), and reach Claude with the user's next message.
+// CHECKLIST.md, "The Lab", steps 5 and 7.
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
 // Either way, when Claude starts painting a skin, the Studio follows it. A take in a round of
@@ -18,7 +21,6 @@ import { note, render, wanted } from './lab-round.js';
 const $ = (id) => document.getElementById(id);
 const POLL = 1500;
 
-let copyLine = null;
 let skin = null;          // { name, title }
 let doc = null;           // steps.json
 let picked = -1;
@@ -29,6 +31,9 @@ const pics = new Map();   // frame -> picture URL
 let queue = Promise.resolve();
 let stageLook = '';
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
+let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
+let writing = null;       // the note being written: { part: { id, label, token }, at, normal }
+let partInfo = [];        // uvmap.json's parts by id, to name the part under a click
 
 const lookOf = (step) => {
   const words = (step.look || '').split(/\s+/);
@@ -107,20 +112,9 @@ function pick(k) {
   picked = k;
   const step = doc.steps[k], n = doc.steps.length;
   for (const [i, b] of [...$('stStrip').children].entries()) b.setAttribute('aria-current', String(i === k));
-  $('stName').innerHTML = '<span></span> <small></small>';
-  $('stName').querySelector('span').textContent = step.name;
-  $('stName').querySelector('small').textContent = `step ${k} of ${n - 1}`;
   $('stAt').innerHTML = '<span></span><small></small>';
   $('stAt').querySelector('span').textContent = step.name;
-  $('stAt').querySelector('small').textContent = `step ${k}`;
-  $('stDoes').textContent = step.does || '—';
-  $('stWordsRow').hidden = !step.words;
-  $('stWords').textContent = step.words ? `“${step.words}”` : '';
-  $('stPaints').textContent = step.paints.length ? step.paints.join(', ') : '—';
-  const later = doc.steps.slice(k + 1).map((s) => s.name);
-  $('stAfter').textContent = later.length ? `${later.join(', ')}: they stay on top if this step changes` : 'Nothing yet: this is the car now';
-  $('stLine').textContent = step.line;
-  clay(k === n - 1);
+  $('stAt').querySelector('small').textContent = `step ${k} of ${n - 1}`;
   const params = new URLSearchParams(location.search);
   if (params.has('skin') || params.has('step')) {
     const u = new URL(location.href);
@@ -130,13 +124,73 @@ function pick(k) {
   showOnStage(step).catch((e) => console.error(e));
 }
 
-// The parts no step painted (paintbox.Skin.still_clay), on the last step: clay is a neutral white,
-// so a part left in it passes for white paint. They're lit on the car.
-function clay(last) {
-  const left = last && doc.clay ? doc.clay : null;
-  $('stClayRow').hidden = !left;
-  if (left) $('stClay').textContent = left.length ? [...new Set(left.map((p) => p.name))].join(', ') : 'Nothing: every part is painted';
-  if (stage && stage.light) stage.light(left ? left.map((p) => p.id) : []);
+// ---- notes on the car ----
+
+const post = (body) => fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+async function loadNotes() {
+  if (!skin) return;
+  const name = skin.name;
+  try {
+    const r = await fetch(`api/notes?skin=${encodeURIComponent(name)}`, { cache: 'no-store' });
+    if (!r.ok || !skin || skin.name !== name) return;
+    const got = await r.json();
+    if (JSON.stringify(got.notes) === JSON.stringify(notes) && got.next === nextN) return;
+    notes = got.notes;
+    nextN = got.next;
+  } catch { return; }  /* a server from before the notes */
+  drawNotes();
+}
+
+function drawNotes() {
+  const box = $('ntList');
+  box.textContent = '';
+  for (const x of notes) {
+    const row = document.createElement('div');
+    row.className = 'note';
+    row.innerHTML = '<span class="pinDot"></span><div class="nt"><span class="t"></span><small></small></div><button class="x" title="Take this note back" aria-label="Take this note back">×</button>';
+    row.querySelector('.pinDot').textContent = x.n;
+    row.querySelector('.t').textContent = x.text;
+    row.querySelector('small').textContent = [x.part.label || 'the car', x.step_name && `at ${x.step_name}`, x.state === 'sent' && 'Claude has it'].filter(Boolean).join(' · ');
+    row.querySelector('.x').addEventListener('click', () => post({ skin: skin.name, remove: x.n }).then(loadNotes));
+    box.append(row);
+  }
+  $('ntCount').textContent = notes.length || '';
+  $('ntAsk').hidden = !!writing;
+  $('ntNew').hidden = !writing;
+  $('ntNum').textContent = nextN;
+  if (writing) $('ntPart').textContent = writing.part.label || 'the car';
+  if (stage) stage.pins([...notes.map((x) => ({ n: x.n, at: x.at, normal: x.normal })),
+    ...(writing ? [{ n: nextN, at: writing.at, normal: writing.normal, writing: true }] : [])]);
+}
+
+function startNote(id, hit) {  // a click on the car: the part under it, and the point for the pin
+  const p = partInfo[id];
+  writing = { part: { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' }, at: hit.at, normal: hit.normal };
+  drawNotes();
+  $('ntText').focus();
+}
+
+async function addNote(e) {
+  e.preventDefault();
+  const text = $('ntText').value.trim();
+  if (!text || !writing || !skin) return;
+  const step = doc && picked >= 0 ? doc.steps[picked] : null;
+  const r = await post({ skin: skin.name, text, step: step ? picked : null, step_name: step ? step.name : '', ...writing });
+  if (!r.ok) {
+    $('ntPart').textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
+    return;
+  }
+  writing = null;
+  $('ntText').value = '';
+  await loadNotes();
+  drawNotes();
+}
+
+function cancelNote() {
+  writing = null;
+  $('ntText').value = '';
+  drawNotes();
 }
 
 function live() {
@@ -190,7 +244,13 @@ async function openSkin(name) {
   $('stTitle').textContent = round ? round.title : skin.title;
   try { seen = JSON.parse(localStorage.getItem(`tsc-studio-${name}`) || '{}'); } catch { seen = {}; }
   doc = null; picked = -1; changed = new Set(); stageLook = '';
-  if (!stage) [stage, thumbs] = await Promise.all([viewer($('stCar')), viewer($('stThumbs'))]);
+  notes = []; nextN = 1; writing = null;
+  if (!stage) {
+    [stage, thumbs] = await Promise.all([viewer($('stCar')), viewer($('stThumbs'))]);
+    if (stage) stage.onPick = startNote;
+  }
+  drawNotes();
+  loadNotes();
   const first = await load(name);
   if (first) apply(first);
   else $('stLiveText').textContent = 'Not shown in the viewer yet';
@@ -205,6 +265,7 @@ async function followed() {  // the skin Claude painted last: { skin, stamp }
 }
 
 async function poll() {
+  loadNotes();  // Claude reads them (Claude has it) and marks them done (their pins go)
   try {
     const now = await followed();
     if (now.stamp && now.stamp !== following) {
@@ -221,11 +282,16 @@ async function poll() {
 }
 
 let opened = false;
-export async function open(helpers) {
+export async function open() {
   if (opened) return;
   opened = true;
-  copyLine = helpers.copy;
-  $('stCopy').addEventListener('click', (e) => doc && picked >= 0 && copyLine({ line: doc.steps[picked].line }, e.currentTarget));
+  $('ntNew').addEventListener('submit', addNote);
+  $('ntCancel').addEventListener('click', cancelNote);
+  $('ntText').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) addNote(e);  // Shift+Enter for a new line
+    if (e.key === 'Escape') cancelNote();
+  });
+  fetch('data/uvmap.json').then((r) => r.json()).then((d) => { partInfo = d.parts; }).catch(() => {});
   const now = await followed();
   following = now.stamp;
   let name = wanted() || now.skin;

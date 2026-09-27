@@ -3,7 +3,8 @@
     python -m tool.view TSC_Test              prepare a built skin, serve, open the browser
     python -m tool.view TSC_Test --no-open    same, without opening the browser
 
-Python's built-in web server serves two folders (ES modules don't load from file://):
+Python's built-in web server serves two folders (ES modules don't load from file://), and the
+Studio's notes on the car (/api/notes, tool/notes.py):
   /        the repo's viewer/ folder: the page and three.js
   /data/   the work folder's viewer/ folder, all rebuildable:
              car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0, each
@@ -46,7 +47,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from tool import bake, dds, fbx, parts, paths
+from tool import bake, dds, fbx, notes, parts, paths
 
 DATA = paths.WORK / "viewer"
 STOCK = DATA / "stock"
@@ -152,7 +153,7 @@ def export_mesh():
 
 
 def export_uvmap():
-    """The Lab's painting rooms (viewer/lab-rooms.js), from the tool's own parts and texel coverage:
+    """The Lab's UV map room (viewer/lab-rooms.js), from the tool's own parts and texel coverage:
       <Set>_Parts.png  per texel of the <Set>_Shared.png grid, the part that covers it most
                        (coverage.owners at the paint's size), R + 256 G = the part's id + 1
       <Set>_Surfaces.png per texel of that grid, the surface it's on, R + 256 G = its number + 1:
@@ -162,7 +163,7 @@ def export_uvmap():
       uvmap.json       each map (its paint's size, the grid, its assemblies), each part in
                        words (parts.Parts: its label, whose paint it shares, the line to copy for
                        Claude) and numbers (its share of the map, dots per cm, cm2 on the car), and
-                       the Lab's painting rooms (tool/rooms.py: each one's parts and camera)"""
+                       the Lab's rooms (tool/rooms.py: the UV map, its maps, parts and camera)"""
     from tool import coverage, paintbox, rooms
     out = DATA / "uvmap.json"
     here = paths.REPO / "tool"
@@ -425,6 +426,49 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
+
+    # The Studio's notes on the car (tool/notes.py): GET /api/notes?skin=<name>, and POST a new one
+    # ({"skin", "text", "step", "step_name", "part", "at", "normal"}) or {"skin", "remove": n}.
+    # They reach Claude's context, so only this computer's own pages may write them: the Host must
+    # be localhost (no DNS rebinding), an Origin must match it, and the body must be JSON, which a
+    # page elsewhere can't send here without a CORS preflight this server never answers.
+    def _local(self):
+        host = self.headers.get("Host", "")
+        origin = self.headers.get("Origin")
+        return (host.split(":")[0] in ("localhost", "127.0.0.1")
+                and (origin is None or origin in (f"http://{host}", f"https://{host}")))
+
+    def _json(self, code, obj):
+        body = json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        url = urllib.parse.urlsplit(self.path)
+        if url.path != "/api/notes":
+            return super().do_GET()
+        if not self._local():
+            return self._json(403, {"error": "not from this computer"})
+        skin = urllib.parse.parse_qs(url.query).get("skin", [""])[0]
+        self._json(200, {"notes": notes.of(skin), "next": notes.next_n(skin)})
+
+    def do_POST(self):
+        if urllib.parse.urlsplit(self.path).path != "/api/notes":
+            return self._json(404, {"error": "nothing here"})
+        if not self._local() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
+            return self._json(403, {"error": "not from this computer"})
+        try:
+            body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 65536)) or b"{}")
+            if "remove" in body:
+                notes.remove(body.get("skin"), body["remove"])
+                return self._json(200, {"ok": True})
+            args = {k: body.get(k) for k in ("skin", "text", "step", "step_name", "part", "at", "normal")}
+            self._json(200, notes.add(**args))
+        except (ValueError, TypeError) as e:
+            self._json(400, {"error": str(e)})
 
     def log_message(self, *args):
         pass

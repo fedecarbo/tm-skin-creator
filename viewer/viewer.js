@@ -2,8 +2,9 @@
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
-//                          Lab's painting rooms, viewer/lab-rooms.js: show, hide, light, onPick)
-//                          or dresses step by step (the Studio, viewer/lab-studio.js: dress, picture)
+//                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
+//                          or dresses step by step and pins notes to (the Studio,
+//                          viewer/lab-studio.js: dress, picture, onPick, pins)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -1188,8 +1189,9 @@ canvas.addEventListener('pointerup', (e) => {
   raycaster.setFromCamera(ndc, camera);
   const hit = raycaster.intersectObjects(Object.values(parts).filter((m) => m.visible))
     .find((h) => partsState.data[partOfHit(h) * 4] > 0);
-  if (embed) {  // the page around it picks the part
-    if (hit && window.viewer.onPick) window.viewer.onPick(partOfHit(hit));
+  if (embed) {  // the page around it picks the part; the Studio pins a note to the point
+    const normal = hit && hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    if (hit && window.viewer.onPick) window.viewer.onPick(partOfHit(hit), { at: hit.point.toArray(), normal: normal.toArray() });
     return;
   }
   tip.textContent = '';
@@ -1518,7 +1520,7 @@ window.viewer = {
     if (opts.highlight) highlight(match(opts.highlight));
     await frames(3);
   },
-  // The Lab's painting rooms (viewer/lab-rooms.js, ?embed=1): take parts off (by id; the rest
+  // The Lab's UV map room (viewer/lab-rooms.js, ?embed=1): take parts off (by id; the rest
   // show), light parts by id, turn the car to face them, and hear which part a click on the car picks.
   hide(ids) {
     const off = new Set(ids);
@@ -1548,6 +1550,21 @@ window.viewer = {
     setView({ dir: dir.toArray(), dist: VIEWS.front.dist }, true);
   },
   onPick: null,
+  // The Studio's notes on the car: a pin per note, [{ n, at: [x, y, z], normal, writing }], kept on
+  // its point as the car turns.
+  pins(list) {
+    const box = document.getElementById('pins');
+    box.textContent = '';
+    pinList = list.filter((p) => p.at).map((p) => {
+      const el = document.createElement('span');
+      el.className = 'pin' + (p.writing ? ' writing' : '');
+      el.textContent = p.n;
+      box.append(el);
+      return { el, at: new THREE.Vector3(...p.at), normal: p.normal && new THREE.Vector3(...p.normal) };
+    });
+    pinsDirty = true;
+    placePins();
+  },
   // The Lab's Studio (viewer/lab-studio.js, ?embed=1): dress the car in one step's textures
   // ({slot: url}, as skin.json's), and a picture of what's on screen (a blob URL).
   async dress(urls) {
@@ -1566,6 +1583,34 @@ window.viewer = {
     return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
   },
 };
+
+// The Studio's notes: { el, at, normal, behind }. A pin fades while its spot faces away or the car
+// hides it; whether the car hides it is a ray from the camera, checked when the camera has moved.
+let pinList = [];
+const pinAt = new THREE.Vector3(), toPin = new THREE.Vector3(), pinRay = new THREE.Raycaster();
+const pinCam = new THREE.Matrix4();
+let pinsChecked = 0, pinsDirty = true;
+function placePins() {
+  if (!pinCam.equals(camera.matrixWorld)) { pinCam.copy(camera.matrixWorld); pinsDirty = true; }
+  const check = pinsDirty && performance.now() - pinsChecked > 150;
+  if (check) { pinsChecked = performance.now(); pinsDirty = false; }
+  const meshes = check ? Object.values(parts).filter((m) => m.visible) : null;
+  for (const p of pinList) {
+    pinAt.copy(p.at).project(camera);
+    p.el.hidden = pinAt.z > 1 || Math.abs(pinAt.x) > 1.05 || Math.abs(pinAt.y) > 1.05;
+    p.el.style.left = `${(pinAt.x + 1) / 2 * innerWidth}px`;
+    p.el.style.top = `${(1 - pinAt.y) / 2 * innerHeight}px`;
+    toPin.subVectors(p.at, camera.position);
+    const away = !!p.normal && toPin.dot(p.normal) > 0;
+    if (check) {
+      const d = toPin.length();
+      pinRay.set(camera.position, toPin.normalize());
+      pinRay.far = d - 0.03;
+      p.behind = pinRay.intersectObjects(meshes, false).some((h) => partsState.data[partOfHit(h) * 4] > 0);
+    }
+    p.el.classList.toggle('away', away || !!p.behind);
+  }
+}
 
 function fail(err) {
   window.viewer.error = String(err && err.stack || err);
@@ -1608,6 +1653,7 @@ async function start() {
     if (!snap && !embed) stepDrive(now);
     controls.update();
     renderer.render(scene, camera);
+    if (pinList.length) placePins();
   });
   await frames(2);
   statusBox.textContent = '';

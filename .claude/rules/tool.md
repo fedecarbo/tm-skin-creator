@@ -26,16 +26,18 @@ it before changing how something works. The top docstring of each `tool/*.py` is
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
   **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
-  in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). The same goes for
-  its painting rooms (Body, Details, Tyres, Glass: the game's maps). Notes: "The Lab" in `CHECKLIST.md`. The rooms
-  (`lab.html?room=wheels`, `viewer/lab-rooms.js`) come from `tool/rooms.py` (each room's parts and
-  camera; every part must be in one) and read `view.export_uvmap`'s data (the UV map picks
-  surfaces: `view._surfaces`, the shapes it outlines, `<Set>_Surfaces.png`), which `tool.view` and
-  `tool.swatches` rebuild when the parts, the rooms or their code change. The Studio (the first room,
-  `viewer/lab-studio.js`) reads the frames `tool.skin show` writes at each `Skin.step`
-  (`view.export_steps`, `studio.json`); `install` paints without them. A round of concepts
-  (`skins/rounds.json`, `tool.skin round`, on each take's `gallery.json` entry) puts a switch
-  between its takes in the Studio and the rooms (`viewer/lab-round.js`).
+  in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). Notes: "The Lab" in
+  `CHECKLIST.md`. The UV map room (`lab.html?room=uv`, `viewer/lab-rooms.js`) comes from
+  `tool/rooms.py` (its maps, parts and camera; every part must be in a room) and reads
+  `view.export_uvmap`'s data (the map picks surfaces: `view._surfaces`, the shapes it outlines,
+  `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
+  their code change. The Studio (the first room, `viewer/lab-studio.js`) reads the frames `tool.skin
+  show` writes at each `Skin.step` (`view.export_steps`, `studio.json`); `install` paints without
+  them. Its notes on the car (`tool/notes.py`, `skins/notes.json`) go through the viewer's server
+  (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook
+  (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
+  take's `gallery.json` entry) puts a switch between its takes in the Studio and the UV map
+  (`viewer/lab-round.js`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

@@ -1,11 +1,10 @@
-// The Lab's painting rooms: the game's maps, Body, Details, Tyres, Glass (tool/rooms.py). Each room
-// shows the car Claude is working on with a camera framing its area (the Car tab; the Details room
-// takes the shell off), or its own flat map with only its parts lit and named (the UV map tab). On
-// the car, click a part to pick it; on the map, point at a surface (a shape of its own) to see where
-// its paint goes on the car, and click to pick it; copy the line for Claude. Every room has a day
-// and night picker (the user, 2026-09-26, dropping the Lights room: "for each we can just have a
-// picker"). CHECKLIST.md, "The Lab" and "Defining the parts".
-//   /lab.html?room=tyres[&tab=map][&part=<id>][&skin=<name>]
+// The Lab's UV map room (tool/rooms.py): the game's four maps, Skin, Details, Wheels and Glass, in
+// the paint of the car Claude is working on, every part named (the UV map tab), and the whole car
+// (the Car tab). On the map, point at a surface (a shape of its own) to see where its paint goes on
+// the car, and click to pick it; on the car, click a part to pick it; copy the line for Claude. A
+// day and night picker. It was four rooms, one per map, each with a camera on its area, until the
+// user found them not much help (2026-09-27). CHECKLIST.md, "The Lab" and "Defining the parts".
+//   /lab.html?room=uv[&tab=car][&map=<set>][&part=<id>][&skin=<name>]
 // Everything comes from the tool (tool/view.py, export_uvmap): uvmap.json (each map; each part in
 // words and numbers; the rooms, each with its parts and camera), <Set>_Parts.png (the part covering
 // each texel: R + 256 G = id + 1) and <Set>_Shared.png (texels several parts share). The skin is
@@ -30,7 +29,7 @@ const byId = [];
 let copyLine = null;     // lab.js's copy
 let room = null;         // doc.rooms entry
 let inRoom = new Uint8Array(256);
-let tab = params.get('tab') === 'map' ? 'map' : 'car';
+let tab = params.get('tab') === 'car' ? 'car' : 'map';  // the maps first: the room is its maps
 const mood = {};         // room key -> 'day' | 'night' (the picker's; day at first)
 let skin = null;         // { name, title, textures, stamp, painting, step }
 let map = null;          // the open map: { set, slot, info, w, h, ids, shared, surf, sbox, paint, box }
@@ -275,6 +274,7 @@ function pick(p) {
   $('prPart').querySelector('small').textContent = part.tag;
   const rooms = roomsOf(p.id);
   $('prRooms').textContent = inRoom[p.id] ? rooms.join(', ') : `${rooms.join(', ')}: not this room's`;
+  $('prRooms').parentElement.hidden = doc.rooms.length < 2;  // one room (the UV map): nothing to tell
   $('prWhere').textContent = `${part.mesh}, ${part.pct < 0.1 ? 'under 0.1' : part.pct} % of it`;
   const group = part.group === part.parent ? '' : `${part.group[0].toUpperCase()}${part.group.slice(1)} › `;
   $('prParent').textContent = `${group}${part.parent}: ${doc.assemblies[part.parent] || ''}`;
@@ -320,7 +320,7 @@ function buttons(box, items, current, onClick) {
 }
 
 function heads() {
-  const tabs = [{ key: 'car', label: 'Car' }, { key: 'map', label: 'UV map' }];
+  const tabs = [{ key: 'map', label: 'Maps' }, { key: 'car', label: 'Car' }];
   buttons($('prTabs'), tabs, tab, (k) => showTab(k));
   $('prMaps').hidden = tab !== 'map' || room.maps.length < 2;
   if (tab === 'map') buttons($('prMaps'), room.maps.map((m) => ({ key: m.set, label: m.set })), map && map.set, (k) => openMap(k));
@@ -354,7 +354,7 @@ async function openMap(set) {
 async function showTab(k) {
   tab = k;
   const u = new URL(location.href);
-  if (k === 'map') u.searchParams.set('tab', 'map'); else { u.searchParams.delete('tab'); u.searchParams.delete('map'); }
+  if (k === 'car') { u.searchParams.set('tab', 'car'); u.searchParams.delete('map'); } else u.searchParams.delete('tab');
   history.replaceState(null, '', u);
   $('prCar').hidden = k !== 'car';
   $('prMap').hidden = k !== 'map';
@@ -498,7 +498,7 @@ async function begin(helpers) {
   $('status').textContent = '';
 }
 
-// The painting rooms, from the tool, for lab.js's tabs.
+// The rooms (the UV map), from the tool, for lab.js's tabs.
 export async function list() {
   const res = await fetch('data/uvmap.json', { cache: 'no-store' });
   if (!res.ok) return [];

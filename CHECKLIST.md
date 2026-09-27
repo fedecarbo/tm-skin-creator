@@ -1396,7 +1396,7 @@ worked on, live; not one page. What was settled the same day:
     1440 × 900 (the rooms' head on two lines, then one), no page errors.
   - **Next:** the user looks.
 
-#### [ ] 7. The Lab without the rooms
+#### [ ] 7. The Lab without the rooms: notes on the car
 
 - **What it's for:** the user, 2026-09-27: "I'm starting to not find the views (body, details,
   etc) so helpful. And also, not sure I find the sidebar on the right useful. I like the design,
@@ -1411,8 +1411,41 @@ worked on, live; not one page. What was settled the same day:
     or night as buttons over it), B the game's views (Cam 1, Cam 1 at night, Cam 2, Cam 3 at the
     picked step down the side, cropped from 1280×720 renders around the car; click one to see it
     big), C notes on the car (click the car to pin a note; Claude reads them with the user's next
-    message, which needs a store on the Mac's server and a hook). Claude recommended B.
-  - Waiting for the user's pick.
+    message, which needs a store on the Mac's server and a hook). Claude recommended B; **the user
+    chose C** (2026-09-27).
+  - **The UV map stays, as one room.** The rooms' cameras go, but the user had said the map's
+    surfaces would be useful ("for the uv map separating surfaces, that's going to be useful"), so
+    `tool/rooms.py` holds one room, "UV map" (`?room=uv`): the four maps (Skin, Details, Wheels,
+    Glass) and the whole car as a tab (Maps, Car), opening on the maps. The old rooms' addresses open
+    it. The part card drops its Room line while there's one room. Left for later, if the user
+    finds the map isn't used either: `lab-rooms.js`, `export_uvmap`/`_surfaces`, `coverage.sets`
+    and the viewer's Lab-only calls, about 800 lines.
+  - **Built (2026-09-27): notes on the car.**
+    - The Studio's panel is "Your notes": click the car (a click, not a drag) and the viewer
+      (`?embed=1`, `onPick(id, {at, normal})`) gives the part and the point; a white pin marks it
+      while the box below names the part ("floor (right)") and takes the words; Enter or Add note
+      keeps it, Shift+Enter a new line, Esc or Cancel drops it. Each note shows its number, words,
+      part, step and "Claude has it" once read, with a × to take it back. The step's words, what
+      it paints, the still-clay parts and Copy for Claude went with the old panel.
+    - Pins (`viewer.pins`) are drawn by the viewer over its canvas, placed on their 3D point every
+      frame, so they stay on the spot as the car turns; one fades while its spot faces away or
+      the car hides it (a ray from the camera, checked when the camera has moved).
+    - `tool/notes.py` keeps them in `skins/notes.json` (skin, number, words, step, part as label
+      and `where` phrase, point, facing, time, state new → sent → done). The viewer's server
+      (`view.Handler`, both computers) answers `GET/POST /api/notes`, only for this computer's
+      pages: the Host must be localhost, an Origin must match it, and the body must be JSON (a page
+      elsewhere can't send that without a preflight the server never answers). Checked with curl:
+      a foreign Origin, a text/plain body and a foreign Host are refused, an unknown skin too.
+    - A UserPromptSubmit hook (`.claude/settings.json`) runs `tool/notes.py --hook` with the
+      computer's own Python (the Mac's python3, else the PC's venv): it prints the new notes into
+      Claude's context and marks them sent. Claude marks one done (`tool.notes done <skin> <n>`)
+      once handled and its pin leaves the car. Standard library only, runnable as a file.
+    - Checked on the Mac (2026-09-27) in headless Chrome, TSC_ChaosElegance_Unravelled_CMYKRise:
+      a click on the car opened the box on the part under it, Enter kept the note (list, count,
+      pin), the pin followed the car when dragged and faded behind it, the hook printed it and the
+      Studio then said "Claude has it", × took it back (no pin), `done` hid it; 390 × 844 with the
+      notes under the car and no sideways scroll; the UV map room's four maps; no page errors.
+  - **Next:** the user tries it on a skin.
 
 ### Defining the parts (started 2026-09-26)
 
