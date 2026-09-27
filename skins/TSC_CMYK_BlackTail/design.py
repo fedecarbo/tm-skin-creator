@@ -3,7 +3,8 @@ idea: the tail stays black with a few tears, the speed digits in the run's orang
 every light the game put there takes the run's colours, the turbo lights the car in them too
 (magenta inside the wheels, orange-hot in the tail's openings), one line per tyre, and relief: a
 quilted seat and printer's registration marks raised on the tail. TSC_CMYK_EndsInK (Claude's
-idea) is the same with design(s, tail="k"): the run itself ends in black at the tip."""
+idea) is the same with design(s, tail="k"): the wrap torn right to the tail, over the run all
+the way back."""
 import importlib.util
 
 import numpy as np
@@ -86,8 +87,10 @@ def wheels(s):
 def design(s, tail="tears"):
     k = tail == "k"
     # the body: yours holds the wrap over the tail's last 40 cm (tears shrink away towards the
-    # tip); mine runs the colour under the wrap into black at the tip (C, M, Y and K)
-    _more.design(s, tip=BLACK if k else None, hold=None if k else shapes.fade("z", -110, -150))
+    # tip); mine tears it right to the tail, over the run all the way back. The run once went
+    # into black at the tip, so the tears there showed nothing (the user, 2026-09-27: "the cmyk
+    # gradient doesnt go through to the far back"): the black wrap is the K
+    _more.design(s, hold=None if k else shapes.fade("z", -110, -150))
     s.relight("speed numbers", ORANGE)
     wheels(s)
     # the inside's lights, and the turbo

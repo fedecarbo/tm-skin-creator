@@ -46,5 +46,29 @@
   ],
   "made": "2026-09-27T14:02:29Z",
   "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 3,
+  "text": "Thing is that the cmyk gradient doesnt go through to the far back.  Tha's why it;s not work",
+  "step": 0,
+  "step_name": "The colour run",
+  "part": {
+   "id": 82,
+   "label": "tail panel",
+   "token": "tail panel"
+  },
+  "at": [
+   0.0667,
+   0.6613,
+   -1.5446
+  ],
+  "normal": [
+   0.008,
+   0.9997,
+   -0.0251
+  ],
+  "made": "2026-09-27T14:14:45Z",
+  "state": "done"
  }
 ]
