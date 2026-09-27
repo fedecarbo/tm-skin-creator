@@ -1820,6 +1820,37 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
     on the floor, lamps the grey room doesn't have): the floors stay matte and let the mirror
     carry the reflection.
 
+### The viewer on smaller screens, and its buttons (done 2026-09-27)
+
+The user, 2026-09-27: "when the screen gets smaller, the viewer of the car shrinks and get's
+distorted". Each choice was made from real renders of the viewer, side by side on one page
+(https://claude.ai/artifact/KRjTpvGLtMhVKYkvgoB3Nm, the user's /visual-plan).
+
+- [x] **The car framed by its own outline** (`frame()` and `outline()` in `viewer/viewer.js`), in
+  the space the page leaves it: beside the list, between the name above and the bottom stack. The
+  camera stays where the view puts it, so the car keeps its shape at any size; the zoom sizes the
+  picture and a view offset centres the car's own outline there. Sized by the outline swept all the
+  way round (24 turns at the view's height), so a drag never cuts the car on a computer, and never
+  bigger than on a full screen (0.92, as before).
+- [x] **A phone: the car closer (C, of three: "I'm ok with the phone for the car to not cover the
+  full screen. Because right now it's too distant").** On a screen taller than wide the car grows
+  past the width, 1 + 2.7 x (0.8 - width/height), nearly twice as big as before on a phone, its nose
+  and tail off the edges; never more than 1.55 widths of its own outline, so the side views keep half
+  of each wheel (all body on a phone; a pinch zooms out).
+- [x] **The list folds under 1280 px wide (B, of three: it stays, it folds sooner, a slim list of
+  pictures).** Below that the list cost the car size; the name stays on one line beside the buttons.
+- [x] **The buttons (the user: "once the numbers start to change in the kilometers then the buttons
+  kind of move around", "the buttons overlap on top of the views", Save picture "on the top right
+  corner ... as an icon", "I don't think spin is actually necessary").** The speed above the pedals
+  (B, of three: held still between them, above them, in the corner), its number three digits wide;
+  the pedals, the views and the credit in one stack along the bottom (`#dock`), so nothing overlaps;
+  Save a camera icon at the end of the top row, still yellow ("You can still have the picture icon
+  as the accent"); Spin gone. Then: "remove the e.g copy cam X ... just have the alt ones ... rename
+  them to Cam 1 and Cam 2", "maybe just have them without dropdown": the Driving menu and Copy Cam
+  are gone; the game's closer cameras (cam1alt, cam2alt) are two buttons after Top, named Cam 1 and
+  Cam 2. `tool.snap --cams` still draws all four. The menus on the light studio are solid now (the
+  buttons' see-through glass rule reached their items).
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
@@ -1907,6 +1938,22 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-27, the viewer on smaller screens (`CHECKLIST.md`, "The viewer on smaller screens").**
+  - **Zooming never distorts the car; moving the camera does.** A fixed lens top to bottom (32°)
+    makes a narrow window see less across; zooming the picture out keeps the car's shape (only the
+    camera's place sets its perspective). The "distortion" never showed in a still picture: it was
+    the car shrinking into a mostly empty screen, the floor's grid then reading like a wide lens.
+  - **Frame the car by its outline, not a rule of thumb.** The old rule (fit a 1.3-wide box) left
+    the car 77 % of full size beside the list in a 1100-wide window and 36 % on a phone; its outline
+    swept all the way round is only about a tenth wider than the front view's, so a spin-safe fit
+    costs little. A 3/4 view's outline sits left of the car's centre (the near front wheel looks
+    bigger): centre the outline, not the centre.
+  - **A glide between views has to carry the framing too**, or the zoom jumps at the start: every
+    framing is one view offset of the whole window (x, y, zoom), so a glide can blend two of them.
+  - **CSS:** a rule scoped by a parent id (`body.lightStudio #bar .sk:not(...)`) also reaches the
+    menus inside that parent; a transform (the buttons' skew) widens `getBoundingClientRect` but not
+    the layout, so measure a wrapping row by the rows' tops.
 
 - **2026-09-27, the studio render (`CHECKLIST.md`, "The studio render").**
   - **Haze came from light, not from the picture.** The studio HDR lit the car from every side (76 %

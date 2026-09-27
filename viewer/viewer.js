@@ -178,7 +178,6 @@ controls.enableDamping = true;
 controls.minDistance = 1;
 const DRIVING_MIN = 0.2;  // closer, with a Driving camera picked
 controls.maxDistance = 18;
-controls.autoRotateSpeed = 1.5;  // one turn in about 40 s
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
 
 // view: a name from VIEWS, or { dir, dist, target, fov } for a close look, or { dir, fit, margin }
@@ -192,6 +191,7 @@ function setView(view, smooth = false) {
   const target = new THREE.Vector3(...(v.target || CENTRE.toArray()));
   const offset = new THREE.Vector3(...v.dir).normalize().multiplyScalar(v.dist * (snap || embed ? 1 : v.roomy || 1));
   const fov = v.fov || FOV;
+  framedFrom = { pos: target.clone().add(offset), target: target.clone() };
   if (!smooth) {
     glide = null;
     controls.target.copy(target);
@@ -199,6 +199,7 @@ function setView(view, smooth = false) {
     camera.fov = fov;
     camera.updateProjectionMatrix();
     controls.update();
+    reframe();
     return;
   }
   // Round the car, not through it: angles and distance change, the target slides.
@@ -206,14 +207,17 @@ function setView(view, smooth = false) {
   const to = new THREE.Spherical().setFromVector3(offset);
   let turn = to.theta - from.theta;
   turn -= Math.round(turn / (2 * Math.PI)) * 2 * Math.PI;
-  glide = { start: performance.now(), from, to, turn, target0: controls.target.clone(), target1: target, fov0: camera.fov, fov1: fov };
+  const on = camera.view?.enabled ? camera.view : null;  // the framing on screen
+  const frame0 = on && { w: on.fullWidth, h: on.fullHeight, x: on.offsetX, y: on.offsetY, zoom: camera.zoom };
+  glide = { start: performance.now(), from, to, turn, target0: controls.target.clone(), target1: target, fov0: camera.fov, fov1: fov, frame0 };
+  reframe();
 }
 
 // The distance, and the target slid across the picture, that frame the parts `fit` (ids) seen from
 // `dir`: their corners inside the picture with `margin` (a share of its half-size) to spare at the
 // nearest edge. Found by steps, from a sample of every 8th corner, a few milliseconds.
 let fitCorners = null;  // per part id, x y z of every 8th corner
-function fitView(v) {
+function carCorners() {
   if (!fitCorners) {
     const lists = Array.from({ length: 256 }, () => []);
     for (const g of Object.values(geometries)) {
@@ -222,7 +226,10 @@ function fitView(v) {
     }
     fitCorners = lists.map((l) => new Float32Array(l));
   }
-  const pts = v.fit.map((i) => fitCorners[i]).filter((p) => p && p.length);
+  return fitCorners;
+}
+function fitView(v) {
+  const pts = v.fit.map((i) => carCorners()[i]).filter((p) => p && p.length);
   const back = new THREE.Vector3(...v.dir).normalize();
   const right = new THREE.Vector3(0, 1, 0).cross(back).normalize(), up = back.clone().cross(right);
   const ty = Math.tan(THREE.MathUtils.degToRad(v.fov || FOV) / 2), tx = ty * camera.aspect, keep = 1 - (v.margin ?? 0.06);
@@ -265,34 +272,108 @@ function stepGlide() {
   camera.position.setFromSpherical(s).add(controls.target);
   camera.fov = glide.fov0 + (glide.fov1 - glide.fov0) * e;
   camera.updateProjectionMatrix();
+  const f0 = glide.frame0, f1 = framedTo;
+  if (f0 && f1 && f0.w === f1.w && f0.h === f1.h) {
+    showFraming({ w: f1.w, h: f1.h, x: f0.x + (f1.x - f0.x) * e, y: f0.y + (f1.y - f0.y) * e, zoom: f0.zoom + (f1.zoom - f0.zoom) * e });
+  } else if (f1) showFraming(f1);
   if (t >= 1) glide = null;
 }
 
-// The list down the left covers part of the window, so the picture's centre moves to the middle
-// of the space beside it (a view offset, so the car still turns about its own centre), a little
-// up to clear the buttons along the bottom, and the car is drawn a little smaller. Snapshots
-// keep the plain framing.
-const FRAMED = { up: 0.05, zoom: 0.92 };
+// The car is framed by its own outline in the space the page leaves it: beside the list, between
+// the skin's name above and the buttons below (the user, 2026-09-27: in a smaller window "the viewer
+// of the car shrinks"). The camera stays where the view puts it, so the car keeps its shape at any
+// size: the zoom sizes the picture and a view offset centres the car in that space (it still turns
+// about its own centre). Sized so the car stays whole all the way round, as a drag turns it, and
+// never bigger than on a full screen. On a screen taller than wide (a phone held upright) the car
+// comes closer than that, its nose and tail off the edges, only seen by turning it: nearly twice as
+// big on a phone (the user's pick, C, from three renders, 2026-09-27: "right now it's too distant"),
+// but never more than 1.55 times as wide as the screen, so the side views keep half of each wheel.
+// Where the name and the buttons leave too little room between them (a phone on its side), the car
+// is framed in the whole window. Snapshots keep the plain framing.
+const FRAMED = { zoom: 0.92, fill: 0.9, tall: 0.8, closer: 2.7, run: 1.55 };
 // A Driving camera: the car as big as on the game's screen, lifted clear of the pad (the game's
 // picture has the car's tail at 89 % of the height, where the pad sits).
 const GAME_FRAMED = { up: 0.12, zoom: 1 };
 function railWidth() {
   return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rail')) || 0;
 }
+// Where the car is framed from: the pose the view last set puts the camera in (while it glides
+// there, the end of the glide), or where the user left it.
+let framedFrom = null;
 function frame(w, h, plain) {
   if (plain) {
     camera.clearViewOffset();
     camera.aspect = w / h;
     camera.zoom = 1;
-  } else {
-    const rail = railWidth();
-    const f = camPicked ? GAME_FRAMED : FRAMED;
-    camera.setViewOffset(w - rail, h, -rail, f.up * h, w, h);
-    // The lens is fixed top to bottom, so a tall window (a phone held upright) sees less across:
-    // draw the car smaller until it fits across as it does on a wide screen, or the game's 16:9.
-    camera.zoom = f.zoom * Math.min(1, (w - rail) / h / (camPicked ? 16 / 9 : 1.3));
+    camera.updateProjectionMatrix();
+    return;
   }
+  framedTo = framing(w, h);
+  if (!glide) showFraming(framedTo);
+}
+// The zoom, and the view offset (x, y) that moves the picture's centre, for a window w x h.
+function framing(w, h) {
+  const rail = railWidth();
+  const pos = framedFrom?.pos || camera.position, target = framedFrom?.target || controls.target;
+  const own = !camPicked && outline(pos, target), round = own && outline(pos, target, true);
+  if (!own) {  // a Driving camera, or the car not loaded yet: fits across as on the game's 16:9
+    const f = camPicked ? GAME_FRAMED : { up: 0.05, zoom: FRAMED.zoom };
+    return { w, h, x: -rail / 2, y: f.up * h, zoom: f.zoom * Math.min(1, (w - rail) / h / (camPicked ? 16 / 9 : 1.3)) };
+  }
+  const name = byId('name').getBoundingClientRect(), dock = byId('dock').getBoundingClientRect();
+  let top = Math.max(0, name.bottom), bottom = dock.top;
+  if (bottom - top < 0.35 * h) [top, bottom] = [0, h];
+  const across = (w - rail) * FRAMED.fill / ((round.x1 - round.x0) * h / 2);
+  const down = (bottom - top) * FRAMED.fill / ((round.y1 - round.y0) * h / 2);
+  const closer = 1 + FRAMED.closer * Math.max(0, FRAMED.tall - (w - rail) / h);
+  const run = (w - rail) * FRAMED.run / ((own.x1 - own.x0) * h / 2);
+  const zoom = Math.min(FRAMED.zoom, down, across * closer, Math.max(across, run));
+  // Move the middle of the car's own outline to the middle of the space.
+  const dx = (rail + w) / 2 - (w / 2 + (own.x0 + own.x1) / 2 * zoom * h / 2);
+  const dy = (top + bottom) / 2 - (h / 2 - (own.y0 + own.y1) / 2 * zoom * h / 2);
+  return { w, h, x: -dx, y: -dy, zoom };
+}
+let framedTo = null;  // the framing frame() last worked out
+function showFraming(f) {
+  camera.setViewOffset(f.w, f.h, f.x, f.y, f.w, f.h);
+  camera.zoom = f.zoom;
   camera.updateProjectionMatrix();
+}
+
+// The car's outline seen from `pos` looking at `target`: how far it reaches left, right, down and up
+// of the picture's centre, in half-heights of the picture through the lens at zoom 1. From every
+// 8th corner, as fitView. round: swept all the way round the car at that height and distance, as a
+// drag turns it (kept for the next call from the same height and distance).
+let roundOutline = null;
+function outline(pos, target, round = false) {
+  if (!geometries) return null;
+  const rel = pos.clone().sub(target);
+  const key = [rel.y, Math.hypot(rel.x, rel.z), ...target.toArray()].map((v) => v.toFixed(3)).join();
+  if (round && roundOutline?.key === key) return roundOutline.box;
+  const ty = Math.tan(THREE.MathUtils.degToRad(FOV) / 2), yAxis = new THREE.Vector3(0, 1, 0);
+  const eye = new THREE.Vector3(), back = new THREE.Vector3(), right = new THREE.Vector3(), up = new THREE.Vector3();
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  const turns = round ? 24 : 1;
+  for (let t = 0; t < turns; t++) {
+    eye.copy(rel).applyAxisAngle(yAxis, (t / turns) * 2 * Math.PI);
+    back.copy(eye).normalize();
+    eye.add(target);
+    right.crossVectors(yAxis, back).normalize();
+    up.crossVectors(back, right);
+    for (const p of carCorners()) {
+      for (let k = 0; k < p.length; k += 3) {
+        const qx = p[k] - eye.x, qy = p[k + 1] - eye.y, qz = p[k + 2] - eye.z;
+        const z = -(qx * back.x + qy * back.y + qz * back.z);
+        if (z < 0.05) continue;
+        const sx = (qx * right.x + qy * right.y + qz * right.z) / z / ty, sy = (qx * up.x + qy * up.y + qz * up.z) / z / ty;
+        if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+      }
+    }
+  }
+  if (x0 >= x1) return null;
+  const box = { x0, x1, y0, y1 };
+  if (round) roundOutline = { key, box };
+  return box;
 }
 
 function resize() {
@@ -300,6 +381,9 @@ function resize() {
   renderer.setSize(w, h, false);
   frame(w, h, snap || embed);
   if (fitted) setView(fitted);
+}
+function reframe() {
+  frame(canvas.clientWidth, canvas.clientHeight, snap || embed);
 }
 window.addEventListener('resize', resize);
 
@@ -1405,6 +1489,7 @@ function showSkinName() {
   document.getElementById('tag').hidden = !entry?.installed;
   document.title = `${title} · Skin viewer`;
   markSkin(skinName);
+  reframe();  // the name may take another line
 }
 
 async function buildSkinList() {
@@ -1472,27 +1557,12 @@ function savePicture() {
   resize();
 }
 
-// ---- The game's cameras, set by the user ----
-// Pick one under Driving, move the view until it looks like the game (drag to turn, right-drag to
-// slide the car in the picture, scroll to go nearer), then "Copy Cam N" and paste it to Claude
-// (the user's way, 2026-09-25). Claude squares it up straight behind the car, since nobody can
-// centre it by hand: only the height, the tilt, the distance and where the car sits count.
+// ---- The game's cameras ----
+// Beside the views, the game's closer Cam 1 and Cam 2 (cam1alt and cam2alt in VIEWS, fitted to the
+// user's screenshots), as two buttons named Cam 1 and Cam 2 with no others (the user, 2026-09-27, who
+// also dropped the Driving menu and "Copy Cam N", which copied a camera set by eye for Claude).
 
 let camPicked = null;  // the Driving camera last picked, while the user moves it
-const camTitle = (name) => document.querySelector(`#camMenu [data-view="${name}"]`).firstElementChild.textContent;
-
-async function copyCamera() {
-  const p = (v) => v.toArray().map((x) => x.toFixed(3)).join(', ');
-  const text = `${camTitle(camPicked)} from the viewer: camera at ${p(camera.position)}, looking at ${p(controls.target)}, lens ${camera.fov.toFixed(1)}°`;
-  const label = byId('copyCam').firstElementChild;
-  try {
-    await navigator.clipboard.writeText(text);
-    label.textContent = 'Copied: paste it to Claude';
-  } catch {  // no clipboard: show the text to copy by hand
-    statusBox.textContent = text;
-    setTimeout(() => { if (statusBox.textContent === text) statusBox.textContent = ''; }, 20000);
-  }
-}
 
 // ---- Controls on the page ----
 
@@ -1523,7 +1593,6 @@ byId('show').onclick = (e) => {
 };
 document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
-  if (!byId('camWrap').contains(e.target)) openCams(false);
   if (!byId('moodWrap').contains(e.target)) openMoods(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
@@ -1538,45 +1607,29 @@ for (const b of document.querySelectorAll('#showMenu [data-part]')) {
 byId('plateToggle').onclick = () => setPlate(!plateUniforms.plateOn.value);
 byId('brakeToggle').onclick = () => setBraking(!braking);
 const viewButtons = [...document.querySelectorAll('#bar [data-view]')];
-const openCams = (open) => { byId('camMenu').hidden = !open; byId('cam').setAttribute('aria-expanded', String(open)); };
 const markView = (name) => {
   currentView = name;
   for (const b of viewButtons) pressed(b, b.dataset.view === name);
-  const cam = viewButtons.find((b) => b.dataset.view === name && byId('camMenu').contains(b));
-  pressed(byId('cam'), Boolean(cam));  // Driving shows which of the game's cameras is on
-  if (cam) byId('camName').textContent = cam.firstElementChild.textContent;
 };
 for (const b of viewButtons) {
   b.onclick = () => {
     setView(b.dataset.view, true);
     markView(b.dataset.view);
-    openCams(false);
-    camPicked = byId('camMenu').contains(b) ? b.dataset.view : null;
+    camPicked = 'cam' in b.dataset ? b.dataset.view : null;
     controls.minDistance = camPicked ? DRIVING_MIN : 1;
     resize();  // a Driving camera frames the car as the game does
-    showCopy();
   };
 }
-// Copy shows from picking a Driving camera until another view is picked.
-const showCopy = () => {
-  byId('copyCam').hidden = !camPicked;
-  if (camPicked) byId('copyCam').firstElementChild.textContent = `Copy ${camTitle(camPicked)}`;
-};
-byId('cam').onclick = (e) => { e.stopPropagation(); openCams(byId('camMenu').hidden); };
 controls.addEventListener('start', () => {  // the user took the camera
   glide = null;
+  if (framedTo) showFraming(framedTo);
   fitted = null;
+  framedFrom = null;
   markView(null);
-  showCopy();
 });
-byId('copyCam').onclick = copyCamera;
-byId('spin').onclick = () => {
-  controls.autoRotate = !controls.autoRotate;
-  pressed(byId('spin'), controls.autoRotate);
-};
 byId('save').onclick = savePicture;
 byId('railToggle').onclick = () => document.body.classList.toggle('railOpen');
-matchMedia('(max-width: 900px)').addEventListener('change', resize);
+matchMedia('(max-width: 1280px)').addEventListener('change', resize);  // the list folds (index.html)
 
 // ---- Start ----
 
