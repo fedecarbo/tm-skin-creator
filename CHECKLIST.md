@@ -2231,6 +2231,13 @@ distorted". Each choice was made from real renders of the viewer, side by side o
     the nearest covered texel's position.
   - `noise._hash` in 32-bit arithmetic gives the same values in half the time; `value()` is
     1.7x faster, which every pattern benefits from.
+  - (2026-09-27, the user's notes on TSC_CMYK_EndsInK) The distance to a tear's edge as field /
+    gradient only holds near a real crossing: where two tears nearly meet, the field dips close
+    to zero without crossing, and a shadow line was drawn across open paint with no wrap beside
+    it ("the black didn't come through"). The shadow now needs a wrap texel within its width
+    (a 3D lookup, so it still works across seams). And where the paint under a tear looks like
+    the wrap (the black tip), the shadow alone read as "an outline and the paint is not there":
+    it fades out as the two come to look alike, so tears dissolve into a matching colour.
 
 - **2026-09-24, pictures on the car (checkpoint 6).**
   - A decal restricted to one named panel stops dead at the next panel; the user saw the

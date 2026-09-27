@@ -1,0 +1,50 @@
+[
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 1,
+  "text": "There something wrong with this part of the color, looks like an outline and the paint is not there.",
+  "step": 0,
+  "step_name": "The design",
+  "part": {
+   "id": 82,
+   "label": "tail panel",
+   "token": "tail panel"
+  },
+  "at": [
+   0.2325,
+   0.6569,
+   -1.5562
+  ],
+  "normal": [
+   0.04,
+   0.9989,
+   -0.0243
+  ],
+  "made": "2026-09-27T14:01:51Z",
+  "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 2,
+  "text": "There's also some weird outline here so im imagining the black didnt come through properly",
+  "step": 0,
+  "step_name": "The design",
+  "part": {
+   "id": 24,
+   "label": "wing pylon (left)",
+   "token": "wing pylon|left"
+  },
+  "at": [
+   0.1181,
+   0.2152,
+   1.8632
+  ],
+  "normal": [
+   0.5984,
+   0.7983,
+   0.0678
+  ],
+  "made": "2026-09-27T14:02:29Z",
+  "state": "done"
+ }
+]

@@ -11,3 +11,12 @@ the side vents seen through the tail's openings, and those openings in a turbo. 
 the tip's black satin: under the matte wrap it caught the light as pale grey blotches, like dirt.
 
 - Shown 2026-09-25 next to TSC_CMYK_BlackTail: build/TSC_CMYK_tails_picture.png.
+- Change 1 (user, note 1, the tail): "There something wrong with this part of the color, looks
+  like an outline and the paint is not there." Where the colour under the wrap had turned black,
+  a tear showed only its shadow line. The tool now fades a tear's shadow out where the paint
+  under it looks like the wrap, so the tears dissolve into the black tip as meant.
+- Change 2 (user, note 2, the left wing pylon): "There's also some weird outline here so im
+  imagining the black didnt come through properly". Where two tears nearly met, the tool drew a
+  shadow line across the colour with no wrap beside it. A shadow now needs the wrap beside it.
+  Both fixes are in the tear tool, so every torn-wrap skin gets them when painted again.
+- Shown 2026-09-27 (Opus 5.5): build/TSC_CMYK_EndsInK_picture.png (front, rear, top; nose, tail, driving camera).

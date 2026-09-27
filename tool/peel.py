@@ -109,6 +109,23 @@ def peel(skin, under, where="body", amount=0.2, scale=30.0, stretch=0.5, jag=0.0
     sd = H / np.maximum(g, 1e-6)  # cm from the edge, + inside a tear
     hole = np.clip(0.5 + sd / pitch, 0, 1)  # a one-texel ramp across the edge
     shade = np.clip(0.5 + (shadow - sd) / pitch, 0, 1) * hole if shadow > 0 else np.zeros_like(hole)
+    if shadow > 0:
+        # only along a real edge: where two tears nearly meet, the field dips close to zero
+        # without crossing it, H / g reads as near an edge, and a shadow line was drawn across
+        # open paint with no wrap beside it (TSC_CMYK_EndsInK, the user's note on a wing pylon)
+        near = np.nonzero(shade > 0)[0]
+        wrap = (hole < 0.5) & (sd > -1.0)
+        if len(near) and wrap.any():
+            d, _ = cKDTree(pos[wrap]).query(pos[near], distance_upper_bound=shadow + 1.0, workers=-1)
+            shade[near[d > shadow + 1.5 * pitch[near]]] = 0
+        # where the paint underneath looks like the wrap (TSC_CMYK_EndsInK's black tip), a tear
+        # shows nothing, and its shadow alone read as an outline with the paint missing (the
+        # user's note on the tail): the shadow fades out as the two come to look alike
+        top = c.colour[idx]
+        apart = np.abs(under["colour"][idx] - top).max(1)
+        if c.rough is not None:
+            apart = np.maximum(apart, 0.5 * np.abs(under["rough"][idx] - c.rough[idx]))
+        shade = shade * np.clip(apart / 0.15, 0, 1)
     for k in ("colour", "rough", "metal", "coat"):
         layer = getattr(c, k)
         if layer is None:
