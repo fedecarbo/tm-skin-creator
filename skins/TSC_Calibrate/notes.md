@@ -77,5 +77,7 @@ key 1.1; night env 4.4, key 0.44, exposure 0.9, glows x1.8).
 
 - Made 2026-09-27 on the Mac and checked in the viewer: the six views, the close looks and the
   three chase cameras by day and at night. Every patch is where Cam 1 and 2 see it; Cam 3 sees
-  the cockpit, the white wheel and the lamps. Not installed yet: install it on the Windows PC with
-  `tool.skin install TSC_Calibrate`.
+  the cockpit, the white wheel and the lamps.
+- Installed 2026-09-27 on the PC (painted there first: the Mac's paint stays on the Mac), 1.26 MB.
+  Kept off the page online, as a test chart (`TEST_CARS` in `tool/publish.py`). The user is
+  taking the mood screenshots.

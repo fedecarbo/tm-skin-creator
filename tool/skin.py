@@ -93,6 +93,10 @@ def keep_version(name, thumb):
 def do_install(name):
     t0 = time.time()
     folder = paths.SKINS / name
+    # a skin shown on the other computer, or changed since it was shown here, is painted first
+    painted = paths.BUILD / name / "painted.json"
+    if not painted.exists() or painted.stat().st_mtime < (folder / "design.py").stat().st_mtime:
+        paintbox.save_painted(paint(name))
     icon = None
     thumb = folder / "thumb.png"
     if thumb.exists():

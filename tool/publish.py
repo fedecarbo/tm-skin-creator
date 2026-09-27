@@ -76,11 +76,14 @@ def _copy(source, target):
         shutil.copy2(source, target)
 
 
+TEST_CARS = {"Test", "Calibrate", "Lab"}  # a word in the name: test charts, not skins to show
+
+
 def chosen():
     """The skins on the page, newest first: gallery.refresh()'s entries for the skins in the game
     that have a design, without test cars."""
     installed = {n.removesuffix(".zip") for n in install.load_manifest()}
-    return [e for e in gallery.refresh() if e["name"] in installed and "Test" not in e["name"].split("_")]
+    return [e for e in gallery.refresh() if e["name"] in installed and not TEST_CARS & set(e["name"].split("_"))]
 
 
 def build():
