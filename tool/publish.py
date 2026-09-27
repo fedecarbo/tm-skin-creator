@@ -36,7 +36,7 @@ from tool import gallery, install, paths, view
 
 SITE = paths.WORK / "site"
 BRANCH = "gh-pages"
-PAGE = ("index.html", "gallery.html", "viewer.js", "floors.js", "public.css")
+PAGE = ("index.html", "gallery.html", "viewer.js", "studio.js", "public.css")
 MAX = 2048
 JPEG = {"quality": 90, "subsampling": 0, "optimize": True}
 PORT = 8766
@@ -123,7 +123,8 @@ def build():
             kept.add(target)
 
     for name in ("car.json", "car.bin", "parts.json", *(f"{h}.hdr" for h in view.HDRIS),
-                 *(p.name for p in view.DATA.glob("*_Shared.png"))):
+                 *(p.name for p in view.DATA.glob("*_Shared.png")),
+                 *(p.relative_to(view.DATA).as_posix() for a in view.FLOOR_SETS for p in (view.DATA / "floor" / a).glob("*.jpg"))):
         _copy(view.DATA / name, out / name)
         kept.add(out / name)
 

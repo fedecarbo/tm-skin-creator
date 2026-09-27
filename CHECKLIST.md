@@ -1763,6 +1763,14 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   on the grey scale): the calibration car's tail 64 91 123 161 206 253 (the game's 53 80 114 158
   204 247), N8 neutral (206, 207, 206), its back 43 and 38, bluish, as the game's (23 to 38), the
   tyres 29 (44). The Lab's balls alike; the studio HDR left the downloads (`view.HDRIS`).
+- [x] **4. One studio, light or dark (the user, 2026-09-27: "To reduce load, we can have the grainy
+  grid, and have the dark and light options").** The Floor menu is now a Studio menu, Light studio
+  or Dark studio (`viewer/studio.js`, `?studio=`; the viewer, the Lab's Studio, the snapshots and
+  the page online all stand on it, light unless picked). The other floors, their pictures, the
+  mirror (`Reflector.js`) and the old cove and dark patch (`addRoom`) are gone; the grain is the 1K
+  set now (a metre a repeat needs no more), and the page online carries it. The ground shadow is
+  drawn only when a mesh is shown or hidden (its depth pass sees the car at rest anyway), not every
+  frame.
   - **The Lab's numbers read "undefined" on this PC:** its materials data predated the fields
     (`tool.swatches` hadn't run here since); `PY -m tool.swatches --no-open` rebuilt it (72).
   - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror

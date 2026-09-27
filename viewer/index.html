@@ -33,7 +33,7 @@
   .sk.acc { background: var(--acc); color: var(--ground); font-weight: 600; }
   .sk.acc:hover { background: #f1ff8a; }
   .gap { width: 14px; flex: none; }
-  /* Over the light studio (viewer/floors.js) the buttons floating on the picture get a dark glass,
+  /* Over the light studio (viewer/studio.js) the buttons floating on the picture get a dark glass,
      and the title a soft shadow, so they read wherever the car is; by day, when the studio is near
      white, the title and the speed are in dark ink (viewer.js: markStudio). */
   body.lightStudio #top .sk:not([aria-pressed="true"]):not(.acc), body.lightStudio #bar .sk:not([aria-pressed="true"]):not(.acc),
@@ -72,17 +72,14 @@
   #tag { display: inline-block; margin-top: 8px; padding: 4px 10px 1px; background: var(--acc); color: var(--ground); font-size: 19px; font-weight: 600; transform: skewX(-12deg); }
   #tag[hidden] { display: none; }
 
-  /* Top right: show, parts, the floor, day and night */
+  /* Top right: show, parts, the studio's shade, day and night */
   #top { position: fixed; right: 40px; top: 40px; display: flex; gap: 6px; z-index: 2; }
-  #showWrap, #moodWrap, #floorWrap { position: relative; }
-  #showMenu, #moodMenu, #floorMenu { position: absolute; right: 0; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
-  #showMenu[hidden], #moodMenu[hidden], #floorMenu[hidden] { display: none; }
-  #showMenu .sk, #moodMenu .sk, #floorMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
-  #showMenu .sk:hover, #moodMenu .sk:hover, #floorMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
-  #showMenu .sk[aria-pressed="true"], #moodMenu .sk[aria-pressed="true"], #floorMenu .sk[aria-pressed="true"] { background: var(--text); }
-  #floorMenu .shades { display: flex; gap: 4px; margin-top: 6px; }
-  #floorMenu .shades .sk { flex: 1; justify-content: center; }
-  #floorMenu .sk:disabled { opacity: 0.35; cursor: default; }
+  #showWrap, #moodWrap, #studioWrap { position: relative; }
+  #showMenu, #moodMenu, #studioMenu { position: absolute; right: 0; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+  #showMenu[hidden], #moodMenu[hidden], #studioMenu[hidden] { display: none; }
+  #showMenu .sk, #moodMenu .sk, #studioMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
+  #showMenu .sk:hover, #moodMenu .sk:hover, #studioMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
+  #showMenu .sk[aria-pressed="true"], #moodMenu .sk[aria-pressed="true"], #studioMenu .sk[aria-pressed="true"] { background: var(--text); }
   #showMenu .box { width: 10px; height: 10px; border: 2px solid currentColor; margin-top: -3px; }
   #showMenu .sk[aria-pressed="true"] .box { background: currentColor; }
 
@@ -176,7 +173,7 @@
     #railToggle { left: 12px; top: 12px; }
     #top { right: 12px; top: 12px; gap: 4px; }
     #top .gap { width: 6px; }
-    #show > span, #togglePartsPanel > span, #mood > span, #floor > span, #save > span { display: none; }
+    #show > span, #togglePartsPanel > span, #mood > span, #studio > span, #save > span { display: none; }
     #name { top: 62px; left: 16px; max-width: calc(100vw - 32px); }
     #title { font-size: 38px; }
     #bar { left: 10px; right: 10px; bottom: 30px; gap: 4px; justify-content: center; }
@@ -234,22 +231,11 @@
   </div>
   <button id="togglePartsPanel" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-parts"/></svg><span>Parts</span></button>
   <span class="gap"></span>
-  <div id="floorWrap" class="tool-only">
-    <button id="floor" class="sk" aria-expanded="false" title="what the car stands on"><svg class="ic"><use href="#i-floor"/></svg><span id="floorName">Grainy grid</span><svg class="ic"><use href="#i-down"/></svg></button>
-    <div id="floorMenu" hidden>
-      <button class="sk" data-floor="gridgrain" aria-pressed="true"><span>Grainy grid</span></button>
-      <button class="sk" data-floor="today" aria-pressed="false"><span>As today</span></button>
-      <button class="sk" data-floor="keyshot" aria-pressed="false"><span>KeyShot</span></button>
-      <button class="sk" data-floor="concrete" aria-pressed="false"><span>Concrete</span></button>
-      <button class="sk" data-floor="asphalt" aria-pressed="false"><span>Fine asphalt</span></button>
-      <button class="sk" data-floor="rubber" aria-pressed="false"><span>Rubber</span></button>
-      <button class="sk" data-floor="speckle" aria-pressed="false"><span>Speckled rubber</span></button>
-      <button class="sk" data-floor="turntable" aria-pressed="false"><span>Turntable</span></button>
-      <button class="sk" data-floor="grid" aria-pressed="false"><span>Grid</span></button>
-      <div class="shades">
-        <button class="sk" data-shade="dark" aria-pressed="true" title="the viewer's dark grey"><span>Dark</span></button>
-        <button class="sk" data-shade="light" aria-pressed="false" title="a light studio, darker towards the edges"><span>Light</span></button>
-      </div>
+  <div id="studioWrap">
+    <button id="studio" class="sk" aria-expanded="false" title="the studio around the car, light or dark"><svg class="ic"><use href="#i-floor"/></svg><span id="studioName">Light studio</span><svg class="ic"><use href="#i-down"/></svg></button>
+    <div id="studioMenu" hidden>
+      <button class="sk" data-shade="light" aria-pressed="true"><span>Light studio</span></button>
+      <button class="sk" data-shade="dark" aria-pressed="false"><span>Dark studio</span></button>
     </div>
   </div>
   <div id="moodWrap">

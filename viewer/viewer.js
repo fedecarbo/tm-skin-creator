@@ -1,7 +1,7 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
-//   &floor=<name>          what the car stands on (viewer/floors.js; snapshots: today's unless set)
+//   &studio=light|dark     the studio's shade (viewer/studio.js; snapshots: light unless set)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and pins notes to (the Studio,
@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import { createFloors, parseFloor } from './floors.js';
+import { createStudio } from './studio.js';
 
 const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || 'TSC_Test';
@@ -301,7 +301,7 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
-// ---- Studio: the key light and the room ----
+// ---- The key light (the room: viewer/studio.js) ----
 
 const key = new THREE.DirectionalLight(LOOKS.day.keyColour, LOOKS.day.key);
 key.position.copy(CENTRE).addScaledVector(KEY_FROM, 15);
@@ -316,40 +316,7 @@ scene.add(key, key.target);
 
 scene.background = new THREE.Color('#050506');  // seen only from under the floor
 
-// The room: a seamless cove, the floor curving up into the walls and a ceiling, all one matte
-// grey lit by the same light as the car. Floor radius 14 m, curve 6 m, 14 m high.
-function addRoom() {
-  const profile = [new THREE.Vector2(0, 0), new THREE.Vector2(14, 0)];
-  for (let i = 1; i <= 12; i++) {
-    const t = (i / 12) * (Math.PI / 2);
-    profile.push(new THREE.Vector2(14 + 6 * Math.sin(t), 6 - 6 * Math.cos(t)));
-  }
-  profile.push(new THREE.Vector2(20, 14), new THREE.Vector2(0, 14));
-  // The lathe's faces point out of the room, so draw their backs: from under the floor it
-  // isn't drawn at all, and the car's underside stays in view.
-  const material = new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0, side: THREE.BackSide });
-  material.color.setScalar(TUNE.room);
-  const room = new THREE.Mesh(new THREE.LatheGeometry(profile, 128), material);
-  room.position.z = CENTRE.z;
-  room.receiveShadow = true;
-  scene.add(room);
-  // A soft dark patch under the car, where the room's light can't reach.
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const g = c.getContext('2d');
-  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  grad.addColorStop(0, 'rgba(0,0,0,0.8)');
-  grad.addColorStop(0.55, 'rgba(0,0,0,0.5)');
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, 256, 256);
-  const contact = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 4.6),
-    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
-  contact.rotation.x = -Math.PI / 2;
-  contact.position.set(0, 0.004, CENTRE.z);
-  scene.add(contact);
-  return { room, contact };
-}
+// The room, the floor and the ground shadow: viewer/studio.js.
 
 const envMaps = {};  // a mood -> its HDRI texture
 
@@ -1387,33 +1354,24 @@ function setMood(m) {
   markStudio();
 }
 
-// ---- The floor: viewer/floors.js, picked from the Floor menu (the user, 2026-09-27) ----
+// ---- The studio's shade, light or dark: viewer/studio.js, the Studio menu (the user, 2026-09-27) ----
 
 // The page's lettering over the light studio (index.html): the buttons on a dark glass, and by day,
 // when the studio is near white, the car's name and the speed in dark ink.
 function markStudio() {
-  if (!floors) return;
-  const { name, shade } = parseFloor(floors.get());
-  const light = name !== 'today' && shade === 'light';
+  if (!studio) return;
+  const light = studio.get() === 'light';
   document.body.classList.toggle('lightStudio', light);
   document.body.classList.toggle('brightStudio', light && mood === 'day');
 }
 
-// text: a surface and a shade, "rubber-light", or "today".
-let floors = null;
-let floorShade = 'dark';  // kept while "as today" is on, for the next surface picked
-function setFloor(text) {
-  const { name, shade } = floors.set(text);
-  if (name !== 'today') floorShade = shade;
+let studio = null;
+function setStudio(shade) {
+  const s = studio.set(shade);
   markStudio();
-  for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.setAttribute('aria-pressed', String(b.dataset.floor === name));
-  for (const b of document.querySelectorAll('#floorMenu [data-shade]')) {
-    b.setAttribute('aria-pressed', String(b.dataset.shade === floorShade));
-    b.disabled = name === 'today';
-  }
-  const picked = document.querySelector(`#floorMenu [data-floor="${name}"]`);
-  if (picked) document.getElementById('floorName').textContent = picked.textContent + (name === 'today' ? '' : ` · ${floorShade}`);
-  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor-3', floors.get()); } catch {}
+  for (const b of document.querySelectorAll('#studioMenu [data-shade]')) b.setAttribute('aria-pressed', String(b.dataset.shade === s));
+  document.getElementById('studioName').textContent = document.querySelector(`#studioMenu [data-shade="${s}"]`).textContent;
+  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-studio', s); } catch {}
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1548,11 +1506,9 @@ const byId = (id) => document.getElementById(id);
 const openMoods = (open) => { byId('moodMenu').hidden = !open; byId('mood').setAttribute('aria-expanded', String(open)); };
 byId('mood').onclick = (e) => { e.stopPropagation(); openMoods(byId('moodMenu').hidden); };
 for (const m of MOODS) byId(m).onclick = () => { setMood(m); openMoods(false); };
-const openFloors = (open) => { byId('floorMenu').hidden = !open; byId('floor').setAttribute('aria-expanded', String(open)); };
-byId('floor').onclick = (e) => { e.stopPropagation(); openFloors(byId('floorMenu').hidden); };
-for (const b of document.querySelectorAll('#floorMenu [data-floor]')) b.onclick = () => { setFloor(`${b.dataset.floor}-${floorShade}`); openFloors(false); };
-// the shade keeps the menu open, to flip between the two
-for (const b of document.querySelectorAll('#floorMenu [data-shade]')) b.onclick = () => setFloor(`${parseFloor(floors.get()).name}-${b.dataset.shade}`);
+const openStudio = (open) => { byId('studioMenu').hidden = !open; byId('studio').setAttribute('aria-expanded', String(open)); };
+byId('studio').onclick = (e) => { e.stopPropagation(); openStudio(byId('studioMenu').hidden); };
+for (const b of document.querySelectorAll('#studioMenu [data-shade]')) b.onclick = () => { setStudio(b.dataset.shade); openStudio(false); };
 byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
   pressed(byId('colourBy'), partsState.mode.value === 1);
@@ -1577,7 +1533,7 @@ document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
   if (!byId('camWrap').contains(e.target)) openCams(false);
   if (!byId('moodWrap').contains(e.target)) openMoods(false);
-  if (!byId('floorWrap').contains(e.target)) openFloors(false);
+  if (!byId('studioWrap').contains(e.target)) openStudio(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
 for (const b of document.querySelectorAll('#showMenu [data-part]')) {
@@ -1775,11 +1731,10 @@ async function start() {
   partsState.doc = doc;
   partTable();
   buildPartsList();
-  floors = createFloors({ scene, renderer, ...addRoom(), centre: CENTRE, roomGrey: TUNE.room });
-  // the user's pick opens the viewer (2026-09-27: the grainy grid, light); snapshots keep today's for now
-  let floor = params.get('floor');
-  if (!floor && !snap) try { floor = localStorage.getItem('tsc-viewer-floor-3'); } catch {}
-  setFloor(floor || (snap ? 'today' : 'gridgrain-light'));
+  studio = createStudio({ scene, renderer, centre: CENTRE, roomGrey: TUNE.room });
+  let shade = params.get('studio');
+  if (!shade && !snap) try { shade = localStorage.getItem('tsc-viewer-studio'); } catch {}
+  setStudio(shade || 'light');
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();
