@@ -1717,8 +1717,12 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   0.2): as today, KeyShot, four matte textured floors (`SURFACES`: concrete Concrete034, fine
   asphalt Asphalt031, rubber Rubber004, speckled rubber Rubber001, ambientCG CC0, fetched by
   `view.ensure_floor`), a turntable 5.2 m across, a grid a metre apart. The light on the car is the
-  same under all of them. Next: the user picks; the rest go, and the menu with them unless they
-  want to keep it.
+  same under all of them. Then the user's pick, tentative ("Maybe let's do. Matte, tiny bit grainy
+  texture in the grid one, and the grid make it tiny bit smaller"): **the grainy grid**, the
+  rubber's grain at 0.45 under a line every 75 cm (one under the car's middle), now what the viewer
+  opens with (dark; the choice is kept under a new key, `tsc-viewer-floor-2`, so the pick showed on
+  refresh). Next: the user confirms it and the shade; then it's the only floor (snapshots, the Lab,
+  the page online) and the menu goes, unless they want to keep it.
   - **"A bit of texture":** each matte floor averages the backdrop's grey (its colour picture
     divided by its own mean, so the rubber's blue cast goes too) and keeps part of the picture's
     contrast, a power of each texel's ratio to the mean (asphalt 0.4, rubber 0.6, speckle 0.36,

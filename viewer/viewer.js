@@ -1376,7 +1376,7 @@ function setFloor(text) {
   }
   const picked = document.querySelector(`#floorMenu [data-floor="${name}"]`);
   if (picked) document.getElementById('floorName').textContent = picked.textContent + (name === 'today' ? '' : ` · ${floorShade}`);
-  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor', floors.get()); } catch {}
+  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-floor-2', floors.get()); } catch {}
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1739,9 +1739,10 @@ async function start() {
   partTable();
   buildPartsList();
   floors = createFloors({ scene, renderer, ...addRoom(), centre: CENTRE, roomGrey: TUNE.room });
+  // the user's pick opens the viewer (2026-09-27: the grainy grid); snapshots keep today's for now
   let floor = params.get('floor');
-  if (!floor && !snap) try { floor = localStorage.getItem('tsc-viewer-floor'); } catch {}
-  setFloor(floor || 'today');
+  if (!floor && !snap) try { floor = localStorage.getItem('tsc-viewer-floor-2'); } catch {}
+  setFloor(floor || (snap ? 'today' : 'gridgrain-dark'));
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();

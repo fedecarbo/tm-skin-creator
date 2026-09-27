@@ -43,8 +43,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   be studio like", then "Keyshot has always been a nice default background and surface that i've
   liked", and, of six floors rendered for them (https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP):
   no line where the floor bends into the wall, "apply all… I pick… from the actual viewer", and "a
-  matte floor with a bit of texture". The viewer's Floor menu has them all, each dark or light
-  (`viewer/floors.js`); waiting for their pick. The steps are
+  matte floor with a bit of texture", then "Matte, tiny bit grainy texture in the grid one, and the
+  grid make it tiny bit smaller": the grainy grid, which the viewer now opens with; the Floor menu
+  (`viewer/floors.js`) still has the rest. Waiting for them to confirm it, dark or light. The steps are
   in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
   "The viewer matched to the game's moods"):
   the viewer maps light straight as the game does (`LinearToneMapping`; by day its greys match

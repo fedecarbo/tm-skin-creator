@@ -2,8 +2,10 @@
 // studio like", "Keyshot has always been a nice default background and surface that i've liked",
 // then, of six floors rendered for them: "is there one that actually you can't tell the spheric to
 // the background", "Could you apply all. and I pick which one I like from the actual viewer?", and
-// "was thinking like a matte floor with a bit of texture?"). The viewer's Floor menu picks a surface
+// "was thinking like a matte floor with a bit of texture?", and last "Matte, tiny bit grainy texture
+// in the grid one, and the grid make it tiny bit smaller"). The viewer's Floor menu picks a surface
 // and a shade of grey; the light on the car is the same under every one.
+//   gridgrain  the user's pick: the rubber's fine grain, fainter, under a line every 75 cm
 //   today      the grey cove as before: floor and walls lit as they face, so the bend shows
 //   keyshot    KeyShot's ground: no edge anywhere, a soft shadow and a faint reflection
 //   concrete, asphalt, rubber, speckle
@@ -21,7 +23,7 @@ import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { HorizontalBlurShader } from 'three/addons/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 
-export const FLOORS = ['today', 'keyshot', 'concrete', 'asphalt', 'rubber', 'speckle', 'turntable', 'grid'];
+export const FLOORS = ['gridgrain', 'today', 'keyshot', 'concrete', 'asphalt', 'rubber', 'speckle', 'turntable', 'grid'];
 export const SHADES = ['dark', 'light'];
 const RADIUS = 14;  // the room's flat floor (viewer.js's addRoom: the cove curves up from here)
 const LIGHT_GREY = 0.2;  // KeyShot's light grey (linear): about 190 on the screen by day
@@ -215,9 +217,9 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
         { y: -TABLE.h, z, size: 7, height: 0.3, blur: 3, opacity: grey > 0.1 ? 0.6 : 0.8, power: 1.2, order: 4 });
       return [table, under];
     },
-    grid: (grey) => {
-      // A faint line every metre, and nothing between them: the backdrop shows through. Fading out
-      // between 5 and 12 m, before the lines crowd.
+    grid: (grey, metres = 1) => {
+      // A faint line every `metres`, one under the car's middle, and nothing between them: the
+      // backdrop shows through. Fading out between 5 and 12 m, before the lines crowd.
       const c = document.createElement('canvas');
       c.width = c.height = 512;
       const g = c.getContext('2d');
@@ -226,7 +228,8 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
       g.fillRect(0, 0, 5, 512);
       const map = new THREE.CanvasTexture(c);
       map.wrapS = map.wrapT = THREE.RepeatWrapping;
-      map.repeat.set(RADIUS * 2, RADIUS * 2);
+      map.repeat.set(RADIUS * 2 / metres, RADIUS * 2 / metres);
+      map.offset.setScalar(-((RADIUS / metres) % 1));
       map.anisotropy = aniso;
       const material = fadeFrom(studio(new THREE.MeshStandardMaterial({ alphaMap: map, transparent: true, roughness: 1, metalness: 0,
         depthWrite: false }), { flat: true, fade: { r0: 5, r1: 12 } }));
@@ -240,18 +243,20 @@ export function createFloors({ scene, renderer, room, contact, centre, roomGrey 
   for (const [name, s] of Object.entries(SURFACES)) {
     // A matte floor averaging the backdrop's grey, its grain fading out between 4 and 13 m, so no
     // ring shows where it ends.
-    build[name] = (grey) => {
+    build[name] = (grey, grain = s.grain) => {
       const base = `data/floor/${s.asset}/${s.asset}_2K-JPG`, n = RADIUS * 2 / s.metres;
       const material = fadeFrom(studio(new THREE.MeshStandardMaterial({
         map: texture(`${base}_Color.jpg`, n, true), normalMap: texture(`${base}_NormalGL.jpg`, n, false),
         normalScale: new THREE.Vector2(s.relief, s.relief), roughness: 1, metalness: 0, transparent: true,
-      }), { matte: true, fade: { r0: 4, r1: 13 }, grain: { grey, mean: s.mean, power: s.grain } }));
+      }), { matte: true, fade: { r0: 4, r1: 13 }, grain: { grey, mean: s.mean, power: grain } }));
       const floor = new THREE.Mesh(disc(RADIUS, z), material);
       floor.receiveShadow = true;
       floor.renderOrder = 1;
       return [floor];
     };
   }
+
+  build.gridgrain = (grey) => [...build.rubber(grey, 0.45), ...build.grid(grey, 0.75)];
 
   let current = 'today';
   function set(text) {
