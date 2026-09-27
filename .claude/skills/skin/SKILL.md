@@ -121,7 +121,10 @@ user the Studio too.
 ## What works on this car
 
 - **The wheels are their own step.** "body" leaves out the wheel covers. Paint "wheels"
-  (covers, rims, hubs, rings) and "tyres" with their own calls.
+  (covers, rims, hubs, rings) and "tyres" with their own calls. The user settles the wheels car
+  by car, as one piece of work: covers, rims, the tyres' marking and their tread together ("the
+  wheels in general is a full workflow as I build cars", 2026-09-27). So the library sets no
+  tread for them; in that step, suggest a marking and a tread that suit the car and show them.
 - **Tyre markings: the library, `s.tyre_marks("TY-07")`** (`tool/tyres.py`: 95 of them, F1 rings to
   whitewalls, raised letters and tread patterns). A code the user pastes, like `TY-01 ring soft
   (tyre marking)`, is that marking; `colour=` and `words=` change it where its layout takes them.
