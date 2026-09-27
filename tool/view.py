@@ -424,7 +424,14 @@ def _write_json(path, doc):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(doc, indent=1))
-    tmp.replace(path)
+    for attempt in range(20):  # on Windows the replace is refused while the page is reading it
+        try:
+            tmp.replace(path)
+            return
+        except PermissionError:
+            if attempt == 19:
+                raise
+            time.sleep(0.05)
 
 
 def skin_from_build(name):

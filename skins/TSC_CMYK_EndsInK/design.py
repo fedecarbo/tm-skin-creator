@@ -5,10 +5,11 @@ far back"): the run now goes cyan, magenta, orange all the way back, and the bla
 The orange also comes back as light (the speed digits, the rear lights' last band, the tail's
 openings in a turbo). The wrap has a tiny grain in its sheen (the user, 2026-09-27)."""
 import importlib.util
+from dataclasses import replace
 
 import numpy as np
 
-from tool import paths
+from tool import finishes, paths
 
 _spec = importlib.util.spec_from_file_location("cmyk_black_tail", paths.SKINS / "TSC_CMYK_BlackTail" / "design.py")
 _tail = importlib.util.module_from_spec(_spec)
@@ -23,6 +24,9 @@ def grain(s):
     # the trims stay plain matte, the ring round each sidepod inlet and the band round the cockpit
     # (the user's notes: "I would have these normal matte black", "Same with this")
     s.paint(["sidepod frame", "cockpit surround"], "matte", colour=_tail.BLACK)
+    # the rings a touch less matte (the user's note: "im ok with matte but it needs to be slightly
+    # less matte"): beside the grained wrap, matte 90 % read chalky
+    s.paint("sidepod frame", colour=_tail.BLACK, finish=replace(finishes.get("matte"), name="matte 70", roughness=0.7))
     s.paint("wing pylon", "satin", colour=_tail.C)  # the front wing's supports stay cyan
 
 

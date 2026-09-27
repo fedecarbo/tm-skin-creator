@@ -88,11 +88,19 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   on" never says so (they're a handful of texels). The skin paints the strip by hand
   (`fasteners()` in TSC_CMYK_BlackTail's design). Idea, with the user's parts work: name them
   ("fasteners") so any design can paint them.
-- **Writing a file something else has open fails on Windows** (2026-09-27): replacing
-  `steps.json` while the open Studio page was reading it stopped `show` ("Access is denied"), and
-  saving the user's picture while it was still open on their screen stopped `tool.snap --picture`
-  ("Invalid argument"). Both worked when run again. Idea: retry the write a few times, a moment
-  apart.
+- **Saving the user's picture while it's open on their screen fails on Windows** (2026-09-27):
+  `tool.snap --picture` stopped with "Invalid argument" while the last picture was still open;
+  it worked when run again. Idea: retry the save a few times, a moment apart, as `view._write_json`
+  now does for the Studio's files.
+- **A finer, evenly shaped grain** (2026-09-27, TSC_CMYK_EndsInK, the user after driving it:
+  "Maybe I couldve wanted a bit more finer evenly shaped grain, but looks fine to me, maybe for
+  next session?"). The textured wrap (WT-07) makes its specks from noise, so they come in mixed
+  shapes, and 2 mm is the smallest that holds: once the body's sheen map fills with grain, the
+  zip's budget halves it to 2048² (0.18 cm texels). Finer (1 to 1.5 mm) and even (round specks of
+  one size, evenly spread) needs that map at full size. Idea: draw the specks in texel space,
+  one per 4x4 block from a handful of variants, so the compressed blocks repeat and zip squeezes
+  them (a guess: 1.5 to 2 MB at 4096², the zip about 8.1 MB); if that's still too big, free room
+  elsewhere (the suspension's blasted grain in Details_R). Check the zip first, then the game.
 
 - **A tidy-up, from a code check** (2026-09-27, the user: "it's been forever I have refactored, so
   not sure if things need to be optimised a bit more?"). The code is in fair shape; no big

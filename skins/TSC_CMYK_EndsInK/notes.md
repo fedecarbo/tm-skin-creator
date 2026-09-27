@@ -60,3 +60,9 @@ blotches, like dirt.
   weave, which on metal read as woven metal, so it's smoothed there.
 - Installed 2026-09-27 (changes 5 to 7, on the user's yes): 7.64 MB, the Details relief and the
   body's sheen map at 2048² to fit. On the page online.
+- 2026-09-27, the user after driving it: "looks fine to me in the game. Maybe I couldve wanted a
+  bit more finer evenly shaped grain, but looks fine to me, maybe for next session?" Finer needs
+  the body's sheen map at full size, over the zip's budget: on the improvement list.
+- Change 8 (user, note 10, the ring round a sidepod inlet): "im ok with matte but it needs to be
+  slightly less matte". The rings are matte 70 % instead of 90 (they read chalky beside the
+  grained wrap). Installed again 2026-09-27 (7.65 MB) and on the page online.
