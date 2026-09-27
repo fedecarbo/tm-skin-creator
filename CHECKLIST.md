@@ -1752,6 +1752,19 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   against 53 80 114 158 204 247), the back 66 and 61, the tyres 74. 0.35 and 3.3 came closer still
   and looked harsh for a studio. The key's shadow softened to match (radius 3 -> 8), and the Lab's
   balls take the same light (`viewer/lab.js`).
+- [x] **3. A day like the game's (the user, 2026-09-27: "its still a bit hazy", then "I think you
+  also have a studio hdr, can it actually be day time but not realistic, something like in
+  trackmania").** Day is now Kloofendal 48d Partly Cloudy (Pure Sky, Poly Haven, CC0, 2K), a blue
+  sky with white clouds. Its sun (found as the brightest texel, three.js's equirect directions) is
+  48 degrees up at (0.555, 0.742, 0.377), over the car's front left, where the key already came
+  from: the key is the sun there (`keyFrom`), and the sky's own sun disc is cut to luminance 8
+  (`sunless`: it held 48 % of the sky's light) so the sun isn't counted twice and the sky gives
+  only the cool fill. Env 0.44, key 4.4 in 0xfffcf1 (the sky's blue and the sun's warmth even out
+  on the grey scale): the calibration car's tail 64 91 123 161 206 253 (the game's 53 80 114 158
+  204 247), N8 neutral (206, 207, 206), its back 43 and 38, bluish, as the game's (23 to 38), the
+  tyres 29 (44). The Lab's balls alike; the studio HDR left the downloads (`view.HDRIS`).
+  - **The Lab's numbers read "undefined" on this PC:** its materials data predated the fields
+    (`tool.swatches` hadn't run here since); `PY -m tool.swatches --no-open` rebuilt it (72).
   - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror
     (`Reflector`) under it shows through 22 % by the car and none 6 m out, drawn at half the
     screen's size, which softens it. `Reflector` takes the mesh's own +z as the mirror's normal:

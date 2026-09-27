@@ -46,11 +46,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   matte floor with a bit of texture", then "Matte, tiny bit grainy texture in the grid one, and the
   grid make it tiny bit smaller", then whiter with a vignette, the grid smaller and reaching
   further: the grainy grid in a light studio, which the viewer now opens with; the Floor menu
-  (`viewer/floors.js`) still has the rest. Waiting for them to confirm it. The steps are
+  (`viewer/floors.js`) still has the rest. Then "the car itself looks a little hazy" and "can it
+  actually be day time but not realistic, something like in trackmania": day is now a sky with a
+  sun (`CHECKLIST.md`, "The studio render", steps 2 and 3). Waiting for them to confirm both. The steps are
   in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
   "The viewer matched to the game's moods"):
   the viewer maps light straight as the game does (`LinearToneMapping`; by day its greys match
-  the game's within a few levels); four moods in one menu (day the Poly Haven studio, sunrise and
+  the game's within a few levels); four moods in one menu (day the Poly Haven studio, a sky like the game's since the dehaze, sunrise and
   sunset skies tinted to the game's light, night a moonlit sky; `LOOKS` in `viewer/viewer.js`);
   the glows as the calibration car showed them (`GLOW`, levels on the screen); the Driving
   cameras through the viewer's own 32° lens (the user disliked the game's wide one). Known gaps:

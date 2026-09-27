@@ -40,8 +40,8 @@ function stage(canvas, size) {
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
   camera.position.set(1.0, 0.7, 3.9).setLength(size > THUMB ? 4.35 : 5.1);
   camera.lookAt(0, 0, 0);
-  const key = new THREE.DirectionalLight(0xfff4e8, 3.08);  // the viewer's key light by day (LOOKS.day)
-  key.position.set(2, 4, 1.5);
+  const key = new THREE.DirectionalLight(0xfffcf1, 4.4);  // the viewer's sun by day (LOOKS.day), from its side
+  key.position.set(0.555, 0.742, 0.377).multiplyScalar(5);
   scene.add(key);
   const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), new THREE.MeshPhysicalMaterial());
   ball.rotation.set(0.35, -0.5, 0);
@@ -230,15 +230,28 @@ try {
 
 // ---- start ----
 
+// The sky's sun disc cut to `most` (luminance), as viewer.js's sunlessSky: the key is the sun.
+function sunless(hdr, most) {
+  const d = hdr.image.data, half = d instanceof Uint16Array;
+  const get = half ? (i) => THREE.DataUtils.fromHalfFloat(d[i]) : (i) => d[i];
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = 0.2126 * get(i) + 0.7152 * get(i + 1) + 0.0722 * get(i + 2);
+    if (lum <= most) continue;
+    for (let c = 0; c < 3; c++) d[i + c] = half ? THREE.DataUtils.toHalfFloat(get(i + c) * most / lum) : d[i + c] * most / lum;
+  }
+  hdr.needsUpdate = true;
+}
+
 async function start() {
   const res = await fetch('data/materials/materials.json', { cache: 'no-store' });
   if (!res.ok) throw new Error('The materials aren\'t painted on this computer yet: run python -m tool.swatches.');
   items = await res.json();
   families = familiesOf(items);
   $('count').textContent = items.length;
-  const hdr = await new HDRLoader().loadAsync('data/studio_small_09.hdr');
+  const hdr = await new HDRLoader().loadAsync('data/kloofendal_48d_partly_cloudy_puresky.hdr');  // the viewer's day sky
   hdr.mapping = THREE.EquirectangularReflectionMapping;
-  for (const s of [shelf, big]) Object.assign(s.scene, { environment: hdr, environmentIntensity: 0.625 });  // LOOKS.day's env
+  sunless(hdr, 8);
+  for (const s of [shelf, big]) Object.assign(s.scene, { environment: hdr, environmentIntensity: 0.44 });  // LOOKS.day's env
   $('status').textContent = '';
   const want = items.find((m) => m.slug === params.get('m')) || items[0];
   const first = openFamily(want.family, false);

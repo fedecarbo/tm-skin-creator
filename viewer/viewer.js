@@ -78,9 +78,9 @@ function throughOurLens(v) {
   return { dir: dir.toArray(), dist, target: target.toArray() };
 }
 if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', 'cam2alt']) VIEWS[k] = throughOurLens(VIEWS[k]);
-// The look the user chose on 2026-09-24, after a studio they like. A neutral photo studio lights
-// the car and shows in its reflections. Night is a moonlit sky with a dim blue key. Both HDRIs
-// are from Poly Haven (CC0). key: the one light that casts a shadow. The room around the car is a
+// The look the user chose on 2026-09-24, after a studio they like: a neutral photo studio lit the
+// car by day (Studio Small 09, until 2026-09-27: now a sky, below). Night is a moonlit sky with a
+// dim blue key. The HDRIs are from Poly Haven (CC0). key: the one light that casts a shadow. The room around the car is a
 // plain grey cove lit by the same light, so it darkens with the car (the user's wish). Brighter
 // since 2026-09-27 (the user: "night is too dark though, and the lighting is too dimmed"; picked
 // from renders, https://claude.ai/artifact/Gfm17Zv9rUL5WX2D53PE1V): by day the paint about a third
@@ -103,8 +103,14 @@ if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', '
 // 247 against the game's 53 80 114 158 204 247) while the faces the key misses fall into shade: its
 // back 66 and 61 (were 93 and 86; the game's 29 and 40, where its sun lights one side), the tyres 74
 // (104; the game's 48). env 0.35 with key 3.3 came closer still, and looked harsh for a studio.
+// A day sky since 2026-09-27 (the user: "can it actually be day time but not realistic, something
+// like in trackmania"): Kloofendal 48d Partly Cloudy (Pure Sky, Poly Haven, CC0), a blue sky with
+// white clouds, its sun 48 degrees up over the car's front left, where the key already came from.
+// sunless: the sky's sun disc cut to that luminance, so the key alone is the sun (its shadow and its
+// highlight) and the sky gives the cool fill in the shade and the clouds in the paint.
 const LOOKS = {
-  day: { hdr: 'studio_small_09', env: 0.625, key: 3.08, keyColour: 0xfff4e8, exposure: 1.44 },
+  day: { hdr: 'kloofendal_48d_partly_cloudy_puresky', sunless: 8, env: 0.44, key: 4.4, keyColour: 0xfffcf1, exposure: 1.44,
+    keyFrom: [0.555, 0.742, 0.377] },
   sunrise: { hdr: 'belfast_sunset_puresky', tint: [0.91, 1, 0.82], env: 1, key: 1, keyColour: 0xfff0dc, exposure: 0.48, lights: 'day', keyFrom: [-0.35, 0.45, 0.8] },
   sunset: { hdr: 'qwantani_dusk_2_puresky', tint: [1.33, 1, 0.66], env: 1, key: 1.6, keyColour: 0xffb080, exposure: 0.6, lights: 'night', keyFrom: [-0.6, 0.45, -0.55] },
   night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.6 },
@@ -358,11 +364,24 @@ function tintSky(hdr, tint) {
   hdr.needsUpdate = true;
 }
 
+// A sky's sun taken out, in place: any texel brighter than `most` (luminance) is scaled down to it.
+function sunlessSky(hdr, most) {
+  const d = hdr.image.data, half = d instanceof Uint16Array;
+  const get = half ? (i) => THREE.DataUtils.fromHalfFloat(d[i]) : (i) => d[i];
+  const put = half ? (i, v) => { d[i] = THREE.DataUtils.toHalfFloat(v); } : (i, v) => { d[i] = v; };
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = 0.2126 * get(i) + 0.7152 * get(i + 1) + 0.0722 * get(i + 2);
+    if (lum > most) for (let c = 0; c < 3; c++) put(i + c, get(i + c) * most / lum);
+  }
+  hdr.needsUpdate = true;
+}
+
 async function loadLighting() {
   const loader = new HDRLoader();
   await Promise.all(Object.entries(LOOKS).map(async ([id, look]) => {
     const hdr = await loader.loadAsync(`data/${look.hdr}.hdr`);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
+    if (look.sunless) sunlessSky(hdr, look.sunless);
     if (look.tint) tintSky(hdr, look.tint);
     envMaps[id] = hdr;
   }));
