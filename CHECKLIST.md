@@ -1305,7 +1305,7 @@ worked on, live; not one page. What was settled the same day:
     the paint box's notes (a fold under a sticker) shown in the room: the paint box would record
     what each step put on each part (`decal` and `text` record no `paints` yet).
   - The named places for stickers and words (`paintbox.SPOTS`) in the Body room.
-  - Sunrise and sunset lighting in the viewer, for the Lights room's moods.
+  - ~~Sunrise and sunset lighting in the viewer~~: dropped (the user, 2026-09-27: day and night only).
 
 #### [ ] 5. The Studio: a car built from clay
 
@@ -1446,6 +1446,40 @@ worked on, live; not one page. What was settled the same day:
       Studio then said "Claude has it", × took it back (no pin), `done` hid it; 390 × 844 with the
       notes under the car and no sideways scroll; the UV map room's four maps; no page errors.
   - **Next:** the user tries it on a skin.
+
+#### [ ] 8. A picture with each note; day and night only
+
+- **What it's for:** the user asked for ideas for the Lab (2026-09-27) and picked two of six to
+  mock up: a picture with each note, so Claude sees exactly what the user saw, and sunrise and
+  sunset light (the greyed buttons in the rooms' mood picker).
+- **Model:** Opus 5.5.
+- **Notes for Claude:**
+  - **The mockups:** https://claude.ai/artifact/DMCTNVNr9AnypiToeawde2. The note: A words only in
+    the list, B words and picture; **the user chose A** (Claude still gets the picture). The skies:
+    six real Poly Haven skies (CC0) on TSC_ChaosElegance_Unravelled_CMYKRise, three sunrises
+    (kiara_1_dawn, spruit_sunrise, umhlanga_sunrise) and three sunsets (the_sky_is_on_fire,
+    belfast_sunset_puresky, industrial_sunset_02_puresky). **The user dropped both:** "lets remove
+    the option, let's just keep the day and night". The mood picker has Day and Night only.
+  - **How the skies were tried** (for another time): the viewer's environment swapped in the page
+    over CDP (`__THREE_DEVTOOLS__` catches the scene and renderer), the HDR loaded as floats, its
+    brightest texel taken for the sun, the columns rolled so the sun sits where the key light comes
+    from (azimuth atan2(0.35, 0.55)), the key low (8 to 35°) in the sun's colour, and the sky's
+    brightness matched to the studio's (sun clamped at 50). Three's equirect lookup
+    (u = atan2(z, x)/2π + 0.5, flipY rows) was checked on a plain page: the sun came out centred. A
+    stronger key threw the car's shadow onto the room's wall. The candidate skies were downloaded
+    to the work folder's viewer/try/ and removed.
+  - **Mood files in the game** (the user asked): each mood is a decoration with a
+    CGameCtnDecorationMood (Latitude, Longitude, DeltaGMT, TimeSunRise, TimeSunFall,
+    SunMoonIntensity, tone-map exposure, IsNight, clouds, stars: Openplanet's documentation),
+    inside the game's packed files; Openplanet (a third-party mod loader) can extract them. Not
+    used: game screenshots are the simpler reference.
+  - **Built (2026-09-27): the note's picture.** When a note is kept, the Studio renders the stage
+    (`viewer.picture()`), draws the note's pin on it where the viewer placed it (scaled to the
+    canvas), and sends it as a JPEG with the note. `tool/notes.py` checks it (a JPEG, 6 MB at
+    most) and keeps it in `.notes/<skin>-<n>.jpg` (git-ignored); the hook's line ends with its
+    path for Claude to look at; taking a note back or marking it done deletes it. Checked on the
+    Mac: the picture showed the car as seen with pin 1 on the sidepod grille, the hook named it,
+    `done` removed it.
 
 ### Defining the parts (started 2026-09-26)
 

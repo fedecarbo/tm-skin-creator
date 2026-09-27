@@ -1,7 +1,7 @@
 """The Lab's UV map room (viewer/lab-rooms.js): the game's four maps, Skin, Details, Wheels and
 Glass, as flat maps where surfaces are picked (tool/view.py), and the whole car as a second tab,
-where a picked surface lights up. It has a day and night picker (the viewer lights both;
-Trackmania has sunrise and sunset too).
+where a picked surface lights up. It has a day and night picker (the user, 2026-09-27: day and
+night only, not Trackmania's sunrise and sunset).
 
 The rooms before it were one per map, Body, Details, Tyres and Glass, each with a camera on its
 area (and before that Body, Wheels, Details and Lights: CHECKLIST.md, "The Lab"). The user,

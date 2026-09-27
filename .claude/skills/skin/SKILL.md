@@ -79,7 +79,8 @@ user the Studio too.
 - **Notes on the car (the Studio, the user's pick, 2026-09-27).** The user clicks the Studio's car
   where they mean and writes what they want there. New notes arrive with their next message (a
   hook prints them): the skin, the note's number, the step it was written at, the part clicked as
-  a `where` phrase (`sidepod top|left`), and their words. They're the user's words about that spot,
+  a `where` phrase (`sidepod top|left`), their words, and a picture of what they were looking at
+  with the pin drawn on: look at it before acting. They're the user's words about that spot,
   as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user, note N):
   "…"`), answer a question in the reply, and once a note is handled mark it done, `PY -m tool.notes
   done <skin> <n>` (on the Mac `python3 -m tool.notes done …`, no container needed), so its pin

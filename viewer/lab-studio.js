@@ -3,7 +3,8 @@
 // mockups the user chose on 2026-09-26); the user's notes beside it: click the car where you mean,
 // write what you want there, and the note is pinned to that spot (C of the mockups of 2026-09-27,
 // in place of the step's words and a line to copy). The notes live in skins/notes.json through the
-// viewer's server (tool/notes.py, /api/notes), and reach Claude with the user's next message.
+// viewer's server (tool/notes.py, /api/notes), each with a picture of the stage as the user saw it,
+// and reach Claude with the user's next message.
 // CHECKLIST.md, "The Lab", steps 5 and 7.
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
@@ -171,12 +172,51 @@ function startNote(id, hit) {  // a click on the car: the part under it, and the
   $('ntText').focus();
 }
 
+// What the user sees on the stage, the note's pin drawn on, for Claude (a JPEG data: URL). The list
+// stays words only (the user's pick, 2026-09-27).
+async function notePicture() {
+  const url = await stage.picture();
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    const frame = $('stCar');
+    const pin = frame.contentDocument.querySelector('#pins .pin.writing');
+    if (pin && !pin.hidden) {
+      const k = img.width / frame.clientWidth;
+      const x = parseFloat(pin.style.left) * k, y = parseFloat(pin.style.top) * k, r = 13 * k;
+      g.beginPath();
+      g.arc(x, y, r + 4 * k, 0, 2 * Math.PI);
+      g.fillStyle = 'rgba(232, 255, 71, 0.3)';
+      g.fill();
+      g.beginPath();
+      g.arc(x, y, r, 0, 2 * Math.PI);
+      g.fillStyle = '#e8ff47';
+      g.fill();
+      g.fillStyle = '#0d0f12';
+      g.font = `600 ${Math.round(17 * k)}px Teko, sans-serif`;
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(String(nextN), x, y + 1.5 * k);
+    }
+    return c.toDataURL('image/jpeg', 0.85);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function addNote(e) {
   e.preventDefault();
   const text = $('ntText').value.trim();
   if (!text || !writing || !skin) return;
   const step = doc && picked >= 0 ? doc.steps[picked] : null;
-  const r = await post({ skin: skin.name, text, step: step ? picked : null, step_name: step ? step.name : '', ...writing });
+  const picture = await notePicture().catch((err) => { console.error(err); return null; });
+  const r = await post({ skin: skin.name, text, step: step ? picked : null, step_name: step ? step.name : '', ...writing, picture });
   if (!r.ok) {
     $('ntPart').textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
     return;

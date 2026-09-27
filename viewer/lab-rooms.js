@@ -22,7 +22,7 @@ const POLL = 1500;
 const GROUND = [5, 5, 6];      // the Lab's ball ground (--ball)
 const OUTLINE = [255, 217, 51];  // the lit part's edge
 const PAINT = { Skin: 'Skin_B', Details: 'Details_B', Wheels: 'Wheels_B', Glass: 'Glass_T' };
-const MOODS = [['day', 'Day'], ['night', 'Night'], ['sunrise', 'Sunrise'], ['sunset', 'Sunset']];  // Trackmania's four; the viewer has two
+const MOODS = [['day', 'Day'], ['night', 'Night']];  // day and night only (the user, 2026-09-27: no sunrise or sunset)
 
 let doc = null;
 const byId = [];
@@ -325,7 +325,7 @@ function heads() {
   $('prMaps').hidden = tab !== 'map' || room.maps.length < 2;
   if (tab === 'map') buttons($('prMaps'), room.maps.map((m) => ({ key: m.set, label: m.set })), map && map.set, (k) => openMap(k));
   $('prMood').hidden = false;
-  buttons($('prMood'), MOODS.map(([k, label]) => ({ key: k, label, off: k === 'day' || k === 'night' ? null : 'not in the viewer yet' })),
+  buttons($('prMood'), MOODS.map(([k, label]) => ({ key: k, label })),
     mood[room.key] || 'day', (k) => { mood[room.key] = k; heads(); aimCar(); });
   $('prMood').insertAdjacentHTML('afterbegin', '<span class="say">Mood</span>');
 }

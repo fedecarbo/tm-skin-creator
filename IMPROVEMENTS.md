@@ -30,13 +30,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   Built: the Studio (the timeline of the build, from clay), the painting rooms (each the car with a
   camera on its area, picked by the user from real renders, and its own UV map as a tab), the Materials tab, and a
   round of concepts' switch (A, B, C) in the Studio and every room (the user's pick after a whole concept round,
-  2026-09-26). Put off: takes side by side, fading, the parts painted over, sticker places, sunrise and sunset. The steps and notes
+  2026-09-26). Put off: takes side by side, fading, the parts painted over, sticker places (sunrise and sunset dropped, 2026-09-27: day and night only). The steps and notes
   are in `CHECKLIST.md`, "The Lab".
   **A thought from the user (2026-09-27):** the rooms (Body, Details...) weren't helping, and the
   panel on the right went unused while making skins. From the mockups the user chose C, notes on
   the car: click the Studio's car, write what you want there, and the note reaches Claude with the
-  next message. The four rooms became one UV map room (the surfaces stay). `CHECKLIST.md`, The
-  Lab, step 7.
+  next message, with a picture of what the user saw (step 8). The four rooms became one UV map room
+  (the surfaces stay). `CHECKLIST.md`, The Lab, steps 7 and 8.
 
 ## The tool
 

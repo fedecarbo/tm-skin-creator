@@ -438,7 +438,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     # The Studio's notes on the car (tool/notes.py): GET /api/notes?skin=<name>, and POST a new one
-    # ({"skin", "text", "step", "step_name", "part", "at", "normal"}) or {"skin", "remove": n}.
+    # ({"skin", "text", "step", "step_name", "part", "at", "normal", "picture"}) or {"skin", "remove": n}.
     # They reach Claude's context, so only this computer's own pages may write them: the Host must
     # be localhost (no DNS rebinding), an Origin must match it, and the body must be JSON, which a
     # page elsewhere can't send here without a CORS preflight this server never answers.
@@ -471,11 +471,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if not self._local() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
             return self._json(403, {"error": "not from this computer"})
         try:
-            body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 65536)) or b"{}")
+            body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 10 << 20)) or b"{}")
             if "remove" in body:
                 notes.remove(body.get("skin"), body["remove"])
                 return self._json(200, {"ok": True})
-            args = {k: body.get(k) for k in ("skin", "text", "step", "step_name", "part", "at", "normal")}
+            args = {k: body.get(k) for k in ("skin", "text", "step", "step_name", "part", "at", "normal", "picture")}
             self._json(200, notes.add(**args))
         except (ValueError, TypeError) as e:
             self._json(400, {"error": str(e)})
