@@ -334,6 +334,7 @@ function addRoom() {
   contact.rotation.x = -Math.PI / 2;
   contact.position.set(0, 0.004, CENTRE.z);
   scene.add(contact);
+  return { room, contact };
 }
 
 const envMaps = {};  // a mood -> its HDRI texture
@@ -1711,7 +1712,11 @@ async function start() {
   partsState.doc = doc;
   partTable();
   buildPartsList();
-  addRoom();
+  const studio = addRoom();
+  if (params.has('floor')) {  // a trial floor (viewer/floor-trial.js), for the user's pick
+    const { trialFloor } = await import('./floor-trial.js');
+    await trialFloor(params.get('floor'), { scene, renderer, ...studio, centre: CENTRE, roomGrey: TUNE.room });
+  }
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();

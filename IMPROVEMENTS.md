@@ -39,7 +39,12 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   (the surfaces stay). `CHECKLIST.md`, The Lab, steps 7 and 8.
 - **The studio render: next** (the user, 2026-09-27: "I want to continue with improving the studio
   render with another agent"). Start from the user's thoughts on what's wrong with it; nothing is
-  planned. Where it stands (2026-09-27, `CHECKLIST.md`, "The viewer matched to the game's moods"):
+  planned. **Their thoughts so far (2026-09-27):** "i kind of feel we need a floor, it could still
+  be studio like", then "Keyshot has always been a nice default background and surface that i've
+  liked". Six floors are rendered for the pick (the trial, `viewer/floor-trial.js`, `?floor=`), on
+  a page: https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP. Waiting for their letter; the steps
+  are in `CHECKLIST.md`, "The studio render". Where it stood before (2026-09-27, `CHECKLIST.md`,
+  "The viewer matched to the game's moods"):
   the viewer maps light straight as the game does (`LinearToneMapping`; by day its greys match
   the game's within a few levels); four moods in one menu (day the Poly Haven studio, sunrise and
   sunset skies tinted to the game's light, night a moonlit sky; `LOOKS` in `viewer/viewer.js`);

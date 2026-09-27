@@ -1700,6 +1700,34 @@ my pc but maybe you can create the calibration car?" The item is in `IMPROVEMENT
   Cam 1, Cam 1 alt, Cam 2, Cam 2 alt (each camera's key pressed again). Fitted to the daytime
   screenshots (below, "fitting a game camera"); `tool.snap --cams` takes all four.
 
+### The studio render (under way, 2026-09-27)
+
+The user, 2026-09-27: "I want to make the studio render nicer", then "i kind of feel we need a
+floor, it could still be studio like" and "Keyshot has always been a nice default background and
+surface that i've liked". The item is in `IMPROVEMENTS.md`.
+
+- [ ] **1. A floor.** Six floors rendered in the viewer on TSC_CMYK_Peel_More (front, side, Cam 2
+  alt, night) and TSC_IceCreamSweet (front), on a page to pick from:
+  https://claude.ai/artifact/XdJVttMnJD4M8AyCXLqrCP. A as today; B KeyShot light grey (room 0.2);
+  C KeyShot in today's dark grey (Claude's pick); D concrete (ambientCG Concrete034, CC0, in the
+  work folder's `viewer/floor/`, this PC only); E a turntable 5.2 m across; F a grid a metre apart.
+  The light on the car is unchanged in all six. The trial is `viewer/floor-trial.js`, loaded by
+  `?floor=keyshot|keyshot-dark|concrete|turntable|grid`; once the user picks, it moves into
+  `addRoom` and the file goes, with the add-ons it alone uses (`objects/Reflector.js`,
+  `postprocessing/Pass.js`, the two blur shaders, three.js 0.186.0 as the rest; 0.186.1 is out).
+  - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror
+    (`Reflector`) under it shows through 22 % by the car and none 6 m out, drawn at half the
+    screen's size, which softens it. `Reflector` takes the mesh's own +z as the mirror's normal:
+    turn the mesh, not the geometry, or it mirrors sideways.
+  - **The ground shadow** (B to F, in place of the dark patch): the car seen from the floor up
+    with an orthographic camera, its nearness as darkness, blurred twice, in two layers (within
+    90 cm, wide and soft; within 22 cm, tight and dark under the tyres). The depth pass must be
+    depth-tested, or the car's top overwrites its underside and the shadow comes out faint. Drawn
+    each frame for now; the final can draw it only when the car or its wings move.
+  - **A shiny or satin floor catches the studio HDR's lamps** at a grazing angle (white blotches
+    on the floor, lamps the grey room doesn't have): the floors stay matte and let the mirror
+    carry the reflection.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
