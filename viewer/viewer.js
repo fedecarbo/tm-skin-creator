@@ -1208,11 +1208,15 @@ function turbo() {
   pressed(byId('padTurbo'), true);
 }
 document.getElementById('padTurbo').addEventListener('click', turbo);
-addEventListener('keydown', (e) => { if (e.code === 'KeyT' && !e.repeat) turbo(); });
-const PEDAL_KEYS = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake' };
-addEventListener('keydown', (e) => { if (PEDAL_KEYS[e.code] && !e.repeat) { hold(PEDAL_KEYS[e.code], true); e.preventDefault(); } });
-addEventListener('keyup', (e) => { if (PEDAL_KEYS[e.code]) hold(PEDAL_KEYS[e.code], false); });
-addEventListener('blur', () => { hold('gas', false); hold('brake', false); });
+// The pedal keys drive the viewer's own page only: embedded in the Lab nothing counts the turbo down
+// (stepDrive doesn't run there), so T left the car glowing for good (2026-09-27).
+if (!snap && !embed) {
+  addEventListener('keydown', (e) => { if (e.code === 'KeyT' && !e.repeat) turbo(); });
+  const PEDAL_KEYS = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake' };
+  addEventListener('keydown', (e) => { if (PEDAL_KEYS[e.code] && !e.repeat) { hold(PEDAL_KEYS[e.code], true); e.preventDefault(); } });
+  addEventListener('keyup', (e) => { if (PEDAL_KEYS[e.code]) hold(PEDAL_KEYS[e.code], false); });
+  addEventListener('blur', () => { hold('gas', false); hold('brake', false); });
+}
 
 function partLabel(p) {
   const tag = [p.end, p.side === 'centre' ? '' : p.side].filter(Boolean).join(' ');
@@ -1674,6 +1678,7 @@ window.viewer = {
     const off = new Set(ids);
     partsState.doc.parts.forEach((p, i) => { partsState.data[i * 4] = off.has(i) ? 0 : 255; });
     partsState.table.needsUpdate = true;
+    pinsDirty = true;  // a part taken off may have hidden a pin
   },
   light(ids) {
     setPartFlag(litIds, 1, false);

@@ -69,7 +69,7 @@ def paint_all():
     for i, name in enumerate(todo, 1):
         print(f"[{i}/{len(todo)}] {name}")
         try:
-            skin.show(name, snapshot=False)
+            skin.show(name, snapshot=False, follow=False)  # the Lab stays on the user's car
         except Exception:
             traceback.print_exc()
     print(f"{len(todo)} skins painted, {len(folders) - len(todo)} already up to date")

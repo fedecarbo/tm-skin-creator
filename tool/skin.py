@@ -35,12 +35,13 @@ def load_design(name):
     return mod.design
 
 
-def paint(name, frames=False):
-    """frames: also draw the car at the end of each step, for the Lab's Studio (show does)."""
+def paint(name, frames=False, follow=True):
+    """frames: also draw the car at the end of each step, for the Lab's Studio (show does).
+    follow=False: the Lab doesn't turn to this skin (the Mac repainting its stale skins at start)."""
     t0 = time.time()
     s = paintbox.Skin(name)
     if frames:
-        view.start_steps(name)
+        view.start_steps(name, follow)
         s.frames = True
     load_design(name)(s)
     s.end_steps()
@@ -49,8 +50,8 @@ def paint(name, frames=False):
     return s
 
 
-def show(name, open_browser=False, snapshot=True):
-    s = paint(name, frames=True)
+def show(name, open_browser=False, snapshot=True, follow=True):
+    s = paint(name, frames=True, follow=follow)
     t0 = time.time()
     paintbox.export_to_viewer(s)
     paintbox.save_painted(s)

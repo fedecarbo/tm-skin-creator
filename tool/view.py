@@ -380,12 +380,14 @@ def export_skin(name, textures):
 # ---- The Lab's Studio: the car at the end of each step of a design (paintbox.Skin.step) ----
 
 
-def start_steps(name):
-    """A design is about to be painted: clear its old frames, and point the Studio at it."""
+def start_steps(name, follow=True):
+    """A design is about to be painted: clear its old frames, and point the Studio at it (unless
+    follow is False: the Mac repainting its stale skins at start, which the Lab shouldn't chase)."""
     import shutil
     ensure_stock()
     shutil.rmtree(DATA / "skins" / name / "steps", ignore_errors=True)
-    _write_json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
+    if follow:
+        _write_json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
 
 
 def save_frame(name, k, slot, image, digest):
@@ -499,7 +501,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
         skin = urllib.parse.parse_qs(url.query).get("skin", [""])[0]
-        self._json(200, {"notes": notes.of(skin), "next": notes.next_n(skin)})
+        try:
+            self._json(200, {"notes": notes.of(skin), "next": notes.next_n(skin)})
+        except OSError as e:
+            self._json(503, {"error": str(e)})
+
+    # What a POST to /api/notes can do: the first of these keys in the body picks it, else a new note.
+    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture")
+    ACTIONS = {
+        "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
+    }
 
     def do_POST(self):
         if urllib.parse.urlsplit(self.path).path != "/api/notes":
@@ -508,13 +519,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._json(403, {"error": "not from this computer"})
         try:
             body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 10 << 20)) or b"{}")
-            if "remove" in body:
-                notes.remove(body.get("skin"), body["remove"])
-                return self._json(200, {"ok": True})
-            args = {k: body.get(k) for k in ("skin", "text", "step", "step_name", "part", "at", "normal", "picture")}
-            self._json(200, notes.add(**args))
-        except (ValueError, TypeError) as e:
+            if not isinstance(body, dict):
+                raise ValueError("expected a JSON object")
+            action = next((self.ACTIONS[k] for k in self.ACTIONS if k in body), None)
+            self._json(200, action(body) if action else notes.add(**{k: body.get(k) for k in self.NOTE_KEYS}))
+        except (ValueError, TypeError, KeyError) as e:
             self._json(400, {"error": str(e)})
+        except OSError as e:  # the notes' lock or file busy past its tries (TimeoutError is one)
+            self._json(503, {"error": str(e)})
 
     def log_message(self, *args):
         pass

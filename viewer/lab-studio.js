@@ -2,7 +2,7 @@
 // The car at the picked step, big; a filmstrip of the car at every step under it (layout B of the
 // mockups the user chose on 2026-09-26); the user's notes beside it: click the car where you mean,
 // write what you want there, and the note is pinned to that spot (C of the mockups of 2026-09-27,
-// in place of the step's words and a line to copy). The notes live in skins/notes.json through the
+// in place of the step's words and a line to copy). The notes live in .notes/notes.json through the
 // viewer's server (tool/notes.py, /api/notes), each with a picture of the stage as the user saw it,
 // and reach Claude with the user's next message.
 // CHECKLIST.md, "The Lab", steps 5 and 7.
@@ -33,8 +33,8 @@ let queue = Promise.resolve();
 let stageLook = '';
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
-let writing = null;       // the note being written: { part: { id, label, token }, at, normal }
-let partInfo = [];        // uvmap.json's parts by id, to name the part under a click
+let writing = null;       // the note being written: { part: { id, label, token }, at, normal, step, step_name, picture }
+let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a click
 
 const lookOf = (step) => {
   const words = (step.look || '').split(/\s+/);
@@ -166,10 +166,13 @@ function drawNotes() {
 }
 
 function startNote(id, hit) {  // a click on the car: the part under it, and the point for the pin
-  const p = partInfo[id];
-  writing = { part: { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' }, at: hit.at, normal: hit.normal };
+  const p = partInfo.get(id);
+  const step = doc && picked >= 0 ? doc.steps[picked] : null;  // what the user was looking at, now
+  writing = { part: { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' }, at: hit.at, normal: hit.normal,
+              step: step ? picked : null, step_name: step ? step.name : '' };
   drawNotes();
   $('ntText').focus();
+  writing.picture = notePicture().catch((err) => { console.error(err); return null; });  // as seen at the click
 }
 
 // What the user sees on the stage, the note's pin drawn on, for Claude (a JPEG data: URL). The list
@@ -214,9 +217,8 @@ async function addNote(e) {
   e.preventDefault();
   const text = $('ntText').value.trim();
   if (!text || !writing || !skin) return;
-  const step = doc && picked >= 0 ? doc.steps[picked] : null;
-  const picture = await notePicture().catch((err) => { console.error(err); return null; });
-  const r = await post({ skin: skin.name, text, step: step ? picked : null, step_name: step ? step.name : '', ...writing, picture });
+  const { picture, ...note } = writing;
+  const r = await post({ skin: skin.name, text, ...note, picture: await picture });
   if (!r.ok) {
     $('ntPart').textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
     return;
@@ -288,6 +290,8 @@ async function openSkin(name) {
   if (!stage) {
     [stage, thumbs] = await Promise.all([viewer($('stCar')), viewer($('stThumbs'))]);
     if (stage) stage.onPick = startNote;
+  } else if (stage) {
+    await stage.show('front', false);  // a step's own look (the rear at night) mustn't carry over
   }
   drawNotes();
   loadNotes();
@@ -305,10 +309,11 @@ async function followed() {  // the skin Claude painted last: { skin, stamp }
 }
 
 async function poll() {
+  if ($('roomStudio').hidden) return;  // another room is open
   loadNotes();  // Claude reads them (Claude has it) and marks them done (their pins go)
   try {
     const now = await followed();
-    if (now.stamp && now.stamp !== following) {
+    if (now.stamp && now.stamp !== following && !writing) {  // a note being written holds the car
       following = now.stamp;
       if (skin && now.skin !== skin.name) { note(now.skin); await openSkin(now.skin); return; }
     }
@@ -331,7 +336,7 @@ export async function open() {
     if (e.key === 'Enter' && !e.shiftKey) addNote(e);  // Shift+Enter for a new line
     if (e.key === 'Escape') cancelNote();
   });
-  fetch('data/uvmap.json').then((r) => r.json()).then((d) => { partInfo = d.parts; }).catch(() => {});
+  fetch('data/uvmap.json').then((r) => r.json()).then((d) => { partInfo = new Map(d.parts.map((p) => [p.id, p])); }).catch(() => {});
   const now = await followed();
   following = now.stamp;
   let name = wanted() || now.skin;

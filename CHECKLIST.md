@@ -1544,7 +1544,33 @@ worked on, live; not one page. What was settled the same day:
       reads as zeros, so the script read its `style.left` and `style.top` instead.
     - The mockups used the Lab's own stylesheet (lab.html's `<style>`) plus the new layouts, each
       at 1440×900 in its own frame on a plain sheet.
-  - **Next:** B gets its own plan, agreed step by step before it's built.
+  - **The steps** (the plan the user approved, 2026-09-27), each built, checked, shown, then
+    ticked:
+    - 9.0, the groundwork;
+    - 9.1, the stand;
+    - 9.2, answers on the pins and the status line;
+    - 9.3, options on the car;
+    - 9.4, Claude's checks and close-ups;
+    - 9.5, the game (the F12 screenshots, after asking);
+    - 9.6, behind the scenes (options inside one car, repainting from the changed step, both
+      gated on identical game files).
+  - **9.0, the groundwork (built 2026-09-28):**
+    - **Notes:** `tool/notes.py` keeps the notes in `.notes/notes.json`, off git, with an
+      mkdir lock, retries, a skin-name check and `TSC_NOTES_HOME` for tests.
+    - **Server:** `view.Handler.do_POST` is an action table. It answers 503 when the notes stay
+      busy, and 400 for a body that isn't a JSON object.
+    - **The Mac:** `start_steps(follow=False)` lets the Mac's startup repaint (`serve.paint_all`)
+      leave the Lab where it is.
+    - **Viewer:** the pedal keys drive only the viewer's own page, and `hide()` rechecks the
+      pins.
+    - **Studio fixes:**
+      - a skin opened after a night step no longer stays at night;
+      - parts are looked up by id;
+      - polling stops in hidden rooms;
+      - the Studio doesn't follow Claude away from a note being written;
+      - a note's step and picture are taken at the click.
+    - **Checks:** 16 passed, in Edge on the PC, and the baselines were unchanged (the six views,
+      two close looks, Cam 1 and the standalone viewer).
 
 ### Defining the parts (started 2026-09-26)
 
@@ -2043,6 +2069,27 @@ under "Things we learned"; what was built:
   screenshots, and files the game's own skin editor saves, if the user copies one out for us.
 
 ## Things we learned
+
+- **2026-09-28, the notes on the car made safe (the Lab as a factory, step 9.0).**
+  - **Windows refuses to replace a file another program has open:** the page's 1.5 s poll,
+    OneDrive, Defender. Every writer of a file the page reads retries its `os.replace`
+    (`notes.save` now does, as `view._write_json` already did).
+  - **Three writers, one file.**
+    - The server's threads, the hook (another process) and the command line each rewrote
+      `notes.json` whole, with no lock. Two writes at once could lose a note, or give two notes
+      the same number.
+    - A lock made with `os.mkdir` fixed it. It's atomic, and it holds across the Mac's container
+      and host, where file locks don't reach.
+    - Checked: 100 notes from two threads, with the hook run 30 times and a reader holding the
+      file open, came out as 100 unique numbers.
+  - **The notes left git** for `.notes/notes.json`. Answers and state changes would have churned
+    a public file that both computers pull at the start of every session. Each skin's `notes.md`
+    stays the record.
+  - **The embedded viewer's pedal keys:** nothing counts the turbo down in the Lab (the drive
+    loop doesn't run there), so a T left the car glowing for good. The keys now drive only the
+    viewer's own page.
+  - **Baselines hold to the pixel:** Claude's snapshots and the standalone viewer render the same
+    from run to run in Edge on the PC, so a Lab change that leaks into them shows at once.
 
 - **2026-09-27, the tyres' map and the markings (`CHECKLIST.md`, "Tyre markings").**
   - **A skin can't change how the tyres are mapped.** Only a "3D skin" (a whole car model through

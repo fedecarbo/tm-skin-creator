@@ -439,6 +439,7 @@ async function followed() {  // the skin Claude painted last: { skin, stamp }
 }
 
 async function poll() {
+  if ($('roomPaint').hidden) return;  // another room is open
   try {
     const now = await followed();
     let name = skin && skin.name;

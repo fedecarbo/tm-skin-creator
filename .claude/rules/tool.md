@@ -33,7 +33,8 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
   their code change. The Studio (the first room, `viewer/lab-studio.js`) reads the frames `tool.skin
   show` writes at each `Skin.step` (`view.export_steps`, `studio.json`); `install` paints without
-  them. Its notes on the car (`tool/notes.py`, `skins/notes.json`) go through the viewer's server
+  them. Its notes on the car (`tool/notes.py`, `.notes/notes.json`: git-ignored, each computer
+  keeps its own, writers take an mkdir lock) go through the viewer's server
   (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook
   (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
   take's `gallery.json` entry) puts a switch between its takes in the Studio and the UV map
