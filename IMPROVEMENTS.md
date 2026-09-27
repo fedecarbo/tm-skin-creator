@@ -54,7 +54,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   sunset skies tinted to the game's light, night a moonlit sky; `LOOKS` in `viewer/viewer.js`);
   the glows as the calibration car showed them (`GLOW`, levels on the screen); the Driving
   cameras through the viewer's own 32° lens (the user disliked the game's wide one). Known gaps:
-  the light's direction (the game's sun lights one side, the studio all round) and the finishes'
+  the light's direction (the game's sun lights one side, the studio all round; closer since the
+  dehaze of 2026-09-27, the key now the main light by day) and the finishes'
   reflections (the stadium's in the game) aren't matched. The Lab's balls and its Studio's frames
   use the same look. `tool.snap TSC_Calibrate --cams` and the user's mood screenshots (09:18 to
   09:22 on 2026-09-27) measure any change against the game.

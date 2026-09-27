@@ -1743,6 +1743,15 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
     and the concrete averages the cove's grey so no ring shows where it ends. Materials with
     `onBeforeCompile` need their own `customProgramCacheKey` when their code differs, or three.js
     reuses the first one's program; the fade distances are uniforms.
+- [x] **2. Less haze by day (the user, 2026-09-27: "the car itself looks a little hazy, can it be a
+  bit more dehazed?").** The calibration car from Cam 2 (`?lens=game`, 2560x1440) beside the game's
+  screenshot: on the tail's top 76 % of the light came from the studio HDR all round and 24 % from
+  the key, so the faces the key misses were nearly as light as the tops (its back 93 and 86 against
+  the game's 29 and 40, the tyres 104 against 48). `LOOKS.day` now halves the HDR (1.25 -> 0.625)
+  and gives the key 2.8 times (1.1 -> 3.08): the grey scale stays the game's (60 88 119 158 201 247
+  against 53 80 114 158 204 247), the back 66 and 61, the tyres 74. 0.35 and 3.3 came closer still
+  and looked harsh for a studio. The key's shadow softened to match (radius 3 -> 8), and the Lab's
+  balls take the same light (`viewer/lab.js`).
   - **KeyShot's ground:** the floor is the room's own matte grey, so there's no edge; a mirror
     (`Reflector`) under it shows through 22 % by the car and none 6 m out, drawn at half the
     screen's size, which softens it. `Reflector` takes the mesh's own +z as the mirror's normal:

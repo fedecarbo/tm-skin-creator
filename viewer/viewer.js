@@ -97,8 +97,14 @@ if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', '
 // night glows at sunset, not at sunrise. keyFrom: where the key comes from, lower at both: at sunrise
 // ahead of the car, at sunset behind it, warming its back as the game's did. tint: the sky's colour
 // corrected so the calibration car's white patch reads as the game's (within 5 levels).
+// Less haze by day (the user, 2026-09-27: "the car itself looks a little hazy, can it be a bit more
+// dehazed?"): the studio's all-round light halved (env 1.25 -> 0.625) and the key 2.8 times (1.1 ->
+// 3.08), so the tops keep the game's greys (the calibration car's tail from Cam 2: 60 88 119 158 201
+// 247 against the game's 53 80 114 158 204 247) while the faces the key misses fall into shade: its
+// back 66 and 61 (were 93 and 86; the game's 29 and 40, where its sun lights one side), the tyres 74
+// (104; the game's 48). env 0.35 with key 3.3 came closer still, and looked harsh for a studio.
 const LOOKS = {
-  day: { hdr: 'studio_small_09', env: 1.25, key: 1.1, keyColour: 0xfff4e8, exposure: 1.44 },
+  day: { hdr: 'studio_small_09', env: 0.625, key: 3.08, keyColour: 0xfff4e8, exposure: 1.44 },
   sunrise: { hdr: 'belfast_sunset_puresky', tint: [0.91, 1, 0.82], env: 1, key: 1, keyColour: 0xfff0dc, exposure: 0.48, lights: 'day', keyFrom: [-0.35, 0.45, 0.8] },
   sunset: { hdr: 'qwantani_dusk_2_puresky', tint: [1.33, 1, 0.66], env: 1, key: 1.6, keyColour: 0xffb080, exposure: 0.6, lights: 'night', keyFrom: [-0.6, 0.45, -0.55] },
   night: { hdr: 'dikhololo_night', env: 4.4, key: 0.44, keyColour: 0xb9c9ff, exposure: 0.6 },
@@ -299,7 +305,7 @@ key.shadow.mapSize.set(2048, 2048);
 Object.assign(key.shadow.camera, { left: -3.5, right: 3.5, top: 3.5, bottom: -3.5, near: 1, far: 40 });
 key.shadow.bias = -0.0004;
 key.shadow.normalBias = 0.02;
-key.shadow.radius = 3;
+key.shadow.radius = 8;  // soft, as from a big studio light (3 until the dehaze of 2026-09-27 made it the main light)
 scene.add(key, key.target);
 
 scene.background = new THREE.Color('#050506');  // seen only from under the floor

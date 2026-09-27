@@ -40,7 +40,7 @@ function stage(canvas, size) {
   const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
   camera.position.set(1.0, 0.7, 3.9).setLength(size > THUMB ? 4.35 : 5.1);
   camera.lookAt(0, 0, 0);
-  const key = new THREE.DirectionalLight(0xfff4e8, 1.1);  // the viewer's key light by day
+  const key = new THREE.DirectionalLight(0xfff4e8, 3.08);  // the viewer's key light by day (LOOKS.day)
   key.position.set(2, 4, 1.5);
   scene.add(key);
   const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 96), new THREE.MeshPhysicalMaterial());
@@ -238,7 +238,7 @@ async function start() {
   $('count').textContent = items.length;
   const hdr = await new HDRLoader().loadAsync('data/studio_small_09.hdr');
   hdr.mapping = THREE.EquirectangularReflectionMapping;
-  for (const s of [shelf, big]) Object.assign(s.scene, { environment: hdr, environmentIntensity: 1.25 });
+  for (const s of [shelf, big]) Object.assign(s.scene, { environment: hdr, environmentIntensity: 0.625 });  // LOOKS.day's env
   $('status').textContent = '';
   const want = items.find((m) => m.slug === params.get('m')) || items[0];
   const first = openFamily(want.family, false);
