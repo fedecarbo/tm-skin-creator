@@ -1819,6 +1819,14 @@ surface that i've liked". The item is in `IMPROVEMENTS.md`.
   - **A shiny or satin floor catches the studio HDR's lamps** at a grazing angle (white blotches
     on the floor, lamps the grey room doesn't have): the floors stay matte and let the mirror
     carry the reflection.
+- [x] **7. A finer floor grain (the user, 2026-09-27: "make the floor grain a bit smaller").** Four
+  grains rendered in the viewer, side by side at true pixel size
+  (https://claude.ai/artifact/J4TkiZkYFsa894qKXYfA4u); the user picked D: a repeat every 40 cm (was
+  1 m), grey only, power 0.7 (was 0.45). Up close the rubber's picture carried lilac and beige
+  blotches, now gone: the grain is each texel's lightness against the mean. A grain shrinks into
+  the mipmaps fast: at the opening view a screen pixel covers about 4 mm of floor, so at 25 cm a
+  repeat the grain was near plain grey; 40 cm holds with the stronger power. The floor's average
+  colour stays the track's (within half a level across all four).
 
 ### The viewer on smaller screens, and its buttons (done 2026-09-27)
 

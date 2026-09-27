@@ -9,9 +9,9 @@
 //   The room: a seamless cove, the floor curving up into the walls and a ceiling (floor radius 14 m,
 //     curve 6 m, 14 m high), lit as if it were all flat floor (the normal straight up, no shine), so
 //     it's one even grey with no line where the floor bends, in every mood.
-//   The floor: a fine matte grain (ambientCG Rubber004, CC0, downloaded by tool/view.py: FLOOR_SETS)
-//     averaging the room's grey, under a faint line every 50 cm, one under the car's middle; both fade
-//     out between 8 and 13.8 m.
+//   The floor: a fine, even matte grain in grey (ambientCG Rubber004, CC0, downloaded by
+//     tool/view.py: FLOOR_SETS) averaging the room's grey, under a faint line every 50 cm, one under
+//     the car's middle; both fade out between 8 and 13.8 m.
 //   The ground shadow: a soft shadow right under the car (KeyShot's ground occlusion), drawn again
 //     only when the car's parts come or go.
 //   The vignette: the studio, never the car, darkening gently towards the picture's corners, around
@@ -27,7 +27,10 @@ import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 const RADIUS = 14;  // the room's flat floor: the cove curves up from here
 // The studio's colour (linear): a light grey with the track's faint warm-pink cast.
 const FLOOR = [0.353, 0.329, 0.349];
-const GRAIN = { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.45, metres: 1, relief: 0.3 };
+// The grain: a repeat every 40 cm, grey only (the rubber's lilac and beige blotches gone), at power
+// 0.7 so it still shows as the viewer opens; finer melts into plain grey on the screen (the user's
+// pick from renders, 2026-09-27: "make the floor grain a bit smaller").
+const GRAIN = { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.7, metres: 0.4, relief: 0.3 };
 const GRID = 0.5;  // metres between the lines
 const FADE = { r0: 8, r1: 13.8 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
@@ -43,7 +46,7 @@ export function setStudioTint(rgb) { VIGNETTE.studioTint.value.set(...rgb); }
 // A studio surface. flat: lit as flat floor wherever it is (the normal straight up); matte: no shine
 // at all (a satin floor catches the sky's bright spots as blotches the grey room doesn't have); fade:
 // the alpha going from 1 to 0 between r0 and r1 metres from the car; grain: the colour picture as
-// colour * (texel / mean)^power, "a tiny bit grainy".
+// colour * (the texel's lightness against the mean)^power, "a tiny bit grainy".
 function studio(material, { flat = false, matte = flat, fade = null, grain = null } = {}) {
   const uniforms = {
     fadeCentre: { value: new THREE.Vector2() },
@@ -63,7 +66,8 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
         gl_FragColor.rgb *= mix( 1.0, 0.6, vignette * vignetteStrength ) * studioTint;`);
     if (grain) {
       frag = frag.replace('#include <map_fragment>', `#include <map_fragment>
-        diffuseColor.rgb = floorGrey * pow( max( texture2D( map, vMapUv ).rgb / grainMean, 0.0 ), vec3( grainPower ) );`);
+        float grainRatio = dot( texture2D( map, vMapUv ).rgb / grainMean, vec3( 0.2126, 0.7152, 0.0722 ) );
+        diffuseColor.rgb = floorGrey * pow( max( grainRatio, 0.0 ), grainPower );`);
     }
     if (fade) {
       frag = frag.replace('#include <alphamap_fragment>', `#include <alphamap_fragment>
