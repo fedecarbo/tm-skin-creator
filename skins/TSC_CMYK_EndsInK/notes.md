@@ -52,3 +52,11 @@ blotches, like dirt.
   panels; the specks are 2 mm instead of 3.5 (the finish's default now). In the game the sheen
   map is at half size (the zip's budget), where the grain keeps nearly all its strength; the zip
   is 6.6 MB.
+- Change 7 (user, notes 8 and 9, with "liking it yes"): "I thing joints and those things shouldnt
+  be matte?  Or I guess, matte but mettalic, so they look more realistic" (a rear arm), "same with
+  these" (a front wishbone). The suspension (wishbones, pushrods, tie rods, rear arms, dampers,
+  the air brakes' arms, uprights, hub brackets, driveshafts) was matte carbon and dark satin: now
+  bead-blasted titanium (ME-13) a shade dark (#6b6d72). Nadeo's relief on the arms is a carbon
+  weave, which on metal read as woven metal, so it's smoothed there.
+- Installed 2026-09-27 (changes 5 to 7, on the user's yes): 7.64 MB, the Details relief and the
+  body's sheen map at 2048² to fit. On the page online.

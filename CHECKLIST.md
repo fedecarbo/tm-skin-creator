@@ -2253,6 +2253,9 @@ distorted". Each choice was made from real renders of the viewer, side by side o
     of bright dashes: leave out any dot whose normals spread more than about 14 degrees.
   - Pictures of the car look banded when shrunk for a quick look, and not at full size: judge
     gradients from full-size crops.
+  - Nadeo's relief (Details_N) on the suspension arms (wishbones, pushrods, tie rods, rear
+    arms) is a carbon weave. Painted as metal they read as woven metal: `s.relief(parts, lambda
+    pos, nrm: 0, replace=True)` smooths it.
 
 - **2026-09-24, pictures on the car (checkpoint 6).**
   - A decal restricted to one named panel stops dead at the next panel; the user saw the

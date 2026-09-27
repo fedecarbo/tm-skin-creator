@@ -6,6 +6,8 @@ The orange also comes back as light (the speed digits, the rear lights' last ban
 openings in a turbo). The wrap has a tiny grain in its sheen (the user, 2026-09-27)."""
 import importlib.util
 
+import numpy as np
+
 from tool import paths
 
 _spec = importlib.util.spec_from_file_location("cmyk_black_tail", paths.SKINS / "TSC_CMYK_BlackTail" / "design.py")
@@ -24,5 +26,21 @@ def grain(s):
     s.paint("wing pylon", "satin", colour=_tail.C)  # the front wing's supports stay cyan
 
 
+# the suspension was matte carbon and dark satin (TSC_Stealth_CMYK's); the user: "I thing joints
+# and those things shouldnt be matte?  Or I guess, matte but mettalic, so they look more
+# realistic", "same with these" (2026-09-27). It shares paint only with the small patch the front
+# uprights wear, which goes metal with them
+SUSPENSION = ["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm", "damper", "rear damper", "upright",
+              "hub bracket", "driveshaft"]
+CARBON_ARMS = ["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm"]
+
+
 def design(s, wrap=grain):
     _tail.design(s, tail="k", wrap=wrap)
+    s.step("Metal suspension", "The wishbones, pushrods, tie rods, rear arms, dampers, uprights and driveshafts in "
+           "bead-blasted titanium, a shade dark: matte, but metal.",
+           words="I thing joints and those things shouldnt be matte?  Or I guess, matte but mettalic, so they look more "
+                 "realistic. same with these")
+    s.paint(SUSPENSION, "bead-blasted titanium", colour="#6b6d72")
+    # Nadeo's relief on the arms is a carbon weave, which on metal read as woven metal: smooth
+    s.relief(CARBON_ARMS, lambda pos, nrm: np.zeros(len(pos), np.float32), replace=True)

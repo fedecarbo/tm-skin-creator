@@ -166,5 +166,78 @@
   ],
   "made": "2026-09-27T15:17:18Z",
   "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 8,
+  "text": "I thing joints and those things shouldnt be matte?  Or I guess, matte but mettalic, so they look more realistic",
+  "step": 5,
+  "step_name": "Wheels",
+  "part": {
+   "id": 180,
+   "label": "rear arm (rear left)",
+   "token": "rear arm|left"
+  },
+  "at": [
+   0.388,
+   0.4494,
+   -1.337
+  ],
+  "normal": [
+   -0.0002,
+   0.7934,
+   -0.6087
+  ],
+  "made": "2026-09-27T15:35:05Z",
+  "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 9,
+  "text": "same with these",
+  "step": 5,
+  "step_name": "Wheels",
+  "part": {
+   "id": 171,
+   "label": "upper wishbone (front left)",
+   "token": "upper wishbone|left"
+  },
+  "at": [
+   0.2629,
+   0.3951,
+   1.8817
+  ],
+  "normal": [
+   -0.1503,
+   0.9732,
+   0.174
+  ],
+  "made": "2026-09-27T15:36:30Z",
+  "state": "done"
+ },
+ {
+  "skin": "TSC_CMYK_EndsInK",
+  "n": 10,
+  "text": "im ok with matte but it needs to be slightly less matte",
+  "step": 5,
+  "step_name": "Wheels",
+  "part": {
+   "id": 28,
+   "label": "sidepod frame (left)",
+   "token": "sidepod frame|left"
+  },
+  "at": [
+   0.5204,
+   0.5388,
+   0.2289
+  ],
+  "normal": [
+   0.7988,
+   0.243,
+   0.5503
+  ],
+  "made": "2026-09-27T15:37:57Z",
+  "state": "new",
+  "picture": ".notes/TSC_CMYK_EndsInK-10.jpg"
  }
 ]
