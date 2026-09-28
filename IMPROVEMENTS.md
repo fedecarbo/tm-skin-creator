@@ -41,7 +41,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the first studio car, TSC_Ladybird, whose release waits for the Windows PC (the install and the
   page online). W2, the experts, done (2026-09-28, on the Mac): the critic, the step guides,
   the concept designers (on the PC, whether two paints fit at once is still to check). W3, the
-  wizard, is with another agent (its handover in `CHECKLIST.md`); W4, the test, after it.
+  wizard, picked up on the Mac the same day, in four pieces (`CHECKLIST.md`): piece 1, the wizard
+  and its sheet, built and waiting for the user's try on a trial car; W4, the test, after it.
 
 ## The tool
 

@@ -42,6 +42,20 @@ the record and installing.
   user's answer, `skip`, `back`. Run it on the PC as `PY -m tool.sheet`, on the Mac as
   `python3 -m tool.sheet` (no container). A pick deletes the options not kept (the user's rule,
   2026-09-28): tell the user in a few words, git's history keeps them.
+- **The Lab's wizard** (the user's pick of the screens, 2026-09-28): a studio car opens in the Lab
+  on "The build": the sheet on the left, the step waiting for the user filling the page, with a
+  Pick on each option, "Approve the brief", "Keep it as it is" on a step that needs a look, and a
+  box for their own words. Open it once the car has a sheet (http://localhost:8765/lab.html?skin=<car>;
+  on the Mac `open` it) and say once that they can answer there or in the chat. It shows only the
+  sheet, the brief's card and the options' pictures (their gallery thumbs: take each option's
+  snapshot before `ask`), so keep the sheet true and the page follows. "The car", the stand, is
+  still where they leave notes on the car; each option's "On the car" opens it there.
+- **Waiting for their answer:** after every `ask` (the brief's too), start `python3 -m tool.notes
+  wait` (on the PC `PY -m tool.notes wait`) with the Bash tool in the background, then end the
+  turn. A pick, a yes or words in the wizard end it at once and print it as the hook does ("in the
+  Lab's wizard at the Concepts step, picked B (Sunny): "…""), which wakes you with no message in
+  the chat. Act on it as on a reply in the chat, then `tool.notes done <car> <n>`. One wait at a
+  time: if they answer in the chat instead, the wait goes on to the next note, or two hours.
 - `notes.md` as for any skin: the user's words verbatim, the date and the model first, then a line
   per event (`Brief approved <date>: …`, `Picked <date>, <step>: …`, `Change <n> (user): …`).
 - Commit and push after each decided step, so the other computer has it.
@@ -89,9 +103,10 @@ maybe help shape the direction. But obviously I don't want a complete form to fi
    ```
 
    "Fixed" holds only what the user asked for; the rest is your reading, which their yes approves.
-6. Show the card in the reply, short, and ask in bold: **is this the car?** Changes go into the
-   card and it's shown again. On a yes: `tool.sheet decide <car> brief "<the character, a few
-   words>"`, `Brief approved` in `notes.md`, commit and push.
+6. `tool.sheet ask <car> brief` (the wizard shows the card with "Approve the brief"), then show
+   the card in the reply, short, and ask in bold: **is this the car?** Changes go into the card
+   and it's shown again. On a yes: `tool.sheet decide <car> brief "<the character, a few words>"`,
+   `Brief approved` in `notes.md`, commit and push.
 
 ## 2. Mood
 

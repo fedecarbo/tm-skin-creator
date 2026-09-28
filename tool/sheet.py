@@ -75,6 +75,24 @@ STEPS = [
     ("release", "Release"),
 ]
 KEYS = [k for k, _ in STEPS]
+# What the Lab's wizard asks at a step waiting for the user, and a line under it (W3): kept with the
+# steps, so the page keeps no list of its own.
+ASKS = {
+    "brief": ("Is this the car?", "Claude's reading of your idea. Approve it, or say what's off: nothing is painted "
+              "until you do."),
+    "mood": ("Which mood?", "Looks for the brief before anything touches the car: a colour story, the finishes and "
+             "pictures. Pick one, or say what to take from each."),
+    "concepts": ("Which idea?", "Different ideas for the car, rough on purpose: flat colour, no finishes yet. Pick "
+                 "one, or say what to mix."),
+    "shapes": ("Which shapes?", "Where the big shapes sit, and how the car reads from far away."),
+    "colours": ("Which finish?", "The same car in different finishes, by day and at night."),
+    "wheels": ("Which wheels?", "The covers, the tyres and the wheels' lights, as one set."),
+    "details": ("Which details?", "The inner car, its lights and the glass."),
+    "lettering": ("Which lettering?", "Words, numbers and badges, and where they go."),
+    "review": ("Anything else?", "A critic who didn't design the car checked it against the brief."),
+    "road": ("How does it drive?", "Drive it in the game by day and at night, then say yes or what to change."),
+    "release": ("Ready?", "In the game, on the page online and in its design book."),
+}
 PAINTS = {"concepts", "shapes", "colours", "wheels", "details", "lettering"}  # their options are cars
 CHECKS = ["review", "road", "release"]  # the whole car again, after any change
 STATES = {"todo": "to do", "claude": "Claude on it", "waiting": "waiting for you", "decided": "decided",
@@ -218,9 +236,13 @@ def option(car, key, title, skin=None, file=None):
 
 
 def ask(car, key):
+    """The options are shown: the user's turn. The brief is asked by its card, not by options."""
     sheet = load(car)
     st = step_of(sheet, key)
-    if len(st["options"]) < 2:
+    if key == "brief":
+        if not (SKINS / car / "brief.md").exists():
+            raise SheetError(f"{car} has no brief.md: write the card first (the skin skill's studio.md)")
+    elif len(st["options"]) < 2:
         raise SheetError(f"{st['name']} has {len(st['options'])} option(s): with only one direction, decide it")
     for o in st["options"]:
         if "skin" in o and not (SKINS / o["skin"] / "design.py").exists():
@@ -414,6 +436,56 @@ def describe(sheet):
 
 def cars():
     return [json.loads(p.read_text("utf-8")) for p in sorted(SKINS.glob("*/sheet.json"))]
+
+
+# ---- For the Lab's wizard (viewer/lab-wizard.js, through tool/view.py's /api/sheet) ----
+
+
+def find(skin):
+    """The studio car `skin` belongs to: the car itself, or one of its options, now or in a step's
+    history (the Lab follows whichever skin Claude painted last, often an option). None if none."""
+    if not NAME.fullmatch(skin or ""):
+        return None
+    if (SKINS / skin / "sheet.json").exists():
+        return skin
+    for sheet in cars():
+        for st in sheet["steps"]:
+            if any(o.get("skin") == skin for o in st["options"] + [o for w in st["was"] for o in w["options"]]):
+                return sheet["car"]
+    return None
+
+
+def card(car):
+    """The brief's card (skins/<car>/brief.md, in studio.md's shape) as the Lab shows it: the user's
+    words, and What it is, Drawn from ([{"name", "gives"}]), Not and Fixed; None without a card."""
+    p = SKINS / car / "brief.md"
+    if not p.exists():
+        return None
+    text = p.read_text("utf-8")
+    parts = re.split(r"^## +(.+?)\s*$", text, flags=re.M)
+    head = re.sub(r"^# .*$", "", parts[0], flags=re.M)
+    sections = {parts[i].strip().lower(): parts[i + 1].strip() for i in range(1, len(parts) - 1, 2)}
+    items = lambda s: [" ".join(x.split()) for x in re.findall(r"^- +(.+(?:\n[ \t]+\S.*)*)", s, re.M)]
+    drawn = []
+    for x in items(sections.get("drawn from", "")):
+        name, _, gives = x.partition(": ")
+        drawn.append({"name": name, "gives": gives} if gives else {"name": "", "gives": x})
+    fixed = sections.get("fixed", "")
+    return {"words": " ".join(head.split()), "what": " ".join(sections.get("what it is", "").split()),
+            "drawn": drawn, "not": items(sections.get("not", "")),
+            "fixed": items(fixed) or ([] if fixed.strip(" .").lower() in ("", "nothing") else [" ".join(fixed.split())])}
+
+
+def lab(skin):
+    """What the wizard shows for `skin`: its car's sheet, with the brief's card, the step it's at,
+    each step's question and the states' words. None when `skin` is in no studio car."""
+    car = find(skin)
+    if not car:
+        return None
+    sheet = load(car)
+    at = here(sheet)
+    return {**sheet, "skin": skin, "at": at["key"] if at else None, "card": card(car),
+            "asks": {k: {"question": q, "line": l} for k, (q, l) in ASKS.items()}, "states": STATES}
 
 
 def main(argv=None):

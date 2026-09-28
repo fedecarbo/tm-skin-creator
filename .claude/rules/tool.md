@@ -60,7 +60,12 @@ it before changing how something works. The top docstring of each `tool/*.py` is
 - The design studio's build sheet: `tool/sheet.py` (its docstring is the key) writes
   `skins/<car>/sheet.json`, the only writer, so the Lab's wizard shows it and keeps no list of its
   own. Standard library only (the Mac's python3 runs it). Its pick deletes the options not kept.
-  Notes: "The design studio" in `CHECKLIST.md`.
+  The Lab's wizard (`viewer/lab-wizard.js`, the room "The build", where a studio car or one of its
+  options opens) reads it through `/api/sheet?skin=<name>` (`sheet.lab`: the car it belongs to, the
+  brief's card, each step's question from `ASKS`) and sends the user's answers as notes with
+  `sheet` (a pick, a yes or words at a step, no point on the car; the stand leaves them out);
+  `tool.notes wait` in the background wakes Claude on the next one. Notes: "The design studio" in
+  `CHECKLIST.md` (W3).
 - Mood boards: `tool/mood.py` (its docstring is the key) paints each board's finishes on balls with
   the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
   `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room

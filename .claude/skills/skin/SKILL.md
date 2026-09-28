@@ -15,8 +15,8 @@ or a whole scene is fine.
 
 When the user asks for the studio ("studio", "through the studio", "do it properly"), read
 `studio.md` beside this file and follow it: a new car built step by step, from a brief to the
-release, with the user deciding wherever there's more than one direction. Everything below still
-applies inside it. Without that ask, go the quick way, exactly as below.
+release, with the user deciding wherever there's more than one direction; the Lab shows it as a
+wizard, where they can answer too. Everything below still applies inside it. Without that ask, go the quick way, exactly as below.
 
 ## Standing rules
 

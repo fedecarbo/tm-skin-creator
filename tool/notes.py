@@ -14,6 +14,12 @@ it's handled, and its pin leaves the car:
 
     python -m tool.notes                        the notes not done yet, every skin
     python -m tool.notes done <skin> [N ...]    mark notes done (all of the skin's, without numbers)
+    python -m tool.notes wait [minutes]         end as soon as a note comes, printing it (default 120)
+
+The Lab's wizard (a studio car's build sheet, W3) sends the user's answers at a step the same way:
+a note on the car (the skin is the studio car) with `sheet`, the step and the option picked, or a
+yes, and no point. While Claude waits for an answer, it runs `wait` in the background, which wakes
+it the moment one comes, with no message in the chat needed.
 
 The server (on threads), the hook and the command line all write the file. Each write takes a lock,
 a folder made with mkdir, which is atomic on Windows and macOS and holds across the Mac's container
@@ -103,7 +109,9 @@ def save(notes):
 
 
 def _skin(skin):
-    if not isinstance(skin, str) or not NAME.fullmatch(skin) or not (REPO / "skins" / skin / "design.py").is_file():
+    """A skin with a design, or a studio car with its sheet (the wizard's answers come before any paint)."""
+    if not isinstance(skin, str) or not NAME.fullmatch(skin) or not any(
+            (REPO / "skins" / skin / f).is_file() for f in ("design.py", "sheet.json")):
         raise ValueError(f"no skin called {skin!r}")
     return skin
 
@@ -170,6 +178,17 @@ def _station(v):
     return {"key": v["key"], "name": str(v.get("name") or v["key"])[:40], "try": n, "latest": v.get("latest") is not False}
 
 
+def _answer(v):
+    """The wizard's answer at a step of the build sheet ({"step", "name", "pick", "title", "yes"}: the
+    step's key and name, the option picked and its title, or yes to what the step shows), checked;
+    None when it isn't one."""
+    if not isinstance(v, dict) or not isinstance(v.get("step"), str) or not re.fullmatch(r"[a-z]{1,20}", v["step"]):
+        return None
+    pick = v.get("pick") if isinstance(v.get("pick"), str) and re.fullmatch(r"[A-Z](\+[A-Z]){0,5}", v["pick"]) else None
+    return {"step": v["step"], "name": str(v.get("name") or v["step"])[:40], "pick": pick,
+            "title": str(v.get("title") or "")[:80] if pick else "", "yes": v.get("yes") is True and not pick}
+
+
 def _drop_picture(note):
     pic = picture_path(note)
     if pic:
@@ -177,14 +196,17 @@ def _drop_picture(note):
     note.pop("picture", None)
 
 
-def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None, station=None):
+def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None, station=None,
+        sheet=None):
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
     the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
     on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); station:
     the stand's station and try the user was looking at (step and step_name: the Studio's step,
-    before the stations). Returns the note."""
+    before the stations); sheet: the wizard's answer at a step of a studio car's build sheet (a pick
+    or a yes needs no words). Returns the note."""
     text = str(text or "").strip()[:LONGEST]
-    if not text:
+    sheet = _answer(sheet)
+    if not text and not (sheet and (sheet["pick"] or sheet["yes"])):
         raise ValueError("an empty note")
     _skin(skin)
     vec = lambda v: [round(float(x), 4) for x in v][:3] if isinstance(v, list) and len(v) == 3 else None
@@ -204,6 +226,7 @@ def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, pi
             "normal": vec(normal),
             "view": _view(view),
             "station": _station(station),
+            "sheet": sheet,
             "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": "new",  # new -> sent (Claude has read it) -> done (handled)
         }
@@ -245,6 +268,12 @@ def done(skin, numbers=()):
 
 
 def line(x):
+    a = x.get("sheet")
+    if a:  # the wizard's answer at a step, not a point on the car
+        did = (f"picked {a['pick']}" + (f" ({a['title']})" if a["title"] else "") if a["pick"]
+               else "said yes to it" if a["yes"] else "wrote")
+        words = f": \"{x['text']}\"" if x["text"] else ""
+        return f"- {x['skin']}, note {x['n']}, in the Lab's wizard at the {a['name']} step, {did}{words}"
     where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
     step = f"at step {x['step']} ({x['step_name']})" if x["step"] is not None else ""
     st = x.get("station")
@@ -255,25 +284,47 @@ def line(x):
     return f"- {x['skin']}, note {x['n']}, {step + ', ' if step else ''}{where}: \"{x['text']}\"{seen}"
 
 
-def hook():
-    """For the UserPromptSubmit hook: print the notes Claude hasn't seen, and mark them sent."""
+def deliver(since):
+    """Print the notes Claude hasn't seen and mark them sent; True if there were any."""
     if not any(x["state"] == "new" for x in load()):  # most messages: no lock needed
-        return
+        return False
+    with _locked():
+        notes = load()
+        new = [x for x in notes if x["state"] == "new"]
+        if not new:
+            return False
+        print(f"Notes the user left in the Lab {since} (their words: on the car, each pinned to the part they "
+              "clicked, so look at its picture; in the wizard, an answer at a step of the build sheet; "
+              "`python -m tool.notes done <skin> <n>` once one is handled):")
+        for x in new:
+            print(line(x))
+            x["state"] = "sent"
+        save(notes)
+    return True
+
+
+def hook():
+    """For the UserPromptSubmit hook: the notes Claude hasn't seen, with the user's message."""
     try:
-        with _locked():
-            notes = load()
-            new = [x for x in notes if x["state"] == "new"]
-            if not new:
-                return
-            print("Notes the user left on the car in the Lab since their last message (their words, "
-                  "each pinned to the part they clicked; look at each one's picture; "
-                  "`python -m tool.notes done <skin> <n>` once one is handled):")
-            for x in new:
-                print(line(x))
-                x["state"] = "sent"
-            save(notes)
+        deliver("since their last message")
     except TimeoutError:  # the page was saving one just then: they stay new for the next message
         print("(The Lab's notes were being saved just then; any new ones come with the next message.)")
+
+
+def wait(minutes=120.0):
+    """For Claude waiting on the user's answer in the Lab (a Bash command in the background, which
+    wakes Claude when it ends): ends as soon as a note comes, printing it, so a pick in the wizard
+    reaches Claude without a message in the chat; or after `minutes` with nothing."""
+    end = time.monotonic() + minutes * 60
+    while time.monotonic() < end:
+        try:
+            if deliver("while Claude waited"):
+                return True
+        except (TimeoutError, OSError, ValueError):  # busy, or caught mid-write: look again
+            pass
+        time.sleep(1)
+    print(f"(No notes from the Lab in {minutes:g} minutes: stopped waiting.)")
+    return False
 
 
 def main(args):
@@ -282,6 +333,9 @@ def main(args):
             hook()
         except Exception as e:  # never block the user's message over a note
             print(f"(The Lab's notes couldn't be read: {e})")
+        return
+    if args[:1] == ["wait"] and len(args) <= 2:
+        wait(float(args[1]) if len(args) == 2 else 120.0)
         return
     if args[:1] == ["done"] and len(args) >= 2:
         hit = done(args[1], args[2:])

@@ -2904,6 +2904,68 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     design book (https://claude.ai/artifact/436i2ACcm45oN5SVAsWuLL) and the Mac's `.snap/` sheets.
   - The user's rule: one piece at a time, shown, their OK before the next. W2 is with another agent
     too: coordinate through notes here.
+- **Picked up 2026-09-28 on the Mac** (the user: "Ok I think lab wizard is next"). **The pieces**
+  (Claude's split), each shown to the user and their OK before the next:
+  1. **the wizard and its sheet:** a studio car opens in the Lab on its wizard (a room of its own,
+     the stand one click away for notes on the car); the build sheet on the left from `sheet.json`,
+     served; each step's page in a plain form (the brief's card, the options as cards with the car's
+     picture, a decided step's decision and what was offered); a pick, an approval or words for
+     Claude go through the notes channel with their step, and reach Claude at once while Claude
+     waits for them; tried on TSC_Ladybird's sheet and a trial car at a real choice;
+  2. **each step's own format:** mood as boards, concepts as cars that turn, shapes with the game's
+     camera and a "from far away" picture, colours and materials with a day and night split and the
+     finishes as swatches, wheels close up then on the car, details and lettering close up;
+  3. **review and road test:** the critic's findings with a before and after, the F12 screenshots
+     with notes on them (the PC);
+  4. **going back:** "changed" and "needs a look" on the sheet, the whole car before and after, and
+     the options' pictures kept so a decided step still shows what was offered.
+- **1. The wizard and its sheet (built 2026-09-28, on the Mac):**
+  - **What you'll see:** a studio car, or any of its options, opens in the Lab on a room of its own,
+    "The build" (a car made the old way has no such room and opens on the stand, as before). On the
+    left the build sheet: the eleven steps, each with what was decided, "your turn", "Claude on it",
+    "needs a look" or "changed", and the car so far (a click opens it on the stand, "The car", where
+    notes go). The step on show fills the page: "Step 3 of 11", its question in Teko at 44 px when
+    it waits for you ("Is this the car?", "Which idea?"), else its name. A click on a step on the
+    sheet shows it; Back and Next move along; the page follows the car's step again when Claude
+    moves on.
+  - **Each step in a plain form** (its own format is piece 2): the brief's card (What it is, Drawn
+    from, Not struck through, Fixed, the user's words), or the user's words while Claude reads them;
+    the options as cards, a car's gallery thumb or a mood board's colour story, first drawing and
+    line, each with "On the car" (the option on the stand); a decided step's decision, its options
+    marked picked or not kept, and what it decided before ("Before"); a step with no options shows
+    the car now. Options whose folders a pick deleted show as their names only (their pictures are
+    piece 4).
+  - **Answering:** Pick on a card, "Approve the brief", "Keep it as it is" (a step that needs a
+    look), and "Or tell Claude in your own words" (Enter) go as a note with `sheet` (the step, the
+    pick and its title, or yes) and any words typed. The answer shows under the step ("You picked
+    B · Sunny", then "Claude has it"), with "Take it back" until Claude has read it; a second pick
+    replaces the first.
+  - **Reaching Claude at once:** `tool.notes wait`, run by Claude in the background after an `ask`,
+    ends as soon as a note comes and prints it as the hook does, which wakes Claude with no message
+    in the chat (tried: the notification came as the note was written). `studio.md` says when.
+  - **How it's built:** `sheet.find` (the car a skin is, or is an option of, now or in a step's
+    history), `sheet.card` (brief.md read into its parts), `sheet.lab` (the sheet with the card, the
+    step it's at, `ASKS`: each step's question and line, and the states' words) served as
+    `/api/sheet?skin=`; `ask <car> brief` takes the card instead of options. `notes.add(sheet=...)`,
+    a pick or a yes needing no words, on a car with a sheet and no design yet; the hook's line for
+    it; `deliver` shared by the hook and `wait`. `viewer/lab-wizard.js`, its room and styles in
+    `lab.html` (the mockups' look); `lab.js` opens it for a studio car and checks every 5 s whether
+    the Lab's car is one; the stand leaves the wizard's answers off its tags. The cards take as many
+    columns as make a 4:3 thumb biggest, side by side unless far smaller, no taller than 5:6 of their
+    width (portrait cells cropped the cars to their middle). The page asks for the sheet and the
+    answers every 2 s, only while its room is open.
+  - **Checks:** 10 on the sheet (a scratch skins folder: the brief asked by its card and refused
+    without, the card read with wrapped lines, `find` for the car, an option and strangers, `lab`,
+    a question for every step) and 16 on the notes (a scratch notes folder: a pick, a yes, words,
+    four refusals, the hook's lines, the stand's notes as before, `wait` ending on a note and giving
+    up). In the Mac's headless Chrome, 24 on a trial car at its brief (the room, the question, the
+    sheet, approve, Sent, take back, words by Enter, a later step, the address, Back, the stand and
+    back, no sideways scroll at 390 and 1100, a car made the old way on the stand, TSC_Ladybird's
+    mood with both boards picked, no page errors) and 10 at its concepts (three cars, a pick, its
+    note, another pick replacing it with the words typed, take back, On the car).
+  - **The trial car:** TSC_WizardTrial, TSC_Ladybird's brief and boards, and three stand-in concepts
+    (TSC_WizardTrial_Red, _Sunny, _Tangerine: the Ladybird's design with its shell recoloured), not on
+    git, to be deleted after the user has tried it.
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,

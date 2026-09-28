@@ -317,8 +317,9 @@ async function loadNotes(force = false) {
     const r = await fetch(`api/notes?skin=${encodeURIComponent(name)}`, { cache: 'no-store' });
     if (!r.ok || !skin || skin.name !== name) return;
     const got = await r.json();
-    if (!force && JSON.stringify(got.notes) === JSON.stringify(notes) && got.next === nextN) return;
-    notes = got.notes;
+    const list = got.notes.filter((x) => !x.sheet);  // the wizard's answers at a step hang on no point
+    if (!force && JSON.stringify(list) === JSON.stringify(notes) && got.next === nextN) return;
+    notes = list;
     nextN = got.next;
   } catch { return; }  /* a server from before the notes */
   drawNotes();
