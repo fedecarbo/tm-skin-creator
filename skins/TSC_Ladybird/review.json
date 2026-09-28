@@ -1,0 +1,172 @@
+{
+ "car": "TSC_Ladybird",
+ "rounds": [
+  {
+   "n": 1,
+   "date": "2026-09-28",
+   "critic": "Opus 5.5",
+   "pictures": ".snap/critic/TSC_Ladybird/1",
+   "verdict": "It says ladybird from above and from the chase cameras, and the grass fringe is along the bottom as fixed, but it isn't finished: the white marks on the black nose make a face the brief forbids, the grass breaks into red slashes wherever the sides turn under, and the grass is invisible from the cameras the player drives with."
+  }
+ ],
+ "findings": [
+  {
+   "n": 1,
+   "round": 1,
+   "where": "the black nose, the white mark on each side of it",
+   "picture": "review-front-straight-on.png",
+   "at": [
+    0.5,
+    0.59
+   ],
+   "also": [
+    "views-top.png",
+    "views-front-three-quarter.png",
+    "close-2-nose.png",
+    "views-night.png"
+   ],
+   "what": "The two white ovals on the black nose read as a pair of eyes. Head-on and from above, the black nose with a white spot on each side and the dark inlets beside it make a bug's face looking at you. At night the white glows and the effect is stronger.",
+   "why": "The brief rules out eyes and a face; this is the one thing most likely to tip the car into a cartoon bug.",
+   "severity": "brief",
+   "sure": "high",
+   "status": "left",
+   "how": "the user chose the round white marks at Shapes (\"I would just keep with a\"); said again at the Review",
+   "recheck": null
+  },
+  {
+   "n": 2,
+   "round": 1,
+   "where": "the lower band of both sides, where the body turns under towards the floor, from the nose back past the sidepods",
+   "picture": "close-3-left-front-flank-the-fold.png",
+   "at": [
+    0.26,
+    0.73
+   ],
+   "also": [
+    "close-1-bonnet.png",
+    "close-4-left-sidepod.png",
+    "close-8-front-wheel.png",
+    "views-front-three-quarter.png",
+    "review-front-straight-on.png",
+    "review-right-front-flank.png"
+   ],
+   "what": "Above the lower crease the grass is clean pointed blades. Below it, the pattern turns into a green band with thin red slashes, like scratches or tiger stripes. The blades don't carry across the crease. On the fronts of the sidepods it looks like red flames or claw marks on green.",
+   "why": "The brief asks for grass as a clean, drawn edge. Here it looks like another idea (flames, scratches), and it shows in every front and three-quarter view.",
+   "severity": "fix",
+   "sure": "high",
+   "status": "open",
+   "how": "",
+   "recheck": null
+  },
+  {
+   "n": 3,
+   "round": 1,
+   "where": "the grass and the green floor edge along the whole right side",
+   "picture": "views-right-side.png",
+   "at": [
+    0.47,
+    0.55
+   ],
+   "also": [
+    "close-7-right-side.png",
+    "review-right-front-flank.png",
+    "review-right-rear-flank.png",
+    "views-rear-three-quarter.png"
+   ],
+   "what": "On the right side the grass and the floor edge are a dark, muddy bottle green. On the left (views-left-side, close-3) they're a bright lawn green. The red on the right is only a little darker, so the gap in the green looks bigger than the lighting alone explains.",
+   "why": "The two sides should match. Dark grass on dark red loses the look-at-me contrast and the drawn edge.",
+   "severity": "fix",
+   "sure": "medium",
+   "status": "left",
+   "how": "the viewer's light: its key light is on the car's left, so the whole right side, red too, is darker",
+   "recheck": null
+  },
+  {
+   "n": 4,
+   "round": 1,
+   "where": "the black spot low on each rear flank, just ahead of the rear wheel, where the grass rises into it",
+   "picture": "review-right-rear-flank.png",
+   "at": [
+    0.45,
+    0.58
+   ],
+   "also": [
+    "close-5-left-rear-flank.png"
+   ],
+   "what": "Dark green blades are drawn over the bottom of the black spot. Dark green on black almost disappears, so the bottom of the spot turns murky instead of reading as grass in front of a spot.",
+   "why": "Where the two ideas overlap, neither reads cleanly. It's the one place on the car where the craft looks muddy.",
+   "severity": "improve",
+   "sure": "medium",
+   "status": "open",
+   "how": "",
+   "recheck": null
+  },
+  {
+   "n": 5,
+   "round": 1,
+   "where": "the two spots on the rear deck, over the rear wheels",
+   "picture": "cams-cam-1-alt-day.png",
+   "at": [
+    0.5,
+    0.82
+   ],
+   "also": [
+    "close-9-driving-camera.png",
+    "cams-cam-2-alt-day.png",
+    "close-6-deck-and-tail.png"
+   ],
+   "what": "From the chase cameras, which is how the player sees the car all race, these spots wrap over the curve of the deck and look like slanted teardrops, not round ladybird spots. Together with the slightly pinkish red and the green band along the bottom, the car starts to look like a slice of watermelon.",
+   "why": "Round spots are what say 'ladybird', and this is the view the player sees most.",
+   "severity": "improve",
+   "sure": "medium",
+   "status": "left",
+   "how": "taste: the spots are scattered on purpose, as a jockey's silks' are (the concept the user picked)",
+   "recheck": null
+  },
+  {
+   "n": 6,
+   "round": 1,
+   "where": "the grass fringe, as seen from behind the car",
+   "picture": "cams-cam-1-day.png",
+   "at": [
+    0.5,
+    0.82
+   ],
+   "also": [
+    "cams-cam-2-day.png",
+    "cams-cam-2-alt-day.png",
+    "close-9-driving-camera.png",
+    "cams-cam-1-night.png"
+   ],
+   "what": "From all four chase cameras, by day and at night, none of the grass shows. The rear wheels and the tail hide it. The only green the player sees is the tyre stripes and the tail lights.",
+   "why": "The grass the car rises out of is half the idea and the one thing the brief fixes. While driving, the player sees only the ladybird.",
+   "severity": "improve",
+   "sure": "medium",
+   "status": "left",
+   "how": "known since Shapes: the grass is for other players, replays and the garage; the player sees the ladybird",
+   "recheck": null
+  },
+  {
+   "n": 7,
+   "round": 1,
+   "where": "the small lights just inside the front wheels",
+   "picture": "cams-cam-1-alt-night.png",
+   "at": [
+    0.45,
+    0.64
+   ],
+   "also": [
+    "cams-cam-1-night.png",
+    "cams-cam-2-night.png",
+    "cams-cam-2-alt-night.png"
+   ],
+   "what": "At night these glow orange, a colour nothing else on the car uses. The car's colours are red, black, green and white.",
+   "why": "A glow in a colour outside the car's colours looks like a leftover from the plain car, not part of the design.",
+   "severity": "fix",
+   "sure": "medium",
+   "status": "open",
+   "how": "",
+   "recheck": null
+  }
+ ]
+}

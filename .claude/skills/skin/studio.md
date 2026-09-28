@@ -236,20 +236,39 @@ than one direction (the mood boards' lettering, and none).
 
 ## 9. Review
 
-The whole car checked against the brief and a quality list. No decision for the user: they hear
-what was found and fixed. Until W2's critic exists (an agent given only the pictures and the
-brief), it's Claude's own review, done as if by someone who didn't design the car:
+The whole car checked with fresh eyes, against the brief and the studio's quality list, by the
+critic: an agent that didn't design the car (`.claude/agents/critic.md`), given only the brief and
+the car's pictures, never the design, the sheet, `notes.md` or your reasons. No decision for the
+user: they hear what was found and fixed.
 
-- the brief, its "Not" most of all; something the user chose against it is said, not changed;
-- the game's cameras by day and at night (`--cams`), and the car from above;
-- every graphic where it meets a fold, join, hole or edge, the underside and the tail included;
-  parts left in clay (`tool.skin paint <car>` names them); paint left over from an earlier step;
-- words that read backwards; the number and name panels free;
-- the size: a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s in the Mac's container)
-  against `ZIP_BUDGET`.
+1. `tool.sheet on <car> review`. Take the car's four sheets as it is now: the views, the close
+   looks, the review angles (straight on, low behind, underneath, the right-hand flanks) and the
+   game's cameras: `tool.snap <car>`, then `--close`, `--review`, `--cams` (on the Mac `node
+   docker/snap.mjs <car>` with the same flags). Cut them into single pictures: `tool.critic
+   pictures <car>` (on the Mac `docker compose exec app python -m tool.critic pictures <car>
+   --sheets /app/.snap --out /app/.snap/critic/<car>/<round>`, the round 1, 2...).
+2. Call the critic (the Agent tool, `subagent_type: critic`) with the brief's path and every
+   picture in the folder by name, nothing else. A session begun before the critic existed doesn't
+   list it: give a general-purpose agent the file's text below its header as its role, the Read
+   tool only, on the files named, and the critic's model. Save the reply in the scratchpad, then
+   `tool.critic keep <car> <file> --critic <model> --pictures <folder>`.
+3. Look at every finding in its picture yourself. A real `fix` or `improve`: change its step of the
+   design, then `tool.critic mark <car> <n> fixed "<what changed>"`. A misreading (a reflection,
+   the car's own shape) or something the user chose against the brief: `mark <n> left "<why>"`,
+   said to the user, not changed.
+4. Paint, take the pictures again into the next round's folder, and give the critic its findings
+   with their numbers and the new pictures (its instructions' re-check); keep that round too.
+   Stop when it finds nothing new to fix, three rounds at most.
+5. What the critic can't see is yours: parts left in clay (`tool.skin paint <car>` names them), and
+   the size, a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s in the Mac's container)
+   against `ZIP_BUDGET`.
+6. `tool.sheet decide <car> review "<found and fixed, a few words>"`, a line in `notes.md` with
+   what's left for the road test, commit and push. Tell the user in a few lines: what the critic
+   found, what was fixed, what was left and why.
 
-Fix what's found, look again, then `tool.sheet decide <car> review "<found and fixed>"`, a line in
-`notes.md` with what's left for the road test, commit and push.
+The critic's test car, TSC_CriticTest, has seven faults of known kinds (its design's docstring):
+after a change to the critic's instructions, run it there and compare with the score in
+`CHECKLIST.md` (W2).
 
 ## 10. Road test
 

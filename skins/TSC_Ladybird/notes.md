@@ -146,3 +146,10 @@ https://claude.ai/artifact/436i2ACcm45oN5SVAsWuLL (its page kept here as book.ht
 pictures cut from the rounds' picture sheets and the final views, close looks and cameras). Left
 for the Windows PC: `tool.skin install TSC_Ladybird`, then `tool.publish` for the page online,
 then `tool.sheet decide TSC_Ladybird release`.
+Critic 2026-09-28 (W2's critic, Opus 5.5, tried on this car after its review; its round 1 in
+review.json): it found what Claude's own review had missed, the grass turning into red slashes below
+the flanks' lower crease where the body turns under, and also the green blades murky over the rear
+flanks' black spots and the front hubs' orange glow at night. Left, with reasons: the head's marks
+(the user's choice), the right side's darker green (the viewer's light), the deck spots (placed so on
+purpose), the grass unseen from the chase cameras (known since Shapes). The three open ones wait for
+the user's word on reopening the Review.

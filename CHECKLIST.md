@@ -2736,6 +2736,72 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     guides. A change either needs in the other's files (`tool/sheet.py`'s data, a new field the
     wizard should show, such as the critic's findings) goes in a note here first, so the other side
     sees it.
+- **Picked up 2026-09-28 on the Mac** (the user: "Do the next job the agent bit"). **The pieces**
+  (Claude's split, as the handover suggested), each shown to the user and their OK before the next:
+  1. **the critic:** an agent given only the car's pictures and its brief; the pictures it needs;
+     its findings kept for the wizard and the design book; tried on Opus 5.5 and Fable 5.1 on a car
+     with known faults and on TSC_Ladybird, keeping the one that finds more real faults; the
+     Review step of `studio.md` run with it;
+  2. **the step guides:** one short guide per step (mood, shapes, colours and materials, wheels,
+     details, lettering), loaded only at its step, seeded from "What works on this car" and
+     "Things we learned";
+  3. **the concept designers:** three agents at once at Concepts, each given the brief and the
+     mood and asked for one reading; on the PC first, whether three paints can run at once.
+- **For W3 (the wizard), the critic's findings as data:** `skins/<car>/review.json`, written only by
+  `tool.critic keep` and `mark` (the shape in `tool/critic.py`'s docstring): the rounds (the critic's
+  model, its verdict, its pictures' folder) and the findings (where on the car in words, the picture
+  and the point in it, what and why, fix / improve / brief, open / fixed / left with Claude's words,
+  and the critic's word on it at the next round). The before is the finding's picture in its round's
+  folder, the after the same file in the next round's. Those folders are on the computer that ran
+  the review, not on git (`build/critic/<car>/<round>/` on the PC, `.snap/critic/<car>/<round>/` on
+  the Mac): if the wizard needs them elsewhere, say so here. `tool.critic picture` draws a round's
+  findings (rings where the critic pointed, the after beside each) as a picture for now.
+- **1. The critic (built 2026-09-28, on the Mac):**
+  - `.claude/agents/critic.md`: an agent with the Read tool only, given the brief card and a folder
+    of pictures, never the design, the sheet, the notes or Claude's reasons. Its text: the role, what
+    the pictures are, what the car is (so it doesn't flag the car's own relief, the number and name
+    panels, the speed numbers), studio.md's quality list in seven (the brief, it reads, craft,
+    leftovers, both sides, the game's rules, the whole), and a JSON reply (where, the picture and the
+    point in it, what, why, fix / improve / brief, how sure); a re-check says fixed, not fixed or
+    partly for each earlier finding. Agents load when a session starts: the trial's session gave
+    general-purpose agents the same text, and `studio.md` says to do so in a session begun before.
+  - Its pictures: the four sheets cut into 29 (`tool.critic pictures`), each read whole at 960x720 (a
+    whole sheet is read scaled down by a third). `tool.snap --review` (`docker/snap.mjs --review`) is a
+    new sheet of what the others miss: straight on (the face test), low from behind, under the tail,
+    the underside from below the floor (the room isn't drawn from there, so it's dark), and the
+    right-hand flanks. About 5 s on the Mac.
+  - Its findings: `skins/<car>/review.json` (`keep`, `mark`; 12 checks passed on the Mac's python3 in
+    a scratch skins folder: a round kept from a fenced reply, marks, a re-check, and five refusals),
+    and `tool.critic picture`, a round's findings with a ring where the critic pointed.
+  - **The trial:** TSC_CriticTest is TSC_Ladybird as it stood before its review (commit 7ce51ee)
+    with four faults planted: seven known faults, listed in its design's docstring. Four critics at
+    once, Opus 5.5 and Fable 5.1, on it and on the finished TSC_Ladybird, the pictures in folders
+    named car-a and car-b; about 4 minutes and 85k tokens each.
+
+    | Known fault on TSC_CriticTest | Opus 5.5 | Fable 5.1 |
+    |---|---|---|
+    | the diffuser's fins under the tail in green and red slivers (Claude's review) | found | found |
+    | the front wing and floor dark carbon beside the green (the user's notes 7 and 8) | partly: "looks unpainted" | missed |
+    | the head's white marks read as eyes (the brief's "Not") | found | found |
+    | a spot on the number panel (planted) | found | found |
+    | a spot cut at the sidepod's edge, merged with its neighbour (planted) | found | found |
+    | the wheel rings' stock cyan (planted) | found | found |
+    | the Latin name backwards on the right (planted) | found | found |
+
+    Beyond the key, both found a real one on both cars that Claude's own review had called clean:
+    below the flank's lower crease, where the body turns under, the grass blades become red slashes
+    on green ("like scratches or tiger stripes"; from the front, flames). And the front hubs' orange
+    glow at night, a stock light in no colour of the car's. Not faults: Opus's spots "grey" on flat
+    panels (the room in the gloss) and the right side's "muddier" green (the viewer's light is on the
+    car's left); Fable's deck spots "not mirror images" (placed so on purpose). Fable alone found the
+    grass running inside the openings behind the sidepods and the tail's sides without grass; Opus
+    alone the green blades murky over the rear flanks' black spots.
+  - **Kept: Opus 5.5** (`model: opus` in the agent): every known fault, and the slashes as a fix it
+    was sure of. The two together found more than either: if Opus misses things on later cars, a
+    second critic on Fable 5.1 beside it costs no waiting.
+  - TSC_Ladybird's review round 1 kept (Opus's): four findings left with their reasons, three open
+    (the slashes, the murky blades, the orange glow) until the user says whether to reopen the
+    car's Review. Shown to the user as the round's picture.
 
 - **What it's for:** better options at each step, and a second pair of eyes.
 - **What you'll see:** concepts that differ more and arrive together, and a review step with a

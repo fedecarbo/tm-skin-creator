@@ -6,6 +6,8 @@
     python -m tool.snap TSC_Test --cams   -> build/TSC_Test_cams.png: the game's Cam 1 and 2 and their alts,
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
+    python -m tool.snap TSC_Test --review -> build/TSC_Test_review.png: the angles the other sheets miss
+                                             (REVIEW), for the studio's critic (tool/critic.py)
     python -m tool.snap TSC_Test --picture [TSC_Other ...] [--titles ...] [--views ...]
                                              [--close-row TSC_Test 2 5 9 [--close-row TSC_Other 2 5 9]]
         -> build/TSC_Test_picture.png, a row per skin from its views sheet (and a row of close
@@ -54,6 +56,16 @@ CLOSE = (("1 bonnet", {"dir": [0.35, 0.85, 0.4], "dist": 1.4, "target": [0, 0.66
 CAMS = tuple((f"{title} {'night' if night else 'day'}", view, night, []) for night in (False, True)
              for title, view in (("Cam 1", "cam1"), ("Cam 1 alt", "cam1alt"), ("Cam 2", "cam2"), ("Cam 2 alt", "cam2alt")))
 CAM_SIZE = "1280x720"
+# What the views and close looks leave out, for the studio's critic (tool/critic.py): the car straight
+# on (does it make a face?), its tail low from behind (where the car behind sees it), the underside
+# (from below the floor, which isn't drawn from there), and the right-hand flanks the close looks
+# see only on the left (graphics and words on the other side).
+REVIEW = (("front straight on", {"dir": [0, 0.18, 1], "dist": 5.0, "target": [0, 0.45, 0.2]}, False, []),
+          ("rear low", {"dir": [0, 0.12, -1], "dist": 4.2, "target": [0, 0.4, -0.3]}, False, []),
+          ("under the tail", {"dir": [0.3, -0.35, -1], "dist": 2.2, "target": [0, 0.2, -1.3]}, False, []),
+          ("underside", {"dir": [0.3, -1, 0.2], "dist": 7.0, "target": [0, 0.2, 0.2]}, False, []),
+          ("right front flank", {"dir": [-0.9, 0.35, 0.25], "dist": 1.5, "target": [-0.45, 0.5, 0.75]}, False, []),
+          ("right rear flank", {"dir": [-0.95, 0.25, -0.2], "dist": 1.4, "target": [-0.7, 0.41, -0.66]}, False, []))
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
 EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
 
@@ -169,6 +181,7 @@ def main():
     ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
     ap.add_argument("--cams", action="store_true", help="the game's Cam 1 and 2 and their alts, day and night, at 16:9")
+    ap.add_argument("--review", action="store_true", help="the angles the other sheets miss, for the critic")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
@@ -178,7 +191,8 @@ def main():
     ap.add_argument("--tiles", metavar="DIR", help="the Mac: the sheet from DIR/0.png, 1.png... in --shots order")
     ap.add_argument("--thumb", action="store_true", help="with --tiles: also the gallery's picture, and a version kept")
     args = ap.parse_args()
-    shots, kind = (CLOSE, "close") if args.close else (CAMS, "cams") if args.cams else (SHOTS, "views")
+    shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams else (REVIEW, "review") if args.review
+                   else (SHOTS, "views"))
     if args.shots:
         print(json.dumps({"build": str(paths.BUILD), "shots": [[label, v, night, hidden, *rest] for label, v, night, hidden, *rest in shots]}))
         return
@@ -198,7 +212,7 @@ def main():
         picture([args.name] + args.more, args.titles, args.views, close)
         return
     w, h = (int(v) for v in (args.size or (CAM_SIZE if args.cams else "960x720")).split("x"))
-    if args.close or args.cams:
+    if args.close or args.cams or args.review:
         snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
              query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
     else:

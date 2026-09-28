@@ -66,6 +66,12 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room
   (`lab.js`), so both look the same. Claude's drawings show as pictures of their own (data URIs), so
   their ids never clash. On the Mac, `node docker/snap.mjs --page "<page>"` photographs any page.
+- The studio's critic: an agent, `.claude/agents/critic.md`, given only a car's brief and pictures
+  (never the design). `tool/critic.py` (its docstring is the key) cuts `tool.snap`'s four sheets
+  into its pictures (`--review`: the angles the others miss) and keeps its findings in
+  `skins/<car>/review.json` (keep, mark: standard library only). Its test car, TSC_CriticTest,
+  carries seven known faults (its design's docstring, never given to the critic). Notes: W2 in
+  "The design studio", `CHECKLIST.md`.
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
