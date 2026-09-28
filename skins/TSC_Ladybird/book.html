@@ -1,0 +1,422 @@
+<title>Ladybird Design Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --ground: #0d0f12;
+    --card: #15181d;
+    --raised: #1c2027;
+    --rule: rgba(242, 244, 247, 0.09);
+    --text: #f2f4f7;
+    --muted: #9ba1aa;
+    --acc: #e8ff47;
+    --on-acc: #0d0f12;
+    --red: #d7262b;
+    --black: #111111;
+    --turf: #3e8e3a;
+    --cream: #f3eedf;
+    --display: Teko, "DIN Condensed", Bahnschrift, "Arial Narrow", sans-serif;
+    --body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  html { background: var(--ground); }
+  body { background: var(--ground); color: var(--text); font: 16px/1.55 var(--body); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 32px; padding-block: 36px 64px; }
+  .teko { font-family: var(--display); text-transform: uppercase; letter-spacing: 0.03em; line-height: 0.95; }
+  img { display: block; width: 100%; height: auto; max-width: 100%; background: var(--card); }
+  figure { margin: 0; min-width: 0; }
+  figcaption { font-size: 13px; color: var(--muted); padding-top: 6px; }
+  a { color: var(--acc); }
+  a:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+  /* the cover */
+  .kicker { font-size: 22px; color: var(--muted); }
+  h1 { margin: 6px 0 14px; font-size: clamp(72px, 13vw, 150px); font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
+  .lede { margin: 0; font-size: 19px; max-width: 62ch; text-wrap: pretty; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+  .meta b { color: var(--text); font-weight: 600; }
+  .hero { margin-top: 28px; }
+  .colours { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 14px; }
+  .chip { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; background: var(--card); padding: 10px 12px; }
+  .chip i { width: 34px; height: 34px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); }
+  .chip b { display: block; font-weight: 600; font-size: 15px; }
+  .chip small { display: block; color: var(--muted); font-size: 12px; }
+  .chip code { font: 12px var(--mono); color: var(--muted); }
+
+  /* the build sheet */
+  h2 { margin: 0; font-size: 44px; font-weight: 600; text-wrap: balance; }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin: 64px 0 16px; }
+  .section-head p { margin: 0; color: var(--muted); font-size: 14px; }
+  .sheet { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+  .sheet li { display: grid; grid-template-columns: 44px 190px 1fr auto; gap: 14px; align-items: baseline; padding: 11px 4px; border-bottom: 1px solid var(--rule); }
+  .sheet .n { font-family: var(--display); font-size: 24px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .sheet .s { font-family: var(--display); font-size: 24px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .sheet .d { color: var(--muted); font-size: 14px; }
+  .sheet a { color: inherit; text-decoration: none; }
+  .sheet a:hover .s { color: var(--acc); }
+  .state { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); white-space: nowrap; }
+  .state.done { color: var(--acc); }
+
+  /* the chapters */
+  .chapter { display: grid; grid-template-columns: 250px 1fr; gap: 30px; padding-top: 56px; margin-top: 56px; border-top: 1px solid var(--rule); scroll-margin-top: 16px; }
+  .rail { align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+  .num { display: inline-block; background: var(--acc); color: var(--on-acc); font-family: var(--display); font-size: 30px; font-weight: 600; padding: 6px 12px 0; transform: skewX(-12deg); }
+  .num span { display: inline-block; transform: skewX(12deg); font-variant-numeric: tabular-nums; }
+  .rail h3 { margin: 14px 0 8px; font-size: 40px; font-weight: 600; }
+  .rail .decided { margin: 0; color: var(--muted); font-size: 14px; }
+  .body { min-width: 0; display: grid; gap: 22px; }
+  .body > p { margin: 0; max-width: 64ch; text-wrap: pretty; }
+  blockquote { margin: 0; padding: 4px 0 4px 18px; border-left: 3px solid var(--acc); font-size: 19px; max-width: 60ch; }
+  blockquote p { margin: 0; }
+  blockquote + blockquote { margin-top: -8px; }
+
+  .card { background: var(--card); padding: 20px 22px; display: grid; gap: 14px; }
+  .card h4 { margin: 0; font-size: 22px; font-weight: 500; color: var(--muted); }
+  .card ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  .card p { margin: 0; }
+  .brief-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 26px; }
+
+  .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+  .options.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+  .option { background: var(--card); display: flex; flex-direction: column; }
+  .option .label { display: flex; align-items: center; gap: 10px; padding: 10px 12px 12px; }
+  .key { flex: none; font-family: var(--display); font-size: 22px; font-weight: 600; padding: 3px 9px 0; transform: skewX(-12deg); box-shadow: inset 0 0 0 1.5px var(--muted); color: var(--muted); }
+  .key span { display: inline-block; transform: skewX(12deg); }
+  .option.picked .key { background: var(--acc); color: var(--on-acc); box-shadow: none; }
+  .option .t { font-weight: 600; font-size: 15px; line-height: 1.25; }
+  .option .t small { display: block; font-weight: 400; color: var(--muted); font-size: 13px; }
+  .option .blank { aspect-ratio: 960 / 674; display: grid; place-items: center; background: var(--raised); color: var(--muted); font-family: var(--display); font-size: 28px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+
+  /* the finished car */
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .gallery .wide { grid-column: span 2; grid-row: span 2; }
+  .cams { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+  footer p { margin: 0; max-width: 80ch; }
+
+  @media (max-width: 860px) {
+    .chapter { grid-template-columns: 1fr; gap: 18px; }
+    .rail { position: static; }
+    .sheet li { grid-template-columns: 34px 1fr auto; }
+    .sheet .d { grid-column: 2 / -1; grid-row: 2; }
+    .sheet .state { grid-column: 3; grid-row: 1; }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .gallery .wide { grid-column: span 2; grid-row: auto; }
+  }
+  @media (max-width: 520px) {
+    .wrap { padding-inline: 16px; padding-block: 24px 48px; }
+    h2 { font-size: 36px; }
+    .rail h3 { font-size: 34px; }
+    blockquote { font-size: 17px; }
+    .cams { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet a .s { transition: color 0.15s; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker teko">The studio · Design book</div>
+    <h1 class="teko">Ladybird</h1>
+    <p class="lede">A ladybird in the grass, made for Trackmania's grass maps: a glossy red shell that stands out against the green, and a fringe of grass all round the bottom that blends it into the map.</p>
+    <ul class="meta">
+      <li><b>Trackmania</b> stadium car skin</li>
+      <li>Built in the studio on <b>28 September 2026</b></li>
+      <li><b>11</b> steps, from the brief to the release</li>
+    </ul>
+    <figure class="hero">
+      <img src="img/car_front.jpg" alt="The finished Ladybird car from the front three-quarter: a glossy red body with black spots, a black nose with a white mark, green grass blades along the bottom and a green front wing." width="960" height="674">
+    </figure>
+    <div class="colours" aria-label="The car's colours">
+      <div class="chip"><i style="background: var(--red)"></i><div><b>Ladybird red</b><small>the shell, gloss</small><code>#D7262B</code></div></div>
+      <div class="chip"><i style="background: var(--black)"></i><div><b>Black</b><small>the spots, the head, the wheels</small><code>#111111</code></div></div>
+      <div class="chip"><i style="background: var(--turf)"></i><div><b>Turf green</b><small>the grass, satin, and the lights</small><code>#3E8E3A</code></div></div>
+      <div class="chip"><i style="background: var(--cream)"></i><div><b>Cream</b><small>the two marks on the head</small><code>#F3EEDF</code></div></div>
+    </div>
+  </header>
+
+  <section aria-labelledby="sheet-title">
+    <div class="section-head"><h2 class="teko" id="sheet-title">The build sheet</h2><p>Each step, and what was decided there.</p></div>
+    <ol class="sheet">
+      <li><span class="n">1</span><a href="#brief"><span class="s">Brief</span></a><span class="d">A ladybird in the grass: a bright red top that stands out, a fringe of grass along the bottom.</span><span class="state done">Decided</span></li>
+      <li><span class="n">2</span><a href="#mood"><span class="s">Mood</span></a><span class="d">Two boards kept, Field guide and Racing colours, both carried into the concepts.</span><span class="state done">Decided</span></li>
+      <li><span class="n">3</span><a href="#concepts"><span class="s">Concepts</span></a><span class="d">B's racing silks with C's grass.</span><span class="state done">Decided</span></li>
+      <li><span class="n">4</span><a href="#shapes"><span class="s">Shapes</span></a><span class="d">Blob spots, a black head with two round white marks, the grass taller and all round the car.</span><span class="state done">Decided</span></li>
+      <li><span class="n">5</span><a href="#finish"><span class="s">Colours and materials</span></a><span class="d">A glossy ladybird, the grass a silky satin.</span><span class="state done">Decided</span></li>
+      <li><span class="n">6</span><a href="#wheels"><span class="s">Wheels</span></a><span class="d">Gloss black covers and a thin grass-green line round each tyre.</span><span class="state done">Decided</span></li>
+      <li><span class="n">7</span><a href="#details"><span class="s">Details</span></a><span class="d">The floor and front wing green, glossy black frames, green speed numbers and gear lights.</span><span class="state done">Decided</span></li>
+      <li><span class="n">8</span><a href="#lettering"><span class="s">Lettering</span></a><span class="d">None. The ladybird says it without words.</span><span class="state done">Decided</span></li>
+      <li><span class="n">9</span><a href="#review"><span class="s">Review</span></a><span class="d">The whole car checked against the brief; one fix under the tail.</span><span class="state done">Done</span></li>
+      <li><span class="n">10</span><a href="#road"><span class="s">Road test</span></a><span class="d">Taken as passed without a drive.</span><span class="state">Skipped</span></li>
+      <li><span class="n">11</span><a href="#release"><span class="s">Release</span></a><span class="d">Into the game, onto the page online, and this book.</span><span class="state done">Now</span></li>
+    </ol>
+  </section>
+
+  <p style="margin: 28px 0 0; color: var(--muted); font-size: 14px; max-width: 70ch;">The quotes are the owner's own words, as they were typed. Every picture is the car as it stood at that step, drawn in the studio's viewer.</p>
+
+  <!-- 1 -->
+  <section class="chapter" id="brief" aria-labelledby="brief-title">
+    <div class="rail">
+      <div class="num"><span>01</span></div>
+      <h3 class="teko" id="brief-title">Brief</h3>
+      <p class="decided">What the car is, agreed before anything was painted.</p>
+    </div>
+    <div class="body">
+      <blockquote><p>"there's many maps that most of the map consists of grass terrain … I do want something that feels fun and it just makes sense to use it when in maps like those"</p></blockquote>
+      <p>Camouflage would have been the obvious answer, and the wrong one: on a green map you want to see your own car. So the studio started from things made to be picked out against grass: a jockey's colours, a golf flag, a ladybird on a leaf.</p>
+      <blockquote><p>"maybe it is something that stands out, but I do wonder if the bottom is some lever of grass, that acts as the blend between the grass and the bug"</p></blockquote>
+      <blockquote><p>"Sure, ladybird. We could potentially have a family of bugs, but we could start with that"</p></blockquote>
+      <div class="card">
+        <h4 class="teko">The brief card</h4>
+        <p>A ladybird in the grass, made for the grass maps and fun to drive there: the top of the car stands out against the green like a ladybird on a leaf, and the bottom rises out of a fringe of grass that blends it into the map. The first of what could become a family of bugs.</p>
+        <div class="brief-grid">
+          <div><h4 class="teko">Drawn from</h4><ul><li>The ladybird: glossy red and black spots, nature's "look at me" against green.</li><li>A jockey's racing colours: bold shapes in two strong colours, picked out at a gallop.</li><li>The lawn at ground level: blades drawn as a clean, graphic edge.</li></ul></div>
+          <div><h4 class="teko">Not</h4><ul><li>Camouflage, or green all over.</li><li>Grass as a photo, or grass anywhere but the bottom.</li><li>A toy or a cartoon bug: no eyes, antennae or face.</li></ul></div>
+          <div><h4 class="teko">Fixed</h4><ul><li>A fringe of grass along the bottom, the blend between the map and the car.</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="chapter" id="mood" aria-labelledby="mood-title">
+    <div class="rail">
+      <div class="num"><span>02</span></div>
+      <h3 class="teko" id="mood-title">Mood</h3>
+      <p class="decided">The brief turned into a look before it touched the car.</p>
+    </div>
+    <div class="body">
+      <p>Three boards were drawn, each its own finish, graphic language and colour story: Lacquer, Racing colours and Field guide. The owner picked the Field guide, then changed their mind and kept two.</p>
+      <blockquote><p>"c and b actually"</p></blockquote>
+      <figure>
+        <img src="img/mood.jpg" alt="The two mood boards side by side. Field guide: a naturalist's plate of the seven-spot ladybird, matte vermilion, ink black, paper and sage, grass drawn in ink. Racing colours: a red jockey's shirt with black spots, satin red and black, a cream rail line over sharp grass, a saddle-cloth number 7." width="1600" height="1442" loading="lazy">
+        <figcaption>Field guide (matte vermilion, ink, paper, sage, the Latin name) and Racing colours (satin red, big black spots, a cream rail line, a saddle-cloth 7). The finishes are painted on the studio's test balls.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="chapter" id="concepts" aria-labelledby="concepts-title">
+    <div class="rail">
+      <div class="num"><span>03</span></div>
+      <h3 class="teko" id="concepts-title">Concepts</h3>
+      <p class="decided">Three rough ideas on the car, the big shapes only.</p>
+    </div>
+    <div class="body">
+      <p>One concept for each board, and one that blends them. Rough on purpose: flat colour, no details, the wheels and inner car one dark colour until their own steps.</p>
+      <div class="options">
+        <figure class="option">
+          <img src="img/concept_specimen.jpg" alt="Concept A, Specimen: a matte vermilion shell with spots over the top, paper-white sides with grass drawn in ink." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>A</span></span><span class="t">Specimen<small>from the Field guide board</small></span></figcaption>
+        </figure>
+        <figure class="option picked">
+          <img src="img/concept_silks.jpg" alt="Concept B, Silks: satin red with big black spots over the top and down the sides, a cream rail line with sharp green grass under it." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>B</span></span><span class="t">Silks<small>from Racing colours: its body taken</small></span></figcaption>
+        </figure>
+        <figure class="option picked">
+          <img src="img/concept_anatomy.jpg" alt="Concept C, Anatomy: the car as the insect, a black head for the nose, a black seam down the middle, green blades up the lower sides." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>C</span></span><span class="t">Anatomy<small>both boards: its grass taken</small></span></figcaption>
+        </figure>
+      </div>
+      <blockquote><p>"I like B the most. I do like the grass from C though"</p></blockquote>
+      <p>So the car became B's racing silks with C's turf-green blades rising up the sides. The owner also caught a spot running down inside a side inlet. From then on the spots sit on the outer panels only, clear of the inlets and of the panels where the game prints the player's number and name.</p>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="chapter" id="shapes" aria-labelledby="shapes-title">
+    <div class="rail">
+      <div class="num"><span>04</span></div>
+      <h3 class="teko" id="shapes-title">Shapes</h3>
+      <p class="decided">The big shapes made right, from the owner's notes pinned on the car.</p>
+    </div>
+    <div class="body">
+      <blockquote><p>"I think lady bug spots are not perfect circles, more like a blob close to being a circle"</p></blockquote>
+      <blockquote><p>"I wonder if we make this black? as if it's the head."</p></blockquote>
+      <p>The spots became blobs, each edge wandering in a few slow lobes. The nose became the ladybird's black head, meeting the red shell along a curved edge, with a white mark on each side. The grass grew taller and denser. A spot that ran off the deck's edge moved in, and one that touched the cockpit went, the head taking its place.</p>
+      <p>The white marks raised a question: from the front they read a little like eyes, which the brief ruled out. They were shown two ways, round as asked or drawn out into streaks. The owner kept them round.</p>
+      <div class="options two">
+        <figure class="option picked">
+          <img src="img/marks_round.jpg" alt="The black nose close up with a round white mark on its side." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>A</span></span><span class="t">Round marks<small>as asked, kept</small></span></figcaption>
+        </figure>
+        <figure class="option">
+          <img src="img/marks_streaks.jpg" alt="The black nose close up with a long white streak along its side." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>B</span></span><span class="t">Streaks<small>broad at the head's edge, tapering forward</small></span></figcaption>
+        </figure>
+      </div>
+      <blockquote><p>"The grass should be around the car"</p></blockquote>
+      <p>The nose floats above the ground, so grass growing from the ground only reached it as stray tips. The head got its own fringe of short blades along its lower edge, and the flat plate under the nose became a lawn.</p>
+      <figure>
+        <img src="img/close_flank.jpg" alt="The left front flank close up: glossy red with green grass blades rising along the bottom." width="960" height="674" loading="lazy">
+        <figcaption>The grass along the front flank, drawn the same on both sides.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="chapter" id="finish" aria-labelledby="finish-title">
+    <div class="rail">
+      <div class="num"><span>05</span></div>
+      <h3 class="teko" id="finish-title">Colours and materials</h3>
+      <p class="decided">How much each part shines. The colours stayed the same in all three.</p>
+    </div>
+    <div class="body">
+      <p>The two boards disagreed about shine: the ladybird is glossy, a jockey's silks are satin, a field guide's paint is flat. All three were painted, with nothing else changed.</p>
+      <div class="options">
+        <figure class="option picked">
+          <img src="img/finish_gloss.jpg" alt="The deck in gloss: sharp highlights run over the red and the black spots." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>A</span></span><span class="t">Beetle gloss<small>under a clear coat, like wing cases</small></span></figcaption>
+        </figure>
+        <figure class="option">
+          <img src="img/finish_satin.jpg" alt="The deck in satin: a soft sheen, no sharp highlights." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>B</span></span><span class="t">Silks satin<small>a soft sheen</small></span></figcaption>
+        </figure>
+        <figure class="option">
+          <img src="img/finish_matte.jpg" alt="The deck in matte: flat red with chalky black spots." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>C</span></span><span class="t">Painted wood<small>flat and chalky</small></span></figcaption>
+        </figure>
+      </div>
+      <blockquote><p>"a silky grass finish, so there's some contrast in the ladybug and the grass"</p></blockquote>
+      <p>A, with one change: the ladybird glossy, the grass a silky satin.</p>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="chapter" id="wheels" aria-labelledby="wheels-title">
+    <div class="rail">
+      <div class="num"><span>06</span></div>
+      <h3 class="teko" id="wheels-title">Wheels</h3>
+      <p class="decided">Covers, tyres, tread and the wheels' own light, as one piece.</p>
+    </div>
+    <div class="body">
+      <p>Each wheel carries a small light that stays on day and night, cyan on the stock car. In each version it took the version's colour.</p>
+      <div class="options">
+        <figure class="option">
+          <img src="img/wheel_blacklegs.jpg" alt="A wheel with gloss black covers and plain glossy black tyres, a warm white light." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>A</span></span><span class="t">Black legs<small>glossy black, like a ladybird's legs</small></span></figcaption>
+        </figure>
+        <figure class="option">
+          <img src="img/wheel_redshells.jpg" alt="A wheel whose cover has a gloss red centre with a black hub, a red light." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>B</span></span><span class="t">Red shells<small>the shell's red on the covers</small></span></figcaption>
+        </figure>
+        <figure class="option picked">
+          <img src="img/wheel_grassline.jpg" alt="A wheel with gloss black covers and a thin grass-green stripe round the tyre, a green light." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>C</span></span><span class="t">Grass line<small>a thin green stripe round each tyre</small></span></figcaption>
+        </figure>
+      </div>
+      <blockquote><p>"C"</p></blockquote>
+      <p>The only one of the three that puts the grass where the driver sees it: on the rear tyres, all race.</p>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="chapter" id="details" aria-labelledby="details-title">
+    <div class="rail">
+      <div class="num"><span>07</span></div>
+      <h3 class="teko" id="details-title">Details</h3>
+      <p class="decided">The inner car, the lights and the glass.</p>
+    </div>
+    <div class="body">
+      <p>The inner car went satin black, with glossy black frames round the side inlets and the speed display to match the head. The speed numbers and the gear lights on the tail turned grass green, because from behind they are what the driver looks at all race. Braking still turns the rear lights red. The glass stayed clear, since a tint would dim the lights behind it.</p>
+      <blockquote><p>"probably this needs to be green"</p></blockquote>
+      <p>Pinned on the front wing, and then on the strip along the bottom edge. The floor and the front wing went green, so the grass reaches the car's very edge.</p>
+      <div class="pair">
+        <figure>
+          <img src="img/close_drive.jpg" alt="The car from the driving camera: the red deck with black spots and the green speed numbers on the tail." width="960" height="674" loading="lazy">
+          <figcaption>From the driving camera: the spots and the green numbers.</figcaption>
+        </figure>
+        <figure>
+          <img src="img/close_nose.jpg" alt="The black nose close up over the green front wing, with the grass fringe along its lower edge." width="960" height="674" loading="lazy">
+          <figcaption>The head over its lawn and the green front wing.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="chapter" id="lettering" aria-labelledby="lettering-title">
+    <div class="rail">
+      <div class="num"><span>08</span></div>
+      <h3 class="teko" id="lettering-title">Lettering</h3>
+      <p class="decided">Each board had its own words. The owner chose none.</p>
+    </div>
+    <div class="body">
+      <div class="options">
+        <figure class="option">
+          <img src="img/letter_latin.jpg" alt="The front flank with Coccinella septempunctata written in black italic along its top." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>A</span></span><span class="t">Latin name<small>Coccinella septempunctata, a specimen's label</small></span></figcaption>
+        </figure>
+        <figure class="option">
+          <img src="img/letter_seven.jpg" alt="The rear flank's black spot with a cream number 7 inside it." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>B</span></span><span class="t">Seven in the spot<small>the spot as the number's roundel</small></span></figcaption>
+        </figure>
+        <figure class="option picked">
+          <img src="img/close_rearflank.jpg" alt="The rear flank's black spot left plain, with grass crossing its lower edge." width="960" height="674" loading="lazy">
+          <figcaption class="label"><span class="key"><span>C</span></span><span class="t">No lettering<small>the ladybird says it without words</small></span></figcaption>
+        </figure>
+      </div>
+      <blockquote><p>"c"</p></blockquote>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="chapter" id="review" aria-labelledby="review-title">
+    <div class="rail">
+      <div class="num"><span>09</span></div>
+      <h3 class="teko" id="review-title">Review</h3>
+      <p class="decided">The whole car against the brief and a quality list.</p>
+    </div>
+    <div class="body">
+      <p>Every part painted, none left in the base clay. The spots, the grass, the head and its marks are clean wherever they meet a fold, a join or an edge. From the game's cameras the car reads as a ladybird at once, by day and at night. The panels where the game prints the player's number and name stay clear, and the game files come to about 3 MB, well inside the game's limit.</p>
+      <p>One fix: the small fins under the tail had caught the grass as green and red slivers. They went solid green, like the floor.</p>
+      <p>One note: seen from above and from the front, the head's two white marks read like a cartoon ladybird's eyes, which the brief ruled out. The owner chose them knowingly.</p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="chapter" id="road" aria-labelledby="road-title">
+    <div class="rail">
+      <div class="num"><span>10</span></div>
+      <h3 class="teko" id="road-title">Road test</h3>
+      <p class="decided">Skipped.</p>
+    </div>
+    <div class="body">
+      <blockquote><p>"Let's assume it works"</p></blockquote>
+      <p>Two things only the game can show are still open: how the turf green sits next to the game's own grass, and how the white marks read at speed.</p>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="chapter" id="release" aria-labelledby="release-title">
+    <div class="rail">
+      <div class="num"><span>11</span></div>
+      <h3 class="teko" id="release-title">Release</h3>
+      <p class="decided">The car, final.</p>
+    </div>
+    <div class="body">
+      <div class="gallery">
+        <figure class="wide"><img src="img/car_rear.jpg" alt="The finished car from the rear three-quarter: the glossy red deck with spots and the green speed numbers." width="960" height="674" loading="lazy"></figure>
+        <figure><img src="img/car_top.jpg" alt="The finished car from above: the red shell with six black spots, the black head and the green front wing." width="960" height="674" loading="lazy"></figure>
+        <figure><img src="img/car_night.jpg" alt="The finished car at night, the green lights on its wheels." width="960" height="674" loading="lazy"></figure>
+        <figure><img src="img/car_left.jpg" alt="The finished car's left side: grass blades all along the bottom and a black spot on the rear flank." width="960" height="674" loading="lazy"></figure>
+        <figure><img src="img/close_deck.jpg" alt="The deck close up, gloss highlights running over the spots." width="960" height="674" loading="lazy"></figure>
+        <figure><img src="img/close_wheel.jpg" alt="The front wheel close up: gloss black cover and the thin green line on the tyre." width="960" height="674" loading="lazy"></figure>
+      </div>
+      <h4 class="teko" style="margin: 10px 0 0; font-size: 26px; font-weight: 500; color: var(--muted);">From the driver's seat</h4>
+      <div class="cams">
+        <figure><img src="img/cam2.jpg" alt="The game's second camera by day: the car from behind, spots and the green speed numbers." width="960" height="490" loading="lazy"><figcaption>Cam 2, by day.</figcaption></figure>
+        <figure><img src="img/cam2altnight.jpg" alt="The game's second camera, closer, at night: the red deck and the green numbers glowing." width="960" height="490" loading="lazy"><figcaption>Cam 2, the key pressed twice, at night.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Ladybird is a skin for the stadium car in Trackmania (2020), made in the studio of a small skin tool, with Claude.</p>
+    <p>The car's 3D model used for these pictures is by amogusstrikesback2, under CC BY 4.0. Pictures are drawn in the tool's own viewer; the game's lighting differs a little.</p>
+  </footer>
+</div>

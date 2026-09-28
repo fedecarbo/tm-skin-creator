@@ -2699,9 +2699,17 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       (`paintbox.build_zip`: 2.95 MB against 8.5, 86 s, so the size check needs no PC). Found and
       fixed: the diffuser's fins under the tail caught the grass as slivers (solid green now).
       Noted: the head's white marks read as eyes from above and the front (the user's choice).
-    - **Where it stopped (2026-09-28):** TSC_Ladybird waiting for its road test, on the Windows PC:
-      install it, the user drives it (day and night, brakes, turbo, a grass map), F12 screenshots;
-      then the Road test and Release routines written into `studio.md` as the car reaches them.
+    - **Road test** skipped at the user's word ("Let's assume it works"); its routine in `studio.md`
+      (10) as it would run on the PC.
+    - **Release** (its routine in `studio.md`, 11): the design book, a private page on claude.ai
+      (https://claude.ai/artifact/436i2ACcm45oN5SVAsWuLL), the car's story chapter by chapter in the
+      studio's look, the user's words at each decision and the options beside each pick; its page
+      kept as `skins/TSC_Ladybird/book.html`, the model for the next car's. Its 27 pictures were cut
+      from the rounds' picture sheets and the final snapshots (2.5 MB).
+    - **Where it stopped (2026-09-28):** TSC_Ladybird's release waits for the Windows PC: install it
+      (`tool.skin install TSC_Ladybird`), publish the page online (`tool.publish`), then `tool.sheet
+      decide TSC_Ladybird release`. With that, W1's piece 4 has its routine for every step, tried
+      once on a real car: show it to the user before W1 is ticked.
 
 
 #### [ ] W2. The experts

@@ -251,7 +251,26 @@ brief), it's Claude's own review, done as if by someone who didn't design the ca
 Fix what's found, look again, then `tool.sheet decide <car> review "<found and fixed>"`, a line in
 `notes.md` with what's left for the road test, commit and push.
 
-## The steps after Review
+## 10. Road test
 
-Still being built (W1's piece 4, `CHECKLIST.md`). The road test needs the Windows PC (the game):
-until it's written, after Review tell the user the car is waiting for its road test there, and stop.
+The car in the game, on the Windows PC: `tool.skin install <car>`, then the user drives it (a map
+that suits the idea, day and night, brakes, turbo) and takes F12 screenshots; look only at those
+taken after the install. Always the user's decision: a yes decides it, a change reopens the step it
+belongs to. If the user waives it ("Let's assume it works"), `tool.sheet skip <car> road "<their
+words>"` and note in `notes.md` what only the game could have shown.
+
+## 11. Release
+
+The car final: in the game (installed at the road test, or now on the PC), on the page online
+(`tool.publish`, on the PC: it shows the skins in the game), and in its design book.
+
+- **The design book** is a private page on claude.ai (an artifact) the user can share: the car's
+  story from the brief to the finished car, one chapter per step, with the user's own words at each
+  decision and the options beside the pick. The studio's look (the Lab's: Teko, slanted keys, one
+  yellow-green accent on a dark ground). TSC_Ladybird's is the model: its page is
+  `skins/TSC_Ladybird/book.html`, its link in its `notes.md`; start the next from it.
+- Its pictures come from the rounds' picture sheets in `.snap/` (a row is a 70 px title bar and
+  960x720 tiles; the tiles' working labels are cut off the top) and the final views, close looks
+  and cameras, as JPEGs about 960 wide (about 2.5 MB for 27). Credit the car model's author.
+- Then `tool.sheet decide <car> release "<...>"` once it's in the game and online, a line in
+  `notes.md`, commit and push.

@@ -234,18 +234,18 @@
   {
    "key": "road",
    "name": "Road test",
-   "state": "todo",
+   "state": "skipped",
    "decision": "",
-   "date": "",
+   "date": "2026-09-28",
    "options": [],
    "pick": null,
-   "why": "",
+   "why": "the user: \"Let's assume it works\" (not driven in the game)",
    "was": []
   },
   {
    "key": "release",
    "name": "Release",
-   "state": "todo",
+   "state": "claude",
    "decision": "",
    "date": "",
    "options": [],

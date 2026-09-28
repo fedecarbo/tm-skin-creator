@@ -138,3 +138,11 @@ fins under the tail had caught the grass as green and red slivers: solid green, 
 Noted, not changed: from above and from the front the head's two white marks read like a cartoon
 ladybird's eyes (the brief's "no face"); the user chose them. For the road test: that, and the
 turf green beside the game's own grass.
+
+Road test skipped 2026-09-28 (user): "Let's assume it works". Not driven; still open for the game:
+the turf green beside the game's grass, the white marks at speed.
+Release begun 2026-09-28: the design book published as a private page,
+https://claude.ai/artifact/436i2ACcm45oN5SVAsWuLL (its page kept here as book.html; its 27
+pictures cut from the rounds' picture sheets and the final views, close looks and cameras). Left
+for the Windows PC: `tool.skin install TSC_Ladybird`, then `tool.publish` for the page online,
+then `tool.sheet decide TSC_Ladybird release`.
