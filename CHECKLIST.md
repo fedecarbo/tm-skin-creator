@@ -2718,8 +2718,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
 
 #### [ ] W2. The experts
 
-- **Handed over 2026-09-28** (the user: "for another agent to pick up the experts"), while W3 is
-  built at the same time on the Mac. For the agent who picks it up:
+- **Handed over 2026-09-28** (the user: "for another agent to pick up the experts"); W3 went to
+  another agent too. For the agent who picks it up:
   - Best on the Windows PC: the three concept designers need three paints at once, which the
     notes below say to check there first, and the picture maker runs there. The critic needs only
     pictures, so it could start anywhere.
@@ -2731,7 +2731,7 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     W2 into pieces the same way W1 was split (for example: the critic first, tried on Opus 5.5 and
     Fable 5.1 on TSC_Ladybird's pictures; then the step guides; then the concept designers), write
     the split here, and show each piece.
-  - Working beside W3: pull before starting (the session hook does), commit and push after each
+  - Working beside W3's agent: pull before starting (the session hook does), commit and push after each
     piece. W3 owns the Lab's pages (`viewer/`); W2 owns `studio.md`'s Concepts and Review and the
     guides. A change either needs in the other's files (`tool/sheet.py`'s data, a new field the
     wizard should show, such as the critic's findings) goes in a note here first, so the other side
@@ -2754,7 +2754,21 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
 
 #### [ ] W3. The wizard in the Lab
 
-- **Started 2026-09-28**, ahead of W2 (the user agreed to take it next; W2 went to another agent).
+- **Handed over 2026-09-28** (the user: "Another agent will do the wizard"). Nothing built yet. For
+  the agent who picks it up:
+  - The screens' source isn't lost (unlike the note below says): the mockups' artifact
+    (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F) holds w1.html to w7.html and lab.css,
+    readable with the Artifact tool's read and its `paths`.
+  - The Lab today: `viewer/lab.html`'s rooms; `lab-studio.js` is the stand (`studio.json` names the
+    skin Claude painted last; `steps.json` and `stations.json` per skin); the notes go through
+    `/api/notes` in `tool/view.py`'s Handler, the page's only way to write, this computer only. The
+    build sheet, `skins/<car>/sheet.json` (`tool/sheet.py`), isn't served yet: the server serves
+    `viewer/` and the work folder's data, so the wizard needs a way to read it.
+  - A pick deletes the options' folders, so a decided step keeps no pictures of what was offered;
+    the wizard's history will need them kept (at `ask`, say). TSC_Ladybird's exist only in its
+    design book (https://claude.ai/artifact/436i2ACcm45oN5SVAsWuLL) and the Mac's `.snap/` sheets.
+  - The user's rule: one piece at a time, shown, their OK before the next. W2 is with another agent
+    too: coordinate through notes here.
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,
