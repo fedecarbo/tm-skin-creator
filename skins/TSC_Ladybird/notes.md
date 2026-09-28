@@ -25,3 +25,6 @@ trim, a lush layered grass fringe), B Racing colours (the jockey's "red, black s
 and black, cream rail line, a sharp flat-bladed fringe, a saddle-cloth 7), C Field guide (matte
 vermilion, ink black, paper, sage; the Latin name as lettering, an ink-drawn fringe). Drawings
 only: made on the Mac, where the picture maker doesn't run.
+Picked 2026-09-28, Mood (user): "c": C Field guide, matte vermilion, ink black, paper and sage, an
+ink-drawn grass fringe, the Latin name as lettering. Boards A and B deleted (in git's history).
+Claude had suggested B.

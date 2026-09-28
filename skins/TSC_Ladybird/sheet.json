@@ -18,9 +18,9 @@
   {
    "key": "mood",
    "name": "Mood",
-   "state": "waiting",
-   "decision": "",
-   "date": "",
+   "state": "decided",
+   "decision": "matte vermilion, ink black, paper and sage; an ink-drawn grass fringe, the Latin name as lettering",
+   "date": "2026-09-28",
    "options": [
     {
      "key": "A",
@@ -38,7 +38,7 @@
      "file": "mood/field-guide.json"
     }
    ],
-   "pick": null,
+   "pick": "C",
    "why": "",
    "was": []
   },
