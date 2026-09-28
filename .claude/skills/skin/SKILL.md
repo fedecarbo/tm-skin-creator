@@ -156,7 +156,13 @@ user the Lab's stand too.
   (z 30 to -60); the deck behind is about ±55, ±45 at the tail. The top itself, crisp and without
   the lip at the bottom that turns up again: `shapes.facing("up", 0.4, soft=0.006) &
   shapes.above(30)` (a larger `soft` blurs the edge over centimetres where the body curves
-  gently). A round spot seen from above: `shapes.cylinder((x, -50, z), (x, 250, z), r)` & that.
+  gently). A round spot seen from above: `shapes.cylinder((x, -50, z), (x, 250, z), r)` & that,
+  painted on the outer panels only (`["body shell", "nose tip", "nose panel", "sidepod top",
+  "engine cover|part", "rear flank"]`), or it runs down into whatever lies under it (the user saw
+  one inside a sidepod inlet, 2026-09-28). Keep spots and graphics clear of: the sidepod inlets
+  (z -46 to 15, y 46 to 59), the number panel (x ±19, z -78 to -62) and the engine cover panel (x
+  ±19, z -120 to -82), where the game draws the player's number and name, and the nose fin's plate
+  (x ±8, z 118 to 142): its fin stands upright, so a spot there leaves a notch.
 - **Grass up the sides:** `shapes.grass(base=, height=, line=)`, filled blades or ink strokes,
   the same silhouette both sides (TSC_Ladybird). Pale marks on a dark nose read as eyes: keep
   them off unless a face is wanted.

@@ -2619,6 +2619,23 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       B's turf barely showed until it rose to meet the rail line.
     - **Left for Shapes:** A's ink grass bunches into a barcode on the front flank; a small white
       piece on the bonnet (one of the car's own) shows on A.
+    - **The user's pick:** "I like B the most. I do like the grass from C though", with a note on
+      the car (written on C: "I like B but I cant see the vehicle ... The spot in b also transfers
+      to the next object in the car, making it look weird and not properly applying pain").
+      - **The mix** was written as option D (B's silks, C's grass in place of B's rail and turf),
+        checked, and picked: its design became TSC_Ladybird's, A, B, C and D's folders went with
+        the round, and TSC_Ladybird was shown under its own name. Nobody asked for the rail back.
+      - **The spot:** a side spot projected across the car ran down inside a sidepod inlet, and a
+        top one sat on the number panel. Spots now go on the outer panels only, placed clear of the
+        inlets, the number and name panels and the nose fin's plate (their places, from the parts'
+        texels, in `SKILL.md`). The fin's plate took two tries: a spot over it left the upright fin
+        red, a notch; the plate painted black whole made a keyhole; the spot moved clear of it.
+      - **"I cant see the vehicle":** the Lab's switch between the concepts was there (photographed
+        on B), but the round was recorded after the paint, so a Lab already open showed it only
+        after a reload. The routine now records a round before painting it.
+      - **Found on the way:** `tool.notes done` refused a note on a skin the pick had deleted;
+        it now takes any skin's name (the server doesn't use `done`, so no restart).
+
 
 #### [ ] W2. The experts
 

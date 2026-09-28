@@ -39,3 +39,10 @@ satin red with big bold black spots over the top and down the sides, a cream rai
 turf teeth under it), C Anatomy (TSC_Ladybird_Anatomy: both boards, the car as the ladybird: a
 black head for the nose, the seam as a black stripe nose to tail, the seven spots where they sit
 on the insect, green blades up the lower sides). Rough on purpose.
+Picked 2026-09-28, Concepts (user): "Added a comment, but it's for B.  I like B the most.  I do like
+the grass from C though". Their note on the car (written on C, 1): "I like B but I cant see the
+vehicle so Im commenting on the one you provided.  The spot in b also transfers to the next object
+in the car, making it look weird and not properly applying pain." Made as option D, B's silks with
+C's turf-green grass in place of B's rail line and turf teeth, the spots on the outer panels only
+and clear of the sidepod inlets, the number and name panels and the nose fin's plate. D picked: its
+design is now this car's (design.py); A, B, C deleted (git's history). Claude had suggested C.

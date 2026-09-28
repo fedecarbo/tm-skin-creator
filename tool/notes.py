@@ -229,7 +229,10 @@ def remove(skin, n):
 
 
 def done(skin, numbers=()):
-    _skin(skin)
+    """Mark notes done. The skin may be gone: a studio pick deletes the options it doesn't keep,
+    notes and all (TSC_Ladybird's concepts, 2026-09-28), and their notes still need closing."""
+    if not isinstance(skin, str) or not NAME.fullmatch(skin):
+        raise ValueError(f"not a skin's name: {skin!r}")
     numbers = {int(k) for k in numbers}
     with _locked():
         notes = load()

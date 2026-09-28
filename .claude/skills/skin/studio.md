@@ -133,17 +133,20 @@ boards: one per board and one that blends them). Always the user's decision.
    it makes `skins/<car>_<Title>/` (empty while the car has no design). Write each `design.py`
    there: `s.clay()`, a few steps, the body's big shapes, the wheels and inner car in one dark
    colour ("they get their own steps"). Each stands on its own: no concept loads another.
-2. Paint each (`show`; on the Mac `docker compose exec app python -m tool.skin show <name>
+2. `tool.skin round "<Title> concepts" <car>_A=<Title> ...` before painting them, so a Lab
+   that's already open shows the switch between them (recorded after, it showed only after a
+   reload, and the user couldn't find concept B, 2026-09-28).
+3. Paint each (`show`; on the Mac `docker compose exec app python -m tool.skin show <name>
    --no-snap`, then `node docker/snap.mjs <name>` and `--close`) and look: the six views and the
-   close looks, as for any skin. Fix and look again.
-3. `tool.skin round "<Title> concepts" <car>_A=<Title> ...` (the Lab's switch), the picture
-   (`--picture`, views front, left and top, the driving camera's close row for each), and
-   `tool.sheet ask <car> concepts`.
+   close looks, as for any skin. Fix and look again. Then the picture (`--picture`, views front,
+   left and top, the driving camera's close row for each) and `tool.sheet ask <car> concepts`.
 4. Reply: a line per concept, the one you'd pick and why, that the Lab's stand flips between them,
    then in bold: which one, or what to take from each?
 5. One: `tool.sheet pick <car> concepts <letter> "<the idea in a few words>"`: its design becomes
    the car's and the others go with their round; then `show <car>` to paint it under its own name.
-   A mix: write it as a new option from the picked parts, show it, then pick it.
+   A mix the user spelled out ("I like B the most. I do like the grass from C though"): write it
+   as a new option from the picked parts, check it as any concept, pick it, and show the car.
+   Notes left on concepts the pick deleted still get marked done (`tool.notes done` takes them).
 
 ## The steps after Concepts
 

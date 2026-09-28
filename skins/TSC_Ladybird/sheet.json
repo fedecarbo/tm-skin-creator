@@ -63,9 +63,9 @@
   {
    "key": "concepts",
    "name": "Concepts",
-   "state": "waiting",
-   "decision": "",
-   "date": "",
+   "state": "decided",
+   "decision": "B's silks (satin red, big black spots clear of the inlets and the number) with C's turf-green grass rising up the lower sides",
+   "date": "2026-09-28",
    "options": [
     {
      "key": "A",
@@ -81,9 +81,14 @@
      "key": "C",
      "title": "Anatomy",
      "skin": "TSC_Ladybird_Anatomy"
+    },
+    {
+     "key": "D",
+     "title": "Silks Grass",
+     "skin": "TSC_Ladybird_SilksGrass"
     }
    ],
-   "pick": null,
+   "pick": "D",
    "why": "",
    "was": []
   },
