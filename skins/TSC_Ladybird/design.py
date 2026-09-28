@@ -19,6 +19,7 @@ WORDS = "I like B the most.  I do like the grass from C though"
 HEAD = "I wonder if we make this black? as if it's the head.  Maybe too white blobs on the sides"
 BLOBS = "I think lady bug spots are not perfect circles, more like a blob close to being a circle"
 GRASS = "Maybe more grass or taller?"
+AROUND = "you need to include the grass where the black is as well.  The grass should be around the car"
 RED, BLACK, WHITE, TURF = "#D7262B", "#111111", "#F3EEDF", "#3E8E3A"
 # the outer panels a spot may sit on: never the inlets, the number panel or the engine cover panel
 OUTER = ["body shell", "nose tip", "nose panel", "sidepod top", "engine cover|part", "rear flank"]
@@ -32,6 +33,8 @@ SIDE = [(40, -70, 12)]
 # the middle, just behind the nose fin's plate (z 118 to 142, which it takes in with its fin),
 # curving forward to about 128 at the nose's sides (x ±26)
 HEAD_BACK, HEAD_CURVE, HEAD_HALF = 116.0, 14.0, 28.0
+# the nose's black body, whose lower edge (HEAD_LIP cm up) its own fringe of grass rises from
+NOSE, HEAD_LIP = ["nose tip", "nose panel", "body shell"], 41.0
 # its two white blobs on the nose's sides (y, z, radius): marks on its flanks, not eyes on top. The
 # nose is 20 to 57 cm high there, rounded over the top, so a blob seen from the side at y 45 stays
 # on its side by its height alone; painted after the grass, which rises that high. Kept off "the
@@ -58,11 +61,16 @@ def design(s):
         s.paint(OUTER, "satin", colour=BLACK, zone=shapes.blob((0, y, z), r, axis="x", seed=10 + k) & ~top())
     s.step("The head", "The nose black, as the ladybird's head, with two white blobs low on its sides.", words=HEAD)
     s.paint("body", "satin", colour=BLACK, zone=head())
-    s.step("The grass", "Taller, denser turf-green blades rising up the lower sides.", words=GRASS)
-    # the grass grows up to the head and stops there: under the nose the side skirt runs forward as
-    # a flat ledge facing up, and the wing's pylon sits low, so inside the grass's solid base they
-    # came out a green slab, and blade tips showed on the nose's underside
+    s.step("The grass", "Taller, denser turf-green blades rising up the lower sides, all round the car, "
+           "under the black head too.", words=GRASS + " / " + AROUND)
+    # all round. Ahead of the head's edge the nose floats: its black body's lower edge is 41 to 44
+    # cm up, over the side skirt running forward as a flat ledge facing up (y 16 to 21) and the
+    # wing's pylon. Blades from the ground only reached the nose as stray tips, and specks on the
+    # pylon, so the ledge is a lawn under the head, solid (blades left black gaps across it), and
+    # the head has its own fringe, rising from its lower edge
     s.paint("body", "satin", colour=TURF, zone=shapes.grass(base=6, height=(18, 40), every=2.2, seed=7) & ~top() & ~head())
+    s.paint("side skirt", "satin", colour=TURF, zone=head())
+    s.paint(NOSE, "satin", colour=TURF, zone=shapes.grass(base=HEAD_LIP, height=(5, 11), every=2.0, seed=9) & ~top() & head())
     s.step("The head's marks", "Two white blobs on the sides of the black head.", words=HEAD)
     y, z, r = MARKS
     s.paint("body", "satin", colour=WHITE, zone=shapes.blob((0, y, z), r, axis="x", seed=20) & head())

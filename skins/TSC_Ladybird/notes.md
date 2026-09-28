@@ -71,3 +71,9 @@ Shown 2026-09-28, Shapes: the picture (front, left, top, and the nose and bonnet
 Lab's switch ("The head's marks"). Claude suggests B.
 Picked 2026-09-28, Shapes (user): "I would just keep with a and move on". A Round Marks: its design
 is the car's; B deleted (git's history). Claude had suggested B.
+Change 6 (user) 2026-09-28, Shapes reopened: "Well, you need to include the grass where the black is
+as well.  The grass should be around the car". The nose floats (its black body's lower edge is 41
+to 44 cm up) over a flat plate (the side skirt run forward) and the wing's pylon, so blades from
+the ground only reached it as stray tips: the head has its own fringe of short blades rising from
+its lower edge (5 to 11 cm), and the plate under it is a solid lawn. At the back, the body's rear
+corners carry the grass round; the rest of the tail is the inner car (Details).

@@ -96,28 +96,35 @@
    "key": "shapes",
    "name": "Shapes",
    "state": "decided",
-   "decision": "the round white marks on the black head, as the user asked; the grass stops where the head begins",
+   "decision": "the round white marks on the black head; the grass all round the car, a fringe along the head's lower edge and a lawn under it",
    "date": "2026-09-28",
-   "options": [
-    {
-     "key": "A",
-     "title": "Round Marks",
-     "skin": "TSC_Ladybird_RoundMarks"
-    },
-    {
-     "key": "B",
-     "title": "Streak Marks",
-     "skin": "TSC_Ladybird_StreakMarks"
-    }
-   ],
-   "pick": "A",
+   "options": [],
+   "pick": null,
    "why": "",
-   "was": []
+   "was": [
+    {
+     "decision": "the round white marks on the black head, as the user asked; the grass stops where the head begins",
+     "date": "2026-09-28",
+     "pick": "A",
+     "options": [
+      {
+       "key": "A",
+       "title": "Round Marks",
+       "skin": "TSC_Ladybird_RoundMarks"
+      },
+      {
+       "key": "B",
+       "title": "Streak Marks",
+       "skin": "TSC_Ladybird_StreakMarks"
+      }
+     ]
+    }
+   ]
   },
   {
    "key": "colours",
    "name": "Colours and materials",
-   "state": "todo",
+   "state": "claude",
    "decision": "",
    "date": "",
    "options": [],
