@@ -2595,6 +2595,30 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       back from git, Mood was reopened (`back`, the first pick kept in its history) and both boards
       kept: `pick` takes several letters for files (`A+B`), never for cars (a car keeps one
       design). The concepts draw on both. 48 checks passed.
+  - **4. Concepts to the release (started 2026-09-28):** built step by step on TSC_Ladybird, each
+    step's routine written into `studio.md` as the car reaches it.
+    - **Concepts:** three designs as the sheet's options (`tool.sheet option` makes each
+      `TSC_Ladybird_<Title>` folder), each rough: flat colour in its board's finish, wheels and
+      inner car one dark colour. A Specimen (the Field guide board: a matte vermilion shell over
+      the top with the seven-spot's spots, paper sides with grass drawn in ink over sage), B Silks
+      (the Racing colours board: satin red, big bold black spots over the top and down the sides,
+      a cream rail line with sharp turf teeth under it), C Anatomy (both boards: the car as the
+      ladybird, a black head for the nose, the wing cases' seam as a black stripe nose to tail,
+      the seven spots where they sit on the insect, green blades up the lower sides). About 25 s
+      each to paint in the Mac's container.
+    - **New in the tool:** `shapes.grass` (blades rising up the sides as seen from the side,
+      filled or as ink strokes that thin to the tip; points bucketed along the car so a hundred
+      blades cost little). The grass fringe is the brief's fixed element, and a family of bug cars
+      would share it.
+    - **What the first look caught:** spots placed without knowing the car's top were cut in half
+      at the shell's edge (a map of the car from above in cm placed them: in `SKILL.md`, "What
+      works on this car"); the shell as "whatever faces up" also took the lip at the bottom that
+      turns up again, and its edge blurred over centimetres where the body curves gently (now
+      `facing("up", 0.4, soft=0.006) & above(30)`); the ink grass was too thin and sparse to read;
+      concept C's two pale marks on the black nose read as eyes (the brief: no face), so they went;
+      B's turf barely showed until it rose to meet the rail line.
+    - **Left for Shapes:** A's ink grass bunches into a barcode on the front flank; a small white
+      piece on the bonnet (one of the car's own) shows on A.
 
 #### [ ] W2. The experts
 

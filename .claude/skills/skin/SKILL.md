@@ -150,6 +150,16 @@ user the Lab's stand too.
   H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.
+- **The top, from above** (a map of the car in cm, 2026-09-28; x is the car's left, z forward): the
+  nose is narrow, about ±20 cm at z 200 and ±30 at z 110; the cockpit opening is x ±25 from z 85
+  back to -40 (±8 ahead of it); the body beside it widens from ±45 at z 60 to ±85 at the sidepods
+  (z 30 to -60); the deck behind is about ±55, ±45 at the tail. The top itself, crisp and without
+  the lip at the bottom that turns up again: `shapes.facing("up", 0.4, soft=0.006) &
+  shapes.above(30)` (a larger `soft` blurs the edge over centimetres where the body curves
+  gently). A round spot seen from above: `shapes.cylinder((x, -50, z), (x, 250, z), r)` & that.
+- **Grass up the sides:** `shapes.grass(base=, height=, line=)`, filled blades or ink strokes,
+  the same silhouette both sides (TSC_Ladybird). Pale marks on a dark nose read as eyes: keep
+  them off unless a face is wanted.
 - The user prefers illustrations, prints and decals to photographs. "sticker" is the default.
 - A print made of objects: `s.scatter` (whole copies, each inside one panel, spread evenly).
   A continuous texture: a tile through `s.print`. Ask the picture maker for a few large

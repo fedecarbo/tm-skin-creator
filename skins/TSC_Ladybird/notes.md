@@ -31,3 +31,11 @@ Claude had suggested B.
 Change 1 (user) 2026-09-28: "c and b actually". Mood reopened, Racing colours brought back from
 git's history, both boards kept (now A Field guide, B Racing colours): the concepts will draw on
 both, one reading per board and one that blends them.
+
+Concepts shown 2026-09-28 (the picture, and the Lab's switch): A Specimen (TSC_Ladybird_Specimen:
+the Field guide board, a matte vermilion shell over the top with the seven-spot's spots, paper
+sides with grass drawn in ink over sage), B Silks (TSC_Ladybird_Silks: the Racing colours board,
+satin red with big bold black spots over the top and down the sides, a cream rail line with sharp
+turf teeth under it), C Anatomy (TSC_Ladybird_Anatomy: both boards, the car as the ladybird: a
+black head for the nose, the seam as a black stripe nose to tail, the seven spots where they sit
+on the insect, green blades up the lower sides). Rough on purpose.

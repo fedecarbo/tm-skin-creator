@@ -32,5 +32,24 @@
     "title": "Brushed"
    }
   ]
+ },
+ {
+  "title": "Ladybird concepts",
+  "words": "c and b actually",
+  "made": "2026-09-28",
+  "takes": [
+   {
+    "name": "TSC_Ladybird_Specimen",
+    "title": "Specimen"
+   },
+   {
+    "name": "TSC_Ladybird_Silks",
+    "title": "Silks"
+   },
+   {
+    "name": "TSC_Ladybird_Anatomy",
+    "title": "Anatomy"
+   }
+  ]
  }
 ]

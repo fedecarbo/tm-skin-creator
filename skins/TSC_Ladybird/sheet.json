@@ -63,10 +63,26 @@
   {
    "key": "concepts",
    "name": "Concepts",
-   "state": "todo",
+   "state": "waiting",
    "decision": "",
    "date": "",
-   "options": [],
+   "options": [
+    {
+     "key": "A",
+     "title": "Specimen",
+     "skin": "TSC_Ladybird_Specimen"
+    },
+    {
+     "key": "B",
+     "title": "Silks",
+     "skin": "TSC_Ladybird_Silks"
+    },
+    {
+     "key": "C",
+     "title": "Anatomy",
+     "skin": "TSC_Ladybird_Anatomy"
+    }
+   ],
    "pick": null,
    "why": "",
    "was": []

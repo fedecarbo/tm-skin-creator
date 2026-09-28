@@ -15,6 +15,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.wheel_ring(29.5, 30.5)          a ring round each wheel's axle: tyre sidewall stripes
     shapes.fade(axis="z", start=200, end=-150)  0 at start rising to 1 at end: for blends
     shapes.facing("up"), shapes.facing((1, 0, 0))  where the surface faces a direction
+    shapes.grass(base=10)                  blades of grass rising up the sides; line=0.6 for ink strokes
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
@@ -177,6 +178,43 @@ def facing(direction, at_least=0.3, soft=0.25):
 def sides(at_least=0.5):
     """The flanks: surfaces facing left or right."""
     return Zone(lambda p, n: smoothstep(at_least - 0.25, at_least + 0.25, np.abs(n[:, 0])))
+
+
+def grass(base=10.0, height=(14.0, 30.0), width=(4.0, 8.0), lean=0.4, every=3.0, line=None, seed=0, soft=SOFT):
+    """Blades of grass rising up the car from `base` cm above the ground, drawn as seen from the
+    side (along the car and up), so both sides show the same silhouette. A blade is `width` cm at
+    its root and `height` cm tall, bending up to `lean` of its height forward or back; one every
+    `every` cm on average, overlapping. Filled, with everything below `base`; or `line`: each blade
+    an ink stroke that wide at its root, thinning to the tip, and nothing else. Made for the grass
+    maps' cars (TSC_Ladybird's fringe, 2026-09-28): pair it with sides() to keep it off the top."""
+    rnd = np.random.default_rng(seed)
+    zs = np.arange(-190.0, 235.0, every)
+    k = len(zs)
+    zs = zs + rnd.uniform(-every / 2, every / 2, k)
+    hs = rnd.uniform(*height, k)
+    ws = rnd.uniform(*width, k)
+    leans = rnd.uniform(-lean, lean, k) * hs
+    top = base + max(height)
+
+    def dist(p, n):
+        y, z = p[:, 1], p[:, 2]
+        d = np.full(len(p), -1e3, np.float32) if line else (base - y).astype(np.float32)
+        near = np.nonzero((y > base - 1) & (y < top + 1))[0]
+        near = near[np.argsort(z[near])]
+        zn = z[near]
+        for zi, h, w, le in zip(zs, hs, ws, leans):
+            reach = w + abs(le) + 1
+            a, b = np.searchsorted(zn, (zi - reach, zi + reach))
+            if a == b:
+                continue
+            idx = near[a:b]
+            u = (y[idx] - base) / h
+            off = np.abs(z[idx] - (zi + le * np.clip(u, 0, 1) ** 1.6))  # bending more toward the tip
+            half = (line / 2) * (1 - 0.7 * u) if line else (w / 2) * (1 - u)
+            di = np.where((u >= 0) & (u <= 1), half - off, -1e3)
+            d[idx] = np.maximum(d[idx], di)
+        return d
+    return field(dist, soft)
 
 
 def noisy(zone, amount=6.0, scale=15.0, seed=0):

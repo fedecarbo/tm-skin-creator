@@ -123,7 +123,29 @@ user's decision on a new car.
    into one board: write it as a new option, show it, then pick it. The pick deletes the boards not
    kept and their pictures. `Picked` in `notes.md`, commit and push.
 
-## The steps after Mood
+## 3. Concepts
 
-Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Mood, tell the user the car
-is waiting at Concepts and stop.
+Three truly different ideas on the car, rough on purpose: flat colour in the board's base finish,
+the big shapes only, no details. Each a different reading of the brief and the mood (from two
+boards: one per board and one that blends them). Always the user's decision.
+
+1. `tool.sheet on <car> concepts`, then `tool.sheet option <car> concepts "<Title>"` for each:
+   it makes `skins/<car>_<Title>/` (empty while the car has no design). Write each `design.py`
+   there: `s.clay()`, a few steps, the body's big shapes, the wheels and inner car in one dark
+   colour ("they get their own steps"). Each stands on its own: no concept loads another.
+2. Paint each (`show`; on the Mac `docker compose exec app python -m tool.skin show <name>
+   --no-snap`, then `node docker/snap.mjs <name>` and `--close`) and look: the six views and the
+   close looks, as for any skin. Fix and look again.
+3. `tool.skin round "<Title> concepts" <car>_A=<Title> ...` (the Lab's switch), the picture
+   (`--picture`, views front, left and top, the driving camera's close row for each), and
+   `tool.sheet ask <car> concepts`.
+4. Reply: a line per concept, the one you'd pick and why, that the Lab's stand flips between them,
+   then in bold: which one, or what to take from each?
+5. One: `tool.sheet pick <car> concepts <letter> "<the idea in a few words>"`: its design becomes
+   the car's and the others go with their round; then `show <car>` to paint it under its own name.
+   A mix: write it as a new option from the picked parts, show it, then pick it.
+
+## The steps after Concepts
+
+Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Concepts, tell the user the car
+is waiting at Shapes and stop.
