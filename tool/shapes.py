@@ -16,6 +16,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.fade(axis="z", start=200, end=-150)  0 at start rising to 1 at end: for blends
     shapes.facing("up"), shapes.facing((1, 0, 0))  where the surface faces a direction
     shapes.grass(base=10)                  blades of grass rising up the sides; line=0.6 for ink strokes
+    shapes.blob((x, 0, z), 12)             a spot that isn't quite round, seen from above (axis="x": from the side)
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
@@ -178,6 +179,27 @@ def facing(direction, at_least=0.3, soft=0.25):
 def sides(at_least=0.5):
     """The flanks: surfaces facing left or right."""
     return Zone(lambda p, n: smoothstep(at_least - 0.25, at_least + 0.25, np.abs(n[:, 0])))
+
+
+def blob(centre, radius, axis="y", wobble=0.1, seed=0, soft=SOFT):
+    """A round spot that isn't quite round, projected along `axis` (y: seen from above; x: from the
+    side): its edge wanders up to about `wobble` of its radius in a few slow lobes, as a ladybird's
+    spots do (the user, 2026-09-28: "lady bug spots are not perfect circles, more like a blob close
+    to being a circle"). Each seed gives another shape. centre is (x, y, z) in cm; the coordinate
+    along `axis` is ignored."""
+    k = "xyz".index(axis)
+    a, b = [i for i in range(3) if i != k]
+    c = np.asarray(centre, np.float32)
+    rnd = np.random.default_rng(seed)
+    lobes = [(n, rnd.uniform(0.3, 1.0) / n, rnd.uniform(0, 2 * np.pi)) for n in (2, 3, 4)]
+    scale = wobble / sum(amp for _, amp, _ in lobes)
+
+    def f(p, n):
+        du, dv = p[:, a] - c[a], p[:, b] - c[b]
+        ang = np.arctan2(dv, du)
+        edge = radius * (1 + scale * sum(amp * np.sin(m * ang + ph) for m, amp, ph in lobes))
+        return edge - np.hypot(du, dv)
+    return field(f, soft)
 
 
 def grass(base=10.0, height=(14.0, 30.0), width=(4.0, 8.0), lean=0.4, every=3.0, line=None, seed=0, soft=SOFT):

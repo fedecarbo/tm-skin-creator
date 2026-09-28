@@ -2635,6 +2635,21 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
         after a reload. The routine now records a round before painting it.
       - **Found on the way:** `tool.notes done` refused a note on a skin the pick had deleted;
         it now takes any skin's name (the server doesn't use `done`, so no restart).
+    - **Shapes, from the user's five notes (2026-09-28):** the spots as blobs (`shapes.blob`, new
+      in the tool: a round spot whose edge wanders in a few slow lobes, projected from above or
+      the side), the right deck spot moved off the deck's edge, the bonnet spot dropped (it touched
+      the cockpit's rim, z 91), the nose the ladybird's black head (ahead of a curved edge, z 116
+      down the middle, taking in the nose fin's plate) with two white blobs on its sides, the grass
+      taller and denser. The white blobs took three tries: kept off "the top" they were slivers,
+      kept to surfaces facing sideways they were half-moons, and at y 41 they hid under the nose's
+      curve; at y 48, z 162 they show.
+    - **Where it stopped (2026-09-28, the session's context ran out):** TSC_Ladybird at Shapes
+      ("Claude on it" on its sheet), the five notes handled and marked done, the car painted and
+      checked but not shown. Next: show the user (the picture and the Lab), ask whether the white
+      blobs read as eyes from the front three-quarter, then Shapes' own look (from far away, the
+      game's cameras: `--cams`) and its routine in `studio.md`; then Colours and materials,
+      Wheels, Details, Lettering, Review, Road test, Release, each written into `studio.md` as the
+      car reaches it. Also open: the grass paints the front wing solid green (not asked about).
 
 
 #### [ ] W2. The experts

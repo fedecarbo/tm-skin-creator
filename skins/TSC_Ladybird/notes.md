@@ -46,3 +46,13 @@ in the car, making it look weird and not properly applying pain." Made as option
 C's turf-green grass in place of B's rail line and turf teeth, the spots on the outer panels only
 and clear of the sidepod inlets, the number and name panels and the nose fin's plate. D picked: its
 design is now this car's (design.py); A, B, C deleted (git's history). Claude had suggested C.
+
+Shapes, from the user's notes on the car (2026-09-28, notes 1 to 5): 1 and 4 "This spot is clipped"
+(the right deck spot ran off the deck's edge: moved forward; the bonnet spot touched the cockpit's
+rim: dropped, the head takes its place); 2 "Maybe more grass or taller?" (blades 18 to 40 cm, one
+every 2.2 cm); 3 "I think lady bug spots are not perfect circles, more like a blob close to being a
+circle" (shapes.blob); 5 "I wonder if we make this black? as if it's the head.  Maybe too white
+blobs on the sides" (the nose black ahead of a curved edge, z 116 in the middle, taking in the nose
+fin's plate; two white blobs on its sides at y 48, z 162). Painted and checked; NOT shown to the
+user yet (the session's context ran out). To ask: from the front three-quarter view the white blobs
+may read as eyes (the brief says no face; the user asked for them).

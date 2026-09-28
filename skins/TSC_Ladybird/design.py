@@ -1,41 +1,68 @@
-"""TSC_Ladybird, concept D, Silks with Anatomy's grass (the studio, 2026-09-28): the user's mix of
-the concept round: "I like B the most. I do like the grass from C though". B's jockey's silks,
-satin red with a few big black spots, and C's turf-green blades rising up the lower sides in place
-of B's rail line and turf teeth. The spots are painted on the outer panels only and kept clear of
-the sidepod inlets (on B one ran down inside an inlet: the user's note, "The spot in b also
-transfers to the next object in the car, making it look weird and not properly applying pain") and
-of the number panel and the engine cover panel, where the game draws the player's number and name.
-Rough on purpose: flat colour, one finish, no details yet."""
+"""TSC_Ladybird (the studio, 2026-09-28): a ladybird in the grass, made for the grass maps. From the
+concept round, the user's mix: "I like B the most. I do like the grass from C though": B's jockey's
+silks, satin red with a few big black spots, and C's turf-green blades rising up the lower sides.
+
+Shapes, from the user's notes on the car: the spots are blobs, not perfect circles ("lady bug spots
+are not perfect circles, more like a blob close to being a circle"); the nose is the ladybird's
+black head, with two white blobs low on its sides ("I wonder if we make this black? as if it's the
+head. Maybe too white blobs on the sides"); the grass is taller and denser ("Maybe more grass or
+taller?"); no spot is clipped ("This spot is clipped", twice: one ran off the deck's edge, one
+touched the cockpit's rim and went, the head taking its place).
+
+The spots are painted on the outer panels only, so none runs down into what lies under it (on B one
+ran inside a sidepod inlet: "The spot in b also transfers to the next object in the car"), and
+they keep clear of the inlets and of the number panel and the engine cover panel, where the game
+draws the player's number and name. Still rough: flat colour, one finish, no details yet."""
 from tool import shapes
 
 WORDS = "I like B the most.  I do like the grass from C though"
-NOTE = "The spot in b also transfers to the next object in the car, making it look weird and not properly applying pain."
-RED, BLACK, TURF = "#D7262B", "#111111", "#3E8E3A"
+HEAD = "I wonder if we make this black? as if it's the head.  Maybe too white blobs on the sides"
+BLOBS = "I think lady bug spots are not perfect circles, more like a blob close to being a circle"
+GRASS = "Maybe more grass or taller?"
+RED, BLACK, WHITE, TURF = "#D7262B", "#111111", "#F3EEDF", "#3E8E3A"
 # the outer panels a spot may sit on: never the inlets, the number panel or the engine cover panel
 OUTER = ["body shell", "nose tip", "nose panel", "sidepod top", "engine cover|part", "rear flank"]
-# big spots from above, (x, z, radius) in cm, scattered as silks' spots are. The bonnet's sits
-# between the cockpit opening (z 85) and the nose fin's plate (x ±8, z 118 to 142), clear of both:
-# over the plate, the upright fin stayed red, a notch in the spot, and the whole plate painted
-# black made a keyhole
-TOP = [(0, 178, 12), (0, 101, 11), (68, -32, 12), (-66, -38, 12), (33, -100, 11), (-33, -125, 11)]
+# big spots from above, (x, z, radius) in cm, scattered as silks' spots are, each on one panel: the
+# sidepods' tops behind the inlets, the deck either side of the engine cover panel (x ±19), the
+# right one forward of the deck's edge (z -132), where it was clipped
+TOP = [(68, -32, 12), (-66, -38, 12), (33, -100, 11), (-33, -110, 11)]
 # and one on each rear flank (y, z, radius), the flat spot behind the sidepod
 SIDE = [(40, -70, 12)]
+# the head: the nose ahead of a curved edge, as a ladybird's head meets its wing cases: 116 cm down
+# the middle, just behind the nose fin's plate (z 118 to 142, which it takes in with its fin),
+# curving forward to about 128 at the nose's sides (x ±26)
+HEAD_BACK, HEAD_CURVE, HEAD_HALF = 116.0, 14.0, 28.0
+# its two white blobs on the nose's sides (y, z, radius): marks on its flanks, not eyes on top. The
+# nose is 20 to 57 cm high there, rounded over the top, so a blob seen from the side at y 45 stays
+# on its side by its height alone; painted after the grass, which rises that high. Kept off "the
+# top" (as the spots are) they came out as slivers, and to the surfaces facing sideways as
+# half-moons: the nose's sides slope up
+MARKS = (48, 162, 6)
 
 
 def top():
     return shapes.facing("up", 0.4, soft=0.006) & shapes.above(30)
 
 
+def head():
+    return shapes.field(lambda p, n: p[:, 2] - (HEAD_BACK + HEAD_CURVE * (p[:, 0] / HEAD_HALF) ** 2))
+
+
 def design(s):
     s.clay()
-    s.step("Silks", "Satin red all over, big black spots over the top and on the rear flanks.", words=WORDS)
+    s.step("Silks", "Satin red all over, big black blob spots over the top and on the rear flanks.", words=BLOBS)
     s.paint("body", "satin", colour=RED)
-    for x, z, r in TOP:
-        s.paint(OUTER, "satin", colour=BLACK, zone=shapes.cylinder((x, -50, z), (x, 250, z), r) & top())
-    for y, z, r in SIDE:
-        s.paint(OUTER, "satin", colour=BLACK, zone=shapes.cylinder((-200, y, z), (200, y, z), r) & ~top())
-    s.step("The grass", "Turf-green blades rising up the lower sides, as on concept C.", words=WORDS)
-    s.paint("body", "satin", colour=TURF, zone=shapes.grass(base=6, height=(14, 30), seed=7) & ~top())
-    s.step("For now", "The wheels and the inner car black: they get their own steps.")
+    for k, (x, z, r) in enumerate(TOP):
+        s.paint(OUTER, "satin", colour=BLACK, zone=shapes.blob((x, 0, z), r, seed=k) & top())
+    for k, (y, z, r) in enumerate(SIDE):
+        s.paint(OUTER, "satin", colour=BLACK, zone=shapes.blob((0, y, z), r, axis="x", seed=10 + k) & ~top())
+    s.step("The head", "The nose black, as the ladybird's head, with two white blobs low on its sides.", words=HEAD)
+    s.paint("body", "satin", colour=BLACK, zone=head())
+    s.step("The grass", "Taller, denser turf-green blades rising up the lower sides.", words=GRASS)
+    s.paint("body", "satin", colour=TURF, zone=shapes.grass(base=6, height=(18, 40), every=2.2, seed=7) & ~top())
+    s.step("The head's marks", "Two white blobs on the sides of the black head.", words=HEAD)
+    y, z, r = MARKS
+    s.paint("body", "satin", colour=WHITE, zone=shapes.blob((0, y, z), r, axis="x", seed=20) & head())
+    s.step("For now", "The wheels and the inner car black: they get their own steps.", words=WORDS)
     s.paint("wheels", "satin", colour=BLACK)
     s.paint("inner", "satin", colour=BLACK)
