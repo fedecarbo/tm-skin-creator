@@ -1194,7 +1194,9 @@ worked on, live; not one page. What was settled the same day:
     repainted (TSC_Seams_Black) as before.
   - **Next:** the user looks.
 
-#### [ ] 3. The painting rooms
+#### [replaced] 3. The painting rooms
+
+- **Replaced** (2026-09-27) by one UV map room (7, and `tool/rooms.py`).
 
 - **What it's for:** the rooms of "The Lab rethought" (above), Wheels first to settle what every
   room has; then all four were built the same way.
@@ -1293,7 +1295,9 @@ worked on, live; not one page. What was settled the same day:
     the viewer hiding the body; no page errors.
   - **Next:** the user looks.
 
-#### [ ] 4. What the rooms do next
+#### [replaced] 4. What the rooms do next
+
+- **Replaced** (2026-09-27): the rooms went (7).
 
 - **What it's for:** what the user described for the rooms and put off for now (2026-09-26:
   "let's focus on the rooms first"), each when the user asks, opening with its own mockups.
@@ -1310,7 +1314,10 @@ worked on, live; not one page. What was settled the same day:
   - The named places for stickers and words (`paintbox.SPOTS`) in the Body room.
   - ~~Sunrise and sunset lighting in the viewer~~: dropped (the user, 2026-09-27: day and night only).
 
-#### [ ] 5. The Studio: a car built from clay
+#### [replaced] 5. The Studio: a car built from clay
+
+- **Replaced** (2026-09-28) by the car's room, the fresh layouts' A ("The design studio"). What
+  lives on: the car follows Claude's painting step by step, from clay.
 
 - **What it's for:** the room where a car gets designed with Claude. It starts as a clay car,
   and each step of the design (the colour run, a wrap, the lights, the wheels) becomes a frame
@@ -1363,7 +1370,10 @@ worked on, live; not one page. What was settled the same day:
     showing were worth watching in the Studio: "I like to see the work going on, so yes"). So no
     quiet mode: every `tool.skin show` paints its frames and moves the Studio.
 
-#### [ ] 6. Concepts in the Lab: a switch between a round's takes
+#### [replaced] 6. Concepts in the Lab: a switch between a round's takes
+
+- **Replaced** (2026-09-28) by the sets of options; the rounds and their switch were removed the
+  same day ("The Lab's timeline", 1).
 
 - **What it's for:** a loose idea gets two or three concepts, and the Lab showed only the one
   painted last; the user saw them together only in the picture Claude opened ("I see the options
@@ -1496,7 +1506,10 @@ worked on, live; not one page. What was settled the same day:
     digits had turned white. Claude's snapshots go through the same viewer, so they're brighter
     too.
 
-#### [ ] 9. The Lab as a factory: the car on the stand
+#### [replaced] 9. The Lab as a factory: the car on the stand
+
+- **Replaced** (2026-09-28) by the fresh layouts' A ("The design studio"). What lives on: the
+  notes as tags on the car. The stations went.
 
 - **What it's for:** the user, 2026-09-27, after Claude described how a car gets built: "I was
   kind of thinking on redesigning the lab ... since it's an iterative process then im not sure the
@@ -2892,7 +2905,10 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - The critic as a subagent given only the pictures (views, close looks, the game's cameras, day
     and night), the brief and its quality list, never the design or Claude's reasons.
 
-#### [ ] W3. The wizard in the Lab
+#### [replaced] W3. The wizard in the Lab
+
+- **Replaced** (2026-09-28) by the fresh layouts' A, built as "Building A" (below); the wizard's
+  code removed.
 
 - **Handed over 2026-09-28** (the user: "Another agent will do the wizard"). Nothing built yet. For
   the agent who picks it up:

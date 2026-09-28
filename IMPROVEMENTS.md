@@ -70,14 +70,14 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **A step that covers an earlier step's paint says nothing** (2026-09-26, TSC_ChaosElegance_
   Kintsugi, deleted 2026-09-27: a borrowed inner-car helper painted the body black over the
-  porcelain and gold). The
-  Studio's filmstrip shows it, but only if someone looks. Idea: at the end of each step, note any
+  porcelain and gold). Nothing
+  says so: the Lab's filmstrip showed it, if someone looked, and it's gone. Idea: at the end of each step, note any
   part an earlier step painted that this step covered for the most part ("Inner car covered
   Porcelain, Mended with gold on the body shell"), as `show` notes shared paint.
 - **The comparison picture's labels and views** (2026-09-26, the concept round): it numbers the
   takes 1, 2, 3 on top of Claude's A, B, C ("1 A Kintsugi"), and a fourth view asked for is left
-  out without a word (the sheet is three tiles wide). Idea: letter the takes as the Lab's round
-  does, and wrap extra views to a second row.
+  out without a word (the sheet is three tiles wide). Idea: letter the takes A, B, C as the Lab's
+  sets do, and wrap extra views to a second row.
 
 - **The fasteners have no name** (2026-09-27, TSC_CMYK_EndsInK: the user saw small cyan rings on
   the black). The little rings on the cockpit, engine cover, nose and front wing all wear one tiny
@@ -107,8 +107,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   1. The test-skin scripts from before the paint box (`testskin.py`, `partskin.py`, `labskin.py`,
      `carbonskin.py`, 774 lines; `partskin.py` holds a copy of ~70 part names). Move `stock()`
      from `testskin` to `dds.py` first (`paintbox.py` imports it), then retire them.
-  2. About 100 lines nothing calls: `dds.fix_bc1`, `pictures.mend_seams` and `art_path`,
-     `noise.worley2`, `parts._tub`, `paths.VENV`, the viewer's `aim()` and `partCentres()`.
+  2. About 70 lines nothing calls: `dds.fix_bc1`, `pictures.mend_seams` and `art_path`,
+     `noise.worley2`, `parts._tub`, `paths.VENV` (the viewer's `aim()` went on 2026-09-28).
   3. Stale defaults and docs: `tool.view <name>` and plain `tool.snap <name>` read the last
      installed DDS files (old paint, or none); the viewer's bare address opens TSC_Test, which has
      no design; `paintbox.py`'s docstring names `Skin.show/build/install`, which don't exist.
@@ -120,11 +120,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   6. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
      250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
 
-- **Repainting only the station that changed** (2026-09-27, the Lab's step 9.7, queued here when
-  the design studio took over the Lab on 2026-09-28). Every `show` paints the whole car (90 to
-  127 s for TSC_CMYK_EndsInK), even when a note changed only the tyres. Each station is one of the
-  game's maps, so a change to one could repaint that map only. Only if the game files come out
-  identical to a whole repaint. It makes every studio step faster. Notes: `CHECKLIST.md`, The Lab,
+- **Repainting only the map that changed** (2026-09-27, the Lab's step 9.7, queued here when the
+  design studio took over the Lab on 2026-09-28). Every `show` paints the whole car (90 to 127 s for
+  TSC_CMYK_EndsInK), even when a note changed only the tyres. A change often touches one of the
+  game's maps (Skin, Details, Wheels, Glass), so it could repaint that map only. Only if the game
+  files come out identical to a whole repaint. It makes every change faster. Notes: `CHECKLIST.md`, The Lab,
   step 9.
 
 - **The picture maker on the Mac** (2026-09-28, TSC_Ladybird's mood boards): it runs only on the
