@@ -57,6 +57,10 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
   take's `gallery.json` entry) puts a switch between its takes on the stand and in the UV map
   (`viewer/lab-round.js`).
+- The design studio's build sheet: `tool/sheet.py` (its docstring is the key) writes
+  `skins/<car>/sheet.json`, the only writer, so the Lab's wizard shows it and keeps no list of its
+  own. Standard library only (the Mac's python3 runs it). Its pick deletes the options not kept.
+  Notes: "The design studio" in `CHECKLIST.md`.
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn

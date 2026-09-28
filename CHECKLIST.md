@@ -2467,6 +2467,51 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     decided, then opens the step the change belongs to.
   - Mood boards: pictures from the picture maker (`tool.pictures`), the textures library and
     colour strips. Web pictures are references only, never on git or on the car.
+  - **The pieces** (Claude's split, 2026-09-28, at the user's word: "Build one step at a time, show
+    me what it does, and wait for my OK before the next step"):
+    1. the build sheet (`tool/sheet.py`): the steps as data, options and the pick, going back;
+    2. the brief: the Studio section of the `skin` skill starts (the three ways in, and how Claude
+       says which), the brief's questions, the brief card (`skins/<car>/brief.md`);
+    3. mood boards: a board picture per direction (the colour story as chips, the finishes, the
+       textures, the picture maker's pictures);
+    4. concepts to the release: the rest of the routine in the skill (three concepts, a "from far
+       away" picture for Shapes, the finishes board, wheels, details, lettering, Claude's own
+       review until W2's critic, the road test, the release) and going back, tried on a real car;
+    5. rework: an existing car's sheet from its history, then the step its change belongs to.
+  - **1. The build sheet (built 2026-09-28):**
+    - `tool/sheet.py`, standard library only, so it runs with the Mac's own python3 (3.9) as
+      `tool.notes` does, in the container, and on the PC. `skins/<car>/sheet.json`: the car, its
+      title, the way (studio or rework), the user's first words, the start date, and the eleven
+      steps (`sheet.STEPS`: brief, mood, concepts, shapes, colours, wheels, details, lettering,
+      review, road, release), each with its key and name (for the Lab), state, decision, date,
+      options, pick, why, and `was` (earlier decisions, so the page can say "changed" and the
+      design book can tell the story).
+    - **Commands:** `new`, `on`, `option`, `ask`, `pick`, `decide`, `skip`, `back`, the sheet
+      printed (`tool.sheet <car>`) and every studio car (`tool.sheet`). The docstring is the key.
+    - **Options** are skins (`<car>_<Title>`) or files in the car's folder (mood boards).
+      `option` without `--skin` or `--file` makes the skin as a copy of the car's design.py and
+      `art/` (a design's pictures are found by its own skin's name, so an option needs its own
+      copy). `ask` wants two or more, each skin with a design.
+    - **The pick** moves the chosen skin's design.py, `art/` and thumb.png into the car and
+      deletes every other option (and the chosen one's folder), and takes them out of
+      `skins/rounds.json` (a round left with one take goes). `pick none`: the car's design as it
+      is, a mix Claude wrote into it. It refuses when the design the car ends up with loads the
+      car's own or a deleted option's (designs load each other by folder name: it would break or
+      load itself), and keeps an option that's in the game (`installed.json`). The work folder's
+      copies of deleted skins are left: the gallery lists only folders with a design.
+    - **Going back:** `back <car> <step> "<why>" --affects ...` keeps the old decision in `was`,
+      makes the car as it is option A (for the steps that paint the car: concepts to lettering),
+      marks the named later steps "needs a look" and review, road test and release too ("the car
+      changed"). `decide` on a step that needs a look, without words, confirms its decision;
+      after going back, a change made in the car itself (no other option) is decided directly.
+    - **Checks:** 39 passed, on the Mac's python3 3.9 and the container's 3.14, in a scratch
+      skins folder (`TSC_SKINS_HOME`): the refusals (a design loading a deleted option or the car,
+      fewer than two options, an option with no design, a bad letter, going back to a step not
+      decided or marking an earlier step), a refused pick deleting nothing, the pick moving the
+      design and pictures, an option in the game kept, the round forgotten, the car kept as it is,
+      going back touching only the steps named and the checks, `pick none`, and the mood boards'
+      files. A pretend car taken through all eleven steps, with a change of colour at the end,
+      printed as expected.
 
 #### [ ] W2. The experts
 
