@@ -2554,6 +2554,16 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       by the talk, "Fixed" only what the user asked for, shown with "is this the car?".
       `tool.sheet decide <car> brief` refuses without the card (41 checks passed, on the Mac's
       python3 and the container's).
+    - **Tried on the first studio car, TSC_Ladybird (2026-09-28), in three messages:** the user's
+      idea (a fun car for the grass maps, not camouflage, "happy to figure it out as I go");
+      Claude's reading (camouflage is the wrong job on a green map: start from things made to be
+      picked out against grass, a jockey's colours, a golf flag, a ladybird) and one fork (stand
+      out, or belong to grass sport); the user's turn on it ("the bottom is some lever of grass,
+      that acts as the blend between the grass and the bug"); the card; "Sure, ladybird. We could
+      potentially have a family of bugs". The idea came from the talk, not from either side alone.
+    - **Found on the way:** the working name (TSC_Grass) stopped fitting once the brief settled.
+      `tool.sheet rename`, only before anything is painted (designs and their pictures are found
+      by folder name); 44 checks passed.
 
 #### [ ] W2. The experts
 

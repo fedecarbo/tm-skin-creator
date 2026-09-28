@@ -50,9 +50,10 @@ maybe help shape the direction. But obviously I don't want a complete form to fi
 
 1. If they haven't said yet, ask one open question: **what car do you want to build?** A word, a
    feeling, a scene: anything goes.
-2. Name the car (`TSC_<Idea>`, CamelCase, a name no skin has), then
+2. Give the car a working name (`TSC_<Idea>`, CamelCase, a name no skin has), then
    `tool.sheet new <car> --words "<their words verbatim>"` and `tool.sheet on <car> brief`.
-   Start `notes.md`.
+   Start `notes.md`. When the brief settles on something more telling, `tool.sheet rename` it
+   before the yes (the first studio car began as TSC_Grass and became TSC_Ladybird).
 3. Think about their words and answer as a designer would, in a few sentences of plain talk: the
    character you hear in the idea, what it could draw from (specific worlds: "a 1990s Le Mans
    prototype at night", "a Braun radio", never "motorsport"), the traps it could fall into ("a

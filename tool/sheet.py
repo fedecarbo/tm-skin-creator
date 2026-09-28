@@ -6,6 +6,7 @@ waiting for the user. skins/<car>/sheet.json, written only by these commands, so
     python -m tool.sheet                                     every car with a sheet, and its step
     python -m tool.sheet <car>                               the car's sheet
     python -m tool.sheet new <car> --words "..."             start one, for a new car
+    python -m tool.sheet rename <car> <new name>             a better name, before anything is painted
     python -m tool.sheet on <car> <step>                     Claude is on the step
     python -m tool.sheet option <car> <step> "<title>" [--skin <name> | --file <path>]
                                                              an option for the step: A, B, C...
@@ -144,6 +145,20 @@ def new(car, words):
                          "afresh, under a new name")
     sheet = {"car": car, "title": title_of(car), "words": words, "started": today(),
              "steps": [blank(k, n) for k, n in STEPS]}
+    save(sheet)
+    return sheet
+
+
+def rename(car, name):
+    """A working name replaced once the brief settles (TSC_Grass became TSC_Ladybird, 2026-09-28).
+    Only before anything is painted: designs find each other and their pictures by folder name."""
+    sheet = load(car)
+    if not NAME.fullmatch(name or "") or (SKINS / name).exists():
+        raise SheetError(f"{name!r} is taken or not a skin's name")
+    if (SKINS / car / "design.py").exists() or any(o.get("skin") for st in sheet["steps"] for o in st["options"]):
+        raise SheetError(f"{car} has a design or options already: it keeps its name")
+    shutil.move(str(SKINS / car), str(SKINS / name))
+    sheet["car"], sheet["title"] = name, title_of(name)
     save(sheet)
     return sheet
 
@@ -388,7 +403,7 @@ def main(argv=None):
             at = here(sheet)
             print(f"{sheet['car']:<28} " + (f"{at['name']}, {STATES[at['state']]}" if at else "released"))
         return
-    if argv[0] not in ("new", "on", "option", "ask", "pick", "decide", "skip", "back"):
+    if argv[0] not in ("new", "rename", "on", "option", "ask", "pick", "decide", "skip", "back"):
         print(describe(load(argv[0])))
         return
     ap = argparse.ArgumentParser(prog="python -m tool.sheet")
@@ -400,13 +415,15 @@ def main(argv=None):
     ap.add_argument("--file")
     ap.add_argument("--affects", nargs="*", default=[])
     a = ap.parse_args(argv)
-    need = {"new": 0, "on": 1, "option": 2, "ask": 1, "pick": 3, "decide": (1, 2), "skip": 2, "back": 2}[a.command]
+    need = {"new": 0, "rename": 1, "on": 1, "option": 2, "ask": 1, "pick": 3, "decide": (1, 2), "skip": 2, "back": 2}[a.command]
     lo, hi = need if isinstance(need, tuple) else (need, need)
     if not lo <= len(a.rest) <= hi:
         ap.error(f"{a.command}: see the usage at the top of tool/sheet.py")
     said = []
     if a.command == "new":
         sheet = new(a.car, a.words)
+    elif a.command == "rename":
+        sheet = rename(a.car, a.rest[0])
     elif a.command == "on":
         sheet = on(a.car, a.rest[0])
     elif a.command == "option":
