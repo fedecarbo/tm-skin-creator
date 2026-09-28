@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <style>
   /* The Lab, where a car gets designed with Claude: the stand (the car, the user's notes hanging on
-     it as tags, the build's steps under it), the UV map (the game's four flat maps, tool/rooms.py, the car
+     it as tags, its stations under it), the UV map (the game's four flat maps, tool/rooms.py, the car
      as a tab) and the materials, each with a line to copy and paste to Claude. The viewer's look
      (index.html): Teko, slanted buttons, one yellow-green accent. Each room is a .room whose parts
      fill the page's three columns. The layouts are the user's (CHECKLIST.md, "The Lab"): the stand,
@@ -129,8 +129,9 @@
 
   /* The stand, the Lab's first room (the user's pick, B, 2026-09-27: CHECKLIST.md, "The Lab", step 9):
      the car fills the room, framed between two gutters where its tags hang (lab-tags.js), each joined
-     by a line to a dot on its point; the build's steps, the game's cameras and the car in the game
-     along the bottom. A second car behind the first, at half its size, draws the strip's pictures. */
+     by a line to a dot on its point; the stations (Body, Details, Tyres, Glass, each with its tries:
+     the user's pick, B, 2026-09-28), the game's cameras and the car in the game along the bottom. A
+     second car behind the first, at half its size, draws the strip's pictures. */
   .stand { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-rows: 46px minmax(0, 1fr) auto; padding: 0 34px 14px; min-height: 0; }
   .standHead { display: flex; align-items: center; gap: 14px; padding-left: 4px; min-width: 0; }
   .standHead h3 { margin: 0; font-size: 34px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; }
@@ -200,6 +201,16 @@
   .still[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--acc); }
   .still.wip, .still.plain { cursor: default; }
   .still img:not([src]) { visibility: hidden; }  /* painting, or its picture still being drawn */
+  .still .fn small { margin-left: 3px; }
+  /* the open station's tries (the user's pick, B, 2026-09-28), each on the car as it is now */
+  .still.wide { width: auto; }
+  .still .tries { display: flex; gap: 4px; }
+  .still .tries figure { margin: 0; position: relative; }
+  .still .tries img { width: 112px; height: 74px; opacity: 0.5; transition: opacity 0.12s; }
+  .still .tries.many img { width: 76px; }
+  .still .tries figure:hover img, .still .tries figure.on img { opacity: 1; }
+  .still .tries figcaption { position: absolute; left: 3px; top: 2px; font-size: 13px; padding: 1px 4px 0; background: rgba(12, 14, 18, 0.6); }
+  .still .tries figure.on figcaption { background: var(--acc); color: var(--ground); }
   .newTag { font-style: normal; display: inline-block; font-size: 13px; padding: 2px 5px 0; margin-left: 4px; background: var(--acc);
             color: var(--ground); transform: skewX(-12deg); vertical-align: 1px; }
   .quote { font-style: italic; }

@@ -25,6 +25,9 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `tool/labskin.py` (the materials lab). `PY -m tool.install <name> ...` installs built zips.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
+  After a change to `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own
+  `tool.swatches` or `tool.view`) and start `PY -m tool.swatches --no-tab` in the background:
+  it serves without opening a tab (`--no-open` only paints).
   **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
   in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). Notes: "The Lab" in
   `CHECKLIST.md`. The UV map room (`lab.html?room=uv`, `viewer/lab-rooms.js`) comes from
@@ -33,15 +36,20 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
   their code change. The stand (the first room, `viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`)
   reads the frames `tool.skin show` writes at each `Skin.step` (`view.export_steps`, `studio.json`);
-  `install` paints without them. It drives the embedded viewer (`index.html?embed=1`) through
+  `install` paints without them. Under the car are its stations (`rooms.STATIONS`, in uvmap.json:
+  Body, Details, Tyres, Glass, one per map), each with its tries: at the end of a show,
+  `view.export_stations` gives a new try to every station whose map's pictures changed
+  (`skins/<name>/stations.json`, the pictures in `tries/`, the newest 8 kept). It's written
+  before the final steps.json, which the page waits for. It drives the embedded viewer (`index.html?embed=1`) through
   `window.viewer`: `inset` (the box the car is framed in, the rest left to the tags), `track` (its
   points' places on the page, pushed at the end of each frame that moves them), `project`, `camera`,
   `go`, `mood`, `views` (the viewer's own Cam buttons) and `picture({ crop: 'inset' })`. All of it is
   embed-only: the page online and Claude's snapshots mustn't change (compare a snapshot before and
   after). The embedded viewer draws only when something changed (the camera, a `window.viewer`
   call, a resize: `rouse`), so anything new that changes the picture on its own must call `rouse`.
-  The strip's pictures are kept in the browser's Cache API by frame hash and view, and the second
-  car behind the stage starts only when one is missing. Its notes on the car (`tool/notes.py`,
+  The strip's pictures are kept in the browser's Cache API, by a hash of their textures' URLs (each
+  names its content: a frame's `?v=`, a try's file, the stock) and the view. The second car behind
+  the stage starts only when one is missing. Its notes on the car (`tool/notes.py`,
   `.notes/notes.json`: git-ignored, each computer keeps its own, writers take an mkdir lock) go
   through the viewer's server
   (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook

@@ -20,6 +20,8 @@ Studio's notes on the car (/api/notes, tool/notes.py):
              skins/<name>/steps/  the Lab's Studio: the car at the end of each step of the design,
                                   at half size, and steps.json (export_steps); studio.json names
                                   the skin Claude painted last, which the Studio follows
+             skins/<name>/tries/  the stand's stations: each station's tries, and stations.json
+                                  (export_stations), kept from show to show
 
 The game's textures become PNG "slots" laid out the way three.js reads them:
   <Set>_B      base colour, sRGB
@@ -217,7 +219,7 @@ def export_uvmap():
                          "area": round(inst["area_cm2"])})
     assemblies = {a["name"]: a["about"] for a in json.loads(parts.PARTS_JSON.read_text())["assemblies"]}
     lab_rooms = rooms.rooms(p)
-    out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms,
+    out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms, "stations": rooms.STATIONS,
                                "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
     stamp.write_text(key)
 
@@ -398,27 +400,70 @@ def save_frame(name, k, slot, image, digest):
     return f"skins/{name}/steps/{k}/{slot}.png?v={digest}"
 
 
+def frame_urls(own):
+    """A frame's URL for every slot: its own pictures ({slot: url}), else the stock ones (as skin.json)."""
+    stock = set(json.loads((STOCK / "stock.json").read_text())) if (STOCK / "stock.json").exists() else set()
+    return {slot: own.get(slot) or (f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK else None) for slot in SLOTS}
+
+
 def export_steps(name, steps, painting, clay=None):
     """steps.json: each step's name, what it does, the user's words, what it paints, how to look
     at it, the line to copy for Claude, and the URL of every slot of its frame (its own pictures,
     else the stock ones, as skin.json); a step still being painted has none yet. clay: when the
     design is done, the parts still in clay, [(instance id, name)] (Skin.still_clay; None for a
     design that didn't start from clay)."""
-    stock = set(json.loads((STOCK / "stock.json").read_text())) if (STOCK / "stock.json").exists() else set()
     n = len(steps)
     out = []
     for k, st in enumerate(steps):
         title = ("The start" if n > 1 else "The design") if st.get("implicit") else st["name"]
-        urls = None
-        if "textures" in st:
-            urls = {slot: st["textures"].get(slot) or (f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK else None)
-                    for slot in SLOTS}
+        urls = frame_urls(st["textures"]) if "textures" in st else None
         out.append({"name": title, "does": st["does"], "words": st["words"], "look": st["look"], "paints": st["paints"],
                     "line": f"{name}, step {k} of {n - 1}: {title}", "frame": st.get("frame"), "textures": urls})
-    doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out}
+    doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out,
+           "stations": (DATA / "skins" / name / "stations.json").exists()}  # its tries kept (export_stations)
     if clay is not None:
         doc["clay"] = [{"id": i, "name": n} for i, n in clay]
     _write_json(DATA / "skins" / name / "steps.json", doc)
+
+
+TRIES_KEPT = 8  # per station, the newest
+
+
+def export_stations(name, textures):
+    """The stand's stations (rooms.STATIONS), at the end of a show, from the last frame's textures
+    ({slot: url}, as steps.json's): a station whose own pictures (what the design painted on its
+    map) differ from its last try's gets a new try. Its pictures are kept in skins/<name>/tries/,
+    which the next show doesn't clear (start_steps clears steps/). skins/<name>/stations.json holds
+    each station's newest TRIES_KEPT tries: {"n", "at", "sig" (slot -> digest), "textures" (every
+    slot of its map but the AO: its own pictures, else the stock ones)}; older tries' pictures go."""
+    import shutil
+    from tool import rooms
+    folder = DATA / "skins" / name
+    keep = folder / "tries"
+    path = folder / "stations.json"
+    before = json.loads(path.read_text()).get("tries", {}) if path.exists() else {}
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    out = {}
+    for st in rooms.STATIONS:
+        tries = before.get(st["key"], [])
+        slots = {slot: url for slot, url in textures.items() if slot.startswith(st["set"] + "_") and not slot.endswith("_AO")}
+        own = {slot: url for slot, url in slots.items() if url and url.startswith(f"skins/{name}/")}
+        sig = {slot: url.partition("?v=")[2] or url for slot, url in own.items()}
+        if sig != (tries[-1]["sig"] if tries else {}):
+            keep.mkdir(parents=True, exist_ok=True)
+            kept = dict(slots)
+            for slot, url in own.items():
+                file = keep / f"{slot}-{sig[slot]}.png"
+                if not file.exists():
+                    shutil.copyfile(DATA / url.partition("?")[0], file)
+                kept[slot] = f"skins/{name}/tries/{file.name}"
+            tries = [*tries, {"n": tries[-1]["n"] + 1 if tries else 1, "at": now, "sig": sig, "textures": kept}]
+        out[st["key"]] = tries[-TRIES_KEPT:]
+    used = {Path(u).name for tries in out.values() for t in tries for u in t["textures"].values() if u and "/tries/" in u}
+    for f in keep.glob("*.png") if keep.exists() else ():
+        if f.name not in used:
+            f.unlink(missing_ok=True)
+    _write_json(path, {"name": name, "tries": out})
 
 
 def _write_json(path, doc):
@@ -507,7 +552,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._json(503, {"error": str(e)})
 
     # What a POST to /api/notes can do: the first of these keys in the body picks it, else a new note.
-    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture", "view")
+    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture", "view", "station")
     ACTIONS = {
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }

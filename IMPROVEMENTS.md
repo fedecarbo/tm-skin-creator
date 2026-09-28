@@ -47,8 +47,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   The user tried it: the clicks and notes work, but "the website now is soooo slow". Fixed the
   same day: the Lab's cars draw only when something changes (70 % of a core to 1 % standing
   still), and the strip's pictures are kept in the browser. A second visit shows the strip in
-  1.3 s, where it took 8.9. Next: 9.2, answers on the tags and the status line. Its after
-  pictures are drawn only when a tag is opened, and kept.
+  1.3 s, where it took 8.9. Then the user asked for fixed stations instead of the build's
+  timeline, each with its tries, and picked them from two renders. Built as 9.2 the same day:
+  Body, Details, Tyres and Glass under the car, a new try whenever a show changes a station's
+  paint, and any try back on the car to compare. The paint and the game files are unchanged.
+  The user also ruled that a round's unpicked options get deleted once they pick (9.4). Next:
+  9.3, answers on the tags and the status line. Its after pictures are drawn only when a tag is
+  opened, and kept.
 
 ## The tool
 

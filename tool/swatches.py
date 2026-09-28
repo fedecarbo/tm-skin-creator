@@ -3,6 +3,8 @@
     python -m tool.swatches            paint any balls that are missing or stale, serve, open the Lab
     python -m tool.swatches --all      repaint every ball
     python -m tool.swatches --no-open  just paint (docker/serve.py does this on the Mac)
+    python -m tool.swatches --no-tab   paint and serve, no tab opened (a restart after a server
+                                       change, with the Lab already open)
 
 The Lab (viewer/lab.html) shows only what this writes, and this writes only what the tool has:
 each finish in tool/finishes.py, in `CATALOGUE` order, each photographed surface named in
@@ -254,6 +256,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--no-open", action="store_true")
+    ap.add_argument("--no-tab", action="store_true")
     args = ap.parse_args()
     infos = build(args.all)
     print(f"{len(infos)} materials")
@@ -266,7 +269,8 @@ def main():
     except OSError:
         server = None
     print(f"the Lab: {url}", flush=True)
-    webbrowser.open(url)
+    if not args.no_tab:
+        webbrowser.open(url)
     if server:
         import threading
         threading.Event().wait()

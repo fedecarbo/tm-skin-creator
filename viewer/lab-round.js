@@ -39,13 +39,13 @@ export async function render(box, name) {
   return r;
 }
 
-// The Lab's skin in the address and the way back to the viewer. keepStep: a take picked on the
-// switch opens at the step the Studio was showing (the same stage of each take, to compare); a skin
-// Claude starts painting opens at its newest step.
-export function note(name, keepStep = false) {
+// The Lab's skin in the address and the way back to the viewer. keepStation: a take picked on the
+// switch opens at the station the stand was showing (the same part of each take, to compare); a
+// skin Claude starts painting opens at its first station.
+export function note(name, keepStation = false) {
   const u = new URL(location.href);
   u.searchParams.set('skin', name);
-  if (!keepStep) u.searchParams.delete('step');
+  if (!keepStation) u.searchParams.delete('station');
   history.replaceState(null, '', u);
   const back = document.getElementById('back');
   if (back) back.href = `./index.html?skin=${encodeURIComponent(name)}`;

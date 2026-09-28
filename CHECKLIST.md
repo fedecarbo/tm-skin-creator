@@ -1544,16 +1544,21 @@ worked on, live; not one page. What was settled the same day:
       reads as zeros, so the script read its `style.left` and `style.top` instead.
     - The mockups used the Lab's own stylesheet (lab.html's `<style>`) plus the new layouts, each
       at 1440×900 in its own frame on a plain sheet.
-  - **The steps** (the plan the user approved, 2026-09-27), each built, checked, shown, then
-    ticked:
+  - **The steps** (the plan the user approved, 2026-09-27; the stations put in on 2026-09-28, at
+    the user's word), each built, checked, shown, then ticked:
     - 9.0, the groundwork;
     - 9.1, the stand;
-    - 9.2, answers on the pins and the status line;
-    - 9.3, options on the car;
-    - 9.4, Claude's checks and close-ups;
-    - 9.5, the game (the F12 screenshots, after asking);
-    - 9.6, behind the scenes (options inside one car, repainting from the changed step, both
-      gated on identical game files).
+    - 9.2, the stations and their tries (the user's pick, 2026-09-28);
+    - 9.3, answers on the tags and the status line;
+    - 9.4, options on the car. A pick becomes the station's next try, and the other takes are
+      deleted (the user, 2026-09-28: "when I choose one, im assuming it can just discard the
+      others ... I dont think we can keep on maintaining options that I don't like, hence maybe
+      creating so much noise"). Their folders go from the repo, and git's history keeps them in
+      case the user asks. The takes of rounds already made: list them and ask before deleting.
+    - 9.5, Claude's checks and close-ups;
+    - 9.6, the game (the F12 screenshots, after asking);
+    - 9.7, behind the scenes: repainting only the station that changed (each station is its own
+      game file). Gated on identical game files.
   - **9.0, the groundwork (built 2026-09-28):**
     - **Notes:** `tool/notes.py` keeps the notes in `.notes/notes.json`, off git, with an
       mkdir lock, retries, a skin-name check and `TSC_NOTES_HOME` for tests.
@@ -1660,8 +1665,76 @@ worked on, live; not one page. What was settled the same day:
     - **Left as it is:** the server sends `Cache-Control: no-store` for everything, so every
       texture is fetched again at each visit. On this computer that costs little next to decoding
       them. On the Mac's Docker it may cost more.
-    - **For 9.2** (the user's worry about more pictures): the answer's after picture is drawn only
-      when its tag is opened, and kept like the strip's. The before is the note's own JPEG.
+    - **For the answers** (the user's worry about more pictures): the answer's after picture is
+      drawn only when its tag is opened, and kept like the strip's. The before is the note's own
+      JPEG.
+  - **9.2, the stations and their tries (built 2026-09-28):**
+    - **The user, 2026-09-28:** "I know we have a full timeline of the build of a car, but shouldnt
+      it be better to just have default stations? Like a typical car factory? ... like the body,
+      the details, etc. And I guess each might have their iteration?" Claude answered that stations
+      wouldn't hurt the game files, and rendered the stand both ways
+      (https://claude.ai/artifact/BianuzqYpsLrVSQBGMXJDL): A, the build's steps; B, stations with
+      their tries. **The user chose B.**
+    - **What you'll see:** four stations under the car, Body, Details, Tyres and Glass, the same on
+      every car. Each says its try ("try 3"), or "as it comes" when nothing paints it. The open
+      station shows all its tries. A click on one puts it on the car, with the other stations as
+      they are now. A click on a station turns the car to it (Body the front, Details the rear,
+      Tyres the left, Glass from above the front). While Claude paints, the car shows each step
+      as it's done, and a station being changed says "painting…". At the end, the stations that
+      changed get their new try, marked New.
+    - **Why stations are safe:** a station is one of the game's four maps, which are the car's
+      groups (car/parts.json), so nothing about the paint changes. A try is read from the last
+      frame's pictures of that map.
+    - **How it's built:**
+      - `rooms.STATIONS` (key, name, map, view) goes into uvmap.json, so the page has no list of
+        its own.
+      - At the end of a show, `view.export_stations` runs before the final steps.json. It
+        compares each station's own pictures (their digests) with its newest try. A change gives
+        a new try `{n, at, sig, textures}` (every slot of its map but the AO), with its pictures
+        copied to `tries/`. The newest 8 are kept, and older pictures deleted.
+      - steps.json says whether stations.json exists (`stations`). A skin shown before the
+        stations gets one try per painted station, made up from its last frame, and no request
+        that would 404.
+      - The page builds the car from the last frame, each station at its newest try, and the
+        open station at the picked one.
+      - A note keeps `station: {key, name, try, latest}`, the station of the clicked part's map.
+        The hook says "looking at the Tyres station, try 2 (an earlier try than the newest)".
+      - The round's switch keeps `?station=`.
+      - Pictures are keyed by a hash of their textures' URLs and the view, so a try that looks
+        like an earlier one shares its picture. While Claude paints, no new pictures are drawn.
+    - **Checks:**
+      - 13 passed on `export_stations` with made-up frames: first paint, the same paint, only one
+        map changed, back to stock, 8 kept, pictures deleted.
+      - A real test car (TSC_Test_Stations, deleted afterwards) painted three times:
+        - Body, Details and Tyres got try 1;
+        - the same paint again gave no new try, so the paint is repeatable to the digest;
+        - with only the sidewalls changed, only Tyres got try 2.
+      - 24 of 25 passed in Edge. The 25th expected two pictures for three tries, but tries 1 and
+        3 look the same and rightly share one. The checks:
+        - four stations;
+        - a skin shown before the stations;
+        - the address opens a station;
+        - a click on a try changes the car and the label;
+        - a note on a sidewall keeps "Tyres, try 2, not the newest", and the hook says so;
+        - a station click turns the car;
+        - a live paint in a subprocess: "painting…" on the stations being changed, then Tyres'
+          new try marked New and named on the live line;
+        - the round's switch keeps the station;
+        - no sideways scroll at 1100 or 390;
+        - no page errors.
+      - TSC_CMYK_Brushed shown again: its tries kept, read with a 200 and no errors.
+      - Step 9.1's 23 checks and the 14 drawing checks passed again, and the baselines are
+        unchanged to the pixel.
+      - **Speed:** the first visit's strip takes 5.7 s (6 pictures, not the timeline's 9); a
+        second visit 1.6 s, the picture car not started.
+      - **Standing still:** Edge used 1 to 13 % of a core over several runs, the page's own
+        process 3 to 8 %. Counted WebGL draws: none while still, and a drag's drawing stops within
+        5 s. The rest is the two cars' frame loops at 240 a second and the 1.5 s polls.
+    - **Found on the way:** New never showed after a paint while the page watched. `seen` was read
+      only when a skin opened. Now `fresh` holds what's new against what the page had before the
+      paint.
+    - **Next:** the user tries it. Tries appear as cars get repainted: each car shown before today
+      has one try per station until then.
 
 ### Defining the parts (started 2026-09-26)
 

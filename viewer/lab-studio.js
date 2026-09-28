@@ -1,24 +1,29 @@
-// The Lab's stand, its first room: the car a design builds, step by step, while Claude works on it,
-// with the user's notes hanging on it as tags (the user's pick, B, of the factory mockups,
-// 2026-09-27: CHECKLIST.md, "The Lab", step 9; before it, the Studio of steps 5 and 7). The car fills
-// the room, framed between two gutters where the tags hang (lab-tags.js). Click the car where you
-// mean and write what you want there: the note keeps the point, the part under it, the step, the
-// view (a click on its tag turns the car back to it) and a picture of what the user saw, in
-// .notes/notes.json through the viewer's server (tool/notes.py, /api/notes), and reaches Claude with
-// the user's next message. Along the bottom: the build's steps, the game's cameras (the viewer's own
-// Cam buttons, viewer.views) and the car in the game (gallery.json).
+// The Lab's stand, its first room: the car Claude builds, with the user's notes hanging on it as
+// tags (the user's pick, B, of the factory mockups, 2026-09-27: CHECKLIST.md, "The Lab", step 9;
+// before it, the Studio of steps 5 and 7). The car fills the room, framed between two gutters where
+// the tags hang (lab-tags.js). Click the car where you mean and write what you want there: the note
+// keeps the point, the part under it, the station and try on show, the view (a click on its tag
+// turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
+// viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message.
+// Along the bottom, the stations (the user's pick, B, 2026-09-28: "shouldnt it be like main
+// stations, like the body, the details, etc. And I guess each might have their iteration?"): Body,
+// Details, Tyres and Glass, the game's four maps (tool/rooms.py, STATIONS), each with its tries, one
+// for every show that changed its paint. The open station shows its tries; a click on one puts it on
+// the car, with the other stations as they are now. Then the game's cameras (the viewer's own Cam
+// buttons, viewer.views) and the car in the game (gallery.json).
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
 // Either way, when Claude starts painting a skin, the stand follows it, unless a note is being written
 // or a tag is open. A take in a round of concepts shows the round's title and a switch between its
-// takes (lab-round.js), which opens the picked take at the same step.
-// Everything comes from the tool: tool.skin show paints a design step by step (paintbox.Skin.step)
-// and writes each step's frame and skins/<name>/steps.json (tool/view.py, export_steps), and
-// studio.json, the skin it painted last. The page asks for both every 1.5 s, so the strip fills in
-// while a design is being painted. Both cars are the viewer itself (?embed=1): the stage, and a
-// second one behind it at half its size and the same shape, which draws the strip's pictures. This
-// browser keeps each picture (by its frame's hash and its view), so the second car starts only when
-// one is missing: the first visit after Claude paints, not every visit.
+// takes (lab-round.js), which opens the picked take at the same station.
+// Everything comes from the tool: tool.skin show paints a design step by step (paintbox.Skin.step),
+// writes each step's frame and skins/<name>/steps.json (tool/view.py, export_steps), then each
+// station's new try (stations.json, export_stations), and studio.json, the skin it painted last.
+// The page asks for steps.json and studio.json every 1.5 s: while Claude paints, the car on the
+// stage shows each step as it's done, and the stations it changes say so. Both cars are the viewer
+// itself (?embed=1): the stage, and a second one behind it at half its size and the same shape, which
+// draws the strip's pictures. This browser keeps each picture (by its pictures' names and its view),
+// so the second car starts only when one is missing: the first visit after Claude paints.
 
 import { note, render, wanted } from './lab-round.js';
 import { createTags } from './lab-tags.js';
@@ -27,18 +32,22 @@ const $ = (id) => document.getElementById(id);
 const POLL = 1500;
 
 let skin = null;          // { name, title, entry: gallery.json's }
-let doc = null;           // steps.json
-let picked = -1;
+let doc = null;           // steps.json: the frames of the last show, while it paints and after
+let stations = [];        // tool/rooms.py's STATIONS, from uvmap.json: [{ key, name, set, view }]
+let tries = {};           // station -> its tries, oldest first (stations.json; one, from the last frame, before it)
+let triesKept = false;    // stations.json exists: the tries are the tool's, not made up here
+let picked = null;        // the open station's key
+let chosen = null;        // the try on the car at the open station (its n), or null for its newest
 let stage = null, thumbs = null;  // the two viewers' window.viewer (the second once a picture is missing)
 let thumbsStart = null;
-let seen = {};            // step -> frame, when this browser last saw the skin: newer ones are New
-let changed = new Set();
-const pics = new Map();   // frame (and view) -> picture URL
+let seen = {};            // station -> its newest try when this browser last saw the skin
+let fresh = new Set();    // the stations with a try newer than this browser had seen: New
+const pics = new Map();   // pictures' names, view and mood -> picture URL
 let queue = Promise.resolve();
-let stageLook = '';
+let stageLook = '';       // while Claude paints, the look of the step on the stage
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
-let writing = null;       // the note being written: { part, at, normal, step, step_name, view, picture }
+let writing = null;       // the note being written: { part, at, normal, station, view, picture }
 let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a click
 let cams = [];            // the game's cameras, as the viewer names them: [{ view, label, title }]
 let tags = null;          // lab-tags.js
@@ -74,7 +83,7 @@ function viewer(frame) {
         resolve(v.error ? null : v);
       }, 150);
     }, { once: true });
-    frame.src = './index.html?embed=1';  // no skin: the stock car, dressed step by step
+    frame.src = './index.html?embed=1';  // no skin: the stock car, dressed by the stand
   });
 }
 
@@ -113,14 +122,26 @@ function keeper() {
   return kept;
 }
 
-// A picture of the car in a frame's textures (frame: its hash, from the paint box), drawn once and
-// kept. A skin painted before the Studio has no hash: drawn each visit, never kept.
-function picture(frame, textures, view, night) {
-  const key = `${frame}|${typeof view === 'string' ? view : JSON.stringify(view)}|${night ? 'night' : 'day'}`;
+function hash(s) {  // FNV-1a, two ways: a short name for a car's pictures
+  let a = 0x811c9dc5, b = 0x9747b28c;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    a = Math.imul(a ^ c, 16777619);
+    b = Math.imul(b ^ c, 2246822519);
+  }
+  return (a >>> 0).toString(16).padStart(8, '0') + (b >>> 0).toString(16).padStart(8, '0');
+}
+// Every picture named by what's in it (a frame's ?v=, a try's file, the stock): the car can be kept.
+const named = (textures) => Object.values(textures).every((u) => !u || /\?v=|\/tries\/|^stock\//.test(u));
+
+// A picture of the car in these textures ({slot: url}), drawn once and kept (a skin painted before
+// the Studio has pictures without names: drawn each visit, never kept).
+function picture(textures, view, night = false) {
+  const key = `${hash(JSON.stringify(Object.entries(textures).sort()))}|${typeof view === 'string' ? view : JSON.stringify(view)}|${night ? 'night' : 'day'}`;
   if (pics.has(key)) return Promise.resolve(pics.get(key));
   const job = queue.then(async () => {
     if (pics.has(key)) return pics.get(key);
-    const shelf = /^[0-9a-f]{12}$/.test(frame) ? await keeper() : null;
+    const shelf = named(textures) ? await keeper() : null;
     const at = `${location.origin}/lab-pictures/${encodeURIComponent(key)}`;
     let blob = shelf ? await shelf.match(at).then((r) => r && r.blob()).catch(() => null) : null;
     if (!blob) {
@@ -141,16 +162,62 @@ function picture(frame, textures, view, night) {
   return job;
 }
 
-async function showOnStage(step) {
-  if (!stage || !step.textures) return;
-  await stage.dress(step.textures);
-  const look = step.look || '';
-  if (look !== stageLook) {  // a step with its own look turns the car; back to the front after it
-    const l = lookOf(step);
-    await stage.show(l.view, l.night);
-    stageLook = look;
-    moodShown(l.night ? 'night' : 'day');
+// ---- the stations and their tries ----
+
+const lastFrame = () => doc && [...doc.steps].reverse().find((s) => s.textures);
+const newest = (key) => { const l = tries[key] || []; return l[l.length - 1] || null; };
+const stationOf = (key) => stations.find((s) => s.key === key);
+const ownOf = (st, textures) => Object.entries(textures).filter(([slot]) => slot.startsWith(`${st.set}_`) && !slot.endsWith('_AO'));
+
+// The car's textures: each station at its newest try (over the last frame, for the AO and anything
+// without a try), and station `key` at try `n`.
+function carWith(key = null, n = null) {
+  const tex = { ...lastFrame().textures };
+  for (const st of stations) { const t = newest(st.key); if (t) Object.assign(tex, t.textures); }
+  const t = key && n && (tries[key] || []).find((x) => x.n === n);
+  if (t) Object.assign(tex, t.textures);
+  return tex;
+}
+
+// A skin shown before the stations: each painted station's one try, the last frame's.
+function derive() {
+  const out = {};
+  for (const st of stations) {
+    const slots = Object.fromEntries(ownOf(st, lastFrame().textures));
+    out[st.key] = Object.values(slots).some((u) => u && !u.startsWith('stock/')) ? [{ n: 1, textures: slots }] : [];
   }
+  return out;
+}
+
+// While Claude paints: the stations the frames so far have changed since their newest try.
+function changing() {
+  if (!triesKept) return new Set(stations.map((s) => s.key));
+  const out = new Set(), tex = lastFrame() ? lastFrame().textures : {};
+  for (const st of stations) {
+    const sig = (newest(st.key) || {}).sig || {};
+    for (const [slot, url] of ownOf(st, tex)) {
+      const own = url && !url.startsWith('stock/') ? url.split('?v=')[1] || url : undefined;
+      if (own !== sig[slot]) { out.add(st.key); break; }
+    }
+  }
+  return out;
+}
+
+async function loadTries(name) {
+  try {
+    const r = await fetch(`data/skins/${encodeURIComponent(name)}/stations.json`, { cache: 'no-store' });
+    if (r.ok) return (await r.json()).tries;
+  } catch { /* none yet */ }
+  return null;
+}
+
+const newestNs = () => Object.fromEntries(stations.map((s) => [s.key, (newest(s.key) || {}).n || 0]));
+const isNew = (st) => fresh.has(st.key);
+const shownTry = (st) => (st.key === picked && chosen) || (newest(st.key) || {}).n || null;
+
+async function dressStage() {
+  if (!stage || !lastFrame()) return;
+  await stage.dress(doc.painting ? lastFrame().textures : carWith(picked, chosen));
 }
 
 function moodShown(m) {
@@ -158,7 +225,37 @@ function moodShown(m) {
   for (const b of $('stMood').querySelectorAll('[data-mood]')) b.setAttribute('aria-pressed', String(b.dataset.mood === m));
 }
 
-// ---- the strip: the build's steps, the game's cameras, the car in the game ----
+function label() {
+  const st = stationOf(picked);
+  if (!st) { $('stAt').textContent = ''; return; }
+  const t = newest(st.key);
+  $('stAt').innerHTML = '<span></span><small></small>';
+  $('stAt').querySelector('span').textContent = st.name;
+  $('stAt').querySelector('small').textContent = t ? `try ${shownTry(st)} of ${t.n}` : 'as it comes';
+}
+
+function pickStation(key, move = true) {
+  const st = stationOf(key);
+  if (!st) return;
+  if (key !== picked) chosen = null;
+  picked = key;
+  const u = new URL(location.href);
+  u.searchParams.set('station', key);
+  history.replaceState(null, '', u);
+  label();
+  strip();
+  dressStage().catch((e) => console.error(e));
+  if (move && stage) stage.go(st.view);
+}
+
+function pickTry(key, n) {
+  chosen = n === (newest(key) || {}).n ? null : n;
+  label();
+  strip();
+  dressStage().catch((e) => console.error(e));
+}
+
+// ---- the strip: the stations, the game's cameras, the car in the game ----
 
 function still(label, cls = '') {
   const b = document.createElement('button');
@@ -168,59 +265,56 @@ function still(label, cls = '') {
   return b;
 }
 const gap = () => Object.assign(document.createElement('span'), { className: 'gap' });
+const show = (img) => (url) => { img.src = url; };
 
 function strip() {
-  const box = document.createElement('div'), side = document.createElement('div');
-  box.className = 'steps';
+  const row = document.createElement('div'), side = document.createElement('div');
+  row.className = 'steps';
   side.className = 'side';
-  $('stStrip').replaceChildren(box, gap(), side);
-  doc.steps.forEach((step, k) => {
-    const b = still(step.name, step.textures ? 'step' : 'step wip');
-    b.setAttribute('aria-current', String(k === picked));
-    b.insertAdjacentHTML('afterbegin', `<span class="k teko">${k}</span>`);
-    if (!step.textures) b.querySelector('.fn').insertAdjacentHTML('beforeend', ' <small>painting…</small>');
-    else if (changed.has(k)) b.querySelector('.fn').insertAdjacentHTML('beforeend', ' <em class="newTag">New</em>');
-    if (step.textures) {
-      b.addEventListener('click', () => pick(k));
-      const l = lookOf(step);
-      picture(step.frame, step.textures, l.view, l.night).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
+  $('stStrip').replaceChildren(row, gap(), side);
+  if (!lastFrame()) return;
+  const busy = doc.painting ? changing() : new Set();
+  const car = carWith();
+  for (const st of stations) {
+    const list = tries[st.key] || [], open = st.key === picked, t = newest(st.key);
+    const b = still(st.name, `step${open && list.length > 1 ? ' wide' : ''}${busy.has(st.key) ? ' wip' : ''}`);
+    b.setAttribute('aria-current', String(open));
+    const small = document.createElement('small');
+    small.textContent = busy.has(st.key) ? 'painting…' : !t ? 'as it comes' : open ? `try ${shownTry(st)} of ${t.n}` : `try ${t.n}`;
+    b.querySelector('.fn').append(' ', small);
+    if (!busy.has(st.key) && isNew(st)) b.querySelector('.fn').insertAdjacentHTML('beforeend', ' <em class="newTag">New</em>');
+    b.addEventListener('click', () => pickStation(st.key));
+    if (open && list.length > 1 && !busy.has(st.key)) {  // its tries, each on the car as it is now
+      const box = document.createElement('div');
+      box.className = `tries${list.length > 4 ? ' many' : ''}`;
+      b.querySelector('img').replaceWith(box);
+      for (const x of list) {
+        const f = document.createElement('figure');
+        f.className = x.n === shownTry(st) ? 'on' : '';
+        f.title = `Try ${x.n}${x.at ? `, ${when(x.at)}` : ''}`;
+        f.innerHTML = '<img alt=""><figcaption class="teko"></figcaption>';
+        f.querySelector('figcaption').textContent = x.n;
+        f.addEventListener('click', (e) => { e.stopPropagation(); pickTry(st.key, x.n); });
+        picture(carWith(st.key, x.n), st.view).then(show(f.querySelector('img'))).catch((e) => console.error(e));
+        box.append(f);
+      }
+    } else if (!busy.has(st.key)) {
+      picture(car, st.view).then(show(b.querySelector('img'))).catch((e) => console.error(e));
     }
-    box.append(b);
-  });
-  const last = [...doc.steps].reverse().find((s) => s.textures);
-  if (cams.length && last) {  // the game's cameras, on the car as built so far
-    for (const c of cams) {
-      const b = still(c.label, 'cam');
-      b.title = c.title;
-      b.addEventListener('click', () => stage && stage.go(c.view));
-      picture(last.frame, last.textures, c.view, false).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
-      side.append(b);
-    }
+    row.append(b);
+  }
+  for (const c of cams) {  // the game's cameras, on the car as it is now (while a first paint runs, none yet)
+    const b = still(c.label, 'cam');
+    b.title = c.title;
+    b.addEventListener('click', () => stage && stage.go(c.view));
+    if (!doc.painting || triesKept) picture(car, c.view).then(show(b.querySelector('img'))).catch((e) => console.error(e));
+    side.append(b);
   }
   const e = skin.entry;
   const game = still('In the game', 'plain');
   game.querySelector('.fn').insertAdjacentHTML('beforeend', `<br><small>${e && e.installed_at ? `since ${when(e.installed_at)}` : 'not yet'}</small>`);
   if (e && e.installed && e.thumb) game.querySelector('img').src = `data/${e.thumb}`;
   side.append(game);
-}
-
-function pick(k) {
-  picked = k;
-  const step = doc.steps[k], n = doc.steps.length;
-  $('stStrip').querySelectorAll('.still.step').forEach((b, i) => {
-    b.setAttribute('aria-current', String(i === k));
-    if (i === k) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  });
-  $('stAt').innerHTML = '<span></span><small></small>';
-  $('stAt').querySelector('span').textContent = step.name;
-  $('stAt').querySelector('small').textContent = `step ${k} of ${n - 1}`;
-  const params = new URLSearchParams(location.search);
-  if (params.has('skin') || params.has('step')) {
-    const u = new URL(location.href);
-    u.searchParams.set('step', k);
-    history.replaceState(null, '', u);
-  }
-  showOnStage(step).catch((e) => console.error(e));
 }
 
 // ---- notes on the car, as tags ----
@@ -242,6 +336,7 @@ async function loadNotes(force = false) {
 }
 
 const stateOf = (x) => (x.state === 'sent' ? 'Claude has it' : 'Goes to Claude with your next message');
+const whereOf = (x) => (x.station ? `At ${x.station.name}${x.station.try ? `, try ${x.station.try}` : ''}` : x.step_name && `At ${x.step_name}`);
 
 function renderNote(el, x, open) {
   if (!open) {
@@ -256,7 +351,7 @@ function renderNote(el, x, open) {
   el.querySelector('.pinDot').textContent = x.n;
   el.querySelector('.teko').textContent = x.part.label || 'the car';
   el.querySelector('.words').textContent = x.text;
-  el.querySelector('.state').textContent = [x.step_name && `At ${x.step_name}`, stateOf(x)].filter(Boolean).join(' · ');
+  el.querySelector('.state').textContent = [whereOf(x), stateOf(x)].filter(Boolean).join(' · ');
   el.querySelector('.x').addEventListener('click', () => tags.close());
   el.querySelector('.tagButtons .sk').addEventListener('click', () => post({ skin: skin.name, remove: x.n }).then(() => loadNotes(true)));
 }
@@ -285,7 +380,7 @@ function renderNew(el) {
 function drawNotes() {
   const list = notes.map((x) => ({
     key: `n${x.n}`, dot: String(x.n), dotClass: x.state, title: x.text, note: x,
-    sig: JSON.stringify([x.text, x.state, x.part.label, x.step_name]),
+    sig: JSON.stringify([x.text, x.state, x.part.label, whereOf(x)]),
     render: (el, open) => renderNote(el, x, open),
   }));
   if (writing) list.push({ key: 'new', dot: String(nextN), dotClass: 'writing', sig: `new ${nextN}`, render: renderNew, open: true });
@@ -307,9 +402,11 @@ function goToNote(key) {  // a click on a note's tag or dot: the car as the user
 
 function startNote(id, hit) {  // a click on the car: the part under it, and the point for its dot
   const p = partInfo.get(id);
-  const step = doc && picked >= 0 ? doc.steps[picked] : null;  // what the user was looking at, now
+  // the station the part is painted at (its map), and the try on the car there now
+  const st = (p && stations.find((s) => s.set === p.mesh)) || stationOf(picked);
+  const station = st && { key: st.key, name: st.name, try: shownTry(st), latest: !(st.key === picked && chosen) };
   writing = { part: { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' }, at: hit.at, normal: hit.normal,
-              step: step ? picked : null, step_name: step ? step.name : '', view: stage.camera() };
+              station, view: stage.camera() };
   if (tags.openKey && tags.openKey !== 'new') tags.close();
   drawNotes();
   writing.picture = notePicture(hit.at, nextN).catch((err) => { console.error(err); return null; });  // as seen at the click
@@ -380,28 +477,48 @@ function live() {
     return;
   }
   if (!doc.stamp) { text.textContent = 'Made before the Studio'; return; }
-  const names = [...changed].map((k) => doc.steps[k] && doc.steps[k].name).filter(Boolean);
-  text.textContent = `Painted ${ago(doc.stamp)}` + (names.length && names.length < doc.steps.length ? ` · changed ${names.join(', ')}` : '');
+  const fresh = stations.filter(isNew).map((s) => s.name);
+  text.textContent = `Painted ${ago(doc.stamp)}` + (fresh.length ? ` · new: ${fresh.join(', ')}` : '');
 }
 
-function apply(next) {
+async function apply(next) {
   const before = doc;
   doc = next;
-  const was = before ? Object.fromEntries(before.steps.map((s, k) => [k, s.frame])) : seen;
-  if (Object.keys(was).length) {
-    changed = new Set(doc.steps.map((s, k) => (s.frame && s.frame !== was[k] ? k : -1)).filter((k) => k >= 0));
+  if (!doc.painting || !before) {  // the stations' tries (written before steps.json says it's done)
+    const was = before ? newestNs() : seen;  // what this page had, or this browser's last visit
+    const got = doc.stations ? await loadTries(skin.name) : null;  // shown before the stations: none kept
+    triesKept = !!got;
+    tries = got || (!doc.painting && lastFrame() ? derive() : {});
+    if (before && before.painting) chosen = null;
+    if (Object.keys(was).length) fresh = new Set(stations.filter((s) => (newest(s.key) || {}).n > (was[s.key] || 0)).map((s) => s.key));
   }
-  const params = new URLSearchParams(location.search);  // now: a take picked on the switch keeps the step
-  const wantStep = Number(params.get('step'));
-  const done = doc.steps.filter((s) => s.textures).length;
-  if (!before && params.has('step') && doc.steps[wantStep] && doc.steps[wantStep].textures) picked = wantStep;
-  else if (picked < 0 || picked >= done || (before && before.painting)) picked = Math.max(0, done - 1);
+  if (!before) {
+    const want = new URLSearchParams(location.search).get('station');
+    picked = stationOf(want) ? want : stations.length ? stations[0].key : null;
+  }
   strip();
   live();
-  if (done) pick(picked);
-  if (!doc.painting) {
-    try { localStorage.setItem(`tsc-studio-${skin.name}`, JSON.stringify(Object.fromEntries(doc.steps.map((s, k) => [k, s.frame])))); } catch {}
+  label();
+  if (doc.painting) {  // the car as it's being painted, turned as each step asks
+    const step = lastFrame();
+    if (step && stage) {
+      await stage.dress(step.textures);
+      if ((step.look || '') !== stageLook) {
+        const l = lookOf(step);
+        await stage.show(l.view, l.night);
+        stageLook = step.look || '';
+        moodShown(l.night ? 'night' : 'day');
+      }
+    }
+    return;
   }
+  await dressStage();
+  if (stage && (!before || before.painting)) {  // opened, or just painted: the open station's view, by day
+    await stage.show(stationOf(picked) ? stationOf(picked).view : 'front', false);
+    moodShown('day');
+    stageLook = '';
+  }
+  try { localStorage.setItem(`tsc-stations-${skin.name}`, JSON.stringify(newestNs())); } catch {}
 }
 
 async function load(name) {
@@ -411,7 +528,7 @@ async function load(name) {
   const s = await fetch(`data/skins/${encodeURIComponent(name)}/skin.json`);
   if (!s.ok) return null;
   const sk = await s.json();
-  return { name, stamp: 0, painting: false, steps: [{ name: 'The design', does: 'Made before the Studio, so its steps weren\'t kept. The next time Claude paints it, they show here.', words: '', look: '', paints: [], line: `${name}: the design`, frame: `skin:${name}`, textures: sk.textures }] };
+  return { name, stamp: 0, painting: false, steps: [{ name: 'The design', does: 'Made before the Studio.', words: '', look: '', paints: [], line: `${name}: the design`, frame: `skin:${name}`, textures: sk.textures }] };
 }
 
 async function openSkin(name) {
@@ -420,8 +537,8 @@ async function openSkin(name) {
   skin = { name, title: entry ? entry.title : titleOf(name), entry };
   const round = await render($('stRound'), name);
   $('stTitle').textContent = round ? round.title : skin.title;
-  try { seen = JSON.parse(localStorage.getItem(`tsc-studio-${name}`) || '{}'); } catch { seen = {}; }
-  doc = null; picked = -1; changed = new Set(); stageLook = '';
+  try { seen = JSON.parse(localStorage.getItem(`tsc-stations-${name}`) || '{}'); } catch { seen = {}; }
+  doc = null; tries = {}; triesKept = false; chosen = null; stageLook = ''; fresh = new Set();
   notes = []; nextN = 1; writing = null;
   if (!stage) {
     fitThumbs();
@@ -433,14 +550,12 @@ async function openSkin(name) {
       if (credit) $('stCredit').innerHTML = credit.innerHTML;  // the car model's licence asks for it
     }
     framed();
-  } else if (stage) {
-    await stage.show('front', false);  // a step's own look (the rear at night) mustn't carry over
   }
   moodShown('day');
   drawNotes();
   loadNotes(true);
   const first = await load(name);
-  if (first) apply(first);
+  if (first) await apply(first);
   else $('stLiveText').textContent = 'Not shown in the viewer yet';
 }
 
@@ -468,7 +583,7 @@ async function poll() {
     const res = await fetch(`data/skins/${encodeURIComponent(skin.name)}/steps.json`, { cache: 'no-store' });
     if (res.ok) {
       const next = await res.json();
-      if (!doc || next.stamp !== doc.stamp) apply(next);
+      if (!doc || next.stamp !== doc.stamp) await apply(next);
       else live();
     }
   } catch (e) { console.error(e); }
@@ -489,7 +604,9 @@ export async function open() {
     else if (tags.openKey) tags.close();
   });
   new ResizeObserver(framed).observe($('stStage'));
-  fetch('data/uvmap.json').then((r) => r.json()).then((d) => { partInfo = new Map(d.parts.map((p) => [p.id, p])); }).catch(() => {});
+  const uv = await fetch('data/uvmap.json').then((r) => r.json()).catch(() => ({}));
+  partInfo = new Map((uv.parts || []).map((p) => [p.id, p]));
+  stations = uv.stations || [];
   const now = await followed();
   following = now.stamp;
   let name = wanted() || now.skin;

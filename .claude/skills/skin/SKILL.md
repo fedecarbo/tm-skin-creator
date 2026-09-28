@@ -44,7 +44,7 @@ user the Lab's stand too.
 | `PY -m tool.snap <name> --cams` | The game's Cam 1 and 2 and their alts (the key pressed twice) standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). On the Mac `node docker/snap.mjs <name> --cams`. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
-| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car on its stand (the first room: the user's notes hang on it as tags, the build's steps and the game's cameras under it), the UV map, and every material the tool knows on a ball, with its code, numbers and a "Copy for Claude" button. |
+| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car on its stand (the first room: the user's notes hang on it as tags, its stations with their tries and the game's cameras under it), the UV map, and every material the tool knows on a ball, with its code, numbers and a "Copy for Claude" button. |
 | `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
 | `PY -m tool.publish` | Puts the skins in the game on the page online (the user's phone and friends), about 10 s plus the upload. `--here` shows it on this computer only. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]` | Candidate cut-out pictures on one sheet, `build/pictures/<slug>.png`, about 20 s each. Styles: sticker (default), flat, print, painted, line art, retro, photo. |
@@ -65,8 +65,13 @@ user the Lab's stand too.
   design every part, or say which stay clay. Then open each step with `s.step(name, does,
   words=...)`: a few words, what it paints in plain words, and the user's verbatim words that
   asked for it; `look="rear night"` for a step the day's front view can't show (lights). A
-  change the user asks for edits its step, so later steps stay on top. `show` draws the car at
-  the end of each step into the strip under the car on the Lab's stand as it paints.
+  change the user asks for edits its step, so later steps stay on top. While `show` paints, the
+  Lab's stand shows the car at the end of each step.
+- **Stations and tries (the Lab's stand, the user's pick, 2026-09-28).** Under the car the stand
+  shows four stations, Body, Details, Tyres and Glass: the game's four maps, the car's groups.
+  Every `show` that changes a station's paint gives it a new try, and the user can flip between
+  a station's tries on the car. So a change to one area makes a new try of that station only. The
+  design's steps stay the way you paint; the user sees stations, not steps.
 - **Lines from the Lab.** The user may paste a line copied from the Lab, like `ME-07 Gold (matte
   28%, metal 100%, varnish 0%)`. The code is that finish, exactly: put the code in the phrase
   (`s.paint("sidepod", "ME-07")`, `"ME-07 matte"`, or `s.paint("body", "PA-03", colour="#1a1c20")`
@@ -81,9 +86,10 @@ user the Lab's stand too.
 - **Notes on the car (the Lab's stand, the user's picks, 2026-09-27).** The user clicks the car on
   the stand where they mean and writes what they want there; the note hangs on the car as a tag
   and keeps the view they wrote it from. New notes arrive with their next message (a
-  hook prints them): the skin, the note's number, the step it was written at, the part clicked as
-  a `where` phrase (`sidepod top|left`), their words, and a picture of what they were looking at
-  with the note's dot drawn on: look at it before acting. They're the user's words about that spot,
+  hook prints them): the skin, the note's number, the station and try they were looking at (an
+  older try than the newest means they wrote about that one: say which try you build on), the part
+  clicked as a `where` phrase (`sidepod top|left`), their words, and a picture of what they were
+  looking at with the note's dot drawn on: look at it before acting. They're the user's words about that spot,
   as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user, note N):
   "…"`), answer a question in the reply, and once a note is handled mark it done, `PY -m tool.notes
   done <skin> <n>` (on the Mac `python3 -m tool.notes done …`, no container needed), so its tag
@@ -191,9 +197,10 @@ user the Lab's stand too.
 - Start `tool.gallery` in the background once per session, so they can spin each skin in 3D.
   After each round, tell them to refresh it.
 - The Lab (http://localhost:8765/lab.html) opens on the car on its stand, which follows the skin
-  being painted and fills in the strip of steps under it while `show` runs, no refresh needed. Tell
-  the user once per session they can keep it open to watch the car being built, and click the car
-  to leave a note on a spot (it hangs there as a tag).
+  being painted while `show` runs, no refresh needed: the car shows each step as it's done, and
+  the stations under it get their new tries at the end. Tell the user once per session they can
+  keep it open to watch the car being built, flip a station's tries, and click the car to leave
+  a note on a spot (it hangs there as a tag).
 - Reply in a few sentences: what the car looks like, the takes numbered by title, and one line
   on what you checked close up. End with one bold question: which one, or what to change. Say
   that a yes puts it in the game.

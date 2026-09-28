@@ -159,6 +159,17 @@ def _view(v):
         return None
 
 
+def _station(v):
+    """The stand's station the user was looking at ({"key", "name", "try", "latest"}: its try, and
+    whether that was the newest), checked; None when it isn't one."""
+    if not isinstance(v, dict) or not isinstance(v.get("key"), str) or not re.fullmatch(r"[a-z]{1,20}", v["key"]):
+        return None
+    n = v.get("try")
+    if not isinstance(n, int) or isinstance(n, bool) or not 0 < n < 1000:
+        n = None
+    return {"key": v["key"], "name": str(v.get("name") or v["key"])[:40], "try": n, "latest": v.get("latest") is not False}
+
+
 def _drop_picture(note):
     pic = picture_path(note)
     if pic:
@@ -166,11 +177,12 @@ def _drop_picture(note):
     note.pop("picture", None)
 
 
-def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None):
+def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None, station=None):
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
     the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
-    on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it). Returns the
-    note."""
+    on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); station:
+    the stand's station and try the user was looking at (step and step_name: the Studio's step,
+    before the stations). Returns the note."""
     text = str(text or "").strip()[:LONGEST]
     if not text:
         raise ValueError("an empty note")
@@ -191,6 +203,7 @@ def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, pi
             "at": vec(at),
             "normal": vec(normal),
             "view": _view(view),
+            "station": _station(station),
             "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": "new",  # new -> sent (Claude has read it) -> done (handled)
         }
@@ -231,6 +244,9 @@ def done(skin, numbers=()):
 def line(x):
     where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
     step = f"at step {x['step']} ({x['step_name']})" if x["step"] is not None else ""
+    st = x.get("station")
+    if st:
+        step = f"looking at the {st['name']} station" + (f", try {st['try']}" if st["try"] else "") + ("" if st["latest"] else " (an earlier try than the newest)")
     pic = picture_path(x)
     seen = f" (what they saw, the pin drawn on: {pic})" if pic and pic.exists() else ""
     return f"- {x['skin']}, note {x['n']}, {step + ', ' if step else ''}{where}: \"{x['text']}\"{seen}"
