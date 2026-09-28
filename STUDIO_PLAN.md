@@ -196,6 +196,34 @@ The Lab's stand stays the one page (the separate rooms went unused, 2026-09-27):
 
 ---
 
+### The wizard (the user, 2026-09-28)
+
+After the three layouts, the user liked the concepts screen ("feels like a wizard"), and asked to
+imagine it as a Trackmania skin builder that other people could use one day, with each step
+showing its options in its own format, not the same pictures every time. And: "what would happen
+if I want to change an existing, or go back and make a change (what's the non linear process)".
+
+Claude's answer, drawn as screens (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F, a new car
+"Press Run": brief, mood, concepts, colours and materials, wheels, and going back to change the
+wrap):
+
+- **A decision takes over the page,** as in the concepts layout: a question, its options, "Or tell
+  Claude in your own words", Back and Next.
+- **The build sheet on the left** is the wizard's map and the way back: one line per step with
+  what was decided, and a small picture of the car so far (once there is a car).
+- **Each step shows the smallest thing that settles its question, then the whole car to
+  confirm:** the brief as questions and word choices; mood as boards; concepts as three whole
+  cars; colours and materials as one car with a day and night split and the finishes as swatches;
+  wheels as a row of wheels close up, then the pick on the car by day and at night.
+- **Going back:** click a step on the sheet. Later steps are kept, not wiped: Claude carries the
+  later picks onto the change, marks only the steps it affects as "needs a look" (a new wrap
+  colour touches the lights and the lettering, not the tread), and shows the whole car before and
+  after. A change is tried next to the current car, and the one not kept is deleted.
+- **An existing car** opens with its sheet filled in from its history, every step decided, and
+  goes straight to the step the change belongs to.
+- **Other people using it one day** would need hosting and would cost money per user: a
+  separate decision for later. The wizard works either way.
+
 ## How this fits with what's there
 
 Most of the machinery exists already. The studio mostly adds order, the brief, the experts' know-how
