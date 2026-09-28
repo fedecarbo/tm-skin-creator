@@ -3026,6 +3026,26 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     and after; the game's screenshots); 4, going back and the history (the options' pictures kept).
     The old piece 2, each step's own format, went with the steps: the concepts' cards stay, the rest
     is the car on the stand.
+- **Second thoughts on steps (the user, 2026-09-28, after the three were built):** "Im kind of second
+  guessing around this step by step. Because I don't really work that way.. Don't know what to do".
+  Claude: they work by reacting to the car (notes on it), so keep the studio's good parts as how
+  Claude works (a short talk for a new idea, three different first ideas, every detail with the
+  guides, the critic before the game) and drop the steps from the screen. The user: "Two main things
+  I like. It's having the car and me being able to iterate. and I also like a place where you can
+  provide options before building. Instead of you sending me images, etc. feels like there needs to
+  be a place where I can pick options as I go. Because I might say, "can we try 3 different
+  materials for X" Or I can say can you give me a few concepts for the wheels, or anything in a non
+  linear way, and having a place where you show me and I chose and comment, is something nice to
+  have."
+  - **So the direction (Claude's reading, to be shown as mockups first):** no steps. The Lab is the
+    car with its notes, plus a place for options: whenever Claude offers options, for anything and
+    in any order (three materials for the sidepods, a few wheels, whole-car concepts), they show
+    there as a set named by what it's about, side by side and each on the car, with a Pick and
+    notes on each; open sets on top, picked ones kept as the car's history. Much of what's built
+    carries over: the cards with a Pick (the concepts' page), the answers through the notes
+    channel, `tool.notes wait`, rounds (`skins/rounds.json`) and their switch on the stand. The
+    step list, the sheet on screen and the three steps would go.
+
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,

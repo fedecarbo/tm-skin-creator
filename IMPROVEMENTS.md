@@ -43,7 +43,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the concept designers (on the PC, whether two paints fit at once is still to check). W3, the
   wizard, picked up on the Mac the same day (`CHECKLIST.md`): piece 1, the wizard and its sheet,
   tried; then, at the user's word, three steps instead of eleven (Brief, Concepts, The car) and the
-  car on the stand after the concepts, one room in the Lab: built, waiting for the user's try. Next: the check, then going back and
+  car on the stand after the concepts, one room in the Lab: built. Then the user's second thoughts:
+  no steps; the car and its notes, and a place in the Lab where Claude's options (for anything, in
+  any order) wait to be picked and commented on. Next: mockups of that place. Next: the check, then going back and
   the history; W4, the test, after it.
 
 ## The tool
