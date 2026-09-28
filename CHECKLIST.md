@@ -2822,6 +2822,46 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   into the guides, leaving the routine (the sheet, the options, the pictures). Every function and
   name a guide cites checked in the code. A quick car reads none of it. First real use: the next
   studio car (W4's test, if that comes first).
+  - **The user's word (2026-09-28):** "Sure", with "Is that. big work? Just worried of your context
+    window. I could have another agent to pick up": Claude's context was under a fifth used, so
+    piece 3 went on in the same session.
+- **3. The concept designers (built 2026-09-28, on the Mac):**
+  - **Three paints at once killed two:** the Mac's container has 7.7 GB and a paint needs a few GB;
+    TSC_CriticTest and TSC_Tiger died (exit 137) while TSC_Ladybird finished. So paints take turns:
+    `tool/skin.py`'s `paint_slot`, an operating-system lock on a file in the work folder (fcntl in the
+    container, msvcrt on Windows) around the paint and its export or zip, freed with the process if a
+    paint dies; `TSC_PAINTS=<n>` gives more slots, for the PC once it's checked there. The same three
+    at once then took turns and all finished (80 s). The Mac's snapshots each take a free DevTools
+    port (Chrome's port 0, read from the profile's `DevToolsActivePort`): three at once took 14 s.
+  - `tool.skin round` takes a studio option's folder before it has a design, so the round is recorded
+    before any paint and an open Lab shows each take as it appears (`gallery.record_round`).
+  - `.claude/agents/concept-designer.md` (Opus 5.5; Read, Write, Edit, Bash, Glob, Grep): given the
+    car, its option's skin name, the brief, the board(s), its reading (a title and a line from the
+    director), the other two readings to stay clear of, and the computer. It reads `SKILL.md`, the
+    shapes guide and the tool's keys, writes only its option's `design.py` (a rough concept: flat
+    colour in the board's base finish, the big shapes, wheels and inner car dark, no concept loading
+    another, no looks from other skins), paints, looks at every picture (the review angles too, since
+    the trial), fixes, at most three paints, and reports in plain words. `studio.md`'s Concepts: the
+    director names three readings, makes the options, records the round, launches the three at once,
+    then looks at each and fixes what they left before the picture.
+  - **The trial:** TSC_ConceptTrial, TSC_Ladybird's brief and both boards taken through the sheet to
+    Concepts; the three designers given the angles Claude had made alone for TSC_Ladybird (Specimen,
+    Silks, Anatomy), to compare. All three at once: about 22 minutes for the round (11, 12 and 22
+    minutes each), three paints each, 160k to 245k tokens each. Side by side with Claude's own
+    round (the picture: `.snap/TSC_ConceptTrial_Specimen_picture.png`, not on git):
+    - Specimen: better than Claude's: an ink rim drawn round the shell, a cream band across the tail
+      so the idea shows from the chase cameras ("without it, the first paint looked from behind like
+      any red car with spots"), the paper warmed so it doesn't read as clay.
+    - Silks: bolder than Claude's (a few big spots, not polka dots), a clean turf band and cream rail;
+      two faults it found after its last paint: the front spots may read as brows from straight on,
+      and the rear ones dip over the deck's edge into kidney shapes.
+    - Anatomy: close to Claude's, the head black with no marks (no face), the spots where the insect
+      has them; left: the side skirt's ledge in front of the sidepods green from above.
+    - All three found the same ledge on their own (now in the shapes guide). The readings were as
+      far apart as Claude's, since the director gave the same angles; each car was more worked out.
+  - Left for the user's look: the three trial concepts on the Lab's stand (the round "Concept
+    trial"), not fixed by the director, to show the designers' work as it came. TSC_ConceptTrial and
+    its options go once the user has seen them.
 
 - **What it's for:** better options at each step, and a second pair of eyes.
 - **What you'll see:** concepts that differ more and arrive together, and a review step with a

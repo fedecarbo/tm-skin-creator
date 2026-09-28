@@ -72,6 +72,11 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `skins/<car>/review.json` (keep, mark: standard library only). Its test car, TSC_CriticTest,
   carries seven known faults (its design's docstring, never given to the critic). Notes: W2 in
   "The design studio", `CHECKLIST.md`.
+- Several at once (the studio's three concept designers): paints take turns on a computer
+  (`skin.paint_slot`, an OS lock on `paint<k>.lock` in the work folder, freed if a paint dies;
+  `TSC_PAINTS=<n>` for more slots), since each paint needs a few GB and the Mac's container (7.7 GB)
+  lost two of three to its memory limit. The Mac's snapshots each take a free DevTools port
+  (Chrome's port 0, read from the profile's `DevToolsActivePort`), so they run side by side.
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn

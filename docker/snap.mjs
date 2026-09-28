@@ -24,14 +24,13 @@
 // folder, where tool.snap --picture finds them, and are copied out to .snap/; the picture is
 // opened.
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const PORT = 9333;
 const VIEWER = 'http://localhost:8765';  // the container's server, published on this Mac only
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -52,11 +51,17 @@ function tool(args, capture = false) {  // python in the container, from the rep
 
 async function chrome() {
   const profile = mkdtempSync(join(tmpdir(), 'tsc-snap-'));
+  // port 0: Chrome picks a free port and writes it to its profile, so several snapshots can run at
+  // once (the studio's concept designers, 2026-09-28)
   const proc = spawn(CHROME, ['--headless=new', '--use-angle=metal', '--enable-gpu', '--hide-scrollbars',
-    `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
+    '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
+  const portFile = join(profile, 'DevToolsActivePort');
   let targets;
   for (let i = 0; i < 75 && !targets; i++) {
-    try { targets = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json(); } catch { await sleep(200); }
+    try {
+      const port = existsSync(portFile) && readFileSync(portFile, 'utf8').split('\n')[0].trim();
+      if (port) targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); else await sleep(200);
+    } catch { await sleep(200); }
   }
   if (!targets) throw new Error('Chrome did not start');
   const ws = new WebSocket(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);

@@ -1,0 +1,156 @@
+{
+ "car": "TSC_ConceptTrial",
+ "title": "Concept Trial",
+ "words": "The concept designers' trial (W2 piece 3): the Ladybird's brief and boards, to compare three designers at once with the concepts Claude made alone",
+ "started": "2026-09-28",
+ "steps": [
+  {
+   "key": "brief",
+   "name": "Brief",
+   "state": "decided",
+   "decision": "the Ladybird's brief, for the trial",
+   "date": "2026-09-28",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "mood",
+   "name": "Mood",
+   "state": "decided",
+   "decision": "both boards, as the Ladybird had",
+   "date": "2026-09-28",
+   "options": [
+    {
+     "key": "A",
+     "title": "Field guide",
+     "file": "mood/field-guide.json"
+    },
+    {
+     "key": "B",
+     "title": "Racing colours",
+     "file": "mood/racing-colours.json"
+    }
+   ],
+   "pick": "A+B",
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "concepts",
+   "name": "Concepts",
+   "state": "claude",
+   "decision": "",
+   "date": "",
+   "options": [
+    {
+     "key": "A",
+     "title": "Specimen",
+     "skin": "TSC_ConceptTrial_Specimen"
+    },
+    {
+     "key": "B",
+     "title": "Silks",
+     "skin": "TSC_ConceptTrial_Silks"
+    },
+    {
+     "key": "C",
+     "title": "Anatomy",
+     "skin": "TSC_ConceptTrial_Anatomy"
+    }
+   ],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "shapes",
+   "name": "Shapes",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "colours",
+   "name": "Colours and materials",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "wheels",
+   "name": "Wheels",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "details",
+   "name": "Details",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "lettering",
+   "name": "Lettering",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "review",
+   "name": "Review",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "road",
+   "name": "Road test",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "release",
+   "name": "Release",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  }
+ ]
+}

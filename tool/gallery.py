@@ -66,11 +66,13 @@ def twist(name, names):
 
 def record_round(title, names, words=""):
     """Record a round of concepts (replacing one with the same title): its takes are the skins,
-    lettered A, B, C in this order. A name may carry its own title: "TSC_X_Y=Worn flag"."""
+    lettered A, B, C in this order. A name may carry its own title: "TSC_X_Y=Worn flag". A take
+    may have no design yet (a studio option's folder, its concept designer still at work): the
+    round is recorded before the paint, so an open Lab shows the switch as each take appears."""
     takes = []
     for item in names:
         name, _, own = item.partition("=")
-        if not (paths.SKINS / name / "design.py").exists():
+        if not (paths.SKINS / name).is_dir():
             raise FileNotFoundError(f"no skin called {name}")
         takes.append({"name": name, "title": own})
     plain = [t["name"] for t in takes]

@@ -53,6 +53,12 @@ with the car's name.
   the shape at the crease. Spots placed without the top's map were cut in half at the shell's
   edge; one ran down into a sidepod inlet (the outer panels only now). A zone of "everything low"
   made a green slab under the nose, where the side skirt runs forward as a ledge facing up.
+- 2026-09-28, the concept designers' trial (TSC_ConceptTrial): all three found it on their own: the
+  side skirt runs forward of each sidepod as a ledge facing up, so grass or a green wash there shows
+  from above as a strip at the car's waist; keep it the dark ground colour, or start the grass behind
+  it. Spots over the deck's outer edge dip into the hollow above the rear wheels and come out
+  kidney-shaped from the chase cameras: keep them on the deck's top. A pair of dark shapes either
+  side of the nose can read as brows from straight on (the face test).
 - 2026-09-26, the concept round (Kintsugi, Thrown, Unravelled): crimson drops on black read as
   blood; noise finer than a few cm makes faceted edges; stripes draped round a line along the car
   fan into a sunburst near the line (TSC_FlagPeel_CostaRica).

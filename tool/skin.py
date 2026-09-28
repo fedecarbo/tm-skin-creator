@@ -8,6 +8,10 @@
                                                record a round of concepts, lettered A, B, C in
                                                that order, so the Lab shows a switch between them
 
+Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
+GB and the Mac's container ran out of memory with three at once (2026-09-28). A show or install
+that finds another painting waits for it, and says so.
+
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),
 notes.md (the user's words and each change they asked for), thumb.png (the latest picture),
 versions/<n>.png (a picture of every round shown).
@@ -15,7 +19,9 @@ show() also refreshes the gallery page's list (tool/gallery.py).
 """
 
 import argparse
+import contextlib
 import importlib.util
+import os
 import sys
 import time
 
@@ -35,6 +41,43 @@ def load_design(name):
     return mod.design
 
 
+def _try_lock(f):
+    try:
+        if os.name == "nt":
+            import msvcrt
+            f.seek(0)
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except OSError:
+        return False
+
+
+@contextlib.contextmanager
+def paint_slot():
+    """Wait for a free paint slot (TSC_PAINTS, 1 by default) and hold it. The lock is the operating
+    system's on an open file, so a paint that dies (killed for memory) frees it with it."""
+    slots = max(1, int(os.environ.get("TSC_PAINTS") or 1))
+    paths.WORK.mkdir(parents=True, exist_ok=True)
+    said = False
+    while True:
+        for k in range(slots):
+            f = open(paths.WORK / f"paint{k}.lock", "a+")
+            if _try_lock(f):
+                try:
+                    yield
+                finally:
+                    f.close()  # closing the file releases the lock, on both systems
+                return
+            f.close()
+        if not said:
+            print("waiting for another paint to finish (paints take turns on this computer)", flush=True)
+            said = True
+        time.sleep(1)
+
+
 def paint(name, frames=False, follow=True):
     """frames: also draw the car at the end of each step, for the Lab's Studio (show does).
     follow=False: the Lab doesn't turn to this skin (the Mac repainting its stale skins at start)."""
@@ -51,11 +94,12 @@ def paint(name, frames=False, follow=True):
 
 
 def show(name, open_browser=False, snapshot=True, follow=True):
-    s = paint(name, frames=True, follow=follow)
-    t0 = time.time()
-    paintbox.export_to_viewer(s)
-    paintbox.save_painted(s)
-    print(f"exported in {time.time() - t0:.0f} s")
+    with paint_slot():
+        s = paint(name, frames=True, follow=follow)
+        t0 = time.time()
+        paintbox.export_to_viewer(s)
+        paintbox.save_painted(s)
+        print(f"exported in {time.time() - t0:.0f} s")
     if snapshot:
         # the front three-quarter view becomes the skin's picture in the gallery, and a numbered
         # copy in versions/ keeps every round the user has seen (checkpoint 7)
@@ -96,15 +140,16 @@ def do_install(name):
     folder = paths.SKINS / name
     # a skin shown on the other computer, or changed since it was shown here, is painted first
     painted = paths.BUILD / name / "painted.json"
-    if not painted.exists() or painted.stat().st_mtime < (folder / "design.py").stat().st_mtime:
-        paintbox.save_painted(paint(name))
     icon = None
     thumb = folder / "thumb.png"
     if thumb.exists():
         im = Image.open(thumb).convert("RGB")
         side = min(im.size)
         icon = im.crop(((im.width - side) // 2, (im.height - side) // 2, (im.width + side) // 2, (im.height + side) // 2)).resize((256, 256), Image.LANCZOS)
-    zip_path = paintbox.build_zip(name, icon)
+    with paint_slot():
+        if not painted.exists() or painted.stat().st_mtime < (folder / "design.py").stat().st_mtime:
+            paintbox.save_painted(paint(name))
+        zip_path = paintbox.build_zip(name, icon)
     print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
     target = install.install(zip_path)
     print(f"installed {target.name}")
@@ -138,7 +183,8 @@ def main():
     if args.command == "show":
         show(name, args.open, snapshot=not args.no_snap)
     elif args.command == "paint":
-        paint(name)
+        with paint_slot():
+            paint(name)
     else:
         do_install(name)
 

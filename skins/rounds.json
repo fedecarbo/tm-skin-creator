@@ -32,5 +32,24 @@
     "title": "Brushed"
    }
   ]
+ },
+ {
+  "title": "Concept trial",
+  "words": "",
+  "made": "2026-09-28",
+  "takes": [
+   {
+    "name": "TSC_ConceptTrial_Specimen",
+    "title": "Specimen"
+   },
+   {
+    "name": "TSC_ConceptTrial_Silks",
+    "title": "Silks"
+   },
+   {
+    "name": "TSC_ConceptTrial_Anatomy",
+    "title": "Anatomy"
+   }
+  ]
  }
 ]
