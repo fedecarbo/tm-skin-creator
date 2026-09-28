@@ -32,24 +32,5 @@
     "title": "Brushed"
    }
   ]
- },
- {
-  "title": "The wheels",
-  "words": "the wheels in general is a full workflow as I build cars",
-  "made": "2026-09-28",
-  "takes": [
-   {
-    "name": "TSC_Ladybird_BlackLegs",
-    "title": "Black legs"
-   },
-   {
-    "name": "TSC_Ladybird_RedShells",
-    "title": "Red shells"
-   },
-   {
-    "name": "TSC_Ladybird_GrassLine",
-    "title": "Grass line"
-   }
-  ]
  }
 ]

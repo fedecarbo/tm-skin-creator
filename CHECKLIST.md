@@ -2678,9 +2678,9 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       round each tyre, slick). The stock wheel rings glow cyan day and night (an "always on" glow,
       0.16 0.38 0.43): recoloured in each to fit. Lettered tyre markings don't paint on the Mac
       (Windows fonts; on the list).
-    - **Where it stopped (2026-09-28):** TSC_Ladybird at Wheels, waiting for the user's pick (the
-      Lab's switch "The wheels"). Next: the pick, then Details, Lettering, Review, Road test,
-      Release, each written into `studio.md` as the car reaches it.
+    - **The pick:** "C" (the Grass line), as Claude suggested.
+    - **Where it stopped (2026-09-28):** TSC_Ladybird at Details. Next: Details, Lettering, Review,
+      Road test, Release, each written into `studio.md` as the car reaches it.
 
 
 #### [ ] W2. The experts

@@ -20,13 +20,18 @@ satin ("How about a but the grass make it a silky grass finish, so there's some 
 ladybug and the grass").
 
 The head's fringe keeps clear of its white marks, a thin black gap round each (the user's note on
-the car: "Why is the grass touching this object.  Now it looks weird")."""
+the car: "Why is the grass touching this object.  Now it looks weird").
+
+Wheels, option C: the grass line. The wheel covers gloss black like the ladybird's legs, and a thin
+turf-green stripe round each tyre on a slick tread: the grass carried onto the wheels, a line of
+green turning."""
 from tool import shapes
 
 WORDS = "I like B the most.  I do like the grass from C though"
 HEAD = "I wonder if we make this black? as if it's the head.  Maybe too white blobs on the sides"
 BLOBS = "I think lady bug spots are not perfect circles, more like a blob close to being a circle"
 GRASS = "Maybe more grass or taller?"
+WHEELS = "the wheels in general is a full workflow as I build cars"
 AROUND = "you need to include the grass where the black is as well.  The grass should be around the car"
 RED, BLACK, WHITE, TURF = "#D7262B", "#111111", "#F3EEDF", "#3E8E3A"
 # the outer panels a spot may sit on: never the inlets, the number panel or the engine cover panel
@@ -87,6 +92,11 @@ def design(s):
     s.paint(NOSE, FINISH["grass"], colour=TURF, zone=shapes.grass(base=HEAD_LIP, height=(5, 11), every=2.0, seed=9) & ~top() & head() & clear)
     s.step("The head's marks", "Two white blobs on the sides of the black head.", words=HEAD)
     s.paint("body", FINISH["marks"], colour=WHITE, zone=shapes.blob((0, y, z), r, axis="x", seed=20) & head())
-    s.step("For now", "The wheels and the inner car black: they get their own steps.", words=WORDS)
+    s.step("Wheels", "Gloss black covers; a thin turf-green stripe round each tyre, on a slick tread.", words=WHEELS)
     s.paint("wheels", "satin", colour=BLACK)
+    s.paint("wheel covers", "gloss", colour=BLACK)
+    s.tyre_marks("TY-65", colour=TURF, tread="TR-02")
+    # the wheel rings' own light, on day and night (stock cyan), in turf green, like the line
+    s.relight("wheel ring", TURF, keep_level=True)
+    s.step("For now", "The inner car black: it gets its own step.", words=WORDS)
     s.paint("inner", "satin", colour=BLACK)

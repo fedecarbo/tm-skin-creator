@@ -104,3 +104,5 @@ on a slick tread, TY-65 in turf). The wheel rings' own light (stock cyan, on day
 recoloured in each: warm white, red, turf green. A's first try, black-on-black lettered tyres
 (TY-61), didn't paint on the Mac: the library's wordmarks use a Windows font (on the list).
 Claude suggests C: the only one that brings the grass into the driver's own view (the rear tyres).
+Picked 2026-09-28, Wheels (user): "C", with a note on its front left wheel cover: "this one". C
+Grass line is the car's; A and B deleted (git's history).
