@@ -44,7 +44,10 @@ let thumbsStart = null;
 let seen = {};            // station -> its newest try when this browser last saw the skin
 let fresh = new Set();    // the stations with a try newer than this browser had seen: New
 const pics = new Map();   // pictures' names, view and mood -> picture URL
-let queue = Promise.resolve();
+// The car on the stage first: the pictures wait until it's shown (the picture car loading beside it
+// slowed the stage's own load, 2026-09-28).
+let revealed = null;
+let queue = new Promise((r) => { revealed = r; });
 let stageLook = '';       // while Claude paints, the look of the step on the stage
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
@@ -603,6 +606,7 @@ export async function open() {
     await openSkin(name);
   } finally {
     $('stCover').classList.add('off');  // the car dressed, framed and turned (or failed): shown
+    revealed();  // then the strip's pictures
   }
   addEventListener('lab:skin', (e) => openSkin(e.detail).catch((err) => console.error(err)));
   setInterval(poll, POLL);

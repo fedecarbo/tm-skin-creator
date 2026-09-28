@@ -420,7 +420,7 @@ async function wear(next) {  // dress the car and the map in a skin's textures
   const before = skin;
   skin = next;
   live();
-  if (!skin) return;
+  if (!skin) { if (car && !before) await car.stock(); return; }  // no skin anywhere yet: the stock car
   if (!before || before.name !== skin.name) render($('prRound'), skin.name).catch((e) => console.error(e));
   if (car) await car.dress(skin.textures);
   if (before && before.name !== skin.name) paints.clear();

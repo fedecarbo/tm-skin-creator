@@ -49,7 +49,8 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   call, a resize: `rouse`), so anything new that changes the picture on its own must call `rouse`.
   The strip's pictures are kept in the browser's Cache API, by a hash of their textures' URLs (each
   names its content: a frame's `?v=`, a try's file, the stock) and the view. The second car behind
-  the stage starts only when one is missing. Its notes on the car (`tool/notes.py`,
+  the stage starts only when one is missing, and only once the stage is shown. The embedded viewer
+  with no skin has no car until its first `dress` (or `stock()`). Its notes on the car (`tool/notes.py`,
   `.notes/notes.json`: git-ignored, each computer keeps its own, writers take an mkdir lock) go
   through the viewer's server
   (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook

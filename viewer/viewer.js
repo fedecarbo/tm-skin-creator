@@ -1764,6 +1764,11 @@ window.viewer = {
   views() {  // the game's cameras, as the viewer's own buttons name them
     return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
   },
+  // The stock car, for a Lab with no skin to show (it builds the car only when it dresses it).
+  async stock() {
+    const slots = await (await fetch('data/stock/stock.json')).json();
+    await window.viewer.dress(Object.fromEntries(slots.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`])));
+  },
   // The Lab's stand: dress the car in one step's textures ({slot: url}, as skin.json's).
   async dress(urls) {
     const tex = await loadTextures(urls);
@@ -1871,10 +1876,9 @@ async function start() {
   setupAirbrakes(geoms);
   setupSpin();
   showAirbrakes(drive.airbrake);
-  if (embed && !params.has('skin')) {  // the Studio dresses it step by step; the stock car meanwhile
-    const slots = await (await fetch('data/stock/stock.json')).json();
-    await window.viewer.dress(Object.fromEntries(slots.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`])));
-  } else await loadSkin(skinName);
+  // The Lab (embed, no skin) dresses the car itself, and its first dress builds it: no stock car
+  // loaded first and thrown away (a second or more of the Lab's load, 2026-09-28).
+  if (!embed || params.has('skin')) await loadSkin(skinName);
   setMood('day');
   if (!snap && !embed) {  // on unless this browser turned it off last time
     let on = true;

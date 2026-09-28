@@ -1746,6 +1746,29 @@ worked on, live; not one page. What was settled the same day:
       then fades in 0.25 s. It lifts even if loading fails. Checked in Edge, 7 passed: on a first
       load and on a reload the cover lifts only once the viewer is ready, in its embed look, with
       the strip drawn. The viewer itself didn't change.
+    - **The load (the user, 2026-09-28: "it takes 8 seconds to fully load").**
+      - **Profiled** in headless Edge at 2560×1300: a CPU profile of the page from the start to
+        the cover lifting, and the car's files.
+        - First visit: the car showed at 3.7 s. Of the main thread's 5.4 s, 2.5 s was
+          `onFirstUse` (waiting for the shaders to compile), 1.3 s `texSubImage2D` (decoding and
+          uploading the textures) and 0.4 s decoding the HDRs.
+        - Reload: 1.5 s, the shaders cached.
+        - The user's 8 s was most likely a first reload after the pictures' names changed (a
+          repaint, or a new `viewer.js`): the picture car loaded beside the stage and slowed it.
+      - **Now:**
+        - the strip's pictures wait until the stage is shown (the picture queue starts behind
+          the reveal);
+        - the embedded viewer with no skin builds no stock car. The Lab's first dress builds the
+          car, so no stock textures are loaded first and thrown away. `viewer.stock()` puts the
+          stock car on for the UV map room when there's no skin at all.
+      - **Measured:** first visit 3.2 s, reload 1.2 s. The rest of a first visit is the shader
+        compile, which the browser keeps.
+      - **Checks:** baselines unchanged; step 9.1's 24 checks, the 14 drawing checks and the 7
+        reload checks passed; `stock()` checked on an empty viewer.
+      - **Left for later if needed:**
+        - decoding textures off the main thread (ImageBitmapLoader, embed only, 0.4 to 0.8 s);
+        - loading only the day and night HDRs in the Lab;
+        - `compileAsync`.
     - **Next:** the user tries it. Tries appear as cars get repainted: each car shown before today
       has one try per station until then.
 
