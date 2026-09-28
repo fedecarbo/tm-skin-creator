@@ -1,6 +1,6 @@
 """The studio's critic (CHECKLIST.md, "The design studio", W2): the pictures it's given, and what it
 found, kept as the car's review. The critic itself is an agent, .claude/agents/critic.md: it sees only
-the car's pictures and its brief, never the design, the notes or the designer's reasons (studio.md, 3, The check).
+the car's pictures and its brief, never the design, the notes or the designer's reasons (the skin skill's new-car.md, 4).
 
     python -m tool.critic pictures <car> [--sheets DIR] [--out DIR]
         the car's four sheets (views, close, review, cams: tool.snap) cut into one picture per view,
@@ -25,7 +25,7 @@ goes against the brief: said to the user, changed only if they want). status: op
 (Claude's); recheck: the critic's word on it in a later round (fixed, not fixed, partly).
 
 keep, mark and the printout are standard library only, so they run with the Mac's own python3, as
-tool.sheet does; pictures and picture need Pillow (the PC's venv, the Mac's container).
+tool.sets does; pictures and picture need Pillow (the PC's venv, the Mac's container).
 TSC_SKINS_HOME puts the skins elsewhere, for tests."""
 
 import argparse

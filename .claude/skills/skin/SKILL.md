@@ -11,12 +11,20 @@ Their words, if they came with the command: $ARGUMENTS
 If they haven't said what they want yet, ask: **what skin would you like?** One word ("lava")
 or a whole scene is fine.
 
-## The studio
+## One way of working
 
-When the user asks for the studio ("studio", "through the studio", "do it properly"), read
-`studio.md` beside this file and follow it: a new car built step by step, from a brief to the
-release, with the user deciding wherever there's more than one direction; the Lab shows it as a
-wizard, where they can answer too. Everything below still applies inside it. Without that ask, go the quick way, exactly as below.
+The user works by looking at the car and changing it, with options to pick whenever there's more
+than one way to go (2026-09-28: "Two main things I like. It's having the car and me being able to
+iterate. and I also like a place where you can provide options before building"). The quick way
+and the studio's steps became this one way the same day.
+
+- **A new car** (a new idea, not a change to one): read `new-car.md` beside this file and follow
+  it: a short talk and its card, the first concepts as a set, then the car finished field by field
+  from their notes, with every detail and the experts' guides, the critic before the game, and the
+  release.
+- **A change to a car:** make it on the car and show it (below).
+- **Options, whenever they ask for a few ideas on anything, or there's a real choice:** a set
+  ("Sets of options", below). They pick in the Lab's list or in the chat.
 
 ## Standing rules
 
@@ -25,8 +33,8 @@ wizard, where they can answer too. Everything below still applies inside it. Wit
   after a few rounds, suggest switching to Fable 5.1.
 - Looks before speed. A round can take up to about 10 minutes if the skin is clearly better.
   Never trade sharpness for build time.
-- A clear idea gets one design. A vague one gets 2 or 3 takes, each a different reading, not
-  three shades of one.
+- A clear idea gets one design. A vague one gets 2 or 3 takes as a set, each a different
+  reading, not three shades of one.
 - Plain words in replies: no code, file names, paths or tool output. Describe the car.
 - Ask only about taste. Decide everything technical. When a word is genuinely ambiguous
   ("pearl", "metallic", "retro"), show it (two takes, or the Lab) rather than ask.
@@ -46,7 +54,7 @@ user the Lab too.
 |---|---|
 | `PY -m tool.skin list` | Every skin, newest first, with the user's words; marks those in the game. |
 | `PY -m tool.sets <car>` | A car's sets of options (what's waiting for a pick, what was picked). Its commands are in `tool/sets.py`'s docstring and "Sets of options" below. |
-| `PY -m tool.critic <car>` | A studio car's review: what the critic found, and what was fixed or left. Its commands, and the critic's pictures (`tool.snap <car> --review`), are in `studio.md`, 3, The check. |
+| `PY -m tool.critic <car>` | A car's review by the critic: what it found, and what was fixed or left. Its commands, and the critic's pictures (`tool.snap <car> --review`), are in `new-car.md`, 4. |
 | `PY -m tool.skin round "<title>" <A> <B> [<C>] --words "…"` | Records a round of concepts (`skins/rounds.json`), so the Lab shows a switch between them. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
@@ -232,11 +240,10 @@ user the Lab too.
   telling close views, and usually the driving camera. It opens on their screen.
 - Start `tool.gallery` in the background once per session, so they can spin each skin in 3D.
   After each round, tell them to refresh it.
-- The Lab (http://localhost:8765/lab.html) opens on the car on its stand, which follows the skin
-  being painted while `show` runs, no refresh needed: the car shows each step as it's done, and
-  the stations under it get their new tries at the end. Tell the user once per session they can
-  keep it open to watch the car being built, flip a station's tries, and click the car to leave
-  a note on a spot (it hangs there as a tag).
+- The Lab (http://localhost:8765/lab.html) opens on the car, which follows the skin being
+  painted while `show` runs, no refresh needed: the car shows each step as it's done. Tell the
+  user once per session they can keep it open to watch the car being built, click the car to
+  leave a note on a spot (it hangs there as a tag), and pick from the list of options beside it.
 - Reply in a few sentences: what the car looks like, the takes numbered by title, and one line
   on what you checked close up. End with one bold question: which one, or what to change. Say
   that a yes puts it in the game.

@@ -1,6 +1,6 @@
 ---
 name: concept-designer
-description: One of the design studio's three concept designers, for a studio car's Concepts step (.claude/skills/skin/studio.md, 2). Give it the car, its option's skin name (the folder tool.sheet option made), the brief, its reading of the car (a title and a few lines: the world it draws from, its colour story, its base finish, where its big shapes go), the other two readings to stay clear of, and which computer it's on. It writes and paints that one rough concept, looks at it, fixes it, and reports in plain words. Launch the three at once.
+description: One of the design studio's three concept designers, for a new car's first concepts (.claude/skills/skin/new-car.md, 2). Give it the car, its option's skin name (the folder tool.sets option made), the brief, its reading of the car (a title and a few lines: the world it draws from, its colour story, its base finish, where its big shapes go), the other two readings to stay clear of, and which computer it's on. It writes and paints that one rough concept, looks at it, fixes it, and reports in plain words. Launch the three at once.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: opus
 ---
@@ -42,7 +42,7 @@ the web.
 Only in your option's folder, `skins/<your skin name>/`: write `design.py` there, a `design(s)`
 function that starts with `s.clay()` and opens each step with `s.step(name, does, words=...)`.
 It stands on its own: it loads no other design. Touch nothing else: no other skin, no tool code,
-no build sheet, no rounds, no notes. If the tool lacks something your idea needs, draw it in your
+no sets, no rounds, no notes. If the tool lacks something your idea needs, draw it in your
 design with the zones it has, or say so in your report; a shape for one design stays in it.
 
 ## Paint, look, fix

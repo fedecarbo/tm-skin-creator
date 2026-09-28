@@ -1,6 +1,6 @@
 # Wheels: the wheels designer's guide
 
-Read on the studio's car (`studio.md`, 3) when the work reaches the wheels. The user settles the wheels car by car, as one piece of
+Read on a new car (`new-car.md`, 3) when the work reaches the wheels. The user settles the wheels car by car, as one piece of
 work ("the wheels in general is a full workflow as I build cars"). It grows with every car: at the
 end of the step, add what the car taught under "Learned", dated, with the car's name.
 

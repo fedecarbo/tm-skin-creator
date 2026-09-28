@@ -1,6 +1,6 @@
 # Colours and materials: the CMF designer's guide
 
-Read on the studio's car (`studio.md`, 3) when the work reaches the finishes. CMF is what car makers call the work on colour,
+Read on a new car (`new-car.md`, 3) when the work reaches the finishes. CMF is what car makers call the work on colour,
 material and finish. It grows with every car: at the end of the step, add what the car taught
 under "Learned", dated, with the car's name.
 

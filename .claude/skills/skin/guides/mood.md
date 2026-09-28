@@ -1,6 +1,6 @@
 # Mood: the mood and research designer's guide
 
-Read at the studio's Concepts step (`studio.md`, 2): each concept's reading carries its own mood,
+Read for a new car's first concepts (`new-car.md`, 2): each concept's reading carries its own mood,
 on the car, not on boards beside it (the mood step and its boards went when the studio's steps
 went from eleven to three, 2026-09-28). It grows with every car: at the end of the step, add what
 the car taught under "Learned", dated, with the car's name.
@@ -27,7 +27,7 @@ the car taught under "Learned", dated, with the car's name.
 
 ## On this car
 
-- A reading's colour story (hex, roles, shares) and base finish go into its concept (`studio.md`,
+- A reading's colour story (hex, roles, shares) and base finish go into its concept (`new-car.md`,
   2), and its concept designer paints them on the car, where they show the truth: any phrase or Lab
   code (`tool/finishes.py`, `CATALOGUE`: paint, metal, plastic, rubber, carbon, leather, wraps,
   wear, patterns, light).

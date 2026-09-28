@@ -3110,6 +3110,25 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     the car, earlier picks opened with three pictures and A outlined, the menu, a note on the car by
     a click, Game view, another car from the menu with nothing to pick, the materials and back, 390
     wide, no page errors.
+  - **The user's try (2026-09-28):** picked A (Black Covers) in the list; it reached Claude at once, the
+    pick made it the car's and the car was painted again; the list then showed nothing to pick and
+    two earlier picks. "Feels good. I think I can leave with it. If not I can just simply iterate with
+    another agent." The trial car deleted (it was never on git).
+- **2. The way of working (built 2026-09-28, on the Mac):**
+  - **One way:** `SKILL.md`'s "The studio" became "One way of working": a new car goes by
+    `new-car.md`, a change is made on the car, and options, whenever the user asks or there's a real
+    choice, are a set. The quick way and the studio's steps are gone.
+  - **`new-car.md`** (in place of `studio.md`): no steps and no sheet. 1, the talk and its card
+    (`brief.md`, which the critic reads); 2, the first concepts as a set (`tool.sets new ... "3
+    concepts"`, an option each, made before painting so the Lab lists each as it's painted, the three
+    concept designers, `open`, the wait, the pick); 3, the car, field by field with the guides
+    (shapes, finishes, wheels as a set, details, lettering), the notes first; 4, the check (the
+    critic, the size, the road test); 5, the release (the game, the page online, the design book,
+    now a chapter per set and per field with the earlier picks' pictures).
+  - **Gone:** `tool/sheet.py` (TSC_Ladybird's `sheet.json` stays as its record, and `tool/mood.py`
+    still letters its boards from it); the guides, the critic, the concept designer and
+    `tool/critic.py` point at `new-car.md`; `tool/mood.py` stays for boards on request (its title
+    from `tool.sets`).
 
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).

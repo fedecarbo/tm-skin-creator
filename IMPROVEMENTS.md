@@ -23,32 +23,16 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 5 groups, made from
   `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's UV map tabs show
   them. Known gaps, below under "The tool": some inner names are guesses, words on the inner car.
-- **The design studio, as a wizard in the Lab** (the user, 2026-09-28: "What's important is to
+- **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
-  actually work on every single detail from start to finish"; the plan agreed the same day: "Lets
-  just go with that, and see how it goes"). Three ways in: Quick (as today), the Studio, and
-  Rework. First-time building first: cars already built keep the stand and their notes, Rework
-  is for later, and a studio car starts afresh, borrowing no looks from earlier cars (the user,
-  2026-09-28). The Studio's steps run from the brief to the release, and the
-  user decides wherever there's more than one real direction. Each step has its expert's
-  know-how, and an independent critic reviews the car. In the Lab it's a wizard: the build sheet
-  on the left, the step waiting for the user filling the page. It takes over the Lab's remaining
-  steps 9.3 to 9.6 (answers with a before and after, options on the car, Claude's checks, the
-  game's screenshots). The Lab as built (the stand, its notes, the stations and their tries) stays;
-  its step 9.7 is under "The tool" below. Four steps, each shown to the user before the next: W1
-  the studio routine and the build sheet, W2 the experts, W3 the wizard in the Lab, W4 the test of
-  Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". W1 done (2026-09-28), tried on
-  the first studio car, TSC_Ladybird, whose release waits for the Windows PC (the install and the
-  page online). W2, the experts, done (2026-09-28, on the Mac): the critic, the step guides,
-  the concept designers (on the PC, whether two paints fit at once is still to check). W3, the
-  wizard, picked up on the Mac the same day (`CHECKLIST.md`): piece 1, the wizard and its sheet,
-  tried; then, at the user's word, three steps instead of eleven (Brief, Concepts, The car) and the
-  car on the stand after the concepts, one room in the Lab: built. Then the user's second thoughts:
-  no steps; the car and its notes, and a place in the Lab where Claude's options (for anything, in
-  any order) wait to be picked and commented on. Fresh layouts by a fresh agent; the user picked A
-  (the car and a list). Piece 1, the page and its sets, built and waiting for the user's try; piece
-  2, the way of working (one routine, the sheet removed), next. Next: the check, then going back and
-  the history; W4, the test, after it.
+  actually work on every single detail from start to finish"). Built the same day in four goes: a
+  studio of eleven steps, experts (the step guides, the concept designers, the critic), a wizard in
+  the Lab; then, at the user's word, three steps, then none: "I don't really work that way". Now:
+  the car and the user's notes, and sets of options in the Lab's list whenever they ask (the fresh
+  layouts' A); a new car gets a short talk, three concepts as its first set, every detail with the
+  guides, and the critic before the game (`new-car.md`). Notes: `CHECKLIST.md`, "The design
+  studio". Left: the user's word on the new way of working; the test of the studio against the
+  quick way (W4) compared two ways and there's now one, so it goes unless the user wants it.
 
 ## The tool
 

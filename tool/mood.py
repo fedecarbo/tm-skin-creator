@@ -18,9 +18,9 @@ A finish is a phrase as a design says it (a Lab code works: "PA-09"), in the col
 on a ball by the Lab's own code (swatches.paint_look) and drawn with the Lab's lighting
 (viewer/balls.js), so it looks as it will on the car. The wall is drawings (SVG, drawn by Claude)
 and pictures: the picture maker's (on the PC), kept in skins/<car>/mood/<slug>/, never pictures
-from the web. The board's file is its option on the build sheet (tool.sheet option <car> mood
-"<title>" --file mood/<slug>.json), lettered there; the pick deletes the others with their
-pictures (tool/sheet.py), and the picked board stays as the car's colour story.
+from the web. Boards were the studio's mood step, each an option on its build sheet, until the steps
+went (2026-09-28: CHECKLIST.md, "The design studio", W3): a new car's mood now lives in its concepts,
+on the car. The tool stays for boards the user asks for; TSC_Ladybird's are lettered from its sheet.
 
 Written to the viewer's data, all rebuildable: mood/<car>/boards.json and each board's balls and
 pictures. The page: viewer/mood.html?car=<car>.
@@ -35,7 +35,7 @@ import time
 import numpy as np
 
 from tool import colours, finishes, paths, swatches, view
-from tool.sheet import title_of
+from tool.sets import title_of
 
 HEX = re.compile(r"#[0-9A-Fa-f]{6}")
 ROLES = ("main", "support", "accent")
@@ -56,7 +56,7 @@ def _brief(car):
 
 
 def _letters(car):
-    """{board file: letter} from the build sheet's Mood step."""
+    """{board file: letter} from the build sheet's Mood step, for a car made with it (TSC_Ladybird)."""
     p = paths.SKINS / car / "sheet.json"
     if not p.exists():
         return {}
