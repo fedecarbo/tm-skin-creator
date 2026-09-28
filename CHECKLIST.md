@@ -3181,6 +3181,38 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   building it from the sheet onto the page online is still for later.
 - **Other people building their own cars:** a separate decision (hosting and cost per user).
 
+### The Lab's timeline (started 2026-09-28)
+
+- **What it's for:** the user (2026-09-28): "I still want to continue iterating but with the new
+  layout, having the sidebar on the right as the ai helper. I am however thinking if we have the
+  sidebar like a scrollable timeline of the options choosing etc, and the latest would be at the
+  bottom. Similar to how an ai chat functions where the conversation just starts moving the content
+  upwards." Then: "I guess it's somewhat like A2ui ... widgets so the ai can just communicate through
+  dynamic content?" Yes: Claude records what it offers or says through the tool, and the Lab draws
+  each kind with its own widget (a note, Claude's line, a set of options, "in the game").
+- **The mockups:** https://claude.ai/artifact/6nKpAWW1VFPfbrAZTfVZWM (the Lab at 1440×900, TSC_CMYK_
+  EndsInK just after the texture round on 27 Sept, its real notes 1 to 5 and answers): A, chat, two
+  voices (the user's notes and words on the right, Claude's lines and sets on the left, "in the game"
+  centred); B, one log on a rail (dense, options as rows); C, A with the open set docked over the box.
+  Claude's pick: A, the simplest, docking later only if an open set getting pushed away bothers the
+  user. **The user picked A** (2026-09-28). Their source: the session's scratchpad (`build.py`), not
+  the repo.
+- **What you'll see:** the list on the right becomes "With Claude", a timeline, newest at the bottom,
+  opened at the bottom and following new entries unless you've scrolled up. Your notes on the car
+  (their number, the part, the picture of where you clicked, your words) and your words on the right;
+  Claude's short answers on the left with a yellow-green line; a set of options as Claude's, the
+  cards and Picks as before, your words that asked for it just above it; a pick, and "In the game",
+  as they happen. At the bottom a box to say something to Claude (about the option on the car when
+  one is), reaching Claude like a note: at once while it waits, else with your next message. Notes
+  not done still hang on the car as tags; done, they leave the car and stay in the timeline.
+- **The pieces:**
+  1. the leftovers of the earlier layouts cleared (a read-only check on 2026-09-28 listed them:
+     unused styles and functions, the stations' export still run on every paint, rounds and their
+     switch, the notes' step and station, lines in the skill and guides about the sheet and steps);
+  2. the timeline: `tool/notes.py` keeps done notes' pictures and gains Claude's lines (`say`, and
+     `done ... --say`); the server gives a car's whole timeline; `viewer/lab-car.js` draws it; the
+     skill tells Claude to answer in the Lab when it handles notes.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every

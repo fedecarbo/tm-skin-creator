@@ -34,6 +34,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   studio". Left: the user's word on the new way of working; the test of the studio against the
   quick way (W4) compared two ways and there's now one, so it goes unless the user wants it.
 
+- **The Lab's list as a timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right
+  as the ai helper ... a scrollable timeline ... the latest would be at the bottom"). The user picked
+  A of the mockups, a chat with two voices. First the earlier layouts' leftovers are cleared, then the
+  timeline. Notes: `CHECKLIST.md`, "The Lab's timeline".
+
 ## The tool
 
 - **Words on the inner car** (2026-09-25, TSC_CMYK_BlackTail): `Skin.emboss` raises lettering,
