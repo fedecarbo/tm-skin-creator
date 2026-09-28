@@ -2395,7 +2395,8 @@ wrap):
 - **The build sheet on the left** is the wizard's map and the way back: one line per step with
   what was decided, and a small picture of the car so far (once there is a car).
 - **Each step shows the smallest thing that settles its question, then the whole car to
-  confirm:** the brief as questions and word choices; mood as boards; concepts as three whole
+  confirm:** the brief as a conversation, then its card (the user, 2026-09-28, while W1 was built:
+  open ended, "I don't want a complete form to fill out"); mood as boards; concepts as three whole
   cars; colours and materials as one car with a day and night split and the finishes as swatches;
   wheels as a row of wheels close up, then the pick on the car by day and at night.
 - **Going back:** click a step on the sheet. Later steps are kept, not wiped: Claude carries the
@@ -2539,12 +2540,20 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       checked against the brief, decided stays decided, the sheet kept true at every move, a
       commit after each decided step), and the brief. The steps after the brief come in pieces 3
       and 4; until then it stops at Mood.
-    - **The brief:** four questions in one go with the question tool, word choices drawn from the
-      user's idea (the character, what it's drawn from, what it must not be, what's fixed),
-      skipping what their words answer. Then the card, `skins/<car>/brief.md`, in a fixed shape
-      the Lab can read (What it is, Drawn from, Not, Fixed), shown in the reply with "is this the
-      car?". `tool.sheet decide <car> brief` refuses without the card (41 checks passed, on the
-      Mac's python3 and the container's).
+    - **The brief, first as a form:** four questions in one go with the question tool, word
+      choices drawn from the user's idea (the character, what it's drawn from, what it must not
+      be, what's fixed). The user, before trying it: "I would prefer if it's just open ended?
+      Similar to how other ai tools does that they like "what do you want to...", and then it
+      reasons about it, maybe help shape the direction. But obviously I don't want a complete
+      form to fill out".
+    - **The brief, now a conversation:** one open question ("what car do you want to build?"),
+      then Claude's reading of the idea in plain talk (the character, the worlds it could draw
+      from, its traps, where Claude would take it), and at most one question in a sentence when
+      there's a real fork, a round or two at most. Then the card, `skins/<car>/brief.md`, in a
+      fixed shape the Lab can read (What it is, Drawn from, Not, Fixed): Claude's reading shaped
+      by the talk, "Fixed" only what the user asked for, shown with "is this the car?".
+      `tool.sheet decide <car> brief` refuses without the card (41 checks passed, on the Mac's
+      python3 and the container's).
 
 #### [ ] W2. The experts
 
@@ -2579,7 +2588,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     picture car (`picture()`), as the strip's pictures do, kept in the browser the same way.
   - A pick or a free-text answer goes through the notes channel (`tool/notes.py`, the hook), so
     Claude gets it with the next message; it carries the step and the option.
-  - Each step's format: Brief, questions and word choices, and the brief as Claude reads it;
+  - Each step's format: Brief, an open conversation (no form: the user, 2026-09-28), and the
+    brief's card as Claude reads it;
     Mood, three boards; Concepts, three whole cars that turn; Shapes, the game's camera beside a
     small "from far away" picture; Colours and materials, one car with a day and night split and
     the finishes as swatches (codes from `finishes.CATALOGUE`, copied like the Materials room);

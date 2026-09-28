@@ -43,25 +43,26 @@ the record and installing.
 
 ## 1. The brief
 
-What the car is, agreed before anything is painted. Always the user's decision.
+What the car is, agreed before anything is painted. Always the user's decision, and a
+conversation, not a form (the user, 2026-09-28: "I would prefer if it's just open ended? Similar
+to how other ai tools does that they like "what do you want to...", and then it reasons about it,
+maybe help shape the direction. But obviously I don't want a complete form to fill out").
 
-1. Name the car (`TSC_<Idea>`, CamelCase, a name no skin has), then
+1. If they haven't said yet, ask one open question: **what car do you want to build?** A word, a
+   feeling, a scene: anything goes.
+2. Name the car (`TSC_<Idea>`, CamelCase, a name no skin has), then
    `tool.sheet new <car> --words "<their words verbatim>"` and `tool.sheet on <car> brief`.
    Start `notes.md`.
-2. Ask the brief's questions in one go with the question tool (AskUserQuestion), each with
-   word choices drawn from *their* idea, never generic ones. Skip a question their words already
-   answer. Every option is a real, different reading, in a few words, with a line on how the car
-   would look.
-   - **The character** (one pick): three readings of the idea ("calm but dangerous", "loud and
-     playful", "precise, like an instrument").
-   - **Drawn from** (several picks): the worlds the look could borrow from: a real race car, a
-     product, a place, a film, a craft. Specific ones ("a 1990s Le Mans prototype at night",
-     "a Braun radio"), never "motorsport".
-   - **Not** (several picks): what it must not look like: the traps this idea falls into ("a toy",
-     "a gamer RGB car", "a sticker bomb").
-   - **Fixed** (several picks): anything that has to be there: a colour, a word, a number. Offer
-     what their words hint at, and "nothing fixed".
-3. Write the card, `skins/<car>/brief.md`, in this shape (the Lab will read it):
+3. Think about their words and answer as a designer would, in a few sentences of plain talk: the
+   character you hear in the idea, what it could draw from (specific worlds: "a 1990s Le Mans
+   prototype at night", "a Braun radio", never "motorsport"), the traps it could fall into ("a
+   toy", "a gamer RGB car"), and where you'd take it. That's how you help shape it.
+4. If there's a real fork in the direction, name it and ask the one question that settles it, in
+   a sentence ("it could be quiet and menacing, or loud and proud: which is closer?"). Never a
+   list of questions, never choices to tick. If their words leave nothing open, go straight to
+   the card. A round or two at most.
+5. Write the card, `skins/<car>/brief.md`: your reading, shaped by what they said, in this shape
+   (the Lab will read it):
 
    ```markdown
    # <Title>: the brief
@@ -78,12 +79,11 @@ What the car is, agreed before anything is painted. Always the user's decision.
    - <what it must not look like>
 
    ## Fixed
-   - <what has to be there>, or "Nothing."
+   - <what they said has to be there>, or "Nothing."
    ```
 
-   Their answers in their words where they typed their own. Add nothing they didn't choose
-   except the plain reading of their idea.
-4. Show the card in the reply, short, and ask in bold: **is this the car?** Changes go into the
+   "Fixed" holds only what the user asked for; the rest is your reading, which their yes approves.
+6. Show the card in the reply, short, and ask in bold: **is this the car?** Changes go into the
    card and it's shown again. On a yes: `tool.sheet decide <car> brief "<the character, a few
    words>"`, `Brief approved` in `notes.md`, commit and push.
 
