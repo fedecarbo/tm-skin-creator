@@ -16,7 +16,8 @@ waiting for the user. skins/<car>/sheet.json, written only by these commands, so
     python -m tool.sheet back <car> <step> "<why>" [--affects <step> ...]
 
 The steps: brief, mood, concepts, shapes, colours, wheels, details, lettering, review, road,
-release. Each is to do, Claude on it, waiting for you, decided, needs a look, or skipped.
+release. Each is to do, Claude on it, waiting for you, decided, needs a look, or skipped. The
+brief's card is skins/<car>/brief.md, written by Claude: the brief can't be decided without it.
 
 Only a car begun in the studio has a sheet (the user, 2026-09-28: "I don't want you to get
 influenced by previous builds, so if a build is done the old way, I would just have a standard
@@ -301,6 +302,8 @@ def decide(car, key, decision=""):
     st = step_of(sheet, key)
     if not st["pick"] and any(o.get("skin") != car for o in st["options"]):
         raise SheetError(f"{st['name']} has options: pick one, or pick none")
+    if key == "brief" and not (SKINS / car / "brief.md").exists():
+        raise SheetError(f"{car} has no brief.md: write the card first (the skin skill's studio.md)")
     if not st["pick"]:
         st["options"] = []  # only the car as it was, changed in place
     decision = decision.strip()

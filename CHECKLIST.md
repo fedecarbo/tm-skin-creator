@@ -2530,6 +2530,21 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       going back touching only the steps named and the checks, `pick none`, and the mood boards'
       files. A pretend car taken through all eleven steps, with a change of colour at the end,
       printed as expected.
+  - **2. The brief (built 2026-09-28):**
+    - The studio's routine is its own guide, `.claude/skills/skin/studio.md`, read only when the
+      user asks for the studio; `SKILL.md` gained a short "The studio" section pointing to it
+      and a line for `tool.sheet` in its commands. So a quick car's session reads nothing new.
+    - `studio.md` holds when the studio is used (asked for, first-time builds, a new name, no
+      looks borrowed from earlier cars), how it runs (a stop only for a real choice, each step
+      checked against the brief, decided stays decided, the sheet kept true at every move, a
+      commit after each decided step), and the brief. The steps after the brief come in pieces 3
+      and 4; until then it stops at Mood.
+    - **The brief:** four questions in one go with the question tool, word choices drawn from the
+      user's idea (the character, what it's drawn from, what it must not be, what's fixed),
+      skipping what their words answer. Then the card, `skins/<car>/brief.md`, in a fixed shape
+      the Lab can read (What it is, Drawn from, Not, Fixed), shown in the reply with "is this the
+      car?". `tool.sheet decide <car> brief` refuses without the card (41 checks passed, on the
+      Mac's python3 and the container's).
 
 #### [ ] W2. The experts
 

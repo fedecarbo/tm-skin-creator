@@ -11,6 +11,13 @@ Their words, if they came with the command: $ARGUMENTS
 If they haven't said what they want yet, ask: **what skin would you like?** One word ("lava")
 or a whole scene is fine.
 
+## The studio
+
+When the user asks for the studio ("studio", "through the studio", "do it properly"), read
+`studio.md` beside this file and follow it: a new car built step by step, from a brief to the
+release, with the user deciding wherever there's more than one direction. Everything below still
+applies inside it. Without that ask, go the quick way, exactly as below.
+
 ## Standing rules
 
 - Everyday model: **Opus 5.5** (the user's choice, 2026-09-25). If this session runs on another
@@ -38,6 +45,7 @@ user the Lab's stand too.
 | Command | What it does |
 |---|---|
 | `PY -m tool.skin list` | Every skin, newest first, with the user's words; marks those in the game. |
+| `PY -m tool.sheet <car>` | A studio car's build sheet: its steps, what was decided, the options waiting. Its commands are in `studio.md`. |
 | `PY -m tool.skin round "<title>" <A> <B> [<C>] --words "…"` | Records a round of concepts (`skins/rounds.json`), so the Lab shows a switch between them. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
