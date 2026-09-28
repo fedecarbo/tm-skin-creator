@@ -261,8 +261,11 @@ function body(st) {
   }
   if (st.state === 'todo') {
     const before = doc.steps[indexOf(st.key) - 1];
-    box.append(block('Not yet', `It comes after ${before ? before.name : 'the brief'}.`, 'quiet'));
-    return;
+    if (st.key !== doc.at) {
+      box.append(block('Not yet', `It comes after ${before ? before.name : 'the brief'}.`, 'quiet'));
+      return;
+    }
+    box.append(block('Next', 'Claude starts this step next.', 'quiet'));  // the car's own step, not begun
   }
   if (st.state === 'decided' || st.state === 'look') box.append(block(`Decided ${dateOf(st.date)}`, st.decision, 'draft'));
   if (st.state === 'look') box.append(block('Needs a look', st.why || 'The car changed since.', 'lookout'));

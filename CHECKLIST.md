@@ -2966,6 +2966,10 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - **The trial car:** TSC_WizardTrial, TSC_Ladybird's brief and boards, and three stand-in concepts
     (TSC_WizardTrial_Red, _Sunny, _Tangerine: the Ladybird's design with its shell recoloured), not on
     git, to be deleted after the user has tried it.
+  - **The user's try (2026-09-28):** "Approve the brief", then B Racing colours, then A Red, each in
+    the Lab and each reaching Claude at once through `tool.notes wait`, with no message in the chat;
+    Claude moved the sheet on after each. Found on the way: the car's own next step, not begun yet,
+    said "Not yet" and was greyed on the sheet; it now says Claude starts it next, with the car now.
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,
