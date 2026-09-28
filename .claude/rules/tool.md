@@ -38,8 +38,12 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   points' places on the page, pushed at the end of each frame that moves them), `project`, `camera`,
   `go`, `mood`, `views` (the viewer's own Cam buttons) and `picture({ crop: 'inset' })`. All of it is
   embed-only: the page online and Claude's snapshots mustn't change (compare a snapshot before and
-  after). Its notes on the car (`tool/notes.py`, `.notes/notes.json`: git-ignored, each computer
-  keeps its own, writers take an mkdir lock) go through the viewer's server
+  after). The embedded viewer draws only when something changed (the camera, a `window.viewer`
+  call, a resize: `rouse`), so anything new that changes the picture on its own must call `rouse`.
+  The strip's pictures are kept in the browser's Cache API by frame hash and view, and the second
+  car behind the stage starts only when one is missing. Its notes on the car (`tool/notes.py`,
+  `.notes/notes.json`: git-ignored, each computer keeps its own, writers take an mkdir lock) go
+  through the viewer's server
   (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook
   (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
   take's `gallery.json` entry) puts a switch between its takes on the stand and in the UV map

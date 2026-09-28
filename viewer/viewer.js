@@ -387,8 +387,17 @@ function outline(pos, target, round = false) {
   return box;
 }
 
+// The Lab's cars (embed) are drawn only when something has changed: the camera moved, the Lab called
+// (dress, show, mood, hide...), or the page was resized. Nothing moves on its own there, and two cars
+// drawn at the screen's rate (240 a second on the user's PC) kept a processor core busy with the
+// Lab standing still (2026-09-28: "the website now is soooo slow"). wake: frames still to draw.
+let wake = 0;
+const drawnCam = new THREE.Matrix4(), drawnProj = new THREE.Matrix4();
+const rouse = (n = 3) => { wake = Math.max(wake, n); };
+
 function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
+  rouse();
   renderer.setSize(w, h, false);
   frame(w, h, snap || embed);
   if (fitted) setView(fitted);
@@ -1649,6 +1658,7 @@ matchMedia('(max-width: 1280px)').addEventListener('change', resize);  // the li
 // ---- Start ----
 
 const frames = (n) => new Promise((done) => {
+  rouse(n + 1);  // drawn in them, in the Lab too
   const step = () => (--n <= 0 ? done() : requestAnimationFrame(step));
   requestAnimationFrame(step);
 });
@@ -1779,6 +1789,18 @@ window.viewer = {
     return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
   },
 };
+if (embed) {  // whatever the Lab asks for is drawn, when it's asked and when it's done
+  const reads = new Set(['project', 'camera', 'views', 'gpu']);
+  for (const [k, f] of Object.entries(window.viewer)) {
+    if (typeof f !== 'function' || reads.has(k)) continue;
+    window.viewer[k] = (...args) => {
+      rouse();
+      const out = f.apply(window.viewer, args);
+      if (out && typeof out.then === 'function') out.then(() => rouse(), () => rouse());
+      return out;
+    };
+  }
+}
 
 // The Lab's tags: { key, at, normal, behind }, projected at the end of each frame. Whether the car
 // hides a point is a ray from the camera against the car (about 99k triangles, no index), so it waits
@@ -1860,11 +1882,23 @@ async function start() {
     setPlate(on);
   }
   renderer.setAnimationLoop((now) => {
+    const gliding = !!glide;
     stepGlide();
     if (!snap && !embed) stepDrive(now);
     controls.update();
-    renderer.render(scene, camera);
-    if (onTrack && tracked.length) trackAnchors();
+    let draw = true;
+    if (embed) {
+      camera.updateMatrixWorld();
+      const moved = !drawnCam.equals(camera.matrixWorld) || !drawnProj.equals(camera.projectionMatrix);
+      draw = moved || gliding || wake > 0;
+      if (draw) {
+        drawnCam.copy(camera.matrixWorld);
+        drawnProj.copy(camera.projectionMatrix);
+        wake = Math.max(0, wake - 1);
+      }
+    }
+    if (draw) renderer.render(scene, camera);
+    if (onTrack && tracked.length) trackAnchors();  // counts the still frames, even undrawn
   });
   await frames(2);
   statusBox.textContent = '';

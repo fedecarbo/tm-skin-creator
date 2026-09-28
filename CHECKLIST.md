@@ -1623,7 +1623,45 @@ worked on, live; not one page. What was settled the same day:
       - the concurrency test with the server in the container and the hook on the host;
       - check that start-up no longer moves the Lab;
       - check that the stand renders.
-    - **Next:** the user tries the stand; then 9.2.
+    - **The user tried it (2026-09-28):** "the clicking and comments works pretty good. Im kinda
+      concerned with the overal workflow because the website now is soooo slow. And im imagining
+      we are adding so many pictures". They asked whether the Lab should be a standalone app that
+      runs only locally. Claude's answer: it already runs only on this computer, and an app would
+      draw the car with the same engine. The slowness was the page's own work.
+  - **Speed, between 9.1 and 9.2 (built 2026-09-28):**
+    - **What was slow:** both of the stand's cars (the stage, and the picture car behind it) were
+      drawn every frame at the screen's rate, 240 a second on the user's 2560×1440 239 Hz screen,
+      with shadows and the glass's extra pass, while nothing moved. And the picture car loaded
+      every step's textures again at each visit to draw the strip.
+    - **Now:**
+      - The embedded viewer draws only when something changed: the camera moved (a drag, its
+        damping, a glide), a call from the Lab (every `window.viewer` call but the read-only
+        `project`, `camera`, `views` and `gpu`, when made and when done), a resize, or the frames
+        a call awaits. `trackAnchors` still runs every frame, so the still-frame count for the
+        dots' raycasts goes on. Embed only: the page online and the snapshots draw every frame.
+      - The strip's pictures are kept in the browser (the Cache API, `tsc-lab-pictures`), by the
+        frame's hash, the view and day or night, under the `Last-Modified` dates of `viewer.js`
+        and `studio.js`, so a change to how the car looks draws them afresh. The newest 400 are
+        kept. A skin from before the Studio has no hash: drawn each visit, never kept.
+      - The picture car starts only when a picture is missing.
+      - The Materials room's ball isn't drawn while its room is hidden.
+    - **Measured** in headless Edge on the PC, 1440×900, TSC_CMYK_Brushed (7 steps, Cam 1 and 2):
+      - standing still, Edge used 70 % of a core before and 1 % after;
+      - a second visit: the car ready in 1.15 s, not 4.25 s; the strip in 1.33 s, not 8.9 s; the
+        picture car not started;
+      - the first visit is unchanged (8.9 s to the whole strip).
+    - **Checks:**
+      - 14 passed on what's drawn: after a drag, Day, Night, a step, a resize, a glide and a room
+        change, a forced redraw changes no pixel;
+      - a dot still dims when its point turns away;
+      - the Materials ball still turns;
+      - step 9.1's 23 checks passed again;
+      - the baselines are unchanged to the pixel.
+    - **Left as it is:** the server sends `Cache-Control: no-store` for everything, so every
+      texture is fetched again at each visit. On this computer that costs little next to decoding
+      them. On the Mac's Docker it may cost more.
+    - **For 9.2** (the user's worry about more pictures): the answer's after picture is drawn only
+      when its tag is opened, and kept like the strip's. The before is the note's own JPEG.
 
 ### Defining the parts (started 2026-09-26)
 
@@ -2123,6 +2161,19 @@ under "Things we learned"; what was built:
 
 ## Things we learned
 
+- **2026-09-28, the Lab slow (the user: "the website now is soooo slow").**
+  - A three.js page drawn in `setAnimationLoop` draws at the screen's rate. On the user's 239 Hz
+    screen, the stand's two cars cost 70 % of a processor core while nothing moved.
+  - Same-origin iframes share the page's main thread, so a hidden second viewer slows the one the
+    user is using.
+  - Drawing only when something changed brought it to 1 %. The canvas keeps its last picture
+    through the frames that draw nothing. Look for anything that moves by itself before doing
+    this: the standalone viewer's driving does, so it still draws every frame.
+  - Measure before guessing. A scratch script drove the Lab in headless Edge and timed three
+    things: the load, the long tasks (a `longtask` PerformanceObserver) and Edge's CPU over 6
+    still seconds. For the CPU, it summed psutil's `cpu_times` over the browser Playwright
+    started and all its children, the GPU process included. Headless Edge ran at 240 frames a
+    second, like the user's screen.
 - **2026-09-28, the notes on the car made safe (the Lab as a factory, step 9.0).**
   - **Windows refuses to replace a file another program has open:** the page's 1.5 s poll,
     OneDrive, Defender. Every writer of a file the page reads retries its `os.replace`

@@ -298,6 +298,7 @@ async function start() {
   const first = openFamily(want.family, false);
   await pick(want);
   big.renderer.setAnimationLoop(() => {
+    if ($('roomMaterials').hidden) return;  // another room open: not drawn for nobody
     big.ball.rotation.y += 0.003;
     controls.update();
     big.renderer.render(big.scene, big.camera);

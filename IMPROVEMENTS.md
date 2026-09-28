@@ -44,7 +44,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   From three rendered directions they chose B, the car on the stand: notes, answers with a
   before and after, options and Claude's checks as tags on the car (`CHECKLIST.md`, The Lab,
   step 9). Built: 9.0, the groundwork, and 9.1, the stand with the notes as tags (2026-09-28).
-  Next, once the user has tried the stand: 9.2, answers on the tags and the status line.
+  The user tried it: the clicks and notes work, but "the website now is soooo slow". Fixed the
+  same day: the Lab's cars draw only when something changes (70 % of a core to 1 % standing
+  still), and the strip's pictures are kept in the browser. A second visit shows the strip in
+  1.3 s, where it took 8.9. Next: 9.2, answers on the tags and the status line. Its after
+  pictures are drawn only when a tag is opened, and kept.
 
 ## The tool
 

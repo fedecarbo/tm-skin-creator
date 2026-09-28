@@ -16,7 +16,9 @@
 // and writes each step's frame and skins/<name>/steps.json (tool/view.py, export_steps), and
 // studio.json, the skin it painted last. The page asks for both every 1.5 s, so the strip fills in
 // while a design is being painted. Both cars are the viewer itself (?embed=1): the stage, and a
-// second one behind it at half its size and the same shape, which draws the strip's pictures.
+// second one behind it at half its size and the same shape, which draws the strip's pictures. This
+// browser keeps each picture (by its frame's hash and its view), so the second car starts only when
+// one is missing: the first visit after Claude paints, not every visit.
 
 import { note, render, wanted } from './lab-round.js';
 import { createTags } from './lab-tags.js';
@@ -27,7 +29,8 @@ const POLL = 1500;
 let skin = null;          // { name, title, entry: gallery.json's }
 let doc = null;           // steps.json
 let picked = -1;
-let stage = null, thumbs = null;  // the two viewers' window.viewer
+let stage = null, thumbs = null;  // the two viewers' window.viewer (the second once a picture is missing)
+let thumbsStart = null;
 let seen = {};            // step -> frame, when this browser last saw the skin: newer ones are New
 let changed = new Set();
 const pics = new Map();   // frame (and view) -> picture URL
@@ -82,13 +85,55 @@ function framed() {  // the box each car frames itself in, after a resize
   if (tags) tags.restack();
 }
 
-function picture(key, textures, view, night) {  // a picture of the car, drawn once per key
+function pictureCar() {  // the second car, started the first time a picture isn't kept
+  thumbsStart ||= viewer($('stThumbs')).then((v) => {
+    thumbs = v;
+    if (v) v.inset(box(0.5));
+    return v;
+  });
+  return thumbsStart;
+}
+
+// The pictures this browser keeps (the Cache API), under the dates of the viewer's own files, so a
+// change to how the car looks draws them afresh; the newest 400 are kept (about 15 MB).
+const KEEP = 'tsc-lab-pictures', MOST = 400;
+let kept = null;
+function keeper() {
+  kept ||= (async () => {
+    if (!window.caches) return null;  // an address other than this computer's (a phone on the network)
+    const dates = await Promise.all(['viewer.js', 'studio.js'].map((f) =>
+      fetch(f, { method: 'HEAD' }).then((r) => r.headers.get('last-modified') || '')));
+    const name = `${KEEP} ${dates.join(' ')}`;
+    for (const k of await caches.keys()) if (k.startsWith(KEEP) && k !== name) await caches.delete(k);
+    const c = await caches.open(name);
+    const all = await c.keys();
+    for (const r of all.slice(0, Math.max(0, all.length - MOST))) await c.delete(r);
+    return c;
+  })().catch(() => null);
+  return kept;
+}
+
+// A picture of the car in a frame's textures (frame: its hash, from the paint box), drawn once and
+// kept. A skin painted before the Studio has no hash: drawn each visit, never kept.
+function picture(frame, textures, view, night) {
+  const key = `${frame}|${typeof view === 'string' ? view : JSON.stringify(view)}|${night ? 'night' : 'day'}`;
   if (pics.has(key)) return Promise.resolve(pics.get(key));
   const job = queue.then(async () => {
     if (pics.has(key)) return pics.get(key);
-    await thumbs.dress(textures);
-    await thumbs.show(view, night);
-    const url = await thumbs.picture({ crop: 'inset' });
+    const shelf = /^[0-9a-f]{12}$/.test(frame) ? await keeper() : null;
+    const at = `${location.origin}/lab-pictures/${encodeURIComponent(key)}`;
+    let blob = shelf ? await shelf.match(at).then((r) => r && r.blob()).catch(() => null) : null;
+    if (!blob) {
+      const car = await pictureCar();
+      if (!car) throw new Error('the picture car didn\'t start');
+      await car.dress(textures);
+      await car.show(view, night);
+      const drawn = await car.picture({ crop: 'inset' });
+      blob = await (await fetch(drawn)).blob();
+      $('stThumbs').contentWindow.URL.revokeObjectURL(drawn);
+      if (shelf) await shelf.put(at, new Response(blob, { headers: { 'Content-Type': 'image/jpeg' } })).catch(() => {});
+    }
+    const url = URL.createObjectURL(blob);
     pics.set(key, url);
     return url;
   });
@@ -138,7 +183,7 @@ function strip() {
     if (step.textures) {
       b.addEventListener('click', () => pick(k));
       const l = lookOf(step);
-      if (thumbs) picture(step.frame, step.textures, l.view, l.night).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
+      picture(step.frame, step.textures, l.view, l.night).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
     }
     box.append(b);
   });
@@ -148,7 +193,7 @@ function strip() {
       const b = still(c.label, 'cam');
       b.title = c.title;
       b.addEventListener('click', () => stage && stage.go(c.view));
-      if (thumbs) picture(`${last.frame}|${c.view}`, last.textures, c.view, false).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
+      picture(last.frame, last.textures, c.view, false).then((url) => { b.querySelector('img').src = url; }).catch((e) => console.error(e));
       side.append(b);
     }
   }
@@ -380,7 +425,7 @@ async function openSkin(name) {
   notes = []; nextN = 1; writing = null;
   if (!stage) {
     fitThumbs();
-    [stage, thumbs] = await Promise.all([viewer($('stCar')), viewer($('stThumbs'))]);
+    stage = await viewer($('stCar'));
     if (stage) {
       stage.onPick = startNote;
       cams = stage.views();
