@@ -1,8 +1,8 @@
 // The Lab: its rooms, and the materials room: every finish the tool knows (tool/swatches.py writes
 // the list and each ball's textures from tool/finishes.py), drawn on a ball with the viewer's
 // lighting, with its code and numbers and a line to copy for Claude.
-//   /lab.html                 the car's room: the skin Claude painted last on the stand (lab-studio.js),
-//                             and for a studio car its wizard around it (lab-wizard.js)
+//   /lab.html                 the car's room: the skin Claude painted last on the car (lab-studio.js),
+//                             the list of options beside it (lab-car.js)
 //   /lab.html?room=materials  the materials room, the first family
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
 //   /lab.html?room=uv         the UV map room (lab-rooms.js, from tool/rooms.py): the game's four
@@ -221,6 +221,9 @@ const begun = {};
 function openRoom(name) {
   for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
   $('roomPaint').hidden = !painting.has(name);
+  // the car's room has its own header (the car's name and its menu); the others a way back to it
+  $('labTop').classList.toggle('inRoom', name !== 'studio');
+  $('rooms').hidden = name === 'studio';
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);
   if (name === 'studio') u.searchParams.delete('room');
@@ -230,8 +233,8 @@ function openRoom(name) {
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
-  // the car's room: a studio car's wizard around the stand, which it opens when it shows it
-  if (name === 'studio') import('./lab-wizard.js').then((room) => room.open({ copy, room: openRoom })).catch(failed);
+  // the car's room: the car (lab-studio.js) and the list beside it (lab-car.js)
+  if (name === 'studio') import('./lab-car.js').then((room) => room.open({ copy, room: openRoom })).catch(failed);
 }
 
 async function rooms() {
@@ -250,7 +253,7 @@ async function rooms() {
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
   let want = params.get('room');
   if (['body', 'details', 'tyres', 'glass', 'wheels', 'lights'].includes(want)) want = 'uv';  // the rooms before the UV map (2026-09-27)
-  if (want === 'build') want = 'studio';  // the wizard's own room, before it took in the stand (2026-09-28)
+  if (want === 'build') want = 'studio';  // the wizard's room, gone with the steps (2026-09-28)
   openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
 }
 rooms().catch(failed);

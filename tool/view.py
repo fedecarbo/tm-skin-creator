@@ -4,8 +4,8 @@
     python -m tool.view TSC_Test --no-open    same, without opening the browser
 
 Python's built-in web server serves two folders (ES modules don't load from file://), the
-Studio's notes on the car (/api/notes, tool/notes.py) and the studio cars' build sheets for the
-Lab's wizard (/api/sheet, tool/sheet.py):
+Studio's notes on the car (/api/notes, tool/notes.py) and each car's sets of options for the Lab's
+list (/api/sets, tool/sets.py):
   /        the repo's viewer/ folder: the page and three.js
   /data/   the work folder's viewer/ folder, all rebuildable:
              car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0, each
@@ -42,6 +42,7 @@ import hashlib
 import http.server
 import io
 import json
+import re
 import threading
 import time
 import urllib.parse
@@ -54,7 +55,7 @@ import numpy as np
 from PIL import Image
 
 from tool import bake, dds, fbx, notes, parts, paths
-from tool import sheet as sheets
+from tool import sets
 
 DATA = paths.WORK / "viewer"
 STOCK = DATA / "stock"
@@ -541,25 +542,41 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    # The Lab's wizard: GET /api/sheet?skin=<name>, the build sheet of the studio car the skin belongs
-    # to (tool/sheet.py's lab()), read from the repo's skins/ folder, which /data/ doesn't reach.
+    # The Lab's list: GET /api/sets?skin=<name>, the sets of options of the car the skin is or is an
+    # option of (tool/sets.py's lab()), read from the repo's skins/ folder, which /data/ doesn't reach.
+    # The pictures a pick kept of each option, for the Lab's earlier picks: /sets/<car>/<n>/<letter>.png,
+    # from the repo's skins/<car>/sets/ (tool/sets.py), nothing else.
+    SET_PICTURE = re.compile(r"/sets/([A-Za-z0-9_\-]+)/(\d{1,4})/([A-Z])\.png")
+
     def do_GET(self):
         url = urllib.parse.urlsplit(self.path)
-        if url.path not in ("/api/notes", "/api/sheet"):
+        m = self.SET_PICTURE.fullmatch(url.path)
+        if m:
+            f = sets.SKINS / m[1] / "sets" / m[2] / f"{m[3]}.png"
+            if not f.is_file():
+                return self._json(404, {"error": "no such picture"})
+            data = f.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
+        if url.path not in ("/api/notes", "/api/sets"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
         skin = urllib.parse.parse_qs(url.query).get("skin", [""])[0]
         try:
-            if url.path == "/api/sheet":
-                doc = sheets.lab(skin)
-                return self._json(200, doc) if doc else self._json(404, {"error": f"{skin} isn't a studio car"})
+            if url.path == "/api/sets":
+                doc = sets.lab(skin)
+                return self._json(200, doc) if doc else self._json(400, {"error": f"not a skin's name: {skin!r}"})
             self._json(200, {"notes": notes.of(skin), "next": notes.next_n(skin)})
         except (OSError, ValueError) as e:  # a file busy, or caught mid-write
             self._json(503, {"error": str(e)})
 
     # What a POST to /api/notes can do: the first of these keys in the body picks it, else a new note.
-    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture", "view", "station", "sheet")
+    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture", "view", "station", "answer")
     ACTIONS = {
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }

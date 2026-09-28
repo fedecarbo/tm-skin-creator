@@ -16,10 +16,10 @@ it's handled, and its pin leaves the car:
     python -m tool.notes done <skin> [N ...]    mark notes done (all of the skin's, without numbers)
     python -m tool.notes wait [minutes]         end as soon as a note comes, printing it (default 120)
 
-The Lab's wizard (a studio car's build sheet, W3) sends the user's answers at a step the same way:
-a note on the car (the skin is the studio car) with `sheet`, the step and the option picked, or a
-yes, and no point. While Claude waits for an answer, it runs `wait` in the background, which wakes
-it the moment one comes, with no message in the chat needed.
+The Lab's list of options (a car's sets, tool/sets.py) sends the user's answers the same way: a note
+on the car with `answer`, the set and the option picked (or the option their words are about), and
+no point. While Claude waits for an answer, it runs `wait` in the background, which wakes it the
+moment one comes, with no message in the chat needed.
 
 The server (on threads), the hook and the command line all write the file. Each write takes a lock,
 a folder made with mkdir, which is atomic on Windows and macOS and holds across the Mac's container
@@ -109,9 +109,9 @@ def save(notes):
 
 
 def _skin(skin):
-    """A skin with a design, or a studio car with its sheet (the wizard's answers come before any paint)."""
+    """A skin with a design, or a car with sets (a new car's concepts come before it has one)."""
     if not isinstance(skin, str) or not NAME.fullmatch(skin) or not any(
-            (REPO / "skins" / skin / f).is_file() for f in ("design.py", "sheet.json")):
+            (REPO / "skins" / skin / f).is_file() for f in ("design.py", "sets.json")):
         raise ValueError(f"no skin called {skin!r}")
     return skin
 
@@ -179,14 +179,15 @@ def _station(v):
 
 
 def _answer(v):
-    """The wizard's answer at a step of the build sheet ({"step", "name", "pick", "title", "yes"}: the
-    step's key and name, the option picked and its title, or yes to what the step shows), checked;
-    None when it isn't one."""
-    if not isinstance(v, dict) or not isinstance(v.get("step"), str) or not re.fullmatch(r"[a-z]{1,20}", v["step"]):
+    """An answer in the Lab's list of options ({"set", "name", "pick", "about", "title"}: the set's number
+    and title, the option picked, or the option the words are about, and its title), checked; None
+    when it isn't one."""
+    if not isinstance(v, dict) or not isinstance(v.get("set"), int) or isinstance(v.get("set"), bool) or not 0 < v["set"] < 10000:
         return None
-    pick = v.get("pick") if isinstance(v.get("pick"), str) and re.fullmatch(r"[A-Z](\+[A-Z]){0,5}", v["pick"]) else None
-    return {"step": v["step"], "name": str(v.get("name") or v["step"])[:40], "pick": pick,
-            "title": str(v.get("title") or "")[:80] if pick else "", "yes": v.get("yes") is True and not pick}
+    letter = lambda x: x if isinstance(x, str) and re.fullmatch(r"[A-Z]", x) else None
+    pick, about = letter(v.get("pick")), letter(v.get("about"))
+    return {"set": v["set"], "name": str(v.get("name") or "")[:80], "pick": pick, "about": None if pick else about,
+            "title": str(v.get("title") or "")[:80] if pick or about else ""}
 
 
 def _drop_picture(note):
@@ -197,16 +198,16 @@ def _drop_picture(note):
 
 
 def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None, station=None,
-        sheet=None):
+        answer=None):
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
     the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
     on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); station:
     the stand's station and try the user was looking at (step and step_name: the Studio's step,
-    before the stations); sheet: the wizard's answer at a step of a studio car's build sheet (a pick
-    or a yes needs no words). Returns the note."""
+    before the stations); answer: the user's answer in the Lab's list of options (a pick needs no
+    words). Returns the note."""
     text = str(text or "").strip()[:LONGEST]
-    sheet = _answer(sheet)
-    if not text and not (sheet and (sheet["pick"] or sheet["yes"])):
+    answer = _answer(answer)
+    if not text and not (answer and answer["pick"]):
         raise ValueError("an empty note")
     _skin(skin)
     vec = lambda v: [round(float(x), 4) for x in v][:3] if isinstance(v, list) and len(v) == 3 else None
@@ -226,7 +227,7 @@ def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, pi
             "normal": vec(normal),
             "view": _view(view),
             "station": _station(station),
-            "sheet": sheet,
+            "answer": answer,
             "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": "new",  # new -> sent (Claude has read it) -> done (handled)
         }
@@ -268,12 +269,12 @@ def done(skin, numbers=()):
 
 
 def line(x):
-    a = x.get("sheet")
-    if a:  # the wizard's answer at a step, not a point on the car
-        did = (f"picked {a['pick']}" + (f" ({a['title']})" if a["title"] else "") if a["pick"]
-               else "said yes to it" if a["yes"] else "wrote")
+    a = x.get("answer")
+    if a:  # an answer in the Lab's list of options, not a point on the car
+        did = (f"picked {a['pick']} ({a['title']})" if a["pick"] else f"about {a['about']} ({a['title']})" if a["about"]
+               else "wrote")
         words = f": \"{x['text']}\"" if x["text"] else ""
-        return f"- {x['skin']}, note {x['n']}, in the Lab's wizard at the {a['name']} step, {did}{words}"
+        return f"- {x['skin']}, note {x['n']}, in the Lab's list, set {a['set']} ({a['name']}), {did}{words}"
     where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
     step = f"at step {x['step']} ({x['step_name']})" if x["step"] is not None else ""
     st = x.get("station")
@@ -294,7 +295,7 @@ def deliver(since):
         if not new:
             return False
         print(f"Notes the user left in the Lab {since} (their words: on the car, each pinned to the part they "
-              "clicked, so look at its picture; in the wizard, an answer at a step of the build sheet; "
+              "clicked, so look at its picture; in the list, a pick or words on a set of options; "
               "`python -m tool.notes done <skin> <n>` once one is handled):")
         for x in new:
             print(line(x))

@@ -34,40 +34,31 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `tool/rooms.py` (its maps, parts and camera; every part must be in a room) and reads
   `view.export_uvmap`'s data (the map picks surfaces: `view._surfaces`, the shapes it outlines,
   `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
-  their code change. The stand (the first room, `viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`)
-  reads the frames `tool.skin show` writes at each `Skin.step` (`view.export_steps`, `studio.json`);
-  `install` paints without them. Under the car are its stations (`rooms.STATIONS`, in uvmap.json:
-  Body, Details, Tyres, Glass, one per map), each with its tries: at the end of a show,
-  `view.export_stations` gives a new try to every station whose map's pictures changed
-  (`skins/<name>/stations.json`, the pictures in `tries/`, the newest 8 kept). It's written
-  before the final steps.json, which the page waits for. It drives the embedded viewer (`index.html?embed=1`) through
-  `window.viewer`: `inset` (the box the car is framed in, the rest left to the tags), `track` (its
-  points' places on the page, pushed at the end of each frame that moves them), `project`, `camera`,
-  `go`, `mood`, `views` (the viewer's own Cam buttons) and `picture({ crop: 'inset' })`. All of it is
-  embed-only: the page online and Claude's snapshots mustn't change (compare a snapshot before and
-  after). The embedded viewer draws only when something changed (the camera, a `window.viewer`
-  call, a resize: `rouse`), so anything new that changes the picture on its own must call `rouse`.
-  The strip's pictures are kept in the browser's Cache API, by a hash of their textures' URLs (each
-  names its content: a frame's `?v=`, a try's file, the stock) and the view. The second car behind
-  the stage starts only when one is missing, and only once the stage is shown. The embedded viewer
-  with no skin has no car until its first `dress` (or `stock()`). Its notes on the car (`tool/notes.py`,
-  `.notes/notes.json`: git-ignored, each computer keeps its own, writers take an mkdir lock) go
-  through the viewer's server
-  (`/api/notes`, this computer's pages only) and reach Claude through a UserPromptSubmit hook
-  (`.claude/settings.json`). A round of concepts (`skins/rounds.json`, `tool.skin round`, on each
-  take's `gallery.json` entry) puts a switch between its takes on the stand and in the UV map
-  (`viewer/lab-round.js`).
-- The design studio's build sheet: `tool/sheet.py` (its docstring is the key) writes
-  `skins/<car>/sheet.json`, the only writer, so the Lab's wizard shows it and keeps no list of its
-  own. Standard library only (the Mac's python3 runs it). Its pick deletes the options not kept.
-  The Lab's wizard (`viewer/lab-wizard.js`) is the car's room for a studio car or one of its
-  options: the sheet beside the stand, the step over it, a page for the brief and the concepts, the
-  stand itself after them, the car step (`sheet.STAND`); it opens the stand when it first shows it, and the
-  stand does nothing while hidden. It reads the sheet through `/api/sheet?skin=<name>` (`sheet.lab`:
-  the car it belongs to, the brief's card, each step's questions from `ASKS`) and sends the user's
-  answers as notes with `sheet` (a pick, a yes or words at a step, no point on the car; the stand
-  leaves them out); `tool.notes wait` in the background wakes Claude on the next one. Notes: "The
-  design studio" in `CHECKLIST.md` (W3).
+  their code change. The car's room (the user's pick of the fresh layouts, A, 2026-09-28) is the car
+  (`viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`) and the list of its sets of options beside
+  it (`viewer/lab-car.js`), with the car's name, in the game and Claude's status over them. The car
+  reads the frames `tool.skin show` writes at each `Skin.step` (`view.export_steps`, `studio.json`)
+  and follows Claude's painting; `install` paints without them. It drives the embedded viewer
+  (`index.html?embed=1`) through `window.viewer`: `inset` (the box the car is framed in, the rest left
+  to the tags), `track` (its points' places on the page, pushed at the end of each frame that moves
+  them), `project`, `camera`, `go`, `mood`, `views` (the viewer's own Cam buttons: "Game view") and
+  `picture({ crop: 'inset' })`. All of it is embed-only: the page online and Claude's snapshots
+  mustn't change (compare a snapshot before and after). The embedded viewer draws only when something
+  changed (the camera, a `window.viewer` call, a resize: `rouse`), so anything new that changes the
+  picture on its own must call `rouse`. The embedded viewer with no skin has no car until its first
+  `dress` (or `stock()`). Its notes on the car (`tool/notes.py`, `.notes/notes.json`: git-ignored,
+  each computer keeps its own, writers take an mkdir lock) go through the viewer's server (`/api/notes`,
+  this computer's pages only) and reach Claude through a UserPromptSubmit hook (`.claude/settings.json`),
+  or at once through `tool.notes wait` in the background.
+- The sets of options: `tool/sets.py` (its docstring is the key, standard library only) writes
+  `skins/<car>/sets.json`, the only writer; the Lab's list reads it through `/api/sets?skin=<name>`
+  (`sets.lab`: the car the skin is or is an option of). Each option's picture is its gallery thumb, and
+  a pick keeps every option's picture in `skins/<car>/sets/<n>/` (served as
+  `/sets/<car>/<n>/<letter>.png`) for the list's earlier picks. A pick or a few words in the list are
+  notes with `answer` (the set, the option), which the car's tags leave out. Still written, no longer
+  shown: the stations' tries (`view.export_stations`) and the rounds (`skins/rounds.json`; the UV map
+  room's switch, `viewer/lab-round.js`, still reads them). Notes: "The design studio" in `CHECKLIST.md`
+  (W3).
 - Mood boards: `tool/mood.py` (its docstring is the key) paints each board's finishes on balls with
   the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
   `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room

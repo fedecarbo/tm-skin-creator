@@ -129,24 +129,19 @@
            background: rgba(12, 14, 18, 0.85); backdrop-filter: blur(6px); border-radius: 4px; }
   #prLive { position: absolute; left: 14px; top: 12px; z-index: 2; background: rgba(12, 14, 18, 0.75); backdrop-filter: blur(6px); }
 
-  /* The stand, the Lab's first room (the user's pick, B, 2026-09-27: CHECKLIST.md, "The Lab", step 9):
-     the car fills the room, framed between two gutters where its tags hang (lab-tags.js), each joined
-     by a line to a dot on its point; the stations along the bottom (Body, Details, Tyres, Glass, each
-     with its tries: the user's pick, B, 2026-09-28). A second car behind the first, at half its size,
-     draws the strip's pictures. */
-  .stand { display: grid; grid-template-rows: 46px minmax(0, 1fr) auto; flex: 1 1 auto; min-height: 0; }
-  .stand[hidden] { display: none; }
-  .standHead { display: flex; align-items: center; gap: 14px; padding-left: 4px; min-width: 0; }
-  .standHead h3 { margin: 0; font-size: 34px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; }
-  .standHead .grow { flex: 1; }
+  /* The car (lab-studio.js), filling the room, framed between two gutters where its notes hang as tags
+     (lab-tags.js), each joined by a line to a dot on its point (the user's pick, B, 2026-09-27, kept in
+     the fresh layouts: "apart from the comment thing, which I think was quite good"). Day, Night and the
+     game's camera over it on the right; on the left, the option on show and the hint. */
+  .stand { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
   .live { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 12px 5px; background: rgba(255, 255, 255, 0.06); min-width: 0; }
   .live span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .live i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }
   .live.on i { background: var(--acc); box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.2); animation: pulse 0.9s ease-in-out infinite alternate; }
   @keyframes pulse { to { box-shadow: 0 0 0 6px rgba(232, 255, 71, 0); } }
-  #stStage { position: relative; margin-top: 6px; background: var(--ball); overflow: hidden; min-height: 0; }
+  #stStage { position: relative; flex: 1 1 auto; background: var(--ball); overflow: hidden; min-height: 0; }
   #stStage iframe { position: absolute; left: 0; top: 0; border: 0; }
-  #stCar { width: 100%; height: 100%; }  /* #stThumbs: sized by lab-studio.js, behind the car */
+  #stCar { width: 100%; height: 100%; }
   /* over the car while it loads: the viewer's own page, then the stock car, never flash (the user,
      2026-09-28: "the original viewer ... loads and then flickers a bit and then the lab page loads") */
   #stCover, .cover { position: absolute; inset: 0; background: var(--ball); pointer-events: none; transition: opacity 0.25s; }
@@ -183,168 +178,107 @@
   .tagButtons { display: flex; gap: 6px; margin-top: 9px; padding-left: 4px; align-items: center; }
   .tagButtons .sk { font-size: 17px; padding: 6px 11px 3px; }
   .tagButtons .state { margin: 0 0 0 6px; }
-  #stHint { position: absolute; left: 12px; top: 12px; max-width: 250px; padding: 9px 12px; font-size: 13px; line-height: 1.4;
-            background: rgba(12, 14, 18, 0.72); color: rgba(242, 244, 247, 0.75); pointer-events: none; }
-  #stHint[hidden] { display: none; }
+  .stTop { position: absolute; left: 14px; right: 14px; top: 14px; z-index: 3; display: flex; justify-content: space-between;
+           align-items: flex-start; gap: 12px; pointer-events: none; }
+  .stTop > * { pointer-events: auto; }
+  .stLeft { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; min-width: 0; }
+  #stHint { max-width: 250px; padding: 9px 12px; font-size: 13px; line-height: 1.4; background: rgba(12, 14, 18, 0.72);
+            color: rgba(242, 244, 247, 0.75); pointer-events: none; }
+  #stHint[hidden], #stOn[hidden] { display: none; }
+  /* the option on the car, and the way back to the car itself */
+  .onCar { display: flex; align-items: center; gap: 10px; padding: 7px 8px 6px 14px; background: rgba(12, 14, 18, 0.88);
+           box-shadow: inset 3px 0 var(--acc); min-width: 0; max-width: 100%; }
+  .onCar .k { font-size: 13px; opacity: 0.6; white-space: nowrap; }
+  .onCar b { font-size: 24px; font-weight: 600; transform: skewX(-9deg); padding-top: 3px; white-space: nowrap; }
+  .onCar .s { font-size: 13px; opacity: 0.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .onCar .sk { font-size: 16px; padding: 6px 11px 3px; }
+  #stMood .sk { font-size: 17px; padding: 6px 12px 3px; background: rgba(12, 14, 18, 0.72); }
+  #stMood .sk:hover { background: rgba(12, 14, 18, 0.9); }
+  #stMood .sk[aria-pressed="true"] { background: var(--text); color: var(--ground); }
   .tagList { display: none; }
   .tagList .tag { transform: none !important; width: auto !important; }
-  .at { position: absolute; left: 18px; bottom: 12px; z-index: 1; font-size: 26px; font-weight: 600; transform: skewX(-9deg); pointer-events: none; }
-  .at small { font-size: 18px; opacity: 0.55; font-weight: 500; margin-left: 8px; }
-  .stand .at, .credit { color: #16181b; }
-  .stand.night .at, .stand.night .credit { color: var(--text); }
+  .credit { color: #16181b; }
+  .stand.night .credit { color: var(--text); }
   .credit { position: absolute; right: 12px; bottom: 8px; z-index: 1; max-width: 44%; font-size: 10px; line-height: 1.35; opacity: 0.55; text-align: right; }
   .credit a { color: inherit; }
-  .strip { display: flex; gap: 8px; padding-top: 10px; min-width: 0; }
-  .strip .steps { display: flex; gap: 8px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
-  .still { flex: none; width: 128px; padding: 0 0 6px; background: var(--ball); text-align: left; position: relative; align-self: start; }
-  .still img { display: block; width: 128px; height: 74px; object-fit: cover; background: #111316; }
-  .still .fn { font-size: 17px; padding: 4px 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .still .fn small { font-size: 13px; opacity: 0.6; }
-  .still:hover { background: #111318; }
-  .still[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--acc); }
-  .still.wip { cursor: default; }
-  .still img:not([src]) { visibility: hidden; }  /* painting, or its picture still being drawn */
-  .still .fn small { margin-left: 3px; }
-  /* the open station's tries (the user's pick, B, 2026-09-28), each on the car as it is now */
-  .still.wide { width: auto; }
-  .still .tries { display: flex; gap: 4px; }
-  .still .tries figure { margin: 0; position: relative; }
-  .still .tries img { width: 112px; height: 74px; opacity: 0.5; transition: opacity 0.12s; }
-  .still .tries.many img { width: 76px; }
-  .still .tries figure:hover img, .still .tries figure.on img { opacity: 1; }
-  .still .tries figcaption { position: absolute; left: 3px; top: 2px; font-size: 13px; padding: 1px 4px 0; background: rgba(12, 14, 18, 0.6); }
-  .still .tries figure.on figcaption { background: var(--acc); color: var(--ground); }
-  .newTag { font-style: normal; display: inline-block; font-size: 13px; padding: 2px 5px 0; margin-left: 4px; background: var(--acc);
-            color: var(--ground); transform: skewX(-12deg); vertical-align: 1px; }
   .quote { font-style: italic; }
   .pinDot { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; padding-top: 3px;
             background: var(--acc); color: var(--ground); font: 600 16px/1 Teko, sans-serif; }
 
-  /* The car's room: the stand, and for a studio car its wizard (lab-wizard.js; the user's pick of the
-     screens, 2026-09-28): the build sheet on the left, one line per step, the way back; the step on show
-     filling the rest, its question in Teko at 44 px, then a page (the brief's card, the concepts' cards)
-     or, from Finish on, the car on the stand with its notes (the user, the same day: "that could already
-     as a 3d model where I can use the nice comment windows"); "Or tell Claude in your own words", Back
-     and Next under it. */
-  .carRoom { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 12px;
-             padding: 0 34px 16px; min-height: 0; }
-  .carRoom.withSheet { grid-template-columns: 300px minmax(0, 1fr); }
+  /* The car's room, the fresh layouts' A (the user's pick, 2026-09-28: CHECKLIST.md, "The design studio",
+     W3): the car fills it, and a list on the right holds whatever Claude offers, sets of options newest
+     on top, each option a click away from the car, with a Pick and a word for Claude; earlier picks
+     under them, small. Nothing on the page moves or changes shape. */
+  .carRoom { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) clamp(364px, 19vw, 480px); column-gap: 12px;
+             padding: 0 24px 20px; min-height: 0; }
   .carRoom [hidden] { display: none !important; }
-  .bs { background: var(--ball); padding: 14px 0 12px; display: flex; flex-direction: column; min-height: 0; }
-  .bs h2 { margin: 0 16px 2px; font-size: 30px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
-  .bs .sub { margin: 0 16px 10px; font-size: 12px; opacity: 0.55; }
-  .bs ol { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
-  .bs li button { display: block; width: 100%; text-align: left; padding: 6px 16px 5px; border-top: 1px solid rgba(255, 255, 255, 0.06); }
-  .bs li button:hover { background: rgba(255, 255, 255, 0.05); }
-  .bs .n { font-size: 18px; display: flex; gap: 8px; align-items: baseline; }
-  .bs .n i { font-style: normal; font-size: 13px; opacity: 0.45; width: 16px; flex: none; }
-  .bs .n .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bs .n em { font-style: normal; flex: none; font-size: 12px; padding: 2px 6px 0; transform: skewX(-9deg); }
-  .bs em.turn { background: var(--acc); color: var(--ground); }
-  .bs em.busy { background: rgba(255, 255, 255, 0.14); }
-  .bs em.look { background: #ff9d2e; color: var(--ground); }
-  .bs em.changed { background: var(--text); color: var(--ground); }
-  .bs .d { display: block; font-size: 12px; opacity: 0.6; margin: 1px 0 0 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bs li.todo button { opacity: 0.35; }
-  .bs li.skipped .d { font-style: italic; }
-  .bs li.now button { background: var(--acc); color: var(--ground); opacity: 1; }
-  .bs li.now .d { opacity: 0.8; }
-  .bs li.now em.turn, .bs li.now em.busy { background: var(--ground); color: var(--acc); }
-  .sofar { position: relative; display: block; margin: 10px 16px 0; text-align: left; }
-  .sofar img { display: block; width: 100%; height: 118px; object-fit: cover; }
-  .sofar span { position: absolute; left: 8px; top: 7px; font-size: 16px; color: #16181b; }
-  .sofar small { position: absolute; right: 8px; bottom: 6px; font-size: 12px; color: #16181b; opacity: 0.7; }
-  .sofar:hover img { filter: brightness(1.04); }
-  .wz { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
-  .q { flex: none; display: flex; align-items: flex-end; gap: 16px; }
-  .q > div { min-width: 0; }
-  .q .show { margin-left: auto; margin-bottom: 4px; }
-  .carRoom.onCar .q { padding-bottom: 10px; }
-  .carRoom.onCar .q h3 { font-size: 36px; }
-  .q { padding: 4px 0 18px 4px; }
-  .q .k { font-size: 17px; color: var(--acc); }
-  .q h3 { margin: 4px 0 4px; font-size: 44px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; line-height: 1; }
-  .q p { margin: 0; font-size: 15px; opacity: 0.7; max-width: 760px; }
-  .q p:empty { display: none; }
-  .wzBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.2) transparent; }
-  .said, .bq, .was { background: var(--ball); padding: 20px 26px 22px; flex: none; box-sizing: border-box; }
-  /* words at a reading width (the user, 2026-09-28: "the brief and the ones that have more like content,
-     looks really stretched"); the options' cards keep the whole width */
-  .wzBody > .said, .wzBody > .was, .wzBody > .offered { width: 100%; max-width: 960px; }
-  .said .teko, .bq > .teko, .was .teko { font-size: 20px; opacity: 0.6; }
-  .said p { margin: 8px 0 0; font-size: 16px; line-height: 1.55; }
-  .said.draft { box-shadow: inset 4px 0 var(--acc); }
-  .said.draft .teko { color: var(--acc); opacity: 1; }
-  .said.draft p { font-size: 22px; line-height: 1.45; }
-  .said.quote p { font-style: italic; font-size: 14.5px; line-height: 1.6; opacity: 0.8; }
-  .said.busy .teko { display: flex; align-items: center; gap: 8px; opacity: 1; }
-  .said.busy .teko::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); margin-top: -3px;
-                             animation: pulse 0.9s ease-in-out infinite alternate; box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.2); }
-  .said.lookout { box-shadow: inset 4px 0 #ff9d2e; }
-  .said.lookout .teko { color: #ff9d2e; opacity: 1; }
-  .said.quiet p { opacity: 0.75; }
-  .was { font-size: 13px; }
-  .was p { margin: 6px 0 0; line-height: 1.5; opacity: 0.75; }
-  /* the brief: Claude's reading on the left, the user's own words beside it */
-  .brief { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); grid-template-areas: "draft words" "from words" "rules words";
-           gap: 14px 18px; align-items: start; max-width: 1240px; }
-  .brief .draft { grid-area: draft; }
-  .brief .from { grid-area: from; }
-  .brief .rules { grid-area: rules; }
-  .brief .wide { grid-area: words; }
-  .bq ul { margin: 10px 0 0; padding-left: 18px; font-size: 15px; line-height: 1.55; }
-  .bq li + li { margin-top: 8px; }
-  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 18px; }
-  .pills:last-child { margin-bottom: 0; }
-  .pills span { padding: 6px 12px 5px; font-size: 14px; background: rgba(255, 255, 255, 0.07); }
-  .pills span.on { background: var(--text); color: var(--ground); }
-  .pills span.no { text-decoration: line-through; text-decoration-color: rgba(242, 244, 247, 0.55); }
-  .cards { flex: 1 1 auto; min-height: 280px; display: grid; gap: 10px; align-content: start; }
-  .carRoom .card { position: relative; display: flex; flex-direction: column; background: var(--ball); min-height: 0; min-width: 0; overflow: hidden; }
-  .carRoom .card.on::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--acc); pointer-events: none; }
-  .carRoom .card .story { display: flex; height: 10px; flex: none; }
-  .carRoom .card .pic { position: relative; flex: 1; min-height: 0; background: #d6d6da; }
-  .carRoom .card .pic.board { background: #0a0b0d; }
-  .carRoom .card .pic.board img { object-fit: contain; }
-  .carRoom .card .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  .carRoom .card.off .pic > :not(.look) { opacity: 0.4; filter: grayscale(0.5); }
-  .carRoom .card .none { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: rgba(22, 24, 27, 0.6); }
-  .carRoom .card .pic.board .none { color: rgba(242, 244, 247, 0.5); }
-  .carRoom .card .look { position: absolute; right: 10px; top: 10px; font-size: 15px; padding: 5px 10px 2px; background: rgba(12, 14, 18, 0.72); color: var(--text); }
-  .carRoom .card .line { margin: 0; padding: 10px 14px 0; font-size: 13px; line-height: 1.4; opacity: 0.75; flex: none; }
-  .carRoom .cap { display: flex; align-items: center; gap: 8px; padding: 9px 12px 7px; flex: none; }
-  .carRoom .cap .t { font-size: 24px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .carRoom .cap .t b { display: inline-block; background: var(--text); color: var(--ground); padding: 2px 8px 0; margin-right: 8px; }
-  .carRoom .cap .grow { flex: 1; }
-  .carRoom .cap .sk { font-size: 17px; padding: 6px 12px 3px; }
-  .carRoom .cap .kept { font-size: 16px; padding: 3px 8px 1px; background: rgba(255, 255, 255, 0.1); transform: skewX(-9deg); white-space: nowrap; }
-  .carRoom .card.on .kept { background: var(--acc); color: var(--ground); }
-  .offered { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
-  .offered span { display: flex; align-items: baseline; gap: 8px; padding: 7px 12px 4px; font-size: 20px; background: var(--ball); }
-  .offered b { background: var(--text); color: var(--ground); padding: 2px 6px 0; font-weight: 600; }
-  .offered small { font-size: 14px; opacity: 0.55; }
-  .offered .on { box-shadow: inset 0 0 0 2px var(--acc); }
-  .offered .on small { color: var(--acc); opacity: 1; }
-  .carNow { position: relative; margin: 0; align-self: flex-start; flex: none; width: min(100%, 640px); }
-  .carNow img { display: block; width: 100%; }
-  .carNow figcaption { position: absolute; left: 12px; top: 10px; font-size: 20px; color: #16181b; }
-  .carNow .look { position: absolute; right: 10px; top: 10px; font-size: 15px; padding: 5px 10px 2px; background: rgba(12, 14, 18, 0.72); }
-  #wzSaid { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; flex: none; }
-  .answer { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: rgba(232, 255, 71, 0.08); font-size: 13px; min-width: 0; }
-  .answer b { font-size: 20px; font-weight: 600; padding-top: 3px; white-space: nowrap; }
-  .answer .quote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .answer .state { opacity: 0.6; margin-left: auto; white-space: nowrap; }
-  .answer .sk { font-size: 17px; padding: 6px 11px 3px; }
-  .foot { display: flex; align-items: center; gap: 10px; padding-top: 12px; flex: none; }
-  .tell { flex: 1; min-width: 0; display: flex; align-items: center; height: 44px; box-sizing: border-box; background: var(--ball);
-          border: 1px solid rgba(255, 255, 255, 0.12); }
-  .tell:focus-within { border-color: var(--acc); }
-  .tell input { flex: 1; min-width: 0; height: 100%; box-sizing: border-box; padding: 0 14px; background: none; border: 0; outline: none;
-                font: 14px "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); }
-  .tell input::placeholder { color: rgba(242, 244, 247, 0.45); }
-  .tell .sk { font-size: 17px; padding: 6px 12px 3px; margin-right: 6px; }
-  .foot > .sk { font-size: 20px; padding: 10px 18px 7px; }
+  .picks { background: var(--ball); padding: 18px 16px 16px; overflow-y: auto; min-height: 0; scrollbar-width: thin;
+           scrollbar-color: rgba(255,255,255,0.2) transparent; display: flex; flex-direction: column; gap: 10px; }
+  .picks h2 { margin: 0; font-size: 30px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; display: flex; align-items: baseline; gap: 10px; }
+  .picks h2 small { font-size: 20px; opacity: 0.5; font-weight: 500; }
+  .picks .empty { background: rgba(255, 255, 255, 0.04); padding: 14px 16px; font-size: 13.5px; line-height: 1.5; color: rgba(242, 244, 247, 0.72); }
+  .picks .empty b { display: block; color: var(--text); font-weight: 600; }
+  .set { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .setHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .setHead h3 { margin: 0; font-size: 24px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
+  .setHead span { font-size: 12px; opacity: 0.55; }
+  .setBusy { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: rgba(255, 255, 255, 0.04); font-size: 13px; }
+  .setBusy i, .pill.on i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.2);
+                           animation: pulse 0.9s ease-in-out infinite alternate; }
+  .opt { position: relative; background: #0f1114; cursor: pointer; text-align: left; display: block; width: 100%; }
+  .opt:hover { background: #15181c; }
+  .opt.on::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 2px var(--acc); pointer-events: none; }
+  .opt .pic { display: block; width: 100%; aspect-ratio: 332 / 132; background: #d6d6da; position: relative; overflow: hidden; }
+  .opt .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .opt .pic .none { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: rgba(22, 24, 27, 0.6); }
+  .opt .cap { display: flex; align-items: center; gap: 8px; padding: 7px 8px 6px 8px; }
+  .opt .t { font-size: 22px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; padding-top: 2px; }
+  .opt .t b { display: inline-block; background: var(--text); color: var(--ground); padding: 2px 7px 0; margin-right: 8px; }
+  .opt .grow { flex: 1; }
+  .opt .tagOn { font-size: 13px; padding: 2px 6px 0; background: var(--acc); color: var(--ground); transform: skewX(-12deg); white-space: nowrap; }
+  .opt .sk { font-size: 17px; padding: 6px 12px 3px; }
+  .say { display: flex; gap: 6px; }
+  .say input { flex: 1; min-width: 0; height: 36px; box-sizing: border-box; padding: 0 10px; background: var(--ball); color: var(--text);
+               border: 1px solid rgba(255, 255, 255, 0.15); font: 13.5px "Segoe UI", system-ui, -apple-system, sans-serif; outline: none; }
+  .say input:focus { border-color: var(--acc); }
+  .say input::placeholder { color: rgba(242, 244, 247, 0.45); }
+  .say .sk { font-size: 17px; padding: 6px 12px 3px; }
+  .answer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 10px; background: rgba(232, 255, 71, 0.08); font-size: 12.5px; }
+  .answer b { font-size: 18px; font-weight: 600; padding-top: 3px; }
+  .answer .quote { overflow-wrap: anywhere; }
+  .answer .state { opacity: 0.6; }
+  .answer .sk { font-size: 15px; padding: 5px 10px 2px; margin-left: auto; }
+  .picks .foot { font-size: 12.5px; opacity: 0.55; margin: 2px 0 0; }
+  .earlier { margin-top: auto; padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .earlier > button { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 10px 12px 7px; background: rgba(255, 255, 255, 0.05); }
+  .earlier > button:hover { background: rgba(255, 255, 255, 0.09); }
+  .earlier > button h2 { flex: 1; font-size: 24px; }
+  .past h3 { margin: 0; font-size: 20px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
+  .past p { margin: 3px 0 6px; font-size: 12.5px; opacity: 0.6; }
+  .past .row { display: flex; gap: 6px; }
+  .past figure { margin: 0; position: relative; width: 100px; height: 56px; background: #0f1114; overflow: hidden; }
+  .past figure img { width: 100%; height: 100%; object-fit: cover; opacity: 0.55; }
+  .past figure.on { box-shadow: 0 0 0 2px var(--acc); }
+  .past figure.on img { opacity: 1; }
+  .past figcaption { position: absolute; left: 4px; top: 3px; font-size: 13px; padding: 1px 5px 0; background: var(--text); color: var(--ground); }
+  /* the header over the car: its name (a menu of the cars, the materials, the UV map), in the game, Claude */
+  .carPick { position: relative; }
+  #carName { display: flex; align-items: center; gap: 6px; font-size: 34px; font-weight: 600; padding-top: 6px; }
+  #carName span { transform: skewX(-9deg); white-space: nowrap; max-width: 36vw; overflow: hidden; text-overflow: ellipsis; }
+  #carName .ic { font-size: 18px; opacity: 0.7; margin-top: -4px; }
+  .menu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 10; min-width: 260px; max-height: 70vh; overflow-y: auto; background: #111317;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); padding: 6px; display: flex; flex-direction: column; }
+  .menu[hidden] { display: none; }
+  .menu button, .menu a { display: block; text-align: left; padding: 7px 10px; font-size: 13.5px; text-decoration: none; }
+  .menu button:hover, .menu a:hover { background: rgba(255, 255, 255, 0.07); }
+  .menu [aria-current="true"] { box-shadow: inset 3px 0 var(--acc); }
+  .menu hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 6px 4px; }
+  .menu .k { font-size: 11px; opacity: 0.45; padding: 6px 10px 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .pill { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 12px 5px; background: rgba(255, 255, 255, 0.06); white-space: nowrap; min-width: 0; }
+  .pill span { overflow: hidden; text-overflow: ellipsis; }
+  .pill.quiet i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }
+  #labTop.inRoom .carPick, #labTop.inRoom .pill { display: none; }
+  #rooms[hidden] { display: none; }
 
   /* Narrower windows: the families become a row above the shelf, the picked material below it. */
   @media (max-width: 1000px) {
@@ -366,32 +300,17 @@
     #tiles { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
     .spec { margin: 16px 16px 80px; }
     .stand { display: block; }
-    .standHead { flex-wrap: wrap; gap: 8px 16px; padding: 4px 0 6px; }  /* a round's switch goes under the title */
     #stRound, #prRound { flex-wrap: wrap; row-gap: 5px; }  /* and its buttons wrap when their names are long */
     #stStage { height: 62vw; }
     #stTags, #stLines, #stHint { display: none; }  /* the tags are a list under the car */
     .tagList { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
     #stStage { overflow: visible; margin-bottom: 40px; }  /* the credit under the car, not on it */
     .credit, .stand .credit { top: calc(100% + 5px); bottom: auto; right: 0; max-width: 100%; color: var(--text); font-size: 9px; }
-    .stand .at { font-size: 18px; bottom: 8px; left: 10px; }
-    .carRoom, .carRoom.withSheet { display: block; padding: 0 16px 24px; }
-    .bs { padding: 12px 0 10px; margin-bottom: 12px; }
-    .bs ol { display: flex; overflow-x: auto; }
-    .bs li { flex: none; width: 160px; }
-    .bs li button { border-top: 0; border-left: 1px solid rgba(255, 255, 255, 0.06); }
-    .sofar { display: none; }
-    .wz { display: block; }
-    .q { flex-wrap: wrap; }
-    .q .show { margin-left: 0; }
-    .q h3 { font-size: 34px; }
-    .wzBody { overflow: visible; }
-    .brief { grid-template-columns: 1fr; grid-template-areas: "draft" "from" "rules" "words"; }
-    .cards { display: flex; flex-direction: column; min-height: 0; }
-    .carRoom .card .pic { flex: none; height: 62vw; }
-    .foot { flex-wrap: wrap; }
-    .tell { flex-basis: 100%; }
-    .answer { flex-wrap: wrap; }
-    .answer .state { margin-left: 0; }
+
+    .carRoom { display: block; padding: 0 16px 24px; }
+    .picks { margin-top: 12px; overflow: visible; }
+    #carName { font-size: 28px; }
+    #carName span { max-width: 60vw; }
   }
 </style>
 <script type="importmap">
@@ -403,59 +322,54 @@
   <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 </svg>
 <div id="page">
   <header id="labTop">
     <h1 id="labName" class="teko">The Lab</h1>
-    <nav id="rooms" class="teko">
-      <button class="sk" data-room="studio" aria-pressed="true"><span>The car</span></button>
+    <div class="carPick">
+      <button id="carName" class="teko" aria-haspopup="menu" aria-expanded="false" title="Another car, the materials, the UV map"><span></span><svg class="ic"><use href="#i-down"/></svg></button>
+      <div id="carMenu" class="menu" role="menu" hidden>
+        <div class="k">Cars</div>
+        <div id="carList"></div>
+        <hr>
+        <button data-go="materials" role="menuitem">The materials</button>
+        <button data-go="uv" role="menuitem">The UV map</button>
+        <a id="back" href="./index.html" role="menuitem">Back to the viewer</a>
+      </div>
+    </div>
+    <span id="gameLabel" class="pill quiet"><i></i><span></span></span>
+    <span id="statusLabel" class="pill quiet"><i></i><span>Loading…</span></span>
+    <span class="grow"></span>
+    <nav id="rooms" class="teko" hidden>
+      <button class="sk" data-room="studio" aria-pressed="true"><svg class="ic"><use href="#i-back"/></svg><span>The car</span></button>
       <button class="sk" data-room="materials" aria-pressed="false"><span>Materials</span></button>
     </nav>
-    <span class="grow"></span>
-    <a id="back" class="sk teko" href="./index.html"><svg class="ic"><use href="#i-back"/></svg><span>Back to the viewer</span></a>
   </header>
 
   <section id="roomStudio" class="room">
     <div id="carRoom" class="carRoom">
-      <aside id="wzSheet" class="bs" hidden>
-        <h2 id="wzCar" class="teko"></h2>
-        <div id="wzSub" class="sub"></div>
-        <ol id="wzSteps"></ol>
-        <button id="wzSoFar" class="sofar" hidden title="The car on the stand, to turn it and leave notes on it"><img alt=""><span class="teko">The car so far</span><small>Notes on the car</small></button>
-      </aside>
-      <main class="wz">
-        <div id="wzHead" class="q" hidden><div><div id="wzKicker" class="k teko"></div><h3 id="wzQuestion" class="teko"></h3><p id="wzLine"></p></div><div id="wzView" class="show teko" hidden></div></div>
-        <div id="wzBody" class="wzBody" hidden></div>
-    <div id="stand" class="stand">
-      <div class="standHead">
-        <h3 id="stTitle" class="teko"></h3><div id="stRound" class="show teko" hidden></div>
-        <div id="stLive" class="live"><i></i><span id="stLiveText">Loading…</span></div>
-        <span class="grow"></span>
-        <div id="stMood" class="show teko">
-          <button class="sk" data-mood="day" aria-pressed="true"><span>Day</span></button>
-          <button class="sk" data-mood="night" aria-pressed="false"><span>Night</span></button>
-          <button class="sk" id="stFront" title="the car from the front, whole"><span>Front</span></button>
+      <div id="stand" class="stand">
+        <div id="stStage">
+          <iframe id="stCar" title="the car: click where you mean to leave a note there"></iframe>
+          <div id="stCover"></div>
+          <div id="stOverlay"><svg id="stLines" aria-hidden="true"></svg><div id="stDots"></div><div id="stTags"></div></div>
+          <div class="stTop">
+            <div class="stLeft">
+              <div id="stOn" class="onCar" hidden><span class="k">On the car</span><b class="teko"></b><span class="s"></span><button id="stBack" class="sk teko"><span>Back to your car</span></button></div>
+              <div id="stHint">Click the car where you mean, and write what you want there. Claude gets it with your next message, or at once when it's waiting.</div>
+            </div>
+            <div id="stMood" class="show teko">
+              <button class="sk" data-mood="day" aria-pressed="true"><span>Day</span></button>
+              <button class="sk" data-mood="night" aria-pressed="false"><span>Night</span></button>
+              <button class="sk" id="stGame" title="the car as you see it in the game, from its chase camera"><span>Game view</span></button>
+            </div>
+          </div>
+          <div id="stCredit" class="credit"></div>
         </div>
+        <div id="stList" class="tagList"></div>
       </div>
-      <div id="stStage">
-        <iframe id="stThumbs" tabindex="-1" aria-hidden="true" title=""></iframe>
-        <iframe id="stCar" title="the car: click where you mean to leave a note there"></iframe>
-        <div id="stCover"></div>
-        <div id="stOverlay"><svg id="stLines" aria-hidden="true"></svg><div id="stDots"></div><div id="stTags"></div></div>
-        <div id="stHint">Click the car where you mean, and write what you want there. Claude reads it with your next message.</div>
-        <div id="stAt" class="at teko"></div>
-        <div id="stCredit" class="credit"></div>
-      </div>
-      <div id="stList" class="tagList"></div>
-      <div id="stStrip" class="strip"></div>
-    </div>
-        <div id="wzSaid" hidden></div>
-        <div id="wzFoot" class="foot" hidden>
-          <label class="tell"><input id="wzTell" autocomplete="off" placeholder="Or tell Claude in your own words…"><button id="wzSend" class="sk acc teko" hidden><span>Send</span></button></label>
-          <button id="wzBack" class="sk teko"><span>Back</span></button>
-          <button id="wzNext" class="sk teko"><span>Next</span></button>
-        </div>
-      </main>
+      <aside id="picks" class="picks" aria-label="For you to pick"></aside>
     </div>
   </section>
 

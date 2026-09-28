@@ -45,7 +45,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   tried; then, at the user's word, three steps instead of eleven (Brief, Concepts, The car) and the
   car on the stand after the concepts, one room in the Lab: built. Then the user's second thoughts:
   no steps; the car and its notes, and a place in the Lab where Claude's options (for anything, in
-  any order) wait to be picked and commented on. Next: mockups of that place. Next: the check, then going back and
+  any order) wait to be picked and commented on. Fresh layouts by a fresh agent; the user picked A
+  (the car and a list). Piece 1, the page and its sets, built and waiting for the user's try; piece
+  2, the way of working (one routine, the sheet removed), next. Next: the check, then going back and
   the history; W4, the test, after it.
 
 ## The tool

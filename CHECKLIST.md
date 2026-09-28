@@ -3056,7 +3056,60 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     the car over a shelf (a shelf of options rises under the car when a set arrives). Its pick: A,
     the smallest structure, nothing moving or changing shape. Everywhere: earlier picks kept small,
     the game's cameras as one "Game view" button, "in the game" a label, the materials library and
-    the UV map off the page. Waiting for the user's choice.
+    the UV map off the page. **The user picked A** ("a", 2026-09-28).
+- **Building A (started 2026-09-28, on the Mac).** No steps: any car can have **sets of options**,
+  whenever the user asks, in any order; the studio and the quick way become one way of working.
+  The pieces, each shown and OK'd before the next:
+  1. **the page and its sets:** `tool/sets.py` (a car's sets in `skins/<car>/sets.json`: a set is
+     painting, open, picked or dropped; a pick makes the picked option the car's design, keeps
+     each option's picture for the history in `skins/<car>/sets/<n>/`, deletes the others), served
+     to the Lab; the car's room as A: the car's name, "in the game" and Claude's status along the
+     top; the big car with its notes, Day, Night and Game view; the list on the right ("For you to
+     pick", a set being painted, "Earlier picks"), a click puts an option on the car, a Pick and a
+     comment box on it, all reaching Claude at once; the stations' strip, the room tabs and the
+     wizard gone (the materials and the UV map in the car's menu); tried on a trial car;
+  2. **the way of working:** `SKILL.md` and `studio.md` made one routine (a new car: a short talk,
+     three concepts as its first set; then the car and the user's notes, sets on request, every
+     detail with the guides, the critic before the game), the build sheet and the wizard's code
+     removed.
+- **1. The page and its sets (built 2026-09-28, on the Mac):**
+  - **What you'll see:** the Lab opens on the car. Over it, the car's name (a menu: the other cars,
+    the materials, the UV map, back to the viewer), "In the game since …" or "Not in the game yet",
+    and what Claude is doing ("Claude is painting · Wheels", "Waiting for your pick"). The car fills
+    the room with the notes as before, Day, Night and "Game view" (the game's Cam 1) over it. On the
+    right, "For you to pick": each set of options waiting, named by what it's about, with the user's
+    words and when; each option's picture, letter and title; a click puts it on the car ("On the car
+    · B · Red Covers · Wheels · 2 ideas", and "Back to your car"), with a box under it to say
+    something about it; a Pick on each. A set being painted says so, its options appearing as they're
+    painted. "Earlier picks" at the bottom, folded while something waits: each set's title, "You
+    picked A · Red · 4 h ago", its options' pictures, the pick outlined. Nothing waiting: "Nothing to
+    pick right now. Ask Claude for a few ideas on anything, like "three materials for the sidepods",
+    and they land here." Gone: the room tabs, the stations' strip, the step list and the wizard.
+  - **How it's built:** `tool/sets.py` (new, standard library): `new`, `option`, `open`, `pick`,
+    `drop`, a pick keeping each option's picture (`skins/<car>/sets/<n>/<letter>.png`) and deleting
+    the options (one in the game kept); `find` and `lab` for the page. `tool/view.py` serves
+    `/api/sets?skin=` and `/sets/<car>/<n>/<letter>.png` (the build sheet's `/api/sheet` went).
+    `tool/notes.py`: an answer is `answer` (the set, its title, the option picked or talked about, its
+    title), a pick needing no words, on a car with a design or sets; the hook's line "in the Lab's
+    list, set 2 (Wheels · 2 ideas), picked B (Red Covers)". `viewer/lab-studio.js` is now the car and
+    its notes only (the strip, the stations' tries, the picture car and its cache went; `show(name)`
+    puts a skin on the car; it says what it shows and what Claude is doing); `viewer/lab-car.js`
+    (new) the header and the list; `viewer/lab-wizard.js` removed; `lab.html`'s car room and header
+    rewritten, the list 364 to 480 px wide. `SKILL.md`'s stations and rounds became "Sets of
+    options"; `.claude/rules/tool.md` rewritten for the room. `tool/sheet.py` and `studio.md`'s steps
+    wait for piece 2.
+  - **Checks:** 16 on the sets (a scratch skins folder: a new car's first set and its folder, options
+    as empty folders then copies of the car's design, open refused before designs and with one
+    option, the lab from an option, the pick making the car's design, the others gone, each picture
+    kept, picked twice refused, a design loading the car refused, drop keeping one in the game, the
+    newest first, a car with no sets, bad names) and 7 on the answers (a pick, words about an option,
+    three refusals, the hook's two lines); in the Mac's headless Chrome, 22 on a trial car
+    (TSC_WizardTrial: set 1 "3 concepts" picked, set 2 "Wheels · 2 ideas" open): the header, no tabs
+    or strip, the menu shut, the set's two pictures, earlier picks folded, B on the car with its chip
+    and words box, the address, words about B as an answer, take back, pick B, Your pick, back to
+    the car, earlier picks opened with three pictures and A outlined, the menu, a note on the car by
+    a click, Game view, another car from the menu with nothing to pick, the materials and back, 390
+    wide, no page errors.
 
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
