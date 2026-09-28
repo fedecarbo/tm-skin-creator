@@ -95,11 +95,22 @@
   {
    "key": "shapes",
    "name": "Shapes",
-   "state": "claude",
-   "decision": "",
-   "date": "",
-   "options": [],
-   "pick": null,
+   "state": "decided",
+   "decision": "the round white marks on the black head, as the user asked; the grass stops where the head begins",
+   "date": "2026-09-28",
+   "options": [
+    {
+     "key": "A",
+     "title": "Round Marks",
+     "skin": "TSC_Ladybird_RoundMarks"
+    },
+    {
+     "key": "B",
+     "title": "Streak Marks",
+     "skin": "TSC_Ladybird_StreakMarks"
+    }
+   ],
+   "pick": "A",
    "why": "",
    "was": []
   },

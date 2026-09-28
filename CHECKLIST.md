@@ -2643,13 +2643,22 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       taller and denser. The white blobs took three tries: kept off "the top" they were slivers,
       kept to surfaces facing sideways they were half-moons, and at y 41 they hid under the nose's
       curve; at y 48, z 162 they show.
-    - **Where it stopped (2026-09-28, the session's context ran out):** TSC_Ladybird at Shapes
-      ("Claude on it" on its sheet), the five notes handled and marked done, the car painted and
-      checked but not shown. Next: show the user (the picture and the Lab), ask whether the white
-      blobs read as eyes from the front three-quarter, then Shapes' own look (from far away, the
-      game's cameras: `--cams`) and its routine in `studio.md`; then Colours and materials,
-      Wheels, Details, Lettering, Review, Road test, Release, each written into `studio.md` as the
-      car reaches it. Also open: the grass paints the front wing solid green (not asked about).
+    - **Shapes, picked up in a new session (2026-09-28):** the routine written into `studio.md` (4.
+      Shapes): the notes and the concept's rough edges fixed, the game's cameras looked at, a
+      choice only where there's a real alternative. Found before showing: the grass fills
+      everything low, so it made a solid green slab under the nose (the side skirt runs forward
+      there as a flat ledge facing up, and the wing's pylon sits low) and blade tips on the nose's
+      underside: it now stops where the head begins (in `SKILL.md`, the grass line). The white
+      marks the user asked for read as eyes from the front three-quarter (the brief: no face):
+      shown as a choice, A Round Marks as asked and B Streak Marks, each drawn out into a streak
+      from the head's back edge, tapering forward along the nose's side. From the game's cameras
+      the red and the spots read at once, even at Cam 1's distance, day and night; the grass and
+      the head can't be seen from behind (they're for other players, replays and the garage).
+    - **The pick:** "I would just keep with a and move on" (Claude had suggested B). A's design is
+      the car's, B went with the round.
+    - **Where it stopped (2026-09-28):** TSC_Ladybird at Colours and materials. Next: Colours and
+      materials, Wheels, Details, Lettering, Review, Road test, Release, each written into
+      `studio.md` as the car reaches it.
 
 
 #### [ ] W2. The experts

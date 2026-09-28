@@ -148,7 +148,28 @@ boards: one per board and one that blends them). Always the user's decision.
    as a new option from the picked parts, check it as any concept, pick it, and show the car.
    Notes left on concepts the pick deleted still get marked done (`tool.notes done` takes them).
 
-## The steps after Concepts
+## 4. Shapes
 
-Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Concepts, tell the user the car
-is waiting at Shapes and stop.
+The picked concept's big shapes made right: where each graphic sits, how it meets the car's folds,
+edges and holes, and how the car reads from far away and from the game's cameras. A good car reads
+in half a second. The user decides only when there's a real alternative.
+
+1. `tool.sheet on <car> shapes`. Act on the user's notes on the car in its design, and fix what the
+   concept left rough: nothing clipped, sunk, or running into the part under it; nothing the brief
+   rules out (TSC_Ladybird's white marks read as eyes; its grass made a slab under the nose).
+2. Look at it as the game shows it: the six views and the close looks as always, and the game's
+   cameras by day and at night (`--cams`; on the Mac `node docker/snap.mjs <car> --cams`). The
+   player sees their car from behind: say in a line what reads from there and what only others see.
+3. One sensible answer: `tool.sheet decide <car> shapes "<the shapes in a few words>"`, show it in a
+   picture and move on. A real alternative (the user's words against the brief, two places a
+   graphic could go): an option each (`tool.sheet option <car> shapes "<Title>"` copies the car's
+   design to change), the round recorded before painting, each painted and checked, the picture
+   (front, left and top, with a close row where they differ), then `tool.sheet ask <car> shapes`.
+   Reply with a line per option, the one you'd pick and why, and in bold: which one?
+4. The pick as for concepts: `tool.sheet pick <car> shapes <letter> "<...>"`, then `show <car>`.
+   `Picked` in `notes.md`, commit and push.
+
+## The steps after Shapes
+
+Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Shapes, tell the user the car
+is waiting at Colours and materials and stop.

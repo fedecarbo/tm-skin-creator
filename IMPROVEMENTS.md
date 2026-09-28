@@ -38,7 +38,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   its step 9.7 is under "The tool" below. Four steps, each shown to the user before the next: W1
   the studio routine and the build sheet, W2 the experts, W3 the wizard in the Lab, W4 the test of
   Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". W1: pieces 1 to 3 built; piece 4 under way on the
-  first studio car, TSC_Ladybird, now at Shapes ("Where it stopped" in the notes).
+  first studio car, TSC_Ladybird, now at Colours and materials ("Where it stopped" in the notes).
 
 ## The tool
 

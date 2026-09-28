@@ -56,3 +56,18 @@ blobs on the sides" (the nose black ahead of a curved edge, z 116 in the middle,
 fin's plate; two white blobs on its sides at y 48, z 162). Painted and checked; NOT shown to the
 user yet (the session's context ran out). To ask: from the front three-quarter view the white blobs
 may read as eyes (the brief says no face; the user asked for them).
+
+Shapes, picked up in a new session (2026-09-28, Opus 5.5). Found before showing: the grass painted
+a solid green slab under the nose (the side skirt runs forward there as a flat ledge facing up, and
+the wing's pylon sits low, both inside the grass's solid base) and blade tips on the nose's
+underside; the grass now stops where the head begins, so everything under the head is black. The
+round white marks read as eyes from the front three-quarter (the brief: no face), so Shapes became
+a choice: A Round Marks (TSC_Ladybird_RoundMarks, as the user asked) and B Streak Marks
+(TSC_Ladybird_StreakMarks: each mark drawn out into a streak, broad and round at the head's back
+edge and tapering forward along the nose's side, z 131 to 185 around y 50). From the game's cameras
+(day and night) the red and the spots read at once, even at Cam 1's distance; the grass and the
+head don't show from behind: they're for other players, replays and the garage.
+Shown 2026-09-28, Shapes: the picture (front, left, top, and the nose and bonnet close) and the
+Lab's switch ("The head's marks"). Claude suggests B.
+Picked 2026-09-28, Shapes (user): "I would just keep with a and move on". A Round Marks: its design
+is the car's; B deleted (git's history). Claude had suggested B.

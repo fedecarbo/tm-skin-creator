@@ -59,7 +59,10 @@ def design(s):
     s.step("The head", "The nose black, as the ladybird's head, with two white blobs low on its sides.", words=HEAD)
     s.paint("body", "satin", colour=BLACK, zone=head())
     s.step("The grass", "Taller, denser turf-green blades rising up the lower sides.", words=GRASS)
-    s.paint("body", "satin", colour=TURF, zone=shapes.grass(base=6, height=(18, 40), every=2.2, seed=7) & ~top())
+    # the grass grows up to the head and stops there: under the nose the side skirt runs forward as
+    # a flat ledge facing up, and the wing's pylon sits low, so inside the grass's solid base they
+    # came out a green slab, and blade tips showed on the nose's underside
+    s.paint("body", "satin", colour=TURF, zone=shapes.grass(base=6, height=(18, 40), every=2.2, seed=7) & ~top() & ~head())
     s.step("The head's marks", "Two white blobs on the sides of the black head.", words=HEAD)
     y, z, r = MARKS
     s.paint("body", "satin", colour=WHITE, zone=shapes.blob((0, y, z), r, axis="x", seed=20) & head())

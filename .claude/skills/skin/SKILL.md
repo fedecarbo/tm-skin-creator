@@ -164,8 +164,10 @@ user the Lab's stand too.
   ±19, z -120 to -82), where the game draws the player's number and name, and the nose fin's plate
   (x ±8, z 118 to 142): its fin stands upright, so a spot there leaves a notch.
 - **Grass up the sides:** `shapes.grass(base=, height=, line=)`, filled blades or ink strokes,
-  the same silhouette both sides (TSC_Ladybird). Pale marks on a dark nose read as eyes: keep
-  them off unless a face is wanted.
+  the same silhouette both sides (TSC_Ladybird). It fills everything low, so keep it behind the
+  nose: under it the side skirt runs forward as a flat ledge facing up, and the wing's pylon sits
+  low, and both came out a solid green slab. Pale marks on a dark nose read as eyes: keep them
+  off unless a face is wanted, or draw them out into streaks along the nose (TSC_Ladybird).
 - The user prefers illustrations, prints and decals to photographs. "sticker" is the default.
 - A print made of objects: `s.scatter` (whole copies, each inside one panel, spread evenly).
   A continuous texture: a tile through `s.print`. Ask the picture maker for a few large
