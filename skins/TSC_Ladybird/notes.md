@@ -128,3 +128,13 @@ Change 8 (user, notes 7 and 8) 2026-09-28, Details reopened: on the front wing, 
 needs to be green", and on the floor's edge along the side, "Also this". The floor and the front
 wing (one paint) in the grass's green and satin, so the grass reaches the car's very edge; the
 tail's undertray and strakes stay carbon.
+
+Review 2026-09-28 (Claude's own, W2's critic not built yet), against the brief and the quality
+list: no part left in clay; the spots, the grass, the head's edge and its marks clean where they
+meet folds, joins and edges; from the game's cameras the red and spots read at once by day and
+night, the speed numbers green; no words, so none backwards; the number and name panels plain red
+(the game's white number reads on it); a trial build 2.95 MB (budget 8.5). Fixed: the diffuser's
+fins under the tail had caught the grass as green and red slivers: solid green, as the floor.
+Noted, not changed: from above and from the front the head's two white marks read like a cartoon
+ladybird's eyes (the brief's "no face"); the user chose them. For the road test: that, and the
+turf green beside the game's own grass.

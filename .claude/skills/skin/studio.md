@@ -234,7 +234,24 @@ than one direction (the mood boards' lettering, and none).
 3. The picture: front, left and right, close rows where the lettering sits. Say what reads only up
    close. Then `ask`, and the pick as for concepts.
 
-## The steps after Lettering
+## 9. Review
 
-Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Lettering, tell the user the car
-is waiting at Review and stop.
+The whole car checked against the brief and a quality list. No decision for the user: they hear
+what was found and fixed. Until W2's critic exists (an agent given only the pictures and the
+brief), it's Claude's own review, done as if by someone who didn't design the car:
+
+- the brief, its "Not" most of all; something the user chose against it is said, not changed;
+- the game's cameras by day and at night (`--cams`), and the car from above;
+- every graphic where it meets a fold, join, hole or edge, the underside and the tail included;
+  parts left in clay (`tool.skin paint <car>` names them); paint left over from an earlier step;
+- words that read backwards; the number and name panels free;
+- the size: a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s in the Mac's container)
+  against `ZIP_BUDGET`.
+
+Fix what's found, look again, then `tool.sheet decide <car> review "<found and fixed>"`, a line in
+`notes.md` with what's left for the road test, commit and push.
+
+## The steps after Review
+
+Still being built (W1's piece 4, `CHECKLIST.md`). The road test needs the Windows PC (the game):
+until it's written, after Review tell the user the car is waiting for its road test there, and stop.

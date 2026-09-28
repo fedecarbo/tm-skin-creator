@@ -113,6 +113,9 @@ def design(s):
     # grass reaches the car's very edge (the user's notes on the car); the tail's undertray and
     # strakes a race car's carbon
     s.paint(["floor", "front wing"], FINISH["grass"], colour=TURF)
+    # and the diffuser under the tail with its fins, where the floor ends: the grass left them
+    # green and red slivers (the review)
+    s.paint(["diffuser", "diffuser strake"], FINISH["grass"], colour=TURF)
     s.paint(["rear undertray", "rear strake"], "carbon")
     # the frames round the sidepod inlets and the speed display, glossy like the head and covers
     s.paint(["sidepod frame", "tail frame"], "gloss", colour=BLACK)

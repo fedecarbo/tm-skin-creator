@@ -2691,10 +2691,17 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       the spot as the number's roundel; C none. The first tries: the name under the flank's small
       black fin (moved down), the 7 on the black nose read as an L from the front and risked a face
       between the head's white marks.
-    - **Where it stopped (2026-09-28):** TSC_Ladybird at Lettering, waiting for the user's pick (the
-      Lab's switch "The lettering"). Next: the pick, then Review (W2's critic isn't built: Claude's
-      own review until then), Road test (on the PC: install, drive, F12), Release, each written into
-      `studio.md` as the car reaches it.
+    - **The picks:** Lettering "c" (none). Then notes 7 and 8 on the front wing and the floor's edge
+      ("probably this needs to be green", "Also this"): Details reopened, the floor and front wing
+      green in the grass's satin.
+    - **Review** (its routine in `studio.md`, 9), Claude's own until W2's critic: nothing in clay,
+      graphics clean, reads from the cameras, panels free, a trial build in the Mac's container
+      (`paintbox.build_zip`: 2.95 MB against 8.5, 86 s, so the size check needs no PC). Found and
+      fixed: the diffuser's fins under the tail caught the grass as slivers (solid green now).
+      Noted: the head's white marks read as eyes from above and the front (the user's choice).
+    - **Where it stopped (2026-09-28):** TSC_Ladybird waiting for its road test, on the Windows PC:
+      install it, the user drives it (day and night, brakes, turbo, a grass map), F12 screenshots;
+      then the Road test and Release routines written into `studio.md` as the car reaches them.
 
 
 #### [ ] W2. The experts

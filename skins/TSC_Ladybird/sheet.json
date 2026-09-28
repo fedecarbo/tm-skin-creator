@@ -223,9 +223,9 @@
   {
    "key": "review",
    "name": "Review",
-   "state": "todo",
-   "decision": "",
-   "date": "",
+   "state": "decided",
+   "decision": "Claude's own review: nothing left in clay, graphics clean at every join, reads from the cameras day and night, the number panels free, 2.95 MB; the diffuser's fins made solid green",
+   "date": "2026-09-28",
    "options": [],
    "pick": null,
    "why": "",
