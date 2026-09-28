@@ -205,7 +205,36 @@ user settles the wheels car by car. Always the user's decision.
    the player sees most). The picture: front, left and night, close rows 8 and 9. Then `ask`, and
    the pick as for concepts.
 
-## The steps after Wheels
+## 7. Details
 
-Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Wheels, tell the user the car is
-waiting at Details and stop.
+What separates a finished car from an amateur skin: the inner car (the frames, the suspension, the
+floor and front wing, the cockpit), the lights and their colours, the glass. Usually one sensible
+answer: do it, show it, `tool.sheet decide <car> details "<...>"`; options only for a real choice.
+
+- Look from behind first (`--cams`): the tail, the speed numbers and the rear lights are what the
+  driver sees all race, so the lights carry the car's accent (`s.relight("speed numbers" | "rear
+  lights", colour)`, a brighter version of the colour, as lights glow).
+- The inner car starts in one colour (`s.paint("inner", ...)`); then carbon underneath (the floor
+  and the front wing wear one paint), and the frames round the inlets and the speed display in the
+  body's trim finish. `show` names the parts a paint also lands on: check they're dark or alike.
+- The glass: a tint also dims the lights behind the lenses; leave it clear unless the idea wants it.
+
+## 8. Lettering
+
+Words, numbers and badges, their typeface and where they go. The user's decision when there's more
+than one direction (the mood boards' lettering, and none).
+
+1. `tool.sheet on <car> lettering`. The places left free by the shapes (`SPOTS` in the paint box;
+   never the number and name panels), and the typefaces in `tool/fonts.py` (a new Google font at
+   google/fonts' latest commit, its sha256 recorded). A graphic can carry the lettering: a spot as a
+   number's roundel (TSC_Ladybird).
+2. An option each (and "No Lettering" when none is a real answer), the round before painting. Check
+   each where it meets the car's own pieces (the flank's fin), from both sides (words read right on
+   each), and from the front: a number the right way up only from behind reads as another letter.
+3. The picture: front, left and right, close rows where the lettering sits. Say what reads only up
+   close. Then `ask`, and the pick as for concepts.
+
+## The steps after Lettering
+
+Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Lettering, tell the user the car
+is waiting at Review and stop.

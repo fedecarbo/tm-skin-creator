@@ -189,10 +189,26 @@
   {
    "key": "lettering",
    "name": "Lettering",
-   "state": "todo",
+   "state": "waiting",
    "decision": "",
    "date": "",
-   "options": [],
+   "options": [
+    {
+     "key": "A",
+     "title": "Latin Name",
+     "skin": "TSC_Ladybird_LatinName"
+    },
+    {
+     "key": "B",
+     "title": "Seven",
+     "skin": "TSC_Ladybird_Seven"
+    },
+    {
+     "key": "C",
+     "title": "No Lettering",
+     "skin": "TSC_Ladybird_NoLettering"
+    }
+   ],
    "pick": null,
    "why": "",
    "was": []

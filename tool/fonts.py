@@ -27,6 +27,8 @@ GOOGLE = {
     "bangers": ("bangers", "Bangers-Regular.ttf", "4160a7311de9342674cce9160cde9fcbb30f48190397d86ff1b70b455af65824"),
     "racing": ("racingsansone", "RacingSansOne-Regular.ttf", "8b5cada83e3e4692f624f1b583a069b34e457e07a4210ceddbb1133b3383673e"),
     "teko": ("teko", "Teko[wght].ttf", "d1321889f262bbbff632e7976349853399cd097b6f382d4b19790c915c13c1ae"),
+    # added 2026-09-28 (TSC_Ladybird's Latin name), at the same commit, still google/fonts' latest then
+    "garamond italic": ("ebgaramond", "EBGaramond-Italic[wght].ttf", "bba2c4499c93c9612b90b9825d32b07da52fce2fe57562a1eb6b833553f93c4e"),
 }
 LICENCE = ("orbitron", "OFL.txt")
 WINDOWS = {
@@ -52,6 +54,7 @@ ABOUT = {
     "bangers": "comic-book shout",
     "racing": "italic racing script, retro motorsport",
     "teko": "tall condensed, sporty",
+    "garamond italic": "an old-style serif italic, a naturalist's field guide (weight 400 to 800)",
 }
 DEFAULT = "russo"
 

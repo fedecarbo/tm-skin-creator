@@ -2679,8 +2679,22 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       0.16 0.38 0.43): recoloured in each to fit. Lettered tyre markings don't paint on the Mac
       (Windows fonts; on the list).
     - **The pick:** "C" (the Grass line), as Claude suggested.
-    - **Where it stopped (2026-09-28):** TSC_Ladybird at Details. Next: Details, Lettering, Review,
-      Road test, Release, each written into `studio.md` as the car reaches it.
+    - **Details** (its routine in `studio.md`, 7), one sensible answer, decided and shown: the inner
+      car satin black, carbon underneath (the floor and the front wing, the tail's undertray and
+      strakes), the frames round the inlets and the speed display gloss black; the speed numbers and
+      the rear gear lights in the grass's green as a light (#60DC5A), what the driver sees all race;
+      the glass clear. The tail frame, sidepod frames and rear strakes share a patch with the front
+      uprights and a little of the floor: all dark, so nothing strays.
+    - **Lettering** (its routine in `studio.md`, 8): A the Latin name (EB Garamond Italic, new in
+      `tool/fonts.py` at the same pinned google/fonts commit, still the latest) along the front
+      flanks, 4 cm tall, a specimen's label; B a cream 7 inside the black spot on each rear flank,
+      the spot as the number's roundel; C none. The first tries: the name under the flank's small
+      black fin (moved down), the 7 on the black nose read as an L from the front and risked a face
+      between the head's white marks.
+    - **Where it stopped (2026-09-28):** TSC_Ladybird at Lettering, waiting for the user's pick (the
+      Lab's switch "The lettering"). Next: the pick, then Review (W2's critic isn't built: Claude's
+      own review until then), Road test (on the PC: install, drive, F12), Release, each written into
+      `studio.md` as the car reaches it.
 
 
 #### [ ] W2. The experts

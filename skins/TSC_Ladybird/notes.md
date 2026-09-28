@@ -112,3 +112,14 @@ the frames round the sidepod inlets and the speed display gloss black, like the 
 the speed numbers and the rear gear lights in the grass's green as a light (#60DC5A; braking still
 turns the rear lights red), what the driver sees all race; the glass left clear (a tint would dim
 the lights behind it).
+
+Lettering shown 2026-09-28 (the picture: front, left and right, the front and rear flanks close;
+the Lab's switch "The lettering"): A Latin name (TSC_Ladybird_LatinName: "Coccinella
+septempunctata" in black italic, EB Garamond at weight 700, along the top of each front flank, 4
+cm tall, like a specimen's label; the Field guide board), B Seven in the spot (TSC_Ladybird_Seven:
+a cream 7 in Russo One inside the black spot on each rear flank, the spot as the number's roundel;
+the Racing colours board's saddle-cloth 7), C No lettering (TSC_Ladybird_NoLettering). The first
+tries: the Latin name ran under the flank's small black fin (moved 4 cm down); the 7 on the black
+nose read as an L from the front, and between the head's white marks risked a face. EB Garamond
+Italic added to the fonts (google/fonts, the same pinned commit, still the latest). Claude suggests
+B: it reads from across the track, where A's label only reads close up.
