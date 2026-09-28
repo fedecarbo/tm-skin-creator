@@ -2210,12 +2210,13 @@ The user's answers:
   you to get influenced by previous builds, so if a build is done the old way, I would just have a
   standard view how we have it for notes or something. Or whatever you think"). Claude's reading,
   made the rule: a car made the old way (every car before the studio, and every quick car) keeps
-  the Lab's stand and its notes, and never gets a build sheet pieced together from its history.
-  A studio car starts from a blank sheet and its brief, under a new name, and borrows no looks
-  from earlier cars unless the user names one; what the game taught about the car itself (the
-  experts' guides, "Things we learned") still counts. So Rework is for studio cars (going back
-  to a step), and a quick car doesn't move into the studio: an idea taken further there starts
-  afresh.
+  the Lab's stand and its notes, with no build sheet pieced together from its history. A studio
+  car starts from a blank sheet and its brief, under a new name, and borrows no looks from
+  earlier cars unless the user names one; what the game taught about the car itself (the experts'
+  guides, "Things we learned") still counts. Then: "I guess lets focus on first time building, we
+  can later figure the already built". So the studio is for cars built from the start, going back
+  to a step included; taking an already built car further (Rework, a quick car into the studio)
+  is for later.
 
 An improvement to the tool, not a new checkpoint: queued in `IMPROVEMENTS.md` under "Under way".
 It takes in the Lab's remaining steps (9.3 to 9.6): see "How this fits with what's there".
@@ -2224,9 +2225,9 @@ It takes in the Lab's remaining steps (9.3 to 9.6): see "How this fits with what
 
 | Way | When | What happens |
 |---|---|---|
-| **Quick** | A clear, small idea ("make the wheels gold", "something with flames") | Same as today: words, pictures, changes, yes, in the game. Minutes. Stays on the Lab's stand with its notes; taken into the Studio, the idea starts afresh (the user, 2026-09-28, above). |
+| **Quick** | A clear, small idea ("make the wheels gold", "something with flames") | Same as today: words, pictures, changes, yes, in the game. Minutes. Stays on the Lab's stand with its notes; moving it into the Studio is for later (the user, 2026-09-28, above). |
 | **Studio** | A new car the user wants done properly | All the stages below, from the brief to the release. About an hour or two, spread over a few decisions. |
-| **Rework** | A studio car that should be taken further, or changed in a big way (only studio cars since the user's answer above) | Starts with a teardown of the car as it is (below), then goes back to the stage the change belongs to. Everything before that stage stays settled. |
+| **Rework** (for later: the user's answer above) | An existing car that should be taken further, or changed in a big way | Starts with a teardown of the car as it is (below), then goes back to the stage the change belongs to. Everything before that stage stays settled. |
 
 Claude suggests a way from the user's words and says which in one line ("I'll take this through
 the studio"). The user can always ask for the other.
@@ -2342,11 +2343,12 @@ after it, never the ones before.
 
 ##### Rework: the teardown
 
-For a studio car taken further (never a car made the old way: the user's answer above), before
+For later (the user's answer above: first-time building comes first). For an existing car, before
 anything changes:
 
 - the critic goes over the car as it is, with the quality list above;
-- Claude sets that beside the car's brief (a studio car has one);
+- Claude sets that beside the car's brief (a studio car has one; for a car made the old way, how
+  to go about it is to be figured out then);
 - the user sees both, and says what stays and what's open ("keep the colours, redo the
   lettering");
 - the car enters the Studio at that stage. "Redo the lettering" starts at Details; "make it feel
@@ -2400,9 +2402,9 @@ wrap):
   later picks onto the change, marks only the steps it affects as "needs a look" (a new wrap
   colour touches the lights and the lettering, not the tread), and shows the whole car before and
   after. A change is tried next to the current car, and the one not kept is deleted.
-- **A studio car taken further** opens on its sheet, every step decided, and goes straight to the
-  step the change belongs to. A car made the old way has no sheet: it opens on the stand with its
-  notes (the user, 2026-09-28).
+- **A car taken further** (for later) opens on its sheet, every step decided, and goes straight to
+  the step the change belongs to. A car made the old way has no sheet: it opens on the stand with
+  its notes (the user, 2026-09-28).
 - **The steps:** Brief, Mood, Concepts, Shapes, Colours and materials, Wheels, Details, Lettering,
   Review, Road test, then Released. Wheels and Lettering are steps of their own (in the stages
   above they sit inside Details).
@@ -2475,8 +2477,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - **Going back:** a step's change marks the later steps it affects as "needs a look" (Claude
     decides which, and says why in a few words); the others stay decided. Claude carries the later
     picks onto the change and shows the whole car before and after.
-  - **Rework** (since the user's answer, 2026-09-28): a studio car's teardown, then going back to
-    the step the change belongs to. No sheet is written for a car made the old way.
+  - **Rework** is for later (the user, 2026-09-28: "lets focus on first time building, we can
+    later figure the already built"). No sheet is written for a car made the old way.
   - Mood boards: pictures from the picture maker (`tool.pictures`), the textures library and
     colour strips. Web pictures are references only, never on git or on the car.
   - **The pieces** (Claude's split, 2026-09-28, at the user's word: "Build one step at a time, show
@@ -2489,9 +2491,9 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     4. concepts to the release: the rest of the routine in the skill (three concepts, a "from far
        away" picture for Shapes, the finishes board, wheels, details, lettering, Claude's own
        review until W2's critic, the road test, the release) and going back, tried on a real car.
-    A fifth, an old car's sheet pieced together from its history, was dropped the same day (the
-    user's answer: cars made the old way stay as they are). Reworking a studio car is going back,
-    in piece 4.
+    A fifth, an old car's sheet pieced together from its history, was left for later the same day
+    (the user's answer: first-time building first). Going back to a step during a build is in
+    piece 4.
   - **1. The build sheet (built 2026-09-28):**
     - `tool/sheet.py`, standard library only, so it runs with the Mac's own python3 (3.9) as
       `tool.notes` does, in the container, and on the PC. `skins/<car>/sheet.json`: the car, its

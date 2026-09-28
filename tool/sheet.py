@@ -20,8 +20,9 @@ release. Each is to do, Claude on it, waiting for you, decided, needs a look, or
 
 Only a car begun in the studio has a sheet (the user, 2026-09-28: "I don't want you to get
 influenced by previous builds, so if a build is done the old way, I would just have a standard
-view how we have it for notes"). A car made the old way keeps the Lab's stand and its notes, and
-never gets a sheet pieced together from its history, so `new` refuses a car that has a design.
+view how we have it for notes", then "lets focus on first time building, we can later figure
+the already built"). A car made the old way keeps the Lab's stand and its notes, and `new` refuses
+a car that has a design: taking a built car further is for later.
 
 Options. An option is a skin, a whole design beside the car (skins/<car>_<Title>/), or a file in
 the car's folder (a mood board). `option` without --skin or --file makes the skin: a copy of the
