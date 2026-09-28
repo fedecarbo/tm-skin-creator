@@ -224,16 +224,40 @@ Step by step, each agreed before it's built, and ticked only when the user has s
 Lab's steps are). Mockups first for anything the user will look at, so they pick from real
 pictures.
 
-### S1. The studio in words
+### S1. The test: Studio against Quick
 
-- **What it's for:** try the whole studio on a real car before building any screens: stages and
-  decisions in the chat, the brief card, the three ways in, the rework teardown.
-- **What you'll see:** one new car taken through every stage in the chat, with pictures at each
-  decision. You judge whether the stages make the car better, and which ones felt slow or empty.
-- **Model:** Opus 5.5 (the everyday model), Fable 5.1 for the critic if Opus misses things.
-- **Notes for Claude:** the routine goes into the `skin` skill (a Studio section) with the brief
-  card kept per skin (`skins/<name>/brief.md`). No Lab changes yet. Record which stages the user
-  found worth it: the plan changes if some aren't.
+- **What it's for:** find out whether the studio is worth it before building anything for it
+  (the user, 2026-09-28: "I want to do a test for the quick and the studio one to see the
+  difference if it's worth it"). One idea of the user's, made twice, in two sessions: once the
+  quick way, once through the studio.
+- **What you'll see:** two cars of the same idea, shown side by side without saying which is
+  which, then both in the game. You pick the one you'd drive, and we compare how long each took
+  and how many things you had to point out.
+- **Model:** Opus 5.5 in both sessions, so only the way of working differs.
+- **Before the test (Claude):** write the studio routine into the `skin` skill as its own section,
+  used only when the user asks for the studio: the stages, the decisions, the brief card
+  (`skins/<name>/brief.md`), the critic as a subagent with its quality list, the three concept
+  designers in parallel. The quick way stays exactly as it is. No Lab changes: the studio session
+  works in the chat and the Lab as they are.
+- **How the test runs:**
+  - The user's first message is the same, word for word, in both sessions. Each session is told
+    only its way ("quick" or "studio"), not about the other.
+  - The quick session goes first, so the studio's brief and mood boards don't shape the user's
+    taste before the quick car is made.
+  - Names: `TSC_<Idea>_Quick` and `TSC_<Idea>_Studio`.
+  - Each session writes in its `notes.md`: when it started and ended, how many messages the user
+    sent, how many rounds, and each thing the user had to point out.
+- **The verdict:**
+  - Both cars side by side as "Car 1" and "Car 2" in a random order, from the game's cameras, by
+    day and at night. The user picks without knowing which is which.
+  - Both installed and driven. The user says which they'd drive and why.
+  - The critic reviews both with the same quality list, and we count the faults.
+  - The time each took, and how much of it was the user's.
+  - The result goes under "Things we learned" in `CHECKLIST.md`, and decides whether S2 to S6
+    happen, and which stages stay.
+- **The frontend meanwhile:** the Lab's layout for the studio is chosen from mockups
+  (https://claude.ai/artifact/4RxUASJaYTfphRZbk1gFtG: A, the line of stages over the car; B, the car's sheet beside it; C, a decision drawer; made from the Lab's own stylesheet and the CMYK texture round's pictures), and built only if the test says the
+  studio is worth it.
 
 ### S2. The experts
 
@@ -307,4 +331,4 @@ pictures.
 
 1. Is this list of stages right, or is anything missing or unwanted (a "sponsors and branding"
    stage, or a stage for the car's story or name)?
-2. For the first car through the studio: a new idea of yours, or rework an existing car?
+2. The idea for the test (the user brings one they're pursuing).
