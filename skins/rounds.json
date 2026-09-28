@@ -32,24 +32,5 @@
     "title": "Brushed"
    }
   ]
- },
- {
-  "title": "The finish",
-  "words": "I would just keep with a and move on",
-  "made": "2026-09-28",
-  "takes": [
-   {
-    "name": "TSC_Ladybird_BeetleGloss",
-    "title": "Beetle gloss"
-   },
-   {
-    "name": "TSC_Ladybird_SilksSatin",
-    "title": "Silks satin"
-   },
-   {
-    "name": "TSC_Ladybird_PaintedWood",
-    "title": "Painted wood"
-   }
-  ]
  }
 ]

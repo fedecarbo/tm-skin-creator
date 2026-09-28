@@ -185,7 +185,8 @@ disagree about shine.
 3. Paint and check each; shine shows every flaw, so look at the glossiest closest. The picture:
    front, rear (the highlights run over the deck) and night, with close rows 3 and 6. Then `ask`,
    reply with a line per option and the one you'd pick, and in bold: which one?
-4. The pick as for concepts, then `show <car>`. What only the game can judge (a colour meant to
+4. The pick as for concepts, then `show <car>`. A pick with a change ("a but the grass make it a
+   silky grass finish"): change that option, check it, then pick it. What only the game can judge (a colour meant to
    blend with the map) goes to the Road test: note it in `notes.md`.
 
 ## The steps after Colours and materials

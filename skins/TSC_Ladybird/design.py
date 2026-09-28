@@ -12,7 +12,15 @@ touched the cockpit's rim and went, the head taking its place).
 The spots are painted on the outer panels only, so none runs down into what lies under it (on B one
 ran inside a sidepod inlet: "The spot in b also transfers to the next object in the car"), and
 they keep clear of the inlets and of the number panel and the engine cover panel, where the game
-draws the player's number and name. Still rough: flat colour, one finish, no details yet."""
+draws the player's number and name. Still rough: flat colour, one finish, no details yet.
+
+Colours and materials, option A as the user changed it: the ladybird's own shine, the shell, its
+spots, the head and its marks glossy under a clear varnish, like a beetle's wing cases; the grass
+satin ("How about a but the grass make it a silky grass finish, so there's some contrast in the
+ladybug and the grass").
+
+The head's fringe keeps clear of its white marks, a thin black gap round each (the user's note on
+the car: "Why is the grass touching this object.  Now it looks weird")."""
 from tool import shapes
 
 WORDS = "I like B the most.  I do like the grass from C though"
@@ -41,6 +49,10 @@ NOSE, HEAD_LIP = ["nose tip", "nose panel", "body shell"], 41.0
 # top" (as the spots are) they came out as slivers, and to the surfaces facing sideways as
 # half-moons: the nose's sides slope up
 MARKS = (48, 162, 6)
+# the black gap the head's fringe keeps round each mark, cm
+MARK_GAP = 2.5
+# the finishes, part by part
+FINISH = dict(shell="gloss", spots="gloss", head="gloss", grass="satin", marks="gloss")
 
 
 def top():
@@ -53,14 +65,14 @@ def head():
 
 def design(s):
     s.clay()
-    s.step("Silks", "Satin red all over, big black blob spots over the top and on the rear flanks.", words=BLOBS)
-    s.paint("body", "satin", colour=RED)
+    s.step("Silks", "Gloss red all over, big black blob spots over the top and on the rear flanks.", words=BLOBS)
+    s.paint("body", FINISH["shell"], colour=RED)
     for k, (x, z, r) in enumerate(TOP):
-        s.paint(OUTER, "satin", colour=BLACK, zone=shapes.blob((x, 0, z), r, seed=k) & top())
+        s.paint(OUTER, FINISH["spots"], colour=BLACK, zone=shapes.blob((x, 0, z), r, seed=k) & top())
     for k, (y, z, r) in enumerate(SIDE):
-        s.paint(OUTER, "satin", colour=BLACK, zone=shapes.blob((0, y, z), r, axis="x", seed=10 + k) & ~top())
+        s.paint(OUTER, FINISH["spots"], colour=BLACK, zone=shapes.blob((0, y, z), r, axis="x", seed=10 + k) & ~top())
     s.step("The head", "The nose black, as the ladybird's head, with two white blobs low on its sides.", words=HEAD)
-    s.paint("body", "satin", colour=BLACK, zone=head())
+    s.paint("body", FINISH["head"], colour=BLACK, zone=head())
     s.step("The grass", "Taller, denser turf-green blades rising up the lower sides, all round the car, "
            "under the black head too.", words=GRASS + " / " + AROUND)
     # all round. Ahead of the head's edge the nose floats: its black body's lower edge is 41 to 44
@@ -68,12 +80,13 @@ def design(s):
     # wing's pylon. Blades from the ground only reached the nose as stray tips, and specks on the
     # pylon, so the ledge is a lawn under the head, solid (blades left black gaps across it), and
     # the head has its own fringe, rising from its lower edge
-    s.paint("body", "satin", colour=TURF, zone=shapes.grass(base=6, height=(18, 40), every=2.2, seed=7) & ~top() & ~head())
-    s.paint("side skirt", "satin", colour=TURF, zone=head())
-    s.paint(NOSE, "satin", colour=TURF, zone=shapes.grass(base=HEAD_LIP, height=(5, 11), every=2.0, seed=9) & ~top() & head())
-    s.step("The head's marks", "Two white blobs on the sides of the black head.", words=HEAD)
+    s.paint("body", FINISH["grass"], colour=TURF, zone=shapes.grass(base=6, height=(18, 40), every=2.2, seed=7) & ~top() & ~head())
+    s.paint("side skirt", FINISH["grass"], colour=TURF, zone=head())
     y, z, r = MARKS
-    s.paint("body", "satin", colour=WHITE, zone=shapes.blob((0, y, z), r, axis="x", seed=20) & head())
+    clear = ~shapes.blob((0, y, z), r + MARK_GAP, axis="x", seed=20)
+    s.paint(NOSE, FINISH["grass"], colour=TURF, zone=shapes.grass(base=HEAD_LIP, height=(5, 11), every=2.0, seed=9) & ~top() & head() & clear)
+    s.step("The head's marks", "Two white blobs on the sides of the black head.", words=HEAD)
+    s.paint("body", FINISH["marks"], colour=WHITE, zone=shapes.blob((0, y, z), r, axis="x", seed=20) & head())
     s.step("For now", "The wheels and the inner car black: they get their own steps.", words=WORDS)
     s.paint("wheels", "satin", colour=BLACK)
     s.paint("inner", "satin", colour=BLACK)

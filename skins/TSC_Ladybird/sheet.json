@@ -124,9 +124,9 @@
   {
    "key": "colours",
    "name": "Colours and materials",
-   "state": "waiting",
-   "decision": "",
-   "date": "",
+   "state": "decided",
+   "decision": "Beetle gloss with satin grass: the shell, spots, head and marks glossy under a clear varnish, the grass a silky satin",
+   "date": "2026-09-28",
    "options": [
     {
      "key": "A",
@@ -144,7 +144,7 @@
      "skin": "TSC_Ladybird_PaintedWood"
     }
    ],
-   "pick": null,
+   "pick": "A",
    "why": "",
    "was": []
   },

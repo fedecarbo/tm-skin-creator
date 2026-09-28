@@ -2668,8 +2668,11 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       drawn on), B Silks satin (the car as it is), C Painted wood (the Field guide board: matte,
       chalky black). The gloss's highlights run over the deck and the spots; nothing broke under
       the shine. The green against the game's own grass is left for the Road test.
-    - **Where it stopped (2026-09-28):** TSC_Ladybird at Colours and materials, waiting for the
-      user's pick (the Lab's switch "The finish"). Next: the pick, then Wheels, Details, Lettering,
+    - **The pick:** "How about a but the grass make it a silky grass finish, so there's some
+      contrast in the ladybug and the grass": A changed (the grass satin), then picked. With it, a
+      note on the nose ("Why is the grass touching this object"): the head's fringe keeps a black
+      gap round the white marks.
+    - **Where it stopped (2026-09-28):** TSC_Ladybird at Wheels. Next: Wheels, Details, Lettering,
       Review, Road test, Release, each written into `studio.md` as the car reaches it.
 
 

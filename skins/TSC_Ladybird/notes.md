@@ -86,3 +86,11 @@ is: satin all over), C Painted wood (TSC_Ladybird_PaintedWood, the Field guide b
 the spots and head a chalky black, the grass and marks matte). The colours the same in all three,
 so the choice is the finish alone; the green against the game's own grass is for the Road test.
 Claude suggests A: the brief's ladybird is glossy, and the matte grass reads as drawn on.
+Change 7 (user, note 6) 2026-09-28, on the nose tip, beside the white mark: "Why is the grass
+touching this object.  Now it looks weird.  That's probably a functinality and capability issue,
+but let's move on". Read as the head's fringe touching the white mark: the fringe keeps a black gap
+of 2.5 cm round each mark.
+Picked 2026-09-28, Colours and materials (user): "How about a but the grass make it a silky grass
+finish, so there's some contrast in the ladybug and the grass". A Beetle gloss with the grass satin
+(A changed, then picked): the shell, spots, head and marks glossy under a clear varnish, the grass
+satin. B and C deleted (git's history).
