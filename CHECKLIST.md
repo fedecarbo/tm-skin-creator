@@ -1094,7 +1094,7 @@ worked on, live; not one page. What was settled the same day:
 - Live costs no tokens: the tool writes what the page reads as it paints (a few seconds per
   step); Claude doesn't watch the page.
 
-#### [ ] 1. The materials room
+#### [x] 1. The materials room
 
 - **What it's for:** every material the tool knows, on a ball, by family, with its code and
   its numbers (matte, metal and varnish, as %). One click copies a line to paste to Claude.
@@ -1148,7 +1148,7 @@ worked on, live; not one page. What was settled the same day:
     - the user drives it. Each finish the game confirms gets `source="game"` (add "game" to
       `SOURCE` in `viewer/lab.js`).
 
-#### [ ] 2. The UV map room
+#### [x] 2. The UV map room
 
 - **What it's for:** the car's flat texture maps, as the tool paints them, with every part
   named. Hover over a spot to see its name, and see it light up on a small 3D car. Copy a
@@ -1409,7 +1409,7 @@ worked on, live; not one page. What was settled the same day:
     1440 × 900 (the rooms' head on two lines, then one), no page errors.
   - **Next:** the user looks.
 
-#### [ ] 7. The Lab without the rooms: notes on the car
+#### [x] 7. The Lab without the rooms: notes on the car
 
 - **What it's for:** the user, 2026-09-27: "I'm starting to not find the views (body, details,
   etc) so helpful. And also, not sure I find the sidebar on the right useful. I like the design,
@@ -1460,7 +1460,7 @@ worked on, live; not one page. What was settled the same day:
       notes under the car and no sideways scroll; the UV map room's four maps; no page errors.
   - **Next:** the user tries it on a skin.
 
-#### [ ] 8. A picture with each note; day and night only
+#### [x] 8. A picture with each note; day and night only
 
 - **What it's for:** the user asked for ideas for the Lab (2026-09-27) and picked two of six to
   mock up: a picture with each note, so Claude sees exactly what the user saw, and sunrise and
@@ -1790,7 +1790,11 @@ worked on, live; not one page. What was settled the same day:
     - **Next:** the user tries it. Tries appear as cars get repainted: each car shown before today
       has one try per station until then.
 
-### Defining the parts (started 2026-09-26)
+### Defining the parts (started 2026-09-26, dropped 2026-09-28)
+
+- **Dropped** (the user, 2026-09-28, asked whether it was still next: "Drop it"). What was done
+  stays: the groups on top are the game's maps, the tail frame, floor edge and wing mounts as parts,
+  the UV map picking surfaces.
 
 Led by the user, step by step ("I honestly don't know how we are going to do this, but maybe we
 can go step by step"). The steps are theirs; each is agreed before it's built.
@@ -3174,7 +3178,10 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - Keep the Lab fast: draw only when something changes, pictures kept in the browser, nothing
     new drawn while Claude paints. Mockups first for any screen that differs from the chosen ones.
 
-#### [ ] W4. The test: Studio against Quick
+#### [dropped] W4. The test: Studio against Quick
+
+- **Dropped** (the user, 2026-09-28: "Drop it. But ill probably explore ways to make the workflow
+  better for designing"): it compared two ways of working that became one.
 
 - **What it's for:** check the studio is worth it (the user, 2026-09-28: "I want to do a test for
   the quick and the studio one to see the difference if its worth it").

@@ -10,30 +10,17 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 ## Under way
 
-- **Defining the parts: next, before anything else** (the user, 2026-09-26: "I think we need to
-  define parts first. Can this be my next task to do before anything else?"). The user leads it,
-  and may do it with another agent. What "define" covers is theirs to say: start from their
-  thoughts, not from a plan of Claude's. Step by step, each agreed before it's built; the steps
-  are in `CHECKLIST.md`, "Defining the parts". Done (2026-09-26): the groups on top are the
-  game's maps (Body, Details, Tyres, Glass), after a day of groups by what parts are, which the
-  user found over-engineered; the paint box names every part a colour also lands on; the tail's
-  frame left the floor ("tail frame"); "floor edge" and "wing mounts" are parts; the Lab's UV map
-  picks surfaces. Next:
-  the user goes through each group's insides, and may split them. What the tool has:
-  `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 5 groups, made from
-  `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's UV map tabs show
-  them. Known gaps, below under "The tool": some inner names are guesses, words on the inner car.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a
   studio of eleven steps, experts (the step guides, the concept designers, the critic), a wizard in
   the Lab; then, at the user's word, three steps, then none: "I don't really work that way". Now:
-  the car and the user's notes, and sets of options in the Lab's list whenever they ask (the fresh
+  the car and the user's notes, and sets of options in the Lab's timeline whenever they ask (the fresh
   layouts' A); a new car gets a short talk, three concepts as its first set, every detail with the
   guides, and the critic before the game (`new-car.md`). Notes: `CHECKLIST.md`, "The design
-  studio". Left: the user's word on the new way of working; the test of the studio against the
-  quick way (W4) compared two ways and there's now one, so it goes unless the user wants it.
-
+  studio". The test against the quick way (W4) dropped (the user, 2026-09-28): "ill probably
+  explore ways to make the workflow better for designing". Left: the user's word on it as they use
+  it, and whatever they explore.
 - **The Lab's list as a timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right
   as the ai helper ... a scrollable timeline ... the latest would be at the bottom"). The user picked
   A of the mockups, a chat with two voices. Built 2026-09-28 on the Mac, the leftovers of the earlier
@@ -84,8 +71,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   strip of the Details map (texels 2248-2251, 2566-2607 at 4096), which the parts list counts as
   the front wing's, so they take the front wing's paint wherever they sit, and "paint also lands
   on" never says so (they're a handful of texels). The skin paints the strip by hand
-  (`fasteners()` in TSC_CMYK_BlackTail's design). Idea, with the user's parts work: name them
-  ("fasteners") so any design can paint them.
+  (`fasteners()` in TSC_CMYK_BlackTail's design). Idea: name them ("fasteners") in
+  `tool/naming.py` so any design can paint them.
 - **Saving the user's picture while it's open on their screen fails on Windows** (2026-09-27):
   `tool.snap --picture` stopped with "Invalid argument" while the last picture was still open;
   it worked when run again. Idea: retry the save a few times, a moment apart, as `view._write_json`
@@ -136,6 +123,12 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   Mac's container doesn't have, so any marking with words fails there ("cannot open resource").
   Idea: on the Mac, fall back to an open font of the same weight (Archivo Black for Arial Black),
   fetched like the Google fonts; the PC keeps its own, so the game looks as designed.
+
+- **The materials, in a new way** (the user, 2026-09-28: "Ill probably add UV map and materials but
+  in a different way"). Today they're in the car's menu (every finish on a ball, with its code and a
+  "Copy for Claude"). The new way is the user's to describe: start from their words, then mockups.
+- **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
+  maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
 
 ## The viewer, from the user's screenshots and videos
 
