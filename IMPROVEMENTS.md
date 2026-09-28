@@ -27,7 +27,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"; the plan agreed the same day: "Lets
   just go with that, and see how it goes"). Three ways in: Quick (as today), the Studio, and
-  Rework for a car that exists. The Studio's steps run from the brief to the release, and the
+  Rework (a studio car taken further). Cars made the old way keep the stand and their notes, and a
+  studio car starts afresh, borrowing no looks from earlier cars (the user, 2026-09-28). The Studio's steps run from the brief to the release, and the
   user decides wherever there's more than one real direction. Each step has its expert's
   know-how, and an independent critic reviews the car. In the Lab it's a wizard: the build sheet
   on the left, the step waiting for the user filling the page. It takes over the Lab's remaining

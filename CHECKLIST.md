@@ -2206,6 +2206,16 @@ The user's answers:
 - **When the user decides** (2026-09-28: "any stage that needs a choosing of direction"): the user
   signs off wherever there is more than one real direction to go. Claude handles the rest and
   shows it, and the user can still leave notes on anything.
+- **Cars made the old way stay as they are** (2026-09-28, while W1 was being built: "I don't want
+  you to get influenced by previous builds, so if a build is done the old way, I would just have a
+  standard view how we have it for notes or something. Or whatever you think"). Claude's reading,
+  made the rule: a car made the old way (every car before the studio, and every quick car) keeps
+  the Lab's stand and its notes, and never gets a build sheet pieced together from its history.
+  A studio car starts from a blank sheet and its brief, under a new name, and borrows no looks
+  from earlier cars unless the user names one; what the game taught about the car itself (the
+  experts' guides, "Things we learned") still counts. So Rework is for studio cars (going back
+  to a step), and a quick car doesn't move into the studio: an idea taken further there starts
+  afresh.
 
 An improvement to the tool, not a new checkpoint: queued in `IMPROVEMENTS.md` under "Under way".
 It takes in the Lab's remaining steps (9.3 to 9.6): see "How this fits with what's there".
@@ -2214,9 +2224,9 @@ It takes in the Lab's remaining steps (9.3 to 9.6): see "How this fits with what
 
 | Way | When | What happens |
 |---|---|---|
-| **Quick** | A clear, small idea ("make the wheels gold", "something with flames") | Same as today: words, pictures, changes, yes, in the game. Minutes. Can move into the Studio at any point, keeping the car. |
+| **Quick** | A clear, small idea ("make the wheels gold", "something with flames") | Same as today: words, pictures, changes, yes, in the game. Minutes. Stays on the Lab's stand with its notes; taken into the Studio, the idea starts afresh (the user, 2026-09-28, above). |
 | **Studio** | A new car the user wants done properly | All the stages below, from the brief to the release. About an hour or two, spread over a few decisions. |
-| **Rework** | An existing car that should be taken further, or changed in a big way | Starts with a teardown of the car as it is (below), then enters the Studio at the stage the change belongs to. Everything before that stage stays settled. |
+| **Rework** | A studio car that should be taken further, or changed in a big way (only studio cars since the user's answer above) | Starts with a teardown of the car as it is (below), then goes back to the stage the change belongs to. Everything before that stage stays settled. |
 
 Claude suggests a way from the user's words and says which in one line ("I'll take this through
 the studio"). The user can always ask for the other.
@@ -2332,10 +2342,11 @@ after it, never the ones before.
 
 ##### Rework: the teardown
 
-For an existing car, before anything changes:
+For a studio car taken further (never a car made the old way: the user's answer above), before
+anything changes:
 
 - the critic goes over the car as it is, with the quality list above;
-- Claude writes the car's brief as it stands now (from its record and the user's words back then);
+- Claude sets that beside the car's brief (a studio car has one);
 - the user sees both, and says what stays and what's open ("keep the colours, redo the
   lettering");
 - the car enters the Studio at that stage. "Redo the lettering" starts at Details; "make it feel
@@ -2389,8 +2400,9 @@ wrap):
   later picks onto the change, marks only the steps it affects as "needs a look" (a new wrap
   colour touches the lights and the lettering, not the tread), and shows the whole car before and
   after. A change is tried next to the current car, and the one not kept is deleted.
-- **An existing car** opens with its sheet filled in from its history, every step decided, and
-  goes straight to the step the change belongs to.
+- **A studio car taken further** opens on its sheet, every step decided, and goes straight to the
+  step the change belongs to. A car made the old way has no sheet: it opens on the stand with its
+  notes (the user, 2026-09-28).
 - **The steps:** Brief, Mood, Concepts, Shapes, Colours and materials, Wheels, Details, Lettering,
   Review, Road test, then Released. Wheels and Lettering are steps of their own (in the stages
   above they sit inside Details).
@@ -2463,8 +2475,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - **Going back:** a step's change marks the later steps it affects as "needs a look" (Claude
     decides which, and says why in a few words); the others stay decided. Claude carries the later
     picks onto the change and shows the whole car before and after.
-  - **Rework:** writes the sheet of an existing car from its `notes.md` and `design.py`, every step
-    decided, then opens the step the change belongs to.
+  - **Rework** (since the user's answer, 2026-09-28): a studio car's teardown, then going back to
+    the step the change belongs to. No sheet is written for a car made the old way.
   - Mood boards: pictures from the picture maker (`tool.pictures`), the textures library and
     colour strips. Web pictures are references only, never on git or on the car.
   - **The pieces** (Claude's split, 2026-09-28, at the user's word: "Build one step at a time, show
@@ -2476,12 +2488,14 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        textures, the picture maker's pictures);
     4. concepts to the release: the rest of the routine in the skill (three concepts, a "from far
        away" picture for Shapes, the finishes board, wheels, details, lettering, Claude's own
-       review until W2's critic, the road test, the release) and going back, tried on a real car;
-    5. rework: an existing car's sheet from its history, then the step its change belongs to.
+       review until W2's critic, the road test, the release) and going back, tried on a real car.
+    A fifth, an old car's sheet pieced together from its history, was dropped the same day (the
+    user's answer: cars made the old way stay as they are). Reworking a studio car is going back,
+    in piece 4.
   - **1. The build sheet (built 2026-09-28):**
     - `tool/sheet.py`, standard library only, so it runs with the Mac's own python3 (3.9) as
       `tool.notes` does, in the container, and on the PC. `skins/<car>/sheet.json`: the car, its
-      title, the way (studio or rework), the user's first words, the start date, and the eleven
+      title, the user's first words, the start date, and the eleven
       steps (`sheet.STEPS`: brief, mood, concepts, shapes, colours, wheels, details, lettering,
       review, road, release), each with its key and name (for the Lab), state, decision, date,
       options, pick, why, and `was` (earlier decisions, so the page can say "changed" and the
@@ -2504,7 +2518,9 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       marks the named later steps "needs a look" and review, road test and release too ("the car
       changed"). `decide` on a step that needs a look, without words, confirms its decision;
       after going back, a change made in the car itself (no other option) is decided directly.
-    - **Checks:** 39 passed, on the Mac's python3 3.9 and the container's 3.14, in a scratch
+    - **Only new cars:** `new` refuses a car that has a design (made the old way), since the
+      user's answer; the `--rework` switch and the sheet's "way" went with it.
+    - **Checks:** 40 passed (39, then the refusal of an old car), on the Mac's python3 3.9 and the container's 3.14, in a scratch
       skins folder (`TSC_SKINS_HOME`): the refusals (a design loading a deleted option or the car,
       fewer than two options, an option with no design, a bad letter, going back to a step not
       decided or marking an earlier step), a refused pick deleting nothing, the pick moving the

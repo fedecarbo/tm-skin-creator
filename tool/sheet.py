@@ -5,8 +5,7 @@ waiting for the user. skins/<car>/sheet.json, written only by these commands, so
 
     python -m tool.sheet                                     every car with a sheet, and its step
     python -m tool.sheet <car>                               the car's sheet
-    python -m tool.sheet new <car> --words "..." [--rework]  start one; the car may exist already
-                                                             (a quick car taken into the studio)
+    python -m tool.sheet new <car> --words "..."             start one, for a new car
     python -m tool.sheet on <car> <step>                     Claude is on the step
     python -m tool.sheet option <car> <step> "<title>" [--skin <name> | --file <path>]
                                                              an option for the step: A, B, C...
@@ -18,6 +17,11 @@ waiting for the user. skins/<car>/sheet.json, written only by these commands, so
 
 The steps: brief, mood, concepts, shapes, colours, wheels, details, lettering, review, road,
 release. Each is to do, Claude on it, waiting for you, decided, needs a look, or skipped.
+
+Only a car begun in the studio has a sheet (the user, 2026-09-28: "I don't want you to get
+influenced by previous builds, so if a build is done the old way, I would just have a standard
+view how we have it for notes"). A car made the old way keeps the Lab's stand and its notes, and
+never gets a sheet pieced together from its history, so `new` refuses a car that has a design.
 
 Options. An option is a skin, a whole design beside the car (skins/<car>_<Title>/), or a file in
 the car's folder (a mood board). `option` without --skin or --file makes the skin: a copy of the
@@ -130,11 +134,14 @@ def blank(key, name):
             "why": "", "was": []}
 
 
-def new(car, words, rework=False):
+def new(car, words):
     if path(car).exists():
         raise SheetError(f"{car} has a sheet already")
-    sheet = {"car": car, "title": title_of(car), "way": "rework" if rework else "studio", "words": words,
-             "started": today(), "steps": [blank(k, n) for k, n in STEPS]}
+    if (SKINS / car / "design.py").exists():
+        raise SheetError(f"{car} was made the old way: it stays on the stand with its notes. A studio car starts "
+                         "afresh, under a new name")
+    sheet = {"car": car, "title": title_of(car), "words": words, "started": today(),
+             "steps": [blank(k, n) for k, n in STEPS]}
     save(sheet)
     return sheet
 
@@ -344,8 +351,7 @@ def here(sheet):
 
 def describe(sheet):
     at = here(sheet)
-    lines = [f"{sheet['title']} ({sheet['car']}), {'a rework' if sheet['way'] == 'rework' else 'the studio'}, "
-             f"since {sheet['started']}: \"{sheet['words']}\""]
+    lines = [f"{sheet['title']} ({sheet['car']}), in the studio since {sheet['started']}: \"{sheet['words']}\""]
     for n, st in enumerate(sheet["steps"], 1):
         state = STATES[st["state"]] + (" (changed)" if st["was"] and st["state"] == "decided" else "")
         if st["state"] in ("decided", "skipped") and st["date"]:
@@ -376,7 +382,7 @@ def main(argv=None):
     if not argv:
         for sheet in cars():
             at = here(sheet)
-            print(f"{sheet['car']:<28} {sheet['way']:<7} " + (f"{at['name']}, {STATES[at['state']]}" if at else "released"))
+            print(f"{sheet['car']:<28} " + (f"{at['name']}, {STATES[at['state']]}" if at else "released"))
         return
     if argv[0] not in ("new", "on", "option", "ask", "pick", "decide", "skip", "back"):
         print(describe(load(argv[0])))
@@ -386,7 +392,6 @@ def main(argv=None):
     ap.add_argument("car")
     ap.add_argument("rest", nargs="*")
     ap.add_argument("--words", default="")
-    ap.add_argument("--rework", action="store_true")
     ap.add_argument("--skin")
     ap.add_argument("--file")
     ap.add_argument("--affects", nargs="*", default=[])
@@ -397,7 +402,7 @@ def main(argv=None):
         ap.error(f"{a.command}: see the usage at the top of tool/sheet.py")
     said = []
     if a.command == "new":
-        sheet = new(a.car, a.words, a.rework)
+        sheet = new(a.car, a.words)
     elif a.command == "on":
         sheet = on(a.car, a.rest[0])
     elif a.command == "option":
