@@ -2591,6 +2591,10 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       lone fourth ball and gaps in two walls; fixed before showing.
     - **On the Mac the walls are drawings only:** the picture maker runs on the PC
       (`IMPROVEMENTS.md`, "The picture maker on the Mac").
+    - **The user picked C, then "c and b actually".** B had been deleted by the first pick; it came
+      back from git, Mood was reopened (`back`, the first pick kept in its history) and both boards
+      kept: `pick` takes several letters for files (`A+B`), never for cars (a car keeps one
+      design). The concepts draw on both. 48 checks passed.
 
 #### [ ] W2. The experts
 

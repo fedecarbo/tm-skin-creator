@@ -28,3 +28,6 @@ only: made on the Mac, where the picture maker doesn't run.
 Picked 2026-09-28, Mood (user): "c": C Field guide, matte vermilion, ink black, paper and sage, an
 ink-drawn grass fringe, the Latin name as lettering. Boards A and B deleted (in git's history).
 Claude had suggested B.
+Change 1 (user) 2026-09-28: "c and b actually". Mood reopened, Racing colours brought back from
+git's history, both boards kept (now A Field guide, B Racing colours): the concepts will draw on
+both, one reading per board and one that blends them.

@@ -11,7 +11,7 @@ waiting for the user. skins/<car>/sheet.json, written only by these commands, so
     python -m tool.sheet option <car> <step> "<title>" [--skin <name> | --file <path>]
                                                              an option for the step: A, B, C...
     python -m tool.sheet ask <car> <step>                    its options are shown: the user's turn
-    python -m tool.sheet pick <car> <step> <letter|none> "<decision>"
+    python -m tool.sheet pick <car> <step> <letter|A+B|none> "<decision>"
     python -m tool.sheet decide <car> <step> ["<decision>"]  decided without options
     python -m tool.sheet skip <car> <step> "<why>"           nothing to decide there on this car
     python -m tool.sheet back <car> <step> "<why>" [--affects <step> ...]
@@ -271,18 +271,23 @@ def drop(file):
 
 
 def pick(car, key, letter, decision):
-    """The user's pick. Returns what was done, in lines for Claude."""
+    """The user's pick: a letter, or several for files (two mood boards carried on: "A+B", the user
+    2026-09-28: "c and b actually"), or none. Returns what was done, in lines for Claude."""
     sheet = load(car)
     st = step_of(sheet, key)
     if not st["options"]:
         raise SheetError(f"{st['name']} has no options: decide it")
-    letter = letter.upper() if letter.lower() != "none" else None
-    chosen = next((o for o in st["options"] if o["key"] == letter), None)
-    if letter and not chosen:
-        raise SheetError(f"{st['name']} has no option {letter}: " + ", ".join(o["key"] for o in st["options"]))
+    letters = [] if letter.lower() == "none" else [x for x in re.split(r"[+, ]+", letter.upper()) if x]
+    kept = [o for o in st["options"] if o["key"] in letters]
+    if len(kept) != len(letters):
+        raise SheetError(f"{st['name']} has options " + ", ".join(o["key"] for o in st["options"]) + f", not {letter}")
+    if len(kept) > 1 and any(o.get("skin") for o in kept):
+        raise SheetError("a car keeps one design: pick one, or mix them into a new option")
+    chosen = kept[0] if len(kept) == 1 else None
+    letter = "+".join(o["key"] for o in kept) or None
     if not decision.strip():
         raise SheetError("say what was decided, in a few words")
-    others = [o for o in st["options"] if o is not chosen]
+    others = [o for o in st["options"] if o not in kept]
     skins_gone = [o["skin"] for o in others if o.get("skin") and o["skin"] != car]
     moves = chosen is not None and chosen.get("skin") not in (None, car)
     final = SKINS / (chosen["skin"] if moves else car) / "design.py"
@@ -392,8 +397,8 @@ def describe(sheet):
             state += " " + st["date"][5:]
         what = ""
         if st["state"] == "decided":
-            chosen = next((o for o in st["options"] if o["key"] == st["pick"]), None)
-            what = (f"{chosen['key']} {chosen['title']}: " if chosen and chosen["title"] != "as it is" else "") + st["decision"]
+            kept = [o for o in st["options"] if o["key"] in (st["pick"] or "").split("+") and o["title"] != "as it is"]
+            what = (" + ".join(f"{o['key']} {o['title']}" for o in kept) + ": " if kept else "") + st["decision"]
         elif st["state"] in ("skipped", "look"):
             what = st["why"]
         if st["state"] in ("claude", "waiting") and st["options"]:

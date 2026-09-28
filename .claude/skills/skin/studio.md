@@ -118,8 +118,10 @@ user's decision on a new car.
    `tool.sheet ask <car> mood`, and reply: a line per board, the one you'd pick and why in a
    sentence, then in bold: which one, or what to take from each?
 6. One board: `tool.sheet pick <car> mood <letter> "<its colour story and finish, a few words>"`.
-   A mix: write the mixed board as a new option, show it, then pick it. The pick deletes the other
-   boards and their pictures. `Picked` in `notes.md`, commit and push.
+   Two or more boards to carry on (the user, 2026-09-28: "c and b actually"): pick them together
+   (`A+B`) and draw the concepts from both, one reading per board and one that blends them. A mix
+   into one board: write it as a new option, show it, then pick it. The pick deletes the boards not
+   kept and their pictures. `Picked` in `notes.md`, commit and push.
 
 ## The steps after Mood
 

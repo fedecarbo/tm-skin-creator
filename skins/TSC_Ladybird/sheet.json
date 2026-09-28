@@ -19,28 +19,46 @@
    "key": "mood",
    "name": "Mood",
    "state": "decided",
-   "decision": "matte vermilion, ink black, paper and sage; an ink-drawn grass fringe, the Latin name as lettering",
+   "decision": "both carried into the concepts: Field guide (matte vermilion, ink, paper, sage, an ink-drawn fringe, the Latin name) and Racing colours (satin red, big black spots, cream rail line, a sharp graphic fringe, a saddle-cloth 7)",
    "date": "2026-09-28",
    "options": [
     {
      "key": "A",
-     "title": "Lacquer",
-     "file": "mood/lacquer.json"
+     "title": "Field guide",
+     "file": "mood/field-guide.json"
     },
     {
      "key": "B",
      "title": "Racing colours",
      "file": "mood/racing-colours.json"
-    },
-    {
-     "key": "C",
-     "title": "Field guide",
-     "file": "mood/field-guide.json"
     }
    ],
-   "pick": "C",
+   "pick": "A+B",
    "why": "",
-   "was": []
+   "was": [
+    {
+     "decision": "matte vermilion, ink black, paper and sage; an ink-drawn grass fringe, the Latin name as lettering",
+     "date": "2026-09-28",
+     "pick": "C",
+     "options": [
+      {
+       "key": "A",
+       "title": "Lacquer",
+       "file": "mood/lacquer.json"
+      },
+      {
+       "key": "B",
+       "title": "Racing colours",
+       "file": "mood/racing-colours.json"
+      },
+      {
+       "key": "C",
+       "title": "Field guide",
+       "file": "mood/field-guide.json"
+      }
+     ]
+    }
+   ]
   },
   {
    "key": "concepts",
