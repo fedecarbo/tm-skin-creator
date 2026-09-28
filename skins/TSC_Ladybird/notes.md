@@ -1,7 +1,7 @@
 "In the game there's an enournmous amount of maps you play in, and there's many maps that most of the map consists of grass terrain.  So I was wondering if I make a concepts of a car that revolves around that.  I obviously don't want to fall in the cliche camoufaldge skin though.  Although I do want something that feels fun and it just makes sense to use it when in maps like those.  I still don't know what I want, so Im happy to figure it out as I go"
 
 2026-09-28, Opus 5.5. The first car built through the studio (`studio.md`, the build sheet in
-`sheet.json`).
+`sheet.json`). Named TSC_Grass until the ladybird was picked.
 
 How I read it: a car for the grass maps, fun, that feels at home there without camouflage. The
 open question is what "makes sense on grass" means: a car that stands out against the green (the
@@ -15,3 +15,7 @@ if the bottom is some lever of grass, that acts as the blend between the grass a
 something". Read as: a bright bug in the grass, the top standing out, a fringe of graphic grass
 blades along the bottom blending it into the map. Brief card written (`brief.md`), shown for a yes.
 Which bug (ladybird, bee, something else) is left to the mood boards.
+
+Brief approved 2026-09-28 (user): "Sure, ladybird.  We could potentially have a family of bugs,
+but we could start with that". The car renamed TSC_Ladybird (it was only a brief then), the card
+now about the ladybird. A family of bug cars may follow, each its own studio car.
