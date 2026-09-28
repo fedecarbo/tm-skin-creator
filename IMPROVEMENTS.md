@@ -39,10 +39,9 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   the studio routine and the build sheet, W2 the experts, W3 the wizard in the Lab, W4 the test of
   Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". W1 done (2026-09-28), tried on
   the first studio car, TSC_Ladybird, whose release waits for the Windows PC (the install and the
-  page online). W2, the experts, and W3, the wizard, each handed to another agent (their
-  handovers in `CHECKLIST.md`); W2 is best on the PC. W2's three pieces built on the Mac
-  (2026-09-28): the critic, the step guides, the concept designers (paints take turns; on the PC,
-  whether two can run at once is still to check); waiting for the user's look before W2 is ticked.
+  page online). W2, the experts, done (2026-09-28, on the Mac): the critic, the step guides,
+  the concept designers (on the PC, whether two paints fit at once is still to check). W3, the
+  wizard, is with another agent (its handover in `CHECKLIST.md`); W4, the test, after it.
 
 ## The tool
 

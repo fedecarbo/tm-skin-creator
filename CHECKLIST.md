@@ -2716,7 +2716,13 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       once on a real car: show it to the user before W1 is ticked.
 
 
-#### [ ] W2. The experts
+#### [x] W2. The experts
+
+- **Ticked 2026-09-28** (the user, asked whether to mark it done and remove the trial cars: "Sure"):
+  the critic, the step guides and the concept designers, each tried on the Mac. TSC_ConceptTrial and
+  its three options deleted the same day (git's history keeps them), their round out of
+  `skins/rounds.json`; TSC_CriticTest stays, the critic's test car. Left for the PC: whether two
+  paints fit at once there (`TSC_PAINTS`).
 
 - **Handed over 2026-09-28** (the user: "for another agent to pick up the experts"); W3 went to
   another agent too. For the agent who picks it up:
@@ -2756,6 +2762,10 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   the review, not on git (`build/critic/<car>/<round>/` on the PC, `.snap/critic/<car>/<round>/` on
   the Mac): if the wizard needs them elsewhere, say so here. `tool.critic picture` draws a round's
   findings (rings where the critic pointed, the after beside each) as a picture for now.
+- **For W3, the concept round:** it's now recorded before any take is painted (the three designers
+  paint at once, taking turns), so `skins/rounds.json` can name a take whose folder has no design yet;
+  such a take has no entry in `gallery.json` until its first paint, and the Lab's switch lists it
+  from the round. The wizard's Concepts step should show a take still being made as such.
 - **1. The critic (built 2026-09-28, on the Mac):**
   - `.claude/agents/critic.md`: an agent with the Read tool only, given the brief card and a folder
     of pictures, never the design, the sheet, the notes or Claude's reasons. Its text: the role, what
@@ -2859,9 +2869,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       has them; left: the side skirt's ledge in front of the sidepods green from above.
     - All three found the same ledge on their own (now in the shapes guide). The readings were as
       far apart as Claude's, since the director gave the same angles; each car was more worked out.
-  - Left for the user's look: the three trial concepts on the Lab's stand (the round "Concept
-    trial"), not fixed by the director, to show the designers' work as it came. TSC_ConceptTrial and
-    its options go once the user has seen them.
+  - Shown to the user as they came (not fixed by the director), with the comparison picture and the
+    Lab's switch; deleted at the tick.
 
 - **What it's for:** better options at each step, and a second pair of eyes.
 - **What you'll see:** concepts that differ more and arrive together, and a review step with a
