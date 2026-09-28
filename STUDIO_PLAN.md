@@ -181,20 +181,9 @@ user's "small and simple". So:
 
 ## What the user sees in the Lab
 
-The Lab's stand stays the one page (the separate rooms went unused, 2026-09-27):
-
-- **A line of stages over the car:** Brief, Mood, Concepts, Shapes, Colours and materials,
-  Details, Review, Road test, Released. Each shows its state: to do, Claude on it, waiting for
-  you, decided. The stage waiting for the user stands out.
-- **The stand changes with the stage:** the brief card; the mood boards; three cars side by side
-  for the concepts; day and night and the swatches for colours and materials; the stations and
-  close-ups for details; the critic's tags for the review; the screenshots for the road test.
-- **The stations stay under the car.** The stages say when; the stations say where on the car.
-- **Notes on the car work everywhere,** as now. A note on a decided stage reopens it, and the Lab
-  says so.
-- **Quick cars** show no line of stages, just the stand as today.
-
----
+**Decided (the user, 2026-09-28: "Lets just go with that, and see how it goes"): the wizard,
+below.** The three first layouts (https://claude.ai/artifact/4RxUASJaYTfphRZbk1gFtG: a line of
+stages, the car's sheet, a decision drawer) led to it. Quick cars keep the stand as it is today.
 
 ### The wizard (the user, 2026-09-28)
 
@@ -221,6 +210,11 @@ wrap):
   after. A change is tried next to the current car, and the one not kept is deleted.
 - **An existing car** opens with its sheet filled in from its history, every step decided, and
   goes straight to the step the change belongs to.
+- **The steps:** Brief, Mood, Concepts, Shapes, Colours and materials, Wheels, Details, Lettering,
+  Review, Road test, then Released. Wheels and Lettering are steps of their own (in the stages
+  above they sit inside Details).
+- **Notes on the car still work at any time,** on the stand as today: a note lands in the step it
+  belongs to (a note on a wheel reopens Wheels).
 - **Other people using it one day** would need hosting and would cost money per user: a
   separate decision for later. The wizard works either way.
 
@@ -248,101 +242,101 @@ it makes every stage faster.
 
 ## Building it
 
-Step by step, each agreed before it's built, and ticked only when the user has seen it (as the
-Lab's steps are). Mockups first for anything the user will look at, so they pick from real
-pictures.
+In this order, each step built, checked, shown to the user, then ticked (as the Lab's steps are).
+The user tries each one on a real car before the next. The Lab's steps 9.3 to 9.6 are folded in
+here (answers with a before and after, options on the car, Claude's checks, the game's
+screenshots); 9.7, repainting only the station that changed, stays as it is and helps every step.
 
-### S1. The test: Studio against Quick
+### W1. The studio routine
 
-- **What it's for:** find out whether the studio is worth it before building anything for it
-  (the user, 2026-09-28: "I want to do a test for the quick and the studio one to see the
-  difference if it's worth it"). One idea of the user's, made twice, in two sessions: once the
-  quick way, once through the studio.
-- **What you'll see:** two cars of the same idea, shown side by side without saying which is
-  which, then both in the game. You pick the one you'd drive, and we compare how long each took
-  and how many things you had to point out.
-- **Model:** Opus 5.5 in both sessions, so only the way of working differs.
-- **Before the test (Claude):** write the studio routine into the `skin` skill as its own section,
-  used only when the user asks for the studio: the stages, the decisions, the brief card
-  (`skins/<name>/brief.md`), the critic as a subagent with its quality list, the three concept
-  designers in parallel. The quick way stays exactly as it is. No Lab changes: the studio session
-  works in the chat and the Lab as they are.
-- **How the test runs:**
-  - The user's first message is the same, word for word, in both sessions. Each session is told
-    only its way ("quick" or "studio"), not about the other.
-  - The quick session goes first, so the studio's brief and mood boards don't shape the user's
-    taste before the quick car is made.
-  - Names: `TSC_<Idea>_Quick` and `TSC_<Idea>_Studio`.
-  - Each session writes in its `notes.md`: when it started and ended, how many messages the user
-    sent, how many rounds, and each thing the user had to point out.
-- **The verdict:**
-  - Both cars side by side as "Car 1" and "Car 2" in a random order, from the game's cameras, by
-    day and at night. The user picks without knowing which is which.
-  - Both installed and driven. The user says which they'd drive and why.
-  - The critic reviews both with the same quality list, and we count the faults.
-  - The time each took, and how much of it was the user's.
-  - The result goes under "Things we learned" in `CHECKLIST.md`, and decides whether S2 to S6
-    happen, and which stages stay.
-- **The frontend meanwhile:** the Lab's layout for the studio is chosen from mockups
-  (https://claude.ai/artifact/4RxUASJaYTfphRZbk1gFtG: A, the line of stages over the car; B, the car's sheet beside it; C, a decision drawer; made from the Lab's own stylesheet and the CMYK texture round's pictures), and built only if the test says the
-  studio is worth it.
-
-### S2. The experts
-
-- **What it's for:** the specialists' know-how, the three concept designers working at once, and
-  the independent critic.
-- **What you'll see:** concepts that differ more and arrive together; a critic's list of findings
-  on each car, and fewer things for you to spot yourself.
-- **Model:** Opus 5.5 to write the guides; the critic tried on both Opus 5.5 and Fable 5.1 on the
-  same cars, keeping the one that finds more real faults.
+- **What it's for:** Claude can take a car through the studio in the chat, before any screen
+  exists: the steps, the decisions, going back, and the three ways in (Quick, Studio, Rework).
+- **What you'll see:** say "studio" with an idea, and Claude asks the brief's questions, shows the
+  mood boards, the three concepts, and so on, one decision at a time, with pictures.
+- **Model:** Opus 5.5.
 - **Notes for Claude:**
-  - One guide per stage beside the `skin` skill, short, loaded only at its stage. Seed them from
-    "What works on this car" and "Things we learned"; each car adds to them.
-  - The critic as a subagent with a fixed quality list, given pictures (views, close looks, the
-    game's cameras, day and night) and the brief only.
-  - Check first whether three paints can run at the same time on the PC (Edge, the GPU and the work
-    folder shared): if not, the designers write their designs in parallel and the paints queue.
-    Measure the time either way.
+  - A Studio section in the `skin` skill, used only when the user asks for the studio or a
+    rework. The quick way stays exactly as it is.
+  - The brief kept per skin (`skins/<name>/brief.md`).
+  - **The build sheet as data:** `skins/<name>/sheet.json` (the name is free: `studio.json` is the
+    Lab's timeline), written only by the tool's commands (`tool.sheet` or `tool.skin`
+    subcommands): each step's state (to do, Claude on it, waiting for you, decided, needs a look),
+    its decision in a few words, the date, its options (skin names), and the pick. A pick deletes
+    the other options' folders (the user's rule, 2026-09-28). The Lab's rule: the page shows only
+    this, never a list of its own.
+  - **Going back:** a step's change marks the later steps it affects as "needs a look" (Claude
+    decides which, and says why in a few words); the others stay decided. Claude carries the later
+    picks onto the change and shows the whole car before and after.
+  - **Rework:** writes the sheet of an existing car from its `notes.md` and `design.py`, every step
+    decided, then opens the step the change belongs to.
+  - Mood boards: pictures from the picture maker (`tool.pictures`), the textures library and
+    colour strips. Web pictures are references only, never on git or on the car.
 
-### S3. The stage record
+### W2. The experts
 
-- **What it's for:** the tool keeps each car's stage, decisions and brief, so the Lab can show
-  them (the Lab's rule: it shows only the tool's own data).
-- **What you'll see:** nothing new yet; it's what S4 reads.
+- **What it's for:** better options at each step, and a second pair of eyes.
+- **What you'll see:** concepts that differ more and arrive together, and a review step with a
+  list of faults found and fixed, each with a before and after.
+- **Model:** Opus 5.5 to write the guides; the critic tried on Opus 5.5 and Fable 5.1 on the same
+  cars, keeping the one that finds more real faults.
+- **Notes for Claude:**
+  - One short guide per step beside the `skin` skill (what good looks like, what to check, the
+    tool's abilities and limits there), loaded only at its step, seeded from "What works on this
+    car" and "Things we learned", growing with every car.
+  - Three concept designers as parallel subagents, each given the brief and the mood and asked
+    for one reading. Check first whether three paints can run at once on the PC (Edge, the GPU,
+    the work folder): if not, the designs are written in parallel and the paints queue.
+  - The critic as a subagent given only the pictures (views, close looks, the game's cameras, day
+    and night), the brief and its quality list, never the design or Claude's reasons.
+
+### W3. The wizard in the Lab
+
+- **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
+- **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,
+  the step waiting for you taking over the page, its options in that step's own format, "Or tell
+  Claude in your own words", Back and Next. A pick in the Lab reaches Claude with your next
+  message, like a note. Clicking a decided step goes back to it.
 - **Model:** Opus 5.5.
-- **Notes for Claude:** one small file per skin (stage, state per stage, the decision and its
-  date, the brief), written by the tool's commands, not by hand. Quick cars have none.
+- **Notes for Claude:**
+  - Built from the mockups' look: the Lab's own stylesheet (`viewer/lab.html`), the build sheet
+    300 px wide, the step's question in Teko at 44 px. The mockups' source is in the
+    session's scratchpad, not the repo: rebuild from the pictures and this description.
+  - Real renders everywhere the mockups used stand-ins: the options come from the viewer's
+    picture car (`picture()`), as the strip's pictures do, kept in the browser the same way.
+  - A pick or a free-text answer goes through the notes channel (`tool/notes.py`, the hook), so
+    Claude gets it with the next message; it carries the step and the option.
+  - Each step's format: Brief, questions and word choices, and the brief as Claude reads it;
+    Mood, three boards; Concepts, three whole cars that turn; Shapes, the game's camera beside a
+    small "from far away" picture; Colours and materials, one car with a day and night split and
+    the finishes as swatches (codes from `finishes.CATALOGUE`, copied like the Materials room);
+    Wheels, four wheels close up and turning, then the pick on the car by day and at night;
+    Details and Lettering, close-ups of their area; Review, the critic's findings with before and
+    after; Road test, the user's F12 screenshots after an install, with notes on them (ask first).
+  - Going back: a changed step says "changed", the steps it affects "needs a look", and the page
+    shows the whole car before and after.
+  - Keep the Lab fast: draw only when something changes, pictures kept in the browser, nothing
+    new drawn while Claude paints. Mockups first for any screen that differs from the chosen ones.
 
-### S4. The line of stages in the Lab
+### W4. The test: Studio against Quick
 
-- **What it's for:** see where the car is and what's waiting for you.
-- **What you'll see:** mockups first (two or three directions rendered on a real car), then the
-  line over the stand, and the stand changing with the stage.
-- **Model:** Opus 5.5.
-- **Notes for Claude:** keep the Lab's speed (it draws only when something changes, pictures
-  kept in the browser). Nothing new drawn while Claude paints.
+- **What it's for:** check the studio is worth it (the user, 2026-09-28: "I want to do a test for
+  the quick and the studio one to see the difference if its worth it").
+- **How it runs:**
+  - One idea of the user's, the same first message word for word, in two sessions: quick first,
+    then studio, so the studio's brief and boards don't shape the user's taste before the quick
+    car. Each session is told only its way. Names `TSC_<Idea>_Quick` and `TSC_<Idea>_Studio`.
+  - Each `notes.md` records the start and end, the user's messages, the rounds, and each thing the
+    user had to point out.
+- **The verdict:** both cars side by side as "Car 1" and "Car 2" in a random order, from the game's
+  cameras, by day and at night; then both in the game, and the user says which they'd drive; the
+  critic reviews both with the same list; the time each took. The result goes under "Things we
+  learned" in `CHECKLIST.md` and decides which steps stay.
 
-### S5. The decision views
+### Later
 
-- **What it's for:** each decision in the Lab, not just in the chat: the mood boards, the concepts
-  side by side (takes over the Lab's 9.4), the finishes board, the critic's tags with before and
-  after (9.3 and 9.5), the road test screenshots (9.6).
-- **What you'll see:** one at a time, each from its own mockups, in the order the stages come.
-- **Model:** Opus 5.5.
-- **Notes for Claude:** the mood pictures from the web are references only: they stay off git
-  (never push files that aren't ours to publish) and never go on the car. The pictures on the car
-  come from the picture maker, the textures library, or Claude's own painting.
-
-### S6. The design book
-
-- **What it's for:** each finished car's story, to keep and share.
-- **What you'll see:** a page per car on the page online: the brief, the chosen mood board, the
-  concepts with the picked one marked, the finishes, the details, the car in the game.
-- **Model:** Opus 5.5, or a smaller model: it's mostly layout.
-- **Notes for Claude:** built by `tool.publish` from the stage record, so it's never written by
-  hand.
-
----
+- **The design book:** each finished car's story (brief, mood, concepts, the pick, finishes,
+  details, the car in the game) on the page online, built by `tool.publish` from the sheet.
+- **Other people building their own cars:** a separate decision (hosting and cost per user).
 
 ## Watch out for
 
@@ -355,8 +349,8 @@ pictures.
 - **Stages undoing each other.** A later stage never quietly changes an earlier decision. If it
   must, Claude says so and asks.
 
-## Questions for the user, before S1
+## Questions for the user
 
-1. Is this list of stages right, or is anything missing or unwanted (a "sponsors and branding"
-   stage, or a stage for the car's story or name)?
-2. The idea for the test (the user brings one they're pursuing).
+1. Is anything missing from the steps, or unwanted (a "sponsors and branding" step, or one for the
+   car's name and story)? Until the user says, the steps are as above.
+2. The idea for the test, when W1 to W3 are done.
