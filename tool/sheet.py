@@ -10,15 +10,18 @@ waiting for the user. skins/<car>/sheet.json, written only by these commands, so
     python -m tool.sheet on <car> <step>                     Claude is on the step
     python -m tool.sheet option <car> <step> "<title>" [--skin <name> | --file <path>]
                                                              an option for the step: A, B, C...
-    python -m tool.sheet ask <car> <step>                    its options are shown: the user's turn
+    python -m tool.sheet ask <car> <step>                    its options (or the car) are shown: the user's turn
     python -m tool.sheet pick <car> <step> <letter|A+B|none> "<decision>"
     python -m tool.sheet decide <car> <step> ["<decision>"]  decided without options
     python -m tool.sheet skip <car> <step> "<why>"           nothing to decide there on this car
     python -m tool.sheet back <car> <step> "<why>" [--affects <step> ...]
 
-The steps: brief, mood, concepts, shapes, colours, wheels, details, lettering, review, road,
-release. Each is to do, Claude on it, waiting for you, decided, needs a look, or skipped. The
-brief's card is skins/<car>/brief.md, written by Claude: the brief can't be decided without it.
+The steps: brief, concepts, car (the car itself, finished from the user's notes, then checked and
+released): three since 2026-09-28, eleven before (TSC_Ladybird's sheet keeps them, and every command
+reads a sheet's own steps). Each is to do, Claude on it, waiting for you, decided, needs a look, or
+skipped. The brief's card is skins/<car>/brief.md, written by Claude: the brief can't be decided
+without it, and it's asked by it. The car step (STAND) is the car itself in the Lab, where the user
+leaves notes on it; it's asked with options (a round on the car) or without (a yes, or more notes).
 
 Only a car begun in the studio has a sheet (the user, 2026-09-28: "I don't want you to get
 influenced by previous builds, so if a build is done the old way, I would just have a standard
@@ -33,7 +36,8 @@ car's design.py and art/ to change, or an empty folder while the car has no desi
 final (the user, 2026-09-28): the picked skin's design.py, art/ and thumb.png become the car's,
 and every other option goes, its folder or file deleted (git's history keeps it), and out of its
 round in skins/rounds.json. `pick none` keeps no option: the car's design as it is (a mix Claude
-wrote into it). An option's design must stand on its own: one that loads the car's design or
+wrote into it). On the car step a pick doesn't end the step: it joins the step's history, and the
+car goes on; `decide` ends it, once the car is released. An option's design must stand on its own: one that loads the car's design or
 another option's would break once they're gone, so the pick refuses it. An option that's in the
 game (skins/installed.json) is kept, and the pick says so.
 
@@ -61,40 +65,38 @@ REPO = Path(__file__).resolve().parents[1]
 SKINS = Path(os.environ.get("TSC_SKINS_HOME") or REPO / "skins")
 NAME = re.compile(r"[A-Za-z0-9_\-]+")
 
+# Three steps since 2026-09-28 (the user, after trying the wizard: "it feels like a lot of steps ... Im
+# really not sure if Im overengineering all of this", then: "I would keep it simple, after concepts, I
+# would just have the 3d car and you just make changes, with the comments pop up windows throught"):
+# the mood inside the concepts; then the car itself, finished on the stand from the user's notes, and
+# checked (the critic, the game) and released when they're happy. TSC_Ladybird's sheet keeps the eleven
+# it was built with.
 STEPS = [
     ("brief", "Brief"),
-    ("mood", "Mood"),
     ("concepts", "Concepts"),
-    ("shapes", "Shapes"),
-    ("colours", "Colours and materials"),
-    ("wheels", "Wheels"),
-    ("details", "Details"),
-    ("lettering", "Lettering"),
-    ("review", "Review"),
-    ("road", "Road test"),
-    ("release", "Release"),
+    ("car", "The car"),
 ]
 KEYS = [k for k, _ in STEPS]
 # What the Lab's wizard asks at a step waiting for the user, and a line under it (W3): kept with the
-# steps, so the page keeps no list of its own.
+# steps, so the page keeps no list of its own. "pick" when the step shows options, "yes" when it shows
+# the car (or the brief's card) for a yes or the user's notes.
 ASKS = {
-    "brief": ("Is this the car?", "Claude's reading of your idea. Approve it, or say what's off: nothing is painted "
-              "until you do."),
-    "mood": ("Which mood?", "Looks for the brief before anything touches the car: a colour story, the finishes and "
-             "pictures. Pick one, or say what to take from each."),
-    "concepts": ("Which idea?", "Different ideas for the car, rough on purpose: flat colour, no finishes yet. Pick "
-                 "one, or say what to mix."),
-    "shapes": ("Which shapes?", "Where the big shapes sit, and how the car reads from far away."),
-    "colours": ("Which finish?", "The same car in different finishes, by day and at night."),
-    "wheels": ("Which wheels?", "The covers, the tyres and the wheels' lights, as one set."),
-    "details": ("Which details?", "The inner car, its lights and the glass."),
-    "lettering": ("Which lettering?", "Words, numbers and badges, and where they go."),
-    "review": ("Anything else?", "A critic who didn't design the car checked it against the brief."),
-    "road": ("How does it drive?", "Drive it in the game by day and at night, then say yes or what to change."),
-    "release": ("Ready?", "In the game, on the page online and in its design book."),
+    "brief": {"yes": "Is this the car?",
+              "line": "Claude's reading of your idea. Approve it, or say what's off: nothing is painted until you do."},
+    "concepts": {"pick": "Which idea?",
+                 "line": "Three different ideas for the car, rough on purpose, each with its own colours and finish. "
+                         "Pick one, or say what to mix."},
+    "car": {"pick": "Which one?", "yes": "Happy with the car?",
+            "line": "Click the car where you want a change and write it there: Claude changes it and shows it "
+                    "here. Say when you're happy, and Claude checks it and puts it in the game."},
 }
-PAINTS = {"concepts", "shapes", "colours", "wheels", "details", "lettering"}  # their options are cars
-CHECKS = ["review", "road", "release"]  # the whole car again, after any change
+# their options are cars (the eleven steps' too, for the sheets made with them)
+PAINTS = {"concepts", "car", "shapes", "colours", "wheels", "details", "lettering"}
+CHECKS = ["review", "road", "release"]  # the whole car again, after any change (the eleven steps)
+# the steps the Lab's wizard shows on the car, the stand, where the user leaves notes on it (the user,
+# 2026-09-28: "after concept it does come to a point where I do refinements and details etc, and that
+# could already as a 3d model where I can use the nice comment windows")
+STAND = {"car", "shapes", "colours", "wheels", "details", "lettering", "review", "road", "release"}
 STATES = {"todo": "to do", "claude": "Claude on it", "waiting": "waiting for you", "decided": "decided",
           "look": "needs a look", "skipped": "skipped"}
 
@@ -145,10 +147,15 @@ def save(sheet):
             time.sleep(0.05)
 
 
+def keys(sheet):
+    """The sheet's own steps, in order: the three, or the eleven of a sheet made before."""
+    return [st["key"] for st in sheet["steps"]]
+
+
 def step_of(sheet, key):
-    if key not in KEYS:
-        raise SheetError(f"no step {key!r}: " + ", ".join(KEYS))
-    return sheet["steps"][KEYS.index(key)]
+    if key not in keys(sheet):
+        raise SheetError(f"no step {key!r}: " + ", ".join(keys(sheet)))
+    return sheet["steps"][keys(sheet).index(key)]
 
 
 def blank(key, name):
@@ -236,12 +243,16 @@ def option(car, key, title, skin=None, file=None):
 
 
 def ask(car, key):
-    """The options are shown: the user's turn. The brief is asked by its card, not by options."""
+    """The options are shown: the user's turn. The brief is asked by its card, and a step on the car
+    (STAND) may ask with no options: the car itself, for the user's yes or their notes on it."""
     sheet = load(car)
     st = step_of(sheet, key)
     if key == "brief":
         if not (SKINS / car / "brief.md").exists():
             raise SheetError(f"{car} has no brief.md: write the card first (the skin skill's studio.md)")
+    elif not st["options"] and key in STAND:
+        if not (SKINS / car / "design.py").exists():
+            raise SheetError(f"{car} has no design yet: nothing to show on the car")
     elif len(st["options"]) < 2:
         raise SheetError(f"{st['name']} has {len(st['options'])} option(s): with only one direction, decide it")
     for o in st["options"]:
@@ -349,7 +360,11 @@ def pick(car, key, letter, decision):
     forget_rounds(set(gone) | ({chosen["skin"]} if moves else set()))
     if gone:
         said.append("deleted the others: " + ", ".join(gone))
-    st.update(state="decided", decision=decision.strip(), date=today(), pick=letter, why="")
+    if key == "car":  # the car goes on after a pick (its wheels, a finish): the pick joins its history
+        st["was"].append({"decision": decision.strip(), "date": today(), "pick": letter, "options": st["options"]})
+        st.update(state="claude", decision="", options=[], pick=None, why="")
+    else:
+        st.update(state="decided", decision=decision.strip(), date=today(), pick=letter, why="")
     save(sheet)
     return sheet, said
 
@@ -389,15 +404,16 @@ def back(car, key, why, affects=()):
     st = step_of(sheet, key)
     if st["state"] not in ("decided", "skipped", "look"):
         raise SheetError(f"{st['name']} is {STATES[st['state']]}, not decided: nothing to go back to")
-    at = KEYS.index(key)
+    order = keys(sheet)
+    at = order.index(key)
     for a in affects:
-        if a not in KEYS or KEYS.index(a) <= at:
+        if a not in order or order.index(a) <= at:
             raise SheetError(f"{a!r} isn't a step after {st['name']}")
     st["was"].append({k: st[k] for k in ("decision", "date", "pick", "options")})
     st.update(state="claude", decision="", date=today(), options=[], pick=None, why=why.strip())
     if key in PAINTS and (SKINS / car / "design.py").exists():
         st["options"].append({"key": "A", "title": "as it is", "skin": car})
-    for a in list(affects) + [c for c in CHECKS if KEYS.index(c) > at]:
+    for a in list(affects) + [c for c in CHECKS if c in order and order.index(c) > at]:
         later = step_of(sheet, a)
         if later["state"] in ("decided", "skipped"):
             later.update(state="look", why=why.strip() if a in affects else "the car changed")
@@ -478,14 +494,15 @@ def card(car):
 
 def lab(skin):
     """What the wizard shows for `skin`: its car's sheet, with the brief's card, the step it's at,
-    each step's question and the states' words. None when `skin` is in no studio car."""
+    each step's question, the steps shown on the car and the states' words. None when `skin` is in no
+    studio car."""
     car = find(skin)
     if not car:
         return None
     sheet = load(car)
     at = here(sheet)
-    return {**sheet, "skin": skin, "at": at["key"] if at else None, "card": card(car),
-            "asks": {k: {"question": q, "line": l} for k, (q, l) in ASKS.items()}, "states": STATES}
+    return {**sheet, "skin": skin, "at": at["key"] if at else None, "card": card(car), "asks": ASKS,
+            "stand": sorted(STAND), "states": STATES}
 
 
 def main(argv=None):

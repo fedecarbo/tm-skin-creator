@@ -2234,6 +2234,11 @@ the studio"). The user can always ask for the other.
 
 #### The stages
 
+**Three since 2026-09-28** (the user, after trying the wizard: W3 below): Brief, Concepts (with the
+mood inside it), and The car (everything after, on the car from the user's notes, then the critic,
+the road test and the release). The stages below are the plan as first agreed, and TSC_Ladybird's
+steps; `studio.md` has the three.
+
 Each stage has a job, an expert, what the user sees, and whether it is usually a decision
 point. The rule for decisions: **a stage stops for the user whenever there is more than one real
 direction.** When there is only one sensible answer, Claude does the stage, shows it and moves
@@ -2905,7 +2910,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - The user's rule: one piece at a time, shown, their OK before the next. W2 is with another agent
     too: coordinate through notes here.
 - **Picked up 2026-09-28 on the Mac** (the user: "Ok I think lab wizard is next"). **The pieces**
-  (Claude's split), each shown to the user and their OK before the next:
+  (Claude's split; after piece 1 the studio went to three steps and pieces 2 to 4 changed: see below),
+  each shown to the user and their OK before the next:
   1. **the wizard and its sheet:** a studio car opens in the Lab on its wizard (a room of its own,
      the stand one click away for notes on the car); the build sheet on the left from `sheet.json`,
      served; each step's page in a plain form (the brief's card, the options as cards with the car's
@@ -2976,6 +2982,50 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     (the concept pickers looked fine). At their 2560 px the boxes ran 1,700 px wide: words now sit
     at a reading width (960 px at most; the options' cards keep the whole width), the brief's card
     on the left with the user's own words beside it, more padding and space between the blocks.
+- **Three steps, and the car on the stand after the concepts (built 2026-09-28, on the Mac).** Claude,
+  asked about the steps: on TSC_Ladybird the user decided seven times, and several steps split one
+  piece of work in two; suggested five (Brief, Concepts with the mood inside it, Finish, Wheels and
+  details, Check) and to cut before building more of the wizard. The user: "Yes, feels like a good
+  call. I think after concept it does come to a point where I do refinements and details etc, and
+  that could already as a 3d model where I can use the nice comment windows that we currently have,
+  I really like that concept". Then, while the five were being built: "I would keep it simple,
+  after concepts, I would just have the 3d car and you just make changes, with the comments pop up
+  windows throught". So three.
+  - **The steps:** `sheet.STEPS` is brief, concepts, car ("The car"); every command reads a sheet's
+    own steps, so TSC_Ladybird's eleven still read and change. `STAND`, the steps the wizard shows
+    on the car; `ask` on the car takes no options (the car itself, for a yes or notes); a pick on the
+    car doesn't end the step (it joins its history, the car goes on), `decide` does, once the car is
+    released. `ASKS` has a question for a pick and one for a yes.
+  - **The routine:** `studio.md` rewritten for the three, all the old steps' know-how kept: the mood
+    inside Concepts (each reading carries its world, colour story and finish: no boards, `tool/mood.py`
+    and `mood.html` left unused; the concept designer is given its reading's colours and finish);
+    on the car, Claude carries the work on field by field (the shapes, the finishes, the wheels, the
+    details, the lettering, each with its guide), shows each on the car, acts on the notes first,
+    offers a round only for a real choice (the wheels, which the user settles car by car); when the
+    user is happy, the check (the critic, the road test) and the release.
+  - **The Lab: one car room.** "The build" tab is gone: the car's room holds the stand, and for a
+    studio car the sheet beside it and the step over it. The brief and the concepts are pages (the
+    card, the cars side by side); the car step shows the car on the stand, its notes and stations as
+    always, with "Happy with it", or, when Claude offers a round, the round's switch and "Pick B ·
+    Red Covers" for the take on show. A card's "On the car" shows it on the stand, with "Side by
+    side" back. A car made the old way is the stand alone. The wizard opens the stand only when it
+    first shows it; while it's hidden the stand doesn't frame, follow or draw (no picture kept at the
+    size of nothing), and it says which skin it shows (`lab:stand`). The tags' gutters are a fifth of
+    the stage, 200 to 300 px, not of the window, so the car keeps its size beside the sheet.
+  - **Checks:** 9 on the sheet (a scratch skins folder: three steps, the brief by its card, the car
+    asked on the car and refused without a design, an option on the car, going back, TSC_Ladybird's
+    eleven) and 3 on a pick on the car (its history, asked again, decided at the end); in the Mac's
+    headless Chrome, 21 on the trial car at its car step (one room, the sheet and the stand, the
+    question, a note clicked on the car kept with its point and not as an answer, Happy with it and
+    back, Concepts as a page, On the car and back, the brief's card, 390 wide, a car made the old way
+    as the stand alone, TSC_Ladybird's eleven with its release on the car, its mood's boards, no
+    page errors) and 9 on a round of wheels on the car (the switch, the Pick following the take on
+    show, the note, take back). The first run after restarting the Mac's container missed the note
+    click once (the car still loading); it passed on the rerun.
+  - **The pieces after this:** 3, the check (the critic's findings as tags on the car with a before
+    and after; the game's screenshots); 4, going back and the history (the options' pictures kept).
+    The old piece 2, each step's own format, went with the steps: the concepts' cards stay, the rest
+    is the car on the stand.
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,

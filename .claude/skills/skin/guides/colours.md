@@ -1,6 +1,6 @@
 # Colours and materials: the CMF designer's guide
 
-Read at the studio's step 5 (`studio.md`). CMF is what car makers call the work on colour,
+Read on the studio's car (`studio.md`, 3) when the work reaches the finishes. CMF is what car makers call the work on colour,
 material and finish. It grows with every car: at the end of the step, add what the car taught
 under "Learned", dated, with the car's name.
 
@@ -16,7 +16,7 @@ under "Learned", dated, with the car's name.
 - **Every light.** Day on this map has the sun ahead, so the car's backs are in shade; sunset is
   warm; at night the flat top sees the dark sky and the back faces the lit stadium (3 to 8 times
   brighter). A colour that works by day can vanish at night.
-- **Exact colours.** Name them as hex from the mood board's story, and keep them the same across
+- **Exact colours.** Name them as hex from the concept's colour story, and keep them the same across
   the options when the choice is the finish. Very bright saturated colours clip on screen (a light
   blue turns cyan, yellow flattens); leave headroom.
 

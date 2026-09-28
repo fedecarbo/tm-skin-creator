@@ -1,6 +1,6 @@
 # Details: the detail designer's guide
 
-Read at the studio's step 7 (`studio.md`): the inner car, its lights, the glass. It's what
+Read on the studio's car (`studio.md`, 3) when the work reaches the details: the inner car, its lights, the glass. It's what
 separates a finished car from an amateur skin. It grows with every car: at the end of the step,
 add what the car taught under "Learned", dated, with the car's name.
 

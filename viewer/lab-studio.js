@@ -14,6 +14,8 @@
 // remove the in game"); the line over the car says since when it's in the game (gallery.json).
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
+// A studio car's wizard (lab-wizard.js) holds the stand in its room and opens it when it first shows
+// it: from Finish on, and when the user asks to see a concept on the car.
 // Either way, when Claude starts painting a skin, the stand follows it, unless a note is being written
 // or a tag is open. A take in a round of concepts shows the round's title and a switch between its
 // takes (lab-round.js), which opens the picked take at the same station.
@@ -68,7 +70,10 @@ const when = (iso) => new Date(iso).toLocaleString('en-GB', { day: 'numeric', mo
 
 // ---- the stage: the car framed between the gutters, a second car behind it for the pictures ----
 
-const gutter = () => (matchMedia('(max-width: 1000px)').matches ? 0 : innerWidth <= 1280 ? 250 : 300);
+// the gutters from the stage's own width, which a studio car's sheet beside it narrows: a fifth each,
+// 200 to 300 px (the stand alone keeps 250 at 1280 wide and 300 above)
+const gutter = () => (matchMedia('(max-width: 1000px)').matches ? 0
+  : Math.round(Math.min(300, Math.max(200, $('stStage').clientWidth * 0.2))));
 const box = (k = 1) => ({ left: gutter() * k, right: gutter() * k, top: 10 * k, bottom: 10 * k });
 
 function fitThumbs() {  // the picture car: half the stage, the same shape, so its pictures crop alike
@@ -90,7 +95,17 @@ function viewer(frame) {
   });
 }
 
+// The stage is on show: the car's room is open, and the wizard shows the car (a studio car's pages hide
+// it). Nothing is framed, followed or drawn for nobody, so no picture is kept at the size of nothing.
+const onShow = () => $('stStage').clientWidth > 0;
+const shown = () => new Promise((resolve) => {
+  if (onShow()) return resolve();
+  const watch = new ResizeObserver(() => { if (onShow()) { watch.disconnect(); resolve(); } });
+  watch.observe($('stStage'));
+});
+
 function framed() {  // the box each car frames itself in, after a resize
+  if (!onShow()) return;
   fitThumbs();
   if (stage) stage.inset(box());
   if (thumbs) thumbs.inset(box(0.5));
@@ -144,6 +159,7 @@ function picture(textures, view, night = false) {
   if (pics.has(key)) return Promise.resolve(pics.get(key));
   const job = queue.then(async () => {
     if (pics.has(key)) return pics.get(key);
+    await shown();
     const shelf = named(textures) ? await keeper() : null;
     const at = `${location.origin}/lab-pictures/${encodeURIComponent(key)}`;
     let blob = shelf ? await shelf.match(at).then((r) => r && r.blob()).catch(() => null) : null;
@@ -527,6 +543,7 @@ async function openSkin(name) {
   const list = await (await fetch('data/gallery.json')).json();
   const entry = list.find((s) => s.name === name);
   skin = { name, title: entry ? entry.title : titleOf(name), entry };
+  dispatchEvent(new CustomEvent('lab:stand', { detail: name }));  // the skin on the stand (the wizard's Pick)
   const round = await render($('stRound'), name);
   $('stTitle').textContent = round ? round.title : skin.title;
   try { seen = JSON.parse(localStorage.getItem(`tsc-stations-${name}`) || '{}'); } catch { seen = {}; }
@@ -559,7 +576,7 @@ async function followed() {  // the skin Claude painted last: { skin, stamp }
 }
 
 async function poll() {
-  if ($('roomStudio').hidden) return;  // another room is open
+  if ($('roomStudio').hidden || $('stand').hidden) return;  // another room is open, or a studio car's page
   loadNotes();  // Claude reads them (Claude has it) and marks them done (their dots go)
   try {
     const now = await followed();
@@ -590,7 +607,7 @@ export async function open() {
   }
   $('stFront').addEventListener('click', () => stage && stage.go('front'));
   addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || $('roomStudio').hidden) return;
+    if (e.key !== 'Escape' || $('roomStudio').hidden || $('stand').hidden) return;
     if (writing) cancelNote();
     else if (tags.openKey) tags.close();
   });

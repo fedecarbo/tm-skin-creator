@@ -134,7 +134,8 @@
      by a line to a dot on its point; the stations along the bottom (Body, Details, Tyres, Glass, each
      with its tries: the user's pick, B, 2026-09-28). A second car behind the first, at half its size,
      draws the strip's pictures. */
-  .stand { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-rows: 46px minmax(0, 1fr) auto; padding: 0 34px 14px; min-height: 0; }
+  .stand { display: grid; grid-template-rows: 46px minmax(0, 1fr) auto; flex: 1 1 auto; min-height: 0; }
+  .stand[hidden] { display: none; }
   .standHead { display: flex; align-items: center; gap: 14px; padding-left: 4px; min-width: 0; }
   .standHead h3 { margin: 0; font-size: 34px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; }
   .standHead .grow { flex: 1; }
@@ -219,11 +220,16 @@
   .pinDot { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; padding-top: 3px;
             background: var(--acc); color: var(--ground); font: 600 16px/1 Teko, sans-serif; }
 
-  /* The wizard, a studio car's room (lab-wizard.js; the user's pick of the screens, 2026-09-28): the build
-     sheet on the left, one line per step, the way back; the step on show filling the page, its question
-     in Teko at 44 px, its options as cards, "Or tell Claude in your own words", Back and Next. */
-  .wizard { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 12px;
-            padding: 0 34px 16px; min-height: 0; }
+  /* The car's room: the stand, and for a studio car its wizard (lab-wizard.js; the user's pick of the
+     screens, 2026-09-28): the build sheet on the left, one line per step, the way back; the step on show
+     filling the rest, its question in Teko at 44 px, then a page (the brief's card, the concepts' cards)
+     or, from Finish on, the car on the stand with its notes (the user, the same day: "that could already
+     as a 3d model where I can use the nice comment windows"); "Or tell Claude in your own words", Back
+     and Next under it. */
+  .carRoom { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 12px;
+             padding: 0 34px 16px; min-height: 0; }
+  .carRoom.withSheet { grid-template-columns: 300px minmax(0, 1fr); }
+  .carRoom [hidden] { display: none !important; }
   .bs { background: var(--ball); padding: 14px 0 12px; display: flex; flex-direction: column; min-height: 0; }
   .bs h2 { margin: 0 16px 2px; font-size: 30px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
   .bs .sub { margin: 0 16px 10px; font-size: 12px; opacity: 0.55; }
@@ -245,18 +251,22 @@
   .bs li.now .d { opacity: 0.8; }
   .bs li.now em.turn, .bs li.now em.busy { background: var(--ground); color: var(--acc); }
   .sofar { position: relative; display: block; margin: 10px 16px 0; text-align: left; }
-  .sofar[hidden] { display: none; }
   .sofar img { display: block; width: 100%; height: 118px; object-fit: cover; }
   .sofar span { position: absolute; left: 8px; top: 7px; font-size: 16px; color: #16181b; }
   .sofar small { position: absolute; right: 8px; bottom: 6px; font-size: 12px; color: #16181b; opacity: 0.7; }
   .sofar:hover img { filter: brightness(1.04); }
-  .wz { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; min-width: 0; }
+  .wz { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .q { flex: none; display: flex; align-items: flex-end; gap: 16px; }
+  .q > div { min-width: 0; }
+  .q .show { margin-left: auto; margin-bottom: 4px; }
+  .carRoom.onCar .q { padding-bottom: 10px; }
+  .carRoom.onCar .q h3 { font-size: 36px; }
   .q { padding: 4px 0 18px 4px; }
   .q .k { font-size: 17px; color: var(--acc); }
   .q h3 { margin: 4px 0 4px; font-size: 44px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; line-height: 1; }
   .q p { margin: 0; font-size: 15px; opacity: 0.7; max-width: 760px; }
   .q p:empty { display: none; }
-  .wzBody { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin;
+  .wzBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.2) transparent; }
   .said, .bq, .was { background: var(--ball); padding: 20px 26px 22px; flex: none; box-sizing: border-box; }
   /* words at a reading width (the user, 2026-09-28: "the brief and the ones that have more like content,
@@ -291,25 +301,25 @@
   .pills span.on { background: var(--text); color: var(--ground); }
   .pills span.no { text-decoration: line-through; text-decoration-color: rgba(242, 244, 247, 0.55); }
   .cards { flex: 1 1 auto; min-height: 280px; display: grid; gap: 10px; align-content: start; }
-  .wizard .card { position: relative; display: flex; flex-direction: column; background: var(--ball); min-height: 0; min-width: 0; overflow: hidden; }
-  .wizard .card.on::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--acc); pointer-events: none; }
-  .wizard .card .story { display: flex; height: 10px; flex: none; }
-  .wizard .card .pic { position: relative; flex: 1; min-height: 0; background: #d6d6da; }
-  .wizard .card .pic.board { background: #0a0b0d; }
-  .wizard .card .pic.board img { object-fit: contain; }
-  .wizard .card .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-  .wizard .card.off .pic > :not(.look) { opacity: 0.4; filter: grayscale(0.5); }
-  .wizard .card .none { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: rgba(22, 24, 27, 0.6); }
-  .wizard .card .pic.board .none { color: rgba(242, 244, 247, 0.5); }
-  .wizard .card .look { position: absolute; right: 10px; top: 10px; font-size: 15px; padding: 5px 10px 2px; background: rgba(12, 14, 18, 0.72); color: var(--text); }
-  .wizard .card .line { margin: 0; padding: 10px 14px 0; font-size: 13px; line-height: 1.4; opacity: 0.75; flex: none; }
-  .wizard .cap { display: flex; align-items: center; gap: 8px; padding: 9px 12px 7px; flex: none; }
-  .wizard .cap .t { font-size: 24px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .wizard .cap .t b { display: inline-block; background: var(--text); color: var(--ground); padding: 2px 8px 0; margin-right: 8px; }
-  .wizard .cap .grow { flex: 1; }
-  .wizard .cap .sk { font-size: 17px; padding: 6px 12px 3px; }
-  .wizard .cap .kept { font-size: 16px; padding: 3px 8px 1px; background: rgba(255, 255, 255, 0.1); transform: skewX(-9deg); white-space: nowrap; }
-  .wizard .card.on .kept { background: var(--acc); color: var(--ground); }
+  .carRoom .card { position: relative; display: flex; flex-direction: column; background: var(--ball); min-height: 0; min-width: 0; overflow: hidden; }
+  .carRoom .card.on::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--acc); pointer-events: none; }
+  .carRoom .card .story { display: flex; height: 10px; flex: none; }
+  .carRoom .card .pic { position: relative; flex: 1; min-height: 0; background: #d6d6da; }
+  .carRoom .card .pic.board { background: #0a0b0d; }
+  .carRoom .card .pic.board img { object-fit: contain; }
+  .carRoom .card .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .carRoom .card.off .pic > :not(.look) { opacity: 0.4; filter: grayscale(0.5); }
+  .carRoom .card .none { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: rgba(22, 24, 27, 0.6); }
+  .carRoom .card .pic.board .none { color: rgba(242, 244, 247, 0.5); }
+  .carRoom .card .look { position: absolute; right: 10px; top: 10px; font-size: 15px; padding: 5px 10px 2px; background: rgba(12, 14, 18, 0.72); color: var(--text); }
+  .carRoom .card .line { margin: 0; padding: 10px 14px 0; font-size: 13px; line-height: 1.4; opacity: 0.75; flex: none; }
+  .carRoom .cap { display: flex; align-items: center; gap: 8px; padding: 9px 12px 7px; flex: none; }
+  .carRoom .cap .t { font-size: 24px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .carRoom .cap .t b { display: inline-block; background: var(--text); color: var(--ground); padding: 2px 8px 0; margin-right: 8px; }
+  .carRoom .cap .grow { flex: 1; }
+  .carRoom .cap .sk { font-size: 17px; padding: 6px 12px 3px; }
+  .carRoom .cap .kept { font-size: 16px; padding: 3px 8px 1px; background: rgba(255, 255, 255, 0.1); transform: skewX(-9deg); white-space: nowrap; }
+  .carRoom .card.on .kept { background: var(--acc); color: var(--ground); }
   .offered { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
   .offered span { display: flex; align-items: baseline; gap: 8px; padding: 7px 12px 4px; font-size: 20px; background: var(--ball); }
   .offered b { background: var(--text); color: var(--ground); padding: 2px 6px 0; font-weight: 600; }
@@ -320,14 +330,13 @@
   .carNow img { display: block; width: 100%; }
   .carNow figcaption { position: absolute; left: 12px; top: 10px; font-size: 20px; color: #16181b; }
   .carNow .look { position: absolute; right: 10px; top: 10px; font-size: 15px; padding: 5px 10px 2px; background: rgba(12, 14, 18, 0.72); }
-  #wzSaid { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; }
-  #wzSaid[hidden] { display: none; }
+  #wzSaid { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; flex: none; }
   .answer { display: flex; align-items: center; gap: 10px; padding: 7px 10px; background: rgba(232, 255, 71, 0.08); font-size: 13px; min-width: 0; }
   .answer b { font-size: 20px; font-weight: 600; padding-top: 3px; white-space: nowrap; }
   .answer .quote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .answer .state { opacity: 0.6; margin-left: auto; white-space: nowrap; }
   .answer .sk { font-size: 17px; padding: 6px 11px 3px; }
-  .foot { display: flex; align-items: center; gap: 10px; padding-top: 12px; }
+  .foot { display: flex; align-items: center; gap: 10px; padding-top: 12px; flex: none; }
   .tell { flex: 1; min-width: 0; display: flex; align-items: center; height: 44px; box-sizing: border-box; background: var(--ball);
           border: 1px solid rgba(255, 255, 255, 0.12); }
   .tell:focus-within { border-color: var(--acc); }
@@ -335,7 +344,6 @@
                 font: 14px "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); }
   .tell input::placeholder { color: rgba(242, 244, 247, 0.45); }
   .tell .sk { font-size: 17px; padding: 6px 12px 3px; margin-right: 6px; }
-  .tell .sk[hidden] { display: none; }
   .foot > .sk { font-size: 20px; padding: 10px 18px 7px; }
 
   /* Narrower windows: the families become a row above the shelf, the picked material below it. */
@@ -357,7 +365,7 @@
     .shelfHead { flex-wrap: wrap; }
     #tiles { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
     .spec { margin: 16px 16px 80px; }
-    .stand { display: block; padding: 0 16px; }
+    .stand { display: block; }
     .standHead { flex-wrap: wrap; gap: 8px 16px; padding: 4px 0 6px; }  /* a round's switch goes under the title */
     #stRound, #prRound { flex-wrap: wrap; row-gap: 5px; }  /* and its buttons wrap when their names are long */
     #stStage { height: 62vw; }
@@ -366,18 +374,20 @@
     #stStage { overflow: visible; margin-bottom: 40px; }  /* the credit under the car, not on it */
     .credit, .stand .credit { top: calc(100% + 5px); bottom: auto; right: 0; max-width: 100%; color: var(--text); font-size: 9px; }
     .stand .at { font-size: 18px; bottom: 8px; left: 10px; }
-    .wizard { display: block; padding: 0 16px 24px; }
+    .carRoom, .carRoom.withSheet { display: block; padding: 0 16px 24px; }
     .bs { padding: 12px 0 10px; margin-bottom: 12px; }
     .bs ol { display: flex; overflow-x: auto; }
     .bs li { flex: none; width: 160px; }
     .bs li button { border-top: 0; border-left: 1px solid rgba(255, 255, 255, 0.06); }
     .sofar { display: none; }
     .wz { display: block; }
+    .q { flex-wrap: wrap; }
+    .q .show { margin-left: 0; }
     .q h3 { font-size: 34px; }
     .wzBody { overflow: visible; }
     .brief { grid-template-columns: 1fr; grid-template-areas: "draft" "from" "rules" "words"; }
     .cards { display: flex; flex-direction: column; min-height: 0; }
-    .wizard .card .pic { flex: none; height: 62vw; }
+    .carRoom .card .pic { flex: none; height: 62vw; }
     .foot { flex-wrap: wrap; }
     .tell { flex-basis: 100%; }
     .answer { flex-wrap: wrap; }
@@ -398,7 +408,6 @@
   <header id="labTop">
     <h1 id="labName" class="teko">The Lab</h1>
     <nav id="rooms" class="teko">
-      <button class="sk" data-room="build" aria-pressed="false" hidden><span>The build</span></button>
       <button class="sk" data-room="studio" aria-pressed="true"><span>The car</span></button>
       <button class="sk" data-room="materials" aria-pressed="false"><span>Materials</span></button>
     </nav>
@@ -406,28 +415,17 @@
     <a id="back" class="sk teko" href="./index.html"><svg class="ic"><use href="#i-back"/></svg><span>Back to the viewer</span></a>
   </header>
 
-  <section id="roomBuild" class="room" hidden>
-    <div id="wizard" class="wizard">
-      <aside class="bs">
+  <section id="roomStudio" class="room">
+    <div id="carRoom" class="carRoom">
+      <aside id="wzSheet" class="bs" hidden>
         <h2 id="wzCar" class="teko"></h2>
         <div id="wzSub" class="sub"></div>
         <ol id="wzSteps"></ol>
         <button id="wzSoFar" class="sofar" hidden title="The car on the stand, to turn it and leave notes on it"><img alt=""><span class="teko">The car so far</span><small>Notes on the car</small></button>
       </aside>
       <main class="wz">
-        <div class="q"><div id="wzKicker" class="k teko"></div><h3 id="wzQuestion" class="teko"></h3><p id="wzLine"></p></div>
-        <div id="wzBody" class="wzBody"></div>
-        <div id="wzSaid" hidden></div>
-        <div class="foot">
-          <label class="tell"><input id="wzTell" autocomplete="off" placeholder="Or tell Claude in your own words…"><button id="wzSend" class="sk acc teko" hidden><span>Send</span></button></label>
-          <button id="wzBack" class="sk teko"><span>Back</span></button>
-          <button id="wzNext" class="sk teko"><span>Next</span></button>
-        </div>
-      </main>
-    </div>
-  </section>
-
-  <section id="roomStudio" class="room">
+        <div id="wzHead" class="q" hidden><div><div id="wzKicker" class="k teko"></div><h3 id="wzQuestion" class="teko"></h3><p id="wzLine"></p></div><div id="wzView" class="show teko" hidden></div></div>
+        <div id="wzBody" class="wzBody" hidden></div>
     <div id="stand" class="stand">
       <div class="standHead">
         <h3 id="stTitle" class="teko"></h3><div id="stRound" class="show teko" hidden></div>
@@ -450,6 +448,14 @@
       </div>
       <div id="stList" class="tagList"></div>
       <div id="stStrip" class="strip"></div>
+    </div>
+        <div id="wzSaid" hidden></div>
+        <div id="wzFoot" class="foot" hidden>
+          <label class="tell"><input id="wzTell" autocomplete="off" placeholder="Or tell Claude in your own words…"><button id="wzSend" class="sk acc teko" hidden><span>Send</span></button></label>
+          <button id="wzBack" class="sk teko"><span>Back</span></button>
+          <button id="wzNext" class="sk teko"><span>Next</span></button>
+        </div>
+      </main>
     </div>
   </section>
 

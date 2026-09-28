@@ -20,17 +20,24 @@ the record and installing.
 
 ## How it runs
 
-- The steps: Brief, Mood, Concepts, Shapes, Colours and materials, Wheels, Details, Lettering,
-  Review, Road test, Release. One at a time, in that order.
+- **Three steps:** Brief, Concepts, The car. Eleven until 2026-09-28, when the user, trying the
+  wizard, said "it feels like a lot of steps ... Im really not sure if Im overengineering all of
+  this", then: "I would keep it simple, after concepts, I would just have the 3d car and you just
+  make changes, with the comments pop up windows throught". So the mood lives inside Concepts, and
+  after the pick everything else (the shapes, the finishes, the wheels, the details, the lettering)
+  happens on the car itself, from their notes on it, until they're happy; then the check and the
+  release. TSC_Ladybird was built with the eleven.
 - **A step stops for the user only when there's more than one real direction.** Then show the
   options and ask for a pick. When there's one sensible answer, do it, show it in a line or a
   picture and move on; the user can still say otherwise. A step that adds nothing on this car is
   skipped, and you say why in a few words. Technical choices stay yours.
-- **Each step has its expert's know-how:** a short guide in `guides/` beside this file (mood,
-  shapes, colours, wheels, details, lettering), read when its step starts and at no other time:
-  what good looks like in that field, what the car and the tool allow there, what to check. At the
-  end of the step, add what the car taught to its guide's "Learned" (dated, the car's name, a line
-  or two), so the experts grow with every car. The critic (9) has its own instructions.
+- **Each field has its expert's know-how:** short guides in `guides/` beside this file, read when
+  the work reaches their field and at no other time: `mood.md` and `shapes.md` at Concepts; on the
+  car, `shapes.md` and `colours.md` for the shapes and finishes, `wheels.md`, `details.md` and
+  `lettering.md` for theirs. Each says what good looks like in that field, what the car and the
+  tool allow there, what to check. When a field's work is done, add what the car taught to its
+  guide's "Learned" (dated, the car's name, a line or two), so the experts grow with every car. The
+  critic (3, the check) has its own instructions.
 - **Every step is checked against the brief.** An option that drifts from it isn't shown.
 - **A decided step stays decided.** A later step never quietly changes an earlier decision: if it
   must, say so and ask.
@@ -43,13 +50,14 @@ the record and installing.
   `python3 -m tool.sheet` (no container). A pick deletes the options not kept (the user's rule,
   2026-09-28): tell the user in a few words, git's history keeps them.
 - **The Lab's wizard** (the user's pick of the screens, 2026-09-28): a studio car opens in the Lab
-  on "The build": the sheet on the left, the step waiting for the user filling the page, with a
-  Pick on each option, "Approve the brief", "Keep it as it is" on a step that needs a look, and a
-  box for their own words. Open it once the car has a sheet (http://localhost:8765/lab.html?skin=<car>;
-  on the Mac `open` it) and say once that they can answer there or in the chat. It shows only the
-  sheet, the brief's card and the options' pictures (their gallery thumbs: take each option's
-  snapshot before `ask`), so keep the sheet true and the page follows. "The car", the stand, is
-  still where they leave notes on the car; each option's "On the car" opens it there.
+  with its sheet on the left. The brief and the concepts are pages (the card, the three cars side
+  by side with a Pick on each); after them, the car itself on the stand, where the user leaves
+  notes on it (the user, 2026-09-28: "that could already as a 3d model where I can use the nice
+  comment windows that we currently have"), with "Happy with it", and a Pick for the take on show
+  when you offer a round of options. A box for their own words is on every step. Open it once the car has a sheet (http://localhost:8765/lab.html?skin=<car>; on the
+  Mac `open` it) and say once that they can answer there or in the chat. It shows only the sheet,
+  the brief's card, the options' pictures (their gallery thumbs: take each option's snapshot before
+  `ask`) and the stand, so keep the sheet true and the page follows.
 - **Waiting for their answer:** after every `ask` (the brief's too), start `python3 -m tool.notes
   wait` (on the PC `PY -m tool.notes wait`) with the Bash tool in the background, then end the
   turn. A pick, a yes or words in the wizard end it at once and print it as the hook does ("in the
@@ -108,171 +116,103 @@ maybe help shape the direction. But obviously I don't want a complete form to fi
    and it's shown again. On a yes: `tool.sheet decide <car> brief "<the character, a few words>"`,
    `Brief approved` in `notes.md`, commit and push.
 
-## 2. Mood
+## 2. Concepts
 
-Its guide: `guides/mood.md`.
+Its guides: `guides/mood.md` (the directions: a world, a colour story, the finishes) and
+`guides/shapes.md` (the big shapes).
 
-The brief turned into a look before it touches the car: two or three boards, each a real
-direction (its own finish, graphic language and colour story, not three shades of one). Always the
-user's decision on a new car.
+Three truly different ideas on the car, rough on purpose: flat colour in each one's base finish,
+the big shapes only, no details. Each a different reading of the brief, with its own mood: the
+world it draws from, its colour story and its finish. The mood lives here, on the car, not on
+boards beside it (the user, 2026-09-28, when the steps went from eleven to three). Always the
+user's decision.
 
-1. `tool.sheet on <car> mood`.
-2. Write each board as `skins/<car>/mood/<slug>.json` (its shape is in `tool/mood.py`'s
-   docstring):
-   - a title, and the direction in a sentence;
-   - the colour story: main, support, one accent, with shares adding up to 100;
-   - the finishes the car would wear, in its colours: they're painted on the Lab's balls, so
-     they show the truth;
-   - a wall of four pictures: a wide one first (the idea at a glance), whatever the brief fixes
-     drawn in the board's style (TSC_Ladybird's grass fringe), and how it reads where it's used
-     (from above on its map). Drawings are SVG you write; on the PC add the picture maker's
-     (`tool.pictures`, kept in `mood/<slug>/`). Never pictures from the web. A drawn creature
-     gets no face unless the brief asks for one.
-   When drawings repeat (grass, spots), write them with a script in the scratchpad: the JSON is
-   what's kept.
-3. `tool.sheet option <car> mood "<title>" --file mood/<slug>.json` for each, in the order to
-   show them (A, B, C).
-4. `tool.mood <car>` (on the Mac `docker compose exec app python -m tool.mood <car>`), then look
-   at the page yourself: `tool.mood <car> --snap` on the PC, `node docker/snap.mjs --page
-   "mood.html?car=<car>"` on the Mac. Crop and enlarge every drawing: nothing cut off, nothing
-   the brief's "Not" rules out. Fix and look again.
-5. Open the page for the user (http://localhost:8765/mood.html?car=<car>; on the Mac `open` it),
-   `tool.sheet ask <car> mood`, and reply: a line per board, the one you'd pick and why in a
-   sentence, then in bold: which one, or what to take from each?
-6. One board: `tool.sheet pick <car> mood <letter> "<its colour story and finish, a few words>"`.
-   Two or more boards to carry on (the user, 2026-09-28: "c and b actually"): pick them together
-   (`A+B`) and draw the concepts from both, one reading per board and one that blends them. A mix
-   into one board: write it as a new option, show it, then pick it. The pick deletes the boards not
-   kept and their pictures. `Picked` in `notes.md`, commit and push.
-
-## 3. Concepts
-
-Its guide: `guides/shapes.md` (the big shapes), with the picked board's colour story.
-
-Three truly different ideas on the car, rough on purpose: flat colour in the board's base finish,
-the big shapes only, no details. Each a different reading of the brief and the mood (from two
-boards: one per board and one that blends them). Always the user's decision.
-
-1. `tool.sheet on <car> concepts`. Name three readings that truly differ, each a title and a line
-   or two: what the car is in that reading and where its big shapes go (from two boards: one per
-   board and one that blends them). Then `tool.sheet option <car> concepts "<Title>"` for each: it
-   makes `skins/<car>_<Title>/`, empty while the car has no design.
+1. `tool.sheet on <car> concepts`. Name three readings that truly differ (the mood guide: in at
+   least two of the colour story, the finish, the graphic language and the world), each a title
+   and a few lines: what the car is in that reading, the world it draws from, its colour story as
+   hex with roles and shares, its base finish, and where its big shapes go. Then `tool.sheet option
+   <car> concepts "<Title>"` for each: it makes `skins/<car>_<Title>/`, empty while the car has no
+   design.
 2. `tool.skin round "<the idea in a few words>" <car>_<A> <car>_<B> <car>_<C>` before painting
-   them, so a Lab that's already open shows the switch between them (recorded after, it showed only
-   after a reload, and the user couldn't find concept B, 2026-09-28).
+   them, so a Lab that's already open shows each take as it's painted (recorded after, it showed
+   only after a reload, and the user couldn't find concept B, 2026-09-28).
 3. **The three concept designers** (`.claude/agents/concept-designer.md`), launched at once in the
    background: the Agent tool, `subagent_type: concept-designer`, three calls in one message. Give
-   each the car, its option's skin name, the brief's path, the board file(s), its own reading, the
-   other two readings to stay clear of, and the computer (the Mac or the PC). Each writes its
-   `design.py`, paints it (paints take turns on a computer: `tool.skin` queues them), looks, fixes
-   and reports. A session begun before the agent existed doesn't list it: give a general-purpose
-   agent the file's text below its header as its role.
+   each the car, its option's skin name, the brief's path, its own reading (with its colours and
+   finish), the other two readings to stay clear of, and the computer (the Mac or the PC). Each
+   writes its `design.py`, paints it (paints take turns on a computer: `tool.skin` queues them),
+   looks, fixes and reports. A session begun before the agent existed doesn't list it: give a
+   general-purpose agent the file's text below its header as its role.
 4. When all three are back, look at each yourself: the six views, the close looks, the chase
    cameras. You hold the round together: each on the brief, each clearly its own, none rougher
-   than the others by accident. Fix in its design what they left, and paint again. Then the
-   picture (`--picture`, views front, left and top, the driving camera's close row for each) and
-   `tool.sheet ask <car> concepts`.
-5. Reply: a line per concept, the one you'd pick and why, that the Lab's stand flips between them,
-   then in bold: which one, or what to take from each?
+   than the others by accident. Fix in its design what they left, and paint again. Take each one's
+   snapshot (its gallery picture, which the wizard's card shows), then the picture (`--picture`,
+   views front, left and top, the driving camera's close row for each) and `tool.sheet ask <car>
+   concepts`.
+5. Reply: a line per concept, the one you'd pick and why, that the Lab shows them side by side and
+   each on the car, then in bold: which one, or what to take from each?
 6. One: `tool.sheet pick <car> concepts <letter> "<the idea in a few words>"`: its design becomes
-   the car's and the others go with their round; then `show <car>` to paint it under its own name.
-   A mix the user spelled out ("I like B the most. I do like the grass from C though"): write it
-   as a new option from the picked parts, check it as any concept, pick it, and show the car.
-   Notes left on concepts the pick deleted still get marked done (`tool.notes done` takes them).
+   the car's and the others go with their round; then `show <car>` to paint it under its own name,
+   and its snapshot. A mix the user spelled out ("I like B the most. I do like the grass from C
+   though"): write it as a new option from the picked parts, check it as any concept, pick it, and
+   show the car. Notes left on concepts the pick deleted still get marked done (`tool.notes done`
+   takes them).
 
-## 4. Shapes
+## 3. The car
 
-Its guide: `guides/shapes.md`.
+Its guides, as the work reaches their field: `guides/shapes.md` and `guides/colours.md`, then
+`guides/wheels.md`, `guides/details.md` and `guides/lettering.md`.
 
-The picked concept's big shapes made right: where each graphic sits, how it meets the car's folds,
-edges and holes, and how the car reads from far away and from the game's cameras. A good car reads
-in half a second. The user decides only when there's a real alternative.
+The picked concept made into a finished car, on the car itself, with the user's notes throughout
+(the user, 2026-09-28: "after concepts, I would just have the 3d car and you just make changes,
+with the comments pop up windows throught"). Nothing is a separate stop: the user watches the car
+on the stand, clicks where they want a change and writes it, and you change it and show it. Still
+every detail from start to finish (the user's "not the typical amateur skins"), so you carry the
+work on yourself between their notes, field by field.
 
-1. `tool.sheet on <car> shapes`. Act on the user's notes on the car in its design, and fix what the
-   concept left rough: nothing clipped, sunk, or running into the part under it; nothing the brief
-   rules out (TSC_Ladybird's white marks read as eyes; its grass made a slab under the nose).
-2. Look at it as the game shows it: the six views and the close looks as always, and the game's
-   cameras by day and at night (`--cams`; on the Mac `node docker/snap.mjs <car> --cams`). The
-   player sees their car from behind: say in a line what reads from there and what only others see.
-3. One sensible answer: `tool.sheet decide <car> shapes "<the shapes in a few words>"`, show it in a
-   picture and move on. A real alternative (the user's words against the brief, two places a
-   graphic could go): an option each (`tool.sheet option <car> shapes "<Title>"` copies the car's
-   design to change), the round recorded before painting, each painted and checked, the picture
-   (front, left and top, with a close row where they differ), then `tool.sheet ask <car> shapes`.
-   Reply with a line per option, the one you'd pick and why, and in bold: which one?
-4. The pick as for concepts: `tool.sheet pick <car> shapes <letter> "<...>"`, then `show <car>`.
-   `Picked` in `notes.md`, commit and push.
+1. `tool.sheet on <car> car`, then `ask <car> car` once the car is shown: the wizard shows it on
+   the stand with "Happy with the car?". Start `tool.notes wait` in the background and end the turn,
+   as after any ask: their notes on the car come like any note, their "Happy with it" as an answer.
+   While you work, `on` again ("Claude on it"); `ask` again when you show the next state.
+2. **The work, in this order unless their notes say otherwise:**
+   - **The shapes** (the shapes guide): the concept's rough edges fixed: nothing clipped, sunk, or
+     running into the part under it; nothing the brief rules out (TSC_Ladybird's white marks read as
+     eyes; its grass made a slab under the nose); how it reads from far away and from the game's
+     cameras (`--cams`; on the Mac `node docker/snap.mjs <car> --cams`): a good car reads in half a
+     second. The player sees their car from behind: say in a line what reads from there.
+   - **The finishes** (the colours guide): a `FINISH` dict at the top of the design, part by part
+     (gloss, satin, matte, metal, carbon), the contrast between them and the exact colours, by day
+     and at night. A matte graphic on a gloss shell reads as drawn on; shine shows every flaw, so
+     look at the glossiest closest.
+   - **The wheels** (the wheels guide): the covers, the tyre accent and tread, the wheels' lights.
+     The user settles the wheels car by car: offer them a round (below).
+   - **The details** (the details guide): the inner car, the lights and their colours, the glass,
+     looked at from behind first and at night.
+   - **The lettering** (the lettering guide), when the car wants words, numbers or badges: the
+     places the shapes leave free, the typefaces. Say what reads only up close.
+   Show each field's result on the car (`show <car>`, its snapshot, `ask <car> car`) with a picture
+   and a few lines, and say which field comes next. Their notes on the car are the changes: act on
+   them first, mark each done.
+3. **A real choice** (the wheels, two places a graphic could go, gloss or matte when the brief and
+   the concept disagree): an option each (`tool.sheet option <car> car "<Title>"` copies the car's
+   design to change; keep everything else the same, so the choice is that alone), the round recorded
+   before painting (`tool.skin round`), each painted, checked and snapped, the picture, then `ask`:
+   the stand shows the round's switch, and a Pick for the take on show. Reply with a line per
+   option, the one you'd pick and why. Their pick: `tool.sheet pick <car> car <letter> "<...>"` (the
+   step stays open: the pick joins its history), then `show <car>` and carry on. A pick with a change ("a but the grass make it a
+   silky grass finish"): change that option, check it, then pick it.
+4. What only the game can judge (a colour meant to blend with the map) goes to the check: note it in
+   `notes.md`. Commit and push after each field and each pick.
+5. **When they're happy** ("Happy with it", or in the chat): the check, then the release, below.
+   The step is decided at the end of the release.
 
-## 5. Colours and materials
+### The check
 
-Its guide: `guides/colours.md`.
+**The critic.** An agent that didn't design the car (`.claude/agents/critic.md`), given only the
+brief and the car's pictures, never the design, the sheet, `notes.md` or your reasons. No decision
+for the user: they hear what was found and fixed.
 
-The finishes, part by part (gloss, satin, matte, metal, carbon), the contrast between them, the
-exact colours, by day and at night. Usually the user's decision: the boards and the brief tend to
-disagree about shine.
-
-1. `tool.sheet on <car> colours`. Read the directions off the brief and the mood boards: each
-   board's finishes are one, a finish the brief names is always one (TSC_Ladybird's "glossy"), and
-   the car as it is when it's a real candidate. Contrast counts: a matte graphic on a gloss shell
-   reads as drawn on.
-2. An option each (`tool.sheet option <car> colours "<Title>"`), with the finishes in a `FINISH`
-   dict at the top of its design, part by part. Keep the colours the same across them, so the
-   choice is the finish alone, unless the colour is the question. Record the round before painting.
-3. Paint and check each; shine shows every flaw, so look at the glossiest closest. The picture:
-   front, rear (the highlights run over the deck) and night, with close rows 3 and 6. Then `ask`,
-   reply with a line per option and the one you'd pick, and in bold: which one?
-4. The pick as for concepts, then `show <car>`. A pick with a change ("a but the grass make it a
-   silky grass finish"): change that option, check it, then pick it. What only the game can judge (a colour meant to
-   blend with the map) goes to the Road test: note it in `notes.md`.
-
-## 6. Wheels
-
-Its guide: `guides/wheels.md`.
-
-The covers, the rims, the tyres' marking and tread, and the wheels' own lights, as one piece: the
-user settles the wheels car by car. Always the user's decision.
-
-1. `tool.sheet on <car> wheels`. Two or three readings of the car's idea on the wheels (covers,
-   tyre accent and tread, the wheels' lights: the guide).
-2. An option each, with its own "Wheels" step in place of the wheels "for now". Record the round
-   before painting.
-3. Check each as the guide says. The picture: front, left and night, close rows 8 and 9. Then
-   `ask`, and the pick as for concepts.
-
-## 7. Details
-
-Its guide: `guides/details.md`.
-
-What separates a finished car from an amateur skin: the inner car (the frames, the suspension, the
-floor and front wing, the cockpit), the lights and their colours, the glass. Usually one sensible
-answer: do it, show it, `tool.sheet decide <car> details "<...>"`; options only for a real choice.
-
-`tool.sheet on <car> details`, then the inner car, the lights and the glass as the guide says,
-looking from behind first (`--cams`) and at night. Show it in a picture (rear, night, and the close
-looks where the body meets the inner car).
-
-## 8. Lettering
-
-Its guide: `guides/lettering.md`.
-
-Words, numbers and badges, their typeface and where they go. The user's decision when there's more
-than one direction (the mood boards' lettering, and none).
-
-1. `tool.sheet on <car> lettering`. The places left free by the shapes, and the typefaces (the
-   guide). A graphic can carry the lettering: a spot as a number's roundel (TSC_Ladybird).
-2. An option each (and "No Lettering" when none is a real answer), the round before painting,
-   each checked as the guide says.
-3. The picture: front, left and right, close rows where the lettering sits. Say what reads only up
-   close. Then `ask`, and the pick as for concepts.
-
-## 9. Review
-
-The whole car checked with fresh eyes, against the brief and the studio's quality list, by the
-critic: an agent that didn't design the car (`.claude/agents/critic.md`), given only the brief and
-the car's pictures, never the design, the sheet, `notes.md` or your reasons. No decision for the
-user: they hear what was found and fixed.
-
-1. `tool.sheet on <car> review`. Take the car's four sheets as it is now: the views, the close
+1. `tool.sheet on <car> car`. Take the car's four sheets as it is now: the views, the close
    looks, the review angles (straight on, low behind, underneath, the right-hand flanks) and the
    game's cameras: `tool.snap <car>`, then `--close`, `--review`, `--cams` (on the Mac `node
    docker/snap.mjs <car>` with the same flags). Cut them into single pictures: `tool.critic
@@ -283,7 +223,7 @@ user: they hear what was found and fixed.
    list it: give a general-purpose agent the file's text below its header as its role, the Read
    tool only, on the files named, and the critic's model. Save the reply in the scratchpad, then
    `tool.critic keep <car> <file> --critic <model> --pictures <folder>`.
-3. Look at every finding in its picture yourself. A real `fix` or `improve`: change its step of the
+3. Look at every finding in its picture yourself. A real `fix` or `improve`: change its part of the
    design, then `tool.critic mark <car> <n> fixed "<what changed>"`. A misreading (a reflection,
    the car's own shape) or something the user chose against the brief: `mark <n> left "<why>"`,
    said to the user, not changed.
@@ -293,26 +233,21 @@ user: they hear what was found and fixed.
 5. What the critic can't see is yours: parts left in clay (`tool.skin paint <car>` names them), and
    the size, a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s in the Mac's container)
    against `ZIP_BUDGET`.
-6. `tool.sheet decide <car> review "<found and fixed, a few words>"`, a line in `notes.md` with
-   what's left for the road test, commit and push. Tell the user in a few lines: what the critic
-   found, what was fixed, what was left and why.
+6. Tell the user in a few lines: what the critic found, what was fixed, what was left and why.
 
 The critic's test car, TSC_CriticTest, has seven faults of known kinds (its design's docstring):
 after a change to the critic's instructions, run it there and compare with the score in
 `CHECKLIST.md` (W2).
 
-## 10. Road test
+**The road test.** The car in the game, on the Windows PC: `tool.skin install <car>`, then the
+user drives it (a map that suits the idea, day and night, brakes, turbo) and takes F12
+screenshots; look only at those taken after the install. A change is made on the car as any note is, and checked again where it matters. If the
+user waives the drive ("Let's assume it works"), note in `notes.md` what only the game could have
+shown.
 
-The car in the game, on the Windows PC: `tool.skin install <car>`, then the user drives it (a map
-that suits the idea, day and night, brakes, turbo) and takes F12 screenshots; look only at those
-taken after the install. Always the user's decision: a yes decides it, a change reopens the step it
-belongs to. If the user waives it ("Let's assume it works"), `tool.sheet skip <car> road "<their
-words>"` and note in `notes.md` what only the game could have shown.
-
-## 11. Release
-
-The car final: in the game (installed at the road test, or now on the PC), on the page online
-(`tool.publish`, on the PC: it shows the skins in the game), and in its design book.
+**The release,** on their yes: the car final, in the game (installed at the road test, or now on
+the PC), on the page online (`tool.publish`, on the PC: it shows the skins in the game), and in its
+design book.
 
 - **The design book** is a private page on claude.ai (an artifact) the user can share: the car's
   story from the brief to the finished car, one chapter per step, with the user's own words at each
@@ -322,5 +257,5 @@ The car final: in the game (installed at the road test, or now on the PC), on th
 - Its pictures come from the rounds' picture sheets in `.snap/` (a row is a 70 px title bar and
   960x720 tiles; the tiles' working labels are cut off the top) and the final views, close looks
   and cameras, as JPEGs about 960 wide (about 2.5 MB for 27). Credit the car model's author.
-- Then `tool.sheet decide <car> release "<...>"` once it's in the game and online, a line in
-  `notes.md`, commit and push.
+- Then `tool.sheet decide <car> car "<the car in a few words: found and fixed, in the game,
+  released>"` once it's in the game and online, a line in `notes.md`, commit and push.

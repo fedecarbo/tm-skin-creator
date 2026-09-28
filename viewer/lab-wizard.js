@@ -1,40 +1,49 @@
 // The Lab's wizard (CHECKLIST.md, "The design studio", W3): a studio car's build sheet on the left, the
-// step on show filling the page, with its question, its options, "Or tell Claude in your own words",
-// Back and Next (the user's pick of the screens, 2026-09-28:
-// https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F). A car made the old way has no sheet: it stays
-// on the stand (lab-studio.js).
-//   /lab.html?room=build&skin=<name>   the wizard of the studio car <name> is, or is an option of
-//   ...&step=<key>                     that step on show
+// step on show filling the rest, its question over it, "Or tell Claude in your own words", Back and
+// Next under it (the user's pick of the screens, 2026-09-28:
+// https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F). The step itself is a page (the brief's card, the
+// concepts' cars side by side with a Pick on each), or, after them, the car on the stand
+// (lab-studio.js) with its notes, where the user refines it (the user, 2026-09-28: "after concept it
+// does come to a point where I do refinements and details etc, and that could already as a 3d model
+// where I can use the nice comment windows that we currently have"), with a Pick for the take on show
+// when the step has a round of options. A car made the old way has no sheet: the room is the stand.
+//   /lab.html?skin=<name>         the car's room: the wizard of the studio car <name> is, or is an
+//                                 option of, or the stand alone
+//   ...&step=<key>                that step on show
 // Everything comes from the tool. The sheet is skins/<car>/sheet.json (tool/sheet.py, its only
-// writer), served with the brief's card and each step's question (/api/sheet?skin=<name>, the
-// studio car the skin belongs to: the Lab follows whichever skin Claude painted last, often an
-// option). An option's picture is its gallery thumb (gallery.json), a mood board's its colour story
-// and first drawing (tool/mood.py's boards.json). The page never changes the sheet: the user's answers
-// (a pick, a yes, their words) go through the notes channel (/api/notes, tool/notes.py) with their
-// step, and reach Claude with the next message, or at once while Claude waits for them (tool.notes
-// wait). Claude writes the sheet, and the page follows it (asked every 2 s while the room is open).
+// writer), served with the brief's card, each step's question and the steps shown on the car
+// (/api/sheet?skin=<name>). An option's picture is its gallery thumb (gallery.json). The page never
+// changes the sheet: the user's answers (a pick, a yes, their words) go through the notes channel
+// (/api/notes, tool/notes.py) with their step, and reach Claude with the next message, or at once
+// while Claude waits for them (tool.notes wait). Claude writes the sheet, and the page follows it
+// (asked every 2 s while the room is open).
 
-import { note, pick as pickSkin } from './lab-round.js';
+import { note, pick as pickSkin, wanted } from './lab-round.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
 const POLL = 2000;
 
-let doc = null;          // /api/sheet: the car's sheet, its card, `at` (the step it's at), `asks`, `states`
+let doc = null;          // /api/sheet: the car's sheet, its card, `at` (the step it's at), `asks`, `stand`, `states`
 let docSig = '';
 let shown = null;        // the step on show, or null to follow the car's step
+let looking = null;      // a skin the user asked to see on the car from a page (a card's "On the car")
 let answers = [];        // the car's answers in the wizard not done yet (notes with `sheet`)
 let answersSig = '';
 let gallery = new Map(); // gallery.json's entries by name, for the options' thumbs
-let boards = new Map();  // mood board file -> boards.json's board
-let rooms = null;        // lab.js: open another room
-let ask = null;          // the skin the page was asked for
+let boards = new Map();  // mood board file -> boards.json's board (a sheet made with the mood step)
+let lab = null;          // lab.js: copy, and open another room
+let standing = null;     // the stand, once opened (lab-studio.js)
+let onStand = null;      // the skin on the stand ('lab:stand')
+let mode = null;         // 'page', 'car' (the stand, with the sheet) or 'stand' (no sheet)
+let modeOf = '';         // the step (and skin looked at) the mode was set for
 
 const dateOf = (iso) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '');
 const stepOf = (key) => doc.steps.find((s) => s.key === key);
 const indexOf = (key) => doc.steps.findIndex((s) => s.key === key);
 const onShow = () => stepOf(shown || doc.at) || doc.steps[doc.steps.length - 1];
 const picked = (st) => (st.pick || '').split('+').filter(Boolean);
+const open_ = (st) => ['waiting', 'claude', 'look'].includes(st.state);
 const post = (body) => fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
 // ---- the build sheet: one line per step, what was decided, the car so far ----
@@ -282,13 +291,49 @@ function body(st) {
   if (now) box.append(now);
 }
 
+// The step as a page, or on the car: the car step (sheet.STAND) shows the
+// car on the stand, once there's a car; a page's "On the car" shows one of its cars there too.
+function modeFor(st) {
+  if (looking) return 'car';
+  const car = gallery.has(doc.car) || st.options.some((o) => o.skin && gallery.has(o.skin));
+  return doc.stand.includes(st.key) && (st.key === doc.at || open_(st)) && car ? 'car' : 'page';
+}
+
+function layout(m) {
+  mode = m;
+  $('carRoom').classList.toggle('withSheet', m !== 'stand');
+  $('carRoom').classList.toggle('onCar', m === 'car');
+  for (const id of ['wzSheet', 'wzHead', 'wzFoot']) $(id).hidden = m === 'stand';
+  $('wzBody').hidden = m !== 'page';
+  $('stand').hidden = m === 'page';
+  if (m === 'stand') $('wzSaid').hidden = true;
+  if (m !== 'page') standing ||= import('./lab-studio.js').then((room) => room.open({ copy: lab.copy }));
+}
+
+// On the car: the take on show, when the step has a round of options (the switch on the stand), or the
+// car itself; the stand is sent to the car when it shows neither.
+const takeOnShow = (st) => st.options.find((o) => o.skin && o.skin === (onStand || wanted()));
+
 function head(st) {
   const i = indexOf(st.key), a = doc.asks[st.key] || {};
   const waits = st.state === 'waiting' || st.state === 'look';
   const kicker = `Step ${i + 1} of ${doc.steps.length}` + (st.key === doc.at ? '' : st.state === 'todo' ? ' · not yet' : ` · ${doc.states[st.state]}`);
   $('wzKicker').textContent = kicker;
-  $('wzQuestion').textContent = waits ? a.question : st.key === 'brief' && st.state === 'claude' && !doc.card ? 'What car do you want to build?' : st.name;
-  $('wzLine').textContent = waits ? a.line : st.state === 'claude' ? a.line || '' : '';
+  const question = st.options.length && st.state === 'waiting' ? a.pick : a.yes;
+  $('wzQuestion').textContent = waits && question ? question
+    : st.key === 'brief' && st.state === 'claude' && !doc.card ? 'What car do you want to build?' : st.name;
+  $('wzLine').textContent = st.state === 'waiting' && st.options.length && mode === 'car'
+    ? 'Flip between them with the switch over the car, turn it, leave notes on it, then pick the one on show.'
+    : waits || st.state === 'claude' || (mode === 'car' && st.key === doc.at) ? a.line || '' : '';
+  const view = $('wzView');
+  view.replaceChildren();
+  view.hidden = !looking;
+  if (looking) {  // back from a look on the car to the page
+    const b = el('button', 'sk');
+    b.append(el('span', null, st.options.length ? 'Side by side' : 'Back to the step'));
+    b.addEventListener('click', () => { looking = null; draw(); });
+    view.append(b);
+  }
 }
 
 // What the user has answered at the step, still with Claude: a pick, a yes or words, and taking it back
@@ -314,17 +359,32 @@ function said(st) {
   }
 }
 
+// The button at the right of the foot: the step's own answer (approve, happy, keep, the take on show),
+// or Next.
+function action(st) {
+  const pending = [...answers].reverse().find((a) => a.sheet.step === st.key && (a.sheet.yes || a.sheet.pick));
+  if (st.state === 'waiting' && st.options.length && mode === 'car') {
+    const o = takeOnShow(st);
+    if (!o) return { label: 'Pick one on the switch', off: true };
+    if (pending && pending.sheet.pick === o.key) return { label: 'Your pick', off: true };
+    return { label: `Pick ${o.key} · ${o.title}`, run: () => answer(st, { pick: o.key, title: o.title }, pending) };
+  }
+  const yes = st.state === 'look' ? 'Keep it as it is'
+    : st.state === 'waiting' && !st.options.length ? (st.key === 'brief' ? 'Approve the brief' : 'Happy with it') : null;
+  if (yes) return pending ? { label: 'Sent', off: true } : { label: yes, run: () => answer(st, { yes: true }) };
+  const next = doc.steps[indexOf(st.key) + 1];
+  return { label: 'Next', plain: true, off: !next || next.state === 'todo', run: () => go(next.key) };
+}
+
+let act = null;
 function foot(st) {
   const i = indexOf(st.key);
-  const next = doc.steps[i + 1];
-  const back = $('wzBack'), go = $('wzNext');
-  back.setAttribute('aria-disabled', String(i === 0));
-  const yes = (st.key === 'brief' && st.state === 'waiting') ? 'Approve the brief' : st.state === 'look' ? 'Keep it as it is' : null;
-  const answered = answers.some((a) => a.sheet.step === st.key && (a.sheet.yes || a.sheet.pick));
-  go.dataset.action = yes ? 'yes' : 'next';
-  go.querySelector('span').textContent = yes ? (answered ? 'Sent' : yes) : 'Next';
-  go.classList.toggle('acc', !!yes);
-  go.setAttribute('aria-disabled', String(yes ? answered : !next || next.state === 'todo'));
+  $('wzBack').setAttribute('aria-disabled', String(i === 0));
+  act = action(st);
+  const b = $('wzNext');
+  b.querySelector('span').textContent = act.label;
+  b.classList.toggle('acc', !act.plain);
+  b.setAttribute('aria-disabled', String(!!act.off));
   $('wzTell').placeholder = st.state === 'waiting' && st.options.length
     ? 'Or tell Claude in your own words: what to mix, what to change…' : 'Or tell Claude in your own words…';
 }
@@ -332,12 +392,24 @@ function foot(st) {
 function draw() {
   if (!doc) return;
   const st = onShow();
+  const m = modeFor(st);
+  const sig = `${st.key}|${looking}|${m}`;
+  if (m !== mode) layout(m);
+  if (sig !== modeOf) {  // entering the step on the car: its round's first take (unless one is on show), or the car
+    modeOf = sig;
+    const on = onStand || wanted();
+    const takes = open_(st) ? st.options.filter((o) => o.skin && o.skin !== doc.car && gallery.has(o.skin)) : [];
+    if (m === 'car' && !looking) {
+      if (takes.length && !takes.some((o) => o.skin === on)) pickSkin(takes[0].skin);
+      else if (!takes.length && on !== doc.car) pickSkin(doc.car);
+    }
+  }
   drawSheet();
   head(st);
-  body(st);
+  if (m === 'page') body(st);
   said(st);
   foot(st);
-  fit();
+  if (m === 'page') fit();
   const u = new URL(location.href);
   if (shown) u.searchParams.set('step', shown);
   else u.searchParams.delete('step');
@@ -346,6 +418,7 @@ function draw() {
 
 function go(key) {  // a step on show; the car's own step follows the car again
   shown = key === doc.at ? null : key;
+  looking = null;
   draw();
 }
 
@@ -394,9 +467,8 @@ async function loadGallery() {
 async function loadBoards(car) {
   try {
     const r = await fetch(`data/mood/${encodeURIComponent(car)}/boards.json`, { cache: 'no-store' });
-    if (!r.ok) return;
-    boards = new Map((await r.json()).boards.map((b) => [`mood/${b.slug}.json`, b]));
-  } catch { /* none yet */ }
+    boards = r.ok ? new Map((await r.json()).boards.map((b) => [`mood/${b.slug}.json`, b])) : new Map();
+  } catch { /* none */ }
 }
 
 // The sheet of the studio car `name` belongs to, or null (a car made the old way).
@@ -418,18 +490,19 @@ async function followed() {
 }
 
 async function refresh() {
-  if ($('roomBuild').hidden || !ask) return;
-  const now = await followed();  // Claude painting another studio car: the wizard follows it
+  if ($('roomStudio').hidden) return;
+  const now = await followed();
   if (following === null) following = now.stamp;
   else if (now.stamp && now.stamp !== following) {
     following = now.stamp;
-    if (now.skin && now.skin !== ask && await sheetOf(now.skin)) {
-      ask = now.skin;
-      note(ask);  // the address, so the other rooms open it too
-    }
+    // Claude painting another skin: followed here while the stand is hidden (it follows on its own)
+    if (mode === 'page' && now.skin && now.skin !== wanted()) note(now.skin);
   }
-  const got = await sheetOf(ask);
-  if (!got) return;
+  const got = await sheetOf(wanted());
+  if (!got) {  // a car made the old way: the stand alone
+    if (doc || mode !== 'stand') { doc = null; docSig = ''; shown = null; looking = null; layout('stand'); }
+    return;
+  }
   const { skin, ...rest } = got;
   const sig = JSON.stringify(rest);
   if (sig === docSig) return loadAnswers();
@@ -438,54 +511,51 @@ async function refresh() {
   doc = got;
   // another car, the car moved on to a new step, or a step came back to the user: show it
   if (was && (was.car !== doc.car || was.at !== doc.at
-      || (stepOf(doc.at) || {}).state !== (was.steps.find((s) => s.key === doc.at) || {}).state)) shown = null;
+      || (stepOf(doc.at) || {}).state !== (was.steps.find((s) => s.key === doc.at) || {}).state)) { shown = null; looking = null; }
   await Promise.all([loadGallery(), loadBoards(doc.car)]);
   draw();
   await loadAnswers();
 }
 
-function onTheCar(skin) {  // an option on the stand, to turn it and leave notes on it
+function onTheCar(skin) {  // a car on the stand from a page, to turn it and leave notes on it
+  looking = skin;
   pickSkin(skin);
-  rooms('studio');
+  draw();
 }
 
 let opened = false;
-export async function open(lab, name) {
-  rooms = lab.room;
-  if (name && name !== ask) {
-    ask = name;
-    docSig = '';
-    const want = new URLSearchParams(location.search).get('step');
-    doc = null;
-    await refresh();
-    if (doc && want && stepOf(want)) go(want);
-  } else await refresh();
-  if (opened) return;
+export async function open(from) {
+  lab = from;
+  if (opened) return refresh();
   opened = true;
+  // the car's room shows the address's skin, or the one Claude painted last (as the stand does)
+  let name = wanted() || (await followed()).skin;
+  try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
+  if (name && name !== wanted()) note(name);
+  const want = new URLSearchParams(location.search).get('step');
+  await refresh();
+  if (!doc && mode !== 'stand') layout('stand');
+  if (doc && want && stepOf(want)) go(want);
   $('wzBack').addEventListener('click', () => {
     const i = indexOf(onShow().key);
-    if (i > 0) go(doc.steps[i - 1].key);
+    if (i > 0 && $('wzBack').getAttribute('aria-disabled') !== 'true') go(doc.steps[i - 1].key);
   });
-  $('wzNext').addEventListener('click', () => {
-    const st = onShow(), b = $('wzNext');
-    if (b.getAttribute('aria-disabled') === 'true') return;
-    if (b.dataset.action === 'yes') answer(st, { yes: true });
-    else go(doc.steps[indexOf(st.key) + 1].key);
-  });
+  $('wzNext').addEventListener('click', () => { if (act && !act.off && act.run) act.run(); });
   const input = $('wzTell');
   input.addEventListener('input', () => { $('wzSend').hidden = !input.value.trim(); });
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); answer(onShow()); }
   });
   $('wzSend').addEventListener('click', () => answer(onShow()));
-  $('wzSoFar').addEventListener('click', () => { if (doc) onTheCar(doc.car); });
-  addEventListener('lab:skin', (e) => { ask = e.detail; refresh(); });
-  new ResizeObserver(fit).observe($('wzBody'));
+  $('wzSoFar').addEventListener('click', () => { if (doc) { go(doc.at); if (mode === 'page') onTheCar(doc.car); } });
+  addEventListener('lab:skin', () => refresh());  // a take picked on the round's switch
+  addEventListener('lab:stand', (e) => { onStand = e.detail; if (doc) draw(); });
+  new ResizeObserver(() => { if (mode === 'page') fit(); }).observe($('wzBody'));
   setInterval(refresh, POLL);
   // ready once its pictures are in (Claude's snapshots of the page wait for it), 8 s at most
-  const pics = [...$('roomBuild').querySelectorAll('img')].filter((i) => i.getAttribute('src'));
+  const pics = [...$('roomStudio').querySelectorAll('.carRoom img')].filter((i) => i.getAttribute('src') && !i.closest('[hidden]'));
   await Promise.race([Promise.all(pics.map((i) => i.decode().catch(() => {}))), new Promise((r) => setTimeout(r, 8000))]);
-  window.lab.ready = true;
   window.lab.wizardReady = true;
+  if (mode !== 'page') await standing;
+  window.lab.ready = true;
 }
-

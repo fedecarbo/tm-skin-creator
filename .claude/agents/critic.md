@@ -1,6 +1,6 @@
 ---
 name: critic
-description: The design studio's independent critic, for a studio car's Review step (.claude/skills/skin/studio.md, 9). Give it only the car's brief card and its folder of pictures (tool.critic pictures); it checks the car against the brief and the studio's quality list and returns its findings as JSON. Never give it the design, the build sheet, the notes or the designer's reasons.
+description: The design studio's independent critic, for a studio car's check (.claude/skills/skin/studio.md, 3, The check). Give it only the car's brief card and its folder of pictures (tool.critic pictures); it checks the car against the brief and the studio's quality list and returns its findings as JSON. Never give it the design, the build sheet, the notes or the designer's reasons.
 tools: Read
 model: opus
 ---

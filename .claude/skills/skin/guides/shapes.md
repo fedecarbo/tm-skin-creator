@@ -1,6 +1,7 @@
 # Shapes: the livery designer's guide
 
-Read at the studio's steps 3 and 4 (`studio.md`: the concepts' big shapes, then the Shapes step).
+Read at the studio's Concepts (`studio.md`, 2: the concepts' big shapes) and on its car (3: making
+them right on the picked car).
 It grows with every car: at the end of the step, add what the car taught under "Learned", dated,
 with the car's name.
 

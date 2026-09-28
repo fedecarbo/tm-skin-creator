@@ -1,9 +1,8 @@
 // The Lab: its rooms, and the materials room: every finish the tool knows (tool/swatches.py writes
 // the list and each ball's textures from tool/finishes.py), drawn on a ball with the viewer's
 // lighting, with its code and numbers and a line to copy for Claude.
-//   /lab.html                 the skin Claude painted last: a studio car's wizard (lab-wizard.js), or
-//                             the stand (lab-studio.js) for a car made the old way
-//   /lab.html?room=build      the wizard; ?room=studio the stand
+//   /lab.html                 the car's room: the skin Claude painted last on the stand (lab-studio.js),
+//                             and for a studio car its wizard around it (lab-wizard.js)
 //   /lab.html?room=materials  the materials room, the first family
 //   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
 //   /lab.html?room=uv         the UV map room (lab-rooms.js, from tool/rooms.py): the game's four
@@ -14,7 +13,6 @@
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { THUMB, daySky, dress, shape, stage, textures } from './balls.js';
-import { wanted } from './lab-round.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
@@ -217,7 +215,7 @@ function failed(e) {
 
 // ---- the rooms ----
 
-const ROOMS = { build: $('roomBuild'), studio: $('roomStudio'), materials: $('roomMaterials') };
+const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials') };
 const painting = new Set();  // the rooms' keys (tool/rooms.py: the UV map), shown in #roomPaint
 const begun = {};
 function openRoom(name) {
@@ -225,30 +223,15 @@ function openRoom(name) {
   $('roomPaint').hidden = !painting.has(name);
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);
-  if (name === (build ? 'build' : 'studio')) u.searchParams.delete('room');
+  if (name === 'studio') u.searchParams.delete('room');
   else u.searchParams.set('room', name);
-  if (name !== 'build') u.searchParams.delete('step');
+  if (name !== 'studio') u.searchParams.delete('step');
   history.replaceState(null, '', u);
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
-  if (name === 'studio') (begun.studio ||= import('./lab-studio.js')).then((room) => room.open({ copy })).catch(failed);
-  if (name === 'build') import('./lab-wizard.js').then((room) => room.open({ copy, room: openRoom }, build)).catch(failed);
-}
-
-// A studio car (or one of its options) opens on its wizard, a room of its own; a car made the old way
-// has none. The skin is the address's, or the one Claude painted last (as the stand's).
-let build = null;
-async function studioCar() {
-  let name = wanted();
-  if (!name) {
-    try { name = (await (await fetch('data/studio.json', { cache: 'no-store' })).json()).skin; } catch { /* none yet */ }
-  }
-  try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
-  const sheet = await (await import('./lab-wizard.js')).sheetOf(name);
-  build = sheet ? name : null;
-  document.querySelector('#rooms [data-room="build"]').hidden = !build;
-  return build;
+  // the car's room: a studio car's wizard around the stand, which it opens when it shows it
+  if (name === 'studio') import('./lab-wizard.js').then((room) => room.open({ copy, room: openRoom })).catch(failed);
 }
 
 async function rooms() {
@@ -267,10 +250,7 @@ async function rooms() {
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
   let want = params.get('room');
   if (['body', 'details', 'tyres', 'glass', 'wheels', 'lights'].includes(want)) want = 'uv';  // the rooms before the UV map (2026-09-27)
-  await studioCar();
-  if (want === 'build' && !build) want = 'studio';
-  openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : build ? 'build' : 'studio');
-  addEventListener('lab:skin', () => studioCar());  // a take picked on a round's switch
-  setInterval(studioCar, 5000);  // the stand or the wizard followed Claude to another car
+  if (want === 'build') want = 'studio';  // the wizard's own room, before it took in the stand (2026-09-28)
+  openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
 }
 rooms().catch(failed);

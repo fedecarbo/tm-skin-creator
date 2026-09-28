@@ -1,6 +1,6 @@
 # Lettering: the typography and badges designer's guide
 
-Read at the studio's step 8 (`studio.md`): words, numbers and badges, their typeface and place.
+Read on the studio's car (`studio.md`, 3) when the work reaches the lettering: words, numbers and badges, their typeface and place.
 It grows with every car: at the end of the step, add what the car taught under "Learned", dated,
 with the car's name.
 
@@ -10,7 +10,7 @@ with the car's name.
   Lettering added to fill space makes the car look like a sponsor sheet. None is a real answer.
 - **A hierarchy:** one big thing (a number, a name), then small marks. Two big words compete.
 - **The typeface is the car's voice:** condensed and sporty, wide techno, a retro racing script, a
-  naturalist's serif. Match it to the mood board, not to habit.
+  naturalist's serif. Match it to the car's mood, not to habit.
 - **Legibility at distance:** a heavy enough stroke, open letters, strong contrast with the ground
   it sits on; an outline or a panel (a roundel, a plate) when the ground is busy.
 - **Placement follows the body:** on flat areas, level with the car's lines or raked with them,

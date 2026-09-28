@@ -46,7 +46,7 @@ user the Lab's stand too.
 |---|---|
 | `PY -m tool.skin list` | Every skin, newest first, with the user's words; marks those in the game. |
 | `PY -m tool.sheet <car>` | A studio car's build sheet: its steps, what was decided, the options waiting. Its commands are in `studio.md`. |
-| `PY -m tool.critic <car>` | A studio car's review: what the critic found, and what was fixed or left. Its commands, and the critic's pictures (`tool.snap <car> --review`), are in `studio.md`, 9. |
+| `PY -m tool.critic <car>` | A studio car's review: what the critic found, and what was fixed or left. Its commands, and the critic's pictures (`tool.snap <car> --review`), are in `studio.md`, 3, The check. |
 | `PY -m tool.skin round "<title>" <A> <B> [<C>] --words "…"` | Records a round of concepts (`skins/rounds.json`), so the Lab shows a switch between them. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
