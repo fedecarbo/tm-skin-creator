@@ -9,3 +9,9 @@ one bright thing on the field, like a jockey's silks, a golf flag, a garden tool
 in the lawn), or one that belongs to grass culture without hiding in it (the whites and club
 colours of Wimbledon, cricket, a golf club). Camouflage is the cliché and the wrong job too: on a
 green map you want to see your car. Asked the user which is closer before writing the brief.
+
+The user (2026-09-28): "It got me thinking, maybe it is something that stands out, but I do wonder
+if the bottom is some lever of grass, that acts as the blend between the grass and the bug or
+something". Read as: a bright bug in the grass, the top standing out, a fringe of graphic grass
+blades along the bottom blending it into the map. Brief card written (`brief.md`), shown for a yes.
+Which bug (ladybird, bee, something else) is left to the mood boards.
