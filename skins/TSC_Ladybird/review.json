@@ -54,8 +54,8 @@
    "why": "The brief asks for grass as a clean, drawn edge. Here it looks like another idea (flames, scratches), and it shows in every front and three-quarter view.",
    "severity": "fix",
    "sure": "high",
-   "status": "open",
-   "how": "",
+   "status": "left",
+   "how": "the user: \"I think at the end of the day this whole thing was a test car, so I would just move on to next\"",
    "recheck": null
   },
   {
@@ -97,8 +97,8 @@
    "why": "Where the two ideas overlap, neither reads cleanly. It's the one place on the car where the craft looks muddy.",
    "severity": "improve",
    "sure": "medium",
-   "status": "open",
-   "how": "",
+   "status": "left",
+   "how": "the user: \"I think at the end of the day this whole thing was a test car, so I would just move on to next\"",
    "recheck": null
   },
   {
@@ -164,8 +164,8 @@
    "why": "A glow in a colour outside the car's colours looks like a leftover from the plain car, not part of the design.",
    "severity": "fix",
    "sure": "medium",
-   "status": "open",
-   "how": "",
+   "status": "left",
+   "how": "the user: \"I think at the end of the day this whole thing was a test car, so I would just move on to next\"",
    "recheck": null
   }
  ]

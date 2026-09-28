@@ -2802,6 +2802,26 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   - TSC_Ladybird's review round 1 kept (Opus's): four findings left with their reasons, three open
     (the slashes, the murky blades, the orange glow) until the user says whether to reopen the
     car's Review. Shown to the user as the round's picture.
+  - **The user's word (2026-09-28):** "I think at the end of the day this whole thing was a test
+    car, so I would just move on to next": the three open findings left as they are (marked left
+    with those words), and on to piece 2.
+- **2. The step guides (written 2026-09-28, on the Mac):** `.claude/skills/skin/guides/`, one per
+  expert: `mood.md` (the mood and research designer), `shapes.md` (the livery designer, for the
+  concepts' big shapes and the Shapes step), `colours.md` (colour, material and finish), `wheels.md`,
+  `details.md` (the inner car, its lights, the glass), `lettering.md` (typography and badges), 45 to
+  58 lines each. Each: what good looks like in that field (from design practice: a direction you
+  can say in a sentence, a colour story as proportions checked in greyscale, a hierarchy that reads
+  in half a second, graphics that follow the car's lines and end at its edges, few finishes with
+  finish contrast as hierarchy, structure receding and one detail speaking, a typeface as the car's
+  voice); what this car and the tool allow at that step (from `SKILL.md`'s "What works on this
+  car", the tool's docstrings and "Things we learned", pointed to rather than copied where
+  `SKILL.md` already says it); what to check before showing; and "Learned", dated lines from the
+  cars so far, TSC_Ladybird's and the critic's findings first. `studio.md` points each step at its
+  guide ("Its guide: ...") and says to read it only then, and to add what the car taught at the end
+  of the step, so the guides grow; the know-how its Wheels, Details and Lettering steps held moved
+  into the guides, leaving the routine (the sheet, the options, the pictures). Every function and
+  name a guide cites checked in the code. A quick car reads none of it. First real use: the next
+  studio car (W4's test, if that comes first).
 
 - **What it's for:** better options at each step, and a second pair of eyes.
 - **What you'll see:** concepts that differ more and arrive together, and a review step with a

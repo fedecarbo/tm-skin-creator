@@ -26,6 +26,11 @@ the record and installing.
   options and ask for a pick. When there's one sensible answer, do it, show it in a line or a
   picture and move on; the user can still say otherwise. A step that adds nothing on this car is
   skipped, and you say why in a few words. Technical choices stay yours.
+- **Each step has its expert's know-how:** a short guide in `guides/` beside this file (mood,
+  shapes, colours, wheels, details, lettering), read when its step starts and at no other time:
+  what good looks like in that field, what the car and the tool allow there, what to check. At the
+  end of the step, add what the car taught to its guide's "Learned" (dated, the car's name, a line
+  or two), so the experts grow with every car. The critic (9) has its own instructions.
 - **Every step is checked against the brief.** An option that drifts from it isn't shown.
 - **A decided step stays decided.** A later step never quietly changes an earlier decision: if it
   must, say so and ask.
@@ -90,6 +95,8 @@ maybe help shape the direction. But obviously I don't want a complete form to fi
 
 ## 2. Mood
 
+Its guide: `guides/mood.md`.
+
 The brief turned into a look before it touches the car: two or three boards, each a real
 direction (its own finish, graphic language and colour story, not three shades of one). Always the
 user's decision on a new car.
@@ -125,6 +132,8 @@ user's decision on a new car.
 
 ## 3. Concepts
 
+Its guide: `guides/shapes.md` (the big shapes), with the picked board's colour story.
+
 Three truly different ideas on the car, rough on purpose: flat colour in the board's base finish,
 the big shapes only, no details. Each a different reading of the brief and the mood (from two
 boards: one per board and one that blends them). Always the user's decision.
@@ -150,6 +159,8 @@ boards: one per board and one that blends them). Always the user's decision.
 
 ## 4. Shapes
 
+Its guide: `guides/shapes.md`.
+
 The picked concept's big shapes made right: where each graphic sits, how it meets the car's folds,
 edges and holes, and how the car reads from far away and from the game's cameras. A good car reads
 in half a second. The user decides only when there's a real alternative.
@@ -171,6 +182,8 @@ in half a second. The user decides only when there's a real alternative.
 
 ## 5. Colours and materials
 
+Its guide: `guides/colours.md`.
+
 The finishes, part by part (gloss, satin, matte, metal, carbon), the contrast between them, the
 exact colours, by day and at night. Usually the user's decision: the boards and the brief tend to
 disagree about shine.
@@ -191,46 +204,41 @@ disagree about shine.
 
 ## 6. Wheels
 
+Its guide: `guides/wheels.md`.
+
 The covers, the rims, the tyres' marking and tread, and the wheels' own lights, as one piece: the
 user settles the wheels car by car. Always the user's decision.
 
-1. `tool.sheet on <car> wheels`. Two or three readings of the car's idea on the wheels: the covers
-   are the big area (black, a body colour), the tyres carry an accent from the car's colours (the
-   library, `s.tyre_marks`) and a tread that suits it. The stock wheel rings glow cyan day and
-   night: recolour them to fit (`s.relight("wheel ring", colour, keep_level=True)`).
+1. `tool.sheet on <car> wheels`. Two or three readings of the car's idea on the wheels (covers,
+   tyre accent and tread, the wheels' lights: the guide).
 2. An option each, with its own "Wheels" step in place of the wheels "for now". Record the round
-   before painting. On the Mac, markings with words don't paint (`IMPROVEMENTS.md`): pick ones
-   without there.
-3. Check each, close looks 8 (the front wheel) and 9 (the driving camera: the rear tyres are what
-   the player sees most). The picture: front, left and night, close rows 8 and 9. Then `ask`, and
-   the pick as for concepts.
+   before painting.
+3. Check each as the guide says. The picture: front, left and night, close rows 8 and 9. Then
+   `ask`, and the pick as for concepts.
 
 ## 7. Details
+
+Its guide: `guides/details.md`.
 
 What separates a finished car from an amateur skin: the inner car (the frames, the suspension, the
 floor and front wing, the cockpit), the lights and their colours, the glass. Usually one sensible
 answer: do it, show it, `tool.sheet decide <car> details "<...>"`; options only for a real choice.
 
-- Look from behind first (`--cams`): the tail, the speed numbers and the rear lights are what the
-  driver sees all race, so the lights carry the car's accent (`s.relight("speed numbers" | "rear
-  lights", colour)`, a brighter version of the colour, as lights glow).
-- The inner car starts in one colour (`s.paint("inner", ...)`); then carbon underneath (the floor
-  and the front wing wear one paint), and the frames round the inlets and the speed display in the
-  body's trim finish. `show` names the parts a paint also lands on: check they're dark or alike.
-- The glass: a tint also dims the lights behind the lenses; leave it clear unless the idea wants it.
+`tool.sheet on <car> details`, then the inner car, the lights and the glass as the guide says,
+looking from behind first (`--cams`) and at night. Show it in a picture (rear, night, and the close
+looks where the body meets the inner car).
 
 ## 8. Lettering
+
+Its guide: `guides/lettering.md`.
 
 Words, numbers and badges, their typeface and where they go. The user's decision when there's more
 than one direction (the mood boards' lettering, and none).
 
-1. `tool.sheet on <car> lettering`. The places left free by the shapes (`SPOTS` in the paint box;
-   never the number and name panels), and the typefaces in `tool/fonts.py` (a new Google font at
-   google/fonts' latest commit, its sha256 recorded). A graphic can carry the lettering: a spot as a
-   number's roundel (TSC_Ladybird).
-2. An option each (and "No Lettering" when none is a real answer), the round before painting. Check
-   each where it meets the car's own pieces (the flank's fin), from both sides (words read right on
-   each), and from the front: a number the right way up only from behind reads as another letter.
+1. `tool.sheet on <car> lettering`. The places left free by the shapes, and the typefaces (the
+   guide). A graphic can carry the lettering: a spot as a number's roundel (TSC_Ladybird).
+2. An option each (and "No Lettering" when none is a real answer), the round before painting,
+   each checked as the guide says.
 3. The picture: front, left and right, close rows where the lettering sits. Say what reads only up
    close. Then `ask`, and the pick as for concepts.
 
