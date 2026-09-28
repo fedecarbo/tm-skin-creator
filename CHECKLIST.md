@@ -3045,6 +3045,18 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     carries over: the cards with a Pick (the concepts' page), the answers through the notes
     channel, `tool.notes wait`, rounds (`skins/rounds.json`) and their switch on the stand. The
     step list, the sheet on screen and the three steps would go.
+  - **Fresh layouts (2026-09-28):** the user: "I do want to come back to the drawing board because
+    the layout wasn't perfect in the past, lot's of stuff going around (apart from the comment
+    thing, which I think was quite good). So I kind of want an agent to have a think and give me new
+    fresh layouts". A fresh agent, given the user's words and the page's jobs but none of the old
+    layouts to follow, made three (https://claude.ai/artifact/MWqNtBfhErGaBCLy9Sevb6, each at 1440×900:
+    the car with notes, "Wheels · 3 ideas", a new car's 3 concepts): A, the car and a list (the car
+    fills the page, every set of options in a list on the right, a click puts one on the car); B,
+    one stage (the sets as buttons in the top bar, a set opens as three live cars side by side); C,
+    the car over a shelf (a shelf of options rises under the car when a set arrives). Its pick: A,
+    the smallest structure, nothing moving or changing shape. Everywhere: earlier picks kept small,
+    the game's cameras as one "Game view" button, "in the game" a label, the materials library and
+    the UV map off the page. Waiting for the user's choice.
 
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
