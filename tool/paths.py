@@ -9,7 +9,6 @@ SKINS = REPO / "skins"
 INSTALLED_MANIFEST = SKINS / "installed.json"
 
 WORK = Path(os.environ["LOCALAPPDATA"]) / "TrackmaniaSkinChallenge"
-VENV = WORK / "venv"
 UNPACKED = WORK / "official"  # extracted copies of the official/ zips
 TEMPLATE = UNPACKED / "template"  # Nadeo's ReadMe and UV maps
 MODEL = UNPACKED / "model"  # the Sketchfab zip: textures/*.png, source/*.zip

@@ -18,9 +18,8 @@ In a design:
     s.paint("body", "bananas")                         ... 25 cm per repeat
 
 A decal is asked for on a plain white background, cut out, and cropped to what's left. A tile is
-asked for as a seamless pattern, then its seams are mended: the picture is rolled half a turn
-so the old edges meet in the middle, and that cross is drawn again by the model with the rest
-pinned, so the result repeats without a join.
+drawn on a torus (generate_tile): the picture is rolled after every step of the drawing, so no
+edge stays an edge, and it repeats without a join.
 
 Memory: this PC has 16 GB of RAM and a 16 GB card, and the model's two halves (the text
 encoder and the image transformer) are 8 GB each, so they're loaded straight onto the card one
@@ -156,36 +155,6 @@ def generate_tile(embeds, seed, size=(1024, 1024), steps=8):
     return img.crop((w // 2, h // 2, w // 2 + w, h // 2 + h))
 
 
-def mend_seams(image, embeds, seed, steps=8, band=0.24):
-    """Make a tile repeat without a join: roll it half a turn so its edges meet in the middle,
-    then have the model draw that cross again with everything else pinned to the picture."""
-    torch = _cuda()
-    pipe = generator_pipe()
-    w, h = image.size
-    rolled = Image.fromarray(np.roll(np.asarray(image.convert("RGB")), (h // 2, w // 2), (0, 1)))
-    with torch.inference_mode():
-        x = pipe.image_processor.preprocess(rolled, height=h, width=w).to("cuda", torch.bfloat16)
-        g = torch.Generator("cuda").manual_seed(int(seed))
-        x0 = pipe._encode_vae_image(x, g)  # (1, 128, h/16, w/16), normalised as the model wants
-        noise = torch.randn(x0.shape, generator=g, device="cuda", dtype=x0.dtype)
-        lh, lw = x0.shape[-2:]
-        yy, xx = np.mgrid[0:lh, 0:lw]
-        dy = np.abs(yy - (lh - 1) / 2) / (lh / 2)
-        dx = np.abs(xx - (lw - 1) / 2) / (lw / 2)
-        soft = 2.0 / lh  # feather about two latents wide
-        m = np.maximum(np.clip((band - dy) / soft + 0.5, 0, 1), np.clip((band - dx) / soft + 0.5, 0, 1))
-        mask = torch.tensor(m.reshape(1, lh * lw, 1), device="cuda", dtype=x0.dtype)
-
-        def pin(p, i, t, kw):
-            s = p.scheduler.sigmas[i + 1]
-            known = pipe._pack_latents((1 - s) * x0 + s * noise)
-            return {"latents": mask * kw["latents"] + (1 - mask) * known}
-
-        out = pipe(prompt_embeds=embeds, latents=noise, width=w, height=h, num_inference_steps=steps, guidance_scale=1.0,
-                   callback_on_step_end=pin).images[0]
-    return out
-
-
 def seam_score(image):
     """How visible the join is: the mean colour jump across the wrap edges, against the jump
     between neighbouring pixels inside. Near 1 is seamless; several times that is a visible line."""
@@ -296,10 +265,6 @@ def keep(slug_, k, skin, name):
     im.save(dst, pnginfo=info)
     print(f"kept {src} as {dst}")
     return dst
-
-
-def art_path(skin, name):
-    return paths.SKINS / skin / "art" / f"{name}.png"
 
 
 def about(path):

@@ -17,6 +17,8 @@ import struct
 import numpy as np
 from PIL import Image
 
+from tool import paths
+
 # FourCC -> (Pillow bcn mode, bytes per 4x4 block, channels taken from the source array)
 FORMATS = {
     "DXT1": (1, 8, 3),  # BC1, RGB
@@ -191,26 +193,6 @@ def bc1_blocks(rgb, iters=3, search=1):
     return blocks
 
 
-def fix_bc1(blocks):
-    """Keep every BC1 block in 4-colour mode (color0 > color1), so no texel turns transparent.
-
-    Equal endpoints can't be ordered; there every texel is color0 anyway, so indices become 0.
-    """
-    b = np.frombuffer(blocks, dtype=np.uint8).reshape(-1, 8).copy()
-    c0 = b[:, 0].astype(np.uint16) | (b[:, 1].astype(np.uint16) << 8)
-    c1 = b[:, 2].astype(np.uint16) | (b[:, 3].astype(np.uint16) << 8)
-    idx = b[:, 4:8].view("<u4")[:, 0]
-    swap = c0 < c1
-    if swap.any():
-        # Swapping endpoints maps index 0<->1 and 2<->3: flip the low bit of every 2-bit index.
-        b[swap, 0:2], b[swap, 2:4] = b[swap, 2:4].copy(), b[swap, 0:2].copy()
-        idx = idx.copy()
-        idx[swap] ^= np.uint32(0x55555555)
-    idx = np.where(c0 == c1, np.uint32(0), idx)
-    b[:, 4:8] = idx.astype("<u4").view(np.uint8).reshape(-1, 4)
-    return b.tobytes()
-
-
 def bc4_blocks(channel):
     """Our own BC4 encoder for one uint8 channel (h, w). Returns (n_blocks, 8) uint8.
 
@@ -341,3 +323,13 @@ def decode(path, level=0):
     fourcc, levels = read(path)
     w, h, data = levels[level]
     return decode_level(fourcc, w, h, data)
+
+
+def stock(name, size=None, resample=Image.BILINEAR):
+    """Nadeo's stock texture, decoded, as float 0..1, resized to (w, h) if given."""
+    a = decode(paths.MODEL_SOURCE / f"{name}.dds")
+    if size and (a.shape[1], a.shape[0]) != size:
+        chans = [Image.fromarray(a[..., c] if a.ndim == 3 else a).resize(size, resample)
+                 for c in range(a.shape[2] if a.ndim == 3 else 1)]
+        a = np.stack([np.asarray(c) for c in chans], -1)
+    return a.astype(np.float32) / 255

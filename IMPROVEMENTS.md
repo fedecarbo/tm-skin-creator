@@ -8,6 +8,10 @@ from here, and what it taught goes under "Things we learned" in `CHECKLIST.md`.
 Each item: what's wrong or missing, when and where it showed up, and an idea for the fix. A
 bigger item keeps its working notes under "Improvements after the build" in `CHECKLIST.md`.
 
+What matters most (the user, 2026-09-28: "We can always define improvements on performance, and
+most importantly quality and accuracy"): quality and accuracy first (the car as the game shows it,
+the design as asked), then speed.
+
 ## Under way
 
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
@@ -43,7 +47,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   wheels (2026-09-25): "brake caliper" is the split ring at each wheel's centre (5 to 7 cm from
   the axle, on the outer face, under the cover's hub), and "hub" the fixed fairing inside the
   wheel, with the brake light in its slot. Renaming them means updating
-  `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py`, `tool/partskin.py` and `AIRBRAKES` in
+  `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py` and `AIRBRAKES` in
   the viewer.
 
 - **Worn paint that reads as worn** (2026-09-26, TSC_FlagPeel_CostaRica's worn takes: "none gets
@@ -90,21 +94,16 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 - **A tidy-up, from a code check** (2026-09-27, the user: "it's been forever I have refactored, so
   not sure if things need to be optimised a bit more?"). The code is in fair shape; no big
   rewrite. The two the user would feel are done (2026-09-27: a show about 35 s faster, the UV
-  map's data rebuilt only when it changes; "Things we learned"). Left, most useful first:
-  1. The test-skin scripts from before the paint box (`testskin.py`, `partskin.py`, `labskin.py`,
-     `carbonskin.py`, 774 lines; `partskin.py` holds a copy of ~70 part names). Move `stock()`
-     from `testskin` to `dds.py` first (`paintbox.py` imports it), then retire them.
-  2. About 70 lines nothing calls: `dds.fix_bc1`, `pictures.mend_seams` and `art_path`,
-     `noise.worley2`, `parts._tub`, `paths.VENV` (the viewer's `aim()` went on 2026-09-28).
-  3. Stale defaults and docs: `tool.view <name>` and plain `tool.snap <name>` read the last
-     installed DDS files (old paint, or none); the viewer's bare address opens TSC_Test, which has
-     no design; `paintbox.py`'s docstring names `Skin.show/build/install`, which don't exist.
-  4. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
+  map's data rebuilt only when it changes; "Things we learned"). Done 2026-09-28 (the user: "Sure"):
+  the test-skin scripts from before the paint box retired (`stock()` moved to `dds.py`), the helpers
+  nothing called removed, the viewer's bare address opens the last or newest skin, and `tool.view`
+  and `tool.snap` show a skin as last shown, not its last build. Left, most useful first:
+  1. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
      lines, and the Mac's container repaints a skin only when its own design changed, not one it
      borrows from. One `borrow()` helper, and `serve.py`'s `stale()` following it.
-  5. The Docker image installs Playwright only because `skin.py` imports `snap.py` at the top: a
+  2. The Docker image installs Playwright only because `skin.py` imports `snap.py` at the top: a
      lazy import drops it.
-  6. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
+  3. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
      250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
 
 - **Repainting only the map that changed** (2026-09-27, the Lab's step 9.7, queued here when the

@@ -663,7 +663,7 @@ def tread_find(name):
 
 
 def _stock_normal(w, h):
-    from tool.testskin import stock
+    from tool.dds import stock
     return stock("Wheels_N", (w, h)).reshape(-1, 2)
 
 

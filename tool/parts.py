@@ -55,10 +55,6 @@ def _cover_pieces(seg, lo, hi):
     return ok[seg["piece"]] & cover
 
 
-def _tub(seg):
-    return seg["piece"] == 21
-
-
 def _floor_piece_z(seg):
     return seg["piece_centroid"][seg["piece"], 2]
 

@@ -77,22 +77,6 @@ def worley(p, seed=0, second=False):
     return (f1, f2) if second else f1
 
 
-def worley2(u, v, seed=0):
-    """2D Worley: distance to the nearest random point, one per unit cell, for patterns laid
-    flat on the surface (the 3D one makes balls that the surface slices through)."""
-    u, v = np.asarray(u, np.float32), np.asarray(v, np.float32)
-    iu, iv = np.floor(u).astype(np.int64), np.floor(v).astype(np.int64)
-    zero = np.zeros_like(iu)
-    best = np.full(len(u), 9.0, np.float32)
-    for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-            cx, cy = iu + dx, iv + dy
-            px = cx + _hash(cx, cy, zero, seed)
-            py = cy + _hash(cx, cy, zero, seed + 1)
-            best = np.minimum(best, np.sqrt((px - u) ** 2 + (py - v) ** 2))
-    return best
-
-
 def cell_id(p, seed=0):
     """A 0..1 random value per Voronoi cell (the cell of the nearest random point)."""
     p = np.asarray(p, np.float32)

@@ -21,8 +21,7 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   setup` (downloads the picture maker's 16 GB of weights).
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in
   the background. `tool/preview.py` renders flat views without materials, for texture layout.
-- Test skins: `PY -m tool.testskin` (checkpoint 1), `PY -m tool.partskin` (TSC_Parts),
-  `tool/labskin.py` (the materials lab). `PY -m tool.install <name> ...` installs built zips.
+- `PY -m tool.install <name> ...` installs built zips.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
   After a change to `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own

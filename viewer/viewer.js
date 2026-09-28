@@ -16,7 +16,7 @@ import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import { createStudio, setStudioTint } from './studio.js';
 
 const params = new URLSearchParams(location.search);
-let skinName = params.get('skin') || 'TSC_Test';
+let skinName = params.get('skin') || '';
 const snap = params.has('snap');
 const embed = params.has('embed');
 document.body.classList.toggle('snap', snap || embed);
@@ -1830,6 +1830,13 @@ window.addEventListener('error', (e) => fail(e.error || e.message));
 window.addEventListener('unhandledrejection', (e) => fail(e.reason));
 
 async function start() {
+  if (!skinName && !embed) {  // none named: the one this browser showed last, else the newest painted
+    try { skinName = localStorage.getItem('tsc-viewer-skin') || ''; } catch { /* no storage */ }
+    if (!skinName) {
+      const list = await fetch('data/gallery.json').then((r) => (r.ok ? r.json() : [])).catch(() => []);
+      skinName = (list.find((s) => s.viewable) || {}).name || '';
+    }
+  }
   document.getElementById('title').textContent = titleOf(skinName);
   document.title = `${titleOf(skinName)} · Skin viewer`;
   resize();

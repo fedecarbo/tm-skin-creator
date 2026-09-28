@@ -1,16 +1,16 @@
 """Claude's snapshots of a skin in the viewer: six views on one sheet, taken by a hidden Edge.
 
-    python -m tool.snap TSC_Test          -> build/TSC_Test_views.png
-    python -m tool.snap TSC_Test --size 1280x960
-    python -m tool.snap TSC_Test --close  -> build/TSC_Test_close.png: the close looks (CLOSE)
-    python -m tool.snap TSC_Test --cams   -> build/TSC_Test_cams.png: the game's Cam 1 and 2 and their alts,
+    python -m tool.snap <name>          -> build/<name>_views.png
+    python -m tool.snap <name> --size 1280x960
+    python -m tool.snap <name> --close  -> build/<name>_close.png: the close looks (CLOSE)
+    python -m tool.snap <name> --cams   -> build/<name>_cams.png: the game's Cam 1 and 2 and their alts,
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
-    python -m tool.snap TSC_Test --review -> build/TSC_Test_review.png: the angles the other sheets miss
+    python -m tool.snap <name> --review -> build/<name>_review.png: the angles the other sheets miss
                                              (REVIEW), for the studio's critic (tool/critic.py)
-    python -m tool.snap TSC_Test --picture [TSC_Other ...] [--titles ...] [--views ...]
-                                             [--close-row TSC_Test 2 5 9 [--close-row TSC_Other 2 5 9]]
-        -> build/TSC_Test_picture.png, a row per skin from its views sheet (and a row of close
+    python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
+                                             [--close-row <name> 2 5 9 [--close-row <other> 2 5 9]]
+        -> build/<name>_picture.png, a row per skin from its views sheet (and a row of close
            looks), opened on the screen: the picture shown to the user
 
 Look at the sheet before showing a skin to the user. Playwright drives the Edge installed on

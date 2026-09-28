@@ -1,7 +1,8 @@
 """The 3D viewer: prepares what the page in viewer/ loads, and serves it.
 
-    python -m tool.view TSC_Test              prepare a built skin, serve, open the browser
-    python -m tool.view TSC_Test --no-open    same, without opening the browser
+    python -m tool.view <name>                the skin as last shown (else its last build), serve, open
+                                              the browser
+    python -m tool.view <name> --no-open      same, without opening the browser
 
 Python's built-in web server serves two folders (ES modules don't load from file://), the
 Lab's notes on the car (/api/notes, tool/notes.py) and each car's sets of options (/api/sets,
@@ -451,11 +452,14 @@ def skin_from_build(name):
 
 
 def prepare(name):
+    """Everything the viewer loads, and the skin: as `tool.skin show` last put it there (the paint
+    box exports it itself), else from its last build, a skin made before the paint box."""
     export_mesh()
     ensure_hdri()
     ensure_floor()
     ensure_stock()
-    skin_from_build(name)
+    if not (DATA / "skins" / name / "skin.json").exists():
+        skin_from_build(name)
 
 
 # ---- Serving ----

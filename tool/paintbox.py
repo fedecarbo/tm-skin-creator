@@ -50,9 +50,9 @@ opens with a name, what it does and the user's words that asked for it:
     s.step("Lights", "...", look="rear night")      # a step the day's front view can't show
 Paint before the first step is a step of its own ("The design" when it's the only one).
 
-The result: Skin.textures() gives the game's textures as float arrays; show() puts them in the
-viewer and takes Claude's snapshot sheet; build() writes the DDS files and the zip; install()
-puts it in the game. Sets the design never touches aren't shipped, so they keep the stock look.
+The result: Skin.textures() gives the game's textures as float arrays; tool.skin's show puts
+them in the viewer and takes Claude's snapshot sheet, and its install writes the DDS files and the
+zip (build_zip) and puts it in the game. Sets the design never touches aren't shipped, so they keep the stock look.
 """
 
 import hashlib
@@ -65,7 +65,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from tool import bake, colours, coverage, dds, finishes, fonts, looks, pack, paint, parts, paths, raster, shapes
-from tool.testskin import stock
+from tool.dds import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
 # uploads may fail near 9 MB (a Nadeo developer, 2022); 8.45 and 8.65 MB zips have worked

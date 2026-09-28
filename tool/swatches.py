@@ -172,7 +172,7 @@ def describe_tread(code):
 def write_tread(code):
     """A tread's maps for the Lab's tyre, painted by the paint box as on the car."""
     from tool.paintbox import Skin
-    from tool.testskin import stock
+    from tool.dds import stock
     info = describe_tread(code)
     folder = FOLDER / info["slug"]
     folder.mkdir(parents=True, exist_ok=True)
