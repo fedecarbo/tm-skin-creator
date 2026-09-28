@@ -151,10 +151,26 @@
   {
    "key": "wheels",
    "name": "Wheels",
-   "state": "todo",
+   "state": "waiting",
    "decision": "",
    "date": "",
-   "options": [],
+   "options": [
+    {
+     "key": "A",
+     "title": "Black Legs",
+     "skin": "TSC_Ladybird_BlackLegs"
+    },
+    {
+     "key": "B",
+     "title": "Red Shells",
+     "skin": "TSC_Ladybird_RedShells"
+    },
+    {
+     "key": "C",
+     "title": "Grass Line",
+     "skin": "TSC_Ladybird_GrassLine"
+    }
+   ],
    "pick": null,
    "why": "",
    "was": []

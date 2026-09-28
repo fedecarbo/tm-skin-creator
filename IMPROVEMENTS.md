@@ -38,7 +38,7 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   its step 9.7 is under "The tool" below. Four steps, each shown to the user before the next: W1
   the studio routine and the build sheet, W2 the experts, W3 the wizard in the Lab, W4 the test of
   Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". W1: pieces 1 to 3 built; piece 4 under way on the
-  first studio car, TSC_Ladybird, now at Wheels ("Where it stopped" in the notes).
+  first studio car, TSC_Ladybird, at Wheels, waiting for the user's pick ("Where it stopped" in the notes).
 
 ## The tool
 
@@ -132,6 +132,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   PC's graphics card, so boards made on the Mac have only Claude's drawings, no pictures. Idea:
   FLUX.2 [klein] natively on the Mac (Apple M5, 16 GB) through diffusers on Metal, quantised to fit
   (its two halves are 8 GB each at full size); look up the latest release first.
+- **Tyre markings with words don't paint on the Mac** (2026-09-28, TSC_Ladybird's wheels): the
+  library's wordmarks use Windows fonts (Arial Black and others in `fonts.WINDOWS`), which the
+  Mac's container doesn't have, so any marking with words fails there ("cannot open resource").
+  Idea: on the Mac, fall back to an open font of the same weight (Archivo Black for Arial Black),
+  fetched like the Google fonts; the PC keeps its own, so the game looks as designed.
 
 ## The viewer, from the user's screenshots and videos
 

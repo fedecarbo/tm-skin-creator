@@ -2672,8 +2672,15 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       contrast in the ladybug and the grass": A changed (the grass satin), then picked. With it, a
       note on the nose ("Why is the grass touching this object"): the head's fringe keeps a black
       gap round the white marks.
-    - **Where it stopped (2026-09-28):** TSC_Ladybird at Wheels. Next: Wheels, Details, Lettering,
-      Review, Road test, Release, each written into `studio.md` as the car reaches it.
+    - **Wheels** (its routine in `studio.md`, 6): three readings, the covers the big choice and a
+      tyre accent from the car's colours: A Black legs (gloss black covers, plain glossy tyres), B
+      Red shells (red cover discs, slick tyres), C Grass line (black covers, a thin turf stripe
+      round each tyre, slick). The stock wheel rings glow cyan day and night (an "always on" glow,
+      0.16 0.38 0.43): recoloured in each to fit. Lettered tyre markings don't paint on the Mac
+      (Windows fonts; on the list).
+    - **Where it stopped (2026-09-28):** TSC_Ladybird at Wheels, waiting for the user's pick (the
+      Lab's switch "The wheels"). Next: the pick, then Details, Lettering, Review, Road test,
+      Release, each written into `studio.md` as the car reaches it.
 
 
 #### [ ] W2. The experts

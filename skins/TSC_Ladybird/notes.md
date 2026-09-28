@@ -94,3 +94,13 @@ Picked 2026-09-28, Colours and materials (user): "How about a but the grass make
 finish, so there's some contrast in the ladybug and the grass". A Beetle gloss with the grass satin
 (A changed, then picked): the shell, spots, head and marks glossy under a clear varnish, the grass
 satin. B and C deleted (git's history).
+
+Wheels shown 2026-09-28 (the picture: front, left and night, the front wheel and the driving camera
+close; the Lab's switch "The wheels"): A Black legs (TSC_Ladybird_BlackLegs: gloss black covers
+like the ladybird's legs, plain black tyres with a wet-look shine, TY-74), B Red shells
+(TSC_Ladybird_RedShells: gloss red cover discs with black rings and hubs, plain slick tyres, TY-89),
+C Grass line (TSC_Ladybird_GrassLine: gloss black covers, a thin turf-green stripe round each tyre
+on a slick tread, TY-65 in turf). The wheel rings' own light (stock cyan, on day and night)
+recoloured in each: warm white, red, turf green. A's first try, black-on-black lettered tyres
+(TY-61), didn't paint on the Mac: the library's wordmarks use a Windows font (on the list).
+Claude suggests C: the only one that brings the grass into the driver's own view (the rear tyres).

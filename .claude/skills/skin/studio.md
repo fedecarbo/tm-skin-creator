@@ -189,7 +189,23 @@ disagree about shine.
    silky grass finish"): change that option, check it, then pick it. What only the game can judge (a colour meant to
    blend with the map) goes to the Road test: note it in `notes.md`.
 
-## The steps after Colours and materials
+## 6. Wheels
 
-Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Colours and materials, tell the
-user the car is waiting at Wheels and stop.
+The covers, the rims, the tyres' marking and tread, and the wheels' own lights, as one piece: the
+user settles the wheels car by car. Always the user's decision.
+
+1. `tool.sheet on <car> wheels`. Two or three readings of the car's idea on the wheels: the covers
+   are the big area (black, a body colour), the tyres carry an accent from the car's colours (the
+   library, `s.tyre_marks`) and a tread that suits it. The stock wheel rings glow cyan day and
+   night: recolour them to fit (`s.relight("wheel ring", colour, keep_level=True)`).
+2. An option each, with its own "Wheels" step in place of the wheels "for now". Record the round
+   before painting. On the Mac, markings with words don't paint (`IMPROVEMENTS.md`): pick ones
+   without there.
+3. Check each, close looks 8 (the front wheel) and 9 (the driving camera: the rear tyres are what
+   the player sees most). The picture: front, left and night, close rows 8 and 9. Then `ask`, and
+   the pick as for concepts.
+
+## The steps after Wheels
+
+Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Wheels, tell the user the car is
+waiting at Details and stop.
