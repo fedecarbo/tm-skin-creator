@@ -77,3 +77,12 @@ to 44 cm up) over a flat plate (the side skirt run forward) and the wing's pylon
 the ground only reached it as stray tips: the head has its own fringe of short blades rising from
 its lower edge (5 to 11 cm), and the plate under it is a solid lawn. At the back, the body's rear
 corners carry the grass round; the rest of the tail is the inner car (Details).
+
+Colours and materials shown 2026-09-28 (the picture: front, rear and night, the front flank and the
+deck close; the Lab's switch "The finish"): A Beetle gloss (TSC_Ladybird_BeetleGloss: the shell,
+spots, head and marks glossy under a clear varnish, like a ladybird's wing cases, the grass matte,
+a flat illustration against the shiny bug), B Silks satin (TSC_Ladybird_SilksSatin, the car as it
+is: satin all over), C Painted wood (TSC_Ladybird_PaintedWood, the Field guide board: matte red,
+the spots and head a chalky black, the grass and marks matte). The colours the same in all three,
+so the choice is the finish alone; the green against the game's own grass is for the Road test.
+Claude suggests A: the brief's ladybird is glossy, and the matte grass reads as drawn on.

@@ -2656,9 +2656,21 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
       the head can't be seen from behind (they're for other players, replays and the garage).
     - **The pick:** "I would just keep with a and move on" (Claude had suggested B). A's design is
       the car's, B went with the round.
-    - **Where it stopped (2026-09-28):** TSC_Ladybird at Colours and materials. Next: Colours and
-      materials, Wheels, Details, Lettering, Review, Road test, Release, each written into
-      `studio.md` as the car reaches it.
+    - **The grass all round** (the user, reopening Shapes: "you need to include the grass where the
+      black is as well.  The grass should be around the car"): the nose floats 41 to 44 cm up over
+      a flat plate and the wing's pylon, so blades from the ground only reached it as stray tips.
+      The head got its own fringe, short blades rising from its lower edge, and the plate a solid
+      lawn (blades left black gaps across it). The back of the car is mostly the inner car's frame
+      (Details); the body's rear corners carry the grass round. `back`, the change, `decide`.
+    - **Colours and materials** (its routine in `studio.md`, 5): three finishes as options, the
+      colours the same in all so the choice is the finish alone: A Beetle gloss (the brief's
+      "glossy": shell, spots, head and marks under a clear varnish, the grass matte, so it reads
+      drawn on), B Silks satin (the car as it is), C Painted wood (the Field guide board: matte,
+      chalky black). The gloss's highlights run over the deck and the spots; nothing broke under
+      the shine. The green against the game's own grass is left for the Road test.
+    - **Where it stopped (2026-09-28):** TSC_Ladybird at Colours and materials, waiting for the
+      user's pick (the Lab's switch "The finish"). Next: the pick, then Wheels, Details, Lettering,
+      Review, Road test, Release, each written into `studio.md` as the car reaches it.
 
 
 #### [ ] W2. The experts

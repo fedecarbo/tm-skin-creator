@@ -169,7 +169,26 @@ in half a second. The user decides only when there's a real alternative.
 4. The pick as for concepts: `tool.sheet pick <car> shapes <letter> "<...>"`, then `show <car>`.
    `Picked` in `notes.md`, commit and push.
 
-## The steps after Shapes
+## 5. Colours and materials
 
-Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Shapes, tell the user the car
-is waiting at Colours and materials and stop.
+The finishes, part by part (gloss, satin, matte, metal, carbon), the contrast between them, the
+exact colours, by day and at night. Usually the user's decision: the boards and the brief tend to
+disagree about shine.
+
+1. `tool.sheet on <car> colours`. Read the directions off the brief and the mood boards: each
+   board's finishes are one, a finish the brief names is always one (TSC_Ladybird's "glossy"), and
+   the car as it is when it's a real candidate. Contrast counts: a matte graphic on a gloss shell
+   reads as drawn on.
+2. An option each (`tool.sheet option <car> colours "<Title>"`), with the finishes in a `FINISH`
+   dict at the top of its design, part by part. Keep the colours the same across them, so the
+   choice is the finish alone, unless the colour is the question. Record the round before painting.
+3. Paint and check each; shine shows every flaw, so look at the glossiest closest. The picture:
+   front, rear (the highlights run over the deck) and night, with close rows 3 and 6. Then `ask`,
+   reply with a line per option and the one you'd pick, and in bold: which one?
+4. The pick as for concepts, then `show <car>`. What only the game can judge (a colour meant to
+   blend with the map) goes to the Road test: note it in `notes.md`.
+
+## The steps after Colours and materials
+
+Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Colours and materials, tell the
+user the car is waiting at Wheels and stop.

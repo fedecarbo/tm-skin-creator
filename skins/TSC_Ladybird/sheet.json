@@ -124,10 +124,26 @@
   {
    "key": "colours",
    "name": "Colours and materials",
-   "state": "claude",
+   "state": "waiting",
    "decision": "",
    "date": "",
-   "options": [],
+   "options": [
+    {
+     "key": "A",
+     "title": "Beetle Gloss",
+     "skin": "TSC_Ladybird_BeetleGloss"
+    },
+    {
+     "key": "B",
+     "title": "Silks Satin",
+     "skin": "TSC_Ladybird_SilksSatin"
+    },
+    {
+     "key": "C",
+     "title": "Painted Wood",
+     "skin": "TSC_Ladybird_PaintedWood"
+    }
+   ],
    "pick": null,
    "why": "",
    "was": []
