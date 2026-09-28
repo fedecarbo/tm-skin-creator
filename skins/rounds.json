@@ -32,24 +32,5 @@
     "title": "Brushed"
    }
   ]
- },
- {
-  "title": "The lettering",
-  "words": "actually work on every single detail from start to finish",
-  "made": "2026-09-28",
-  "takes": [
-   {
-    "name": "TSC_Ladybird_LatinName",
-    "title": "Latin name"
-   },
-   {
-    "name": "TSC_Ladybird_Seven",
-    "title": "Seven"
-   },
-   {
-    "name": "TSC_Ladybird_NoLettering",
-    "title": "No lettering"
-   }
-  ]
  }
 ]

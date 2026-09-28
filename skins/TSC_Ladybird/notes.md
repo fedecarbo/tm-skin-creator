@@ -123,3 +123,8 @@ tries: the Latin name ran under the flank's small black fin (moved 4 cm down); t
 nose read as an L from the front, and between the head's white marks risked a face. EB Garamond
 Italic added to the fonts (google/fonts, the same pinned commit, still the latest). Claude suggests
 B: it reads from across the track, where A's label only reads close up.
+Picked 2026-09-28, Lettering (user): "c". No lettering (C's design is the car's; A and B deleted).
+Change 8 (user, notes 7 and 8) 2026-09-28, Details reopened: on the front wing, "probably this
+needs to be green", and on the floor's edge along the side, "Also this". The floor and the front
+wing (one paint) in the grass's green and satin, so the grass reaches the car's very edge; the
+tail's undertray and strakes stay carbon.

@@ -179,19 +179,26 @@
    "key": "details",
    "name": "Details",
    "state": "decided",
-   "decision": "satin black inner car, carbon underneath, glossy black frames round the inlets and the speed display; the speed numbers and gear lights grass green; the glass clear",
+   "decision": "satin black inner car; the floor and front wing green like the grass, carbon under the tail; glossy black frames; the speed numbers and gear lights grass green; the glass clear",
    "date": "2026-09-28",
    "options": [],
    "pick": null,
    "why": "",
-   "was": []
+   "was": [
+    {
+     "decision": "satin black inner car, carbon underneath, glossy black frames round the inlets and the speed display; the speed numbers and gear lights grass green; the glass clear",
+     "date": "2026-09-28",
+     "pick": null,
+     "options": []
+    }
+   ]
   },
   {
    "key": "lettering",
    "name": "Lettering",
-   "state": "waiting",
-   "decision": "",
-   "date": "",
+   "state": "decided",
+   "decision": "none: the ladybird says it without words",
+   "date": "2026-09-28",
    "options": [
     {
      "key": "A",
@@ -209,7 +216,7 @@
      "skin": "TSC_Ladybird_NoLettering"
     }
    ],
-   "pick": null,
+   "pick": "C",
    "why": "",
    "was": []
   },

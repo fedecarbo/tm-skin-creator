@@ -24,7 +24,10 @@ the car: "Why is the grass touching this object.  Now it looks weird").
 
 Wheels, option C: the grass line. The wheel covers gloss black like the ladybird's legs, and a thin
 turf-green stripe round each tyre on a slick tread: the grass carried onto the wheels, a line of
-green turning."""
+green turning.
+
+Lettering, option C: none. The ladybird says it without words; the game still draws the player's
+number and name on their panels."""
 from tool import shapes
 
 WORDS = "I like B the most.  I do like the grass from C though"
@@ -33,6 +36,7 @@ BLOBS = "I think lady bug spots are not perfect circles, more like a blob close 
 GRASS = "Maybe more grass or taller?"
 WHEELS = "the wheels in general is a full workflow as I build cars"
 DETAILS = "actually work on every single detail from start to finish"
+FLOOR = "probably this needs to be green / Also this"
 AROUND = "you need to include the grass where the black is as well.  The grass should be around the car"
 RED, BLACK, WHITE, TURF = "#D7262B", "#111111", "#F3EEDF", "#3E8E3A"
 # the turf as a light: the same hue, bright enough to glow
@@ -101,12 +105,15 @@ def design(s):
     s.tyre_marks("TY-65", colour=TURF, tread="TR-02")
     # the wheel rings' own light, on day and night (stock cyan), in turf green, like the line
     s.relight("wheel ring", TURF, keep_level=True)
-    s.step("Details", "The inner car finished: satin black, carbon underneath, glossy black frames; the speed "
-           "numbers and the gear lights in the grass's green.", words=DETAILS)
+    s.step("Details", "The inner car finished: satin black, the floor and the front wing green like the grass, "
+           "carbon under the tail, glossy black frames; the speed numbers and the gear lights in the grass's green.",
+           words=DETAILS + " / " + FLOOR)
     s.paint("inner", "satin", colour=BLACK)
-    # underneath, a race car's carbon: the floor and the front wing (which wear one paint), the
-    # tail's undertray and strakes
-    s.paint(["floor", "front wing", "rear undertray", "rear strake"], "carbon")
+    # the floor and the front wing (which wear one paint) in the grass's green and finish, so the
+    # grass reaches the car's very edge (the user's notes on the car); the tail's undertray and
+    # strakes a race car's carbon
+    s.paint(["floor", "front wing"], FINISH["grass"], colour=TURF)
+    s.paint(["rear undertray", "rear strake"], "carbon")
     # the frames round the sidepod inlets and the speed display, glossy like the head and covers
     s.paint(["sidepod frame", "tail frame"], "gloss", colour=BLACK)
     # the lights the driver sees all race: the speed numbers, and the rear lights filling up with
