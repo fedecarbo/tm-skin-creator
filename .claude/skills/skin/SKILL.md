@@ -55,7 +55,6 @@ user the Lab too.
 | `PY -m tool.skin list` | Every skin, newest first, with the user's words; marks those in the game. |
 | `PY -m tool.sets <car>` | A car's sets of options (what's waiting for a pick, what was picked). Its commands are in `tool/sets.py`'s docstring and "Sets of options" below. |
 | `PY -m tool.critic <car>` | A car's review by the critic: what it found, and what was fixed or left. Its commands, and the critic's pictures (`tool.snap <car> --review`), are in `new-car.md`, 4. |
-| `PY -m tool.skin round "<title>" <A> <B> [<C>] --words "…"` | Records a round of concepts (`skins/rounds.json`), so the Lab shows a switch between them. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
 | `PY -m tool.snap <name> --cams` | The game's Cam 1 and 2 and their alts (the key pressed twice) standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). On the Mac `node docker/snap.mjs <name> --cams`. |
@@ -123,8 +122,7 @@ user the Lab too.
   each one's picture kept for the list's "Earlier picks"), then `show <car>`; a mix they spell out
   ("B, but with A's ring"): change that option, then pick it. A set no longer wanted: `tool.sets
   drop`. Name the options A, B, C in replies too. On the Mac, `tool.sets` runs with the Mac's own
-  python3, no container. (`tool.skin round` was the way before the sets: the Lab no longer shows
-  rounds.)
+  python3, no container.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as

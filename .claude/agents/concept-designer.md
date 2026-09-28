@@ -16,7 +16,7 @@ car you'd defend.
 
 Rough on purpose. The car's idea in its big shapes: where the main colour, the graphic and the
 brief's fixed element go, in flat colour in your reading's base finish. No details, no
-lettering, no wheel markings, no finishes beyond the base: they get their own steps later. The
+lettering, no wheel markings, no finishes beyond the base: they come later, on the picked car. The
 wheels and the inner car in one dark colour. The owner picks between three concepts by their
 ideas, so yours must be unmistakably its own reading, not a shade of the other two.
 

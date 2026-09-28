@@ -159,7 +159,7 @@ so you carry the work on yourself between their notes, field by field.
 ## 4. The check
 
 **The critic.** An agent that didn't design the car (`.claude/agents/critic.md`), given only the
-brief and the car's pictures, never the design, the sheet, `notes.md` or your reasons. No decision
+brief and the car's pictures, never the design, the sets, `notes.md` or your reasons. No decision
 for the user: they hear what was found and fixed.
 
 1. Take the car's four sheets as it is now: the views, the close

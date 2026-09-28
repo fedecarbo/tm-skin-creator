@@ -42,7 +42,6 @@
   #labTop { grid-column: 1 / -1; display: flex; align-items: center; gap: 26px; padding: 0 40px 0 34px; }
   #labName { margin: 0; font-size: 44px; font-weight: 600; transform: skewX(-9deg); padding-top: 8px; }
   #rooms { display: flex; gap: 6px; }
-  #rooms .sk[hidden] { display: none; }
   #labTop .grow { flex: 1; }
 
   /* The families, or the maps */
@@ -109,7 +108,6 @@
   #status:empty { display: none; }
 
   /* The UV map room: the game's flat maps, or the car (a tab), the picked part in the panel */
-  .shelfHead .grow { flex: 1; }
   .show { display: flex; gap: 5px; align-items: center; align-self: center; }
   .show[hidden] { display: none; }
   .show .say { font: 12px "Segoe UI", system-ui, -apple-system, sans-serif; text-transform: none; letter-spacing: 0; opacity: 0.55; margin-right: 4px; }
@@ -176,7 +174,6 @@
   .tag textarea:focus { outline: none; border-color: var(--acc); }
   .tagButtons { display: flex; gap: 6px; margin-top: 9px; padding-left: 4px; align-items: center; }
   .tagButtons .sk { font-size: 17px; padding: 6px 11px 3px; }
-  .tagButtons .state { margin: 0 0 0 6px; }
   .stTop { position: absolute; left: 14px; right: 14px; top: 14px; z-index: 3; display: flex; justify-content: space-between;
            align-items: flex-start; gap: 12px; pointer-events: none; }
   .stTop > * { pointer-events: auto; }
@@ -299,7 +296,6 @@
     #tiles { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
     .spec { margin: 16px 16px 80px; }
     .stand { display: block; }
-    #stRound, #prRound { flex-wrap: wrap; row-gap: 5px; }  /* and its buttons wrap when their names are long */
     #stStage { height: 62vw; }
     #stTags, #stLines, #stHint { display: none; }  /* the tags are a list under the car */
     .tagList { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
@@ -398,7 +394,7 @@
 
   <section id="roomPaint" class="room" hidden>
     <div class="paintRoom">
-      <div class="paintHead"><h3 id="prName" class="teko"></h3><div id="prRound" class="show teko" hidden></div><span id="prAbout" class="about"></span>
+      <div class="paintHead"><h3 id="prName" class="teko"></h3><span id="prAbout" class="about"></span>
         <div id="prMaps" class="show teko" hidden></div>
         <div id="prMood" class="show teko" hidden></div>
         <div id="prTabs" class="show teko"></div>
@@ -413,7 +409,6 @@
     </div>
     <aside class="spec">
       <h2 id="prPart" class="specName teko" style="margin-top: 14px"></h2>
-      <div class="row"><span class="lab">Room</span><span id="prRooms"></span></div>
       <div class="row"><span class="lab">Map</span><span id="prWhere"></span></div>
       <div class="row" id="prSurfaceRow" hidden><span class="lab">Surface</span><span id="prSurface"></span></div>
       <div class="row"><span class="lab">Part of</span><span id="prParent"></span></div>

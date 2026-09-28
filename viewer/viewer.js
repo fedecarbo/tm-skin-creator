@@ -1319,24 +1319,6 @@ function partRows(parts, assembly, group) {
 }
 
 let litIds = [];
-let centres = null;
-function partCentres() {  // per part id, the middle of its corners, for viewer.aim
-  if (centres) return centres;
-  const sum = new Float64Array(256 * 4);
-  for (const g of Object.values(geometries)) {
-    const pos = g.getAttribute('position').array, part = g.getAttribute('part').array;
-    for (let v = 0; v < part.length; v++) {
-      const k = part[v] * 4;
-      sum[k] += pos[v * 3]; sum[k + 1] += pos[v * 3 + 1]; sum[k + 2] += pos[v * 3 + 2]; sum[k + 3]++;
-    }
-  }
-  centres = [];
-  for (let i = 0; i < 256; i++) {
-    const n = sum[i * 4 + 3];
-    if (n) centres[i] = new THREE.Vector3(sum[i * 4] / n, sum[i * 4 + 1] / n, sum[i * 4 + 2] / n);
-  }
-  return centres;
-}
 
 function highlight(ids, row) {
   setPartFlag(litIds, 1, false);
@@ -1712,17 +1694,6 @@ window.viewer = {
     for (const [name, s] of Object.entries(surfaceState)) s.id.value = name === set ? id : -1;
     const s = surfaceState[set];
     if (s && id >= 0 && !s.map.value) s.map.value = await loadTexture(`${set}_Surfaces`, `${set}_Surfaces.png`);
-  },
-  aim(ids) {
-    const c = new THREE.Vector3();
-    const known = ids.map((i) => partCentres()[i]).filter(Boolean);
-    if (!known.length) return;
-    for (const k of known) c.add(k);
-    c.divideScalar(known.length);
-    const dir = new THREE.Vector3(c.x - CENTRE.x, 0, c.z - CENTRE.z);  // from the side the part faces
-    if (dir.lengthSq() < 0.01) dir.set(VIEWS.front.dir[0], 0, VIEWS.front.dir[2]);
-    dir.normalize().setY(c.y < 0.12 ? -0.35 : 0.42);  // from below for the floor
-    setView({ dir: dir.toArray(), dist: VIEWS.front.dist }, true);
   },
   onPick: null,
   // The Lab's stand (viewer/lab-studio.js, ?embed=1), which draws its own tags over this page.

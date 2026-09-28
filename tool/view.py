@@ -4,25 +4,23 @@
     python -m tool.view TSC_Test --no-open    same, without opening the browser
 
 Python's built-in web server serves two folders (ES modules don't load from file://), the
-Studio's notes on the car (/api/notes, tool/notes.py) and each car's sets of options for the Lab's
-list (/api/sets, tool/sets.py):
+Lab's notes on the car (/api/notes, tool/notes.py) and each car's sets of options (/api/sets,
+tool/sets.py):
   /        the repo's viewer/ folder: the page and three.js
   /data/   the work folder's viewer/ folder, all rebuildable:
              car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0, each
                                   corner tagged with its part (and on Details, its speed-display
                                   segment); parts.json lists the parts
              <Set>_Shared.png     the texels that several parts share (mirrored or repeated)
-             <Set>_Parts.png,     the Lab's painting rooms: which part covers each texel, every
-             uvmap.json           part's words and numbers, the rooms (export_uvmap)
+             <Set>_Parts.png,     the Lab's UV map: which part covers each texel, every part's
+             uvmap.json           words and numbers, the room (export_uvmap)
              <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
              floor/               the studio floor's grain (ambientCG, CC0), see FLOOR_SETS
              stock/*.png          Nadeo's stock textures, for anything a skin leaves out
              skins/<name>/        one skin's textures, and skin.json with the URL of every slot
-             skins/<name>/steps/  the Lab's Studio: the car at the end of each step of the design,
+             skins/<name>/steps/  the Lab's car: the car at the end of each step of the design,
                                   at half size, and steps.json (export_steps); studio.json names
-                                  the skin Claude painted last, which the Studio follows
-             skins/<name>/tries/  the stand's stations: each station's tries, and stations.json
-                                  (export_stations), kept from show to show
+                                  the skin Claude painted last, which the Lab follows
 
 The game's textures become PNG "slots" laid out the way three.js reads them:
   <Set>_B      base colour, sRGB
@@ -222,7 +220,7 @@ def export_uvmap():
                          "area": round(inst["area_cm2"])})
     assemblies = {a["name"]: a["about"] for a in json.loads(parts.PARTS_JSON.read_text())["assemblies"]}
     lab_rooms = rooms.rooms(p)
-    out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms, "stations": rooms.STATIONS,
+    out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms,
                                "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
     stamp.write_text(key)
 
@@ -422,51 +420,10 @@ def export_steps(name, steps, painting, clay=None):
         urls = frame_urls(st["textures"]) if "textures" in st else None
         out.append({"name": title, "does": st["does"], "words": st["words"], "look": st["look"], "paints": st["paints"],
                     "line": f"{name}, step {k} of {n - 1}: {title}", "frame": st.get("frame"), "textures": urls})
-    doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out,
-           "stations": (DATA / "skins" / name / "stations.json").exists()}  # its tries kept (export_stations)
+    doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out}
     if clay is not None:
         doc["clay"] = [{"id": i, "name": n} for i, n in clay]
     _write_json(DATA / "skins" / name / "steps.json", doc)
-
-
-TRIES_KEPT = 8  # per station, the newest
-
-
-def export_stations(name, textures):
-    """The stand's stations (rooms.STATIONS), at the end of a show, from the last frame's textures
-    ({slot: url}, as steps.json's): a station whose own pictures (what the design painted on its
-    map) differ from its last try's gets a new try. Its pictures are kept in skins/<name>/tries/,
-    which the next show doesn't clear (start_steps clears steps/). skins/<name>/stations.json holds
-    each station's newest TRIES_KEPT tries: {"n", "at", "sig" (slot -> digest), "textures" (every
-    slot of its map but the AO: its own pictures, else the stock ones)}; older tries' pictures go."""
-    import shutil
-    from tool import rooms
-    folder = DATA / "skins" / name
-    keep = folder / "tries"
-    path = folder / "stations.json"
-    before = json.loads(path.read_text()).get("tries", {}) if path.exists() else {}
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    out = {}
-    for st in rooms.STATIONS:
-        tries = before.get(st["key"], [])
-        slots = {slot: url for slot, url in textures.items() if slot.startswith(st["set"] + "_") and not slot.endswith("_AO")}
-        own = {slot: url for slot, url in slots.items() if url and url.startswith(f"skins/{name}/")}
-        sig = {slot: url.partition("?v=")[2] or url for slot, url in own.items()}
-        if sig != (tries[-1]["sig"] if tries else {}):
-            keep.mkdir(parents=True, exist_ok=True)
-            kept = dict(slots)
-            for slot, url in own.items():
-                file = keep / f"{slot}-{sig[slot]}.png"
-                if not file.exists():
-                    shutil.copyfile(DATA / url.partition("?")[0], file)
-                kept[slot] = f"skins/{name}/tries/{file.name}"
-            tries = [*tries, {"n": tries[-1]["n"] + 1 if tries else 1, "at": now, "sig": sig, "textures": kept}]
-        out[st["key"]] = tries[-TRIES_KEPT:]
-    used = {Path(u).name for tries in out.values() for t in tries for u in t["textures"].values() if u and "/tries/" in u}
-    for f in keep.glob("*.png") if keep.exists() else ():
-        if f.name not in used:
-            f.unlink(missing_ok=True)
-    _write_json(path, {"name": name, "tries": out})
 
 
 def _write_json(path, doc):

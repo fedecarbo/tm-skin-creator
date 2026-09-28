@@ -10,11 +10,10 @@
 // each texel: R + 256 G = id + 1) and <Set>_Shared.png (texels several parts share). The skin is
 // the one in the address (the viewer's "The Lab" link), else the one Claude painted last
 // (studio.json), else the one the viewer showed last; as in the Studio, when Claude starts painting
-// another, the rooms follow it, and they show each step as it lands (steps.json). A take in a round
-// of concepts shows the switch between its takes (lab-round.js), as in the Studio.
+// another, the rooms follow it, and they show each step as it lands (steps.json).
 // The car is the viewer itself (?embed=1).
 
-import { note, render, wanted } from './lab-round.js';
+import { note, wanted } from './lab-address.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -262,19 +261,12 @@ function hit(e) {
   return { id, set: map.set, surface: s, here: lit.length > 1, lit };
 }
 
-function roomsOf(id) {
-  return doc.rooms.filter((r) => r.ids.includes(id)).map((r) => r.name);
-}
-
 function pick(p) {
   picked = p;
   const part = byId[p.id];
   $('prPart').innerHTML = '<span></span> <small></small>';
   $('prPart').querySelector('span').textContent = part.name;
   $('prPart').querySelector('small').textContent = part.tag;
-  const rooms = roomsOf(p.id);
-  $('prRooms').textContent = inRoom[p.id] ? rooms.join(', ') : `${rooms.join(', ')}: not this room's`;
-  $('prRooms').parentElement.hidden = doc.rooms.length < 2;  // one room (the UV map): nothing to tell
   $('prWhere').textContent = `${part.mesh}, ${part.pct < 0.1 ? 'under 0.1' : part.pct} % of it`;
   const group = part.group === part.parent ? '' : `${part.group[0].toUpperCase()}${part.group.slice(1)} › `;
   $('prParent').textContent = `${group}${part.parent}: ${doc.assemblies[part.parent] || ''}`;
@@ -421,7 +413,6 @@ async function wear(next) {  // dress the car and the map in a skin's textures
   skin = next;
   live();
   if (!skin) { if (car && !before) await car.stock(); return; }  // no skin anywhere yet: the stock car
-  if (!before || before.name !== skin.name) render($('prRound'), skin.name).catch((e) => console.error(e));
   if (car) await car.dress(skin.textures);
   if (before && before.name !== skin.name) paints.clear();
   if (map) {
@@ -487,7 +478,7 @@ async function begin(helpers) {
   for (const p of doc.parts) byId[p.id] = p;
   const now = await followed();
   following = now.stamp;
-  let name = wanted() || now.skin;  // the address now: the Studio's switch may have changed it
+  let name = wanted() || now.skin;
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
   try {
     const [first] = await Promise.all([name ? readSkin(name) : null, embedCar()]);
@@ -518,5 +509,4 @@ export async function open(helpers, key) {
   await begun;
   if (!room || room.key !== key) await setRoom(key);
   else fit();
-  window.lab.roomsReady = key;
 }

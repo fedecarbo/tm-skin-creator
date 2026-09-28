@@ -228,13 +228,12 @@ function openRoom(name) {
   const u = new URL(location.href);
   if (name === 'studio') u.searchParams.delete('room');
   else u.searchParams.set('room', name);
-  if (name !== 'studio') u.searchParams.delete('step');
   history.replaceState(null, '', u);
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
   // the car's room: the car (lab-studio.js) and the list beside it (lab-car.js)
-  if (name === 'studio') import('./lab-car.js').then((room) => room.open({ copy, room: openRoom })).catch(failed);
+  if (name === 'studio') import('./lab-car.js').then((room) => room.open({ room: openRoom })).catch(failed);
 }
 
 async function rooms() {

@@ -278,7 +278,7 @@ async function refresh() {
     const r = await fetch(`api/sets?skin=${encodeURIComponent(name)}`, { cache: 'no-store' });
     if (!r.ok) return;
     const got = await r.json();
-    const { skin, option: _, ...rest } = got;
+    const { skin, ...rest } = got;
     const sig = JSON.stringify(rest);
     if (sig !== carSig) {
       const other = !car || car.car !== got.car;

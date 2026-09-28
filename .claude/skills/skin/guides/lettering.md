@@ -1,7 +1,7 @@
 # Lettering: the typography and badges designer's guide
 
 Read on a new car (`new-car.md`, 3) when the work reaches the lettering: words, numbers and badges, their typeface and place.
-It grows with every car: at the end of the step, add what the car taught under "Learned", dated,
+It grows with every car: when the car's work here is done, add what the car taught under "Learned", dated,
 with the car's name.
 
 ## What good looks like

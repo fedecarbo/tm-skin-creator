@@ -318,11 +318,6 @@ class Skin:
                     own[slot] = self._frame_slots[slot][1]
             self.steps[k]["textures"] = own
             self.steps[k]["frame"] = hashlib.sha1(repr(sorted(self._frame_slots.items())).encode()).hexdigest()[:12]
-        if done:  # the stations' tries first: the stand reads them once steps.json says it's done
-            try:
-                view.export_stations(self.name, view.frame_urls(self.steps[k]["textures"]))
-            except OSError as e:  # the Lab's record, never a reason to stop a show
-                print(f"the stations' tries weren't kept: {e}")
         view.export_steps(self.name, self.steps, painting=not done, clay=self.clay_left if done else None)
 
     # ---- selecting ----

@@ -1,9 +1,9 @@
 # Mood: the mood and research designer's guide
 
 Read for a new car's first concepts (`new-car.md`, 2): each concept's reading carries its own mood,
-on the car, not on boards beside it (the mood step and its boards went when the studio's steps
-went from eleven to three, 2026-09-28). It grows with every car: at the end of the step, add what
-the car taught under "Learned", dated, with the car's name.
+on the car, not on boards beside it (the mood step and its boards went with the studio's steps,
+2026-09-28). It grows with every car: once the concepts are picked, add what the car taught under
+"Learned", dated, with the car's name.
 
 ## What good looks like
 

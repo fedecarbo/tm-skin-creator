@@ -1,7 +1,7 @@
 # Details: the detail designer's guide
 
 Read on a new car (`new-car.md`, 3) when the work reaches the details: the inner car, its lights, the glass. It's what
-separates a finished car from an amateur skin. It grows with every car: at the end of the step,
+separates a finished car from an amateur skin. It grows with every car: when the car's work here is done,
 add what the car taught under "Learned", dated, with the car's name.
 
 ## What good looks like

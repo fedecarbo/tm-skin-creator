@@ -4,9 +4,6 @@
     python -m tool.skin show <name> --open     ... and open the viewer in the browser
     python -m tool.skin install <name>         write the DDS files and the zip, install it
     python -m tool.skin list                   every skin, newest first
-    python -m tool.skin round "<title>" <skin> <skin> ... [--words "..."]
-                                               record a round of concepts, lettered A, B, C in
-                                               that order, so the Lab shows a switch between them
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's container ran out of memory with three at once (2026-09-28). A show or install
@@ -159,27 +156,19 @@ def do_install(name):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["show", "install", "list", "paint", "round"])
-    ap.add_argument("name", nargs="*", help="the skin; for round, its title and then its skins")
+    ap.add_argument("command", choices=["show", "install", "list", "paint"])
+    ap.add_argument("name", nargs="?", help="the skin")
     ap.add_argument("--open", action="store_true")
     ap.add_argument("--no-snap", action="store_true")
-    ap.add_argument("--words", default="", help="round: the user's words that asked for it")
     args = ap.parse_args()
     if args.command == "list":
         for entry in gallery.refresh():
             mark = " (in the game)" if entry["installed"] else ""
             print(f"{entry['name']:<24} {entry['when']}{mark}  {entry['words']}")
         return
-    if args.command == "round":
-        if len(args.name) < 3:
-            sys.exit("a round: its title, then two skins or more")
-        r = gallery.record_round(args.name[0], args.name[1:], args.words)
-        gallery.refresh()
-        print(f"{r['title']}: " + ", ".join(f"{chr(65 + k)} {t['title']} ({t['name']})" for k, t in enumerate(r["takes"])))
-        return
-    if len(args.name) != 1:
+    if not args.name:
         sys.exit("which skin?")
-    name = args.name[0]
+    name = args.name
     if args.command == "show":
         show(name, args.open, snapshot=not args.no_snap)
     elif args.command == "paint":

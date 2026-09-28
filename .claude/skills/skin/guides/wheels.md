@@ -1,8 +1,7 @@
 # Wheels: the wheels designer's guide
 
 Read on a new car (`new-car.md`, 3) when the work reaches the wheels. The user settles the wheels car by car, as one piece of
-work ("the wheels in general is a full workflow as I build cars"). It grows with every car: at the
-end of the step, add what the car taught under "Learned", dated, with the car's name.
+work ("the wheels in general is a full workflow as I build cars"). It grows with every car: when the car's work here is done, add what the car taught under "Learned", dated, with the car's name.
 
 ## What good looks like
 

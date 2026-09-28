@@ -1,4 +1,4 @@
-"""The Lab's structure: its UV map room, and the stations of its stand (STATIONS, below).
+"""The Lab's structure: its UV map room.
 
 The UV map room (viewer/lab-rooms.js): the game's four maps, Skin, Details, Wheels and
 Glass, as flat maps where surfaces are picked (tool/view.py), and the whole car as a second tab,
@@ -27,20 +27,6 @@ ROOMS = [
 FRAMES = {
     "car": lambda inst: True,
 }
-
-# The stand's stations (viewer/lab-studio.js; the user's pick, B, 2026-09-28: "shouldnt it be like
-# main stations, like the body, the details, etc. And I guess each might have their iteration?").
-# A station is one of the game's maps, which are the car's groups (car/parts.json): whatever a
-# design's steps paint on that map is the station's work. Each keeps its tries, one for every show
-# that changed its paint (view.export_stations). view: how the stand shows the station, the whole
-# car turned to it (a name from the viewer's VIEWS, or dir and dist).
-STATIONS = [
-    {"key": "body", "name": "Body", "set": "Skin", "view": "front"},
-    {"key": "details", "name": "Details", "set": "Details", "view": "rear"},
-    {"key": "tyres", "name": "Tyres", "set": "Wheels", "view": "left"},
-    {"key": "glass", "name": "Glass", "set": "Glass", "view": {"dir": [0.5, 0.62, 0.6], "dist": 6.4}},  # the UV map room's
-]
-
 
 def rooms(p):
     """ROOMS with each room's part ids and its maps, for the Lab (view.export_uvmap). A framed view

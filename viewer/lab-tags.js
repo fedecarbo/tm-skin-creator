@@ -10,7 +10,7 @@
 //   const t = createTags({ stage, lines, dots, tags, list, gutter, onOpen });
 //   t.set([{ key, dot, dotClass, sig, render(el, open), open? }])   what hangs on the car
 //   viewer.track(points, t.place)                                   where their points are
-//   t.open(key) / t.close()                                         one open at a time
+//   t.close()                                                       the open one shut (one at a time)
 
 const SVG = 'http://www.w3.org/2000/svg';
 const SETTLE = 160;  // ms without a move before the tags re-order
@@ -160,5 +160,5 @@ export function createTags({ stage, lines, dots, tags, list, gutter, onOpen }) {
     restack();
   });
 
-  return { set, place, open, close, restack, get openKey() { return openKey; }, get narrow() { return narrow; } };
+  return { set, place, close, restack, get openKey() { return openKey; } };
 }

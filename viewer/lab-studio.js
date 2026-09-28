@@ -14,7 +14,7 @@
 // or a tag is open. It says which skin it shows ('lab:stand') and what Claude is doing ('lab:status').
 // The car is the viewer itself (index.html?embed=1).
 
-import { note } from './lab-round.js';
+import { note } from './lab-address.js';
 import { createTags } from './lab-tags.js';
 
 const $ = (id) => document.getElementById(id);
@@ -137,7 +137,7 @@ function renderNew(el) {
 
 function drawNotes() {
   const list = notes.map((x) => ({
-    key: `n${x.n}`, dot: String(x.n), dotClass: x.state, title: x.text, note: x,
+    key: `n${x.n}`, dot: String(x.n), dotClass: x.state, title: x.text,
     sig: JSON.stringify([x.text, x.state, x.part.label, whereOf(x)]),
     render: (el, open) => renderNote(el, x, open),
   }));
@@ -322,7 +322,7 @@ export async function show(name) {
   if (!name || (skin && skin.name === name)) return;
   if (writing) cancelNote();
   if (tags.openKey) tags.close();
-  note(name, true);
+  note(name);
   await openSkin(name);
 }
 
@@ -364,5 +364,4 @@ export async function open() {
   }
   addEventListener('lab:skin', (e) => openSkin(e.detail).catch((err) => console.error(err)));
   setInterval(poll, POLL);
-  window.lab.studioReady = true;
 }

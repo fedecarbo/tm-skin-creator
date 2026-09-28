@@ -177,22 +177,6 @@ def borrows(text, names):
     return [n for n in names if re.search(r"[\"'/\\]" + re.escape(n) + r"[\"'/\\]", text)]
 
 
-def forget_rounds(gone):
-    """Take deleted skins out of skins/rounds.json (the rounds made before the sets); a round left with
-    fewer than two takes goes."""
-    p = SKINS / "rounds.json"
-    if not gone or not p.exists():
-        return
-    rounds = json.loads(p.read_text("utf-8"))
-    kept = []
-    for r in rounds:
-        r["takes"] = [t for t in r["takes"] if t["name"] not in gone]
-        if len(r["takes"]) >= 2:
-            kept.append(r)
-    if kept != rounds:
-        p.write_text(json.dumps(kept, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
 def keep_pictures(car, s):
     """Each option's picture (its gallery thumb) into skins/<car>/sets/<n>/<letter>.png, for the Lab's
     earlier picks, before its folder goes."""
@@ -205,12 +189,12 @@ def keep_pictures(car, s):
             o["picture"] = f"sets/{s['n']}/{o['key']}.png"
 
 
-def clear(car, s, keep=None):
-    """Delete the set's options (all but `keep`), unless one is in the game. Returns lines for Claude."""
+def clear(car, s):
+    """Delete the set's options, unless one is in the game. Returns lines for Claude."""
     said, gone, game = [], [], installed()
     for o in s["options"]:
         name = o["skin"]
-        if name == keep or name == car:
+        if name == car:
             continue
         if f"{name}.zip" in game:
             said.append(f"kept {name}: it's in the game")
@@ -218,7 +202,6 @@ def clear(car, s, keep=None):
         if (SKINS / name).is_dir():
             shutil.rmtree(SKINS / name)
         gone.append(name)
-    forget_rounds(set(gone))
     if gone:
         said.append("deleted: " + ", ".join(gone))
     return said
@@ -294,15 +277,12 @@ def find(skin):
 
 
 def lab(skin):
-    """What the Lab shows for `skin`: its car's sets, newest first, and which option `skin` is."""
+    """What the Lab shows for `skin`: its car's sets, newest first."""
     car = find(skin)
     if not car:
         return None
     doc = load(car)
-    of = next(({"set": s["n"], "key": o["key"]} for s in doc["sets"] for o in s["options"] if o["skin"] == skin
-               and skin != car), None)
-    return {"car": car, "title": title_of(car), "skin": skin, "option": of, "states": STATES,
-            "sets": sorted(doc["sets"], key=lambda s: s["n"], reverse=True)}
+    return {"car": car, "title": title_of(car), "skin": skin, "sets": sorted(doc["sets"], key=lambda s: s["n"], reverse=True)}
 
 
 def describe(doc):

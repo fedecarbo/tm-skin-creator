@@ -55,10 +55,8 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   (`sets.lab`: the car the skin is or is an option of). Each option's picture is its gallery thumb, and
   a pick keeps every option's picture in `skins/<car>/sets/<n>/` (served as
   `/sets/<car>/<n>/<letter>.png`) for the list's earlier picks. A pick or a few words in the list are
-  notes with `answer` (the set, the option), which the car's tags leave out. Still written, no longer
-  shown: the stations' tries (`view.export_stations`) and the rounds (`skins/rounds.json`; the UV map
-  room's switch, `viewer/lab-round.js`, still reads them). Notes: "The design studio" in `CHECKLIST.md`
-  (W3).
+  notes with `answer` (the set, the option), which the car's tags leave out. Notes: "The design
+  studio" in `CHECKLIST.md` (W3).
 - Mood boards: `tool/mood.py` (its docstring is the key) paints each board's finishes on balls with
   the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
   `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room
