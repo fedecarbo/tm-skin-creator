@@ -2458,7 +2458,11 @@ The user tries each one on a real car before the next. The Lab's steps 9.3 to 9.
 here (answers with a before and after, options on the car, Claude's checks, the game's
 screenshots); 9.7, repainting only the station that changed, stays as it is and helps every step.
 
-#### [ ] W1. The studio routine
+#### [x] W1. The studio routine
+
+- **Ticked 2026-09-28** (the user, asked whether to mark it done and start the wizard next: "Yes, but
+  for another agent to pick up the experts"): every step's routine is in `studio.md`, tried once on
+  TSC_Ladybird from the brief to the release (its install and the page online wait for the PC).
 
 - **What it's for:** Claude can take a car through the studio in the chat, before any screen
   exists: the steps, the decisions, going back, and the three ways in (Quick, Studio, Rework).
@@ -2714,6 +2718,25 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
 
 #### [ ] W2. The experts
 
+- **Handed over 2026-09-28** (the user: "for another agent to pick up the experts"), while W3 is
+  built at the same time on the Mac. For the agent who picks it up:
+  - Best on the Windows PC: the three concept designers need three paints at once, which the
+    notes below say to check there first, and the picture maker runs there. The critic needs only
+    pictures, so it could start anywhere.
+  - Where things stand: the studio's routine is `.claude/skills/skin/studio.md` (steps 1 to 11).
+    Step 3 (Concepts) is where the three designers come in; step 9 (Review) is Claude's own review
+    standing in for the critic, with the quality list the critic should use. TSC_Ladybird's
+    `notes.md` and `sheet.json` are the one car built so far: its rounds, picks and review.
+  - The user's rule for any build: one piece at a time, shown, and their OK before the next. Split
+    W2 into pieces the same way W1 was split (for example: the critic first, tried on Opus 5.5 and
+    Fable 5.1 on TSC_Ladybird's pictures; then the step guides; then the concept designers), write
+    the split here, and show each piece.
+  - Working beside W3: pull before starting (the session hook does), commit and push after each
+    piece. W3 owns the Lab's pages (`viewer/`); W2 owns `studio.md`'s Concepts and Review and the
+    guides. A change either needs in the other's files (`tool/sheet.py`'s data, a new field the
+    wizard should show, such as the critic's findings) goes in a note here first, so the other side
+    sees it.
+
 - **What it's for:** better options at each step, and a second pair of eyes.
 - **What you'll see:** concepts that differ more and arrive together, and a review step with a
   list of faults found and fixed, each with a before and after.
@@ -2730,6 +2753,8 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     and night), the brief and its quality list, never the design or Claude's reasons.
 
 #### [ ] W3. The wizard in the Lab
+
+- **Started 2026-09-28**, ahead of W2 (the user agreed to take it next; W2 went to another agent).
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,
@@ -2776,7 +2801,9 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
 #### Later
 
 - **The design book:** each finished car's story (brief, mood, concepts, the pick, finishes,
-  details, the car in the game) on the page online, built by `tool.publish` from the sheet.
+  details, the car in the game) on the page online, built by `tool.publish` from the sheet. The first
+  was made by hand for TSC_Ladybird (2026-09-28) as a private page on claude.ai (W1's Release step);
+  building it from the sheet onto the page online is still for later.
 - **Other people building their own cars:** a separate decision (hosting and cost per user).
 
 ## Decisions (for Claude)

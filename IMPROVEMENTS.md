@@ -37,8 +37,10 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   game's screenshots). The Lab as built (the stand, its notes, the stations and their tries) stays;
   its step 9.7 is under "The tool" below. Four steps, each shown to the user before the next: W1
   the studio routine and the build sheet, W2 the experts, W3 the wizard in the Lab, W4 the test of
-  Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". W1: pieces 1 to 3 built; piece 4 under way on the
-  first studio car, TSC_Ladybird, its release waiting for the Windows PC (the install and the page online; "Where it stopped" in the notes).
+  Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". W1 done (2026-09-28), tried on
+  the first studio car, TSC_Ladybird, whose release waits for the Windows PC (the install and the
+  page online). W3, the wizard, under way on the Mac; W2, the experts, handed to another agent
+  (its handover in `CHECKLIST.md`), best on the PC.
 
 ## The tool
 
