@@ -7,13 +7,13 @@
 <link rel="icon" href="data:,">
 <style>
   /* The Lab, where a car gets designed with Claude: the car (the user's notes hanging on it as tags)
-     with the list of its sets of options beside it, the UV map (the game's four flat maps, tool/rooms.py, the car
-     as a tab) and the materials, each with a line to copy and paste to Claude. The viewer's look
-     (index.html): Teko, slanted buttons, one yellow-green accent. Each room is a .room whose parts
-     fill the page's three columns. The layouts are the user's (CHECKLIST.md, "The Lab"): the stand,
-     B of the factory mockups (2026-09-27), the materials room A of round 2, and the UV map as the
-     painting rooms' second tab was (2026-09-26: "each having their uv map as a different view ...
-     just like a tab"). */
+     with its timeline beside it, "With Claude", the UV map (the game's four flat maps, tool/rooms.py,
+     the car as a tab) and the materials, each with a line to copy and paste to Claude. The viewer's
+     look (index.html): Teko, slanted buttons, one yellow-green accent. Each room is a .room whose
+     parts fill the page's three columns. The layouts are the user's (CHECKLIST.md, "The Lab", "The
+     design studio" and "The Lab's timeline"): the car's room, A of the fresh layouts and A of the
+     timeline's mockups (2026-09-28), the materials room A of round 2, and the UV map with the car as
+     its second tab (2026-09-26: "each having their uv map as a different view ... just like a tab"). */
   @font-face { font-family: Teko; src: url("lib/fonts/Teko-Variable.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
   :root { --ground: #0d0f12; --text: #f2f4f7; --acc: #e8ff47; --ball: #050506; --rail: 250px; --spec: 340px; }
   html, body { margin: 0; height: 100%; background: var(--ground); }
@@ -197,24 +197,58 @@
   .stand.night .credit { color: var(--text); }
   .credit { position: absolute; right: 12px; bottom: 8px; z-index: 1; max-width: 44%; font-size: 10px; line-height: 1.35; opacity: 0.55; text-align: right; }
   .credit a { color: inherit; }
-  .quote { font-style: italic; }
   .pinDot { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; padding-top: 3px;
             background: var(--acc); color: var(--ground); font: 600 16px/1 Teko, sans-serif; }
 
   /* The car's room, the fresh layouts' A (the user's pick, 2026-09-28: CHECKLIST.md, "The design studio",
-     W3): the car fills it, and a list on the right holds whatever Claude offers, sets of options newest
-     on top, each option a click away from the car, with a Pick and a word for Claude; earlier picks
-     under them, small. Nothing on the page moves or changes shape. */
+     W3): the car fills it, and beside it "With Claude", the car's timeline, A of its mockups (the user's
+     pick, 2026-09-28: CHECKLIST.md, "The Lab's timeline"): like an AI chat, newest at the bottom, the
+     user's notes and words on the right, Claude's lines and sets of options on the left, room between
+     one exchange and the next (the user: "a bit of breathing room per conversation"), the top fading
+     while there's more above ("so that you can tell there's content above to scroll"), a box to write
+     to Claude under it. */
   .carRoom { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) clamp(364px, 19vw, 480px); column-gap: 12px;
              padding: 0 24px 20px; min-height: 0; }
   .carRoom [hidden] { display: none !important; }
-  .picks { background: var(--ball); padding: 18px 16px 16px; overflow-y: auto; min-height: 0; scrollbar-width: thin;
-           scrollbar-color: rgba(255,255,255,0.2) transparent; display: flex; flex-direction: column; gap: 10px; }
-  .picks h2 { margin: 0; font-size: 30px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; display: flex; align-items: baseline; gap: 10px; }
-  .picks h2 small { font-size: 20px; opacity: 0.5; font-weight: 500; }
-  .picks .empty { background: rgba(255, 255, 255, 0.04); padding: 14px 16px; font-size: 13.5px; line-height: 1.5; color: rgba(242, 244, 247, 0.72); }
-  .picks .empty b { display: block; color: var(--text); font-weight: 600; }
-  .set { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .picks { background: var(--ball); min-height: 0; display: flex; flex-direction: column; }
+  .picks h2 { margin: 0; padding: 18px 16px 10px; font-size: 30px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
+  .stream { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 8px 16px 18px; display: flex; flex-direction: column; gap: 14px;
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+  .stream > :first-child { margin-top: auto; }  /* a short timeline sits at the bottom, by the box */
+  .stream.above { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 64px); mask-image: linear-gradient(to bottom, transparent 0, #000 64px); }
+  .stream .turn { margin-top: 16px; }  /* a new exchange: 30 px above it in all */
+  .stream time { font-size: 11.5px; opacity: 0.5; white-space: nowrap; }
+  .stream .empty { background: rgba(255, 255, 255, 0.04); padding: 14px 16px; font-size: 13.5px; line-height: 1.5; color: rgba(242, 244, 247, 0.72); }
+  .stream .empty b { display: block; color: var(--text); font-weight: 600; }
+  .day { display: flex; align-items: center; gap: 10px; margin-top: 6px; font-size: 12px; color: rgba(242, 244, 247, 0.5); }
+  .day::before, .day::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.12); }
+  .stream .who { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+  .stream .who .teko { flex: 1; min-width: 0; font-size: 18px; font-weight: 600; transform: skewX(-9deg); padding-top: 3px;
+                       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stream p { margin: 0; overflow-wrap: anywhere; }
+  /* the user's */
+  .me { align-self: flex-end; max-width: 86%; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); padding: 10px 12px 11px;
+        font-size: 13.5px; line-height: 1.45; }
+  .me .pinDot { width: 22px; height: 22px; font-size: 15px; }
+  .me .seen { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; margin-bottom: 8px; background: var(--ball); }
+  .me.go { cursor: pointer; }
+  .me.go:hover { background: rgba(255, 255, 255, 0.11); }
+  .me .picked { font-size: 20px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; padding-top: 2px; }
+  .me .picked + p { margin-top: 4px; }
+  .me .on { margin-top: 6px; font-size: 12px; opacity: 0.55; }
+  .me .state { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 7px; font-size: 12px; color: rgba(242, 244, 247, 0.6); }
+  .me .state .sk { font-size: 15px; padding: 5px 10px 2px; margin-left: auto; }
+  /* Claude's */
+  .ai { align-self: flex-start; max-width: 92%; font-size: 13.5px; line-height: 1.5; }
+  .ai .who { margin-bottom: 3px; }
+  .ai > p { padding-left: 10px; box-shadow: inset 2px 0 var(--acc); color: rgba(242, 244, 247, 0.88); }
+  .ai.wide { align-self: stretch; max-width: none; }
+  .event { align-self: center; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: rgba(242, 244, 247, 0.7);
+           padding: 5px 12px 4px; background: rgba(255, 255, 255, 0.04); }
+  .event i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
+  .stream .live { align-self: flex-start; }
+  /* a set of options */
+  .set { display: flex; flex-direction: column; gap: 8px; }
   .setHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .setHead h3 { margin: 0; font-size: 24px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
   .setHead span { font-size: 12px; opacity: 0.55; }
@@ -233,30 +267,21 @@
   .opt .grow { flex: 1; }
   .opt .tagOn { font-size: 13px; padding: 2px 6px 0; background: var(--acc); color: var(--ground); transform: skewX(-12deg); white-space: nowrap; }
   .opt .sk { font-size: 17px; padding: 6px 12px 3px; }
+  .past { display: flex; gap: 6px; flex-wrap: wrap; }
+  .past figure { margin: 0; position: relative; width: 100px; height: 56px; background: #0f1114; overflow: hidden; }
+  .past figure img { width: 100%; height: 100%; object-fit: cover; opacity: 0.55; }
+  .past figure.on { box-shadow: 0 0 0 2px var(--acc); }
+  .past figure.on img { opacity: 1; }
+  .past figcaption { position: absolute; left: 4px; top: 3px; font-size: 13px; padding: 1px 5px 0; background: var(--text); color: var(--ground); }
+  /* the box: words to Claude */
+  .compose { flex: none; padding: 12px 16px 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+  .compose p { margin: 7px 0 0; font-size: 12px; opacity: 0.5; }
   .say { display: flex; gap: 6px; }
   .say input { flex: 1; min-width: 0; height: 36px; box-sizing: border-box; padding: 0 10px; background: var(--ball); color: var(--text);
                border: 1px solid rgba(255, 255, 255, 0.15); font: 13.5px "Segoe UI", system-ui, -apple-system, sans-serif; outline: none; }
   .say input:focus { border-color: var(--acc); }
   .say input::placeholder { color: rgba(242, 244, 247, 0.45); }
   .say .sk { font-size: 17px; padding: 6px 12px 3px; }
-  .answer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 10px; background: rgba(232, 255, 71, 0.08); font-size: 12.5px; }
-  .answer b { font-size: 18px; font-weight: 600; padding-top: 3px; }
-  .answer .quote { overflow-wrap: anywhere; }
-  .answer .state { opacity: 0.6; }
-  .answer .sk { font-size: 15px; padding: 5px 10px 2px; margin-left: auto; }
-  .picks .foot { font-size: 12.5px; opacity: 0.55; margin: 2px 0 0; }
-  .earlier { margin-top: auto; padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
-  .earlier > button { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 10px 12px 7px; background: rgba(255, 255, 255, 0.05); }
-  .earlier > button:hover { background: rgba(255, 255, 255, 0.09); }
-  .earlier > button h2 { flex: 1; font-size: 24px; }
-  .past h3 { margin: 0; font-size: 20px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; }
-  .past p { margin: 3px 0 6px; font-size: 12.5px; opacity: 0.6; }
-  .past .row { display: flex; gap: 6px; }
-  .past figure { margin: 0; position: relative; width: 100px; height: 56px; background: #0f1114; overflow: hidden; }
-  .past figure img { width: 100%; height: 100%; object-fit: cover; opacity: 0.55; }
-  .past figure.on { box-shadow: 0 0 0 2px var(--acc); }
-  .past figure.on img { opacity: 1; }
-  .past figcaption { position: absolute; left: 4px; top: 3px; font-size: 13px; padding: 1px 5px 0; background: var(--text); color: var(--ground); }
   /* the header over the car: its name (a menu of the cars, the materials, the UV map), in the game, Claude */
   .carPick { position: relative; }
   #carName { display: flex; align-items: center; gap: 6px; font-size: 34px; font-weight: 600; padding-top: 6px; }
@@ -303,7 +328,7 @@
     .credit, .stand .credit { top: calc(100% + 5px); bottom: auto; right: 0; max-width: 100%; color: var(--text); font-size: 9px; }
 
     .carRoom { display: block; padding: 0 16px 24px; }
-    .picks { margin-top: 12px; overflow: visible; }
+    .picks { margin-top: 12px; height: 80vh; }
     #carName { font-size: 28px; }
     #carName span { max-width: 60vw; }
   }
@@ -364,7 +389,14 @@
         </div>
         <div id="stList" class="tagList"></div>
       </div>
-      <aside id="picks" class="picks" aria-label="For you to pick"></aside>
+      <aside id="picks" class="picks" aria-label="With Claude">
+        <h2 class="teko">With Claude</h2>
+        <div id="stream" class="stream"></div>
+        <div class="compose">
+          <div class="say"><input id="sayText" placeholder="Say something to Claude…" autocomplete="off"><button id="saySend" class="sk acc teko"><span>Send</span></button></div>
+          <p>Claude reads it at once if it’s waiting, else with your next message.</p>
+        </div>
+      </aside>
     </div>
   </section>
 

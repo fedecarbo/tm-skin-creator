@@ -11,7 +11,7 @@ history (the studio's steps, the wizard, and why they went): "The design studio"
 
 ## How it runs
 
-- **No steps.** The user sees the car in the Lab and the list of options beside it: a short talk,
+- **No steps.** The user sees the car in the Lab and its timeline beside it: a short talk,
   the first concepts as a set, then the car, finished field by field from their notes, then the
   check and the release. They stop only for a real choice: a set of options (`SKILL.md`, "Sets of
   options"), picked in the Lab or in the chat. When there's one sensible answer, do it and show it;
@@ -106,7 +106,7 @@ world it draws from, its colour story and its finish (the mood lives on the car,
 4. When all three are back, look at each yourself: the six views, the close looks, the chase
    cameras. You hold the set together: each on the card, each clearly its own, none rougher than
    the others by accident. Fix in its design what they left, and paint again. Take each one's
-   snapshot (its gallery picture, which the Lab's list shows), then the picture (`--picture`, views
+   snapshot (its gallery picture, which the Lab's timeline shows), then the picture (`--picture`, views
    front, left and top, the driving camera's close row for each), `tool.sets open <car> <n>`, and
    wait for them.
 5. Reply: a line per concept, the one you'd pick and why, that the Lab lists them and puts each on

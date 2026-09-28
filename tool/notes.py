@@ -1,8 +1,12 @@
-"""Notes on the car: in the Lab the user clicks the car where they mean and writes what they want
-there (their pick of the mockups, 2026-09-27: CHECKLIST.md, "The Lab", steps 7 and 9). Each note keeps
-the skin, the step it was written at, the part under the click, the point (for its pin), and the
-user's words, in .notes/notes.json, and a picture of what the user was looking at with the pin drawn
-on, beside it. The page saves them through the viewer's server (tool/view.py, /api/notes).
+"""Notes on the car, and the Lab's timeline with Claude. In the Lab the user clicks the car where they
+mean and writes what they want there (their pick of the mockups, 2026-09-27: CHECKLIST.md, "The
+Lab", steps 7 and 9), or says something in the box under the timeline (the Lab's timeline, A, the
+user's pick, 2026-09-28: CHECKLIST.md, "The Lab's timeline"). Each note keeps the skin (the one on
+the car: the car, or one of its options), the part under the click, the point (for its pin), the
+view and the user's words, in .notes/notes.json, and a picture of what the user was looking at with
+the pin drawn on, beside it. The page saves them through the viewer's server (tool/view.py,
+/api/notes). Claude answers in the Lab with lines of its own (`say`, or `done ... --say`): the
+timeline shows the user's notes and words on one side, Claude's lines on the other.
 
 .notes/ is git-ignored: the notes are a working queue on the computer where the user writes them,
 and the repo is public (2026-09-27; until then the file was skins/notes.json). A skin's own record
@@ -10,16 +14,18 @@ of what the user asked for is its notes.md.
 
 They reach Claude with the user's next message: a UserPromptSubmit hook (.claude/settings.json) runs
 this file with --hook, which prints the new ones and marks them sent. Claude marks a note done once
-it's handled, and its pin leaves the car:
+it's handled: its pin leaves the car, and the note stays in the timeline, picture and all:
 
-    python -m tool.notes                        the notes not done yet, every skin
-    python -m tool.notes done <skin> [N ...]    mark notes done (all of the skin's, without numbers)
-    python -m tool.notes wait [minutes]         end as soon as a note comes, printing it (default 120)
+    python -m tool.notes                                    the notes not done yet, every skin
+    python -m tool.notes done <skin> [N ...] [--say "..."]  mark notes done (all of the skin's, without
+                                                            numbers), and say in the Lab what changed
+    python -m tool.notes say <skin> "..."                   a line from Claude in the Lab's timeline
+    python -m tool.notes wait [minutes]                     end as soon as a note comes, printing it
+                                                            (default 120)
 
-The Lab's list of options (a car's sets, tool/sets.py) sends the user's answers the same way: a note
-on the car with `answer`, the set and the option picked (or the option their words are about), and
-no point. While Claude waits for an answer, it runs `wait` in the background, which wakes it the
-moment one comes, with no message in the chat needed.
+The Lab's sets of options (tool/sets.py) send the user's picks the same way: a note on the car with
+`answer`, the set and the option picked, and no point. While Claude waits for an answer, it runs
+`wait` in the background, which wakes it the moment one comes, with no message in the chat needed.
 
 The server (on threads), the hook and the command line all write the file. Each write takes a lock,
 a folder made with mkdir, which is atomic on Windows and macOS and holds across the Mac's container
@@ -124,7 +130,21 @@ def of(skin):
 
 
 def next_n(skin, notes=None):
-    return max((x["n"] for x in (load() if notes is None else notes) if x["skin"] == skin), default=0) + 1
+    return max((x.get("n", 0) for x in (load() if notes is None else notes) if x["skin"] == skin), default=0) + 1
+
+
+def timeline(skins):
+    """Everything said in the Lab about these skins (a car and its options), in the order it was said:
+    the user's notes, done or not, each with its picture's address (/notes/<file>) while the picture
+    is on this computer, and Claude's lines (`by`: "claude")."""
+    out = []
+    for x in load():
+        if x["skin"] in skins:
+            x = dict(x)
+            pic = picture_path(x)
+            x["picture"] = f"notes/{pic.name}" if pic and pic.exists() else None
+            out.append(x)
+    return out
 
 
 def picture_path(note):
@@ -167,27 +187,15 @@ def _view(v):
         return None
 
 
-def _station(v):
-    """The stand's station the user was looking at ({"key", "name", "try", "latest"}: its try, and
-    whether that was the newest), checked; None when it isn't one."""
-    if not isinstance(v, dict) or not isinstance(v.get("key"), str) or not re.fullmatch(r"[a-z]{1,20}", v["key"]):
-        return None
-    n = v.get("try")
-    if not isinstance(n, int) or isinstance(n, bool) or not 0 < n < 1000:
-        n = None
-    return {"key": v["key"], "name": str(v.get("name") or v["key"])[:40], "try": n, "latest": v.get("latest") is not False}
-
-
 def _answer(v):
-    """An answer in the Lab's list of options ({"set", "name", "pick", "about", "title"}: the set's number
-    and title, the option picked, or the option the words are about, and its title), checked; None
-    when it isn't one."""
+    """A pick in the Lab's sets of options ({"set", "name", "pick", "title"}: the set's number and title,
+    the option picked and its title), checked; None when it isn't one."""
     if not isinstance(v, dict) or not isinstance(v.get("set"), int) or isinstance(v.get("set"), bool) or not 0 < v["set"] < 10000:
         return None
-    letter = lambda x: x if isinstance(x, str) and re.fullmatch(r"[A-Z]", x) else None
-    pick, about = letter(v.get("pick")), letter(v.get("about"))
-    return {"set": v["set"], "name": str(v.get("name") or "")[:80], "pick": pick, "about": None if pick else about,
-            "title": str(v.get("title") or "")[:80] if pick or about else ""}
+    pick = v.get("pick")
+    if not isinstance(pick, str) or not re.fullmatch(r"[A-Z]", pick):
+        return None
+    return {"set": v["set"], "name": str(v.get("name") or "")[:80], "pick": pick, "title": str(v.get("title") or "")[:80]}
 
 
 def _drop_picture(note):
@@ -197,17 +205,15 @@ def _drop_picture(note):
     note.pop("picture", None)
 
 
-def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, picture=None, view=None, station=None,
-        answer=None):
+def add(skin, text, part=None, at=None, normal=None, picture=None, view=None, answer=None):
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
     the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
-    on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); station:
-    the stand's station and try the user was looking at (step and step_name: the Studio's step,
-    before the stations); answer: the user's answer in the Lab's list of options (a pick needs no
-    words). Returns the note."""
+    on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); answer: the
+    user's pick in a set of options (a pick needs no words). No point and no answer: words in the
+    timeline's box. Returns the note."""
     text = str(text or "").strip()[:LONGEST]
     answer = _answer(answer)
-    if not text and not (answer and answer["pick"]):
+    if not text and not answer:
         raise ValueError("an empty note")
     _skin(skin)
     vec = lambda v: [round(float(x), 4) for x in v][:3] if isinstance(v, list) and len(v) == 3 else None
@@ -219,14 +225,11 @@ def add(skin, text, step=None, step_name="", part=None, at=None, normal=None, pi
             "skin": skin,
             "n": next_n(skin, notes),
             "text": text,
-            "step": step if isinstance(step, int) and not isinstance(step, bool) else None,
-            "step_name": str(step_name or "")[:80],
             "part": {"id": part.get("id") if isinstance(part.get("id"), int) else None,
                      "label": str(part.get("label") or "")[:80], "token": str(part.get("token") or "")[:80]},
             "at": vec(at),
             "normal": vec(normal),
             "view": _view(view),
-            "station": _station(station),
             "answer": answer,
             "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "state": "new",  # new -> sent (Claude has read it) -> done (handled)
@@ -247,14 +250,15 @@ def remove(skin, n):
     with _locked():
         notes = load()
         for x in notes:
-            if x["skin"] == skin and x["n"] == n:
+            if x["skin"] == skin and x.get("n") == n:
                 _drop_picture(x)
-        save([x for x in notes if not (x["skin"] == skin and x["n"] == n)])
+        save([x for x in notes if not (x["skin"] == skin and x.get("n") == n)])
 
 
-def done(skin, numbers=()):
-    """Mark notes done. The skin may be gone: a studio pick deletes the options it doesn't keep,
-    notes and all (TSC_Ladybird's concepts, 2026-09-28), and their notes still need closing."""
+def done(skin, numbers=(), said=""):
+    """Mark notes done, their pictures kept for the timeline, and `said`, when there's one, as
+    Claude's line about them. The skin may be gone: a pick deletes the options it doesn't keep
+    (TSC_Ladybird's concepts, 2026-09-28), and their notes still need closing."""
     if not isinstance(skin, str) or not NAME.fullmatch(skin):
         raise ValueError(f"not a skin's name: {skin!r}")
     numbers = {int(k) for k in numbers}
@@ -263,26 +267,40 @@ def done(skin, numbers=()):
         hit = [x for x in notes if x["skin"] == skin and x["state"] != "done" and (not numbers or x["n"] in numbers)]
         for x in hit:
             x["state"] = "done"
-            _drop_picture(x)
+        if said.strip():
+            notes.append(_line(skin, said, [x["n"] for x in hit]))
         save(notes)
     return hit
 
 
+def _line(skin, text, about=()):
+    text = str(text or "").strip()[:LONGEST]
+    if not text:
+        raise ValueError("nothing to say")
+    return {"skin": skin, "by": "claude", "text": text, "about": sorted(about),
+            "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "state": "done"}
+
+
+def say(skin, text):
+    """A line from Claude in the Lab's timeline (a car's, or one of its options')."""
+    _skin(skin)
+    with _locked():
+        notes = load()
+        notes.append(_line(skin, text))
+        save(notes)
+
+
 def line(x):
     a = x.get("answer")
-    if a:  # an answer in the Lab's list of options, not a point on the car
-        did = (f"picked {a['pick']} ({a['title']})" if a["pick"] else f"about {a['about']} ({a['title']})" if a["about"]
-               else "wrote")
+    if a:  # a pick in a set of options, not a point on the car
         words = f": \"{x['text']}\"" if x["text"] else ""
-        return f"- {x['skin']}, note {x['n']}, in the Lab's list, set {a['set']} ({a['name']}), {did}{words}"
+        return f"- {x['skin']}, note {x['n']}, in the Lab's timeline, set {a['set']} ({a['name']}), picked {a['pick']} ({a['title']}){words}"
+    if not x.get("at"):  # words in the timeline's box
+        return f"- {x['skin']}, note {x['n']}, in the Lab's box: \"{x['text']}\""
     where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
-    step = f"at step {x['step']} ({x['step_name']})" if x["step"] is not None else ""
-    st = x.get("station")
-    if st:
-        step = f"looking at the {st['name']} station" + (f", try {st['try']}" if st["try"] else "") + ("" if st["latest"] else " (an earlier try than the newest)")
     pic = picture_path(x)
     seen = f" (what they saw, the pin drawn on: {pic})" if pic and pic.exists() else ""
-    return f"- {x['skin']}, note {x['n']}, {step + ', ' if step else ''}{where}: \"{x['text']}\"{seen}"
+    return f"- {x['skin']}, note {x['n']}, {where}: \"{x['text']}\"{seen}"
 
 
 def deliver(since):
@@ -295,8 +313,8 @@ def deliver(since):
         if not new:
             return False
         print(f"Notes the user left in the Lab {since} (their words: on the car, each pinned to the part they "
-              "clicked, so look at its picture; in the list, a pick or words on a set of options; "
-              "`python -m tool.notes done <skin> <n>` once one is handled):")
+              "clicked, so look at its picture; in the box under the timeline; or a pick in a set of options. "
+              "Once one is handled, `python -m tool.notes done <skin> <n> --say \"<what changed, a line>\"`):")
         for x in new:
             print(line(x))
             x["state"] = "sent"
@@ -339,8 +357,18 @@ def main(args):
         wait(float(args[1]) if len(args) == 2 else 120.0)
         return
     if args[:1] == ["done"] and len(args) >= 2:
-        hit = done(args[1], args[2:])
-        print(f"{len(hit)} note(s) done" if hit else "no open notes matched")
+        rest, said = args[2:], ""
+        if "--say" in rest:
+            k = rest.index("--say")
+            if k + 1 >= len(rest):
+                sys.exit("--say what?")
+            said, rest = rest[k + 1], rest[:k] + rest[k + 2:]
+        hit = done(args[1], rest, said)
+        print((f"{len(hit)} note(s) done" if hit else "no open notes matched") + (", and said in the Lab" if said else ""))
+        return
+    if args[:1] == ["say"] and len(args) == 3:
+        say(args[1], args[2])
+        print("said in the Lab")
         return
     if args:
         sys.exit(__doc__)

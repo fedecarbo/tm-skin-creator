@@ -35,8 +35,9 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `view.export_uvmap`'s data (the map picks surfaces: `view._surfaces`, the shapes it outlines,
   `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
   their code change. The car's room (the user's pick of the fresh layouts, A, 2026-09-28) is the car
-  (`viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`) and the list of its sets of options beside
-  it (`viewer/lab-car.js`), with the car's name, in the game and Claude's status over them. The car
+  (`viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`) and its timeline beside it, "With Claude"
+  (`viewer/lab-car.js`, A of the timeline's mockups, 2026-09-28), with the car's name, in the game
+  and Claude's status over them. The car
   reads the frames `tool.skin show` writes at each `Skin.step` (`view.export_steps`, `studio.json`)
   and follows Claude's painting; `install` paints without them. It drives the embedded viewer
   (`index.html?embed=1`) through `window.viewer`: `inset` (the box the car is framed in, the rest left
@@ -51,12 +52,14 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   this computer's pages only) and reach Claude through a UserPromptSubmit hook (`.claude/settings.json`),
   or at once through `tool.notes wait` in the background.
 - The sets of options: `tool/sets.py` (its docstring is the key, standard library only) writes
-  `skins/<car>/sets.json`, the only writer; the Lab's list reads it through `/api/sets?skin=<name>`
-  (`sets.lab`: the car the skin is or is an option of). Each option's picture is its gallery thumb, and
-  a pick keeps every option's picture in `skins/<car>/sets/<n>/` (served as
-  `/sets/<car>/<n>/<letter>.png`) for the list's earlier picks. A pick or a few words in the list are
-  notes with `answer` (the set, the option), which the car's tags leave out. Notes: "The design
-  studio" in `CHECKLIST.md` (W3).
+  `skins/<car>/sets.json`, the only writer; the Lab's timeline reads it through `/api/sets?skin=<name>`
+  (`sets.lab`: the car the skin is or is an option of), which also carries `said`, everything said in
+  the Lab about the car and its options (`notes.timeline`: the user's notes, done or not, with their
+  pictures, served as `/notes/<file>`, and Claude's lines, `by: "claude"`, from `tool.notes say` and
+  `done --say`). Each option's picture is its gallery thumb, and a pick keeps every option's picture
+  in `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
+  note with `answer` (the set, the option), the box's words a note with no point: the car's tags
+  leave both out. Notes: "The design studio" (W3) and "The Lab's timeline" in `CHECKLIST.md`.
 - Mood boards: `tool/mood.py` (its docstring is the key) paints each board's finishes on balls with
   the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
   `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room

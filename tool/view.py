@@ -480,8 +480,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
-    # The Studio's notes on the car (tool/notes.py): GET /api/notes?skin=<name>, and POST a new one
-    # ({"skin", "text", "step", "step_name", "part", "at", "normal", "picture"}) or {"skin", "remove": n}.
+    # The Lab's notes (tool/notes.py): GET /api/notes?skin=<name> (the ones not done, for the car's tags),
+    # and POST a new one ({"skin", "text", "part", "at", "normal", "picture", "view", "answer"}) or
+    # {"skin", "remove": n}.
     # They reach Claude's context, so only this computer's own pages may write them: the Host must
     # be localhost (no DNS rebinding), an Origin must match it, and the body must be JSON, which a
     # page elsewhere can't send here without a CORS preflight this server never answers.
@@ -499,22 +500,28 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    # The Lab's list: GET /api/sets?skin=<name>, the sets of options of the car the skin is or is an
-    # option of (tool/sets.py's lab()), read from the repo's skins/ folder, which /data/ doesn't reach.
-    # The pictures a pick kept of each option, for the Lab's earlier picks: /sets/<car>/<n>/<letter>.png,
-    # from the repo's skins/<car>/sets/ (tool/sets.py), nothing else.
+    # The Lab's timeline: GET /api/sets?skin=<name>, the car the skin is or is an option of, its sets of
+    # options (tool/sets.py's lab(), from the repo's skins/ folder, which /data/ doesn't reach) and
+    # everything said in the Lab about it and its options (`said`: tool/notes.py's timeline()).
+    # The pictures a pick kept of each option: /sets/<car>/<n>/<letter>.png, from the repo's
+    # skins/<car>/sets/ (tool/sets.py); a note's picture: /notes/<skin>-<n>.jpg, from .notes/, for
+    # this computer's pages only. Nothing else.
     SET_PICTURE = re.compile(r"/sets/([A-Za-z0-9_\-]+)/(\d{1,4})/([A-Z])\.png")
+    NOTE_PICTURE = re.compile(r"/notes/([A-Za-z0-9_\-]+-\d{1,5}\.jpg)")
 
     def do_GET(self):
         url = urllib.parse.urlsplit(self.path)
         m = self.SET_PICTURE.fullmatch(url.path)
-        if m:
-            f = sets.SKINS / m[1] / "sets" / m[2] / f"{m[3]}.png"
+        n = self.NOTE_PICTURE.fullmatch(url.path)
+        if m or n:
+            if n and not self._local():
+                return self._json(403, {"error": "not from this computer"})
+            f = sets.SKINS / m[1] / "sets" / m[2] / f"{m[3]}.png" if m else notes.HOME / n[1]
             if not f.is_file():
                 return self._json(404, {"error": "no such picture"})
             data = f.read_bytes()
             self.send_response(200)
-            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Type", "image/png" if m else "image/jpeg")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
@@ -527,13 +534,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             if url.path == "/api/sets":
                 doc = sets.lab(skin)
-                return self._json(200, doc) if doc else self._json(400, {"error": f"not a skin's name: {skin!r}"})
+                if not doc:
+                    return self._json(400, {"error": f"not a skin's name: {skin!r}"})
+                doc["said"] = notes.timeline({doc["car"], *(o["skin"] for s in doc["sets"] for o in s["options"])})
+                return self._json(200, doc)
             self._json(200, {"notes": notes.of(skin), "next": notes.next_n(skin)})
         except (OSError, ValueError) as e:  # a file busy, or caught mid-write
             self._json(503, {"error": str(e)})
 
     # What a POST to /api/notes can do: the first of these keys in the body picks it, else a new note.
-    NOTE_KEYS = ("skin", "text", "step", "step_name", "part", "at", "normal", "picture", "view", "station", "answer")
+    NOTE_KEYS = ("skin", "text", "part", "at", "normal", "picture", "view", "answer")
     ACTIONS = {
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }

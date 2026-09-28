@@ -24,7 +24,7 @@ and the studio's steps became this one way the same day.
   release.
 - **A change to a car:** make it on the car and show it (below).
 - **Options, whenever they ask for a few ideas on anything, or there's a real choice:** a set
-  ("Sets of options", below). They pick in the Lab's list or in the chat.
+  ("Sets of options", below). They pick in the Lab's timeline or in the chat.
 
 ## Standing rules
 
@@ -60,7 +60,7 @@ user the Lab too.
 | `PY -m tool.snap <name> --cams` | The game's Cam 1 and 2 and their alts (the key pressed twice) standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). On the Mac `node docker/snap.mjs <name> --cams`. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
-| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car (the user's notes hang on it as tags) with the list of its sets of options beside it; the UV map and every material the tool knows on a ball (with its code, numbers and a "Copy for Claude" button) in the car's menu. |
+| `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car (the user's notes hang on it as tags) with its timeline beside it, "With Claude" (the notes, Claude's lines, the sets of options); the UV map and every material the tool knows on a ball (with its code, numbers and a "Copy for Claude" button) in the car's menu. |
 | `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
 | `PY -m tool.publish` | Puts the skins in the game on the page online (the user's phone and friends), about 10 s plus the upload. `--here` shows it on this computer only. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]` | Candidate cut-out pictures on one sheet, `build/pictures/<slug>.png`, about 20 s each. Styles: sticker (default), flat, print, painted, line art, retro, photo. |
@@ -96,30 +96,35 @@ user the Lab too.
   too), say so and paint the part, or ask whether the whole part will do.
 - **Notes on the car (the Lab, the user's picks, 2026-09-27).** The user clicks the car in the Lab
   where they mean and writes what they want there; the note hangs on the car as a tag and keeps
-  the view they wrote it from. New notes arrive with their next message (a hook prints them), or
-  at once while you wait for them (`tool.notes wait`, below): the skin (an option's name when the
-  list had put that option on the car), the note's number, the part clicked as a `where` phrase
-  (`sidepod top|left`), their words, and a picture of what they were looking at with the note's
-  dot drawn on: look at it before acting. They're the user's words about that spot,
-  as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user, note N):
-  "…"`), answer a question in the reply, and once a note is handled mark it done, `PY -m tool.notes
-  done <skin> <n>` (on the Mac `python3 -m tool.notes done …`, no container needed), so its tag
-  leaves the car. `PY -m tool.notes` lists the ones not done. The notes stay on the computer
-  they were written on (`.notes/`, off git).
+  the view they wrote it from. They can also write in the box under the Lab's timeline ("in the
+  Lab's box"), about the option on the car when one is. New notes arrive with their next message (a
+  hook prints them), or at once while you wait for them (`tool.notes wait`, below): the skin (an
+  option's name when the timeline had put that option on the car), the note's number, the part
+  clicked as a `where` phrase (`sidepod top|left`), their words, and a picture of what they were
+  looking at with the note's dot drawn on: look at it before acting. They're the user's words about
+  that spot, as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user,
+  note N): "…"`), answer a question in the reply, and once a note is handled mark it done with a
+  line for the Lab's timeline saying what changed, in plain words, one or two sentences: `PY -m
+  tool.notes done <skin> <n> --say "…"` (on the Mac `python3 -m tool.notes done …`, no container
+  needed). Its tag leaves the car; the note and your line stay in the timeline. Anything else worth
+  saying in the Lab (a set's offer, a question while they look at the car): `tool.notes say <car>
+  "…"`. `PY -m tool.notes` lists the ones not done. The notes stay on the computer they were
+  written on (`.notes/`, off git).
 - **Sets of options** (the user, 2026-09-28: "a place where I can pick options as I go ... can we
   try 3 different materials for X ... a few concepts for the wheels, or anything in a non linear
   way"). Whenever the user asks for a few ideas on anything (or a loose idea's first takes, a new
   car's concepts), make them a set on the car: `tool.sets new <car> "<what, e.g. Wheels · 3
   ideas>" --words "<their words>"` (it prints the set's number), `tool.sets option <car> <n>
   "<Title>"` for each (a copy of the car's design to change, `<car>_<Title>`; an empty folder for a
-  new car), then paint and snap each (the Lab's list shows its gallery picture as soon as it's
-  painted), and `tool.sets open <car> <n>` once all are. The Lab's list, beside the car, shows the
-  set; a click puts an option on the car, where the user can turn it and leave notes on it. Then
+  new car), then paint and snap each (the Lab's timeline shows its gallery picture as soon as it's
+  painted), and `tool.sets open <car> <n>` once all are, with a line for the timeline (`tool.notes
+  say <car> "…"`: what the options are, in a sentence). The timeline beside the car shows the set as
+  Claude's; a click puts an option on the car, where the user can turn it and leave notes on it. Then
   start `python3 -m tool.notes wait` (on the PC `PY -m tool.notes wait`) with the Bash tool in the
-  background and end the turn: a pick or a few words in the list end it at once ("in the Lab's
-  list, set 2 (Wheels · 3 ideas), picked B (Magenta)"), with no message in the chat. The pick:
+  background and end the turn: a pick or a few words in the Lab end it at once ("in the Lab's
+  timeline, set 2 (Wheels · 3 ideas), picked B (Magenta)"), with no message in the chat. The pick:
   `tool.sets pick <car> <n> <letter> "<what was picked>"` makes it the car's design (the others go,
-  each one's picture kept for the list's "Earlier picks"), then `show <car>`; a mix they spell out
+  each one's picture kept for the timeline), then `show <car>`; a mix they spell out
   ("B, but with A's ring"): change that option, then pick it. A set no longer wanted: `tool.sets
   drop`. Name the options A, B, C in replies too. On the Mac, `tool.sets` runs with the Mac's own
   python3, no container.
@@ -241,7 +246,8 @@ user the Lab too.
 - The Lab (http://localhost:8765/lab.html) opens on the car, which follows the skin being
   painted while `show` runs, no refresh needed: the car shows each step as it's done. Tell the
   user once per session they can keep it open to watch the car being built, click the car to
-  leave a note on a spot (it hangs there as a tag), and pick from the list of options beside it.
+  leave a note on a spot (it hangs there as a tag), and pick options and talk to you in the
+  timeline beside it.
 - Reply in a few sentences: what the car looks like, the takes numbered by title, and one line
   on what you checked close up. End with one bold question: which one, or what to change. Say
   that a yes puts it in the game.

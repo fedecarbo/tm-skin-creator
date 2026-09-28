@@ -4,9 +4,10 @@
 // write what you want there: the note keeps the point, the part under it, the view (a click on its tag
 // turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
 // viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message (or at
-// once, while Claude waits: tool.notes wait). The list beside it (lab-car.js) puts an option on the
-// car to look at: its notes are that option's.
+// once, while Claude waits: tool.notes wait). Done, a note leaves the car and stays in the timeline
+// beside it (lab-car.js), which also puts an option on the car to look at: its notes are that option's.
 //   show(name)    a skin on the car: the car itself, or one of its options
+//   look(note)    the car as the user saw it when they wrote the note
 // Everything comes from the tool: tool.skin show paints a design step by step (paintbox.Skin.step),
 // writes each step's frame and skins/<name>/steps.json (tool/view.py, export_steps), and studio.json,
 // the skin it painted last. The page asks for both every 1.5 s: while Claude paints, the car shows
@@ -85,7 +86,7 @@ async function loadNotes(force = false) {
     const r = await fetch(`api/notes?skin=${encodeURIComponent(name)}`, { cache: 'no-store' });
     if (!r.ok || !skin || skin.name !== name) return;
     const got = await r.json();
-    const list = got.notes.filter((x) => !x.answer);  // the list's answers hang on no point
+    const list = got.notes.filter((x) => x.at);  // picks and words in the timeline hang on no point
     if (!force && JSON.stringify(list) === JSON.stringify(notes) && got.next === nextN) return;
     notes = list;
     nextN = got.next;
@@ -149,9 +150,14 @@ function drawNotes() {
     ...(writing ? [{ key: 'new', at: writing.at, normal: writing.normal }] : [])], tags.place);
 }
 
-function goToNote(key) {  // a click on a note's tag or dot: the car as the user saw it when they wrote it
+function goToNote(key) {  // a click on a note's tag or dot
   const x = notes.find((n) => `n${n.n}` === key);
-  if (!x || !x.view || !stage) return;
+  if (x) look(x);
+}
+
+// A note's view: the car as the user saw it when they wrote it (its tag, or its place in the timeline).
+export function look(x) {
+  if (!x.view || !stage) return;
   const { mood, framing, ...view } = x.view;
   stage.mood(mood || 'day');
   moodShown(mood || 'day');
@@ -227,7 +233,7 @@ function live() {  // what Claude is doing, for the line over the page (lab-car.
   const open = doc && doc.steps.find((s) => !s.textures);
   const text = !doc ? 'Not painted yet' : doc.painting ? (open ? `Claude is painting · ${open.name}` : 'Claude is painting')
     : doc.stamp ? `Painted ${ago(doc.stamp)}` : 'Made before the Lab';
-  dispatchEvent(new CustomEvent('lab:status', { detail: { skin: skin && skin.name, painting: !!(doc && doc.painting), text } }));
+  dispatchEvent(new CustomEvent('lab:status', { detail: { painting: !!(doc && doc.painting), text } }));
 }
 
 async function apply(next) {

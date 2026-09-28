@@ -3212,6 +3212,39 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   2. the timeline: `tool/notes.py` keeps done notes' pictures and gains Claude's lines (`say`, and
      `done ... --say`); the server gives a car's whole timeline; `viewer/lab-car.js` draws it; the
      skill tells Claude to answer in the Lab when it handles notes.
+- **The user's asks while it was built (2026-09-28):** "Just make sure there's a bit of breathing room
+  per conversation": 14 px between entries, 30 px above a new exchange (the user's words after
+  Claude's), roomier bubbles. "And make the top fade out a bit, so that you can tell there's content
+  above to scroll": the top fades over 64 px while there's more above.
+- **1. The leftovers (done 2026-09-28):** the rounds (`tool.skin round`, the gallery's rounds,
+  `skins/rounds.json`, the UV map room's switch; `viewer/lab-round.js` became `lab-address.js`, the
+  address only); the stations' tries, which every paint still wrote (`view.export_stations`,
+  `rooms.STATIONS`); `viewer.aim`; unused styles, flags, exports and the Room row the UV map room
+  always hid; the skill, guides and concept designer no longer speak of rounds, the sheet or steps.
+  Left as they are: `steps.json`'s fields the page doesn't read (Claude may), `tool/mood.py` lettering
+  from TSC_Ladybird's `sheet.json` (boards on request), the old `?room=` names the Lab still maps.
+- **2. The timeline (built 2026-09-28, on the Mac):**
+  - **How it's built:** `tool/notes.py`: a done note keeps its picture (only a note taken back loses
+    it); Claude's lines (`say`, `done ... --say`, `by: "claude"`, no number, so the pins' numbers run
+    on); `timeline(skins)`; the Studio's step and the stand's station gone from a note, and an answer
+    is a pick only (the box took over the words about an option); the hook's lines "in the Lab's box"
+    and "in the Lab's timeline". `tool/view.py`: `/api/sets` carries `said` for the car and its
+    options, `/notes/<skin>-<n>.jpg` serves a note's picture to this computer's pages. `viewer/lab-car.js`
+    draws the timeline from the sets and `said` in the order things happened (a set at when Claude
+    made it, the user's words that asked for it just before, a pick's "B · Halftone is the car now",
+    "In the game" from the gallery), days apart, and follows the bottom unless the user scrolled up;
+    the box under it (`lab.html`, static, so a redraw never takes the typing away). `lab-studio.js`:
+    `look(note)` turns the car to a note's view (a click on it in the timeline), and the car's tags
+    are the notes with a point only.
+  - **Checks** (the Mac's headless Chrome, TSC_CMYK_EndsInK with a test history, removed after): the
+    timeline in order ("Yesterday · In the game", then today: the user's ask, note 1 with its picture,
+    Claude's line, the user's words a new exchange 30 px down, Claude's line, the set), opened at the
+    bottom with the top faded; scrolled to the top, no fade; B put on the car, the box "Say
+    something about B · Halftone…"; words sent, a bubble "About B · Halftone · On its way to Claude",
+    Take it back, followed to the bottom; B picked, "Pick: B · Halftone", B's button "Your pick"; the
+    hook's three lines; a decided set (the kept pictures, B outlined, "B · Halftone is the car now")
+    and a set being painted at the bottom; no tags on the car for the box's words or the pick; the UV
+    map room and the materials unchanged; no page errors.
 
 ## Decisions (for Claude)
 

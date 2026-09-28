@@ -36,8 +36,8 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
 
 - **The Lab's list as a timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right
   as the ai helper ... a scrollable timeline ... the latest would be at the bottom"). The user picked
-  A of the mockups, a chat with two voices. First the earlier layouts' leftovers are cleared, then the
-  timeline. Notes: `CHECKLIST.md`, "The Lab's timeline".
+  A of the mockups, a chat with two voices. Built 2026-09-28 on the Mac, the leftovers of the earlier
+  layouts cleared first: waiting for the user's try. Notes: `CHECKLIST.md`, "The Lab's timeline".
 
 ## The tool
 
