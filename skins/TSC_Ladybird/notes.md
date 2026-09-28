@@ -106,3 +106,9 @@ recoloured in each: warm white, red, turf green. A's first try, black-on-black l
 Claude suggests C: the only one that brings the grass into the driver's own view (the rear tyres).
 Picked 2026-09-28, Wheels (user): "C", with a note on its front left wheel cover: "this one". C
 Grass line is the car's; A and B deleted (git's history).
+Details decided 2026-09-28 (one sensible answer, shown): the inner car satin black; carbon
+underneath (the floor and the front wing, which wear one paint, the tail's undertray and strakes);
+the frames round the sidepod inlets and the speed display gloss black, like the head and covers;
+the speed numbers and the rear gear lights in the grass's green as a light (#60DC5A; braking still
+turns the rear lights red), what the driver sees all race; the glass left clear (a tint would dim
+the lights behind it).

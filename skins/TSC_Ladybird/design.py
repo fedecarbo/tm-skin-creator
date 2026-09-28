@@ -32,8 +32,11 @@ HEAD = "I wonder if we make this black? as if it's the head.  Maybe too white bl
 BLOBS = "I think lady bug spots are not perfect circles, more like a blob close to being a circle"
 GRASS = "Maybe more grass or taller?"
 WHEELS = "the wheels in general is a full workflow as I build cars"
+DETAILS = "actually work on every single detail from start to finish"
 AROUND = "you need to include the grass where the black is as well.  The grass should be around the car"
 RED, BLACK, WHITE, TURF = "#D7262B", "#111111", "#F3EEDF", "#3E8E3A"
+# the turf as a light: the same hue, bright enough to glow
+GRASS_LIGHT = "#60DC5A"
 # the outer panels a spot may sit on: never the inlets, the number panel or the engine cover panel
 OUTER = ["body shell", "nose tip", "nose panel", "sidepod top", "engine cover|part", "rear flank"]
 # big spots from above, (x, z, radius) in cm, scattered as silks' spots are, each on one panel: the
@@ -98,5 +101,15 @@ def design(s):
     s.tyre_marks("TY-65", colour=TURF, tread="TR-02")
     # the wheel rings' own light, on day and night (stock cyan), in turf green, like the line
     s.relight("wheel ring", TURF, keep_level=True)
-    s.step("For now", "The inner car black: it gets its own step.", words=WORDS)
+    s.step("Details", "The inner car finished: satin black, carbon underneath, glossy black frames; the speed "
+           "numbers and the gear lights in the grass's green.", words=DETAILS)
     s.paint("inner", "satin", colour=BLACK)
+    # underneath, a race car's carbon: the floor and the front wing (which wear one paint), the
+    # tail's undertray and strakes
+    s.paint(["floor", "front wing", "rear undertray", "rear strake"], "carbon")
+    # the frames round the sidepod inlets and the speed display, glossy like the head and covers
+    s.paint(["sidepod frame", "tail frame"], "gloss", colour=BLACK)
+    # the lights the driver sees all race: the speed numbers, and the rear lights filling up with
+    # the gear (braking still turns them red), in a brighter grass green, as lights
+    s.relight("speed numbers", GRASS_LIGHT)
+    s.relight("rear lights", GRASS_LIGHT)
