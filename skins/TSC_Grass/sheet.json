@@ -1,0 +1,129 @@
+{
+ "car": "TSC_Grass",
+ "title": "Grass",
+ "words": "In the game there's an enournmous amount of maps you play in, and there's many maps that most of the map consists of grass terrain.  So I was wondering if I make a concepts of a car that revolves around that.  I obviously don't want to fall in the cliche camoufaldge skin though.  Although I do want something that feels fun and it just makes sense to use it when in maps like those.  I still don't know what I want, so Im happy to figure it out as I go",
+ "started": "2026-09-28",
+ "steps": [
+  {
+   "key": "brief",
+   "name": "Brief",
+   "state": "claude",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "mood",
+   "name": "Mood",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "concepts",
+   "name": "Concepts",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "shapes",
+   "name": "Shapes",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "colours",
+   "name": "Colours and materials",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "wheels",
+   "name": "Wheels",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "details",
+   "name": "Details",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "lettering",
+   "name": "Lettering",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "review",
+   "name": "Review",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "road",
+   "name": "Road test",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  },
+  {
+   "key": "release",
+   "name": "Release",
+   "state": "todo",
+   "decision": "",
+   "date": "",
+   "options": [],
+   "pick": null,
+   "why": "",
+   "was": []
+  }
+ ]
+}
