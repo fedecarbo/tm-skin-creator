@@ -9,8 +9,9 @@
 // stations, like the body, the details, etc. And I guess each might have their iteration?"): Body,
 // Details, Tyres and Glass, the game's four maps (tool/rooms.py, STATIONS), each with its tries, one
 // for every show that changed its paint. The open station shows its tries; a click on one puts it on
-// the car, with the other stations as they are now. Then the game's cameras (the viewer's own Cam
-// buttons, viewer.views) and the car in the game (gallery.json).
+// the car, with the other stations as they are now. Only the stations: the game's Cam 1 and 2 and the
+// car in the game left the strip (the user, 2026-09-28: "I would remove cam 1 and 2 for now and
+// remove the in game"); the line over the car says since when it's in the game (gallery.json).
 //   /lab.html                          the skin Claude painted last
 //   /lab.html?skin=<name>              that skin (the viewer's "The Lab" link)
 // Either way, when Claude starts painting a skin, the stand follows it, unless a note is being written
@@ -49,7 +50,6 @@ let following = null;     // studio.json's stamp when last read: a new one means
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
 let writing = null;       // the note being written: { part, at, normal, station, view, picture }
 let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a click
-let cams = [];            // the game's cameras, as the viewer names them: [{ view, label, title }]
 let tags = null;          // lab-tags.js
 
 const lookOf = (step) => {
@@ -264,14 +264,12 @@ function still(label, cls = '') {
   b.querySelector('.fn span').textContent = label;
   return b;
 }
-const gap = () => Object.assign(document.createElement('span'), { className: 'gap' });
 const show = (img) => (url) => { img.src = url; };
 
 function strip() {
-  const row = document.createElement('div'), side = document.createElement('div');
+  const row = document.createElement('div');
   row.className = 'steps';
-  side.className = 'side';
-  $('stStrip').replaceChildren(row, gap(), side);
+  $('stStrip').replaceChildren(row);
   if (!lastFrame()) return;
   const busy = doc.painting ? changing() : new Set();
   const car = carWith();
@@ -303,18 +301,6 @@ function strip() {
     }
     row.append(b);
   }
-  for (const c of cams) {  // the game's cameras, on the car as it is now (while a first paint runs, none yet)
-    const b = still(c.label, 'cam');
-    b.title = c.title;
-    b.addEventListener('click', () => stage && stage.go(c.view));
-    if (!doc.painting || triesKept) picture(car, c.view).then(show(b.querySelector('img'))).catch((e) => console.error(e));
-    side.append(b);
-  }
-  const e = skin.entry;
-  const game = still('In the game', 'plain');
-  game.querySelector('.fn').insertAdjacentHTML('beforeend', `<br><small>${e && e.installed_at ? `since ${when(e.installed_at)}` : 'not yet'}</small>`);
-  if (e && e.installed && e.thumb) game.querySelector('img').src = `data/${e.thumb}`;
-  side.append(game);
 }
 
 // ---- notes on the car, as tags ----
@@ -476,9 +462,11 @@ function live() {
     text.textContent = open ? `Claude is painting · ${open.name}` : 'Claude is painting';
     return;
   }
-  if (!doc.stamp) { text.textContent = 'Made before the Studio'; return; }
-  const fresh = stations.filter(isNew).map((s) => s.name);
-  text.textContent = `Painted ${ago(doc.stamp)}` + (fresh.length ? ` · new: ${fresh.join(', ')}` : '');
+  // the car in the game: here since the strip dropped its tile (the user, 2026-09-28)
+  const fresh = stations.filter(isNew).map((s) => s.name), e = skin.entry;
+  const game = e && e.installed && e.installed_at ? ` · in the game since ${when(e.installed_at)}` : '';
+  if (!doc.stamp) { text.textContent = `Made before the Studio${game}`; return; }
+  text.textContent = `Painted ${ago(doc.stamp)}` + (fresh.length ? ` · new: ${fresh.join(', ')}` : '') + game;
 }
 
 async function apply(next) {
@@ -545,7 +533,6 @@ async function openSkin(name) {
     stage = await viewer($('stCar'));
     if (stage) {
       stage.onPick = startNote;
-      cams = stage.views();
       const credit = $('stCar').contentDocument.getElementById('credit');
       if (credit) $('stCredit').innerHTML = credit.innerHTML;  // the car model's licence asks for it
     }
@@ -612,7 +599,11 @@ export async function open() {
   let name = wanted() || now.skin;
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
   if (!name) { $('stLiveText').textContent = 'No skin yet: ask Claude for one'; return; }
-  await openSkin(name);
+  try {
+    await openSkin(name);
+  } finally {
+    $('stCover').classList.add('off');  // the car dressed, framed and turned (or failed): shown
+  }
   addEventListener('lab:skin', (e) => openSkin(e.detail).catch((err) => console.error(err)));
   setInterval(poll, POLL);
   window.lab.studioReady = true;

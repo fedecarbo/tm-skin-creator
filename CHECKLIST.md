@@ -1733,6 +1733,19 @@ worked on, live; not one page. What was settled the same day:
     - **Found on the way:** New never showed after a paint while the page watched. `seen` was read
       only when a skin opened. Now `fresh` holds what's new against what the page had before the
       paint.
+    - **The strip, only the stations (the user, 2026-09-28):** asked what Cam 1, Cam 2 and "In the
+      game" were for, then: "I would remove cam 1 and 2 for now and remove the in game". The
+      line over the car now says "in the game since …" for an installed car. The viewer's
+      `views()` stays (embed only), unused. Step 9.6's screenshots had been meant to go under
+      "In the game": if that step happens, ask where they go.
+    - **No flash on a reload (the user, 2026-09-28):** "when i hit reload, the original viewer that
+      is the library of cars, loads and then flicers a bit and then the lab page loads". The
+      embedded viewer shows its own page until its script adds the embed look, then the stock
+      car until the Lab dresses it. A cover in the Lab's colour (`#stCover`, and `#prCover` for
+      the UV map room's car) hides the car's space until the car is dressed, framed and turned,
+      then fades in 0.25 s. It lifts even if loading fails. Checked in Edge, 7 passed: on a first
+      load and on a reload the cover lifts only once the viewer is ready, in its embed look, with
+      the strip drawn. The viewer itself didn't change.
     - **Next:** the user tries it. Tries appear as cars get repainted: each car shown before today
       has one try per station until then.
 

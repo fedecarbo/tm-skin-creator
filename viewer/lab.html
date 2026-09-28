@@ -129,9 +129,9 @@
 
   /* The stand, the Lab's first room (the user's pick, B, 2026-09-27: CHECKLIST.md, "The Lab", step 9):
      the car fills the room, framed between two gutters where its tags hang (lab-tags.js), each joined
-     by a line to a dot on its point; the stations (Body, Details, Tyres, Glass, each with its tries:
-     the user's pick, B, 2026-09-28), the game's cameras and the car in the game along the bottom. A
-     second car behind the first, at half its size, draws the strip's pictures. */
+     by a line to a dot on its point; the stations along the bottom (Body, Details, Tyres, Glass, each
+     with its tries: the user's pick, B, 2026-09-28). A second car behind the first, at half its size,
+     draws the strip's pictures. */
   .stand { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-rows: 46px minmax(0, 1fr) auto; padding: 0 34px 14px; min-height: 0; }
   .standHead { display: flex; align-items: center; gap: 14px; padding-left: 4px; min-width: 0; }
   .standHead h3 { margin: 0; font-size: 34px; font-weight: 600; transform: skewX(-9deg); white-space: nowrap; }
@@ -144,6 +144,10 @@
   #stStage { position: relative; margin-top: 6px; background: var(--ball); overflow: hidden; min-height: 0; }
   #stStage iframe { position: absolute; left: 0; top: 0; border: 0; }
   #stCar { width: 100%; height: 100%; }  /* #stThumbs: sized by lab-studio.js, behind the car */
+  /* over the car while it loads: the viewer's own page, then the stock car, never flash (the user,
+     2026-09-28: "the original viewer ... loads and then flickers a bit and then the lab page loads") */
+  #stCover, .cover { position: absolute; inset: 0; background: var(--ball); pointer-events: none; transition: opacity 0.25s; }
+  #stCover.off, .cover.off { opacity: 0; }
   #stOverlay { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
   #stLines { position: absolute; inset: 0; width: 100%; height: 100%; }
   #stLines line { stroke: rgba(12, 14, 18, 0.7); stroke-width: 1.5; }
@@ -188,18 +192,14 @@
   .credit { position: absolute; right: 12px; bottom: 8px; z-index: 1; max-width: 44%; font-size: 10px; line-height: 1.35; opacity: 0.55; text-align: right; }
   .credit a { color: inherit; }
   .strip { display: flex; gap: 8px; padding-top: 10px; min-width: 0; }
-  .strip .steps, .strip .side { display: flex; gap: 8px; }
-  .strip .steps { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
-  .strip .side { flex: none; }
-  .strip .gap { flex: none; width: 2px; margin: 6px 6px 24px; background: rgba(242, 244, 247, 0.18); }
+  .strip .steps { display: flex; gap: 8px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
   .still { flex: none; width: 128px; padding: 0 0 6px; background: var(--ball); text-align: left; position: relative; align-self: start; }
   .still img { display: block; width: 128px; height: 74px; object-fit: cover; background: #111316; }
   .still .fn { font-size: 17px; padding: 4px 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .still .fn small { font-size: 13px; opacity: 0.6; }
-  .still .k { position: absolute; left: 5px; top: 5px; font-size: 14px; padding: 2px 5px 0; background: rgba(12, 14, 18, 0.6); }
   .still:hover { background: #111318; }
   .still[aria-current="true"] { box-shadow: inset 0 0 0 2px var(--acc); }
-  .still.wip, .still.plain { cursor: default; }
+  .still.wip { cursor: default; }
   .still img:not([src]) { visibility: hidden; }  /* painting, or its picture still being drawn */
   .still .fn small { margin-left: 3px; }
   /* the open station's tries (the user's pick, B, 2026-09-28), each on the car as it is now */
@@ -245,9 +245,6 @@
     #stStage { overflow: visible; margin-bottom: 40px; }  /* the credit under the car, not on it */
     .credit, .stand .credit { top: calc(100% + 5px); bottom: auto; right: 0; max-width: 100%; color: var(--text); font-size: 9px; }
     .stand .at { font-size: 18px; bottom: 8px; left: 10px; }
-    .strip { flex-wrap: wrap; }
-    .strip .steps, .strip .side { flex: 1 1 100%; min-width: 0; overflow-x: auto; }
-    .strip .gap { display: none; }
   }
 </style>
 <script type="importmap">
@@ -286,6 +283,7 @@
       <div id="stStage">
         <iframe id="stThumbs" tabindex="-1" aria-hidden="true" title=""></iframe>
         <iframe id="stCar" title="the car: click where you mean to leave a note there"></iframe>
+        <div id="stCover"></div>
         <div id="stOverlay"><svg id="stLines" aria-hidden="true"></svg><div id="stDots"></div><div id="stTags"></div></div>
         <div id="stHint">Click the car where you mean, and write what you want there. Claude reads it with your next message.</div>
         <div id="stAt" class="at teko"></div>
@@ -329,6 +327,7 @@
       </div>
       <div id="prStage">
         <iframe id="prCar" title="the car: click a part to pick it"></iframe>
+        <div id="prCover" class="cover"></div>
         <div id="prMap" hidden><canvas id="prBase"></canvas><canvas id="prLit"></canvas><div id="prTag" hidden></div></div>
         <div id="prLive" class="live"><i></i><span id="prLiveText">Loading…</span></div>
         <div id="prCredit" class="credit" hidden></div>

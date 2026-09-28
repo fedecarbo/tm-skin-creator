@@ -489,8 +489,12 @@ async function begin(helpers) {
   following = now.stamp;
   let name = wanted() || now.skin;  // the address now: the Studio's switch may have changed it
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
-  const [first] = await Promise.all([name ? readSkin(name) : null, embedCar()]);
-  await wear(first);
+  try {
+    const [first] = await Promise.all([name ? readSkin(name) : null, embedCar()]);
+    await wear(first);
+  } finally {
+    $('prCover').classList.add('off');  // the car dressed: shown (lab.html, #stCover)
+  }
   addEventListener('lab:skin', (e) => readSkin(e.detail).then((next) => next && wear(next)).catch((err) => console.error(err)));
   const frame = $('prMap');
   frame.addEventListener('pointermove', (e) => point(hit(e), e));
