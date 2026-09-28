@@ -23,37 +23,19 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   `car/parts.json`, 210 parts under 88 names in 13 assemblies in the 5 groups, made from
   `tool/naming.py` (`PY -m tool.parts`); the viewer's Parts list and the Lab's UV map tabs show
   them. Known gaps, below under "The tool": some inner names are guesses, words on the inner car.
-- **The Lab: paused** (the user, 2026-09-26: "we need to pause this page for a bit, or maybe it
-  just updates as I share my thoughts"). No work on it unless the user brings a thought for it,
-  and then only that (2026-09-26, the user's thoughts: the UV map picks surfaces; the rooms are the
-  game's maps, Body, Details, Tyres, Glass, each with a day and night picker, no Lights room).
-  Built: the Studio (the timeline of the build, from clay), the painting rooms (each the car with a
-  camera on its area, picked by the user from real renders, and its own UV map as a tab), the Materials tab, and a
-  round of concepts' switch (A, B, C) in the Studio and every room (the user's pick after a whole concept round,
-  2026-09-26). Put off: takes side by side, fading, the parts painted over, sticker places (sunrise and sunset dropped, 2026-09-27: day and night only). The steps and notes
-  are in `CHECKLIST.md`, "The Lab".
-  **A thought from the user (2026-09-27):** the rooms (Body, Details...) weren't helping, and the
-  panel on the right went unused while making skins. From the mockups the user chose C, notes on
-  the car: click the Studio's car, write what you want there, and the note reaches Claude with the
-  next message, with a picture of what the user saw (step 8). The four rooms became one UV map room
-  (the surfaces stay). `CHECKLIST.md`, The Lab, steps 7 and 8.
-  **Another (2026-09-27):** "In the material library, can we add a tread library as well?": the
-  Treads family, each tread on the car's own tyre (`CHECKLIST.md`, "Tyre markings").
-  **The redesign, under way (2026-09-27):** the user asked for the Lab from scratch, "as if you
-  are at a factory building a car", and allowed changes behind the scenes that keep the quality.
-  From three rendered directions they chose B, the car on the stand: notes, answers with a
-  before and after, options and Claude's checks as tags on the car (`CHECKLIST.md`, The Lab,
-  step 9). Built: 9.0, the groundwork, and 9.1, the stand with the notes as tags (2026-09-28).
-  The user tried it: the clicks and notes work, but "the website now is soooo slow". Fixed the
-  same day: the Lab's cars draw only when something changes (70 % of a core to 1 % standing
-  still), and the strip's pictures are kept in the browser. A second visit shows the strip in
-  1.3 s, where it took 8.9. Then the user asked for fixed stations instead of the build's
-  timeline, each with its tries, and picked them from two renders. Built as 9.2 the same day:
-  Body, Details, Tyres and Glass under the car, a new try whenever a show changes a station's
-  paint, and any try back on the car to compare. The paint and the game files are unchanged.
-  The user also ruled that a round's unpicked options get deleted once they pick (9.4). Next:
-  9.3, answers on the tags and the status line. Its after pictures are drawn only when a tag is
-  opened, and kept.
+- **The design studio, as a wizard in the Lab** (the user, 2026-09-28: "What's important is to
+  actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
+  actually work on every single detail from start to finish"; the plan agreed the same day: "Lets
+  just go with that, and see how it goes"). Three ways in: Quick (as today), the Studio, and
+  Rework for a car that exists. The Studio's steps run from the brief to the release, and the
+  user decides wherever there's more than one real direction. Each step has its expert's
+  know-how, and an independent critic reviews the car. In the Lab it's a wizard: the build sheet
+  on the left, the step waiting for the user filling the page. It takes over the Lab's remaining
+  steps 9.3 to 9.6 (answers with a before and after, options on the car, Claude's checks, the
+  game's screenshots). The Lab as built (the stand, its notes, the stations and their tries) stays;
+  its step 9.7 is under "The tool" below. Four steps, each shown to the user before the next: W1
+  the studio routine and the build sheet, W2 the experts, W3 the wizard in the Lab, W4 the test of
+  Studio against Quick. Notes: `CHECKLIST.md`, "The design studio". Next: W1, piece by piece.
 
 ## The tool
 
@@ -135,6 +117,13 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
      lazy import drops it.
   6. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
      250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
+
+- **Repainting only the station that changed** (2026-09-27, the Lab's step 9.7, queued here when
+  the design studio took over the Lab on 2026-09-28). Every `show` paints the whole car (90 to
+  127 s for TSC_CMYK_EndsInK), even when a note changed only the tyres. Each station is one of the
+  game's maps, so a change to one could repaint that map only. Only if the game files come out
+  identical to a whole repaint. It makes every studio step faster. Notes: `CHECKLIST.md`, The Lab,
+  step 9.
 
 ## The viewer, from the user's screenshots and videos
 
