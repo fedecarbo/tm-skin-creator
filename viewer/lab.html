@@ -251,20 +251,23 @@
   .sofar small { position: absolute; right: 8px; bottom: 6px; font-size: 12px; color: #16181b; opacity: 0.7; }
   .sofar:hover img { filter: brightness(1.04); }
   .wz { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; min-width: 0; }
-  .q { padding: 4px 0 12px 4px; }
+  .q { padding: 4px 0 18px 4px; }
   .q .k { font-size: 17px; color: var(--acc); }
   .q h3 { margin: 4px 0 4px; font-size: 44px; font-weight: 600; transform: skewX(-9deg); transform-origin: left bottom; line-height: 1; }
   .q p { margin: 0; font-size: 15px; opacity: 0.7; max-width: 760px; }
   .q p:empty { display: none; }
-  .wzBody { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin;
+  .wzBody { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.2) transparent; }
-  .said, .bq, .was { background: var(--ball); padding: 14px 18px; flex: none; }
+  .said, .bq, .was { background: var(--ball); padding: 20px 26px 22px; flex: none; box-sizing: border-box; }
+  /* words at a reading width (the user, 2026-09-28: "the brief and the ones that have more like content,
+     looks really stretched"); the options' cards keep the whole width */
+  .wzBody > .said, .wzBody > .was, .wzBody > .offered { width: 100%; max-width: 960px; }
   .said .teko, .bq > .teko, .was .teko { font-size: 20px; opacity: 0.6; }
-  .said p { margin: 6px 0 0; font-size: 16px; line-height: 1.45; max-width: 900px; }
+  .said p { margin: 8px 0 0; font-size: 16px; line-height: 1.55; }
   .said.draft { box-shadow: inset 4px 0 var(--acc); }
   .said.draft .teko { color: var(--acc); opacity: 1; }
-  .said.draft p { font-size: 22px; line-height: 1.4; }
-  .said.quote p { font-style: italic; font-size: 14px; opacity: 0.8; }
+  .said.draft p { font-size: 22px; line-height: 1.45; }
+  .said.quote p { font-style: italic; font-size: 14.5px; line-height: 1.6; opacity: 0.8; }
   .said.busy .teko { display: flex; align-items: center; gap: 8px; opacity: 1; }
   .said.busy .teko::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); margin-top: -3px;
                              animation: pulse 0.9s ease-in-out infinite alternate; box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.2); }
@@ -272,12 +275,17 @@
   .said.lookout .teko { color: #ff9d2e; opacity: 1; }
   .said.quiet p { opacity: 0.75; }
   .was { font-size: 13px; }
-  .was p { margin: 4px 0 0; opacity: 0.75; }
-  .brief { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
-  .brief .draft, .brief .wide { grid-column: 1 / -1; }
-  .bq ul { margin: 8px 0 0; padding-left: 18px; font-size: 15px; line-height: 1.45; }
-  .bq li + li { margin-top: 5px; }
-  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; }
+  .was p { margin: 6px 0 0; line-height: 1.5; opacity: 0.75; }
+  /* the brief: Claude's reading on the left, the user's own words beside it */
+  .brief { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); grid-template-areas: "draft words" "from words" "rules words";
+           gap: 14px 18px; align-items: start; max-width: 1240px; }
+  .brief .draft { grid-area: draft; }
+  .brief .from { grid-area: from; }
+  .brief .rules { grid-area: rules; }
+  .brief .wide { grid-area: words; }
+  .bq ul { margin: 10px 0 0; padding-left: 18px; font-size: 15px; line-height: 1.55; }
+  .bq li + li { margin-top: 8px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 18px; }
   .pills:last-child { margin-bottom: 0; }
   .pills span { padding: 6px 12px 5px; font-size: 14px; background: rgba(255, 255, 255, 0.07); }
   .pills span.on { background: var(--text); color: var(--ground); }
@@ -367,7 +375,7 @@
     .wz { display: block; }
     .q h3 { font-size: 34px; }
     .wzBody { overflow: visible; }
-    .brief { grid-template-columns: 1fr; }
+    .brief { grid-template-columns: 1fr; grid-template-areas: "draft" "from" "rules" "words"; }
     .cards { display: flex; flex-direction: column; min-height: 0; }
     .wizard .card .pic { flex: none; height: 62vw; }
     .foot { flex-wrap: wrap; }

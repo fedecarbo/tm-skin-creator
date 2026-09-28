@@ -227,7 +227,7 @@ function brief(st) {
     return box;
   }
   box.append(block('What it is', c.what, 'draft'));
-  const from = el('div', 'bq');
+  const from = el('div', 'bq from');
   from.append(el('div', 'teko', 'Drawn from'));
   const ul = el('ul');
   for (const d of c.drawn) {
@@ -237,7 +237,7 @@ function brief(st) {
     ul.append(li);
   }
   from.append(ul);
-  const rules = el('div', 'bq');
+  const rules = el('div', 'bq rules');
   rules.append(el('div', 'teko', 'Not'));
   const no = el('div', 'pills');
   for (const x of c.not) no.append(el('span', 'no', x));

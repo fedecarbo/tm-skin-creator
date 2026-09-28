@@ -2970,6 +2970,12 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     the Lab and each reaching Claude at once through `tool.notes wait`, with no message in the chat;
     Claude moved the sheet on after each. Found on the way: the car's own next step, not begun yet,
     said "Not yet" and was greyed on the sheet; it now says Claude starts it next, with the car now.
+  - **The user's word (2026-09-28):** "It's kind of ok. But it feels like a lot of steps first of
+    all. Im really not sure if Im overengineering all of this", and the pages with more words "looks
+    really streteced ... I wonder if there's a bit of sapcing thta can help with breathing room"
+    (the concept pickers looked fine). At their 2560 px the boxes ran 1,700 px wide: words now sit
+    at a reading width (960 px at most; the options' cards keep the whole width), the brief's card
+    on the left with the user's own words beside it, more padding and space between the blocks.
 
 - **What it's for:** the screens the user chose (https://claude.ai/artifact/JHwbvVDKNTCiHTGepPQB2F).
 - **What you'll see:** a Studio car opens in the Lab on its wizard: the build sheet on the left,
