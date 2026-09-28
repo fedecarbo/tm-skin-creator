@@ -18,10 +18,26 @@
   {
    "key": "mood",
    "name": "Mood",
-   "state": "todo",
+   "state": "waiting",
    "decision": "",
    "date": "",
-   "options": [],
+   "options": [
+    {
+     "key": "A",
+     "title": "Lacquer",
+     "file": "mood/lacquer.json"
+    },
+    {
+     "key": "B",
+     "title": "Racing colours",
+     "file": "mood/racing-colours.json"
+    },
+    {
+     "key": "C",
+     "title": "Field guide",
+     "file": "mood/field-guide.json"
+    }
+   ],
    "pick": null,
    "why": "",
    "was": []

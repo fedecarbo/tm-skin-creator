@@ -27,7 +27,8 @@ the already built"). A car made the old way keeps the Lab's stand and its notes,
 a car that has a design: taking a built car further is for later.
 
 Options. An option is a skin, a whole design beside the car (skins/<car>_<Title>/), or a file in
-the car's folder (a mood board). `option` without --skin or --file makes the skin: a copy of the
+the car's folder (a mood board, `mood/<slug>.json`, whose pictures sit in `mood/<slug>/`: they
+go with it). `option` without --skin or --file makes the skin: a copy of the
 car's design.py and art/ to change, or an empty folder while the car has no design yet. A pick is
 final (the user, 2026-09-28): the picked skin's design.py, art/ and thumb.png become the car's,
 and every other option goes, its folder or file deleted (git's history keeps it), and out of its
@@ -254,6 +255,21 @@ def forget_rounds(gone):
         p.write_text(json.dumps(kept, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def drop(file):
+    """Delete a file option with its companions: files of the same name, and a folder of that name
+    beside it (a mood board's lacquer.json, and its pictures in lacquer/). Returns what went."""
+    gone = []
+    for p in sorted(file.parent.glob(file.stem + ".*")) + [file.parent / file.stem]:
+        if p.is_dir():
+            shutil.rmtree(p)
+        elif p.is_file():
+            p.unlink()
+        else:
+            continue
+        gone.append(p.relative_to(file.parent.parent).as_posix())
+    return gone
+
+
 def pick(car, key, letter, decision):
     """The user's pick. Returns what was done, in lines for Claude."""
     sheet = load(car)
@@ -301,9 +317,8 @@ def pick(car, key, letter, decision):
             shutil.rmtree(SKINS / name)
         gone.append(name)
     for o in others:
-        if o.get("file") and (SKINS / car / o["file"]).exists():
-            (SKINS / car / o["file"]).unlink()
-            gone.append(o["file"])
+        if o.get("file"):
+            gone += drop(SKINS / car / o["file"])
     forget_rounds(set(gone) | ({chosen["skin"]} if moves else set()))
     if gone:
         said.append("deleted the others: " + ", ".join(gone))

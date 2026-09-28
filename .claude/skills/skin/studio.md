@@ -88,7 +88,40 @@ maybe help shape the direction. But obviously I don't want a complete form to fi
    card and it's shown again. On a yes: `tool.sheet decide <car> brief "<the character, a few
    words>"`, `Brief approved` in `notes.md`, commit and push.
 
-## The steps after the brief
+## 2. Mood
 
-Still being built (W1's pieces 3 and 4, `CHECKLIST.md`). Until then, after the brief, tell the
-user the car is waiting at Mood and stop.
+The brief turned into a look before it touches the car: two or three boards, each a real
+direction (its own finish, graphic language and colour story, not three shades of one). Always the
+user's decision on a new car.
+
+1. `tool.sheet on <car> mood`.
+2. Write each board as `skins/<car>/mood/<slug>.json` (its shape is in `tool/mood.py`'s
+   docstring):
+   - a title, and the direction in a sentence;
+   - the colour story: main, support, one accent, with shares adding up to 100;
+   - the finishes the car would wear, in its colours: they're painted on the Lab's balls, so
+     they show the truth;
+   - a wall of four pictures: a wide one first (the idea at a glance), whatever the brief fixes
+     drawn in the board's style (TSC_Ladybird's grass fringe), and how it reads where it's used
+     (from above on its map). Drawings are SVG you write; on the PC add the picture maker's
+     (`tool.pictures`, kept in `mood/<slug>/`). Never pictures from the web. A drawn creature
+     gets no face unless the brief asks for one.
+   When drawings repeat (grass, spots), write them with a script in the scratchpad: the JSON is
+   what's kept.
+3. `tool.sheet option <car> mood "<title>" --file mood/<slug>.json` for each, in the order to
+   show them (A, B, C).
+4. `tool.mood <car>` (on the Mac `docker compose exec app python -m tool.mood <car>`), then look
+   at the page yourself: `tool.mood <car> --snap` on the PC, `node docker/snap.mjs --page
+   "mood.html?car=<car>"` on the Mac. Crop and enlarge every drawing: nothing cut off, nothing
+   the brief's "Not" rules out. Fix and look again.
+5. Open the page for the user (http://localhost:8765/mood.html?car=<car>; on the Mac `open` it),
+   `tool.sheet ask <car> mood`, and reply: a line per board, the one you'd pick and why in a
+   sentence, then in bold: which one, or what to take from each?
+6. One board: `tool.sheet pick <car> mood <letter> "<its colour story and finish, a few words>"`.
+   A mix: write the mixed board as a new option, show it, then pick it. The pick deletes the other
+   boards and their pictures. `Picked` in `notes.md`, commit and push.
+
+## The steps after Mood
+
+Still being built (W1's piece 4, `CHECKLIST.md`). Until then, after Mood, tell the user the car
+is waiting at Concepts and stop.

@@ -127,6 +127,11 @@ bigger item keeps its working notes under "Improvements after the build" in `CHE
   identical to a whole repaint. It makes every studio step faster. Notes: `CHECKLIST.md`, The Lab,
   step 9.
 
+- **The picture maker on the Mac** (2026-09-28, TSC_Ladybird's mood boards): it runs only on the
+  PC's graphics card, so boards made on the Mac have only Claude's drawings, no pictures. Idea:
+  FLUX.2 [klein] natively on the Mac (Apple M5, 16 GB) through diffusers on Metal, quantised to fit
+  (its two halves are 8 GB each at full size); look up the latest release first.
+
 ## The viewer, from the user's screenshots and videos
 
 - **The game's cameras at speed** (2026-09-25, the user). Cam 1 and 2 and their alts are fitted

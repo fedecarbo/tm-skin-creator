@@ -72,10 +72,7 @@ def paint_ball(name):
         colour = colours.get(shown)
     if colour is None:
         colour = DEFAULT_COLOUR
-    colour = np.asarray(colour, np.float32)
-    pos, nrm, uv = ball()
-    n = len(pos)
-    params = {"seed": 0, "wrap": "uv", "uv": uv}
+    params = {}
     if fin.colour is None and shown not in (None, "keep"):
         params["tinted"] = True
     if name == "camo":
@@ -87,6 +84,17 @@ def paint_ball(name):
         params["scale"] = 5
     if name == "splatter":
         params["scale"] = 4
+    return paint_look(fin, colour, params)
+
+
+def paint_look(fin, colour, params=None):
+    """A finish in a colour on the ball, painted as looks.apply paints the car: B (h, w, 3) sRGB,
+    roughness, metalness, varnish (h, w), the finish and the colour. The Lab's balls, and the mood
+    boards' (tool/mood.py)."""
+    colour = np.asarray(colour, np.float32)
+    pos, nrm, uv = ball()
+    n = len(pos)
+    params = {"seed": 0, "wrap": "uv", "uv": uv, **(params or {})}
     if fin.look:
         r = looks.apply(fin, colour, pos, nrm, params)
         col = r["colour"]
@@ -188,10 +196,17 @@ def write_tread(code):
 
 
 def write_textures(name, family):
-    slug = slug_of(name)
-    folder = FOLDER / slug
-    folder.mkdir(parents=True, exist_ok=True)
+    folder = FOLDER / slug_of(name)
     col, rough, metal, varnish, fin, colour = paint_ball(name)
+    write_ball(folder, col, rough, metal, varnish)
+    info = {**describe(name, family), "glow": [float(v) for v in colour] if fin.glow else None}
+    (folder / "swatch.json").write_text(json.dumps(info), encoding="utf-8")
+    return info
+
+
+def write_ball(folder, col, rough, metal, varnish):
+    """A ball's B, RM and Coat.png, as viewer/balls.js reads them."""
+    folder.mkdir(parents=True, exist_ok=True)
     Image.fromarray(_u8(col), "RGB").save(folder / "B.png", compress_level=1)
     rm = np.zeros(col.shape, np.uint8)
     rm[..., 0] = 255
@@ -201,9 +216,6 @@ def write_textures(name, family):
     coat = np.zeros(col.shape, np.uint8)
     coat[..., 0] = _u8(varnish)
     Image.fromarray(coat, "RGB").save(folder / "Coat.png", compress_level=1)
-    info = {**describe(name, family), "glow": [float(v) for v in colour] if fin.glow else None}
-    (folder / "swatch.json").write_text(json.dumps(info), encoding="utf-8")
-    return info
 
 
 def _stamp(treads=False):
@@ -212,7 +224,7 @@ def _stamp(treads=False):
     h = hashlib.sha256()
     for mod in (tyres,) if treads else (finishes, looks, textures):
         h.update(inspect.getsource(mod).encode())
-    for fn in (describe_tread, write_tread, _turned) if treads else (paint_ball, describe):
+    for fn in (describe_tread, write_tread, _turned) if treads else (paint_ball, paint_look, write_ball, describe):
         h.update(inspect.getsource(fn).encode())
     return h.hexdigest()[:12]
 

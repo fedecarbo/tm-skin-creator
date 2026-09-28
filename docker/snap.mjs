@@ -10,6 +10,9 @@
 // Each sheet is copied to .snap/ too, for Claude to look at on the Mac.
 //   node docker/snap.mjs <name> [<more> ...] --picture --titles "…" [--views …] [--close-row <name> 3 4 9 ...]
 //                                                the picture for the user, opened on the screen
+//   node docker/snap.mjs --page "mood.html?car=<car>" [--size 1600x1000]
+//                                                any page of the viewer's, whole, once it says it's ready
+//                                                (window.mood or window.lab) -> .snap/<page>_<car>.png
 //
 // The container has no browser, so the Mac's own Chrome takes the pictures: headless, on a
 // throwaway profile, driven over its DevTools port on 127.0.0.1 only (Node 24's fetch and
@@ -115,7 +118,38 @@ function picture(args) {
   console.log(`opened: ${out}`);
 }
 
+async function page(path, size) {  // any page of the viewer's, whole: e.g. a studio car's mood boards
+  const b = await chrome();
+  const name = path.replace(/\.html.*$/, '') + (new URL(path, VIEWER).searchParams.get('car') ? `_${new URL(path, VIEWER).searchParams.get('car')}` : '');
+  const out = join(ROOT, '.snap', `${name}.png`);
+  try {
+    await b.send('Emulation.setDeviceMetricsOverride', { width: size[0], height: size[1], deviceScaleFactor: 1, mobile: false });
+    await b.send('Page.navigate', { url: `${VIEWER}/${path}` });
+    for (let i = 0; i < 600; i++) {  // up to 2 minutes: a page says it's done through window.mood (or window.lab)
+      await sleep(200);
+      try { if (await b.evaluate('!!["mood", "lab"].some((k) => window[k] && (window[k].ready || window[k].error))')) break; } catch { /* still loading */ }
+    }
+    const err = await b.evaluate('(window.mood || window.lab || {}).error || null');
+    if (err) throw new Error(err);
+    const height = await b.evaluate('Math.ceil(document.documentElement.scrollHeight)');
+    await b.send('Emulation.setDeviceMetricsOverride', { width: size[0], height, deviceScaleFactor: 1, mobile: false });
+    await sleep(300);
+    const shot = await b.send('Page.captureScreenshot', { format: 'png' });
+    mkdirSync(join(ROOT, '.snap'), { recursive: true });
+    writeFileSync(out, Buffer.from(shot.result.data, 'base64'));
+    for (const e of b.errors) console.log(`page error: ${e}`);
+  } finally {
+    b.close();
+  }
+  console.log(`photographed: ${out}`);
+}
+
 const args = process.argv.slice(2);
+if (args[0] === '--page') {
+  const i = args.indexOf('--size');
+  await page(args[1], (i >= 0 ? args[i + 1] : '1600x1000').split('x').map(Number));
+  process.exit(0);
+}
 if (!args.length || args[0].startsWith('-')) {
   console.log('node docker/snap.mjs <name> [--close | --cams] [--size 960x720] | <name> [<more> ...] --picture [--titles ...] [--views ...] [--close-row <name> N ...]');
   process.exit(1);

@@ -10,14 +10,11 @@
 // Treads family, shape "tyre") goes on the car's own tyre instead of a ball: tyre.json's
 // cross-section on a lathe, with {B,RM,N,AO}.png (tool/swatches.py: write_tread).
 
-import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
+import { THUMB, daySky, dress, shape, stage, textures } from './balls.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (id) => document.getElementById(id);
-const BALL = 0x050506;  // the tiles' ground, so a ball's picture sits in its tile without an edge
-const THUMB = 300;      // px: each tile's picture
 const SOURCE = {
   lab: 'Set against the game with the lab skins (24 Sep 2026).',
   measured: 'Colour measured from the real metal (Physically Based), then set by eye. Not yet seen in the game.',
@@ -28,89 +25,7 @@ const SOURCE = {
 
 window.lab = { ready: false, error: null };
 
-// ---- the balls: one renderer draws every tile's picture; the picked one spins in its own ----
-
-const EXPOSURE = 1.44;  // the viewer's by day; a glow shows as "always on" by day (0.63 on the screen)
-
-function stage(canvas, size) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: !canvas.isConnected });
-  renderer.setPixelRatio(1);
-  renderer.setSize(size, size, false);
-  renderer.setClearColor(BALL);
-  renderer.toneMapping = THREE.LinearToneMapping;  // the viewer's day, matched to the game (viewer.js: LOOKS)
-  renderer.toneMappingExposure = EXPOSURE;
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
-  camera.position.set(1.0, 0.7, 3.9).setLength(size > THUMB ? 4.35 : 5.1);
-  camera.lookAt(0, 0, 0);
-  const key = new THREE.DirectionalLight(0xfffcf1, 4.4);  // the viewer's sun by day (LOOKS.day), from its side
-  key.position.set(0.555, 0.742, 0.377).multiplyScalar(5);
-  scene.add(key);
-  const ball = new THREE.Mesh(SPHERE, new THREE.MeshPhysicalMaterial());
-  const holder = new THREE.Group();  // tilts a tyre so its tread and outer sidewall face the camera
-  holder.add(ball);
-  scene.add(holder);
-  const st = { renderer, scene, camera, ball, holder, shape: null, big: size > THUMB };
-  shape(st, 'ball');
-  return st;
-}
-
-// ---- the shapes: a ball, or the car's own tyre for a tread ----
-
-const SPHERE = new THREE.SphereGeometry(1, 128, 96);
-let TYRE = null;  // built from tyre.json the first time a tread shows
-async function tyreGeometry() {
-  if (TYRE) return TYRE;
-  const doc = await (await fetch('data/materials/tyre.json', { cache: 'no-store' })).json();
-  TYRE = new THREE.LatheGeometry(doc.points.map(([r, x]) => new THREE.Vector2(r, x)), 256);
-  return TYRE;
-}
-function shape(st, kind) {
-  if (st.shape === kind) return;
-  st.shape = kind;
-  if (kind === 'tyre') {  // the axle across the picture, the tread rolling toward the camera and filling it
-    st.ball.geometry = TYRE;
-    st.ball.rotation.set(0, 0, 0);
-    st.ball.scale.setScalar(st.big ? 1.3 : 2.3);
-    st.holder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, -0.18).normalize());
-  } else {
-    st.ball.geometry = SPHERE;
-    st.ball.scale.setScalar(1);
-    st.ball.rotation.set(0.35, -0.5, 0);
-    st.holder.quaternion.identity();
-  }
-}
-
-const loader = new THREE.TextureLoader();
-async function textures(m) {
-  const base = `data/materials/${m.slug}/`;
-  const load = async (file, colour) => {
-    const t = await loader.loadAsync(`${base}${file}?v=${m.stamp}`);
-    t.colorSpace = colour ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-    t.anisotropy = 8;
-    return t;
-  };
-  const names = m.maps || ['B', 'RM', 'Coat'];
-  const got = await Promise.all(names.map((n) => load(`${n}.png`, n === 'B')));
-  const t = Object.fromEntries(names.map((n, i) => [n, got[i]]));
-  if (m.shape === 'tyre') await tyreGeometry();
-  return { map: t.B, rm: t.RM, coat: t.Coat || null, normal: t.N || null, ao: t.AO || null };
-}
-
-function dress(ball, m, tex) {
-  // The car's body material (viewer.js makeMaterials): colour, roughness and metalness from the
-  // maps, and the varnish as a clear coat whose amount is the varnish map.
-  const old = ball.material;
-  // A tyre is the viewer's Wheels material: no varnish, its relief in the normal map, Nadeo's
-  // shading in the ambient occlusion as the game adds it.
-  ball.material = new THREE.MeshPhysicalMaterial({
-    map: tex.map, roughnessMap: tex.rm, metalnessMap: tex.rm, roughness: 1, metalness: 1,
-    clearcoat: tex.coat ? 1 : 0, clearcoatRoughness: 0, clearcoatMap: tex.coat, specularIntensity: 0.5,  // the paint's sheen, viewer.js's SHEEN
-    normalMap: tex.normal, aoMap: tex.ao, side: m.shape === 'tyre' ? THREE.DoubleSide : THREE.FrontSide,
-    emissive: m.glow ? new THREE.Color(...m.glow) : new THREE.Color(0), emissiveIntensity: m.glow ? 0.63 / EXPOSURE : 0,
-  });
-  old.dispose();
-}
+// ---- the balls (balls.js): one renderer draws every tile's picture; the picked one spins in its own ----
 
 const shelf = stage(document.createElement('canvas'), THUMB);
 const pictures = new Map();  // slug -> picture URL, for this visit
@@ -271,28 +186,13 @@ try {
 
 // ---- start ----
 
-// The sky's sun disc cut to `most` (luminance), as viewer.js's sunlessSky: the key is the sun.
-function sunless(hdr, most) {
-  const d = hdr.image.data, half = d instanceof Uint16Array;
-  const get = half ? (i) => THREE.DataUtils.fromHalfFloat(d[i]) : (i) => d[i];
-  for (let i = 0; i < d.length; i += 4) {
-    const lum = 0.2126 * get(i) + 0.7152 * get(i + 1) + 0.0722 * get(i + 2);
-    if (lum <= most) continue;
-    for (let c = 0; c < 3; c++) d[i + c] = half ? THREE.DataUtils.toHalfFloat(get(i + c) * most / lum) : d[i + c] * most / lum;
-  }
-  hdr.needsUpdate = true;
-}
-
 async function start() {
   const res = await fetch('data/materials/materials.json', { cache: 'no-store' });
   if (!res.ok) throw new Error('The materials aren\'t painted on this computer yet: run python -m tool.swatches.');
   items = await res.json();
   families = familiesOf(items);
   $('count').textContent = items.length;
-  const hdr = await new HDRLoader().loadAsync('data/kloofendal_48d_partly_cloudy_puresky.hdr');  // the viewer's day sky
-  hdr.mapping = THREE.EquirectangularReflectionMapping;
-  sunless(hdr, 8);
-  for (const s of [shelf, big]) Object.assign(s.scene, { environment: hdr, environmentIntensity: 0.44 });  // LOOKS.day's env
+  await daySky([shelf, big]);
   $('status').textContent = '';
   const want = items.find((m) => m.slug === params.get('m')) || items[0];
   const first = openFamily(want.family, false);

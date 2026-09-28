@@ -61,6 +61,11 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   `skins/<car>/sheet.json`, the only writer, so the Lab's wizard shows it and keeps no list of its
   own. Standard library only (the Mac's python3 runs it). Its pick deletes the options not kept.
   Notes: "The design studio" in `CHECKLIST.md`.
+- Mood boards: `tool/mood.py` (its docstring is the key) paints each board's finishes on balls with
+  the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
+  `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room
+  (`lab.js`), so both look the same. Claude's drawings show as pictures of their own (data URIs), so
+  their ids never clash. On the Mac, `node docker/snap.mjs --page "<page>"` photographs any page.
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn

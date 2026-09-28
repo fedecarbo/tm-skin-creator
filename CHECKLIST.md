@@ -2564,6 +2564,33 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     - **Found on the way:** the working name (TSC_Grass) stopped fitting once the brief settled.
       `tool.sheet rename`, only before anything is painted (designs and their pictures are found
       by folder name); 44 checks passed.
+  - **3. Mood boards (built 2026-09-28):**
+    - **A board is data:** `skins/<car>/mood/<slug>.json` (a title, a line, the colour story with
+      roles and shares, the finishes as phrases in its colours, a wall of drawings and pictures),
+      the build sheet's file option. The pick deletes the other boards with their pictures:
+      `sheet.drop` takes a file option's companions (same name, other extension, and a folder of
+      that name).
+    - **`tool/mood.py`** paints each finish on a ball with the Lab's own code (`swatches.paint_ball`
+      split into `paint_look`, any finish in any colour, and `write_ball`; the Lab's balls came out
+      identical to the texel for eight finishes, and its stamp now repaints them once), copies the
+      pictures, and writes `mood/<car>/boards.json`, lettered as on the sheet, with the brief's
+      "What it is". Twelve balls in under a second. `--snap` photographs the page in Edge (the PC).
+    - **`viewer/mood.html`**: the boards side by side in the Lab's look: the colour story as a bar
+      on top, the letter and title, the wall, the balls, the chips. The balls come from
+      `viewer/balls.js`, the Lab's ball code moved out of `lab.js` so both draw them alike (the
+      materials room photographed before and after: the same to the pixel but for the big ball,
+      which spins). Claude's drawings show as `data:` pictures, so their ids (gradients, filters)
+      can't clash between drawings.
+    - **`node docker/snap.mjs --page <page>`**: any page of the viewer's, whole, once its
+      `window.mood` or `window.lab` says ready: how Claude looks at the boards on the Mac.
+    - **Tried on TSC_Ladybird:** three boards, A Lacquer (candy red, piano black, black chrome, a
+      lush fringe), B Racing colours ("red, black spots", a real set of jockey's silks; satin, a
+      sharp graphic fringe, a saddle-cloth 7), C Field guide (matte vermilion, ink, paper, the Latin
+      name as lettering, an ink-line fringe). The first look caught the ladybirds' pale head marks
+      reading as cartoon eyes (the brief's "Not"), a caption cut off, an unclear jockey's cap, a
+      lone fourth ball and gaps in two walls; fixed before showing.
+    - **On the Mac the walls are drawings only:** the picture maker runs on the PC
+      (`IMPROVEMENTS.md`, "The picture maker on the Mac").
 
 #### [ ] W2. The experts
 

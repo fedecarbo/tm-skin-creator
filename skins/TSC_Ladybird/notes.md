@@ -19,3 +19,9 @@ Which bug (ladybird, bee, something else) is left to the mood boards.
 Brief approved 2026-09-28 (user): "Sure, ladybird.  We could potentially have a family of bugs,
 but we could start with that". The car renamed TSC_Ladybird (it was only a brief then), the card
 now about the ladybird. A family of bug cars may follow, each its own studio car.
+
+Mood shown 2026-09-28: three boards (mood.html): A Lacquer (candy red, piano black, black chrome
+trim, a lush layered grass fringe), B Racing colours (the jockey's "red, black spots": satin red
+and black, cream rail line, a sharp flat-bladed fringe, a saddle-cloth 7), C Field guide (matte
+vermilion, ink black, paper, sage; the Latin name as lettering, an ink-drawn fringe). Drawings
+only: made on the Mac, where the picture maker doesn't run.
