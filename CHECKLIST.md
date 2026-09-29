@@ -3284,9 +3284,17 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
   piece of 10,892 triangles, the wheel covers 4 x 2,113 and 4 x 1,236, then small loose panels (nose
   panel, fin, mirror mounts ...); 2,254 open edges, 156 edges shared by more than two triangles.
 - **The plan, a step at a time, each shown on the car as a picture before the next:**
-  1. [ ] **The base** (`tool/carmap.py`): the body as one surface (loose panels stitched to what they
+  1. [x] **The base** (`tool/carmap.py`): the body as one surface (loose panels stitched to what they
      touch), smoothed normals, and what's outside: how much of the open air each spot sees, so "the
      outer body" is known without lists of parts. Cached in the work folder, rebuilt with the mesh.
+     - **Built 2026-09-29:** the body welded (14,678 vertices); "open" from depth maps in 200
+       directions (the inner car in the way, not the wheels or glass), cosine-weighted, 26 s in the
+       Mac's container. `Map.at(pos, nrm)` finds the body under any point (a tree of points every
+       0.5 cm, the nearest facing the same way, so a panel lying on another isn't mistaken for it).
+       Its test car, TSC_Map_Open (five bands, white open to violet hidden), reads right: the inlets'
+       insides, under the nose, the wheel pockets and the low flanks behind the floor hidden, the rest
+       open. The user: "you might need to hide the wheels so you see the body" (yes): `tool.snap --body`
+       (`node docker/snap.mjs <name> --body`), nine views with the wheels taken off.
   2. [ ] **Where things are, and the car's lines:** top, sides, front, back and underneath as soft
      areas split along the car's own lines; the lines: folds, panel joins, the rims of openings, the
      shoulder (where the top turns into the side), the lower edge (where the side turns under).

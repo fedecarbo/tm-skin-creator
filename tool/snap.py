@@ -6,6 +6,7 @@
     python -m tool.snap <name> --cams   -> build/<name>_cams.png: the game's Cam 1 and 2 and their alts,
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
+    python -m tool.snap <name> --body   -> build/<name>_body.png: the body alone, no wheels (the car map's)
     python -m tool.snap <name> --review -> build/<name>_review.png: the angles the other sheets miss
                                              (REVIEW), for the studio's critic (tool/critic.py)
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
@@ -66,6 +67,17 @@ REVIEW = (("front straight on", {"dir": [0, 0.18, 1], "dist": 5.0, "target": [0,
           ("underside", {"dir": [0.3, -1, 0.2], "dist": 7.0, "target": [0, 0.2, 0.2]}, False, []),
           ("right front flank", {"dir": [-0.9, 0.35, 0.25], "dist": 1.5, "target": [-0.45, 0.5, 0.75]}, False, []),
           ("right rear flank", {"dir": [-0.95, 0.25, -0.2], "dist": 1.4, "target": [-0.7, 0.41, -0.66]}, False, []))
+# The body alone, the wheels taken off (the car map's pictures, tool/carmap.py: the user, 2026-09-29,
+# "you might need to hide the wheels so you see the body"): nine views, the flanks behind the wheels
+# and the underside's edges included.
+NO_WHEELS = {"hidden": ["wheel cover", "tyre", "rims and brakes"]}
+BODY = (("front three-quarter", "front", False, [], NO_WHEELS), ("rear three-quarter", "rear", False, [], NO_WHEELS),
+        ("top", "top", False, [], NO_WHEELS),
+        ("left side", "left", False, [], NO_WHEELS), ("right side", "right", False, [], NO_WHEELS),
+        ("front straight on", {"dir": [0, 0.18, 1], "dist": 5.0, "target": [0, 0.45, 0.2]}, False, [], NO_WHEELS),
+        ("rear straight on", {"dir": [0, 0.25, -1], "dist": 4.6, "target": [0, 0.45, -0.3]}, False, [], NO_WHEELS),
+        ("front three-quarter, low", {"dir": [0.8, 0.12, 0.6], "dist": 5.2, "target": [0, 0.4, 0.2]}, False, [], NO_WHEELS),
+        ("underside", {"dir": [0.3, -1, 0.2], "dist": 7.0, "target": [0, 0.2, 0.2]}, False, [], NO_WHEELS))
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
 EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
 
@@ -182,6 +194,7 @@ def main():
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
     ap.add_argument("--cams", action="store_true", help="the game's Cam 1 and 2 and their alts, day and night, at 16:9")
     ap.add_argument("--review", action="store_true", help="the angles the other sheets miss, for the critic")
+    ap.add_argument("--body", action="store_true", help="the body alone, no wheels, nine views (the car map's pictures)")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
@@ -192,7 +205,7 @@ def main():
     ap.add_argument("--thumb", action="store_true", help="with --tiles: also the gallery's picture, and a version kept")
     args = ap.parse_args()
     shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams else (REVIEW, "review") if args.review
-                   else (SHOTS, "views"))
+                   else (BODY, "body") if args.body else (SHOTS, "views"))
     if args.shots:
         print(json.dumps({"build": str(paths.BUILD), "shots": [[label, v, night, hidden, *rest] for label, v, night, hidden, *rest in shots]}))
         return
@@ -212,7 +225,7 @@ def main():
         picture([args.name] + args.more, args.titles, args.views, close)
         return
     w, h = (int(v) for v in (args.size or (CAM_SIZE if args.cams else "960x720")).split("x"))
-    if args.close or args.cams or args.review:
+    if args.close or args.cams or args.review or args.body:
         snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
              query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
     else:
