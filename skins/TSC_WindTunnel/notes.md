@@ -28,3 +28,10 @@ tunnel photograph, gloss black #0c0d0f, 10 to 14 even satin-white smoke lines #e
 red #e2231a line down the spine, the lines breaking into a wake at the tail), C Pressure
 (TSC_WindTunnel_Pressure: a CFD pressure plot, satin, six stepped bands from black-violet #0d0a12
 through crimson, red, orange and amber to pale yellow #fff4c2 where the air hits head-on).
+Concepts back 2026-09-29, each from its designer in 2 or 3 paints. Claude's review: A's streaks ran
+down the deck's sides as claw marks and down the sidepods' tapering backs as drips from the chase
+cameras (an energy-drink look): the engine cover's source gone, the streaks shorter and none on
+surfaces facing back. B and C left as their designers made them (C darker than its colour story,
+74 % dark: more heat lit the sidepod fronts into a face). Shown 2026-09-29: the picture
+(TSC_WindTunnel_FlowPaint_picture.png in .snap: front, left, top, the driving camera), set 1 opened
+in the Lab. Claude suggested B.
