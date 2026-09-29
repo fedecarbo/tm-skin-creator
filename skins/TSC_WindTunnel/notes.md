@@ -18,3 +18,5 @@ bright colour only where the idea puts it, and real materials. The same kind, fr
 the flow-visualisation paint F1 teams spray on test cars, fluorescent streaks dragged by the air.
 The car painted by the wind. Renamed TSC_WindTunnel, brief card written (`brief.md`), shown for a
 yes, with a thermal camera car (the car painted by its own heat) held back as the next pitch.
+
+Brief approved 2026-09-29 (user): "sure lets try".
