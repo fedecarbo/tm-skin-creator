@@ -12,6 +12,8 @@ The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`
 - `car/map/grid.jpg` (TSC_Map_Grid): across every quarter and along every tenth: how a band placed by them bends with the body.
 - `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet (hidden).
 - `car/map/air.jpg` (TSC_Map_Air): where the oncoming air hits, a warm ramp over black, and smoke lines traced along its flow from a rake at the nose.
+- `car/map/sheet.jpg` (TSC_Map_Sheet): a 10 cm checker and bands 30, 60 and 90 mm below the shoulder, drawn only on the body sheet (`car/sheet.png`): every square 10 cm on the paint, the bands parallel to the shoulder.
+- `car/map/proof.jpg` (TSC_Map_Proof): a livery drawn only on the sheet: pinstripes along the shoulder, the lower edge and the folds, bands and contour lines at fixed offsets, roundels at true size, a decal.
 
 The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 (https://sketchfab.com/amogusstrikesback2).
 
@@ -26,19 +28,23 @@ Where the top ends (the shoulder) and where the side turns under (the lower edge
 | 178 | the front wheels' axle | 14, 51 | 20, 44 |
 | 150 | the nose | 16, 57 | 24, 46 |
 | 130 | the nose fin's plate | 18, 61 | 27, 47 |
-| 110 | the bonnet | 19, 65 | 30, 49 |
+| 110 | the bonnet | 19, 64 | 30, 49 |
 | 85 | the cockpit opening's front | 21, 69 | 34, 51 |
 | 60 | the front flank | 23, 73 | 44, 19 |
-| 30 | the front flank, the sidepods begin | 39, 66 | 63, 26 |
+| 30 | the front flank, the sidepods begin | 36, 67 | 63, 26 |
 | 0 | the sidepods, their inlets | 70, 60 | 83, 28 |
 | -30 | the sidepods | 84, 58 | 84, 29 |
 | -60 | the sidepods' back, the number panel | 80, 58 | 60, 17 |
 | -90 | the deck, the engine cover panel | 59, 61 | 43, 15 |
 | -120 | the rear wheels' axle | 50, 62 | 49, 24 |
 | -140 | the tail | 48, 62 | 43, 24 |
-| -158 | the tail's end | 35, 64 | 32, 62 |
+| -158 | the tail's end | 35, 64 | 31, 62 |
 
 The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the lower edge's. At z 70 to 208 the lower edge is the nose's and the front flank's lip, with the nose's belly rolled under it: the skin ends there and the inner car carries on below (the skirt further down is another piece); paint on "body" stops at the lip.
+
+## The body sheet: design on it first
+
+The outer skin flattened into a sewing pattern in true size (`tool/surface.py`; `car/sheet.png` to look at, `car/sheet.svg` and `car/sheet.json` to read and write, all in millimetres: x from the nose's tip at the left to the tail, y down from the top centreline). One piece holds the top and both flanks with the sidepod's top sewn in; the skirt (the underside, cut at the skirt's crest), the tail (2 cm behind the rear flank), the diffuser and the inlet's duct lie below it as their own pieces. Its lines are the map's own (the shoulder green, the lower edge magenta, folds black, openings red, joins blue), with the stations (z 150, 100 ...) marked along the top. A shape drawn on it lands on the car with its true size, the right side mirrored, and a line drawn 30 mm below the shoulder is 30 mm below it on the paint everywhere: `shapes.sheet(...)`, `shapes.sheet_line`, `shapes.sheet_near`, `shapes.offset`, `shapes.along_cm`, `shapes.across_cm`, `s.decal(picture, "sheet", at=(x, y), width=mm)`. How true it is, by number: `python -m tool.carmap --check` (the sheet's table: a 20 mm stripe drawn at any angle is 20 mm on the paint within a millimetre over 95 % of the painted body) and `python -m tool.sheetcheck <car>` on a painted car (every band's crossing of a join measured on the texture). Where the body turns through three faces (the sidepod's corners) the sheet shears a little rather than cut the paint: the check names those spots.
 
 ## The front and the back
 
@@ -78,16 +84,16 @@ Each body part (a pair's two sides, or the four wheels', together): its area, wh
 
 | part | cm² | top / sides / under | open | seen from behind, cm² | air, cm² | z |
 |---|---|---|---|---|---|---|
-| body shell | 17642 | 48% / 42% / 10% | 88% | 3051 | 398 | -83 to 145 |
-| rear flank | 10924 | 11% / 75% / 14% | 60% | 1974 | 1 | -152 to -25 |
-| wheel cover ring | 9566 | 0% / 50% / 50% | 76% | 409 | 463 | -150 to 208 |
-| side skirt | 9159 | 0% / 14% / 85% | 43% | 2 | 347 | -25 to 215 |
-| sidepod top | 5055 | 57% / 43% / 0% | 96% | 1208 | 21 | -50 to 12 |
+| body shell | 17642 | 47% / 43% / 10% | 88% | 3051 | 398 | -83 to 145 |
+| rear flank | 10924 | 11% / 80% / 9% | 60% | 1974 | 1 | -152 to -25 |
+| wheel cover ring | 9566 | 0% / 51% / 49% | 76% | 409 | 463 | -150 to 208 |
+| side skirt | 9159 | 0% / 15% / 85% | 43% | 2 | 347 | -25 to 215 |
+| sidepod top | 5055 | 55% / 45% / 0% | 96% | 1208 | 21 | -50 to 12 |
 | engine cover | 4411 | 100% / 0% / 0% | 95% | 2343 | 1 | -133 to -51 |
-| wheel cover hub | 4087 | 0% / 37% / 63% | 37% | 0 | 96 | -130 to 188 |
+| wheel cover hub | 4087 | 0% / 50% / 50% | 37% | 0 | 96 | -130 to 188 |
 | sidepod inlet | 3774 | 44% / 56% / 0% | 20% | 0 | 59 | -51 to 19 |
-| wheel cover disc | 3575 | 0% / 38% / 62% | 64% | 80 | 35 | -139 to 197 |
-| nose tip | 3370 | 36% / 34% / 31% | 70% | 192 | 171 | 142 to 211 |
+| wheel cover disc | 3575 | 0% / 53% / 47% | 64% | 80 | 35 | -139 to 197 |
+| nose tip | 3370 | 36% / 34% / 30% | 70% | 192 | 171 | 142 to 211 |
 | cockpit surround | 2818 | 100% / 0% / 0% | 98% | 811 | 24 | -53 to 91 |
 | diffuser | 2117 | 0% / 3% / 97% | 93% | 72 | 0 | -145 to -109 |
 | diffuser strake | 2028 | 0% / 4% / 96% | 78% | 53 | 0 | -144 to -107 |

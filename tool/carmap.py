@@ -1625,7 +1625,11 @@ def describe(m=None):
          "- `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet "
          "(hidden).",
          "- `car/map/air.jpg` (TSC_Map_Air): where the oncoming air hits, a warm ramp over black, and smoke lines "
-         "traced along its flow from a rake at the nose.", "",
+         "traced along its flow from a rake at the nose.",
+         "- `car/map/sheet.jpg` (TSC_Map_Sheet): a 10 cm checker and bands 30, 60 and 90 mm below the shoulder, drawn "
+         "only on the body sheet (`car/sheet.png`): every square 10 cm on the paint, the bands parallel to the shoulder.",
+         "- `car/map/proof.jpg` (TSC_Map_Proof): a livery drawn only on the sheet: pinstripes along the shoulder, the "
+         "lower edge and the folds, bands and contour lines at fixed offsets, roundels at true size, a decal.", "",
          "The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 "
          "(https://sketchfab.com/amogusstrikesback2).", ""]
     L += ["## The body along its length", "",
@@ -1643,6 +1647,20 @@ def describe(m=None):
     fa_ = m.area
     outer = ~np.isin(names[m.part], WHEEL_COVERS + BLADES)
     fwd, bwd = fa_[(m.fn[:, 2] > 0.7) & outer].sum(), fa_[(m.fn[:, 2] < -0.7) & outer].sum()
+    L += ["## The body sheet: design on it first", "",
+          "The outer skin flattened into a sewing pattern in true size (`tool/surface.py`; `car/sheet.png` to look at, "
+          "`car/sheet.svg` and `car/sheet.json` to read and write, all in millimetres: x from the nose's tip at the left to the "
+          "tail, y down from the top centreline). One piece holds the top and both flanks with the sidepod's top sewn in; the "
+          "skirt (the underside, cut at the skirt's crest), the tail (2 cm behind the rear flank), the diffuser and the inlet's "
+          "duct lie below it as their own pieces. Its lines are the map's own (the shoulder green, the lower edge magenta, "
+          "folds black, openings red, joins blue), with the stations (z 150, 100 ...) marked along the top. A shape drawn "
+          "on it lands on the car with its true size, the right side mirrored, and a line drawn 30 mm below the shoulder is "
+          "30 mm below it on the paint everywhere: `shapes.sheet(...)`, `shapes.sheet_line`, `shapes.sheet_near`, "
+          "`shapes.offset`, `shapes.along_cm`, `shapes.across_cm`, `s.decal(picture, \"sheet\", at=(x, y), width=mm)`. "
+          "How true it is, by number: `python -m tool.carmap --check` (the sheet's table: a 20 mm stripe drawn at any angle "
+          "is 20 mm on the paint within a millimetre over 95 % of the painted body) and `python -m tool.sheetcheck <car>` on a "
+          "painted car (every band's crossing of a join measured on the texture). Where the body turns through three faces "
+          "(the sidepod's corners) the sheet shears a little rather than cut the paint: the check names those spots.", ""]
     L += ["## The front and the back", "",
           f"The body's skin has no front or back face: only {fwd:.0f} cm² of it faces within 45 degrees of straight "
           f"ahead and {bwd:.0f} cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the "
@@ -1728,6 +1746,13 @@ if __name__ == "__main__":
         mapcheck.check(verbose="-v" in sys.argv)  # the evidence, slice by slice
         print()
         mapcheck.curves()  # the lines as the eye sees them
+        print()
+        mapcheck.sheet()  # the body sheet: distortion, the round trip, offsets, symmetry, seams
+        raise SystemExit
+    if "--sheet" in sys.argv:
+        from tool import sheetmap
+        for p in sheetmap.write():
+            print(p)
         raise SystemExit
     t = time.time()
     m = build()

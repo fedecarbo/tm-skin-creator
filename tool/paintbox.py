@@ -438,7 +438,11 @@ class Skin:
         idx = np.flatnonzero(cov > 0.002)
         m = cov[idx]
         if zone is not None:
-            m = m * zone(canvas.pos[idx], canvas.nrm[idx])
+            shapes._TEXELS = (canvas, idx)  # a sheet zone reads each texel's own place on the body sheet
+            try:
+                m = m * zone(canvas.pos[idx], canvas.nrm[idx])
+            finally:
+                shapes._TEXELS = None
             keep = m > 0.002
             idx, m = idx[keep], m[keep]
         return idx, m
@@ -821,13 +825,19 @@ class Skin:
             spec["centre"] = at
         return spec
 
-    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None):
+    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None, box=None):
         """Lay a picture (PIL RGBA, or a path) on the body at a spot (SPOTS, or a dict with
         centre, right, up, facing). width in cm. rgb: paint every opaque pixel this colour
-        instead of the picture's own (for one-colour lettering)."""
+        instead of the picture's own (for one-colour lettering).
+        where="sheet": on the body sheet (tool/surface.py) instead, in the sheet's millimetres:
+        centred at `at` (x, y) with `width` mm (or filling `box` (x0, y0, x1, y1)); the picture
+        then sits on the paint at true size with no projection skew, the right side mirrored, and
+        a note says if it crosses a fold, an opening or a seam of the sheet."""
         if isinstance(image, (str, bytes, os.PathLike)) or hasattr(image, "read"):
             image = Image.open(image)
         image = image.convert("RGBA")
+        if where == "sheet":
+            return self._sheet_decal(image, at, width, box, finish, zone, rgb)
         spec = self._spot(where, at)
         width = width or spec["width"]
         arr = np.asarray(image, np.float32) / 255
@@ -855,6 +865,44 @@ class Skin:
         else:
             col = np.stack([paint.project_near(b, arr[..., k], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)[0].reshape(-1)[idx]
                             for k in range(3)], 1)
+        c.blend(idx, m, col, np.full(len(idx), fin.roughness, np.float32), np.full(len(idx), fin.metalness, np.float32),
+                np.full(len(idx), fin.varnish, np.float32))
+        return self
+
+    def _sheet_decal(self, image, at, width, box, finish, zone, rgb):
+        from tool import sheetink, surface
+        if box is None:
+            if at is None or width is None:
+                raise ValueError("a decal on the sheet needs at=(x_mm, y_mm) and width=mm, or box=(x0, y0, x1, y1)")
+            h = width * image.height / image.width
+            box = (at[0] - width / 2, at[1] - h / 2, at[0] + width / 2, at[1] + h / 2)
+        ink = sheetink.Ink.image(image, box)
+        c = self.canvas("Skin")
+        uv = surface.sheet_cm("Skin", c.w, c.h).reshape(-1, 2)
+        near = np.flatnonzero(np.isfinite(uv[:, 0]) & (uv[:, 0] * 10 >= box[0] - 1) & (uv[:, 0] * 10 <= box[2] + 1)
+                              & (uv[:, 1] * 10 >= box[1] - 1) & (uv[:, 1] * 10 <= box[3] + 1))
+        m = ink.sample(uv[near])
+        keep = m > 0.002
+        idx, m = near[keep], m[keep]
+        if not len(idx):
+            self.notes.append("decal on the sheet: nothing landed on the car")
+            return self
+        for kind in ("fold", "opening", "seam"):
+            for line in surface.load().lines[kind]:
+                l = line * 10
+                inside = (l[:, 0] > box[0]) & (l[:, 0] < box[2]) & (l[:, 1] > box[1]) & (l[:, 1] < box[3])
+                if inside.any():
+                    p = l[inside].mean(0)
+                    self.notes.append(f"decal on the sheet: crosses {'an' if kind == 'opening' else 'a'} {kind} at ({p[0]:.0f}, {p[1]:.0f}) mm; it will look cut there")
+                    break
+        if zone is not None:
+            shapes._TEXELS = (c, idx)
+            try:
+                m = m * zone(c.pos[idx], c.nrm[idx])
+            finally:
+                shapes._TEXELS = None
+        fin = finishes.get(finish) if isinstance(finish, str) else finish
+        col = np.broadcast_to(np.asarray(colours.get(rgb), np.float32), (len(idx), 3)) if rgb is not None else ink.sample(uv[idx], colour=True)
         c.blend(idx, m, col, np.full(len(idx), fin.roughness, np.float32), np.full(len(idx), fin.metalness, np.float32),
                 np.full(len(idx), fin.varnish, np.float32))
         return self

@@ -44,7 +44,19 @@ the design as asked), then speed.
   Behind the sidepods (z -95 to -35) the body has no clear lower edge: the sides run to the skin's
   own end there. Waiting for the user's look at the lines (`car/map/lines.jpg`,
   `car/map/areas.jpg`) before anything built on the map (the rakes, the grid, the station table) is
-  called done.
+  called done. **Step 10, the body sheet (2026-09-29, the user: "map them so that any design AI can
+  easily understand it and accurately design"):** the skin flattened in true millimetres
+  (`tool/surface.py`, libigl's LSCM and ARAP; `car/sheet.png`, `.svg`, `.json`), the map's lines on
+  it, every texel's place cached, so a shape drawn flat lands on the car true size and follows the
+  body (`shapes.sheet`, `sheet_line`, `offset`, `along_cm`, `across_cm`, `s.decal(..., "sheet")`);
+  checked by number on the mesh (`--check`: a 20 mm stripe is 20 mm on the paint within 0.92 mm over
+  95 % of the body; 30 mm below the shoulder is 30 mm along the surface within 1.28 mm, by
+  potpourri3d's exact geodesics) and on the painted texture (`tool.sheetcheck`: continuity, local
+  scale, every band's crossing of a join). Test cars TSC_Map_Sheet and TSC_Map_Proof, not yet
+  installed. Open: the sidepod's rear and front corners, where the surface turns through three faces
+  and the sheet shears (up to 39 % stretch over 107 cm² each side) rather than cut the paint, and a
+  band offset from the shoulder steps there because the map's shoulder is two curves; the tail is a
+  piece of its own (a 2 cm slot). Notes: `CHECKLIST.md`, "The car map", step 10.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a
@@ -182,6 +194,18 @@ the design as asked), then speed.
     the positions that bend with the body, measured `SPOTS`, and "motifs lined up across panels".
   - Before adding either one: its latest release, wheels for Python 3.14 on Windows and macOS arm64,
     pinned in `requirements.txt` with the date.
+  **Used, 2026-09-29 (step 10 of the car map):** both have wheels for CPython 3.14 on Windows x64 and
+  macOS arm64 (libigl 2.6.3 as cp312-abi3, potpourri3d 1.4.0 as cp314), pinned in `requirements.txt`,
+  installed in the Mac's venv (the PC gets them at its next session). libigl flattens the sheet
+  (`igl.lscm`, `igl.arap_solve`: 3.7 % / 2.3° on the skin piece against 5.3 % / 3.1° from our own
+  ARAP) and its `principal_curvature` is the `igl` column of `--check`'s curves table (the named
+  lines and most folds stand out on both measures; per vertex they correlate only 0.26, and it marks
+  half the welded body's vertices unfit for its quadric fit). potpourri3d's `GeodesicTracer` measures
+  the sheet's offsets by exact geodesics and its `MeshVectorHeatSolver.compute_log_map` checks the
+  sheet round a decal's spot (sound near the source only); its signed heat method wants curves on
+  edges, so it wasn't used. The heat-method distance and the log map for `shapes.near` over the
+  surface are not needed: the sheet's own distance serves, and within 3 cm of a line the 3D distance
+  is within 0.4 % of the geodesic on this body.
   Looked at and left out (the same search): Substance 3D Painter (US$200 once on Steam, but it's
   painted by hand, not driven by words); Hunyuan3D-Paint and Meshy (they paint the whole mesh from
   a sentence, loosely, ignoring the map and the game's format); Recraft (vector logos and lettering,

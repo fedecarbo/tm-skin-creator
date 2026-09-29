@@ -247,6 +247,21 @@ def _texture_ragged(m, pts, uv):
     return np.concatenate(out) if out else np.zeros(1)
 
 
+def _igl_curvature(m):
+    """libigl's principal curvature over the body (the greater bend per vertex), its vertices fit for
+    it in a tree, and the body's median: a second measure for the curves' contrast."""
+    import igl
+    pn = m.part_names[m.part]
+    F = np.ascontiguousarray(m.F[~np.isin(pn, carmap.WHEEL_COVERS + carmap.BLADES)], np.int64)
+    _, _, pv1, pv2, bad = igl.principal_curvature(np.ascontiguousarray(m.V, np.float64), F, 3, True)
+    k = np.maximum(np.abs(pv1), np.abs(pv2))
+    good = np.ones(len(m.V), bool)
+    good[np.array(bad, int)] = False
+    sel = np.unique(F)
+    sel = sel[good[sel]]
+    return k[sel], cKDTree(m.V[sel]), float(np.median(k[sel]))
+
+
 def curves(m=None):
     """The lines as the eye sees them: every fitted curve (the shoulder, the lower edge, the real
     folds), how far its evidence lies from it (95th percentile and the most, mm), how fair it is
@@ -256,8 +271,9 @@ def curves(m=None):
     mesh's own edges, nothing else."""
     m = m or carmap.load()
     uv = fbx.meshes()["Skin_01"]["tri_uv"]
+    igl_k1, igl_tree, igl_med = _igl_curvature(m)
     rows, fails, floors = [], [], []
-    hdr = f"{'line':11} {'z':>14} {'cm':>4} {'knots':>5} {'evid':>5} {'fit95':>6} {'fitmax':>6} {'radius':>6} {'bends/m':>7} {'ragged':>6} {'texture':>7}  verdict"
+    hdr = f"{'line':11} {'z':>14} {'cm':>4} {'knots':>5} {'evid':>5} {'fit95':>6} {'fitmax':>6} {'radius':>6} {'bends/m':>7} {'ragged':>6} {'texture':>7} {'igl':>5}  verdict"
     print(hdr)
     print("-" * len(hdr))
     for c in m.curves:
@@ -290,14 +306,173 @@ def curves(m=None):
         verdict = ("FAIL " + " ".join(bad) if bad else "ok") + note
         if bad:
             fails.append((name, verdict))
+        igl_c = float(np.median(igl_k1[igl_tree.query(p)[1]]) / igl_med)  # the crest's contrast by libigl's own curvature
         print(f"{name:11} {p[:, 2].max():6.0f} to {p[:, 2].min():4.0f} {length:4.0f} {c['knots']:5d} {len(c['res']):5d} {fit95:6.1f} {fitmax:6.1f} "
-              f"{min(radius, 999):6.0f} {bends:7.1f} {rag:6.1f} {tex:7.1f}  {verdict}")
+              f"{min(radius, 999):6.0f} {bends:7.1f} {rag:6.1f} {tex:7.1f} {igl_c:5.1f}  {verdict}")
     print()
+    print("igl: the crest's bend over the body's median by libigl's principal_curvature (2.6.3, a quadric fit over three rings), an "
+          "independent measure of the map's own (carmap._curvature): a named line or fold that stands out on both is a real edge; "
+          "libigl marks half the welded body's vertices unfit for its fit (loose panels, thin pieces), which are left out")
     print("limits: " + ", ".join(f"{k} {v}" for k, v in CURVE_LIMITS.items()) + " (mm, mm, %, per metre, mm, mm); "
           f"the texture's own floor, the median over the curves: {np.median(floors):.1f} mm")
     print("the areas' boundaries: the top and the sides meet on the shoulder's curves, the sides and the underside on the "
           "lower edge's curves or, where the body has no lower line, on the skin's own end (the mesh's boundary); nothing else")
     print("all curves pass" if not fails else f"{len(fails)} curves fail")
+    return fails
+
+
+# ---- the body sheet (tool/surface.py), all by number ----
+
+SHEET_LIMITS = dict(area=5.0, angle=3.0, stripe=1.0, offset=1.0, symmetry=0.5, seam=1.0, logmap=2.0)
+# area %, angle deg (the sheet's own targets, at the 95th percentile over the painted body);
+# stripe: a 20 mm stripe drawn on the sheet at any angle measures 20 +- this on the paint (mm, 95th percentile);
+# offset: a line drawn 30 mm below the shoulder is 30 +- this from it along the surface, by an exact geodesic
+# (potpourri3d's tracer on the piece's mesh), mm at the 95th percentile; symmetry: the right side mirrored
+# lies within this of the left (mm, 95th); seam: a dart's two sides agree in length within this (mm);
+# logmap: round a decal's spot, the sheet's coordinates agree with the log map (potpourri3d's vector heat
+# method, an independent measure over the surface) within this (mm, 95th percentile, 10 cm round)
+
+
+def sheet(s=None):
+    """The body sheet checked: distortion per piece and per area, the stripe round trip, the
+    offsets from the shoulder by exact geodesics, the symmetry, the seams, and a decal's spot
+    against the log map. Prints the table and returns the failures."""
+    import potpourri3d as pp3d
+    from tool import surface
+    s = s or surface.load()
+    m = s.m
+    lim = SHEET_LIMITS
+    fails = []
+    a, ang, st = surface.measures(s.s1, s.s2)
+    V3 = s.corners
+    area = 0.5 * np.linalg.norm(np.cross(V3[:, 1] - V3[:, 0], V3[:, 2] - V3[:, 0]), axis=1)
+    print(f"{'piece / area':28} {'cm²':>6} {'area%':>6} {'angle':>6} {'stretch%':>8}  verdict")
+    print("-" * 72)
+    from tool import sheetmap
+    labels = sheetmap._area_labels(s)
+    for k, name in enumerate(s.piece_names):
+        for j, aname in ((None, ""), (0, "top"), (1, "sides"), (2, "under")):
+            sel = (s.piece == k) & s.painted & ((labels == j) if j is not None else True)
+            if area[sel].sum() < 50:
+                continue
+            pa, pang, pst = (surface.percentile(np.abs(a[sel]), area[sel]), surface.percentile(ang[sel], area[sel]),
+                             surface.percentile(st[sel], area[sel]))
+            bad = [x for x, v in (("area", pa), ("angle", pang)) if v > lim[x]]
+            label = name if j is None else f"  {aname}"
+            verdict = "ok" if not bad else "FAIL " + " ".join(bad)
+            if bad and j is None:
+                fails.append((name, bad))
+            print(f"{label:28} {area[sel].sum():6.0f} {pa:6.1f} {pang:6.1f} {pst:8.1f}  {verdict}")
+    # the stripe round trip: a 20 mm stripe across each painted triangle at 12 angles, its width on the paint
+    P, _ = surface._local(s.Vs, s.Fs)
+    X = np.stack([P[:, 1] - P[:, 0], P[:, 2] - P[:, 0]], 2)
+    U = np.stack([s.corner_uv[:, 1] - s.corner_uv[:, 0], s.corner_uv[:, 2] - s.corner_uv[:, 0]], 2)
+    ok = np.abs(np.linalg.det(X)) > 1e-9
+    J = np.zeros((len(s.tri), 2, 2))
+    J[ok] = U[ok] @ np.linalg.inv(X[ok])
+    worst = np.zeros(len(s.tri))
+    for th in np.arange(0, np.pi, np.pi / 12):
+        n = np.array([np.cos(th), np.sin(th)])
+        g = np.linalg.norm(np.einsum("tji,j->ti", J, n), axis=1)  # |J^T n|: the stripe's sheet width over its paint width
+        worst = np.maximum(worst, np.abs(20 / np.maximum(g, 1e-6) - 20))
+    sel = s.painted & (area > 0.5)
+    stripe95, stripemax = surface.percentile(worst[sel], area[sel]), float(worst[sel].max())
+    print()
+    print(f"stripe: a 20 mm stripe on the sheet, at 12 angles, is off by {stripe95:.2f} mm on the paint (95 % of the painted body), {stripemax:.1f} mm at most")
+    if stripe95 > lim["stripe"]:
+        fails.append(("stripe", stripe95))
+    # offsets from the shoulder by exact geodesics on the piece's mesh (potpourri3d)
+    devs = []
+    for k in range(len(s.piece_names)):
+        Vp, Fp, uvp, sel_k = s.piece_mesh(k)
+        tracer = pp3d.GeodesicTracer(Vp, Fp)
+        for line in s.lines["shoulder"]:
+            t_line, _ = s.at(line[::4])
+            if not (t_line >= 0).any() or np.median(s.piece[np.maximum(t_line, 0)]) != k:
+                continue
+            for i in range(4, len(line) - 4, 8):
+                q = line[i]
+                tng = line[i + 4] - line[i - 4]
+                tng /= max(np.linalg.norm(tng), 1e-9)
+                nrm2 = np.array([-tng[1], tng[0]])  # down the sheet, onto the flank
+                t, bary = s.at(q[None])
+                if t[0] < 0 or s.piece[t[0]] != k:
+                    continue
+                f = int(np.flatnonzero(sel_k == t[0])[0])
+                Jt = J[t[0]]
+                if abs(np.linalg.det(Jt)) < 1e-9:
+                    continue
+                d2 = np.linalg.solve(Jt, nrm2)  # the sheet direction in the triangle's own flat frame
+                A, B, C = Vp[Fp[f]]
+                x = (B - A) / np.linalg.norm(B - A)
+                nn = np.cross(B - A, C - A)
+                nn /= np.linalg.norm(nn)
+                d3 = d2[0] * x + d2[1] * np.cross(nn, x)
+                d3 = d3 / np.linalg.norm(d3) * 3.0
+                path = np.asarray(tracer.trace_geodesic_from_face(f, bary[0], d3))
+                if len(path) < 2:
+                    continue
+                end = s.uv_at(path[-1:] , m.value("ns", path[-1:]))[0]
+                if not np.isfinite(end).all():
+                    continue
+                dist = np.min(np.linalg.norm(line - end, axis=1))
+                devs.append(abs(dist * 10 - 30))
+    devs = np.array(devs)
+    off95, offmax = (np.percentile(devs, 95), devs.max()) if len(devs) else (np.nan, np.nan)
+    print(f"offset: 30 mm below the shoulder on the sheet is 30 mm along the surface within {off95:.2f} mm (95 % of {len(devs)} places), {offmax:.1f} mm at most (exact geodesics)")
+    if not len(devs) or off95 > lim["offset"]:
+        fails.append(("offset", off95))
+    # symmetry: the right side mirrored against the left surface
+    pn = m.part_names[m.part]
+    body = ~np.isin(pn, carmap.WHEEL_COVERS + surface.BLADES)
+    cen = m.V[m.F].mean(1)
+    right = np.flatnonzero(body & (cen[:, 0] < -0.05))
+    rv = np.unique(m.F[right])
+    mirrored = m.V[rv] * [-1, 1, 1]
+    _, _, dist = m.at(mirrored)
+    sym95, symmax = np.percentile(dist, 95) * 10, dist.max() * 10
+    unmirrored = right[surface._twins(m)[right] < 0]
+    print(f"symmetry: the right side's vertices mirrored lie within {sym95:.2f} mm of the left surface (95 %), {symmax:.1f} mm at most; "
+          f"{len(unmirrored)} right triangles have no mirror twin in the model's triangulation ({', '.join(np.unique(pn[unmirrored]))}) and go by their corners' mirror vertices")
+    if sym95 > lim["symmetry"]:
+        fails.append(("symmetry", sym95))
+    # seams: a dart's two sides agree in length with each other and with the body
+    worst_seam = 0.0
+    for k, pts3 in s.seams:
+        sides = s._seam_sides(pts3)
+        L3 = np.linalg.norm(np.diff(pts3.astype(np.float64), axis=0), axis=1).sum()
+        for side in sides:
+            L2 = np.linalg.norm(np.diff(side, axis=0), axis=1).sum()
+            worst_seam = max(worst_seam, abs(L2 - L3) * 10)
+        gap = np.linalg.norm(sides[0][-1] - sides[1][-1]) * 10 if len(sides) == 2 else 0.0
+        print(f"seam on {s.piece_names[k]}: {L3:.1f} cm long, its two sides {len(sides)}, lengths within {worst_seam:.2f} mm of the body, open {gap:.1f} mm at the edge")
+    if not s.seams:
+        print("seams: none (no piece needed a dart)")
+    if worst_seam > lim["seam"]:
+        fails.append(("seam", worst_seam))
+    # a decal's spot: the sheet against the log map round a point on the left flank
+    Vp, Fp, uvp, sel_k = s.piece_mesh(0)
+    spot = np.array([35.0, 55.0, 60.0])
+    src = int(np.argmin(np.linalg.norm(Vp - spot, axis=1)))
+    lm = np.asarray(pp3d.MeshVectorHeatSolver(Vp, Fp).compute_log_map(src))
+    near = np.flatnonzero((np.linalg.norm(lm, axis=1) < 10.0) & (np.linalg.norm(Vp - Vp[src], axis=1) < 12.0))  # the log map is sound near its source only
+    A2, B2 = lm[near], uvp[near] - uvp[src]
+    # the best rotation (and flip) between the two frames, then the residual
+    best = None
+    for flip in (1.0, -1.0):
+        Bf = B2 * [1.0, flip]
+        Hm = A2.T @ Bf
+        Uu, _, Vt = np.linalg.svd(Hm)
+        R = (Uu @ Vt).T
+        res = np.linalg.norm(A2 @ R.T - Bf, axis=1) * 10
+        if best is None or np.percentile(res, 95) < best[0]:
+            best = (np.percentile(res, 95), res.max())
+    print(f"log map: round the left flank's spot, {len(near)} vertices within 10 cm, the sheet's coordinates agree with the log map within {best[0]:.2f} mm (95 %), {best[1]:.1f} mm at most")
+    if best[0] > lim["logmap"]:
+        fails.append(("logmap", best[0]))
+    print()
+    print("limits: " + ", ".join(f"{k} {v}" for k, v in lim.items()) + " (%, deg, mm, mm, mm, mm, mm)")
+    print("the sheet passes" if not fails else f"{len(fails)} sheet checks fail: " + ", ".join(f[0] for f in fails))
     return fails
 
 

@@ -67,9 +67,13 @@ card) and no game: install from the Windows PC after a push.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls.
-  Before the first design in a session, read **the car map, `car/map.md`, and look at its four
-  pictures** (`car/map/`), then the docstrings of `tool/paintbox.py` (the key), `tool/shapes.py`
-  (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names are in
+  Before the first design in a session, read **the car map, `car/map.md`, and look at its
+  pictures** (`car/map/`) **and the body sheet, `car/sheet.png`** (the skin flattened in true size,
+  in millimetres: `car/sheet.json` has every line and station on it), then the docstrings of
+  `tool/paintbox.py` (the key), `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in
+  `tool/paintbox.py`. **Design on the sheet first:** a graphic drawn on it (`shapes.sheet(...)`,
+  `shapes.sheet_line`, `shapes.offset`, `s.decal(picture, "sheet", at=(x, y), width=mm)`) lands
+  on the car at true size and follows its lines; the 3D zones are for what the sheet can't say. Part names are in
   `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
 - **Built in steps, from clay (the Lab, the user's idea, 2026-09-26).** A new design
   starts with `s.clay()`: the body, wheel covers and inner car in the Lab's neutral white
@@ -177,6 +181,20 @@ card) and no game: install from the Windows PC after a push.
   (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. The map rebuilds itself when the
   mesh changes (`python -m tool.carmap`, 30 s); after a change to its code, rebuild, repaint the
   four TSC_Map_ cars, take their `--body` sheets into `car/map/` and `--describe` again.
+- **The body sheet** (`tool/surface.py`, `car/sheet.png`, `.svg`, `.json`, 2026-09-29: the user
+  wanted the model's curvature mapped so "any design AI can easily understand it and accurately
+  design"): the outer skin flattened into a sewing pattern in true millimetres, the nose's tip at
+  the left, the top centreline along the top, the map's lines and the stations drawn on it. A
+  shape drawn on the sheet is that size on the paint and follows the body; the right side is the
+  mirror. `shapes.sheet(svg | picture, box= | polylines, width= | f(x, y))`, `shapes.sheet_line`,
+  `shapes.sheet_near`, `shapes.offset(line, mm)` (a band 30 mm below the shoulder:
+  `shapes.sheet(shapes.offset(shapes.sheet_lines("shoulder")[0], 30), width=8)`), `along_cm`,
+  `across_cm`, and `s.decal(picture, "sheet", at=(x, y), width=mm)`. Its checks: `python -m
+  tool.carmap --check` (the sheet's table) and `python -m tool.sheetcheck <car>` on a painted car
+  (every band's crossing of a join measured on the texture). The test cars: TSC_Map_Sheet (a 10 cm
+  checker and offset bands) and TSC_Map_Proof (a livery drawn only on the sheet). Where the body
+  turns through three faces (the sidepod's rear and front corners) the sheet shears a little
+  rather than cut the paint: keep fine lettering off those two corners.
 - **Keep clear** of the places the map can't know are special: the number panel (x ±19, z -78 to
   -62) and the engine cover panel (x ±19, z -120 to -82), where the game draws the player's number
   and name, and the nose fin's plate (x ±8, z 118 to 142): its fin stands upright, so a spot there

@@ -28,6 +28,13 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
+  The body sheet (tool/surface.py: the skin flattened in true size; car/sheet.png, .svg, .json, in mm):
+    shapes.sheet("stripes.svg")            an SVG drawn in the sheet's frame, painted on the car true size
+    shapes.sheet(picture, box=(x0, y0, x1, y1)), shapes.sheet(lines, width=8), shapes.sheet(lambda x, y: ...)
+    shapes.sheet_line("shoulder", 8)       a line 8 mm wide along a line of the map, its width true on the paint
+    shapes.sheet_near("fold", 20)          within 20 mm over the body of a fold (~ keeps clear)
+    shapes.sheet(shapes.offset(shapes.sheet_lines("shoulder")[0], 30), width=6)   6 mm, 30 mm below the shoulder
+    shapes.along_cm(50, 70), shapes.across_cm(10, 14)   bands measured over the body (cm), not through the air
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Lengths: the car runs from z = -162 (tail) to 215 (nose tip); the wheels sit at z = 179 and
 -120, the cockpit opening at about z = -50 .. 90, the deck behind it to z = -133. Its width is
@@ -491,6 +498,121 @@ def rake(z, across):
     """Seed points on the body at length z, at across positions (see across): the smoke rake's row
     for streamlines. shapes.streamlines(shapes.rake(198, np.linspace(0.1, 0.9, 5)), 1.5)."""
     return _map().rake(z, across)
+
+
+# ---- The body sheet (tool/surface.py): drawing flat on the car's own pattern, in millimetres ----
+# The sheet is the outer skin flattened in true size (car/sheet.png, car/sheet.svg, car/sheet.json:
+# the nose's tip at the left, the top centreline along the top, y down). A shape drawn on it lands
+# on the car with its true size, the right side mirrored; a line drawn 30 mm below the shoulder is
+# 30 mm below it on the paint everywhere. Everything here speaks the sheet's millimetres.
+
+_TEXELS = None  # (canvas, texel indices) while the paint box asks a zone about its own texels
+
+
+def _sheet():
+    from tool import surface
+    return surface.load()
+
+
+def _sheet_uv(p, n):
+    """Sheet coordinates (cm) of the points a zone is asked about: each texel's own, cached, when
+    the paint box is asking (paintbox._mask); otherwise looked up on the body."""
+    from tool import surface
+    if _TEXELS is not None:
+        canvas, idx = _TEXELS
+        if len(idx) == len(p):
+            if canvas.set != "Skin":
+                return np.full((len(p), 2), np.nan)
+            return surface.sheet_cm("Skin", canvas.w, canvas.h).reshape(-1, 2)[canvas.near[idx]]
+    return _sheet().uv_at(p, n)
+
+
+def sheet(drawing, box=None, width=None):
+    """A zone from a drawing on the body sheet, in the sheet's millimetres: an SVG (a file or its
+    text, in car/sheet.svg's frame: filled shapes are ink, stroked ones lines), a picture with
+    its `box` (x0, y0, x1, y1) mm (its alpha, or its lightness, is the ink), polylines (a list of
+    (n, 2) arrays) drawn `width` mm wide, or a function f(x, y) of the sheet's mm grid giving
+    0..1 (shapes.sheet(lambda x, y: np.hypot(x - 1200, y - 300) < 100): a 20 cm disc). Off the
+    sheet (the wheels, the inner car, hidden skin) the zone is 0. Combines with every other zone."""
+    from tool import sheetink
+    if callable(drawing):
+        ink = sheetink.Ink.where(drawing)
+    elif box is not None:
+        ink = sheetink.Ink.image(drawing, box)
+    elif width is not None:
+        ink = sheetink.Ink.lines(drawing, width)
+    else:
+        ink = sheetink.Ink.svg(drawing)
+    return Zone(lambda p, n: ink.sample(_sheet_uv(p, n)))
+
+
+def sheet_lines(kind):
+    """The map's lines on the sheet, in mm: "shoulder", "lower", "fold", "opening", "join",
+    "seam", "outline": a list of (n, 2) arrays, each running nose to tail (or top down), so
+    offset(line, d) with d > 0 moves it down the sheet, away from the top centreline."""
+    out = []
+    for l in _sheet().lines[kind]:
+        l = np.asarray(l, np.float64) * 10
+        ext = l.max(0) - l.min(0)
+        k = 0 if ext[0] >= ext[1] else 1
+        out.append(l if l[-1, k] >= l[0, k] else l[::-1])
+    return out
+
+
+def offset(line, d):
+    """A polyline (n, 2) mm moved d mm to the right of its direction (for the map's lines, drawn
+    nose to tail, d > 0 is down the sheet: 30 mm below the shoulder is offset(shoulder, 30))."""
+    l = np.asarray(line, np.float64)
+    t = np.gradient(l, axis=0)
+    t /= np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1e-9)
+    return l + d * np.c_[-t[:, 1], t[:, 0]]
+
+
+def sheet_near(kind, mm, soft=SOFT):
+    """Within `mm` of one of the map's lines measured over the body (on the sheet), not through
+    the air: "shoulder", "lower", "fold", "opening", "join", "seam", "outline". Nothing off the sheet."""
+    from scipy.spatial import cKDTree
+    pts = []
+    for l in sheet_lines(kind):  # a point every millimetre along each line
+        s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(l, axis=0), axis=1))]
+        u = np.arange(0, s[-1], 1.0)
+        pts.append(np.stack([np.interp(u, s, l[:, k]) for k in range(2)], 1))
+    tree = cKDTree(np.concatenate(pts) / 10)
+
+    def dist(p, n):
+        uv = _sheet_uv(p, n)
+        ok = np.isfinite(uv).all(1)
+        out = np.full(len(p), -1e3, np.float32)
+        out[ok] = mm / 10 - tree.query(uv[ok], workers=-1)[0]
+        return out
+    return field(dist, soft)
+
+
+def sheet_line(kind, width=10.0, soft=SOFT):
+    """A line `width` mm wide along one of the map's lines, its width true on the paint (see sheet_near)."""
+    return sheet_near(kind, width / 2, soft)
+
+
+def along_cm(x0, x1, soft=SOFT):
+    """A band between two lengths measured over the body from the nose's tip (the sheet's x, cm):
+    the body piece."""
+    def dist(p, n):
+        uv = _sheet_uv(p, n)
+        x = np.where(np.isfinite(uv[:, 0]), uv[:, 0], -1e3)
+        return np.minimum(x - x0, x1 - x)
+    return field(dist, soft)
+
+
+def across_cm(y0, y1, soft=SOFT):
+    """A band between two depths measured over the body down from the top centreline (cm): the
+    body piece, where the sheet's y counts from the top centreline's own place at that length."""
+    def dist(p, n):
+        uv = _sheet_uv(p, n)
+        ok = np.isfinite(uv).all(1)
+        y = np.full(len(p), -1e3)
+        y[ok] = uv[ok, 1] - _sheet().top_y(uv[ok, 0])
+        return np.minimum(y - y0, y1 - y)
+    return field(dist, soft)
 
 
 def front_rake(xs, top=True):

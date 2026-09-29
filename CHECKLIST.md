@@ -3707,6 +3707,104 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        the areas' boundaries: the top and the sides meet on the shoulder's curves, the sides and the underside on the lower edge's curves or, where the body has no lower line, on the skin's own end (the mesh's boundary); nothing else
        all curves pass
        ```
+  10. [x] **The body sheet: the skin flattened in true size, so any design AI draws flat and the paint
+     follows the body** (2026-09-29, the car mapper on the Mac; the user: "Something this tool is really
+     lacking is the accuracy of following the models curvatures etc. Is there an optimised way that
+     doesnt need manual or by eye ... map them so that any design AI can easily understand it and
+     accurately design?"; the plan `something-this-tool-is-delegated-mist.md`).
+     - **What it is** (`tool/surface.py`, its docstring the key; `car/sheet.png`, `.svg`, `.json`,
+       `car/sheet_body.png` from `python -m tool.carmap --sheet`, `tool/sheetmap.py`): the left half
+       of the outer skin (open ≥ 0.2, no wheel covers, no blades or struts, no slivers), cut at the top
+       centreline, flattened with **libigl 2.6.3** (`igl.lscm`, then `igl.arap_solve` six rounds:
+       3.7 % / 2.3° on the skin piece against 5.3 % / 3.1° from our own ARAP, so the library's) into a
+       sewing pattern in millimetres: the nose's tip at the left, the top centreline along the top,
+       y down; the map's lines (the shoulder, the lower edge, the folds, the openings, the joins) and
+       the stations (z 150, 100 ...) drawn on it, the areas filled. The right side is the mirror by
+       construction. Every Skin texel's place on it is cached (`surface.sheet_cm`, next to the bake):
+       a left texel through its own triangle's weights, a right texel through the mirror twin (the
+       twin found by its three corners within 0.2 cm: a centroid alone matched a long sliver to a
+       small triangle 5 cm off), the 66 right triangles without a twin (the number panel's surround
+       is triangulated differently) through their corners' mirror vertices, loose pieces too small for
+       the sheet (the rivets, the fin's blade) through the nearest sheet triangle facing their way.
+     - **Pieces, sewn by measure.** Panels with real gaps in the model are bridged by a strip of new
+       triangles zipped across the gap (`_bridge`: nothing moves, the strip covers no paint, a vertex
+       within 0.3 cm of the other panel's vertex is welded), in runs of 12 cm cut at corners, only for
+       gaps under STITCH = 1 cm: the sidepod's top (0.6 cm off the shell) is sewn into the body piece,
+       so a band carries over its edge; the tail (1.9 cm behind the rear flank) is a piece of its own,
+       as are the skirt (the underside, cut from the shell along the skirt's crest, a fold the map
+       draws), the diffuser and the inlet's duct. Sewing the tail strained the rear body to 6.3 % /
+       3.8° (the paint round its runs bent 10°); a run whose surroundings bend over UNSEW = 8° is
+       unsewn and stays an open seam at the model's own gap (none now). Pinch vertices are split
+       (`_split_fans`) so every piece is manifold, as the libraries need.
+     - **Measured, not looked at** (`python -m tool.carmap --check`, the sheet's table after the
+       curves'): per piece and per area the singular values' 95th percentile by area over the painted
+       body (open ≥ 0.4): area %, angle (how much a right angle bends), stretch (the most a length
+       changes), and the biggest patch over twice the limits (a sheared corner is small next to the
+       body: a percentile let the user's spot through). Now: the body 5.2 % / 3.3° (its top 4.1 % /
+       2.4°, its sides 7.2 % / 4.5°, the biggest patch 99 cm² at the sidepod's corners), the skirt
+       3.2 % / 4.2°, the sidepod's top (sewn in), the tail 1.7 % / 1.6°, the diffuser 0.3 % / 0.7°, the
+       duct 2.1 % / 1.4°: the body misses the 5 % / 3° targets by the sidepod's corners, where the
+       surface turns through three faces. A 20 mm stripe drawn at any of 12 angles is 20 mm on the paint
+       within 0.92 mm over 95 % of the painted body (11.5 mm at most, at a corner). 30 mm below the
+       shoulder on the sheet is 30 mm along the surface within 1.28 mm at 95 % of 144 places (5.0 mm at
+       most), by exact geodesics traced on the piece's mesh (**potpourri3d 1.4.0**, `GeodesicTracer`);
+       the sheet agrees with potpourri3d's log map round the left flank's spot within 2.0 mm over 10 cm
+       (the log map is sound near its source only: far vertices came out small). Symmetry: the right
+       side's vertices mirrored lie on the left surface within 0.00 mm (95 %), 2.1 mm at most.
+     - **Darts, tried and turned off.** Where a piece can't lie flat, a dart (a cut from the worst
+       patch's heart to the nearest edge by the way of most strain, the fan at its end opened too) got
+       the body to 4.5 % / 2.9° / 42 cm² with five short darts at the sidepod's corners: but a dart
+       breaks every line drawn across it, and the user's rule (their close-up of the sidepod's rear
+       corner: "The lines don't follow continuously") is unbroken lines first. DARTS = 0: the corners
+       shear a little instead, measured and named. The code stays (`_dart`, `_cut`, `flatten_piece`).
+     - **On the painted texture** (`python -m tool.sheetcheck <car>`, `tool/sheetcheck.py`; the user:
+       "Your numeric checks must have missed this, so the checks are wrong too"): continuity (texel
+       pairs next to each other on the car whose sheet places jump off any declared seam: a dart, an
+       opening, a join, the cut at the skirt's crest), scale (the local stretch and shear of the map as
+       painted, from each texel's neighbours), and crossings (every band's centre fitted on both sides
+       of every join and UV seam it crosses: the sideways gap and the turn). TSC_Map_Sheet before the
+       fix (six pieces flattened apart): 99 % of texels stretched under 13.6 % and sheared under 8.7°,
+       1,068 cm² over 10 % / 6°, the worst patches at the tail's corners (up to 1,300 %: the old
+       texel lookup clamped points outside their triangle onto its edge). After: 5.7 % / 3.9° at 95 %,
+       14.0 % / 8.9° at 99 %, 1,268 cm² over the limits in patches at the nose's tip (135 cm², a cone's
+       apex), the cockpit surround's rivets (131 cm²: domes mapped onto the flat surround) and the
+       sidepod's rear corners (107 cm² each side, stretch up to 39 %: the sewn corner). Continuity:
+       238 texel pairs (of 8 million) jump up to 8.5 mm off any declared seam, at the sidepod's inlet
+       rim on the right. Crossings on TSC_Map_Sheet: 10, 2 over the limits: the 30 mm band at the
+       sidepod's rear corner join, gap 1.64 mm, turn 7.4° (the corner; the turn measure takes the
+       band's own bend round it as well); the nose panel's joins 0.26 to 0.37 mm and 1.1 to 1.2°. On
+       TSC_Map_Proof: 4 of 10 over: the pale band 48 mm below the shoulder steps 18.6 mm at that
+       corner, where the map's own shoulder is two curves (the sidepod's edge ends, the rear flank's
+       crease starts lower): a band offset from each steps with them; the teal band 4.9 mm and 8.3°.
+     - **Designing on it** (`tool/shapes.py`, `tool/sheetink.py`, `tool/paintbox.py`): `shapes.sheet`
+       (an SVG in the sheet's frame, a picture with its box, polylines with a width, or a function of
+       x and y in mm, rasterised once at 2 px/mm, `Ink`, and read per texel through the cache: the
+       paint box hands a zone its texels, `shapes._TEXELS`), `sheet_line`, `sheet_near`, `sheet_lines`,
+       `offset`, `along_cm`, `across_cm`, and `s.decal(picture, "sheet", at=(x, y), width=mm)` with a
+       note when it crosses a fold, an opening or a seam. A decal's lettering reads backwards on the
+       right side (the sheet is the mirror), like the tyres' words. The old zones are untouched:
+       TSC_Tricolore, TSC_Map_Areas and TSC_WindTunnel paint texel-identical before and after (sha256 of
+       every texture). Test cars: TSC_Map_Sheet (a 10 cm checker and three offset bands, drawn only on
+       the sheet: `car/map/sheet.jpg`) and TSC_Map_Proof (`car/map/proof.jpg`: petrol blue, gold
+       pinstripes along the shoulder, the lower edge and the folds, bands at 25 and 48 mm, contour
+       lines every 25 mm, three roundels, a "10" decal on the sidepod's top). `python -m tool.joins
+       <car>`: close looks at every join between panels, both sides.
+     - **libigl's curvature as a second measure** (`mapcheck.curves`, the `igl` column): the crest's
+       bend by `igl.principal_curvature` (three rings) over the body's median, beside the map's own
+       contrast: the named lines and most folds stand out on both (the shoulder 3.0 / 3.5, 6.2 / 9.6;
+       folds 5.9 / 10.5, 5.7 / 8.5), two weak folds on neither; libigl marks 7,836 of 14,678 welded
+       vertices unfit for its fit (loose panels, thin pieces), and per vertex the two measures
+       correlate only 0.26.
+     - **Found on the way, not this step's:** the map built fresh on the Mac differs from the PC's
+       recorded state: 66 ridges and 12 folds against 62 and 8, and `--check` fails 4 stretches (the
+       shoulder over the rear flanks: ridge 0.85; the lower edge at the sidepods: a 16 cm step) and 1
+       curve (the shoulder 188 to −50: ragged 3.4 mm, texture 4.2 mm) where step 9 recorded all
+       passing: the ridge tracing isn't the same on the two computers' numpy. To look at.
+     - **Left:** the install of TSC_Map_Sheet and TSC_Map_Proof on the PC (the user's drive, day and
+       night, F12); the sidepod's corners (a seam at the model's own slot, or a shear: the user's
+       call); the tail's join (a 2 cm slot: a line drawn across it steps); TSC_WindTunnel's bands
+       redrawn on the sheet (its lines are streamlines, already traced on the surface, 1.7 cm wide by
+       3D distance: the sheet would change them by under 0.4 %); the cross-computer difference above.
   Later, once those work: what each game camera shows of the car, the flat spots for pictures
   measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
 - **Handover (2026-09-29, the user: "I just prefer another session with an agent that actually
