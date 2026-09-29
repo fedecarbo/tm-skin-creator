@@ -20,7 +20,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
   The car map's (tool/carmap.py, car/map.md: they follow the body's own shape):
-    shapes.area("top")                     the top between the shoulders; "sides", "under", "front", "back"
+    shapes.area("top")                     the top between the shoulders; "sides", "under"
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
     shapes.across(0, 0.3)                  a band round the section (0 top's middle, 1 shoulder, 2 lower edge)
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
@@ -391,27 +391,21 @@ def _map():
     return carmap.load()
 
 
-AREAS = ("top", "sides", "under", "front", "back")
+AREAS = ("top", "sides", "under")
 
 
 def area(name, soft=SOFT):
     """One of the body's areas, split along the car's own lines (the car map): "top" (between the
-    shoulders), "sides" (from the shoulder down to where the side turns under), "under", "front"
-    (the whole faces facing forward, bounded by the ridges: the sidepods' fronts to their rims,
-    the nose's tip) and "back" (the tail, to its top edge and corners). Edges crisp, on the ridges."""
+    shoulders), "sides" (from the shoulder down to where the side turns under), "under". Edges
+    crisp, on the fitted lines. The body has no front or back face (car/map.md): where the air
+    hits is `hit`."""
     if name not in AREAS:
-        raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)}")
+        raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)} (the body has no front or back face: car/map.md)")
 
     def dist(p, n):
         m = _map()
-        fwd, back = m.face_distance(p, 1, n), m.face_distance(p, 2, n)  # > 0: on the front, the back
-        if name == "front":
-            return fwd
-        if name == "back":
-            return back
         a1, a2 = m.across_level(p, 1), m.across_level(p, 2)
-        band = {"top": -a1, "sides": np.minimum(a1, -a2), "under": a2}[name]
-        return np.minimum(band, np.minimum(-fwd, -back))
+        return {"top": -a1, "sides": np.minimum(a1, -a2), "under": a2}[name]
     return field(dist, soft)
 
 

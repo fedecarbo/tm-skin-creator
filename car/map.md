@@ -6,7 +6,7 @@ Written by `python -m tool.carmap --describe` from the car's own mesh (2026-09-2
 
 The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):
 
-- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey, the front yellow, the back orange, the hidden insides violet; the shoulder green, the lower edge magenta (each drawn only where the check finds a clear crest or the skin's own edge: `python -m tool.carmap --check`), folds black, openings red, joins blue.
+- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch, absent where the body has no line: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
 - `car/map/lines.jpg` (TSC_Map_Lines): every ridge of the body's curvature on clay, each in its own colour.
 - `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.
 - `car/map/grid.jpg` (TSC_Map_Grid): across every quarter and along every tenth: how a band placed by them bends with the body.
@@ -21,28 +21,28 @@ Where the top ends (the shoulder) and where the side turns under (the lower edge
 
 | z | what's there | shoulder x, y | lower edge x, y |
 |---|---|---|---|
-| 212 | the nose's tip | 12, 18 | 10, 16 |
+| 212 | the nose's tip | 12, 18 | 9, 16 |
 | 190 | the nose, over the front wing | 18, 42 | 18, 42 |
-| 178 | the front wheels' axle | 13, 51 | 20, 44 |
+| 178 | the front wheels' axle | 14, 51 | 20, 44 |
 | 150 | the nose | 16, 57 | 24, 46 |
 | 130 | the nose fin's plate | 18, 61 | 27, 47 |
-| 110 | the bonnet | 19, 64 | 30, 49 |
+| 110 | the bonnet | 19, 65 | 30, 49 |
 | 85 | the cockpit opening's front | 21, 69 | 34, 51 |
 | 60 | the front flank | 23, 73 | 44, 19 |
-| 30 | the front flank, the sidepods begin | 43, 60 | 64, 26 |
-| 0 | the sidepods, their inlets | 71, 60 | 84, 30 |
-| -30 | the sidepods | 85, 58 | 84, 30 |
-| -60 | the sidepods' back, the number panel | 80, 58 | 67, 18 |
-| -90 | the deck, the engine cover panel | 60, 61 | 50, 18 |
-| -120 | the rear wheels' axle | 50, 62 | 50, 22 |
-| -140 | the tail | 49, 62 | 49, 28 |
+| 30 | the front flank, the sidepods begin | 39, 66 | 63, 26 |
+| 0 | the sidepods, their inlets | 70, 60 | 83, 28 |
+| -30 | the sidepods | 84, 58 | 84, 29 |
+| -60 | the sidepods' back, the number panel | 80, 58 | 60, 17 |
+| -90 | the deck, the engine cover panel | 59, 61 | 43, 15 |
+| -120 | the rear wheels' axle | 50, 62 | 49, 24 |
+| -140 | the tail | 48, 62 | 43, 24 |
 | -158 | the tail's end | 35, 64 | 32, 62 |
 
 The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the lower edge's. At z 70 to 208 the lower edge is the nose's and the front flank's lip, with the nose's belly rolled under it: the skin ends there and the inner car carries on below (the skirt further down is another piece); paint on "body" stops at the lip.
 
 ## The front and the back
 
-The body's skin has no single front or back face: only 411 cm² of it faces within 45 degrees of straight ahead and 960 cm² of straight back (the sidepods' inlet rims, the nose's wing and the tail's number panel are inner parts). `shapes.area("front")` is the two flank bulges ahead of the sidepods (1553 cm² together, z 16 to 63, from the shoulder down to the lower edge), `area("back")` the two rear flank panels behind the sidepods that face back more than sideways (2193 cm², z -97 to -57), each bounded by the lines above and below and by where the facing passes 60 degrees fore and aft.
+The body's skin has no front or back face: only 411 cm² of it faces within 45 degrees of straight ahead and 960 cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the tail's number panel are inner parts). The map gives no such areas; what faces the oncoming air is `shapes.hit`.
 
 ## Openings
 
@@ -78,19 +78,19 @@ Each body part (a pair's two sides, or the four wheels', together): its area, wh
 
 | part | cm² | top / sides / under | open | seen from behind, cm² | air, cm² | z |
 |---|---|---|---|---|---|---|
-| body shell | 17642 | 49% / 41% / 10% | 88% | 3051 | 398 | -83 to 145 |
-| rear flank | 10924 | 11% / 72% / 17% | 60% | 1974 | 1 | -152 to -25 |
-| wheel cover ring | 9566 | 0% / 49% / 51% | 76% | 409 | 463 | -150 to 208 |
-| side skirt | 9159 | 0% / 14% / 86% | 43% | 2 | 347 | -25 to 215 |
-| sidepod top | 5055 | 58% / 41% / 1% | 96% | 1208 | 21 | -50 to 12 |
+| body shell | 17642 | 48% / 42% / 10% | 88% | 3051 | 398 | -83 to 145 |
+| rear flank | 10924 | 11% / 75% / 14% | 60% | 1974 | 1 | -152 to -25 |
+| wheel cover ring | 9566 | 0% / 50% / 50% | 76% | 409 | 463 | -150 to 208 |
+| side skirt | 9159 | 0% / 14% / 85% | 43% | 2 | 347 | -25 to 215 |
+| sidepod top | 5055 | 57% / 43% / 0% | 96% | 1208 | 21 | -50 to 12 |
 | engine cover | 4411 | 100% / 0% / 0% | 95% | 2343 | 1 | -133 to -51 |
-| wheel cover hub | 4087 | 0% / 48% / 52% | 37% | 0 | 96 | -130 to 188 |
-| sidepod inlet | 3774 | 49% / 51% / 0% | 20% | 0 | 59 | -51 to 19 |
-| wheel cover disc | 3575 | 0% / 51% / 49% | 64% | 80 | 35 | -139 to 197 |
-| nose tip | 3370 | 35% / 35% / 30% | 70% | 192 | 171 | 142 to 211 |
+| wheel cover hub | 4087 | 0% / 37% / 63% | 37% | 0 | 96 | -130 to 188 |
+| sidepod inlet | 3774 | 44% / 56% / 0% | 20% | 0 | 59 | -51 to 19 |
+| wheel cover disc | 3575 | 0% / 38% / 62% | 64% | 80 | 35 | -139 to 197 |
+| nose tip | 3370 | 36% / 34% / 31% | 70% | 192 | 171 | 142 to 211 |
 | cockpit surround | 2818 | 100% / 0% / 0% | 98% | 811 | 24 | -53 to 91 |
-| diffuser | 2117 | 0% / 1% / 99% | 93% | 72 | 0 | -145 to -109 |
-| diffuser strake | 2028 | 0% / 0% / 100% | 78% | 53 | 0 | -144 to -107 |
+| diffuser | 2117 | 0% / 3% / 97% | 93% | 72 | 0 | -145 to -109 |
+| diffuser strake | 2028 | 0% / 4% / 96% | 78% | 53 | 0 | -144 to -107 |
 | tail panel | 1822 | 96% / 4% / 0% | 99% | 849 | 0 | -162 to -131 |
 | tail corner | 1762 | 59% / 41% / 0% | 88% | 649 | 0 | -159 to -123 |
 | engine cover panel | 1621 | 100% / 0% / 0% | 100% | 1052 | 0 | -120 to -81 |

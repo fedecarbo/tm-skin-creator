@@ -117,7 +117,8 @@ def measure(m, sec=None, mirror=None):
     out["ends"] = np.zeros((n, 2), bool)    # the ridge under the line ends within 8 cm (its fade-out): the line may leave it
     out["crossed"] = np.zeros((n, 2), bool)  # another ridge within 8 cm, or the ridge turns a corner: no single crest across the slice
     for j, name in enumerate(("sh", "lo")):
-        x, y = sec[name + "_x"], sec[name + "_y"]
+        # the evidence, slice by slice (the marks as read, before the curves are fitted to them)
+        x, y = (sec["raw"][:, 2 * j], sec["raw"][:, 2 * j + 1]) if "raw" in sec else (sec[name + "_x"], sec[name + "_y"])
         out["x"][:, j], out["y"][:, j] = x, y
         for k in range(n):
             a, b = st[k], st[k + 1]
@@ -173,7 +174,8 @@ def measure(m, sec=None, mirror=None):
         out["step"][1:, j] = np.where(step <= allow[1:], np.minimum(step, LIMITS["step"]), step)
         out["jump"][1:, j] |= (step > allow[1:]) & ~out["ends"][:-1, j] & ~out["ends"][1:, j]
         if mirror is not None:
-            out["sides"][:, j] = np.hypot(x - mirror[name + "_x"], y - mirror[name + "_y"])
+            mx, my = (mirror["raw"][:, 2 * j], mirror["raw"][:, 2 * j + 1]) if "raw" in mirror else (mirror[name + "_x"], mirror[name + "_y"])
+            out["sides"][:, j] = np.hypot(x - mx, y - my)
         face, bary, _ = m.at(pts)
         t = (bary[:, :, None] * uv[face]).sum(1) * TEXELS
         A, B, C = (m.V[m.F[face, i]] for i in range(3))
@@ -199,8 +201,104 @@ def draw_mask(meas):
 def mirrored_sections(m):
     """The right side's sections, mirrored onto the left."""
     flip = np.array([-1.0, 1.0, 1.0])
-    return carmap._sections(m.V * flip, m.F, m.part, m.part_names, m.layers["open"], m.lines["fold"] * flip,
+    return carmap._sections(m.V * flip, m.F, m.part, m.part_names, m.layers["open"], carmap._resample(m.ridges) * flip,
                             m.lines["opening"] * flip, lambda p: m.value("k1", p * flip))
+
+
+CURVE_LIMITS = dict(fit95=6.0, fitmax=10.0, dropped=33.0, bends=4.0, ragged=2.0, texture=4.0)  # mm, mm, %, per metre, mm, mm
+# fit95: a quarter of the mesh's median edge (2.2 cm), as the ridge limit above; a traced crest jitters by that much
+# dropped: up to a third of the evidence may belong to another edge (the arch's rim against the tail corner's)
+# bends: how often a curve changes the sense of its bend, per metre, where it bends tighter than 50 cm (a design
+# line has very few); any curve may have two (an S and its return)
+# texture: the flat map bends a straight line at every triangle's edge (the map is affine per triangle), about
+# 2 mm over 4 cm on this mesh (the floor printed under the table); a line is ragged there beyond twice that
+
+
+def _ragged(pts, window=17):
+    """How far a dense polyline (every 0.25 cm) strays from its own course smoothed over the
+    window (17 samples: 4 cm): a line the eye reads as one stroke strays under 2 mm. Returns the
+    deviations (cm)."""
+    if len(pts) < window:
+        return np.zeros(len(pts))
+    kern = np.ones(window) / window
+    sm = np.stack([np.convolve(pts[:, k], kern, mode="same") for k in range(pts.shape[1])], 1)
+    h = window // 2
+    return np.linalg.norm(pts[h:-h] - sm[h:-h], axis=1)
+
+
+def _texture_ragged(m, pts, uv):
+    """The same, on the curve's path in the flat texture, in cm on the car (texels over the local
+    texel scale), each island of the texture on its own and 3 cm clear of its seams (a seam is a
+    jump the texture makes, and the map is stretched beside it)."""
+    pts = np.asarray(pts, np.float64)
+    face, bary, _ = m.at(pts)
+    t = (bary[:, :, None] * uv[face]).sum(1) * TEXELS
+    A, B, C = (m.V[m.F[face, i]] for i in range(3))
+    area3 = 0.5 * np.linalg.norm(np.cross(B - A, C - A), axis=1)
+    u = uv[face] * TEXELS
+    area2 = 0.5 * np.abs((u[:, 1, 0] - u[:, 0, 0]) * (u[:, 2, 1] - u[:, 0, 1]) - (u[:, 1, 1] - u[:, 0, 1]) * (u[:, 2, 0] - u[:, 0, 0]))
+    scale = np.sqrt(area2 / np.maximum(area3, 1e-6))  # texels per cm
+    jump = np.r_[False, np.linalg.norm(np.diff(t, axis=0), axis=1) > 3 * 0.25 * scale[1:] + 4]
+    out = []
+    for seg in np.split(np.arange(len(t)), np.flatnonzero(jump)):
+        seg = seg[12:-12] if len(seg) > 24 and 0 < seg[0] and seg[-1] < len(t) - 1 else seg  # 3 cm clear of a seam
+        if len(seg) >= 17:
+            out.append(_ragged(t[seg]) / np.maximum(scale[seg][8:-8], 1e-6))
+    return np.concatenate(out) if out else np.zeros(1)
+
+
+def curves(m=None):
+    """The lines as the eye sees them: every fitted curve (the shoulder, the lower edge, the real
+    folds), how far its evidence lies from it (95th percentile and the most, mm), how fair it is
+    (its tightest bend as a radius, and how often per metre its bend changes sense: a design line
+    has very few), and how ragged it is at the 1 to 2 cm scale on the car and in the flat texture
+    (mm from its own course smoothed over 4 cm). The areas' boundaries are these curves and the
+    mesh's own edges, nothing else."""
+    m = m or carmap.load()
+    uv = fbx.meshes()["Skin_01"]["tri_uv"]
+    rows, fails, floors = [], [], []
+    hdr = f"{'line':11} {'z':>14} {'cm':>4} {'knots':>5} {'evid':>5} {'fit95':>6} {'fitmax':>6} {'radius':>6} {'bends/m':>7} {'ragged':>6} {'texture':>7}  verdict"
+    print(hdr)
+    print("-" * len(hdr))
+    for c in m.curves:
+        p = c["pts"].astype(np.float64)
+        name = ("shoulder", "lower", "fold")[c["kind"]]
+        length = len(p) * 0.25
+        # the bend along the curve, and its sense: the sign of the turn in the plane of the local motion
+        d1 = np.gradient(p, 0.25, axis=0)
+        d2 = np.gradient(d1, 0.25, axis=0)
+        sp = np.linalg.norm(d1, axis=1)
+        curv = np.linalg.norm(np.cross(d1, d2), axis=1) / np.maximum(sp ** 3, 1e-9)
+        n0 = np.cross(d1[len(p) // 2], d2[len(p) // 2]) if len(p) > 2 else np.array([0, 0, 1.0])
+        sense = np.sign(np.cross(d1, d2) @ (n0 / max(np.linalg.norm(n0), 1e-9)))
+        sense = sense[np.abs(curv) > 0.02]  # bending gentler than a 50 cm radius has no sense to change
+        changes = int((np.diff(sense) != 0).sum())
+        bends = changes / max(length / 100.0, 0.05)
+        radius = 1.0 / max(np.quantile(curv, 0.98), 1e-6)
+        fit95, fitmax = float(np.quantile(c["res"], 0.95)) * 10, float(c["res"].max()) * 10
+        dropped = 100.0 * c["dropped"] / max(len(c["res"]) + c["dropped"], 1)
+        rag = float(_ragged(p).max()) * 10
+        tx = _texture_ragged(m, p, uv)
+        tex = float(tx.max()) * 10
+        floors.append(float(np.median(tx)) * 10)
+        bad = [k for k, v in (("fit95", fit95), ("fitmax", fitmax), ("dropped", dropped), ("ragged", rag), ("texture", tex)) if v > CURVE_LIMITS[k]]
+        if changes > max(2, CURVE_LIMITS["bends"] * length / 100.0):
+            bad.append("bends")
+        note = f" ({c['gap']} slices without evidence)" if c.get("gap") else ""
+        note += f" ({c['dropped']} points left out)" if c.get("dropped") else ""
+        note += f" (contrast {c['contrast']:.1f})" if c["kind"] == 2 else ""
+        verdict = ("FAIL " + " ".join(bad) if bad else "ok") + note
+        if bad:
+            fails.append((name, verdict))
+        print(f"{name:11} {p[:, 2].max():6.0f} to {p[:, 2].min():4.0f} {length:4.0f} {c['knots']:5d} {len(c['res']):5d} {fit95:6.1f} {fitmax:6.1f} "
+              f"{min(radius, 999):6.0f} {bends:7.1f} {rag:6.1f} {tex:7.1f}  {verdict}")
+    print()
+    print("limits: " + ", ".join(f"{k} {v}" for k, v in CURVE_LIMITS.items()) + " (mm, mm, %, per metre, mm, mm); "
+          f"the texture's own floor, the median over the curves: {np.median(floors):.1f} mm")
+    print("the areas' boundaries: the top and the sides meet on the shoulder's curves, the sides and the underside on the "
+          "lower edge's curves or, where the body has no lower line, on the skin's own end (the mesh's boundary); nothing else")
+    print("all curves pass" if not fails else f"{len(fails)} curves fail")
+    return fails
 
 
 def check(m=None, verbose=False):

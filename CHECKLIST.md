@@ -3581,6 +3581,132 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        limits: ridge 0.6, contrast 1.5, shift 2.2, step 1.5, bend 0.25, sides 0.5, jumps 0, texture 0, edge 0.5
        all stretches pass
        ```
+  9. [x] **Round 3: the lines as fitted curves, the areas cut by them; the check measures what the eye
+     sees** (2026-09-29, the car mapper; the user: "the markings that I see are wobbly and it just
+     feels like a kid just drawn in crayons with zero precision ... We have the model and the UV map,
+     there has to be an accurate way to do it").
+     - **Why round 2's check passed crayon.** It measured only the two named lines, slice by slice,
+       with cm limits: a 1.5 cm step per 1 cm slice lets a line zigzag, and it never measured the
+       folds or the areas' edges at all. The crayon came from two things: anything read point by point
+       off the 2 cm mesh and joined up (the marks, the traced ridges), and anything bounded by a
+       threshold on a per-vertex value (the faces' 60 degree facing contour, the hidden insides'
+       openness, the areas' region by girth per slice). The crisp marks were the ones taken straight
+       from the model's own edges (the joins, the openings).
+     - **The named lines are curves** (`_fit`, `_runs`, `_curves`): each stretch of evidence (the
+       marks: the ridges' own crossings and the mesh's own edges, where drawn) fitted by least
+       squares as cubic B-splines in x(z), y(z) (`scipy.interpolate.make_lsq_spline`), a knot every
+       15 cm (KNOT), one more only where the curve misses a kept point by over 10 mm (FIT_MAX, down
+       to a knot every 5 cm), and a break only where it still misses (a corner); evidence over 8 mm
+       from the curve fitted to the rest is left out, up to a third (DROP: a second edge's points
+       interleaved with the line's, a traced crest's jitter stays in); gaps of up to 20 slices bridged
+       when the marks either side are within 3 cm per slice of gap (the top's edge across the
+       no-crease span at z 27 to 42); a run breaks at a 3 cm jump; a line is 12 cm or more. The curve
+       is not put back onto the faceted mesh (that gave it the facets' kinks: radius 1 cm, 40 to 140
+       bends a metre); its evidence lies on the skin, and it stays within a millimetre of it. Marks on
+       the skin's own edge keep to the boundary they are on from slice to slice (the arch's rim and
+       the tail corner's edge interleaved before). Result: the shoulder in 3 curves (the nose's crease
+       to the sidepod's rear corner in one, 235 cm, 15 knots), the lower edge in 4; evidence within
+       4.5 mm at the 95th percentile, 7.9 mm at most; tightest radii 9 to 61 cm; 0.9 mm ragged.
+     - **The areas are cut by the curves** (`Map._frames`, `across_level`): a point's offset across
+       the nearest curve point in the curve's own frame (N x T, pointed to the top or up), within 3 cm
+       along the car; elsewhere, where the body has no line, the distance to the skin's own end (the
+       mesh's boundary), signed by the region. The frame test holds only near the curve (within 5
+       cm, and 2 cm in from a curve's ends): projected from far off, or from beyond an end, its
+       sign is meaningless (it painted the deck "under"); further off the sign is the region's,
+       the magnitude the distance to the curve; a point whose nearest outline point is the lower
+       mark itself is on the side. Nothing is bounded by a threshold on facing, open or across any
+       more; the front and back areas are dropped (`shapes.area` knows top, sides, under),
+       as the round-2 measurement showed the skin has no front or back face (411 and 960 cm² in
+       patches); `car/map.md` says so, and where the air hits is `shapes.hit`. The hidden insides are
+       no longer painted in the test car (a threshold on openness).
+     - **Only real design edges are folds** (`_folds`, `_ridge_contrast`): of the 62 traced ridges, 47
+       stand out 1.5 times or more from the surface 3 to 10 cm either side (the contrast measure,
+       along the ridge) and run 20 cm or more; each fitted as a curve by its arc length. Of those, 39
+       are a named line, an opening's rim or a join (within 2 cm for most of their length) and are
+       drawn as that, not again as a fold: 8 folds are drawn (798 cm), each on both sides: the skirt's
+       crest along the whole flank (381 cm, the lower edge being the sidepod's bottom edge and the
+       lip above it), the inlet rim's crease, the tail corner's middle crease, the diffuser's edge.
+     - **The check measures what the eye sees** (`mapcheck.curves`, printed by `--check` after the
+       evidence table, which now reads the marks as read, `sec_raw`, and mirrors the traced ridges,
+       not the drawn folds, for the right side): per curve its length, knots, evidence, fit95 and fitmax (mm), the share of
+       evidence left out, the tightest radius (cm, 98th percentile), bends per metre (how often the
+       sense of its bend changes where it bends tighter than 50 cm; any curve may have two), ragged
+       (mm from its own course smoothed over 4 cm, on the car) and texture (the same on its path in
+       the flat texture, per island, 3 cm clear of the seams, texels over the local texel scale).
+       Limits: fit95 6 mm (a quarter of the mesh's median edge, as the ridge limit), fitmax 10,
+       dropped 33 %, bends 4 a metre, ragged 2 mm, texture 4 mm (the map bends a line at every
+       triangle's edge, about 1 mm over 4 cm on this mesh, the floor printed under the table; twice
+       it and more is the map stretching). The areas' boundaries are the curves and the mesh's own
+       edges, nothing else, so a boundary of another kind cannot exist to fail.
+     - **The check at the end of round 3** (the evidence table, then the curves):
+
+       ```
+       /app/tool/carmap.py:449: RuntimeWarning: All-NaN axis encountered
+         return np.nanmax([soon, on, at2]) > UNDER and (len(rest) < 4 or (rest < 100.0).mean() < 0.4)
+       line      side  stretch                           ridge  contr  shift   step   bend  sides  edge jumps  tex  verdict
+       --------------------------------------------------------------------------------------------------------------------
+       shoulder  left  the nose's tip                        -      -      -   0.90   0.00      -     -     0    0  ok (3: skin's end) [2 slices at a ridge's end]
+       shoulder  left  the nose                           0.59   8.86   1.92   0.45   0.00   0.00     -     0    0  ok [3 slices at a ridge's end]
+       shoulder  left  the fin's plate                    0.41   7.24   1.67   0.35   0.01   0.00     -     0    0  ok
+       shoulder  left  the bonnet                         0.21   5.83   0.12   0.31   0.00   0.00     -     0    0  ok
+       shoulder  left  the front flank and its lip        0.28   3.83   2.12   0.26   0.00   0.00     -     0    0  ok (7: no crease) [8 slices at a ridge's end]
+       shoulder  left  the sidepods' front and inlets        -      -      -      -      -   0.00  0.40     0    0  ok (7: no crease, 39: the skin's own edge) [42 slices at a ridge's end]
+       shoulder  left  the sidepods                       0.26   2.62   1.46   0.58   0.14   0.00  0.00     0    0  ok (1: no crease, 1: the skin's own edge) [6 slices at a ridge's end]
+       shoulder  left  the rear flanks and the deck       0.58   2.40   2.04   0.83   0.00   0.01     -     0    0  ok (1: no crease) [9 slices at a ridge's end]
+       shoulder  left  the tail                           0.32   5.14   1.70   0.41   0.01   0.00     -     0    0  ok (6: no crease)
+       shoulder  right the nose's tip                        -      -      -   0.90   0.00      -     -     0    0  ok (3: no crease) [2 slices at a ridge's end]
+       shoulder  right the nose                           0.59   8.86   1.92   0.45   0.00   0.00     -     0    0  ok [3 slices at a ridge's end]
+       shoulder  right the fin's plate                    0.41   7.24   1.67   0.35   0.01   0.00     -     0    0  ok
+       shoulder  right the bonnet                         0.21   5.83   0.12   0.31   0.00   0.00     -     0    0  ok
+       shoulder  right the front flank and its lip        0.28   3.83   2.12   0.27   0.00   0.00     -     0    0  ok (7: no crease) [8 slices at a ridge's end]
+       shoulder  right the sidepods' front and inlets        -      -      -      -      -   0.00  0.40     0    0  ok (7: no crease, 38: the skin's own edge) [42 slices at a ridge's end]
+       shoulder  right the sidepods                       0.26   2.62   1.46   0.58   0.13   0.00  0.00     0    0  ok (1: no crease, 1: the skin's own edge) [6 slices at a ridge's end]
+       shoulder  right the rear flanks and the deck       0.58   2.40   2.04   0.83   0.00   0.01     -     0    0  ok (1: no crease) [9 slices at a ridge's end]
+       shoulder  right the tail                           0.32   5.14   1.70   0.41   0.01   0.00     -     0    0  ok (6: no crease)
+       lower     left  the nose's tip                        -      -      -   0.90   0.00      -  0.36     0    0  ok (13: ridge, skin ends below, 3: the skin's own edge)
+       lower     left  the nose                           0.57   2.89   2.14   0.30   0.00   0.01     -     0    0  ok (50: ridge, skin ends below, 4: weak or wandering crest)
+       lower     left  the fin's plate                    0.47   4.88   1.36   0.25   0.00   0.00     -     0    0  ok (25: ridge, skin ends below)
+       lower     left  the bonnet                         0.43   7.37   1.65   0.25   0.00   0.00     -     0    0  ok (28: ridge, skin ends below)
+       lower     left  the front flank and its lip        0.41   5.31   0.56   0.94   0.00   0.00  0.44     0    0  ok (20: ridge, skin ends below, 9: the skin's own edge) [8 slices at a ridge's end]
+       lower     left  the sidepods' front and inlets        -      -      -      -      -      -  0.40     0    0  ok (47: the skin's own edge) [10 slices at a ridge's end]
+       lower     left  the sidepods                          -      -      -      -      -      -  0.37     0    0  ok (21: the skin's own edge, 3: a roll's crest, 15: weak or wandering crest) [6 slices at a ridge's end]
+       lower     left  the rear flanks and the deck       0.20   1.55   0.00      -      -   0.00  0.39     0    0  no line (31/72 slices drawn: 9: skin's end, 28: the skin's own edge, 10: a roll's crest, 32: weak or wandering crest) [1 slices at a ridge's end]
+       lower     left  the tail                              -      -      -      -      -   0.07  0.50     0    0  ok (16: skin's end, 23: the skin's own edge) [7 slices at a ridge's end]
+       lower     right the nose's tip                        -      -      -   0.90   0.00      -  0.36     0    0  ok (13: ridge, skin ends below, 3: the skin's own edge)
+       lower     right the nose                           0.57   2.89   2.14   0.30   0.00   0.01     -     0    0  ok (50: ridge, skin ends below, 4: weak or wandering crest)
+       lower     right the fin's plate                    0.47   4.88   1.36   0.25   0.00   0.00     -     0    0  ok (26: ridge, skin ends below)
+       lower     right the bonnet                         0.43   7.37   1.65   0.24   0.00   0.00     -     0    0  ok (28: ridge, skin ends below)
+       lower     right the front flank and its lip        0.41   6.20   0.56   0.94   0.00   0.00  0.44     0    0  ok (20: ridge, skin ends below, 9: the skin's own edge) [8 slices at a ridge's end]
+       lower     right the sidepods' front and inlets        -      -      -      -      -      -  0.40     0    0  ok (47: the skin's own edge) [10 slices at a ridge's end]
+       lower     right the sidepods                          -      -      -      -      -      -  0.37     0    0  ok (21: the skin's own edge, 2: a roll's crest, 15: weak or wandering crest) [6 slices at a ridge's end]
+       lower     right the rear flanks and the deck       0.43   1.55   0.00   0.44   0.00   0.00  0.39     0    0  no line (32/72 slices drawn: 9: skin's end, 28: the skin's own edge, 8: a roll's crest, 31: weak or wandering crest) [1 slices at a ridge's end]
+       lower     right the tail                              -      -      -      -      -   0.07  0.50     0    0  ok (17: skin's end, 23: the skin's own edge) [7 slices at a ridge's end]
+       
+       limits: ridge 0.6, contrast 1.5, shift 2.2, step 1.5, bend 0.25, sides 0.5, jumps 0, texture 0, edge 0.5
+       all stretches pass
+       
+       line                     z   cm knots  evid  fit95 fitmax radius bends/m ragged texture  verdict
+       ------------------------------------------------------------------------------------------------
+       shoulder       -52 to -156  104     6   105    4.1    5.4      9     1.9    0.9     2.5  ok
+       shoulder       188 to  -48  235    15   198    3.9    7.9     14     1.7    0.9     3.8  ok (14 slices without evidence) (24 points left out)
+       shoulder       208 to  188   19     0    20    2.0    2.5     17     5.2    0.8     2.4  ok
+       lower          -96 to -134   37     1    38    3.7    6.8     22     0.0    0.6     2.8  ok
+       lower           42 to  -32   75     4    70    4.2    7.7     24     1.3    0.5     3.2  ok (6 points left out)
+       lower           70 to   44   25     1    26    1.7    1.8     61     0.0    0.2     2.5  ok
+       lower          208 to   70  137     8   134    2.4    3.7     22     0.0    0.6     2.4  ok (4 slices without evidence)
+       fold           215 to -127  381    24   370    3.7    7.4     12     0.3    0.8     2.7  ok (8 points left out) (contrast 4.6)
+       fold          -117 to -141   28     1    31    3.0    4.9      6     3.6    1.4     3.2  ok (contrast 13.7)
+       fold            12 to  -11   24     1    27    1.2    1.4     69     0.0    0.1     1.1  ok (contrast 5.2)
+       fold          -125 to -148   24     1    25    2.6    2.7     14     8.5    0.4     1.9  ok (contrast 4.5)
+       fold           215 to  -24  266    17   266    2.6    3.7     11     0.0    0.7     2.7  ok (contrast 7.8)
+       fold          -117 to -141   28     1    31    3.3    5.1      6     3.6    1.5     3.9  ok (contrast 15.2)
+       fold            12 to  -11   24     1    27    1.1    1.3     52     0.0    0.1     0.9  ok (contrast 5.2)
+       fold          -125 to -148   24     1    25    1.0    1.1      8     8.5    0.8     1.9  ok (contrast 4.5)
+       
+       limits: fit95 6.0, fitmax 10.0, dropped 33.0, bends 4.0, ragged 2.0, texture 4.0 (mm, mm, %, per metre, mm, mm); the texture's own floor, the median over the curves: 1.1 mm
+       the areas' boundaries: the top and the sides meet on the shoulder's curves, the sides and the underside on the lower edge's curves or, where the body has no lower line, on the skin's own end (the mesh's boundary); nothing else
+       all curves pass
+       ```
   Later, once those work: what each game camera shows of the car, the flat spots for pictures
   measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
 - **Handover (2026-09-29, the user: "I just prefer another session with an agent that actually
