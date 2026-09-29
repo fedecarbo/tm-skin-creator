@@ -14,6 +14,31 @@ the design as asked), then speed.
 
 ## Under way
 
+- **The car's lines pinned by the user, then drawing on blueprints** (the user, 2026-09-29: "I
+  initially thought that claude actually knew how to paint just by having the 3d model and the UV
+  map ... it paints blindly ... ending up with wobbly lines, or disjointed lines"). Right: the mesh
+  is a 2 cm game mesh, fine to paint on (every texel has a 3D position) but poor to *read* design
+  lines from, and Nadeo's files hold none (the stock `Skin_B` is plain grey, `Skin_AO` soft shading,
+  the template only the mesh's wireframe, no normal map on the body). Ten steps of the car map
+  gave the machinery for painting a band (the exact 3D distance to one smooth curve) but drew the
+  curves from the mesh's curvature, which is why they wobble and differ between the two computers.
+  The pivot: the lines come from a human eye, and Claude draws everything else as smooth curves on
+  blueprints (side, top, front pictures of the car), wrapped onto the body and checked from the
+  same view. The order, with an early stop (the user: "If it's not what I was hoping we can scrap
+  it"): **(1) the Lab's lines room, done 2026-09-29** (`viewer/lab-lines.js`, `tool/lines.py`,
+  `/api/lines`, `car/lines.json`; notes in `CHECKLIST.md`, "The car's lines, pinned by the user"):
+  the user turns the 3D car and clicks a few pins along a line, the tool draws the smooth curve
+  through them on the body (Catmull-Rom, put back on the skin, smoothed), the same recipe in the
+  page and in the paint; `shapes.line`, `near` and `line_offset` go by a pinned line's name before
+  the map's. **(2) The user pins two or three lines and looks at them close up: if they don't
+  convince, stop here.** (3) The blueprints (`tool/blueprint.py`: orthographic views at a known
+  scale with a hit buffer, pixel to texel and back), (4) drawing on a view (`shapes.view_line`,
+  `view_shape`, `view_lines` across views, `view_point`), (5) the check (the same view rendered
+  from the painted texture, the intended path drawn over it, the band's centre measured against
+  it, `--falsify`), (6) a proof car (a stripe along a pinned line, a swoosh on no body line, a
+  panel wrapping over the nose, a roundel, lettering) installed and tested in the game, (7) painted
+  pictures projected from a view (the user: "Anything"), blended over several views where the body
+  turns away. The plan: `~/.claude/plans/hi-i-need-to-lucky-parnas.md` on the Mac.
 - **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
   concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
   design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care
@@ -59,7 +84,9 @@ the design as asked), then speed.
   report their aspect; the crossing check walks every band on the car and has a `--falsify` switch;
   the model's pieces are named and measured (`tool/pieces.py`). Open: two roundels that fail the 3 %
   aspect where the sheet shears (the sidepod's side, the rear flank); the tail's 2 cm slot. Notes:
-  `CHECKLIST.md`, "The car map", step 10.
+  `CHECKLIST.md`, "The car map", step 10. **Later the same day:** the map's own line-finding is no
+  longer where the lines come from (the item above): what stays is the band machinery, the sheet,
+  the mesh's own edges (openings, joins) and the checks.
 - **The car map isn't the same on the two computers** (2026-09-29, the car mapper, found while
   building the body sheet): rebuilt fresh on the Mac, the map traces 66 ridges and draws 12 folds
   where the PC recorded 62 and 8, and `python -m tool.carmap --check` fails 4 stretches (the shoulder
@@ -69,7 +96,8 @@ the design as asked), then speed.
   parabola, cuts at 1.5 cm) decides differently on tiny numeric differences between the two
   computers' numpy and BLAS. Idea: make the tracing's decisions tolerant (a seed a clear maximum by a
   margin, ties broken by position), or build the map on one computer and commit its cache's hash so
-  the other checks it matches. Not fixed: it didn't block the sheet.
+  the other checks it matches. Not fixed: it didn't block the sheet. Closed for the design once
+  the pinned lines take over (the item above): nothing design-facing depends on the tracing then.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a

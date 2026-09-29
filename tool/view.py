@@ -5,8 +5,8 @@
     python -m tool.view <name> --no-open      same, without opening the browser
 
 Python's built-in web server serves two folders (ES modules don't load from file://), the
-Lab's notes on the car (/api/notes, tool/notes.py) and each car's sets of options (/api/sets,
-tool/sets.py):
+Lab's notes on the car (/api/notes, tool/notes.py), each car's sets of options (/api/sets,
+tool/sets.py) and the car's lines as the user pins them (/api/lines, tool/lines.py):
   /        the repo's viewer/ folder: the page and three.js
   /data/   the work folder's viewer/ folder, all rebuildable:
              car.json, car.bin    the four meshes, in metres, with the car's wheels at y = 0, each
@@ -53,7 +53,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from tool import bake, dds, fbx, notes, parts, paths
+from tool import bake, dds, fbx, lines, notes, parts, paths
 from tool import sets
 
 DATA = paths.WORK / "viewer"
@@ -530,12 +530,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if url.path not in ("/api/notes", "/api/sets"):
+        if url.path not in ("/api/notes", "/api/sets", "/api/lines"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
         skin = urllib.parse.parse_qs(url.query).get("skin", [""])[0]
         try:
+            if url.path == "/api/lines":  # the car's lines as pinned in the Lab's lines room (tool/lines.py)
+                return self._json(200, lines.load())
             if url.path == "/api/sets":
                 doc = sets.lab(skin)
                 if not doc:
@@ -552,8 +554,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }
 
+    # The lines room (viewer/lab-lines.js): POST /api/lines with {"lines": [...]} keeps them all
+    # (tool/lines.py, car/lines.json), and GET /api/lines reads them back.
     def do_POST(self):
-        if urllib.parse.urlsplit(self.path).path != "/api/notes":
+        path = urllib.parse.urlsplit(self.path).path
+        if path not in ("/api/notes", "/api/lines"):
             return self._json(404, {"error": "nothing here"})
         if not self._local() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
             return self._json(403, {"error": "not from this computer"})
@@ -561,6 +566,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 10 << 20)) or b"{}")
             if not isinstance(body, dict):
                 raise ValueError("expected a JSON object")
+            if path == "/api/lines":
+                return self._json(200, lines.save(body))
             action = next((self.ACTIONS[k] for k in self.ACTIONS if k in body), None)
             self._json(200, action(body) if action else notes.add(**{k: body.get(k) for k in self.NOTE_KEYS}))
         except (ValueError, TypeError, KeyError) as e:

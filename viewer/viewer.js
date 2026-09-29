@@ -5,6 +5,8 @@
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and hangs notes on (the Lab's stand,
 //                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
+//                          or pins the car's lines on (the Lab's lines room, viewer/lab-lines.js:
+//                          snap, curves)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -463,6 +465,9 @@ async function loadLighting() {
 // ---- The car ----
 
 const parts = {};  // Skin, Details, Wheels, Glass -> mesh
+const curveGroup = new THREE.Group();  // the Lab's lines room: curves drawn on the body (viewer.curves)
+scene.add(curveGroup);
+const snapRay = new THREE.Raycaster();
 
 async function loadMeshes() {
   const meta = await (await fetch('data/car.json')).json();
@@ -1735,6 +1740,43 @@ window.viewer = {
   views() {  // the game's cameras, as the viewer's own buttons name them
     return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
   },
+  // The Lab's lines room (viewer/lab-lines.js): the user's pins for the car's lines, and the curves
+  // through them drawn on the body.
+  // snap: points ([[x, y, z]] metres) put back on the body along their normals (either way, the
+  // nearer hit within 5 cm; a point with no body that near stays put). Only the parts shown count.
+  snap(points, normals) {
+    const meshes = Object.values(parts).filter((m) => m.visible);
+    const p = new THREE.Vector3(), n = new THREE.Vector3(), from = new THREE.Vector3(), dir = new THREE.Vector3();
+    return points.map((q, i) => {
+      p.set(...q);
+      n.set(...((normals && normals[i]) || [0, 1, 0])).normalize();
+      let best = null;
+      for (const sgn of [1, -1]) {
+        from.copy(p).addScaledVector(n, 0.05 * sgn);
+        dir.copy(n).multiplyScalar(-sgn);
+        snapRay.set(from, dir);
+        snapRay.far = 0.1;
+        const hit = snapRay.intersectObjects(meshes, false).find((h) => partsState.data[partOfHit(h) * 4] > 0);
+        if (hit && (!best || Math.abs(hit.distance - 0.05) < Math.abs(best.distance - 0.05))) best = hit;
+      }
+      return best ? best.point.toArray() : q;
+    });
+  },
+  // curves: [{ key, points: [[x, y, z]] metres, colour, radius (metres), dim }], each drawn on the
+  // body as a thin tube through its points; the list replaces what was drawn (an empty one clears).
+  curves(list) {
+    for (const c of curveGroup.children) { c.geometry.dispose(); c.material.dispose(); }
+    curveGroup.clear();
+    for (const c of list) {
+      if (!c.points || c.points.length < 2) continue;
+      const path = new THREE.CatmullRomCurve3(c.points.map((p) => new THREE.Vector3(...p)), false, 'centripetal');
+      const geo = new THREE.TubeGeometry(path, Math.max(2, c.points.length), c.radius || 0.003, 6, false);
+      const mat = new THREE.MeshBasicMaterial({ color: c.colour || '#e8ff47', transparent: !!c.dim, opacity: c.dim ? 0.5 : 1 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.name = c.key || '';
+      curveGroup.add(mesh);
+    }
+  },
   // The stock car, for a Lab with no skin to show (it builds the car only when it dresses it).
   async stock() {
     const slots = await (await fetch('data/stock/stock.json')).json();
@@ -1766,7 +1808,7 @@ window.viewer = {
   },
 };
 if (embed) {  // whatever the Lab asks for is drawn, when it's asked and when it's done
-  const reads = new Set(['project', 'camera', 'views', 'gpu']);
+  const reads = new Set(['project', 'camera', 'views', 'gpu', 'snap']);
   for (const [k, f] of Object.entries(window.viewer)) {
     if (typeof f !== 'function' || reads.has(k)) continue;
     window.viewer[k] = (...args) => {

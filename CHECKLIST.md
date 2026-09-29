@@ -3921,6 +3921,59 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     no S the body doesn't make, the same both sides. Then the same lines on the flat texture (a line
     that steps in the texture steps on the car). Say what's still off before calling anything done.
 
+### The car's lines, pinned by the user (started 2026-09-29)
+
+The user's diagnosis, and the brainstorm that followed: "I initially thought that claude actually
+knew how to paint just by having the 3d model and the UV map. But ive been learning that it paints
+blindly ... wobbly lines, or disjointed lines." And: "Is there anything that I can help with the
+mesh? Maybe we build a tool to build the tool?" Yes: the one thing Claude can't do is see and click.
+
+**What was checked before pivoting.** Nadeo's files hold no design lines: the stock `Skin_B` is a
+flat grey, `Skin_AO` is soft baked shading (panel gaps and recesses, no creases sharp enough to
+trace), the template `UV_Skin.png` is the mesh's wireframe, and the body takes no normal map. The
+mesh (2 cm, 27k triangles, nine pieces with gaps) is fine to paint on and poor to read lines from:
+that is why ten steps of curvature-derived lines still looked like crayon and came out different on
+the two computers. Most lines a designer wants (a swoosh along the side) aren't mesh features anyway:
+they look right from a viewpoint. The plan (the Mac, `~/.claude/plans/hi-i-need-to-lucky-parnas.md`):
+the user pins the car's lines, Claude draws everything else on blueprints. `IMPROVEMENTS.md` has the
+order and the early stop.
+
+**Step 1, the lines room (done 2026-09-29).** `lab.html?room=lines` (`viewer/lab-lines.js`; in the
+car's menu and the rooms' bar as "The lines"). The stock car, turned by a drag, Left/Right/Front/
+Rear/Top buttons. A click on the body pins a point (the viewer's `onPick`, the same as a note's);
+the pins are numbered dots over the car (`viewer.track`), the curve through them a thin yellow tube
+on the body (`viewer.curves`, new) and its mirror a dimmer one. A click beyond an end carries the
+line on, a click between two pins adds one there (the nearest segment), a click on a pin picks it
+(then a click on the body moves it, Delete takes it off), Undo (also Ctrl/Cmd+Z, 60 steps). A line
+has a name (a list of suggestions to start from: shoulder, lower edge, sidepod top and bottom, the
+arches, nose crease, tail edge; any name works) and "Both, mirrored" or "This side only". A click on
+the inner car (the Wheels or Details map) is refused with a line saying what it hit: the lines live
+on the body. Everything saves as it changes (`POST /api/lines`, 400 ms after the last change) to
+`car/lines.json`, committed: a small asset, the same on both computers (points in cm, 0.01; normals
+for the snap).
+
+- **The curve, the same in the page and in the paint.** A centripetal Catmull-Rom spline through
+  the pins (the ends carried straight on), put back on the body and smoothed: in the page
+  `viewer.snap` (a ray along the pin's normal, either way, the nearer hit within 5 cm) then a
+  moving average over ±2 cm, then snapped again; in `tool/lines.py` the same spline every 0.25 cm,
+  `carmap.Map.project` (the nearest point on the skin) and a Gaussian of 1 cm, twice, then
+  projected once more. The user pins roughly; the curve is allowed to miss a pin by a few mm to
+  stay smooth, and `python -m tool.lines` prints by how much per pin (on a test line whose pins
+  were 3.6 mm off the body on purpose: 2 to 7 mm).
+- **The paint box goes by the pins first.** `shapes.line(name)`, `near(name, reach)` and
+  `line_offset(name, d_mm, width_mm)` take a pinned line's name before the map's line of the same
+  name; `line_offset` is the signed 3D distance to the curve (nearest point, the sign from N × T
+  oriented down the body, or outboard where the line runs up and down), both sides when mirrored.
+  An unknown name raises with the pinned and the map's names. Existing skins unchanged.
+- **Tested** by driving the room in the hidden browser (Playwright, the scratchpad's
+  `drive_lines.py`): six clicks along the map's own shoulder (one refused: from the left it landed
+  on the front wheel), a pin picked and moved, a pin added between two, Delete then Undo, "This
+  side only", a rename, a second line, the list, the top view with the mirror; the file after each
+  step read back through the API; a bad name refused with 400. Pictures in
+  `build/lines_room/`. Not yet: the user's own pins.
+- **Next:** the user pins two or three lines and looks at them close up (step 2 of the item in
+  `IMPROVEMENTS.md`). Only if they convince: the blueprints.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every
