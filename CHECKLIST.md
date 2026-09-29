@@ -3366,6 +3366,41 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        is there for streaks (noise combed along `Map.flow`), not drawn yet.
   Later, once those work: what each game camera shows of the car, the flat spots for pictures
   measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
+- **Handover (2026-09-29, the user: "I just prefer another session with an agent that actually
+  really covers the the mapping of the car and really takes close consideration because these
+  mistakes are just quite stupid ... feels like a bit careless").** The session that built the map
+  judged its lines from whole-car sheets and never zoomed in on them; close up they don't sit on
+  the car's edges. The next session works on the map with the car mapper
+  (`.claude/agents/car-mapper.md`), and nothing else built on the map moves until the user has
+  looked at its lines close up and said yes.
+  - **Can be trusted** (checked close up only here and there, so look again): `open` (the depth
+    maps: the inlets' insides, under the nose, the wheel pockets come out hidden); the air's `hit`
+    and flow (the solved potential; streamlines part round the cockpit, never merge); `along`;
+    the lookup `Map.at` (a point to the body's triangle, facing the same way).
+  - **Wrong, to redo:** the shoulder and the lower edge (so `area` "top", "sides", "under",
+    `across`, `line("shoulder"/"lower")`, `rake`, `front_rake`, the grid and `car/map.md`'s station
+    table). They're a threshold on each 1 cm slice's facing (50 and 125 degrees), outliers swapped
+    for a median and smoothed along the car: on a rounded edge the line sits wherever the
+    threshold falls, not on the edge the eye sees, and it wanders or makes an S where the section
+    changes (the sidepods' front at z 10 to 35, under the nose's and the front flank's lip at z 80 to
+    190, the nose's tip); the lower edge makes blotches at the nose. The front and back areas are a
+    threshold on the facing (0.7), so they come out as blotches, not faces. The fold line uses a
+    35-degree dihedral, and this car's edges are rounded, so it finds almost none of them.
+  - **The idea for the redo** (the user saw it and asked for a careful session to do it): the car's
+    real feature lines from its curvature. Curvature per vertex (smoothed normals, a few cm), the
+    ridges where it's highest across the line, each traced from end to end as one continuous curve
+    (following a ridge from slice to slice, never jumping to another), then smoothed as a curve.
+    Draw them all on a clay car and check every one against the car's shading close up before
+    naming any: the shoulder is the long ridge bounding the top on each side, the lower edge the
+    one where the side turns under; where the body's skin ends (the lip at z 80 to 190), say so
+    rather than draw a line. The front and back: whole faces bounded by those lines.
+  - **How to check** (the user zooms in; so must the check): `tool.snap <name> --body` for the whole
+    body, then close looks of each stretch of each line with the wheels off, both sides: the nose's
+    tip, the nose, the fin's plate, the bonnet, the front flank and its lip, the sidepods' front and
+    inlets, the sidepods, the rear flanks, the deck, the tail. Enlarge them (crop and scale) and look
+    at every line where it meets a change in the body: on the edge the eye sees, smooth, no steps,
+    no S the body doesn't make, the same both sides. Then the same lines on the flat texture (a line
+    that steps in the texture steps on the car). Say what's still off before calling anything done.
 
 ## Decisions (for Claude)
 
