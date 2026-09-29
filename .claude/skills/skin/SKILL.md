@@ -67,8 +67,10 @@ card) and no game: install from the Windows PC after a push.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls.
-  Before the first design in a session, read **the car map, `car/map.md`, and look at its
-  pictures** (`car/map/`) **and the body sheet, `car/sheet.png`** (the skin flattened in true size,
+  Before the first design in a session, look at **the blueprints, `car/blueprints/*.png`** (the
+  body flat from the left, the right, above, the front and the rear, 1 px = 1 mm, in the car's own
+  mm, the user's pins marked: `blueprints.json` lists them per view) and read **the car map,
+  `car/map.md`, and look at its pictures** (`car/map/`) **and the body sheet, `car/sheet.png`** (the skin flattened in true size,
   in millimetres: `car/sheet.json` has every line and station on it), then the docstrings of
   `tool/paintbox.py` (the key), `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in
   `tool/paintbox.py`. **Design on the sheet first:** a graphic drawn on it (`shapes.sheet(...)`,
@@ -169,10 +171,21 @@ card) and no game: install from the Windows PC after a push.
   H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.
+- **Draw lines and shapes on the blueprints** (`tool/blueprint.py`, `car/blueprints/`, 2026-09-30:
+  the user's pivot from lines guessed off the mesh, "it paints blindly ... wobbly lines"). Look at
+  the view, write the graphic as an SVG path in that view's mm (crop and enlarge the picture to
+  read positions; `python -m tool.blueprint --pins left` prints the user's pins in a view), and
+  paint it with `shapes.view_line(view, path, width_mm)` (a line, its width exact in 3D, unbroken
+  at seams), `shapes.view_shape(view, path)` (a filled shape) or `shapes.view_point(view, h, v)`
+  (a spot for a disc or a decal). The same path on "left" and "right" is the mirror. A line says
+  where it leaves the body (an opening, a wheel): read that line and redraw rather than leave a
+  gap you didn't mean. A path drawn up to an edge climbs over it: stop short if you mean to stop.
+  **After painting, run `python -m tool.blueprintcheck <name>`** and read its pictures
+  (`build/<name>_blueprint_<view>.png`) before showing the user; a FAIL is yours to fix.
 - **The user's pins** (`tool/lines.py`, `car/lines.json`, 2026-09-29): in the Lab's lines room the
   user can click a few pins along a line of the car and name it. They are marks of where a human
-  eye says a line runs, for the blueprints (`tool/blueprint.py`): draw through them there. They are
-  not curves: `python -m tool.lines` lists them.
+  eye says a line runs, drawn on the blueprints: draw through them there. They are not curves:
+  `python -m tool.lines` lists them.
 - **The car map** (`tool/carmap.py`, `car/map.md` and its pictures, 2026-09-29: the user wanted
   the AI to understand the car "so that no matter what design is done, the Ai just knows"). The
   body's shape worked out once from its mesh: its areas, its lines, positions that bend with it,

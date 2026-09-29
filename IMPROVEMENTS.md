@@ -33,14 +33,23 @@ the design as asked), then speed.
   30 cm apart leaves the body by centimetres and lands on the wrong surface when pulled back; a
   path built on the body wanders 4 cm from its pins; the user: "omg, im not sure this is the
   approach. I think we just stick to blueprint"): the pins are marks for the blueprints, drawn
-  through there, not curves. (2) → (3) The blueprints (`tool/blueprint.py`: orthographic views at a known
-  scale with a hit buffer, pixel to texel and back), (4) drawing on a view (`shapes.view_line`,
-  `view_shape`, `view_lines` across views, `view_point`), (5) the check (the same view rendered
-  from the painted texture, the intended path drawn over it, the band's centre measured against
-  it, `--falsify`), (6) a proof car (a stripe along a pinned line, a swoosh on no body line, a
-  panel wrapping over the nose, a roundel, lettering) installed and tested in the game, (7) painted
-  pictures projected from a view (the user: "Anything"), blended over several views where the body
-  turns away. The plan: `~/.claude/plans/hi-i-need-to-lucky-parnas.md` on the Mac.
+  through there, not curves. **(3) The blueprints, built 2026-09-30** (`tool/blueprint.py`,
+  `car/blueprints/`: the body from the left, the right, above, the front and the rear at 1 px = 1 mm
+  in the car's own mm, creases and panel edges drawn, a labelled grid, the user's pins marked, the
+  wheels' faces an outline only; every pixel's triangle cached in the work folder); **(4) drawing on
+  a view, built** (`shapes.view_line`, `view_shape`, `view_point`: an SVG path in the view's mm,
+  each point landed on the body along the line of sight, a line painted as the exact 3D distance
+  to that curve, a shape as what the view sees inside the outline; a line says out loud where it
+  leaves the body); **(5) the check, built** (`tool/blueprintcheck.py`: the painted texture seen
+  through the view's own hit buffer, the path drawn over it, the band's centre measured against the
+  path every 2 mm, breaks counted, a shape's edge against its outline; `--falsify` moves every path
+  5 mm and must fail: it does); the proof car TSC_Blueprint (a 20 mm line through the user's side
+  crease pins, a 30 mm swoosh from the nose to the sidepod's top, a chevron on the bonnet from
+  above): the lines' centres within 0.9 mm of the path on average, the shape's edge within 1.5 mm
+  everywhere. Left: `view_lines` across two views (a line wrapping from the side over the nose to
+  the other side), (6) the proof car in the game (nothing of this has been seen in the game yet),
+  (7) painted pictures projected from a view (the user: "Anything"), blended over several views
+  where the body turns away. The plan: `~/.claude/plans/hi-i-need-to-lucky-parnas.md` on the Mac.
 - **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
   concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
   design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care

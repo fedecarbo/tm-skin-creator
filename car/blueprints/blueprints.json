@@ -1,0 +1,282 @@
+{
+ "left": {
+  "about": "the car's left side, nose to the left",
+  "axes": [
+   "z",
+   "y"
+  ],
+  "size": [
+   3970,
+   1006
+  ],
+  "px_per_mm": 1.0,
+  "origin_px": [
+   2250.8,
+   963.9
+  ],
+  "pins": {
+   "side crease": [
+    [
+     1,
+     -1456.5,
+     389.9,
+     true
+    ],
+    [
+     2,
+     -1375.8,
+     394.6,
+     true
+    ],
+    [
+     3,
+     -897.2,
+     401.4,
+     true
+    ],
+    [
+     4,
+     -701.8,
+     394.7,
+     true
+    ],
+    [
+     5,
+     -526.9,
+     398.1,
+     true
+    ],
+    [
+     6,
+     -385.8,
+     394.8,
+     true
+    ]
+   ]
+  }
+ },
+ "right": {
+  "about": "the car's right side, nose to the right",
+  "axes": [
+   "z",
+   "y"
+  ],
+  "size": [
+   3970,
+   1006
+  ],
+  "px_per_mm": 1.0,
+  "origin_px": [
+   1718.4,
+   963.9
+  ],
+  "pins": {
+   "side crease": [
+    [
+     1,
+     -1456.5,
+     389.9,
+     false
+    ],
+    [
+     2,
+     -1375.8,
+     394.6,
+     false
+    ],
+    [
+     3,
+     -897.2,
+     401.4,
+     false
+    ],
+    [
+     4,
+     -701.8,
+     394.7,
+     false
+    ],
+    [
+     5,
+     -526.9,
+     398.1,
+     false
+    ],
+    [
+     6,
+     -385.8,
+     394.8,
+     true
+    ]
+   ]
+  }
+ },
+ "top": {
+  "about": "from above, nose up the page, the car's left on the left",
+  "axes": [
+   "x",
+   "z"
+  ],
+  "size": [
+   2344,
+   3970
+  ],
+  "px_per_mm": 1.0,
+  "origin_px": [
+   1172.0,
+   2250.8
+  ],
+  "pins": {
+   "side crease": [
+    [
+     1,
+     502.9,
+     -1456.5,
+     false
+    ],
+    [
+     2,
+     511.0,
+     -1375.8,
+     false
+    ],
+    [
+     3,
+     591.6,
+     -897.2,
+     false
+    ],
+    [
+     4,
+     722.4,
+     -701.8,
+     false
+    ],
+    [
+     5,
+     828.7,
+     -526.9,
+     false
+    ],
+    [
+     6,
+     860.6,
+     -385.8,
+     false
+    ]
+   ]
+  }
+ },
+ "front": {
+  "about": "from the front, the car's left on the right",
+  "axes": [
+   "x",
+   "y"
+  ],
+  "size": [
+   2344,
+   1006
+  ],
+  "px_per_mm": 1.0,
+  "origin_px": [
+   1172.0,
+   963.9
+  ],
+  "pins": {
+   "side crease": [
+    [
+     1,
+     502.9,
+     389.9,
+     false
+    ],
+    [
+     2,
+     511.0,
+     394.6,
+     true
+    ],
+    [
+     3,
+     591.6,
+     401.4,
+     true
+    ],
+    [
+     4,
+     722.4,
+     394.7,
+     true
+    ],
+    [
+     5,
+     828.7,
+     398.1,
+     true
+    ],
+    [
+     6,
+     860.6,
+     394.8,
+     false
+    ]
+   ]
+  }
+ },
+ "rear": {
+  "about": "from behind, the car's left on the left",
+  "axes": [
+   "x",
+   "y"
+  ],
+  "size": [
+   2344,
+   1006
+  ],
+  "px_per_mm": 1.0,
+  "origin_px": [
+   1171.2,
+   963.9
+  ],
+  "pins": {
+   "side crease": [
+    [
+     1,
+     502.9,
+     389.9,
+     true
+    ],
+    [
+     2,
+     511.0,
+     394.6,
+     false
+    ],
+    [
+     3,
+     591.6,
+     401.4,
+     true
+    ],
+    [
+     4,
+     722.4,
+     394.7,
+     true
+    ],
+    [
+     5,
+     828.7,
+     398.1,
+     true
+    ],
+    [
+     6,
+     860.6,
+     394.8,
+     false
+    ]
+   ]
+  }
+ }
+}

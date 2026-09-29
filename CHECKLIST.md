@@ -4000,6 +4000,50 @@ for the snap).
   `build/lines_room/`.
 - **Next:** the blueprints (step 3 of the item in `IMPROVEMENTS.md`).
 
+### The blueprints (started 2026-09-30)
+
+Drawing the way a livery designer draws: flat on a side view. `tool/blueprint.py` renders the body
+(the Skin mesh only, less the wheels' faces) from the left, the right, above, the front and the
+rear at 1 px = 1 mm, in the car's own mm along the two axes the view shows ((z, y) on the sides,
+(x, z) from above, (x, y) front and rear), so a point is the same numbers whichever view shows it;
+the creases (edges turning more than 35 degrees) and the panel edges (edges with one triangle)
+drawn dark where the view sees them (a depth test against the view's own depth), a 100 mm grid
+labelled every 500 mm, the wheels' faces as an outline (a landmark, not a surface to draw on: a
+line drawn across a wheel must not paint its face, which the first proof did), and the user's
+pins as numbered magenta marks, hollow where the view doesn't see them. Every pixel's triangle and
+weights are cached (`cache/blueprint_<view>_1.npz`, 7 s for all five); the pictures and
+`blueprints.json` (sizes, origins, the pins in each view's mm) live in `car/blueprints/`.
+
+- **Drawing.** `shapes.view_line(view, path, width_mm)`: an SVG path (M, L, H, V, C, S, Q, T, Z;
+  no arcs) sampled every 1 mm, each sample landed on the body through the hit buffer (the visible
+  surface along the line of sight: a path over the sidepod lands on the sidepod, not the body
+  behind), the runs on the body kept as pieces, and the line painted as `shapes.polyline`: the
+  exact 3D distance to the curve, so a 20 mm line is 20 mm where the body turns away from the view,
+  and it never breaks at a seam. Where the path leaves the body (an opening, the wheel, the
+  outline) the line stops, and the shape says so out loud ("view_line left: off the body for 359 mm
+  between (1647, 348) and (1297, 421)"): the first proof ran a line straight through the sidepod's
+  air inlet and a swoosh through the front wheel, and only the printout said. `view_shape(view,
+  path)`: the closed path filled at the view's resolution, its signed distance (mm) sampled per
+  texel at the texel's place in the view, kept to texels within 5 mm of what the view shows and
+  facing it: the far side and anything hidden stay unpainted. `view_point(view, h, v)`: the spot
+  on the body under a point, for discs and decals. The same path on the left and the right view is
+  the mirror (the side views share (z, y)).
+- **The check** (`tool/blueprintcheck.py`): the paint box records every drawing with its colour
+  (`Skin.drawn`, in `painted.json`); the painted texture is seen through the view's own hit buffer
+  (no lighting: the paint itself, texel by texel), the path drawn over it in green, and along the
+  path every 2 mm the band's centre is read across it (its colour within 70 of the paint's) and
+  measured against the path; runs of misses on the body are breaks; the body seen at a glancing
+  angle (facing under 0.35, where a band wrapping over an edge shows foreshortened) and the round
+  end caps are skipped. A shape: the paint's edge against the outline every 2 mm. `--falsify`
+  moves every path 5 mm and must fail: it does (the chevron's edge off at 86 % of its outline).
+- **The proof, TSC_Blueprint** (not a skin to drive): a 20 mm line through the user's side crease
+  pins, a 30 mm swoosh from the nose's flank to the sidepod's top edge on no line the body has, a
+  chevron filled on the bonnet from above; both sides. The lines' centres 0.5 to 0.9 mm from the
+  path on average, the shape's edge within 1.5 mm at every point of its outline. Painted in 15 s.
+  A swoosh drawn to the sidepod's top edge climbs over it onto the top face (the line of sight
+  lands there): a designer who wants it to stop at the edge draws it to stop short.
+- **Seen in the game:** not yet.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every

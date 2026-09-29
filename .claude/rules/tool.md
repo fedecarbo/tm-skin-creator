@@ -84,6 +84,10 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres` photographs the library
   (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
+- The blueprints: `PY -m tool.blueprint` renders `car/blueprints/<view>.png` (+ `blueprints.json`)
+  from the body mesh, every pixel's triangle cached in the work folder; `shapes.view_line`,
+  `view_shape` and `view_point` draw by them; `PY -m tool.blueprintcheck <name>` (and `--falsify`)
+  checks a painted car's drawings from the views. Notes: "The blueprints" in `CHECKLIST.md`.
 - The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in
   the viewer's clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
   `car/lines.json` (committed); `PY -m tool.lines` lists them. Marks for the blueprints, not

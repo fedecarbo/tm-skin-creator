@@ -27,6 +27,10 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.line("shoulder", 1.5)           a line along the shoulder, "lower", "fold", "opening", "join"
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.line_offset("shoulder", 30, 20) a 20 mm band 30 mm below the shoulder, parallel to it
+  Drawn on the blueprints (tool/blueprint.py, car/blueprints/: flat views in the car's own mm):
+    shapes.view_line("left", "M -1600,620 C ...", 20)   a 20 mm line drawn on the left view, landed on the body
+    shapes.view_shape("top", "M ... Z")                  a filled shape drawn on the top view
+    shapes.view_point("left", -400, 650)                 the spot on the body under that point of the view
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
   The body sheet (tool/surface.py: the skin flattened in true size; car/sheet.png, .svg, .json, in mm):
@@ -466,6 +470,72 @@ def line_offset(kind, d, width, soft=SOFT):
     band is a function of the point on the car, not of a flat sheet."""
     a = {"shoulder": 1, "lower": 2}[kind]
     return field(lambda p, n: width / 20 - np.abs(_map().across_level(p, a) - d / 10), soft)
+
+
+# ---- The blueprints (tool/blueprint.py): drawn flat on a view, landed on the body ----
+
+def view_line(view, path, width, soft=SOFT):
+    """A line `width` mm wide drawn on a blueprint ("left", "right", "top", "front", "rear") as an
+    SVG path in the view's mm (tool/blueprint.py says the axes: (z, y) on the sides, (x, z) from
+    above, (x, y) front and rear; M, L, C, Q, S, T, Z, no arcs). Each point of the path lands on
+    the body along the line of sight, and the line is painted as the exact 3D distance to that
+    curve, so its width holds where the body turns away from the view and it never breaks at a
+    seam. Where the path leaves the body's outline the line stops. The zone keeps .pieces (the
+    curve on the body, cm) for the check."""
+    from tool import blueprint
+    bp = blueprint.load(view)
+    pieces, gaps = [], []
+    for sub in blueprint.sample_path(path, 1.0):
+        pos, _, ok = bp.hit(sub[:, 0], sub[:, 1])
+        for run in np.split(np.arange(len(ok)), np.flatnonzero(np.diff(ok.astype(int)) != 0) + 1):
+            if ok[run[0]] and len(run) > 1:
+                pieces.append(pos[run])
+            elif not ok[run[0]] and len(run) >= 5:
+                gaps.append((tuple(sub[run[0]].round()), tuple(sub[run[-1]].round()), len(run)))
+    if gaps:  # said out loud: a path over an opening, a wheel or off the outline paints nothing there
+        print(f"view_line {view}: off the body " + "; ".join(f"for {n} mm between ({a[0]:.0f}, {a[1]:.0f}) and ({b[0]:.0f}, {b[1]:.0f})" for a, b, n in gaps))
+    z = polyline(pieces, width / 10, soft)
+    z.pieces, z.view, z.path, z.gaps, z.kind, z.width = pieces, view, path, gaps, "line", width
+    return z
+
+
+def view_shape(view, path, soft=SOFT, min_facing=0.05, tolerance=0.5):
+    """A filled shape drawn on a blueprint as a closed SVG path (subpaths add up), landed on the
+    body: every spot of the body the view sees inside the outline (within `tolerance` cm of what
+    the view shows, facing it at least `min_facing`), the edge feathered in the view's mm. The
+    far side and anything hidden behind the body stay unpainted."""
+    from scipy.ndimage import distance_transform_edt, map_coordinates
+    from PIL import Image, ImageDraw
+    from tool import blueprint
+    bp = blueprint.load(view)
+    mask = Image.new("L", (bp.W, bp.H), 0)
+    d = ImageDraw.Draw(mask)
+    for sub in blueprint.sample_path(path, 1.0):
+        px, py = bp.to_pixel(sub[:, 0], sub[:, 1])
+        d.polygon([(float(x), float(y)) for x, y in zip(px, py)], fill=255)
+    inside = np.asarray(mask) > 127
+    sdf = (distance_transform_edt(inside) - distance_transform_edt(~inside)).astype(np.float32) / blueprint.SCALE  # mm, + inside
+
+    def dist(p, n):
+        h, v, depth = bp.to_view(p)
+        px, py = bp.to_pixel(h, v)
+        d_mm = map_coordinates(sdf, [py - 0.5, px - 0.5], order=1, mode="constant", cval=-1e4)
+        shown = np.abs(depth - bp.depth_at(h, v)) <= tolerance
+        facing = (np.asarray(n, np.float64) @ bp.toward) >= min_facing
+        return np.where(shown & facing, d_mm / 10, -1e4).astype(np.float32)
+    z = field(dist, soft)
+    z.view, z.path, z.kind = view, path, "shape"
+    return z
+
+
+def view_point(view, h, v):
+    """The spot on the body under a point of a blueprint (view mm) -> (x, y, z) cm, for placing a
+    disc, a decal or a pattern's centre by eye on the picture."""
+    from tool import blueprint
+    pos, _, ok = blueprint.load(view).hit([h], [v])
+    if not ok[0]:
+        raise ValueError(f"({h}, {v}) on the {view} blueprint is off the body")
+    return tuple(float(x) for x in pos[0])
 
 
 def hit(lo, hi=1.01, soft=SOFT):
