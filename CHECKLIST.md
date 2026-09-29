@@ -3269,6 +3269,40 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
     and a set being painted at the bottom; no tags on the car for the box's words or the pick; the UV
     map room and the materials unchanged; no page errors.
 
+### The car map (started 2026-09-29)
+
+- **What it's for** (the user, 2026-09-29, after TSC_WindTunnel's concepts): "would it be best to
+  focus on actually mapping the car properly, so that no matter what design is done, the Ai just
+  knows?", then "I don't care about a car anymore, because I actually care that the Ai can prperly
+  understand how to design cars". Claude had proposed a tool for the air's path; the user saw the
+  bigger gap. Today the tool knows the car's part names (`car/parts.json`), plain cm (`shapes`), the
+  panels' seams (`shapes.seams`), a few measured regions and spots (`REGIONS`, `SPOTS`) and a map of
+  the top typed by hand in the skill. Each design learned the rest alone: TSC_WindTunnel_Smoke spent
+  250 lines cutting the body into sections to find where the top ends, the cockpit and the openings,
+  and the guides' "Learned" repeat the same lessons (a fold, an inlet, the lower crease, the ledge).
+- **The mesh** (measured 2026-09-29): Skin_01 welded at 0.01 cm is 14,678 vertices; the body is one
+  piece of 10,892 triangles, the wheel covers 4 x 2,113 and 4 x 1,236, then small loose panels (nose
+  panel, fin, mirror mounts ...); 2,254 open edges, 156 edges shared by more than two triangles.
+- **The plan, a step at a time, each shown on the car as a picture before the next:**
+  1. [ ] **The base** (`tool/carmap.py`): the body as one surface (loose panels stitched to what they
+     touch), smoothed normals, and what's outside: how much of the open air each spot sees, so "the
+     outer body" is known without lists of parts. Cached in the work folder, rebuilt with the mesh.
+  2. [ ] **Where things are, and the car's lines:** top, sides, front, back and underneath as soft
+     areas split along the car's own lines; the lines: folds, panel joins, the rims of openings, the
+     shoulder (where the top turns into the side), the lower edge (where the side turns under).
+  3. [ ] **Positions that bend with the body:** along the car, and across it (0 the top's middle, 1
+     the shoulder, 2 the lower edge), so a stripe or a line placed by them follows the body.
+  4. [ ] **The air:** the flow over the surface (the oncoming air flattened onto it, turned round
+     the openings by a Laplace solve on the mesh: potential flow), its speed and pressure, and lines
+     traced along it from any seeds.
+  5. [ ] **The map for the AI:** a sheet of pictures and words the skill loads (the areas, the lines,
+     the openings, the places to keep clear, what the chase cameras see), replacing the maps typed by
+     hand in `SKILL.md`; the shapes guide and the concept designer's brief point to it.
+  6. [ ] **The test:** TSC_WindTunnel's smoke lines redrawn on the map (the design should shrink to a
+     few lines), and the other two concepts' ideas (streaks, pressure) sketched on the same map.
+  Later, once those work: what each game camera shows of the car, the flat spots for pictures
+  measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every

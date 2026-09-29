@@ -14,6 +14,16 @@ the design as asked), then speed.
 
 ## Under way
 
+- **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
+  concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
+  design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care
+  that the Ai can prperly understand how to design cars"). Every design so far learned the car's
+  shape on its own (TSC_WindTunnel's smoke lines: 250 lines measuring sections), and the guides'
+  "Learned" are the same lessons again (a fold, an inlet, the lower crease). The map, worked out once
+  from the mesh: what's outside, where the top, sides, front, back and underneath are, the car's
+  lines, positions that bend with the body, and the air over it; then the map in words and pictures
+  for the AI. TSC_WindTunnel is parked until then, its smoke lines the map's first test. Notes:
+  `CHECKLIST.md`, "The car map".
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a
@@ -129,15 +139,6 @@ the design as asked), then speed.
 - **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
   maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
 
-- **The air's path over the body** (2026-09-29, TSC_WindTunnel: the user, "if there are capability
-  limitations in the tool, feel free to suggest"). Nothing in the tool knows which way the air runs
-  across a panel, so the concepts faked it: A with noise combed round the car's long axis, B (the
-  car) with 250 lines of its own that cut the body into sections and space the lines by girth. Both
-  miss where the air really turns: round the nose's tip, into and round the sidepod inlets, over the
-  cockpit's rim. Idea: `shapes.airflow`: the oncoming air (-z) flattened onto each triangle of the
-  skin mesh, and lines traced across the triangles from seeds (a rake's row, or points on an edge),
-  as zones of even width; streaks (A's kind) from the same field. A design then says where the
-  lines start and how many, nothing more.
 - **The concept designers share one scratch folder** (2026-09-29, TSC_WindTunnel's concepts): one
   overwrote another's script of the same name. And on the Mac, two `snap.mjs` runs at once scramble
   the cameras (a six-view sheet came out at the review angles). Idea: give each designer its own

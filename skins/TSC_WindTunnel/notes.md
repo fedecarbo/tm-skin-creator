@@ -37,3 +37,7 @@ surfaces facing back. B and C left as their designers made them (C darker than i
 in the Lab. Claude suggested B.
 Picked 2026-09-29, set 1 (user, in the Lab's timeline): B Smoke. Its design is the car's now,
 painted under TSC_WindTunnel; A and C deleted (their pictures kept in sets/1/).
+
+Parked 2026-09-29 (user): "I don't care about a car anymore, because I actually care that the Ai
+can prperly understand how to design cars". The car waits for the car map (IMPROVEMENTS.md, Under
+way); its smoke lines will be the map's first test.
