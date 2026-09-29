@@ -19,6 +19,15 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.blob((x, 0, z), 12)             a spot that isn't quite round, seen from above (axis="x": from the side)
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
+  The car map's (tool/carmap.py, car/map.md: they follow the body's own shape):
+    shapes.area("top")                     the top between the shoulders; "sides", "under", "front", "back"
+    shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
+    shapes.across(0, 0.3)                  a band round the section (0 top's middle, 1 shoulder, 2 lower edge)
+    shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
+    shapes.line("shoulder", 1.5)           a line along the shoulder, "lower", "fold", "opening", "join"
+    shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
+    shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
+    shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Lengths: the car runs from z = -162 (tail) to 215 (nose tip); the wheels sit at z = 179 and
 -120, the cockpit opening at about z = -50 .. 90, the deck behind it to z = -133. Its width is

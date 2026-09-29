@@ -24,15 +24,18 @@ with the car's name.
 
 ## On this car
 
-- Where things are: the top from above in cm, and the places to keep clear (the inlets, the number
-  and name panels, the nose fin's plate) are in `SKILL.md`, "What works on this car". The car runs
-  from z -162 (tail) to 215 (nose), the wheels at z 179 and -120, the top of the body y 84
-  (`tool/shapes.py`). The front flank isn't flat: its lower half sits back under a lip along a
-  diagonal crease.
-- Zones (`tool/shapes.py`): stripes, bands, planes for diagonal splits, `facing`, `blob`, `grass`,
-  `fade`, combined with & | ~. Spots and shapes seen from above: `facing("up", 0.4, soft=0.006) &
-  above(30)`, painted on the outer panels only. Patterns made of things: `s.scatter`; continuous
-  prints through the unfolding (they break at folds, as a real wrap would).
+- Where things are: **the car map**, `car/map.md` and its pictures (`car/map/`): the body along its
+  length (where the top ends and the side turns under at each station), its openings, every panel
+  (where it sits, how open, how big from the chase cameras), where the air hits. The places the map
+  can't know are special (the number and name panels, the nose fin's plate) are in `SKILL.md`,
+  "What works on this car". The car runs from z -162 (tail) to 215 (nose), the wheels at z 179 and
+  -120. The front flank isn't flat: its lower half sits back under a lip along a diagonal crease.
+- Zones (`tool/shapes.py`): the map's first (`area`, `outside`, `across`, `along`, `line`, `near`,
+  `hit`, `streamlines`), which follow the body by themselves; then stripes, bands, planes for diagonal
+  splits, `facing`, `blob`, `grass`, `fade`, combined with & | ~. Spots and shapes seen from above:
+  `& shapes.area("top") & shapes.outside(0.4)`. A line that runs with the car's shape: a band of
+  `across`, or `line("shoulder")`; with the air: `streamlines`. Patterns made of things: `s.scatter`;
+  continuous prints through the unfolding (they break at folds, as a real wrap would).
 - Crisp edges: the zone edge is 0.2 cm. A fade along an edge reads as blurred. Paint can't fake big
   3D shapes; a painted shadow has to be even all round.
 - An assembly's name reaches further than it looks ("front wing" also paints the pylons under the

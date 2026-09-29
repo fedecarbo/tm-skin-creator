@@ -72,9 +72,10 @@ user the Lab too.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls.
-  Before the first design in a session, read the docstrings of `tool/paintbox.py` (the key),
-  `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names
-  are in `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
+  Before the first design in a session, read **the car map, `car/map.md`, and look at its four
+  pictures** (`car/map/`), then the docstrings of `tool/paintbox.py` (the key), `tool/shapes.py`
+  (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names are in
+  `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
 - **Built in steps, from clay (the Lab, the user's idea, 2026-09-26).** A new design
   starts with `s.clay()`: the body, wheel covers and inner car in the Lab's neutral white
   clay, which stays on any part no later step paints, in the game too (the user's choice). So
@@ -171,19 +172,22 @@ user the Lab too.
   H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.
-- **The top, from above** (a map of the car in cm, 2026-09-28; x is the car's left, z forward): the
-  nose is narrow, about ±20 cm at z 200 and ±30 at z 110; the cockpit opening is x ±25 from z 85
-  back to -40 (±8 ahead of it); the body beside it widens from ±45 at z 60 to ±85 at the sidepods
-  (z 30 to -60); the deck behind is about ±55, ±45 at the tail. The top itself, crisp and without
-  the lip at the bottom that turns up again: `shapes.facing("up", 0.4, soft=0.006) &
-  shapes.above(30)` (a larger `soft` blurs the edge over centimetres where the body curves
-  gently). A round spot seen from above: `shapes.cylinder((x, -50, z), (x, 250, z), r)` & that,
-  painted on the outer panels only (`["body shell", "nose tip", "nose panel", "sidepod top",
-  "engine cover|part", "rear flank"]`), or it runs down into whatever lies under it (the user saw
-  one inside a sidepod inlet, 2026-09-28). Keep spots and graphics clear of: the sidepod inlets
-  (z -46 to 15, y 46 to 59), the number panel (x ±19, z -78 to -62) and the engine cover panel (x
-  ±19, z -120 to -82), where the game draws the player's number and name, and the nose fin's plate
-  (x ±8, z 118 to 142): its fin stands upright, so a spot there leaves a notch.
+- **The car map** (`tool/carmap.py`, `car/map.md` and its pictures, 2026-09-29: the user wanted
+  the AI to understand the car "so that no matter what design is done, the Ai just knows"). The
+  body's shape worked out once from its mesh: its areas, its lines, positions that bend with it,
+  what's open, what the chase cameras see and the air over it. Place graphics by it, not by cm
+  guesses: `shapes.area("top")` (between the shoulders; never the ledges and lips low down),
+  `shapes.outside(0.4)` (never inside an inlet or under a panel), `shapes.across(a0, a1)` and
+  `shapes.along(a0, a1)` for bands that follow the body, `~shapes.near("opening", 3)` or
+  `near("fold", 2)` to keep clear, `shapes.line("shoulder", w)` along its lines, `shapes.hit` and
+  `shapes.streamlines` for the air. A round spot seen from above: `shapes.cylinder((x, -50, z),
+  (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. The map rebuilds itself when the
+  mesh changes (`python -m tool.carmap`, 30 s); after a change to its code, rebuild, repaint the
+  four TSC_Map_ cars, take their `--body` sheets into `car/map/` and `--describe` again.
+- **Keep clear** of the places the map can't know are special: the number panel (x ±19, z -78 to
+  -62) and the engine cover panel (x ±19, z -120 to -82), where the game draws the player's number
+  and name, and the nose fin's plate (x ±8, z 118 to 142): its fin stands upright, so a spot there
+  leaves a notch.
 - **Grass up the sides:** `shapes.grass(base=, height=, line=)`, filled blades or ink strokes,
   the same silhouette both sides (TSC_Ladybird). It fills everything low, so keep it behind the
   nose: under it the side skirt runs forward as a flat ledge facing up, and the wing's pylon sits

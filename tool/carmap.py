@@ -59,7 +59,7 @@ from scipy.spatial import cKDTree
 from tool import fbx, parts, paths
 
 CACHE = paths.CACHE / "carmap.npz"
-VERSION = 11
+VERSION = 13
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 SLICE = 1.0      # cm between the sections
@@ -67,6 +67,9 @@ BIN = 0.4        # degrees, the sections' angular bins
 FOLD = 35.0      # degrees between neighbouring triangles for a fold
 NOSE_Z, TAIL_Z = 215.0, -162.0
 WHEEL_COVERS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
+# thin blades standing off the body: not part of its outline (the nose fin, upright on its plate,
+# made the top end at the car's middle over z 118 to 142)
+BLADES = ("nose fin", "mirror mount")
 LINES = ("fold", "opening", "join", "shoulder", "lower")
 FLOW_TURN = 25.0  # cm: how far ahead of a wall the air starts to turn along it (12 made sharp jogs)
 FRONT_CONE = 25.0  # degrees round forward from which a spot counts as open to the oncoming air
@@ -348,7 +351,7 @@ def _sections(V, F, part, names, open_):
     """Every slice's outline (kept for pictures) and where its marks sit: the shoulder's and the
     lower edge's x and y, and the section's middle height, each cleaned along the car so the marks
     run as smooth lines from the nose to the tail."""
-    body = ~np.isin(names[part], WHEEL_COVERS)
+    body = ~np.isin(names[part], WHEEL_COVERS + BLADES)
     faces = np.flatnonzero(body)
     Z = np.arange(TAIL_Z + SLICE / 2, NOSE_Z, SLICE)
     qs, gs, starts = [], [], [0]
@@ -518,6 +521,10 @@ def build():
     seen = _seen(V, vn, dirs, _occluders())
     w = np.maximum(vn @ dirs.T, 0)
     open_ = (seen * w).sum(1) / np.maximum(w.sum(1), 1e-9)
+    # what the game's chase cameras see (Cam 1, Cam 2 and their alts all look from behind, 20 to 30
+    # degrees above: viewer.js VIEWS), taken from one direction between them
+    chase_d = np.array([0.0, 0.42, -0.91]) / np.linalg.norm([0.0, 0.42, -0.91])
+    chase = _seen(V, vn, chase_d[None], _occluders())[:, 0] * np.maximum(vn @ chase_d, 0)
     cone = dirs[:, 2] > np.cos(np.radians(FRONT_CONE))
     front_open = seen[:, cone].mean(1)
     sec = _sections(V, F, part, names, open_)
@@ -527,6 +534,7 @@ def build():
     np.savez_compressed(CACHE, version=VERSION, V=V, F=F, fn=fn, part=part, vn=vn, area=area,
                         dirs=dirs, seen=np.packbits(seen, axis=1), open=open_.astype(np.float32),
                         front_open=front_open.astype(np.float32), flow=flow_v.astype(np.float32),
+                        chase=chase.astype(np.float32),
                         **{f"sec_{k}": v for k, v in sec.items()},
                         **{f"line_{k}": v for k, v in lines.items()})
     load.cache_clear()
@@ -551,7 +559,7 @@ class Map:
         has = np.flatnonzero(st[1:] > st[:-1])
         self._fill = has[np.abs(np.arange(len(st) - 1)[:, None] - has[None]).argmin(1)]
         across, _, _ = self.section(self.V)
-        self.layers = {"open": data["open"], "across": across, "front_open": data["front_open"],
+        self.layers = {"open": data["open"], "across": across, "front_open": data["front_open"], "chase": data["chase"],
                        "along": ((NOSE_Z - self.V[:, 2]) / (NOSE_Z - TAIL_Z)).astype(np.float32),
                        "facing_x": (self.vn[:, 0] * np.sign(self.V[:, 0] + 1e-9)).astype(np.float32),
                        "facing_y": self.vn[:, 1].astype(np.float32), "facing_z": self.vn[:, 2].astype(np.float32)}
@@ -792,8 +800,161 @@ def load():
     return Map(dict(data))
 
 
+# ---- the map in words, for the AI (car/map.md) ----
+
+MAP_MD = paths.REPO / "car" / "map.md"
+STATIONS = ((212, "the nose's tip"), (190, "the nose, over the front wing"), (178, "the front wheels' axle"),
+            (150, "the nose"), (130, "the nose fin's plate"), (110, "the bonnet"), (85, "the cockpit opening's front"),
+            (60, "the front flank"), (30, "the front flank, the sidepods begin"), (0, "the sidepods, their inlets"),
+            (-30, "the sidepods"), (-60, "the sidepods' back, the number panel"), (-90, "the deck, the engine cover panel"),
+            (-120, "the rear wheels' axle"), (-140, "the tail"), (-158, "the tail's end"))
+
+
+def _opening_groups(m):
+    """The body's openings as loops of open edges: each group's points, the parts round it, and
+    whether the oncoming air runs into it (a wall)."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    F, V = m.F, m.V
+    e = np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
+    tid = np.tile(np.arange(len(F)), 3)
+    s = np.sort(e, 1)
+    key = s[:, 0].astype(np.int64) * len(V) + s[:, 1]
+    u, inv, cnt = np.unique(key, return_inverse=True, return_counts=True)
+    single = cnt[inv] == 1
+    se, st = s[single], tid[single]
+    g = coo_matrix((np.ones(len(se)), (se[:, 0], se[:, 1])), shape=(len(V), len(V)))
+    _, lab = connected_components(g, directed=False)
+    groups = {}
+    for (a, b), t_ in zip(se, st):
+        groups.setdefault(lab[a], []).append((a, b, t_))
+    wall_tree = cKDTree(m.lines["wall"])
+    out = []
+    for edges in groups.values():
+        pts = np.array([0.5 * (V[a] + V[b]) for a, b, _ in edges])
+        length = sum(np.linalg.norm(V[a] - V[b]) for a, b, _ in edges)
+        if length < 30:
+            continue
+        parts_ = [int(m.part[t_]) for _, _, t_ in edges]
+        d, _ = wall_tree.query(pts)
+        out.append(dict(pts=pts, length=length, parts=parts_, wall=float(np.mean(d < 0.5))))
+    return out
+
+
+def describe(m=None):
+    """car/map.md: the car map in words, for Claude and the concept designers to read before
+    designing (the numbers all come from the map, so they're redone with it)."""
+    import datetime
+    m = m or load()
+    P = parts.load()
+    names = np.array([inst["name"] for inst in P.instances])
+    Z = m.sec["Z"]
+    L = ["# The car map", "",
+         f"Written by `python -m tool.carmap --describe` from the car's own mesh ({datetime.date.today()}); "
+         "`tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), before the first design "
+         "in a session. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, "
+         "z forward (the nose's tip at 215, the tail at -162).", "",
+         "## The pictures", "",
+         "The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):", "",
+         "- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey, facing forward "
+         "yellow, facing back orange, the hidden insides violet; the shoulder green, the lower edge magenta, folds "
+         "black, openings red, joins blue.",
+         "- `car/map/grid.jpg` (TSC_Map_Grid): across every quarter and along every tenth: how a band placed by "
+         "them bends with the body.",
+         "- `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet "
+         "(hidden).",
+         "- `car/map/air.jpg` (TSC_Map_Air): where the oncoming air hits, a warm ramp over black, and smoke lines "
+         "traced along its flow from a rake at the nose.", "",
+         "The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 "
+         "(https://sketchfab.com/amogusstrikesback2).", ""]
+    L += ["## The body along its length", "",
+          "Where the top ends (the shoulder) and where the side turns under (the lower edge), on each slice.", "",
+          "| z | what's there | shoulder x, y | lower edge x, y |", "|---|---|---|---|"]
+    for z, what in STATIONS:
+        k = int(np.argmin(np.abs(Z - z)))
+        sx, sy, lx, ly = (float(m.sec[n][k]) for n in ("sh_x", "sh_y", "lo_x", "lo_y"))
+        L.append(f"| {z} | {what} | {sx:.0f}, {sy:.0f} | {lx:.0f}, {ly:.0f} |")
+    high = Z[(m.sec["lo_y"] > 40) & (Z > 0)]
+    L += ["", "The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the "
+          f"lower edge's. Where the lower edge sits high (z {high.min():.0f} to {high.max():.0f}), the body's skin "
+          "ends under the nose's and the front flank's lip and the inner car carries on below: paint on \"body\" "
+          "stops there.", ""]
+    L += ["## Openings", "", "Loops of open edges 30 cm round or more (`shapes.near(\"opening\", r)` keeps clear of them); "
+          "a wall is one the oncoming air runs into, which the air turns round.", "",
+          "| round | parts | x | y | z | a wall |", "|---|---|---|---|---|---|"]
+    for g in sorted(_opening_groups(m), key=lambda g: -g["length"]):
+        pts = g["pts"]
+        if pts[:, 0].max() < -0.5:
+            continue  # the right side's mirror of a left opening
+        u, c = np.unique(names[g["parts"]], return_counts=True)
+        top = ", ".join(u[np.argsort(-c)][:2])
+        L.append(f"| {g['length']:.0f} | {top} | {pts[:, 0].min():.0f} to {pts[:, 0].max():.0f} | "
+                 f"{pts[:, 1].min():.0f} to {pts[:, 1].max():.0f} | {pts[:, 2].min():.0f} to {pts[:, 2].max():.0f} | "
+                 f"{'yes' if g['wall'] > 0.3 else 'partly' if g['wall'] > 0.05 else 'no'} |")
+    # per part: area, where it sits, what sees it
+    fa = m.area
+    lay = m.layers
+    vmean = lambda k: lay[k][m.F].mean(1)
+    across_f, open_f, chase_f = vmean("across"), vmean("open"), vmean("chase")
+    hit_f = np.clip(m.fn[:, 2], 0, 1) ** 2 * vmean("front_open")
+    rows = []
+    pname = names[m.part]
+    for name in np.unique(pname):
+        sel = pname == name
+        A = fa[sel].sum()
+        if A < 50:
+            continue
+        cen = m.V[m.F[sel]].reshape(-1, 3)
+        w = fa[sel] / A
+        share = [float((w * (across_f[sel] < 1)).sum()), float((w * ((across_f[sel] >= 1) & (across_f[sel] < 2))).sum()),
+                 float((w * (across_f[sel] >= 2)).sum())]
+        rows.append((name, "", A, share, float((w * open_f[sel]).sum()),
+                     float((fa[sel] * chase_f[sel]).sum()), float((fa[sel] * hit_f[sel]).sum()), cen))
+    L += ["", "## The panels", "",
+          "Each body part (a pair's two sides, or the four wheels', together): its area, where it sits (its share on "
+          "the top, the sides and under), how open it is, how big it looks from the chase cameras and how much of the "
+          "oncoming air it takes.", "",
+          "| part | cm² | top / sides / under | open | seen from behind, cm² | air, cm² | z |", "|---|---|---|---|---|---|---|"]
+    for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[2]):
+        L.append(f"| {name}{' (' + side + ')' if side and side != 'centre' else ''} | {A:.0f} | "
+                 f"{share[0]:.0%} / {share[1]:.0%} / {share[2]:.0%} | {op:.0%} | {ch:.0f} | {hit:.0f} | "
+                 f"{cen[:, 2].min():.0f} to {cen[:, 2].max():.0f} |")
+    tot = sum(r[5] for r in rows)
+    L += ["", "## What the player sees", "",
+          "The player sees their own car from behind all race (the chase cameras). By how big each part looks from "
+          "there:", ""]
+    for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[5])[:8]:
+        L.append(f"- {name}: {ch / tot:.0%}")
+    top_seen = float((fa * chase_f * (across_f < 1)).sum() / max((fa * chase_f).sum(), 1e-9))
+    L += ["", f"The top takes {top_seen:.0%} of what the chase cameras see; the sides most of the rest. A graphic "
+          "on the flanks is for the other players and the replays.", ""]
+    L += ["## Where the air hits", "", "By how much of the oncoming air each part takes (the Newtonian rule):", ""]
+    htot = sum(r[6] for r in rows)
+    for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[6])[:6]:
+        L.append(f"- {name}: {hit / htot:.0%}")
+    L += ["", "## Words for designs (tool/shapes.py)", "",
+          "- `shapes.area(\"top\" | \"sides\" | \"under\" | \"front\" | \"back\")`: the body's areas, split along "
+          "its own lines.",
+          "- `shapes.outside(0.4)`: the outer body only (keeps paint out of the inlets, the wheel pockets, under panels).",
+          "- `shapes.across(a0, a1)`: a band round the section (0 the top's middle, 1 the shoulder, 2 the lower edge, 3 "
+          "under), the same share of the way all along the car.",
+          "- `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).",
+          "- `shapes.line(kind, width)`, `shapes.near(kind, reach)`: along or near a fold, an opening, a join, the "
+          "shoulder, the lower edge; `~shapes.near(...)` keeps a graphic clear.",
+          "- `shapes.hit(lo, hi)`: where the oncoming air hits, 0..1 (bands of it make a pressure map).",
+          "- `shapes.streamlines(shapes.rake(z, [across ...]), width)`: smoke lines along the air's flow from a "
+          "row of seeds.",
+          "- Everything combines with `&`, `|`, `~` and the plain zones (`stripe`, `band`, `facing`, ...).", ""]
+    MAP_MD.write_text("\n".join(L))
+    return MAP_MD
+
+
 if __name__ == "__main__":
+    import sys
     import time
+    if "--describe" in sys.argv:
+        print(describe())
+        raise SystemExit
     t = time.time()
     m = build()
     print(f"built in {time.time() - t:.0f} s: {len(m.V)} vertices, {len(m.F)} triangles, {len(m.dirs)} directions")

@@ -3336,9 +3336,21 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        cockpit dead ahead of the middle line). `shapes.hit`, `shapes.rake`, `shapes.streamlines`.
        Test car: TSC_Map_Air (the hit as a warm ramp over black, smoke lines from a rake at the
        nose and two along each flank).
-  5. [ ] **The map for the AI:** a sheet of pictures and words the skill loads (the areas, the lines,
+  5. [x] **The map for the AI:** a sheet of pictures and words the skill loads (the areas, the lines,
      the openings, the places to keep clear, what the chase cameras see), replacing the maps typed by
      hand in `SKILL.md`; the shapes guide and the concept designer's brief point to it.
+     - **Built 2026-09-29:** `python -m tool.carmap --describe` writes `car/map.md` from the map:
+       the body at 16 stations (where the top ends and the side turns under), its openings (loops
+       30 cm round or more, which ones are walls to the air), every panel (area; its share on the
+       top, the sides and under; how open; how big from the chase cameras, a new layer, "chase",
+       seen from behind 25 degrees up; how much air it takes), what the player sees and where the
+       air hits. Its four pictures, `car/map/*.jpg`, are the TSC_Map_ cars' `--body` sheets. The
+       skill reads it before the first design; the hand-typed map of the top in `SKILL.md` went
+       (the places the map can't know are special stay); the shapes guide, the concept designer's
+       brief and the zones' key point to it. The nose fin and the mirror mounts are left out of the
+       outlines: the fin, upright on its plate, made the top end at the car's middle over z 118 to
+       142. From the chase cameras the top is 83 % of what the player sees (the body shell 22 %,
+       the engine cover 17 %, the rear flanks 14 %).
   6. [ ] **The test:** TSC_WindTunnel's smoke lines redrawn on the map (the design should shrink to a
      few lines), and the other two concepts' ideas (streaks, pressure) sketched on the same map.
   Later, once those work: what each game camera shows of the car, the flat spots for pictures

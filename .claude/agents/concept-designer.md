@@ -26,11 +26,15 @@ Read, in this order:
 
 1. The brief (its path is in your message) and your reading: the world it draws from, its colour
    story with its shares, its base finish, where its big shapes go. The brief's "Not" is a hard limit; its "Fixed" must be there.
-2. `.claude/skills/skin/SKILL.md`: "Designing" and "What works on this car" (the car's map from
-   above, the places to keep clear, what works and what doesn't).
-3. `.claude/skills/skin/guides/shapes.md`: the livery designer's know-how and what earlier cars
+2. The car map: `car/map.md`, and look at its four pictures in `car/map/` (the body's areas and
+   lines, a grid that bends with it, what's open, the air over it). Place your big shapes by its
+   words (`shapes.area`, `across`, `along`, `line`, `near`, `outside`, `hit`, `streamlines`), not by
+   centimetres you guess.
+3. `.claude/skills/skin/SKILL.md`: "Designing" and "What works on this car" (the places to keep
+   clear, what works and what doesn't).
+4. `.claude/skills/skin/guides/shapes.md`: the livery designer's know-how and what earlier cars
    taught.
-4. The keys to the tool: the top docstrings of `tool/paintbox.py`, `tool/shapes.py` and
+5. The keys to the tool: the top docstrings of `tool/paintbox.py`, `tool/shapes.py` and
    `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. Part names are in `car/parts.json`.
 
 Don't read other skins' designs: a studio car borrows no looks from earlier cars. Never open the
