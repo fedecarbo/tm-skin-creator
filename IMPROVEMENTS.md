@@ -17,12 +17,14 @@ the design as asked), then speed.
 - **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
   concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
   design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care
-  that the Ai can prperly understand how to design cars"). Every design so far learned the car's
-  shape on its own (TSC_WindTunnel's smoke lines: 250 lines measuring sections), and the guides'
-  "Learned" are the same lessons again (a fold, an inlet, the lower crease). The map, worked out once
-  from the mesh: what's outside, where the top, sides, front, back and underneath are, the car's
-  lines, positions that bend with the body, and the air over it; then the map in words and pictures
-  for the AI. TSC_WindTunnel is parked until then, its smoke lines the map's first test. Notes:
+  that the Ai can prperly understand how to design cars"). Built the same day, six steps
+  (`tool/carmap.py`; `car/map.md` and its pictures, read before every design): what's open, the
+  areas split along the car's own lines, its lines, positions that bend with the body, the air over
+  it (where it hits, its flow, smoke lines), what the chase cameras see. Tested on TSC_WindTunnel,
+  whose smoke lines it now draws (403 lines of design down to 76). Left, from the plan's "later":
+  what each game camera shows (only the chase cameras' view so far), the flat spots for pictures
+  measured rather than typed (`SPOTS`), a check on every paint for graphics crossing a fold or an
+  opening, and streaks combed along the flow. TSC_WindTunnel waits for the user. Notes:
   `CHECKLIST.md`, "The car map".
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but

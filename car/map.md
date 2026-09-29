@@ -20,7 +20,7 @@ Where the top ends (the shoulder) and where the side turns under (the lower edge
 | z | what's there | shoulder x, y | lower edge x, y |
 |---|---|---|---|
 | 212 | the nose's tip | 11, 24 | 7, 18 |
-| 190 | the nose, over the front wing | 16, 45 | 17, 33 |
+| 190 | the nose, over the front wing | 16, 45 | 17, 41 |
 | 178 | the front wheels' axle | 17, 48 | 19, 16 |
 | 150 | the nose | 22, 51 | 24, 43 |
 | 130 | the nose fin's plate | 25, 54 | 27, 47 |
@@ -36,7 +36,7 @@ Where the top ends (the shoulder) and where the side turns under (the lower edge
 | -140 | the tail | 49, 61 | 31, 24 |
 | -158 | the tail's end | 34, 64 | 34, 63 |
 
-The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the lower edge's. Where the lower edge sits high (z 74 to 188), the body's skin ends under the nose's and the front flank's lip and the inner car carries on below: paint on "body" stops there.
+The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the lower edge's. Where the lower edge sits high (z 74 to 192), the body's skin ends under the nose's and the front flank's lip and the inner car carries on below: paint on "body" stops there.
 
 ## Openings
 
@@ -74,21 +74,21 @@ Each body part (a pair's two sides, or the four wheels', together): its area, wh
 |---|---|---|---|---|---|---|
 | body shell | 17642 | 64% / 26% / 10% | 88% | 3051 | 398 | -83 to 145 |
 | rear flank | 10924 | 12% / 72% / 17% | 60% | 1974 | 1 | -152 to -25 |
-| wheel cover ring | 9566 | 0% / 68% / 32% | 76% | 409 | 463 | -150 to 208 |
-| side skirt | 9159 | 0% / 28% / 71% | 43% | 2 | 347 | -25 to 215 |
+| wheel cover ring | 9566 | 0% / 69% / 31% | 76% | 409 | 463 | -150 to 208 |
+| side skirt | 9159 | 0% / 26% / 73% | 43% | 2 | 347 | -25 to 215 |
 | sidepod top | 5055 | 58% / 42% / 0% | 96% | 1208 | 21 | -50 to 12 |
 | engine cover | 4411 | 100% / 0% / 0% | 95% | 2343 | 1 | -133 to -51 |
-| wheel cover hub | 4087 | 0% / 89% / 11% | 37% | 0 | 96 | -130 to 188 |
+| wheel cover hub | 4087 | 0% / 76% / 24% | 37% | 0 | 96 | -130 to 188 |
 | sidepod inlet | 3774 | 49% / 51% / 0% | 20% | 0 | 59 | -51 to 19 |
-| wheel cover disc | 3575 | 0% / 89% / 11% | 64% | 80 | 35 | -139 to 197 |
-| nose tip | 3370 | 52% / 45% / 3% | 70% | 192 | 171 | 142 to 211 |
+| wheel cover disc | 3575 | 0% / 73% / 27% | 64% | 80 | 35 | -139 to 197 |
+| nose tip | 3370 | 50% / 39% / 11% | 70% | 192 | 171 | 142 to 211 |
 | cockpit surround | 2818 | 100% / 0% / 0% | 98% | 811 | 24 | -53 to 91 |
 | diffuser | 2117 | 0% / 1% / 99% | 93% | 72 | 0 | -145 to -109 |
 | diffuser strake | 2028 | 0% / 9% / 91% | 78% | 53 | 0 | -144 to -107 |
 | tail panel | 1822 | 96% / 4% / 0% | 99% | 849 | 0 | -162 to -131 |
 | tail corner | 1762 | 64% / 35% / 1% | 88% | 649 | 0 | -159 to -123 |
 | engine cover panel | 1621 | 100% / 0% / 0% | 100% | 1052 | 0 | -120 to -81 |
-| wing pylon | 1579 | 1% / 71% / 28% | 36% | 0 | 91 | 164 to 208 |
+| wing pylon | 1579 | 14% / 34% / 52% | 36% | 0 | 91 | 164 to 208 |
 | rear quarter panel | 1347 | 100% / 0% / 0% | 94% | 491 | 0 | -85 to -42 |
 | nose panel | 1017 | 100% / 0% / 0% | 99% | 179 | 50 | 142 to 187 |
 | number panel | 655 | 100% / 0% / 0% | 100% | 391 | 0 | -78 to -62 |

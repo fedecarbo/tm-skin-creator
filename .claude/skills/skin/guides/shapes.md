@@ -66,3 +66,9 @@ with the car's name.
 - 2026-09-26, the concept round (Kintsugi, Thrown, Unravelled): crimson drops on black read as
   blood; noise finer than a few cm makes faceted edges; stripes draped round a line along the car
   fan into a sunburst near the line (TSC_FlagPeel_CostaRica).
+- 2026-09-29, the car map (TSC_WindTunnel's smoke lines): lines that follow the car are the map's
+  now, never measured in a design (its first smoke lines cut the body into sections by hand: 403
+  lines). A band that bends with the body: `across`; a line with the air: `streamlines` from a
+  `front_rake`, which covers the car evenly, as a wind tunnel's rake does; seeded on the nose alone
+  they spread far apart over the sidepods. Lines waved for a wake cross where the body narrows:
+  keep the wave small (under 2 cm).

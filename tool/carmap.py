@@ -59,7 +59,7 @@ from scipy.spatial import cKDTree
 from tool import fbx, parts, paths
 
 CACHE = paths.CACHE / "carmap.npz"
-VERSION = 13
+VERSION = 14
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 SLICE = 1.0      # cm between the sections
@@ -67,9 +67,12 @@ BIN = 0.4        # degrees, the sections' angular bins
 FOLD = 35.0      # degrees between neighbouring triangles for a fold
 NOSE_Z, TAIL_Z = 215.0, -162.0
 WHEEL_COVERS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
-# thin blades standing off the body: not part of its outline (the nose fin, upright on its plate,
-# made the top end at the car's middle over z 118 to 142)
-BLADES = ("nose fin", "mirror mount")
+# thin blades and struts standing off the body: not part of its outline (the nose fin, upright on its
+# plate, made the top end at the car's middle over z 118 to 142; the wing's pylons under the nose were
+# taken for the nose's tip, and a smoke rake started on them)
+BLADES = ("nose fin", "mirror mount", "wing pylon")
+# the low parts a smoke rake doesn't start on: the ledges and the underside's
+LOW_PARTS = ("side skirt", "diffuser", "diffuser strake", "wing pylon")
 LINES = ("fold", "opening", "join", "shoulder", "lower")
 FLOW_TURN = 25.0  # cm: how far ahead of a wall the air starts to turn along it (12 made sharp jogs)
 FRONT_CONE = 25.0  # degrees round forward from which a spot counts as open to the oncoming air
@@ -547,6 +550,7 @@ class Map:
         self.vn, self.area, self.dirs = data["vn"], data["area"], data["dirs"]
         self.seen = np.unpackbits(data["seen"], axis=1)[:, :len(self.dirs)].astype(bool)
         self.flow_v = data["flow"]
+        self.part_names = np.array([inst["name"] for inst in parts.load().instances])
         self.sec = {k[4:]: data[k] for k in data if k.startswith("sec_")}
         self.lines = {k[5:]: data[k] for k in data if k.startswith("line_")}
         self._tree = None
@@ -658,6 +662,36 @@ class Map:
             j = np.flatnonzero(ok)[np.argmin(np.abs(a[ok] - want))] if ok.any() else None
             if j is not None and abs(a[j] - want) < 0.02:
                 out.append(p3[j])
+        return np.array(out).reshape(-1, 3)
+
+    def front_rake(self, xs, top=True):
+        """A smoke rake standing in front of the car across its width: for each x (cm, the left
+        side), the first point of the body the air meets there, the most forward point of the top (or
+        of the whole outline, top=False) at that x. Lines traced from them cover the car evenly, as
+        the smoke lines in a wind tunnel photograph do."""
+        Z, st, q = self.sec["Z"], self.sec["starts"], self.sec["q"]
+        out = []
+        for x in np.atleast_1d(xs):
+            for k in range(len(Z) - 1, -1, -1):  # from the nose back
+                pts = q[st[k]:st[k + 1]]
+                if not len(pts):
+                    continue
+                near = np.flatnonzero(np.abs(pts[:, 0] - x) < 0.6)
+                if not len(near):
+                    continue
+                p3 = np.c_[pts[near], np.full(len(near), Z[k])].astype(np.float64)
+                a, _, off = self.section(p3)
+                ok = (a < 1.0) if top else np.ones(len(a), bool)
+                ok &= off < 0.5
+                if top:  # the top proper, facing up, on the upper body: not a low ledge's front end (the
+                    # side skirt runs forward under the nose to its tip) nor a strut
+                    ok &= self.value("facing_y", p3) > 0.35
+                    face, _, _ = self.at(p3)
+                    ok &= ~np.isin(self.part_names[self.part[face]], LOW_PARTS)
+                if ok.any():
+                    j = np.flatnonzero(ok)[np.argmax(p3[ok, 1])]  # the top of the body at that x
+                    out.append(p3[j] + np.array([0.0, 0.0, -1.0]))  # a centimetre in from its edge
+                    break
         return np.array(out).reshape(-1, 3)
 
     def streamlines(self, seeds, step=0.5, length=450.0):

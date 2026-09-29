@@ -3351,8 +3351,19 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        outlines: the fin, upright on its plate, made the top end at the car's middle over z 118 to
        142. From the chase cameras the top is 83 % of what the player sees (the body shell 22 %,
        the engine cover 17 %, the rear flanks 14 %).
-  6. [ ] **The test:** TSC_WindTunnel's smoke lines redrawn on the map (the design should shrink to a
+  6. [x] **The test:** TSC_WindTunnel's smoke lines redrawn on the map (the design should shrink to a
      few lines), and the other two concepts' ideas (streaks, pressure) sketched on the same map.
+     - **Done 2026-09-29:** TSC_WindTunnel's design went from 403 lines to 76: its smoke lines are
+       streamlines from a rake across the car's width (`shapes.front_rake`: for each x, where the air
+       first meets the top, facing up, never a low ledge or a strut), two along each flank, waved
+       behind the sidepods by the design (the wake: 1.8 cm, each line a little later than its
+       neighbour; 3 cm crossed lines where the deck narrows), the red line the middle streamline,
+       which stops at the cockpit's rim as the air does. A rake on the nose alone spread every
+       line apart over the sidepods (the real air's way; a wind tunnel's rake spans the car). The
+       rake's first seeds sat on the side skirt's front end, which runs under the nose to its tip,
+       and on the wing's pylons: the pylons left the outlines with the fin and the mirror mounts.
+       Pressure and streaks: TSC_Map_Air shows the air's hit as a pressure map, and the flow field
+       is there for streaks (noise combed along `Map.flow`), not drawn yet.
   Later, once those work: what each game camera shows of the car, the flat spots for pictures
   measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
 

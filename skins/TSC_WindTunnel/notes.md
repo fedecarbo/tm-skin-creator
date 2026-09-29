@@ -41,3 +41,9 @@ painted under TSC_WindTunnel; A and C deleted (their pictures kept in sets/1/).
 Parked 2026-09-29 (user): "I don't care about a car anymore, because I actually care that the Ai
 can prperly understand how to design cars". The car waits for the car map (IMPROVEMENTS.md, Under
 way); its smoke lines will be the map's first test.
+Redrawn 2026-09-29 on the car map, its first test (Claude, the car still parked): the smoke lines
+are traced along the air's flow over the body from a rake across the car's width (13 a side, 6 cm
+apart), two along each flank, waving into a wake behind the sidepods; the red line is the middle
+streamline, stopping at the cockpit's rim. The design went from 403 lines to 76. Not shown to the
+user yet; the shapes field (the red line's notch at the fin, the wake's lines touching on the deck)
+is still to do when the user comes back to the car.

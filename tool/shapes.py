@@ -491,3 +491,10 @@ def rake(z, across):
     """Seed points on the body at length z, at across positions (see across): the smoke rake's row
     for streamlines. shapes.streamlines(shapes.rake(198, np.linspace(0.1, 0.9, 5)), 1.5)."""
     return _map().rake(z, across)
+
+
+def front_rake(xs, top=True):
+    """Seed points across the car's width, each where the air first meets the top at that x (cm, the
+    left side; streamlines mirrors them): a wind tunnel's smoke rake in front of the car.
+    shapes.streamlines(shapes.front_rake(np.linspace(3, 80, 10)), 1.5)."""
+    return _map().front_rake(xs, top)
