@@ -8,6 +8,7 @@ no spline through the air. shapes.view_line, view_shape and view_point are the p
     python -m tool.blueprint                 build car/blueprints/<view>.png for every view (+ .json)
     python -m tool.blueprint --view left     one view
     python -m tool.blueprint --pins left     the user's pins (tool/lines.py) in that view's mm
+    python -m tool.blueprint --probe left "M 1850,330 C ..."   what a path lands on, every 25 mm: read it before painting
 
 A view's coordinates are the car's own, in millimetres, along the two axes the view shows
 (VIEWS): the left and right views (z, y): z forward from the car's origin, y up from the ground;
@@ -17,8 +18,11 @@ picture the left view has the nose to the left, the right view to the right, the
 nose up the page with the car's left on the page's left, the front view the car's left on the
 page's right (as you'd see it), the rear view the car's left on the page's left.
 
-The picture: the body (the Skin mesh only, less the wheels' faces, which are an outline: the
-wheels, the wing and the inner car are left off, so the body shows whole), shaded flat, its creases (edges where the surface turns more than
+The picture: the body (the Skin mesh only, less the wheels' faces and the blades, which are an
+outline: the wheels, the wing and the inner car are left off, so the body shows whole), shaded
+flat, the body turning away from the view (facing it under FACING: the top faces from the side,
+the undersides' slopes, the flanks from above) tinted blue and hatched, because a line drawn
+there from this view doesn't land: it's drawn from the view that faces it, its creases (edges where the surface turns more than
 FOLD degrees) and panel edges drawn dark, a 100 mm grid, and the user's pins from the Lab's lines
 room as numbered marks (hollow where the view doesn't see them). What every pixel shows is cached
 in the work folder (blueprint_<view>.npz: the triangle and its weights), rebuilt when the mesh or
@@ -53,17 +57,22 @@ VIEWS = {
 }
 
 
+OFF_PARTS = ("wheel cover", "nose fin", "mirror mount", "wing pylon")  # parents or names left out of what a view lands on
+FACING = 0.6  # how squarely the body must face a view for a line drawn on it to land there (about 53 degrees)
+
+
 def _mesh():
-    """The body's mesh, and which of its triangles are the wheel covers (the wheels' faces: a line
-    drawn across a wheel must not paint it, so they're left out of what a view lands on, and
-    drawn only as an outline on the picture)."""
+    """The body's mesh, and which of its triangles a view mustn't land on: the wheels' faces and
+    the blades (the nose fin, the mirror mounts, the wing's pylons). A line drawn across a wheel
+    must not paint its face, and a line that starts under the nose must not paint the pylon
+    behind it (the first proof did both). They're drawn as outlines on the picture."""
     from tool import parts
     m = fbx.meshes()["Skin_01"]
     T = m["tri_vertex"]
     p = parts.load()
     inst = p.tri_part[p.mesh_offset["Skin"]:p.mesh_offset["Skin"] + len(T)]
-    cover = np.array([x.get("parent") == "wheel cover" for x in p.instances])[inst]
-    return m["positions"].astype(np.float64), T, m["tri_uv"].astype(np.float64), m["tri_normal"].astype(np.float64), cover
+    off = np.array([x.get("parent") in OFF_PARTS or x["name"] in OFF_PARTS for x in p.instances])[inst]
+    return m["positions"].astype(np.float64), T, m["tri_uv"].astype(np.float64), m["tri_normal"].astype(np.float64), off
 
 
 class Blueprint:
@@ -78,8 +87,9 @@ class Blueprint:
         self.h_axis, self.h_sign = AXIS[spec["h"][0]], spec["h"][1]
         self.v_axis, self.v_sign = AXIS[spec["v"][0]], spec["v"][1]
         self.axes = (spec["h"][0], spec["v"][0])
-        P, T, UV, N, cover = _mesh()
-        self.P, self.T, self.UV, self.N, self.cover = P, T, UV, N, cover
+        P, T, UV, N, off = _mesh()
+        self.P, self.T, self.UV, self.N, self.off = P, T, UV, N, off
+        self.part = None  # each triangle's part name, on demand (part_of)
         h = P[:, self.h_axis] * 10 * self.h_sign
         v = P[:, self.v_axis] * 10 * self.v_sign
         self.W = int(np.ceil((h.max() - h.min() + 2 * MARGIN) * SCALE))
@@ -114,7 +124,7 @@ class Blueprint:
                 d = np.load(c)
                 self._hits = (d["tri"], d["bary"].astype(np.float32))
             else:
-                tri, bary = self._rasterise(~self.cover)
+                tri, bary = self._rasterise(~self.off)
                 c.parent.mkdir(parents=True, exist_ok=True)
                 np.savez_compressed(c, tri=tri, bary=bary.astype(np.float16))
                 self._hits = (tri, bary)
@@ -210,6 +220,12 @@ class Blueprint:
         body = tri >= 0
         grey = np.clip(shade * 205, 0, 255).astype(np.uint8)
         img[body] = grey[body][:, None]
+        # the body turning away from the view (under FACING): a line drawn there from this view
+        # doesn't land; tinted and hatched so it reads as "not from here"
+        away = body & ((n @ self.toward) < FACING)
+        hatch = ((np.arange(self.H)[:, None] + np.arange(self.W)[None, :]) % 8) < 2
+        img[away] = (img[away] * np.array([0.78, 0.86, 1.0])).astype(np.uint8)
+        img[away & hatch] = (img[away & hatch] * 0.75).astype(np.uint8)
         im = Image.fromarray(img)
         d = ImageDraw.Draw(im)
         # the grid: every 100 mm faint, every 500 mm darker and labelled
@@ -246,8 +262,8 @@ class Blueprint:
             xa, ya = self.to_pixel(ha[0], va[0])
             xb, yb = self.to_pixel(hb[0], vb[0])
             d.line([(xa, ya), (xb, yb)], fill=(55, 58, 64), width=2)
-        # the wheel covers, an outline only: a landmark, not a surface to draw on
-        wheels = self._rasterise(self.cover)[0] >= 0
+        # the wheel covers and the blades, an outline only: landmarks, not surfaces to draw on
+        wheels = self._rasterise(self.off)[0] >= 0
         edge = wheels & ~np.roll(wheels, 1, 0) | wheels & ~np.roll(wheels, 1, 1) | wheels & ~np.roll(wheels, -1, 0) | wheels & ~np.roll(wheels, -1, 1)
         ys, xs = np.nonzero(edge)
         d.point(list(zip(xs.tolist(), ys.tolist())), fill=(120, 120, 130))
@@ -275,8 +291,35 @@ class Blueprint:
                         k0 = int(np.flatnonzero(ok)[0])
                         x, y = self.to_pixel(h[k0], v[k0])
                         d.text((x + 14, y + 4), L["name"], fill=(160, 20, 100), font=font)
-        d.text((10, 6), f"{self.view}: {VIEWS[self.view]['about']}; ({hn}, {vn}) in mm, 1 px = 1 mm", fill=(0, 0, 0), font=font)
+        d.text((10, 6), f"{self.view}: {VIEWS[self.view]['about']}; ({hn}, {vn}) in mm, 1 px = 1 mm. "
+               "Blue hatching: the body turns away from this view (draw that from another). Outlines: wheels, fins.", fill=(0, 0, 0), font=font)
         return im, marks
+
+
+    def part_of(self, tri_ids):
+        """The part's name of each triangle id (-1: none)."""
+        if self.part is None:
+            from tool import parts
+            p = parts.load()
+            inst = p.tri_part[p.mesh_offset["Skin"]:p.mesh_offset["Skin"] + len(self.T)]
+            self.part = np.array([x["name"] for x in p.instances])[inst]
+        t = np.asarray(tri_ids)
+        return np.where(t >= 0, self.part[np.maximum(t, 0)], "-")
+
+    def probe(self, path, step=25.0):
+        """What a path lands on, every `step` mm: rows of (h, v, part or "off", facing the view,
+        x y z cm), for reading before painting."""
+        tri, _ = self.hits()
+        rows = []
+        for sub in sample_path(path, step):
+            pos, nrm, ok = self.hit(sub[:, 0], sub[:, 1])
+            col, row, _ = self._at(sub[:, 0], sub[:, 1])
+            part = self.part_of(np.where(ok, tri[row, col], -1))
+            facing = nrm @ self.toward
+            for k in range(len(sub)):
+                rows.append((float(sub[k, 0]), float(sub[k, 1]), str(part[k]) if ok[k] else "off", float(facing[k]) if ok[k] else 0.0,
+                             tuple(float(v) for v in pos[k]) if ok[k] else None))
+        return rows
 
 
 def _font():
@@ -430,7 +473,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--view", choices=list(VIEWS))
     ap.add_argument("--pins", metavar="VIEW", choices=list(VIEWS), help="the user's pins in that view's mm")
+    ap.add_argument("--probe", nargs=2, metavar=("VIEW", "PATH"), help="what an SVG path lands on, every 25 mm, before painting it")
     args = ap.parse_args()
+    if args.probe:
+        bp = load(args.probe[0])
+        print(f"  {bp.axes[0]:>6}  {bp.axes[1]:>5}  {'lands on':16s} facing   x     y     z (cm)")
+        for h, v, part, facing, pos in bp.probe(args.probe[1]):
+            flag = "" if part == "off" else ("  <- turns away: won't land from this view" if facing < FACING else "")
+            xyz = f"{pos[0]:6.1f} {pos[1]:5.1f} {pos[2]:6.1f}" if pos else ""
+            print(f"  {h:6.0f}  {v:5.0f}  {part:16s} {facing:5.2f}  {xyz}{flag}")
+        return
     if args.pins:
         from tool import lines
         bp = load(args.pins)

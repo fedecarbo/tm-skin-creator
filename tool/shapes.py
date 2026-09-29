@@ -474,40 +474,48 @@ def line_offset(kind, d, width, soft=SOFT):
 
 # ---- The blueprints (tool/blueprint.py): drawn flat on a view, landed on the body ----
 
-def view_line(view, path, width, soft=SOFT):
+def view_line(view, path, width, soft=SOFT, min_facing=None):
     """A line `width` mm wide drawn on a blueprint ("left", "right", "top", "front", "rear") as an
     SVG path in the view's mm (tool/blueprint.py says the axes: (z, y) on the sides, (x, z) from
     above, (x, y) front and rear; M, L, C, Q, S, T, Z, no arcs). Each point of the path lands on
     the body along the line of sight, and the line is painted as the exact 3D distance to that
-    curve, so its width holds where the body turns away from the view and it never breaks at a
-    seam. Where the path leaves the body's outline the line stops. The zone keeps .pieces (the
-    curve on the body, cm) for the check."""
+    curve, so its width holds where the body curves and it never breaks at a seam. It lands only
+    where the body faces the view (blueprint.FACING, or `min_facing`): where the path leaves the
+    body's outline, crosses a wheel or a fin, or runs onto a surface turning away from the view (a
+    top face from the side, the underside's slope: the first proof's swoosh did both), the line
+    stops there and says so; draw that stretch from the view that faces it. The zone keeps
+    .pieces (the curve on the body, cm) for the check."""
     from tool import blueprint
     bp = blueprint.load(view)
-    pieces, gaps = [], []
+    least = blueprint.FACING if min_facing is None else min_facing
+    pieces, gaps, away = [], [], []
     for sub in blueprint.sample_path(path, 1.0):
-        pos, _, ok = bp.hit(sub[:, 0], sub[:, 1])
-        for run in np.split(np.arange(len(ok)), np.flatnonzero(np.diff(ok.astype(int)) != 0) + 1):
-            if ok[run[0]] and len(run) > 1:
+        pos, nrm, ok = bp.hit(sub[:, 0], sub[:, 1])
+        faces = ok & ((nrm @ bp.toward) >= least)
+        for run in np.split(np.arange(len(faces)), np.flatnonzero(np.diff(faces.astype(int)) != 0) + 1):
+            if faces[run[0]] and len(run) > 1:
                 pieces.append(pos[run])
-            elif not ok[run[0]] and len(run) >= 5:
-                gaps.append((tuple(sub[run[0]].round()), tuple(sub[run[-1]].round()), len(run)))
-    if gaps:  # said out loud: a path over an opening, a wheel or off the outline paints nothing there
-        print(f"view_line {view}: off the body " + "; ".join(f"for {n} mm between ({a[0]:.0f}, {a[1]:.0f}) and ({b[0]:.0f}, {b[1]:.0f})" for a, b, n in gaps))
+            elif not faces[run[0]] and len(run) >= 5:
+                (away if ok[run].any() else gaps).append((tuple(sub[run[0]].round()), tuple(sub[run[-1]].round()), len(run)))
+    say = lambda what, runs: "; ".join(f"{what} for {n} mm between ({a[0]:.0f}, {a[1]:.0f}) and ({b[0]:.0f}, {b[1]:.0f})" for a, b, n in runs)
+    if gaps or away:  # said out loud: nothing is painted there
+        print(f"view_line {view}: " + "; ".join(filter(None, [say("off the body", gaps), say("the body turns away from the view", away)])))
     z = polyline(pieces, width / 10, soft)
     z.pieces, z.view, z.path, z.gaps, z.kind, z.width = pieces, view, path, gaps, "line", width
     return z
 
 
-def view_shape(view, path, soft=SOFT, min_facing=0.05, tolerance=0.5):
+def view_shape(view, path, soft=SOFT, min_facing=None, tolerance=0.5):
     """A filled shape drawn on a blueprint as a closed SVG path (subpaths add up), landed on the
     body: every spot of the body the view sees inside the outline (within `tolerance` cm of what
-    the view shows, facing it at least `min_facing`), the edge feathered in the view's mm. The
-    far side and anything hidden behind the body stay unpainted."""
+    the view shows, facing it at least `min_facing`, blueprint.FACING unless said), the edge
+    feathered in the view's mm. The far side, anything hidden behind the body and the surfaces
+    turning away from the view stay unpainted."""
     from scipy.ndimage import distance_transform_edt, map_coordinates
     from PIL import Image, ImageDraw
     from tool import blueprint
     bp = blueprint.load(view)
+    min_facing = blueprint.FACING if min_facing is None else min_facing
     mask = Image.new("L", (bp.W, bp.H), 0)
     d = ImageDraw.Draw(mask)
     for sub in blueprint.sample_path(path, 1.0):

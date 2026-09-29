@@ -45,8 +45,11 @@ the design as asked), then speed.
   path every 2 mm, breaks counted, a shape's edge against its outline; `--falsify` moves every path
   5 mm and must fail: it does); the proof car TSC_Blueprint (a 20 mm line through the user's side
   crease pins, a 30 mm swoosh from the nose to the sidepod's top, a chevron on the bonnet from
-  above): the lines' centres within 0.9 mm of the path on average, the shape's edge within 1.5 mm
-  everywhere. Left: `view_lines` across two views (a line wrapping from the side over the nose to
+  above): the lines' centres within 0.6 mm of the path on average, the shape's edge within 1.5 mm
+  everywhere. The user's look at the first swoosh ("starts above the body and ends up going below
+  the body") taught the rule that a view is trustworthy only on the surfaces that face it: the
+  views now land only there, the pictures hatch the rest, and `--probe` says what a path lands
+  on before it's painted. Left: `view_lines` across two views (a line wrapping from the side over the nose to
   the other side), (6) the proof car in the game (nothing of this has been seen in the game yet),
   (7) painted pictures projected from a view (the user: "Anything"), blended over several views
   where the body turns away. The plan: `~/.claude/plans/hi-i-need-to-lucky-parnas.md` on the Mac.

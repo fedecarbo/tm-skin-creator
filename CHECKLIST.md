@@ -4042,6 +4042,29 @@ weights are cached (`cache/blueprint_<view>_1.npz`, 7 s for all five); the pictu
   path on average, the shape's edge within 1.5 mm at every point of its outline. Painted in 15 s.
   A swoosh drawn to the sidepod's top edge climbs over it onto the top face (the line of sight
   lands there): a designer who wants it to stop at the edge draws it to stop short.
+- **The user's look (2026-09-30): "that blue line does not seem right. It starts above the body
+  and ends up going below the body facing the nose inner ... Starting to think the tool just
+  simply does not understand geometry, or there's a disconnection between uv map and model."**
+  No disconnection: the paint went exactly where the side picture said (the check proves it),
+  but a side picture also shows surfaces that face down, up or belong to fins, and the first
+  swoosh used all three: it started on the wing's pylon (at that height there is no nose, only
+  the pylon behind it), ran along the underside's slope below the front flank's fold (facing the
+  side at 0.48, down at 0.87) and climbed onto the sidepod's top face at its end (facing 0.48 side,
+  0.77 up), all read off the probe of what the path lands on. The lesson: **a view is
+  trustworthy only on the surfaces that face it.** So now (`blueprint.FACING` = 0.6, about 53
+  degrees): `view_line` and `view_shape` land only where the body faces the view, and say out
+  loud where the path runs onto a surface turning away ("the body turns away from the view for
+  ... mm between ... and ..."); the wheels' faces and the blades (the nose fin, the mirror mounts,
+  the wing's pylons: `blueprint.OFF_PARTS`) are outlines only; the picture tints and hatches in
+  blue every surface turning away from its view (the top of the nose, the sidepod's top, the
+  underside's slope, the tail's top from the side), with a caption saying to draw those from
+  another view; and `python -m tool.blueprint --probe <view> "<path>"` prints every 25 mm what a
+  path lands on (the part, how squarely it faces the view, the spot in cm), to read before
+  painting. The swoosh redrawn along the flank, above the fold, ending under the sidepod's top
+  edge: on the body shell facing the side at 0.74 to 0.89 all along, its centre within 0.45 mm
+  of the path on average. Also the stretch of the front flank the side view can't see for the
+  wheel (359 mm, behind the wheel's disc): the line stops there and starts again; if a line must
+  run behind a wheel, that stretch is drawn from another view or left to the wheel.
 - **Seen in the game:** not yet.
 
 ## Decisions (for Claude)

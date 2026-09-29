@@ -1,7 +1,9 @@
 """The blueprints' test car (tool/blueprint.py, 2026-09-29): everything on it is drawn flat on a
 view and landed on the body. A 20 mm line through the user's own pins for the side crease (the Lab's
 lines room), from the left view and again from the right; a
-30 mm swoosh from the nose's flank up to the sidepod's top edge, drawn on no line the body has; a
+30 mm swoosh along the front flank rising onto the sidepod's flank, drawn on no line the body has (its
+first drawing started on the wing's pylon, ran along the underside's slope and climbed onto the
+sidepod's top: the user saw it, 2026-09-30, and the views now land only where the body faces them); a
 chevron filled on the bonnet from the top view. A test car for the blueprints, not a skin to drive."""
 
 from tool import shapes
@@ -9,7 +11,9 @@ from tool import shapes
 BODY = "body"
 # (z, y) mm on the side views: through the pinned side crease, (-1456, 390) ... (-386, 395)
 SIDE = "M -1500,388 C -1100,394 -700,397 -386,395"
-SWOOSH = "M 1850,330 C 1400,340 1000,560 250,600"
+# the front flank faces the side between y 455 and 580 at z 1400, 505 and 680 at z 800; the sidepod's
+# top edge is at about y 745 at z 300 and the inlet's mouth below y 515 there: the swoosh keeps inside
+SWOOSH = "M 1450,500 C 1100,520 800,600 300,640"
 # (x, z) mm on the top view: an arrow head on the bonnet, pointing at the nose
 CHEVRON = "M 0,1380 L 290,960 L 150,930 L 0,1180 L -150,930 L -290,960 Z"
 
@@ -22,7 +26,7 @@ def design(s):
            "landed on the body.", words="the blueprints")
     for view in ("left", "right"):
         s.paint(BODY, "satin", colour="#d81e5b", zone=shapes.view_line(view, SIDE, 20))
-    s.step("The swoosh", "A 30 mm sweep from the nose's flank up to the sidepod's top edge, on no line the body has.",
+    s.step("The swoosh", "A 30 mm sweep along the front flank rising onto the sidepod's flank, on no line the body has.",
            words="the blueprints")
     for view in ("left", "right"):
         s.paint(BODY, "satin", colour="#1e5bd8", zone=shapes.view_line(view, SWOOSH, 30))
