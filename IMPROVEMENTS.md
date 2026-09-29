@@ -162,6 +162,33 @@ the design as asked), then speed.
   the cameras (a six-view sheet came out at the review angles). Idea: give each designer its own
   scratch folder in its brief, and have `snap.mjs` wait its turn as `tool.skin` paints do.
 
+- **Real scanned materials** (the user's pick, 2026-09-29, from a search for useful tools). Poly
+  Haven and ambientCG give measured scans for free (CC0): carbon, brushed metal, scratches, chipped
+  paint, grime. They'd feed the textures library (`tool/textures.py`, `textures/library.json`) and
+  "worn paint that reads as worn". Idea: fetch only what a finish needs, record each one's source,
+  and add no new library.
+- **Proven geometry libraries for the car map's accuracy** (2026-09-29, the user: "what I struggle
+  is the accuracy when dealing with a 3d model and uv map ... maps the curvatures from the model into
+  the uv map so the ai just knows"). The bake already gives every texel its 3D position and facing.
+  The curvature, the ridges and the curves (`carmap._curvature`, `_principal`, `_trace_ridges`,
+  `tool/mapcheck.py`) are our own numpy code. Give these to the car mapper after its current step,
+  not during it:
+  - **libigl** (Python bindings, 2.6.2 on PyPI, March 2026, MPL-2.0): tested principal curvatures
+    and directions, as a second, independent measure for `--check`, or in place of ours.
+  - **potpourri3d** (geometry-central's bindings, MIT): distances along the surface (the heat
+    method) and the logarithmic map, which gives every texel near a point its coordinates measured
+    along the body. With it, a stripe, a logo or a grid is placed by measuring on the car, so it
+    wraps without stretching and lines up across the UV seams and the mirrored halves. That serves
+    the positions that bend with the body, measured `SPOTS`, and "motifs lined up across panels".
+  - Before adding either one: its latest release, wheels for Python 3.14 on Windows and macOS arm64,
+    pinned in `requirements.txt` with the date.
+  Looked at and left out (the same search): Substance 3D Painter (US$200 once on Steam, but it's
+  painted by hand, not driven by words); Hunyuan3D-Paint and Meshy (they paint the whole mesh from
+  a sentence, loosely, ignoring the map and the game's format); Recraft (vector logos and lettering,
+  subscription) and Z-Image-Turbo (a free picture maker to compare with FLUX.2 klein): quality, not
+  accuracy, so revisit those when quality is the focus. TypeSafe's Jev only picks from fixed
+  answers, so it's no use here.
+
 ## The viewer, from the user's screenshots and videos
 
 - **The game's cameras at speed** (2026-09-25, the user). Cam 1 and 2 and their alts are fitted
