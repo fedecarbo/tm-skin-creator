@@ -174,8 +174,12 @@ card) and no game: install from the Windows PC after a push.
 - **Draw lines and shapes on the blueprints** (`tool/blueprint.py`, `car/blueprints/`, 2026-09-30:
   the user's pivot from lines guessed off the mesh, "it paints blindly ... wobbly lines"). Look at
   the view, write the graphic as an SVG path in that view's mm (crop and enlarge the picture to
-  read positions; `python -m tool.blueprint --pins left` prints the user's pins in a view), and
-  paint it with `shapes.view_line(view, path, width_mm)` (a line, its width exact in 3D, unbroken
+  read positions; `python -m tool.blueprint --pins left` prints the user's pins in a view), **keep
+  it on the plain grey: the blue-hatched surfaces turn away from that view** (the top faces from
+  the side, the flanks from above; draw those from the view that faces them), **and probe it
+  before painting: `python -m tool.blueprint --probe left "<path>"`** says every 25 mm what the
+  path lands on (the part, how squarely it faces the view); a path that lands on a fin, a wheel,
+  an opening or a surface turning away is redrawn, not painted. Then paint it with `shapes.view_line(view, path, width_mm)` (a line, its width exact in 3D, unbroken
   at seams), `shapes.view_shape(view, path)` (a filled shape) or `shapes.view_point(view, h, v)`
   (a spot for a disc or a decal). The same path on "left" and "right" is the mirror. A line says
   where it leaves the body (an opening, a wheel): read that line and redraw rather than leave a
