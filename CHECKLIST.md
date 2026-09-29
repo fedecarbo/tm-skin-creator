@@ -3317,9 +3317,25 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        `shapes.area/outside/across/along/near/line` (the docstring of `tool/carmap.py`). Test cars:
        TSC_Map_Areas (the areas in colour, the lines drawn) and TSC_Map_Grid (a grid that bends with
        the body). Left rough: under the nose, between the wing pylons.
-  4. [ ] **The air:** the flow over the surface (the oncoming air flattened onto it, turned round
+  4. [x] **The air:** the flow over the surface (the oncoming air flattened onto it, turned round
      the openings by a Laplace solve on the mesh: potential flow), its speed and pressure, and lines
      traced along it from any seeds.
+     - **Built 2026-09-29:** `hit`, how hard the oncoming air hits a spot: the Newtonian rule
+       (facing forward, squared) times how open the spot is from straight ahead (the directions
+       within 25 degrees of forward, from step 1's depth maps). The flow: a potential over the
+       welded body, least squares against the oncoming air laid flat on each triangle (which is
+       itself the gradient of -z), with a heavy penalty on the flow across each wall edge, one sparse
+       solve. A wall is an opening the oncoming air runs into, off the surface (the cockpit's front
+       rim, the inlets' mouths: 4,120 edge points), not one it runs along or leaves. Two tries
+       before it, turning the air locally near every opening, made lines jog round the cockpit
+       like circuit traces (turning within 12 cm), then swerve at every bottom and back edge
+       (35 cm, every opening a wall), then merge into two bundles along the rim (walls only): a
+       solved flow bends early and never merges two lines. Streamlines: midpoint steps of 0.5 cm,
+       projected back on the body; they slide along a wall, end where the surface turns to face back
+       (the air leaves there), where they run off the body, or where they stall head-on (the
+       cockpit dead ahead of the middle line). `shapes.hit`, `shapes.rake`, `shapes.streamlines`.
+       Test car: TSC_Map_Air (the hit as a warm ramp over black, smoke lines from a rake at the
+       nose and two along each flank).
   5. [ ] **The map for the AI:** a sheet of pictures and words the skill loads (the areas, the lines,
      the openings, the places to keep clear, what the chase cameras see), replacing the maps typed by
      hand in `SKILL.md`; the shapes guide and the concept designer's brief point to it.

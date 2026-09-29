@@ -27,6 +27,19 @@ Layers (per welded vertex of the body):
     along    0 at the nose's tip to 1 at the tail
     facing_x, facing_y, facing_z   the smoothed normal (x: out to the car's left, y: up, z: forward)
 
+The air (the car driving forward into still air, so the air comes at it along -z):
+    hit      how hard the oncoming air hits a spot, 0..1: how squarely it faces forward, squared
+             (the Newtonian rule of high-speed flow), times how much of it the car leaves in the
+             open from straight ahead (the directions within 25 degrees of forward). The nose's tip,
+             the sidepods' lips and the cockpit's front rim take it; the flanks, the deck and the
+             tail none
+    Map.flow(pos, nrm)   which way the air runs over the surface: the oncoming air laid flat on it,
+             turned to slide along a wall, an opening it runs into off the surface (the cockpit's
+             front rim, an inlet's mouth; not a bottom edge it runs along), easing in FLOW_TURN cm
+             before it
+    Map.streamlines(seeds)   lines traced along the flow from seed points on the body, as smoke
+             would run: shapes.streamlines(seeds, width) draws them
+
 Lines (points along the welded body's edges, and the across layer's own edges):
     fold      where the surface bends sharply (more than 35 degrees between neighbouring triangles)
     opening   an edge with nothing beyond it: the cockpit's rim, the inlets' mouths, the arches
@@ -46,7 +59,7 @@ from scipy.spatial import cKDTree
 from tool import fbx, parts, paths
 
 CACHE = paths.CACHE / "carmap.npz"
-VERSION = 7
+VERSION = 11
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 SLICE = 1.0      # cm between the sections
@@ -55,6 +68,8 @@ FOLD = 35.0      # degrees between neighbouring triangles for a fold
 NOSE_Z, TAIL_Z = 215.0, -162.0
 WHEEL_COVERS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 LINES = ("fold", "opening", "join", "shoulder", "lower")
+FLOW_TURN = 25.0  # cm: how far ahead of a wall the air starts to turn along it (12 made sharp jogs)
+FRONT_CONE = 25.0  # degrees round forward from which a spot counts as open to the oncoming air
 
 
 # ---- the body as one surface ----
@@ -336,8 +351,9 @@ def _sections(V, F, part, names, open_):
     body = ~np.isin(names[part], WHEEL_COVERS)
     faces = np.flatnonzero(body)
     Z = np.arange(TAIL_Z + SLICE / 2, NOSE_Z, SLICE)
-    qs, starts = [], [0]
+    qs, gs, starts = [], [], [0]
     raw = np.full((len(Z), 5), np.nan)  # shoulder x, y; lower x, y; the middle height
+    marks_g = np.full((len(Z), 2), np.inf)  # the slice's own shoulder and lower edge, as girth
     for k, z0 in enumerate(Z):
         o = _outline(V, F, open_, faces, z0 + 1e-4)
         if o is not None:
@@ -350,27 +366,37 @@ def _sections(V, F, part, names, open_):
             raw[k, 0:2] = q[i_sh] if bridge[min(i_sh + 1, len(g) - 1)] and g[i_sh] < sh else at(sh)
             raw[k, 2:4] = q[i_lo] if bridge[min(i_lo + 1, len(g) - 1)] and g[i_lo] < lo else at(lo)
             raw[k, 4] = 0.5 * (q[:, 1].min() + q[:, 1].max())
+            marks_g[k] = sh, lo
+            # every 0.25 cm along the outline, for finding where a point sits along it
+            dq, dg = [], []
+            for i in range(len(q) - 1):
+                if bridge[i + 1]:
+                    continue
+                n = max(1, int(np.ceil((g[i + 1] - g[i]) / 0.25)))
+                s = np.arange(n) / n
+                dq.append(q[i] + s[:, None] * (q[i + 1] - q[i]))
+                dg.append(g[i] + s * (g[i + 1] - g[i]))
+            dq.append(q[-1:])
+            dg.append(g[-1:])
+            q = np.concatenate(dq)
+            gs.append(np.concatenate(dg))
             qs.append(q)
         starts.append(starts[-1] + (len(qs[-1]) if o is not None else 0))
-    marks = {name: _clean(Z, raw[:, i]) for i, name in enumerate(("sh_x", "sh_y", "lo_x", "lo_y", "mid_y"))}
-    marks["mid_y"] = _clean(Z, raw[:, 4], window=15, jump=3.0, sigma=4.0)
-    return dict(Z=Z, starts=np.array(starts), q=np.concatenate(qs).astype(np.float32), **marks)
+    marks = {name: _clean(Z, raw[:, i]) for i, name in enumerate(("sh_x", "sh_y", "lo_x", "lo_y"))}
+    return dict(Z=Z, starts=np.array(starts), q=np.concatenate(qs).astype(np.float32),
+                g=np.concatenate(gs).astype(np.float32), sh_g=marks_g[:, 0], lo_g=marks_g[:, 1], **marks)
 
 
-def _across(ax, y, sx, sy, lx, ly, my):
+def _across(ax, y, sx, sy, lx, ly, region):
     """across from a point's place in its section (ax = |x|, y) and the section's marks: 0..1 over
     the top by how far out towards the shoulder (seen from above), 1..2 down the side by how far down
     towards the lower edge (seen from the side), 2..3 under by how far in from the lower edge (seen
-    from below). Which of the three by the point's angle round the section's middle against the
-    marks'. Also the scale (cm per unit of across) at the point, for crisp edges."""
-    ang = np.arctan2(ax, y - my)
-    a_sh = np.arctan2(sx, sy - my)
-    a_lo = np.arctan2(lx, ly - my)
+    from below). Which of the three (region 0, 1, 2) by where the point sits along its slice's
+    outline against the slice's own marks. Also the scale (cm per unit of across) at the point, for crisp edges."""
     s_top, s_side, s_under = np.maximum(sx, 1.0), np.maximum(sy - ly, 1.0), np.maximum(lx, 1.0)
     top = ax / s_top
     side = 1 + (sy - y) / s_side
     under = 2 + (lx - ax) / s_under
-    region = np.where(ang < a_sh, 0, np.where(ang < a_lo, 1, 2))
     raw = np.choose(region, [top, side, under])
     lo_, hi_ = region.astype(np.float64), region + 1.0
     across = np.clip(raw, lo_, hi_)
@@ -413,6 +439,20 @@ def _edge_lines(V, F, fn, part, spacing=0.4):
         lying[i] = any(abs(fn[c] @ fn[t0[i]]) > 0.8 and part[c] != part[t0[i]] for c in cand)
     kinds["join"] |= single & lying
     kinds["opening"] = single & ~lying
+    # a wall to the air: an opening the oncoming air runs into, off the surface (the cockpit's front
+    # rim, an inlet's mouth), not one it runs along (a bottom edge) or leaves behind (a back edge)
+    ea, eb = V[ends[:, 0]], V[ends[:, 1]]
+    n0 = fn[t0]
+    con = np.cross(eb - ea, n0)
+    con /= np.maximum(np.linalg.norm(con, axis=1, keepdims=True), 1e-12)
+    third = cen[t0] - 0.5 * (ea + eb)
+    con *= np.where((con * third).sum(1) > 0, -1.0, 1.0)[:, None]  # pointing off the triangle
+    air = np.array([0.0, 0.0, -1.0])
+    u0 = air - (n0 @ air)[:, None] * n0
+    u0 /= np.maximum(np.linalg.norm(u0, axis=1, keepdims=True), 1e-9)
+    kinds["wall"] = kinds["opening"] & ((u0 * con).sum(1) > 0.35)
+    w = kinds["wall"]
+    walls = dict(tri=t0[w], con=con[w], length=np.linalg.norm(eb[w] - ea[w], axis=1))
     out = {}
     for kind, sel in kinds.items():
         a, b = V[ends[sel, 0]], V[ends[sel, 1]]
@@ -421,7 +461,52 @@ def _edge_lines(V, F, fn, part, spacing=0.4):
         rep = np.repeat(np.arange(len(k)), k + 1)
         tt = np.concatenate([np.linspace(0, 1, n + 1) for n in k]) if len(k) else np.zeros(0)
         out[kind] = (a[rep] + tt[:, None] * (b[rep] - a[rep])).astype(np.float32)
-    return out
+    return out, walls
+
+
+# ---- the air over the surface ----
+
+def _flow_field(V, F, walls, weight=1e4):
+    """The air's flow over the body, per vertex: the potential phi whose surface gradient is closest
+    to the oncoming air laid flat on each triangle (least squares, weighted by area), with the flow
+    held tangent to the walls (a heavy penalty on its component across each wall edge). The oncoming
+    air laid flat is itself the gradient of -z, so phi = -z plus a harmonic correction that turns the
+    air round the walls smoothly and early, as potential flow does, and never merges two lines."""
+    from scipy.sparse import coo_matrix, diags, vstack
+    from scipy.sparse.linalg import spsolve
+    A, B, C = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
+    n = np.cross(B - A, C - A)
+    area2 = np.linalg.norm(n, axis=1)
+    ok = area2 > 1e-9
+    n = n / np.maximum(area2, 1e-12)[:, None]
+    T = len(F)
+    # the gradient of the linear function with vertex values f: sum f_i (n x e_i) / (2 area), with
+    # e_i the edge opposite vertex i, anticlockwise
+    rows, cols, vals = [], [], []
+    for i, (p, q) in enumerate(((B, C), (C, A), (A, B))):
+        g = np.cross(n, q - p) / np.maximum(area2, 1e-12)[:, None]
+        for k in range(3):
+            rows.append(np.arange(T) * 3 + k)
+            cols.append(F[:, i])
+            vals.append(np.where(ok, g[:, k], 0.0))
+    G = coo_matrix((np.concatenate(vals), (np.concatenate(rows), np.concatenate(cols))), shape=(3 * T, len(V))).tocsr()
+    air = np.array([0.0, 0.0, -1.0])
+    u0 = air - (n @ air)[:, None] * n
+    w = np.repeat(np.where(ok, 0.5 * area2, 0.0), 3)
+    # the walls: the flow's component across each wall edge, from its triangle's gradient
+    Wt, Wc, Wl = walls["tri"], walls["con"], walls["length"]
+    Gx, Gy, Gz = G[0::3], G[1::3], G[2::3]
+    Cw = diags(Wc[:, 0]) @ Gx[Wt] + diags(Wc[:, 1]) @ Gy[Wt] + diags(Wc[:, 2]) @ Gz[Wt]
+    M = G.T @ diags(w) @ G + weight * (Cw.T @ diags(Wl) @ Cw) + 1e-6 * diags(np.ones(len(V)))
+    rhs = G.T @ (w * u0.reshape(-1))
+    phi = spsolve(M.tocsc(), rhs)
+    flow_t = (G @ phi).reshape(T, 3)
+    # per vertex: the area-weighted mean of its triangles' flow
+    fv = np.zeros_like(V)
+    for k in range(3):
+        np.add.at(fv, F[:, k], flow_t * (0.5 * area2)[:, None])
+    wsum = np.bincount(F.reshape(-1), weights=np.repeat(0.5 * area2, 3), minlength=len(V))
+    return fv / np.maximum(wsum, 1e-9)[:, None], np.linalg.norm(flow_t, axis=1)
 
 
 # ---- building and loading ----
@@ -433,11 +518,15 @@ def build():
     seen = _seen(V, vn, dirs, _occluders())
     w = np.maximum(vn @ dirs.T, 0)
     open_ = (seen * w).sum(1) / np.maximum(w.sum(1), 1e-9)
+    cone = dirs[:, 2] > np.cos(np.radians(FRONT_CONE))
+    front_open = seen[:, cone].mean(1)
     sec = _sections(V, F, part, names, open_)
-    lines = _edge_lines(V, F, fn, part)
+    lines, walls = _edge_lines(V, F, fn, part)
+    flow_v, _ = _flow_field(V, F, walls)
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(CACHE, version=VERSION, V=V, F=F, fn=fn, part=part, vn=vn, area=area,
                         dirs=dirs, seen=np.packbits(seen, axis=1), open=open_.astype(np.float32),
+                        front_open=front_open.astype(np.float32), flow=flow_v.astype(np.float32),
                         **{f"sec_{k}": v for k, v in sec.items()},
                         **{f"line_{k}": v for k, v in lines.items()})
     load.cache_clear()
@@ -449,6 +538,7 @@ class Map:
         self.V, self.F, self.fn, self.part = data["V"], data["F"], data["fn"], data["part"]
         self.vn, self.area, self.dirs = data["vn"], data["area"], data["dirs"]
         self.seen = np.unpackbits(data["seen"], axis=1)[:, :len(self.dirs)].astype(bool)
+        self.flow_v = data["flow"]
         self.sec = {k[4:]: data[k] for k in data if k.startswith("sec_")}
         self.lines = {k[5:]: data[k] for k in data if k.startswith("line_")}
         self._tree = None
@@ -456,8 +546,12 @@ class Map:
         self._sec_last = None
         self._grad = {}
         self._line_trees = {}
+        self._slice_trees = {}
+        st = self.sec["starts"]
+        has = np.flatnonzero(st[1:] > st[:-1])
+        self._fill = has[np.abs(np.arange(len(st) - 1)[:, None] - has[None]).argmin(1)]
         across, _, _ = self.section(self.V)
-        self.layers = {"open": data["open"], "across": across,
+        self.layers = {"open": data["open"], "across": across, "front_open": data["front_open"],
                        "along": ((NOSE_Z - self.V[:, 2]) / (NOSE_Z - TAIL_Z)).astype(np.float32),
                        "facing_x": (self.vn[:, 0] * np.sign(self.V[:, 0] + 1e-9)).astype(np.float32),
                        "facing_y": self.vn[:, 1].astype(np.float32), "facing_z": self.vn[:, 2].astype(np.float32)}
@@ -466,7 +560,23 @@ class Map:
 
     def _marks_at(self, z):
         Z = self.sec["Z"]
-        return [np.interp(z, Z, self.sec[k]) for k in ("sh_x", "sh_y", "lo_x", "lo_y", "mid_y")]
+        return [np.interp(z, Z, self.sec[k]) for k in ("sh_x", "sh_y", "lo_x", "lo_y")]
+
+    def _region(self, pos):
+        """0 top, 1 side, 2 under: where each point's nearest point on its nearest slice's outline
+        sits against that slice's own shoulder and lower edge."""
+        Z, st, q, g = self.sec["Z"], self.sec["starts"], self.sec["q"], self.sec["g"]
+        k = self._fill[np.clip(np.rint((pos[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)]
+        p2 = np.stack([np.abs(pos[:, 0]), pos[:, 1]], 1)
+        out = np.zeros(len(pos), int)
+        for kk in np.unique(k):
+            if kk not in self._slice_trees:
+                self._slice_trees[kk] = cKDTree(q[st[kk]:st[kk + 1]])
+            sel = np.flatnonzero(k == kk)
+            _, i = self._slice_trees[kk].query(p2[sel])
+            gp = g[st[kk]:st[kk + 1]][i]
+            out[sel] = np.where(gp < self.sec["sh_g"][kk], 0, np.where(gp < self.sec["lo_g"][kk], 1, 2))
+        return out
 
     def section(self, pos):
         """Where points sit round the car's section: across (0 the top's middle, 1 the shoulder, 2
@@ -475,7 +585,8 @@ class Map:
         key = (pos.shape, pos[:1].tobytes(), pos[-1:].tobytes())
         if self._sec_last is not None and self._sec_last[0] == key:
             return self._sec_last[1]
-        out = tuple(v.astype(np.float32) for v in _across(np.abs(pos[:, 0]), pos[:, 1], *self._marks_at(pos[:, 2])))
+        out = tuple(v.astype(np.float32) for v in _across(np.abs(pos[:, 0]), pos[:, 1], *self._marks_at(pos[:, 2]),
+                                                          self._region(pos)))
         self._sec_last = (key, out)
         return out
 
@@ -490,6 +601,100 @@ class Map:
         counting how far a point lies outside its region's range, so a bulge isn't on the line."""
         across, scale, off = self.section(pos)
         return np.hypot((across - a) * scale, off).astype(np.float32)
+
+    # ---- the air ----
+
+    def hit(self, pos, nrm):
+        """How hard the oncoming air hits the points, 0..1 (see the module's docstring)."""
+        facing = np.clip(np.asarray(nrm, np.float64)[:, 2], 0, 1)
+        return (facing ** 2 * self.value("front_open", pos, nrm)).astype(np.float32)
+
+    def _walls(self):
+        if "wall" not in self._line_trees:
+            self._line_trees["wall"] = cKDTree(self.lines["wall"])
+        return self._line_trees["wall"]
+
+    def flow(self, pos, nrm):
+        """Unit directions the air runs over the surface at the points, from the solved flow (see
+        _flow_field), laid flat on the points' own surface; zero where the air meets it head-on."""
+        pos, nrm = np.asarray(pos, np.float64), np.asarray(nrm, np.float64)
+        face, bary, _ = self.at(pos, nrm)
+        u = (bary[:, :, None] * self.flow_v[self.F[face]]).sum(1)
+        u -= (u * nrm).sum(1, keepdims=True) * nrm
+        n = np.linalg.norm(u, axis=1, keepdims=True)
+        return np.where(n > 0.15, u / np.maximum(n, 1e-9), 0.0)
+
+    def project(self, pos, nrm=None):
+        """The nearest points on the body (on their triangles' planes), their normals, and how far
+        the points were from it."""
+        face, _, dist = self.at(pos, nrm)
+        a = self.V[self.F[face, 0]]
+        n = self.fn[face]
+        on = pos - ((pos - a) * n).sum(1, keepdims=True) * n
+        return on, n, dist
+
+    def rake(self, z, across):
+        """Points on the body's outline at length z (the left side), at the given across positions
+        (0 the top's middle, 1 the shoulder ...): where to start streamlines, like a smoke rake's
+        nozzles. A position the outline doesn't reach there is left out."""
+        Z, st, q = self.sec["Z"], self.sec["starts"], self.sec["q"]
+        k = int(np.argmin(np.abs(Z - z)))
+        pts = q[st[k]:st[k + 1]].astype(np.float64)
+        if len(pts) < 2:
+            return np.zeros((0, 3))
+        p3 = np.c_[pts, np.full(len(pts), Z[k])]
+        a, _, off = self.section(p3)
+        out = []
+        for want in np.atleast_1d(across):
+            ok = off < 0.5
+            j = np.flatnonzero(ok)[np.argmin(np.abs(a[ok] - want))] if ok.any() else None
+            if j is not None and abs(a[j] - want) < 0.02:
+                out.append(p3[j])
+        return np.array(out).reshape(-1, 3)
+
+    def streamlines(self, seeds, step=0.5, length=450.0):
+        """Lines traced along the flow from seed points (n, 3) on or near the body, a point every
+        `step` cm, until the line runs off the body (an edge, an opening's rim), stalls (the air
+        meets the surface head-on) or reaches `length` cm. Returns a list of (m, 3) arrays."""
+        seeds = np.asarray(seeds, np.float64)
+        p, n, _ = self.project(seeds)
+        lines = [[q.copy()] for q in p]
+        alive = np.ones(len(p), bool)
+        for _ in range(int(length / step)):
+            idx = np.flatnonzero(alive)
+            if not len(idx):
+                break
+            u = self.flow(p[idx], n[idx])
+            stall = np.linalg.norm(u, axis=1) < 0.5
+            mid = p[idx] + 0.5 * step * u
+            pm, nm, _ = self.project(mid, n[idx])
+            u2 = self.flow(pm, nm)  # a midpoint step: steadier round bends
+            nxt = p[idx] + step * np.where(np.linalg.norm(u2, axis=1, keepdims=True) > 0.5, u2, u)
+            q, nq, dist = self.project(nxt, n[idx])
+            # an opening's edge is a wall the line slides along, kept 0.6 cm off it
+            wall, wi = self._walls().query(q, workers=-1)
+            away = q - self.lines["wall"][wi]
+            away -= (away * nq).sum(1, keepdims=True) * nq
+            away /= np.maximum(np.linalg.norm(away, axis=1, keepdims=True), 1e-9)
+            close = wall < 0.6
+            if close.any():
+                q[close] += (0.6 - wall[close])[:, None] * away[close]
+                q[close], nq[close], dist[close] = self.project(q[close], nq[close])
+            moved = np.linalg.norm(q - p[idx], axis=1)
+            # where the surface turns to face back, the air leaves it (it separates)
+            leaves = nq[:, 2] < -0.6
+            end = stall | (dist > 1.5) | (moved < 0.1 * step) | leaves | (q[:, 2] < TAIL_Z)
+            # a line that has got nowhere over its last 20 steps is stuck against a wall it met
+            # head-on (the cockpit's rim dead ahead): it ends there
+            back = np.array([lines[k][max(0, len(lines[k]) - 20)] for k in idx])
+            full = np.array([len(lines[k]) >= 20 for k in idx])
+            end |= full & (np.linalg.norm(q - back, axis=1) < 20 * step * 0.25)
+            for j, k in enumerate(idx):
+                if not end[j]:
+                    lines[k].append(q[j].copy())
+            p[idx], n[idx] = q, nq
+            alive[idx[end]] = False
+        return [np.array(l) for l in lines]
 
     # ---- finding the body under a point ----
 

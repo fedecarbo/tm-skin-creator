@@ -444,3 +444,41 @@ def near(kind, reach, soft=SOFT):
 def line(kind, width=1.0, soft=SOFT):
     """A line `width` cm wide drawn along one of the car's lines (see near)."""
     return near(kind, width / 2, soft)
+
+
+def hit(lo, hi=1.01, soft=SOFT):
+    """Where the oncoming air hits the body between two strengths (the car map's hit, 0..1): the
+    nose's tip and the lips round the openings take the most. Bands of it make a pressure map."""
+    def dist(p, n):
+        h = _map().hit(p, n)
+        # the edge made crisp by how fast hit changes, which follows the facing: about 1/25 per cm
+        return np.minimum(h - lo, hi - h) * 25.0
+    return field(dist, soft)
+
+
+def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
+    """Lines `width` cm wide along the air's path over the body (the car map's streamlines), traced
+    from seed points (x, y, z) in cm on the body: a smoke rake's row at the nose, say. both: the
+    seeds mirrored onto the other side too. The traced lines are kept on the zone as .lines."""
+    from scipy.spatial import cKDTree
+    seeds = np.asarray(seeds, np.float64)
+    if both:
+        seeds = np.concatenate([seeds, seeds[np.abs(seeds[:, 0]) > 0.3] * np.array([-1.0, 1.0, 1.0])])
+    lines = _map().streamlines(seeds, step, length)
+    pts = np.concatenate([l for l in lines if len(l) > 1]) if lines else np.zeros((0, 3))
+    tree = cKDTree(pts) if len(pts) else None
+
+    def dist(p, n):
+        if tree is None:
+            return np.full(len(p), -1.0, np.float32)
+        d, _ = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
+        return (width / 2 - np.minimum(d, width * 2)).astype(np.float32)
+    z = field(dist, soft)
+    z.lines = lines
+    return z
+
+
+def rake(z, across):
+    """Seed points on the body at length z, at across positions (see across): the smoke rake's row
+    for streamlines. shapes.streamlines(shapes.rake(198, np.linspace(0.1, 0.9, 5)), 1.5)."""
+    return _map().rake(z, across)
