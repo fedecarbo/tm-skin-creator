@@ -2,7 +2,7 @@
 
     python -m tool.swatches            paint any balls that are missing or stale, serve, open the Lab
     python -m tool.swatches --all      repaint every ball
-    python -m tool.swatches --no-open  just paint (docker/serve.py does this on the Mac)
+    python -m tool.swatches --no-open  just paint
     python -m tool.swatches --no-tab   paint and serve, no tab opened (a restart after a server
                                        change, with the Lab already open)
 

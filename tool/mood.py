@@ -3,8 +3,7 @@ design studio", W1 piece 3). Each board is a colour story, the finishes as the t
 and a wall of pictures; the boards show side by side on a page, and the user picks one.
 
     python -m tool.mood <car>           paint the boards' balls, write the page's data, print its address
-    python -m tool.mood <car> --snap    ... and photograph the page into build/mood/<car>.png (the PC;
-                                        on the Mac: node docker/snap.mjs --page "mood.html?car=<car>")
+    python -m tool.mood <car> --snap    ... and photograph the page into build/mood/<car>.png
 
 A board is skins/<car>/mood/<slug>.json, written by Claude:
 
@@ -153,10 +152,9 @@ def url(car):
 
 
 def snap(car, size=(1600, 1000)):
-    """The page photographed whole in Edge, as tool/snap.py's pictures (the PC)."""
+    """The page photographed whole, as tool/snap.py's pictures."""
     from playwright.sync_api import sync_playwright
 
-    from tool.snap import EDGE_ARGS
     try:
         view.start_server(view.PORT)
     except OSError:
@@ -164,7 +162,7 @@ def snap(car, size=(1600, 1000)):
     out = paths.BUILD / "mood" / f"{car}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="msedge", headless=True, args=EDGE_ARGS)
+        browser = paths.launch(p)
         page = browser.new_page(viewport={"width": size[0], "height": size[1]})
         page.goto(url(car))
         page.wait_for_function("window.mood && (window.mood.ready || window.mood.error)", timeout=120000)

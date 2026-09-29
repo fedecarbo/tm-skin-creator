@@ -6,7 +6,7 @@
     python -m tool.skin list                   every skin, newest first
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
-GB and the Mac's container ran out of memory with three at once (2026-09-28). A show or install
+GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
 that finds another painting waits for it, and says so.
 
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),

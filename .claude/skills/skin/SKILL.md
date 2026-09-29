@@ -41,14 +41,9 @@ and the studio's steps became this one way the same day.
 
 ## Commands
 
-From the repo root. `PY` = `"$LOCALAPPDATA/TrackmaniaSkinChallenge/venv/Scripts/python.exe"`.
-On the Mac there's no `PY`: the tool runs in the container (`docker compose up`), as
-`docker compose exec app python -m tool.skin show <name> --no-snap`. The snapshots come from
-the Mac's own Chrome: `node docker/snap.mjs <name>` (the six views and the gallery's picture,
-what `show` snaps on the PC), `node docker/snap.mjs <name> --close`, and `node docker/snap.mjs
-<name> --picture ...` (as `tool.snap`'s, opened on the screen). Each sheet is copied to `.snap/`
-to look at. No picture maker or game there: install from the Windows PC after a push. Show the
-user the Lab too.
+From the repo root. `PY` is the tool's Python (`CLAUDE.md`: one for each computer); every
+command below runs the same on both. The Mac has no picture maker (it needs the PC's NVIDIA
+card) and no game: install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
@@ -57,7 +52,7 @@ user the Lab too.
 | `PY -m tool.critic <car>` | A car's review by the critic: what it found, and what was fixed or left. Its commands, and the critic's pictures (`tool.snap <car> --review`), are in `new-car.md`, 4. |
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py` (15 s to 4 min), puts it in the viewer, saves six views to `build/<name>_views.png`, keeps `versions/<n>.png`. Read every note it prints. |
 | `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png`: 1 bonnet, 2 nose, 3 front flank fold, 4 sidepod, 5 rear flank, 6 deck and tail, 7 right side, 8 front wheel, 9 driving camera. Run it after `show`. |
-| `PY -m tool.snap <name> --cams` | The game's Cam 1 and 2 and their alts (the key pressed twice) standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). On the Mac `node docker/snap.mjs <name> --cams`. |
+| `PY -m tool.snap <name> --cams` | The game's Cam 1 and 2 and their alts (the key pressed twice) standing still, by day and at night, at 16:9 → `build/<name>_cams.png` (`--size 2560x1440` for the user's screenshots' size). |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
 | `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car (the user's notes hang on it as tags) with its timeline beside it, "With Claude" (the notes, Claude's lines, the sets of options); the UV map and every material the tool knows on a ball (with its code, numbers and a "Copy for Claude" button) in the car's menu. |
@@ -106,8 +101,7 @@ user the Lab too.
   that spot, as if typed in the chat: act on them in that skin (its notes.md: `Change <n> (user,
   note N): "…"`), answer a question in the reply, and once a note is handled mark it done with a
   line for the Lab's timeline saying what changed, in plain words, one or two sentences: `PY -m
-  tool.notes done <skin> <n> --say "…"` (on the Mac `python3 -m tool.notes done …`, no container
-  needed). Its tag leaves the car; the note and your line stay in the timeline. Anything else worth
+  tool.notes done <skin> <n> --say "…"`. Its tag leaves the car; the note and your line stay in the timeline. Anything else worth
   saying in the Lab (a set's offer, a question while they look at the car): `tool.notes say <car>
   "…"`. `PY -m tool.notes` lists the ones not done. The notes stay on the computer they were
   written on (`.notes/`, off git).
@@ -121,14 +115,13 @@ user the Lab too.
   painted), and `tool.sets open <car> <n>` once all are, with a line for the timeline (`tool.notes
   say <car> "…"`: what the options are, in a sentence). The timeline beside the car shows the set as
   Claude's; a click puts an option on the car, where the user can turn it and leave notes on it. Then
-  start `python3 -m tool.notes wait` (on the PC `PY -m tool.notes wait`) with the Bash tool in the
+  start `PY -m tool.notes wait` with the Bash tool in the
   background and end the turn: a pick or a few words in the Lab end it at once ("in the Lab's
   timeline, set 2 (Wheels · 3 ideas), picked B (Magenta)"), with no message in the chat. The pick:
   `tool.sets pick <car> <n> <letter> "<what was picked>"` makes it the car's design (the others go,
   each one's picture kept for the timeline), then `show <car>`; a mix they spell out
   ("B, but with A's ring"): change that option, then pick it. A set no longer wanted: `tool.sets
-  drop`. Name the options A, B, C in replies too. On the Mac, `tool.sets` runs with the Mac's own
-  python3, no container.
+  drop`. Name the options A, B, C in replies too.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, load that design (as

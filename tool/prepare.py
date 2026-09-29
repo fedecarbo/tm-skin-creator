@@ -2,12 +2,15 @@
 
 Run: python -m tool.prepare
 The zips are never modified. Unpacking again is safe: it replaces the extracted copies.
+Nadeo's template is downloaded if it's missing; the model needs a Sketchfab login, so it's copied
+from the other computer (it's git-ignored: the repo is public).
 """
 
 import hashlib
 import re
 import shutil
 import sys
+import urllib.request
 import zipfile
 
 from tool import paths
@@ -17,6 +20,7 @@ ZIPS = {
     "CarSport-Model.zip": paths.MODEL,
 }
 NESTED = "source/StadiumCAR2020_OffsetFix.zip"
+TEMPLATE_URL = "https://nadeo-download.cdn.ubi.com/trackmania/website/resources/Trackmania-Skin-Details-2021-02-18.zip"
 
 
 def expected_hashes() -> dict[str, str]:
@@ -49,10 +53,15 @@ def unpack(zip_path, dest):
 
 def main():
     hashes = expected_hashes()
+    template = paths.OFFICIAL / "CarSport-Template.zip"
+    if not template.exists():
+        print("downloading Nadeo's template zip")
+        with urllib.request.urlopen(TEMPLATE_URL, timeout=120) as r:
+            template.write_bytes(r.read())  # checked against its sha256 below
     for name, dest in ZIPS.items():
         zip_path = paths.OFFICIAL / name
         if not zip_path.exists():
-            sys.exit(f"Missing {zip_path}. Download it from the link in official/SOURCES.md.")
+            sys.exit(f"Missing {zip_path}. Copy it from the other computer, or download it from the link in official/SOURCES.md.")
         actual = sha256(zip_path)
         if actual != hashes.get(name):
             sys.exit(f"{name}: sha256 {actual} does not match official/SOURCES.md")

@@ -14,8 +14,5 @@ __pycache__/
 *.pyc
 .venv/
 
-# The Mac's snapshots on their way to the container (docker/snap.mjs)
-.snap/
-
 # The pictures that come with the Lab's notes on the car, for Claude (tool/notes.py)
 .notes/

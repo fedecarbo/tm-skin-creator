@@ -4,9 +4,8 @@ the car's pictures and its brief, never the design, the notes or the designer's 
 
     python -m tool.critic pictures <car> [--sheets DIR] [--out DIR]
         the car's four sheets (views, close, review, cams: tool.snap) cut into one picture per view,
-        named by its label, for the critic to read whole. On the PC from the work folder's build/
-        into build/critic/<car>/<round>/; on the Mac in the container, from and to the repo's .snap/
-        (--sheets /app/.snap --out /app/.snap/critic/<car>/<round>). Prints the folder.
+        named by its label, for the critic to read whole, from the work folder's build/ into
+        build/critic/<car>/<round>/. Prints the folder.
     python -m tool.critic keep <car> <reply.json> [--critic <model>] [--pictures <folder>]
         the critic's reply as the review's next round: its verdict, its new findings (numbered on from
         the last), and on a re-check its word on the earlier ones
@@ -24,8 +23,8 @@ in the next round's folder is the after. severity: fix (a flaw), improve (clearl
 goes against the brief: said to the user, changed only if they want). status: open, fixed or left
 (Claude's); recheck: the critic's word on it in a later round (fixed, not fixed, partly).
 
-keep, mark and the printout are standard library only, so they run with the Mac's own python3, as
-tool.sets does; pictures and picture need Pillow (the PC's venv, the Mac's container).
+keep, mark and the printout are standard library only, as tool.sets is; pictures and picture need
+Pillow.
 TSC_SKINS_HOME puts the skins elsewhere, for tests."""
 
 import argparse

@@ -14,16 +14,21 @@ it before changing how something works. The top docstring of each `tool/*.py` is
 
 ## Commands for the machinery
 
-`PY` = `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, from the repo root.
+`PY` is the tool's Python, one for each computer (`CLAUDE.md`), from the repo root. The two
+computers' differences live in `tool/paths.py` (the work folder, the snapshots' browser, opening a
+picture) and `requirements.txt` (the picture maker's packages, the PC only).
 
-- Set up a fresh clone: `python -m venv <that venv>`, `PY -m pip install -r requirements.txt`,
-  `PY -m tool.prepare` (checks the `official/` zips and unpacks them), `PY -m tool.pictures
-  setup` (downloads the picture maker's 16 GB of weights).
+- Set up a fresh clone: Python 3.14 (on the Mac Homebrew's `python@3.14`), `python -m venv <the
+  work folder>/venv`, `PY -m pip install -r requirements.txt`, on the Mac `PY -m playwright install
+  --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths` looks),
+  `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks them;
+  the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
+  (the picture maker's 16 GB of weights).
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in
   the background. `tool/preview.py` renders flat views without materials, for texture layout.
 - `PY -m tool.install <name> ...` installs built zips.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
-  for every finish in `finishes.CATALOGUE` and opens it; the Mac's container paints them at start.
+  for every finish in `finishes.CATALOGUE` and opens it.
   After a change to `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own
   `tool.swatches` or `tool.view`) and start `PY -m tool.swatches --no-tab` in the background:
   it serves without opening a tab (`--no-open` only paints).
@@ -63,7 +68,7 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
   `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room
   (`lab.js`), so both look the same. Claude's drawings show as pictures of their own (data URIs), so
-  their ids never clash. On the Mac, `node docker/snap.mjs --page "<page>"` photographs any page.
+  their ids never clash. `PY -m tool.snap --page "<page>"` photographs any page whole.
 - The studio's critic: an agent, `.claude/agents/critic.md`, given only a car's brief and pictures
   (never the design). `tool/critic.py` (its docstring is the key) cuts `tool.snap`'s four sheets
   into its pictures (`--review`: the angles the others miss) and keeps its findings in
@@ -72,9 +77,8 @@ it before changing how something works. The top docstring of each `tool/*.py` is
   "The design studio", `CHECKLIST.md`.
 - Several at once (the studio's three concept designers): paints take turns on a computer
   (`skin.paint_slot`, an OS lock on `paint<k>.lock` in the work folder, freed if a paint dies;
-  `TSC_PAINTS=<n>` for more slots), since each paint needs a few GB and the Mac's container (7.7 GB)
-  lost two of three to its memory limit. The Mac's snapshots each take a free DevTools port
-  (Chrome's port 0, read from the profile's `DevToolsActivePort`), so they run side by side.
+  `TSC_PAINTS=<n>` for more slots), since each paint needs a few GB and the Mac's old container (7.7 GB)
+  lost two of three to its memory limit.
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn

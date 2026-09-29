@@ -42,8 +42,9 @@ like what you show them.
   checkpoint** (the user, 2026-09-25): it goes on that list, and a big one keeps its working
   notes under "Improvements after the build" in `CHECKLIST.md`. The `skin` skill says how the
   list is kept. Work on it when the user asks. "Under way" says what's in progress.
-- **Two computers** share the repo through GitHub: this Windows PC (the game, installing,
-  snapshots; no Docker) and a Mac (the viewer through Docker, `docker compose up`). A hook in
+- **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
+  picture maker) and the user's Mac (designing, the viewer, snapshots; no Docker since
+  2026-09-29). Both run the tool the same way. A hook in
   `.claude/settings.json` pulls at the start of each session: if it failed, sort that out
   first. Work that isn't pushed doesn't exist on the other computer.
 - **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/,
@@ -52,9 +53,10 @@ like what you show them.
 - `tool/`: the Python machinery. `viewer/`: the 3D page and the gallery. `car/parts.json`: every
   part's name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool has put
   in the game.
-- `PY` is `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, run from the repo
-  root.
-- Work folder `%LOCALAPPDATA%\TrackmaniaSkinChallenge\`: `venv`, `official` (unpacked zips),
+- `PY` is the tool's Python, run from the repo root: on the PC
+  `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac
+  `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`.
+- Work folder `TrackmaniaSkinChallenge`, the venv's parent above: `venv`, `browsers` (the Mac's snapshots), `official` (unpacked zips),
   `cache` (the parsed mesh and bakes), `build` (pictures, DDS files and zips), `models` (the
   picture maker's weights), `textures`, `viewer` (what the viewer page loads). All of it is
   rebuildable.

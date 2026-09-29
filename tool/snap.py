@@ -1,4 +1,4 @@
-"""Claude's snapshots of a skin in the viewer: six views on one sheet, taken by a hidden Edge.
+"""Claude's snapshots of a skin in the viewer: six views on one sheet, taken by a hidden browser.
 
     python -m tool.snap <name>          -> build/<name>_views.png
     python -m tool.snap <name> --size 1280x960
@@ -12,27 +12,25 @@
                                              wheels, both sides (STRETCHES), to check its lines close up
     python -m tool.snap <name> --review -> build/<name>_review.png: the angles the other sheets miss
                                              (REVIEW), for the studio's critic (tool/critic.py)
+    python -m tool.snap --page "mood.html?car=<car>" [--size 1600x1000]
+                                          -> build/mood_car_<car>.png: any page of the viewer's, whole
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
                                              [--close-row <name> 2 5 9 [--close-row <other> 2 5 9]]
         -> build/<name>_picture.png, a row per skin from its views sheet (and a row of close
            looks), opened on the screen: the picture shown to the user
 
 Look at the sheet before showing a skin to the user. Playwright drives the Edge installed on
-this PC (no browser download). The GPU line it prints says which renderer drew the pictures.
-
-On the Mac, `node docker/snap.mjs` takes the same pictures with the Mac's own Chrome and hands
-them to this module in the container: `--shots` gives it the list of views, `--tiles` makes the
-sheet from its pictures (and `--thumb` the gallery's picture, as `tool.skin show` does here).
+the PC, and its own Chromium on the Mac (paths.launch). The GPU line it prints says which
+renderer drew the pictures.
 """
 
 import argparse
 import io
-import json
-import os
+import re
 import time
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
 from tool import fonts, paths, view
@@ -94,15 +92,11 @@ STRETCHES = tuple((f"{side} {label}", {"dir": [s * d[0], d[1], d[2]], "dist": di
                    False, [], NO_WHEELS)
                   for label, d, dist, t in _STRETCH for side, s in (("left", 1), ("right", -1)))
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
-EDGE_ARGS = ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
 
 
 def _font(px):
-    """Arial Bold on Windows; in the Mac's container, which has no Windows fonts, Russo One."""
-    try:
-        return ImageFont.truetype("arialbd.ttf", px)
-    except OSError:
-        return fonts.font("russo", px)
+    """Arial Bold, the PC's or the Mac's."""
+    return fonts.font("arial bold", px)
 
 
 def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None):
@@ -116,7 +110,7 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
     tiles, errors = [], []
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(channel="msedge", headless=True, args=EDGE_ARGS)
+            browser = paths.launch(p)
             page = browser.new_page(viewport={"width": size[0], "height": size[1]})
             page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
             page.on("pageerror", lambda e: errors.append(str(e)))
@@ -137,6 +131,31 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
     for e in errors:
         print(f"page error: {e}")
     return sheet(name, tiles, out, size, thumb)
+
+
+def page(path, size=(1600, 1000)):
+    """Any page of the viewer's, e.g. "mood.html?car=<car>", photographed whole once it says it's
+    ready (window.mood or window.lab), into build/<page>.png."""
+    server = view.start_server(0)
+    out = paths.BUILD / (re.sub(r"[^\w-]+", "_", path.replace(".html", "")).strip("_") + ".png")
+    try:
+        with sync_playwright() as p:
+            browser = paths.launch(p)
+            pg = browser.new_page(viewport={"width": size[0], "height": size[1]})
+            pg.on("pageerror", lambda e: print(f"page error: {e}"))
+            pg.goto(f"http://127.0.0.1:{server.server_address[1]}/{path}")
+            pg.wait_for_function('["mood", "lab"].some((k) => window[k] && (window[k].ready || window[k].error))',
+                                 timeout=120_000)
+            err = pg.evaluate("(window.mood || window.lab).error")
+            if err:
+                raise RuntimeError(err)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            pg.screenshot(path=str(out), full_page=True)
+            browser.close()
+    finally:
+        server.shutdown()
+    print(f"page: {out}")
+    return out
 
 
 def sheet(name, tiles, out=None, size=(960, 720), thumb=None):
@@ -196,14 +215,14 @@ def picture(names, titles=None, views=("front", "rear", "top"), close=None, open
     path = paths.BUILD / f"{names[0]}_picture.png"
     out.save(path)
     print(f"picture: {path}")
-    if open_it and hasattr(os, "startfile"):  # Windows; on the Mac, docker/snap.mjs opens it
-        os.startfile(path)
+    if open_it:
+        paths.open_file(path)
     return path
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("name")
+    ap.add_argument("name", nargs="?")
     ap.add_argument("more", nargs="*", help="with --picture: the other takes, in order")
     ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
@@ -216,26 +235,15 @@ def main():
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
     ap.add_argument("--close-row", nargs="+", action="append", metavar="NAME N",
                     help="a skin, then numbers from its close sheet (again for another skin)")
-    ap.add_argument("--shots", action="store_true", help="the Mac: print the views to take, as JSON")
-    ap.add_argument("--tiles", metavar="DIR", help="the Mac: the sheet from DIR/0.png, 1.png... in --shots order")
-    ap.add_argument("--thumb", action="store_true", help="with --tiles: also the gallery's picture, and a version kept")
+    ap.add_argument("--page", metavar="PAGE", help='any page of the viewer\'s, whole, e.g. "lab.html" (no name)')
     args = ap.parse_args()
+    if args.page:
+        page(args.page, tuple(int(v) for v in (args.size or "1600x1000").split("x")))
+        return
+    if not args.name:
+        ap.error("the skin's name")
     shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams else (REVIEW, "review") if args.review
                    else (BODY, "body") if args.body else (STRETCHES, "stretches") if args.stretches else (SHOTS, "views"))
-    if args.shots:
-        print(json.dumps({"build": str(paths.BUILD), "shots": [[label, v, night, hidden, *rest] for label, v, night, hidden, *rest in shots]}))
-        return
-    if args.tiles:
-        tiles = [(s[0], Image.open(Path(args.tiles) / f"{k}.png")) for k, s in enumerate(shots)]
-        w, h = tiles[0][1].size
-        out = paths.BUILD / f"{args.name}_{kind}.png"
-        thumb = paths.SKINS / args.name / "thumb.png" if args.thumb and kind == "views" else None
-        sheet(args.name, tiles, out, (w, h), thumb)
-        if thumb:
-            from tool import gallery, skin
-            skin.keep_version(args.name, thumb)
-            gallery.refresh()
-        return
     if args.picture:
         close = [(row[0], row[1:]) for row in args.close_row or []]
         picture([args.name] + args.more, args.titles, args.views, close)

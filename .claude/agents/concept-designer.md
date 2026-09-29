@@ -51,13 +51,9 @@ design with the zones it has, or say so in your report; a shape for one design s
 
 ## Paint, look, fix
 
-Your message says which computer you're on.
-
-- **The Mac:** paint with `docker compose exec -T app python -m tool.skin show <name> --no-snap`,
-  then take the pictures with `node docker/snap.mjs <name>`, and again with `--close`, `--cams` and
-  `--review`. They land in `.snap/<name>_views.png`, `_close.png`, `_cams.png`, `_review.png`.
-- **The Windows PC:** `PY -m tool.skin show <name>` (it takes the six views), then `PY -m tool.snap
-  <name> --close`, `--cams` and `--review`; the sheets are in the work folder's `build/`. `PY` is in `CLAUDE.md`.
+Your message says which computer you're on; `PY` (in `CLAUDE.md`) is that computer's Python.
+`PY -m tool.skin show <name>` (it takes the six views), then `PY -m tool.snap <name> --close`,
+`--cams` and `--review`; the sheets are in the work folder's `build/`.
 
 Paints take turns on a computer: yours may wait for another designer's ("waiting for another
 paint"), which is fine. Read every note the paint prints: a colour that also lands on other parts,

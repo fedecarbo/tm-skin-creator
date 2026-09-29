@@ -1,3 +1,0 @@
-# The image only needs the package list. The repo is mounted at /app (compose.yaml).
-*
-!requirements.txt

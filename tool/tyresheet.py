@@ -59,7 +59,7 @@ def photograph(codes):
     port = server.server_address[1]
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(channel="msedge", headless=True, args=snap.EDGE_ARGS)
+            browser = paths.launch(p)
             page = browser.new_page(viewport={"width": SIZE[0], "height": SIZE[1]})
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)))
@@ -126,5 +126,5 @@ def make(codes, open_it=True):
     path = sheet(codes)
     print(f"sheet: {path}")
     if open_it:
-        os.startfile(path)
+        paths.open_file(path)
     return path

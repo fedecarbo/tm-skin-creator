@@ -18,8 +18,7 @@ judged close up, so you judge it close up first.
 2. `IMPROVEMENTS.md`, the car map's item, and the user's review in it (their words).
 3. `tool/carmap.py` (its docstring is the key), the map's words in `tool/shapes.py`, `car/map.md`,
    and the four pictures in `car/map/`.
-4. `.claude/rules/tool.md` for the machinery; on the Mac the tool runs in the container
-   (`docker compose exec -T app python -m ...`) and the pictures come from `node docker/snap.mjs`.
+4. `.claude/rules/tool.md` for the machinery (`PY`, one for each computer, is in `CLAUDE.md`).
 
 Never open the game's own skin folder (anything under `Documents\Trackmania\Skins`).
 

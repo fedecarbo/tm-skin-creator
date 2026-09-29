@@ -7,10 +7,12 @@ z = forward. Lengths are in cm.
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from tool import fonts
+
 FONTS = {
-    "bold": "C:/Windows/Fonts/arialbd.ttf",
-    "impact": "C:/Windows/Fonts/impact.ttf",
-    "bahnschrift": "C:/Windows/Fonts/bahnschrift.ttf",
+    "bold": fonts.path("arial bold"),
+    "impact": fonts.path("impact"),
+    "bahnschrift": "C:/Windows/Fonts/bahnschrift.ttf",  # the PC only
 }
 
 

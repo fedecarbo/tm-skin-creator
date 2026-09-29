@@ -28,8 +28,7 @@ The Lab's sets of options (tool/sets.py) send the user's picks the same way: a n
 `wait` in the background, which wakes it the moment one comes, with no message in the chat needed.
 
 The server (on threads), the hook and the command line all write the file. Each write takes a lock,
-a folder made with mkdir, which is atomic on Windows and macOS and holds across the Mac's container
-and host, where file locks don't reach; then it replaces the file whole, retrying while Windows
+a folder made with mkdir, which is atomic on Windows and macOS; then it replaces the file whole, retrying while Windows
 refuses (another program has it open: the page's poll, OneDrive). TSC_NOTES_HOME puts the folder
 elsewhere, for tests.
 

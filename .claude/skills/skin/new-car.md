@@ -27,8 +27,8 @@ history (the studio's steps, the wizard, and why they went): "The design studio"
   guide's "Learned" (dated, the car's name, a line or two), so the experts grow with every car. The
   critic (4) has its own instructions.
 - **Everything is checked against the brief's card.** An option that drifts from it isn't shown.
-- **The Lab:** open it on the car once it has a folder (http://localhost:8765/lab.html?skin=<car>;
-  on the Mac `open` it) and say once that they can pick there, write about an option, or click the
+- **The Lab:** open it on the car once it has a folder (http://localhost:8765/lab.html?skin=<car>,
+  with `open` on the Mac) and say once that they can pick there, write about an option, or click the
   car to leave a note. After each set is opened, wait for them (`tool.notes wait`, `SKILL.md`).
 - `notes.md` as for any skin: the user's words verbatim, the date and the model first, then a line
   per event (`Brief approved <date>: …`, `Picked <date>, set <n>: …`, `Change <n> (user): …`).
@@ -132,7 +132,7 @@ so you carry the work on yourself between their notes, field by field.
    - **The shapes** (the shapes guide): the concept's rough edges fixed: nothing clipped, sunk, or
      running into the part under it; nothing the card rules out (TSC_Ladybird's white marks read as
      eyes; its grass made a slab under the nose); how it reads from far away and from the game's
-     cameras (`--cams`; on the Mac `node docker/snap.mjs <car> --cams`): a good car reads in half a
+     cameras (`--cams`): a good car reads in half a
      second. The player sees their car from behind: say in a line what reads from there.
    - **The finishes** (the colours guide): a `FINISH` dict at the top of the design, part by part
      (gloss, satin, matte, metal, carbon), the contrast between them and the exact colours, by day
@@ -164,10 +164,8 @@ for the user: they hear what was found and fixed.
 
 1. Take the car's four sheets as it is now: the views, the close
    looks, the review angles (straight on, low behind, underneath, the right-hand flanks) and the
-   game's cameras: `tool.snap <car>`, then `--close`, `--review`, `--cams` (on the Mac `node
-   docker/snap.mjs <car>` with the same flags). Cut them into single pictures: `tool.critic
-   pictures <car>` (on the Mac `docker compose exec app python -m tool.critic pictures <car>
-   --sheets /app/.snap --out /app/.snap/critic/<car>/<round>`, the round 1, 2...).
+   game's cameras: `tool.snap <car>`, then `--close`, `--review`, `--cams`. Cut them into single pictures:
+   `tool.critic pictures <car>`.
 2. Call the critic (the Agent tool, `subagent_type: critic`) with the brief's path and every
    picture in the folder by name, nothing else. A session begun before the critic existed doesn't
    list it: give a general-purpose agent the file's text below its header as its role, the Read
@@ -181,7 +179,7 @@ for the user: they hear what was found and fixed.
    with their numbers and the new pictures (its instructions' re-check); keep that round too.
    Stop when it finds nothing new to fix, three rounds at most.
 5. What the critic can't see is yours: parts left in clay (`tool.skin paint <car>` names them), and
-   the size, a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s in the Mac's container)
+   the size, a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s on the Mac)
    against `ZIP_BUDGET`.
 6. Tell the user in a few lines: what the critic found, what was fixed, what was left and why.
 
@@ -206,7 +204,7 @@ page online (`tool.publish`, on the PC: it shows the skins in the game), and in 
   `skins/<car>/sets/`). The Lab's look (Teko, slanted keys, one yellow-green accent on a dark
   ground). TSC_Ladybird's is the model: its page is
   `skins/TSC_Ladybird/book.html`, its link in its `notes.md`; start the next from it.
-- Its pictures come from the rounds' picture sheets in `.snap/` (a row is a 70 px title bar and
+- Its pictures come from the rounds' picture sheets in the work folder's `build/` (a row is a 70 px title bar and
   960x720 tiles; the tiles' working labels are cut off the top) and the final views, close looks
   and cameras, as JPEGs about 960 wide (about 2.5 MB for 27). Credit the car model's author.
 - Then a line in `notes.md` (`Released <date>: …`), commit and push.

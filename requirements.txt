@@ -1,9 +1,12 @@
-# Python 3.14.2 (system install; python.org has 3.14.7 as of 2026-09-23)
-# venv: %LOCALAPPDATA%\TrackmaniaSkinChallenge\venv
+# The PC: Python 3.14.2 (system install; python.org has 3.14.7 as of 2026-09-23),
+# venv %LOCALAPPDATA%\TrackmaniaSkinChallenge\venv.
+# The Mac: Python 3.14.7 (Homebrew python@3.14, 2026-09-29),
+# venv ~/Library/Application Support/TrackmaniaSkinChallenge/venv, then `python -m playwright install --only-shell chromium`.
+# The picture maker's packages (marked win32) are for the PC's NVIDIA card only; the Mac leaves them out.
 numpy==2.5.3
 pillow==12.3.0
-# Playwright drives the Edge installed on this PC for Claude's viewer snapshots (no browser
-# download needed). The other three are its dependencies, pinned 2026-09-24.
+# Playwright takes Claude's viewer snapshots: the Edge installed on the PC, its own Chromium on
+# the Mac. The other three are its dependencies, pinned 2026-09-24.
 playwright==1.63.0
 greenlet==3.5.6
 pyee==13.0.1
@@ -14,14 +17,14 @@ scipy==1.18.1
 # torch comes from PyTorch's own index: the cu130 build (CUDA 13) is the one with wheels for
 # Python 3.14 and the RTX 5070 Ti (Blackwell, sm_120); the cu128 index stopped at 2.11.
 --extra-index-url https://download.pytorch.org/whl/cu130
-torch==2.14.0+cu130
-diffusers==0.40.0
-transformers==5.17.0
-accelerate==1.15.0
-huggingface_hub==1.33.0
-safetensors==0.8.0
-tokenizers==0.23.2
+torch==2.14.0+cu130 ; sys_platform == "win32"
+diffusers==0.40.0 ; sys_platform == "win32"
+transformers==5.17.0 ; sys_platform == "win32"
+accelerate==1.15.0 ; sys_platform == "win32"
+huggingface_hub==1.33.0 ; sys_platform == "win32"
+safetensors==0.8.0 ; sys_platform == "win32"
+tokenizers==0.23.2 ; sys_platform == "win32"
 # The background cutter: BiRefNet (MIT) through rembg on the processor (ONNX Runtime). rembg
 # brings scikit-image, pymatting, numba and pooch; pip resolves those.
-rembg[cpu]==2.0.85
-onnxruntime==1.30.0
+rembg[cpu]==2.0.85 ; sys_platform == "win32"
+onnxruntime==1.30.0 ; sys_platform == "win32"

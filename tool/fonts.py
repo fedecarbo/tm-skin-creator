@@ -1,4 +1,4 @@
-"""Fonts for lettering: the Windows fonts on this PC plus a few free Google Fonts (SIL OFL 1.1).
+"""Fonts for lettering: the Windows fonts (the Mac has most of them) plus a few free Google Fonts (SIL OFL 1.1).
 
     fonts.font("orbitron", 300)          -> a PIL ImageFont, 300 px tall
     fonts.font("orbitron", 300, weight=900)
@@ -35,6 +35,11 @@ WINDOWS = {
     "impact": "impact.ttf", "bahnschrift": "bahnschrift.ttf", "arial bold": "arialbd.ttf", "arial black": "ariblk.ttf",
     "verdana bold": "verdanab.ttf", "georgia bold": "georgiab.ttf", "segoe bold": "segoeuib.ttf",
     "consolas bold": "consolab.ttf", "corbel bold": "corbelb.ttf", "tahoma bold": "tahomabd.ttf",
+}
+# The Mac's own copies (the rest of WINDOWS are only on the PC).
+MAC = {
+    "impact": "Impact.ttf", "arial bold": "Arial Bold.ttf", "arial black": "Arial Black.ttf",
+    "verdana bold": "Verdana Bold.ttf", "georgia bold": "Georgia Bold.ttf", "tahoma bold": "Tahoma Bold.ttf",
 }
 # What each looks like, for choosing from the user's words.
 ABOUT = {
@@ -74,7 +79,11 @@ def _fetch(family, file, sha=None):
 def path(name):
     key = name.strip().lower()
     if key in WINDOWS:
-        return f"C:/Windows/Fonts/{WINDOWS[key]}"
+        if not paths.MAC:
+            return f"C:/Windows/Fonts/{WINDOWS[key]}"
+        if key in MAC:
+            return f"/System/Library/Fonts/Supplemental/{MAC[key]}"
+        raise KeyError(f"{name!r} is a Windows font the Mac hasn't got; pick another here, or use it on the PC")
     if key in GOOGLE:
         family, file, sha = GOOGLE[key]
         _fetch(*LICENCE)

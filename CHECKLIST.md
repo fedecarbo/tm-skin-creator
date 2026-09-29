@@ -3833,6 +3833,17 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
 
 ## Things we learned
 
+- **2026-09-29, the Mac without Docker (the user: "I don't need docker anymore because I now have
+  my personal mac").** The Mac runs the tool itself, like the PC: Homebrew's Python 3.14.7, a venv
+  in `~/Library/Application Support/TrackmaniaSkinChallenge` (`paths.WORK`), the PC-only packages
+  (the picture maker's) marked `sys_platform == "win32"` in `requirements.txt`. The container,
+  `docker/serve.py` and `docker/snap.mjs` are gone: `tool.snap` takes the Mac's pictures with
+  Playwright's own headless Chromium (`--only-shell`, 200 MB in the work folder's `browsers`), which
+  draws WebGL on the M5 through ANGLE's Metal backend (`paths.launch`); `tool.snap --page` photographs
+  any page, as `snap.mjs --page` did; `tool.prepare` downloads Nadeo's template itself. The user
+  browses in Safari; the snapshots don't need Chrome installed. The Sketchfab model zip is copied
+  from the PC (git-ignored).
+
 - **2026-09-28, the Lab slow (the user: "the website now is soooo slow").**
   - A three.js page drawn in `setAnimationLoop` draws at the screen's rate. On the user's 239 Hz
     screen, the stand's two cars cost 70 % of a processor core while nothing moved.

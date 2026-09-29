@@ -46,7 +46,7 @@ def title_of(name):
 def first_commits():
     """{skin name: unix time of the commit that added its design.py}. {} without git."""
     try:
-        # safe.directory: in the container the repo belongs to another user, which git refuses.
+        # safe.directory: a repo owned by another user (the Mac's old container) is refused without it.
         out = subprocess.run(["git", "-c", "safe.directory=*", "log", "--diff-filter=A", "--format=%ct", "--name-only",
                               "--", "skins/*/design.py"], cwd=paths.REPO, capture_output=True, text=True, timeout=30, check=True).stdout
     except (OSError, subprocess.SubprocessError):

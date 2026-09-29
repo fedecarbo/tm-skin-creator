@@ -130,11 +130,8 @@ the design as asked), then speed.
   nothing called removed, the viewer's bare address opens the last or newest skin, and `tool.view`
   and `tool.snap` show a skin as last shown, not its last build. Left, most useful first:
   1. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
-     lines, and the Mac's container repaints a skin only when its own design changed, not one it
-     borrows from. One `borrow()` helper, and `serve.py`'s `stale()` following it.
-  2. The Docker image installs Playwright only because `skin.py` imports `snap.py` at the top: a
-     lazy import drops it.
-  3. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
+     lines. One `borrow()` helper.
+  2. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
      250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
 
 - **Repainting only the map that changed** (2026-09-27, the Lab's step 9.7, queued here when the
@@ -148,11 +145,11 @@ the design as asked), then speed.
   PC's graphics card, so boards made on the Mac have only Claude's drawings, no pictures. Idea:
   FLUX.2 [klein] natively on the Mac (Apple M5, 16 GB) through diffusers on Metal, quantised to fit
   (its two halves are 8 GB each at full size); look up the latest release first.
-- **Tyre markings with words don't paint on the Mac** (2026-09-28, TSC_Ladybird's wheels): the
-  library's wordmarks use Windows fonts (Arial Black and others in `fonts.WINDOWS`), which the
-  Mac's container doesn't have, so any marking with words fails there ("cannot open resource").
-  Idea: on the Mac, fall back to an open font of the same weight (Archivo Black for Arial Black),
-  fetched like the Google fonts; the PC keeps its own, so the game looks as designed.
+- **Two tyre fonts don't paint on the Mac** (2026-09-28, TSC_Ladybird's wheels; narrowed
+  2026-09-29): since the Mac runs the tool itself, `fonts.MAC` finds the Mac's own Arial, Impact,
+  Verdana, Georgia and Tahoma, but the library's Bahnschrift and Consolas wordmarks are Windows-only
+  and still fail there. Idea: an open font of the same look (DIN-like for Bahnschrift, a mono for
+  Consolas), fetched like the Google fonts, on the Mac only; the PC keeps its own.
 
 - **The materials, in a new way** (the user, 2026-09-28: "Ill probably add UV map and materials but
   in a different way"). Today they're in the car's menu (every finish on a ball, with its code and a

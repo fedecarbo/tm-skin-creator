@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || true",
+            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || true",
             "timeout": 15
           }
         ]
