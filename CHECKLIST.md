@@ -3295,11 +3295,28 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        insides, under the nose, the wheel pockets and the low flanks behind the floor hidden, the rest
        open. The user: "you might need to hide the wheels so you see the body" (yes): `tool.snap --body`
        (`node docker/snap.mjs <name> --body`), nine views with the wheels taken off.
-  2. [ ] **Where things are, and the car's lines:** top, sides, front, back and underneath as soft
+  2. [x] **Where things are, and the car's lines:** top, sides, front, back and underneath as soft
      areas split along the car's own lines; the lines: folds, panel joins, the rims of openings, the
      shoulder (where the top turns into the side), the lower edge (where the side turns under).
-  3. [ ] **Positions that bend with the body:** along the car, and across it (0 the top's middle, 1
+  3. [x] **Positions that bend with the body:** along the car, and across it (0 the top's middle, 1
      the shoulder, 2 the lower edge), so a stripe or a line placed by them follows the body.
+     - **Built 2026-09-29 (steps 2 and 3 together):** each 1 cm slice's outline is the body cut
+       there, chained through the welded mesh (a stretch that sees under 20 % of the open air, or
+       lies under another stretch, left out; gaps bridged), walked from the top's middle. On it,
+       the shoulder: the first turn past 50 degrees from facing up that lasts 2 cm, or where the
+       top's surface ends and the outline carries on lower (the inner car takes over there, as in
+       front of the sidepods); the lower edge: the first turn past 125 degrees after which the
+       outline faces out for under 6 cm (the front flank's lip turns down, then the flank carries
+       on). The marks' x and y per slice, outliers replaced by their neighbours' median, smoothed.
+       A point's `across` comes straight from where it sits against its length's marks (how far
+       out over the top, how far down the side, how far in under), never from a sum round the
+       outline: the first two tries summed the girth from the top's middle, and anything that came
+       or went higher up (an inlet's mouth, a panel under a panel) moved every band below it by up
+       to 17 cm between neighbouring slices (bands in steps). Per point, not per vertex: stored on
+       the mesh's corners, a line across a long triangle came out as a staircase.
+       `shapes.area/outside/across/along/near/line` (the docstring of `tool/carmap.py`). Test cars:
+       TSC_Map_Areas (the areas in colour, the lines drawn) and TSC_Map_Grid (a grid that bends with
+       the body). Left rough: under the nose, between the wing pylons.
   4. [ ] **The air:** the flow over the surface (the oncoming air flattened onto it, turned round
      the openings by a Laplace solve on the mesh: potential flow), its speed and pressure, and lines
      traced along it from any seeds.

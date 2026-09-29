@@ -373,3 +373,74 @@ def seams(width=1.0, kinds=("border",), crease=60.0, parts=None, exclude=(), sof
         d, _ = tree.query(p.astype(np.float32), workers=-1)
         return width / 2 - d
     return field(dist, soft)
+
+
+# ---- The car map (tool/carmap.py): the body's own areas, lines and positions ----
+
+def _map():
+    from tool import carmap
+    return carmap.load()
+
+
+AREAS = ("top", "sides", "under", "front", "back")
+FACING_EDGE = 0.7  # a surface facing forward or back more than this is the front or the back
+
+
+def area(name, soft=SOFT):
+    """One of the body's areas, split along the car's own lines (the car map): "top" (between the
+    shoulders), "sides" (from the shoulder down to where the side turns under), "under", "front"
+    (facing forward: the nose's tip, the sidepods' fronts) and "back" (facing back: the tail).
+    Edges crisp, where the body itself turns."""
+    if name not in AREAS:
+        raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)}")
+
+    def dist(p, n):
+        m = _map()
+        fwd = m.level("facing_z", FACING_EDGE, p, n)     # > 0: facing forward
+        back = -m.level("facing_z", -FACING_EDGE, p, n)  # > 0: facing back
+        if name == "front":
+            return fwd
+        if name == "back":
+            return back
+        a1, a2 = m.across_level(p, 1), m.across_level(p, 2)
+        band = {"top": -a1, "sides": np.minimum(a1, -a2), "under": a2}[name]
+        return np.minimum(band, np.minimum(-fwd, -back))
+    return field(dist, soft)
+
+
+def outside(at_least=0.4, soft=SOFT):
+    """The outer body: spots that see at least this share of the open air (the car map's "open"),
+    so a graphic keeps off the insides of the inlets, the wheel pockets and the underside's recesses."""
+    return field(lambda p, n: _map().level("open", at_least, p, n), soft)
+
+
+def across(a0, a1, soft=SOFT):
+    """A band round the body's section, the same share of the way across it all along the car (the
+    car map's "across": 0 the top's middle, 1 the shoulder, 2 the lower edge, 3 the underside's
+    middle), so it follows the body's shape. On both sides."""
+    return field(lambda p, n: np.minimum(_map().across_level(p, a0), -_map().across_level(p, a1)), soft)
+
+
+def along(a0, a1, soft=SOFT):
+    """A band across the car from a0 to a1 of the way from the nose's tip (0) to the tail (1)."""
+    return field(lambda p, n: np.minimum(_map().level("along", a0, p, n), -_map().level("along", a1, p, n)), soft)
+
+
+def near(kind, reach, soft=SOFT):
+    """Within `reach` cm of one of the car's lines (the car map's LINES: "fold", "opening", "join",
+    "shoulder", "lower"). ~near(...) keeps a graphic clear of them."""
+    def dist(p, n):
+        m = _map()
+        if kind == "shoulder":
+            d = m.mark_distance(p, 1)
+        elif kind == "lower":
+            d = m.mark_distance(p, 2)
+        else:
+            d = m.distance(kind, p)
+        return reach - d
+    return field(dist, soft)
+
+
+def line(kind, width=1.0, soft=SOFT):
+    """A line `width` cm wide drawn along one of the car's lines (see near)."""
+    return near(kind, width / 2, soft)
