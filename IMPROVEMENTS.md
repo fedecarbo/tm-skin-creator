@@ -129,6 +129,20 @@ the design as asked), then speed.
 - **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
   maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
 
+- **The air's path over the body** (2026-09-29, TSC_WindTunnel: the user, "if there are capability
+  limitations in the tool, feel free to suggest"). Nothing in the tool knows which way the air runs
+  across a panel, so the concepts faked it: A with noise combed round the car's long axis, B (the
+  car) with 250 lines of its own that cut the body into sections and space the lines by girth. Both
+  miss where the air really turns: round the nose's tip, into and round the sidepod inlets, over the
+  cockpit's rim. Idea: `shapes.airflow`: the oncoming air (-z) flattened onto each triangle of the
+  skin mesh, and lines traced across the triangles from seeds (a rake's row, or points on an edge),
+  as zones of even width; streaks (A's kind) from the same field. A design then says where the
+  lines start and how many, nothing more.
+- **The concept designers share one scratch folder** (2026-09-29, TSC_WindTunnel's concepts): one
+  overwrote another's script of the same name. And on the Mac, two `snap.mjs` runs at once scramble
+  the cameras (a six-view sheet came out at the review angles). Idea: give each designer its own
+  scratch folder in its brief, and have `snap.mjs` wait its turn as `tool.skin` paints do.
+
 ## The viewer, from the user's screenshots and videos
 
 - **The game's cameras at speed** (2026-09-25, the user). Cam 1 and 2 and their alts are fitted
