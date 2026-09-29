@@ -37,9 +37,10 @@ the design as asked), then speed.
   along the car, and take the shoulder and the lower edge from those; the front and the back as
   whole faces bounded by them. **Done 2026-09-29 (the car mapper, step 7 in `CHECKLIST.md`)**, judged
   by measurement (`python -m tool.carmap --check`), not by eye (the user: "I don't think it's feasible
-  to do it by eye"): the shoulder passes on every stretch but the sidepods' front; the lower edge
-  passes from the tip to the front flank, and behind is the skin's own edge along the skirt, whose
-  steps still fail the check. Waiting for the user's look at the lines (`car/map/lines.jpg`,
+  to do it by eye"). After round 2 (step 8): every stretch of the shoulder passes; the lower edge
+  passes everywhere it is drawn, and behind the sidepods (z -95 to -35) the body has no clear lower
+  edge (the flank rolls under out of sight, its bend 1.3 to 1.6 times the body's median): "no line"
+  there, the body's own. Waiting for the user's look at the lines (`car/map/lines.jpg`,
   `car/map/areas.jpg`) before anything built on the map (the rakes, the grid, the station table) is
   called done.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to

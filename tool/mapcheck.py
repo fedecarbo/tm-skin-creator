@@ -20,6 +20,9 @@ and the worst value per stretch of the body (STRETCHES) is printed with pass or 
     jumps     slices where the line jumps more than a step allows to another ridge, or has no point
     texture   slices where the line's path in the flat texture jumps further than the texture's
               own scale explains, within one island of the texture
+    edge      cm from a mark on the skin's own edge (kind 4) to the mesh's boundary: such a line is
+              the boundary itself and follows its notches (the sidepods' bottom edge steps 4 cm near
+              z 2), so it is measured as a curve on the boundary, not by steps from slice to slice
 
 A slice whose crest is weak or wanders (contrast under CONTRAST, shift over SHIFT) has no clear
 edge: the map draws no line there (carmap stores it as sec_draw), and the table says "no line" for
@@ -39,10 +42,10 @@ STRETCHES = ((211, 195, "the nose's tip"), (195, 145, "the nose"), (145, 118, "t
              (118, 90, "the bonnet"), (90, 35, "the front flank and its lip"),
              (35, -12, "the sidepods' front and inlets"), (-12, -50, "the sidepods"),
              (-50, -122, "the rear flanks and the deck"), (-122, -162, "the tail"))
-LIMITS = dict(ridge=0.6, contrast=1.5, shift=2.2, step=1.5, bend=0.25, sides=0.5, jumps=0, texture=0)
+LIMITS = dict(ridge=0.6, contrast=1.5, shift=2.2, step=1.5, bend=0.25, sides=0.5, jumps=0, texture=0, edge=0.5)
 SCALES = (1.0, 2.0, 4.0)
 TEXELS = 4096
-KINDS = {0: "ridge", 1: "skin's end", 2: "no crease", 3: "ridge, skin ends below", 4: "the skin's own edge"}
+KINDS = {0: "ridge", 1: "skin's end", 2: "no crease", 3: "ridge, skin ends below", 4: "the skin's own edge", 5: "a roll's crest"}
 
 
 def _peak(k, i0, reach, g=None):
@@ -92,6 +95,8 @@ def measure(m, sec=None, mirror=None):
     n = len(Z)
     out = {k: np.full((n, 2), np.nan) for k in ("x", "y", "ridge", "contrast", "shift", "step", "bend", "sides")}
     out["kind"] = sec["kind"].astype(int)
+    out["edge"] = np.full((n, 2), np.nan)  # a mark on the skin's own edge (kind 4): cm from the mesh's boundary
+    edge_tree = cKDTree(m.lines["opening"])
     out["jump"] = np.zeros((n, 2), bool)
     out["texture"] = np.zeros((n, 2), bool)
     # the bend along every outline point, at the map's scale and the check's
@@ -141,11 +146,17 @@ def measure(m, sec=None, mirror=None):
                 out["shift"][k, j] = max(shifts) if shifts else np.nan
         # along the car: steps, bends (beyond the ridge's own), sides, texture
         pts = np.c_[x, y, Z]
+        on4 = out["kind"][:, j] == 4
+        out["edge"][on4, j] = edge_tree.query(pts[on4], workers=-1)[0]
         step = np.hypot(np.diff(x), np.diff(y))
         out["step"][1:, j] = step
         bend = np.hypot(x[2:] - 2 * x[1:-1] + x[:-2], y[2:] - 2 * y[1:-1] + y[:-2])
         _, ri = ridge_tree.query(pts, workers=-1)
-        out["bend"][1:-1, j] = np.maximum(bend - ridge_bend[ri[1:-1]], 0)
+        # the ridge's own bend at the nodes round the crossing (a kink two nodes off counts), per
+        # slice: a slanted ridge crosses the slices further apart
+        own = np.max([ridge_bend[np.clip(ri[1:-1] + o, 0, len(ridge_bend) - 1)] for o in range(-2, 3)], axis=0)
+        own = own / np.maximum(ridge_tan[ri[1:-1], 2] ** 2, 0.25)
+        out["bend"][1:-1, j] = np.maximum(bend - own, 0)
         across = np.abs(ridge_tan[ri, 2]) < 0.7  # more than 45 degrees to the car's length
         out["across"][:, j] = across
         out["ends"][:, j] = ridge_end[ri] <= 8.0
@@ -180,7 +191,7 @@ def measure(m, sec=None, mirror=None):
 def draw_mask(meas):
     """Per slice and line: whether the map draws the line there: it sits on a ridge (kind 0 or 3)
     that stands out and stays put (or runs across the slices, where that can't be measured)."""
-    on = np.isin(meas["kind"], (0, 3))
+    on = np.isin(meas["kind"], (0, 3, 5))
     clear = (meas["contrast"] >= LIMITS["contrast"]) & (meas["shift"] <= LIMITS["shift"])
     return (on & (clear | meas["across"] | meas["crossed"] | meas["ends"])) | (meas["kind"] == 4)
 
@@ -189,7 +200,7 @@ def mirrored_sections(m):
     """The right side's sections, mirrored onto the left."""
     flip = np.array([-1.0, 1.0, 1.0])
     return carmap._sections(m.V * flip, m.F, m.part, m.part_names, m.layers["open"], m.lines["fold"] * flip,
-                            m.lines["opening"] * flip)
+                            m.lines["opening"] * flip, lambda p: m.value("k1", p * flip))
 
 
 def check(m=None, verbose=False):
@@ -197,9 +208,12 @@ def check(m=None, verbose=False):
     right = mirrored_sections(m)
     left = measure(m, m.sec, right)
     rght = measure(m, right, m.sec)
+    both = draw_mask(left) & draw_mask(rght)  # sides: only where both sides draw the line
+    for meas in (left, rght):
+        meas["sides"][~both] = np.nan
     Z = m.sec["Z"]
     rows, fails = [], []
-    hdr = f"{'line':9} {'side':5} {'stretch':32} {'ridge':>6} {'contr':>6} {'shift':>6} {'step':>6} {'bend':>6} {'sides':>6} {'jumps':>5} {'tex':>4}  verdict"
+    hdr = f"{'line':9} {'side':5} {'stretch':32} {'ridge':>6} {'contr':>6} {'shift':>6} {'step':>6} {'bend':>6} {'sides':>6} {'edge':>5} {'jumps':>5} {'tex':>4}  verdict"
     print(hdr)
     print("-" * len(hdr))
     for j, line in enumerate(("shoulder", "lower")):
@@ -210,22 +224,24 @@ def check(m=None, verbose=False):
                 drawn = draw_mask(meas)[:, j] & sel
                 on = drawn  # the worst values over the slices where the line is drawn
                 w = lambda key, s=on, f=np.nanmax: (float(f(meas[key][s, j])) if s.any() and np.isfinite(meas[key][s, j]).any() else np.nan)
-                crest = on & np.isin(meas["kind"][:, j], (0, 3))  # a mesh edge (kind 4) has no crest to judge
+                crest = on & np.isin(meas["kind"][:, j], (0, 3, 5))  # a mesh edge (kind 4) has no crest to judge
                 ridge, contrast, shift = w("ridge", crest), w("contrast", crest, np.nanmin), w("shift", crest)
                 # a step where the line's kind changes is the car's own (the top's end at the sidepod's front)
                 change = np.r_[False, meas["kind"][1:, j] != meas["kind"][:-1, j]] | meas["ends"][:, j]
                 change = change | np.r_[change[1:], False] | np.r_[False, change[:-1]]  # and the slices either side
-                same_kind = sel & ~change & ~meas["across"][:, j]
-                # a mesh edge (kind 4) bends as its facets do: its steps are judged, its bends not
-                step, bend, sides = w("step", same_kind), w("bend", same_kind & (meas["kind"][:, j] != 4)), w("sides", on & ~meas["across"][:, j] & ~meas["crossed"][:, j])
-                jumps = int((meas["jump"][:, j] & same_kind).sum())
+                same_kind = drawn & ~change & ~meas["across"][:, j]  # over the drawn slices
+                # a mesh edge (kind 4) is measured against the boundary (edge), not by steps and bends
+                not4 = same_kind & (meas["kind"][:, j] != 4)
+                step, bend, sides = w("step", not4), w("bend", not4), w("sides", on & ~meas["across"][:, j] & ~meas["crossed"][:, j])
+                edge = w("edge", sel & (meas["kind"][:, j] == 4))
+                jumps = int((meas["jump"][:, j] & not4).sum())
                 ends = int((meas["ends"][:, j] & sel).sum())
                 tex = int((meas["texture"][:, j] & same_kind).sum())
                 reasons = [f"{n}: {KINDS[int(u)]}" for u, n in zip(*np.unique(kind[kind != 0], return_counts=True))]
-                weak = int((~drawn & sel & np.isin(meas["kind"][:, j], (0, 3))).sum())
+                weak = int((~drawn & sel & np.isin(meas["kind"][:, j], (0, 3, 5))).sum())
                 if weak:
                     reasons.append(f"{weak}: weak or wandering crest")
-                bad = [k for k, v in (("ridge", ridge), ("shift", shift), ("step", step), ("bend", bend), ("sides", sides)) if np.isfinite(v) and v > LIMITS[k]]
+                bad = [k for k, v in (("ridge", ridge), ("shift", shift), ("step", step), ("bend", bend), ("sides", sides), ("edge", edge)) if np.isfinite(v) and v > LIMITS[k]]
                 if np.isfinite(contrast) and contrast < LIMITS["contrast"]:
                     bad.append("contrast")
                 if jumps > LIMITS["jumps"]:
@@ -246,7 +262,7 @@ def check(m=None, verbose=False):
                 if ends:
                     verdict += f" [{ends} slices at a ridge's end]"
                 fmt = lambda v: f"{v:6.2f}" if np.isfinite(v) else "     -"
-                print(f"{line:9} {side:5} {what:32} {fmt(ridge)} {fmt(contrast)} {fmt(shift)} {fmt(step)} {fmt(bend)} {fmt(sides)} {jumps:5d} {tex:4d}  {verdict}")
+                print(f"{line:9} {side:5} {what:32} {fmt(ridge)} {fmt(contrast)} {fmt(shift)} {fmt(step)} {fmt(bend)} {fmt(sides)} {fmt(edge)[1:]} {jumps:5d} {tex:4d}  {verdict}")
                 if verbose:
                     for k in np.flatnonzero(sel):
                         v = {key: meas[key][k, j] for key in ("x", "y", "ridge", "contrast", "shift", "step", "bend", "sides")}
