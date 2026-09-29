@@ -205,7 +205,10 @@ user the Lab too.
   bare metal: metal mirrors the dark and reads as black specks.
 - Paint can't fake big 3D shapes (curls, folds): use small, crisp cues. A painted shadow must be
   the same width all round (as if lit from above), or it looks wrong from the other camera.
-- Glow is for the inner car only: `s.glow(part, colour, kind)`. Seen working: "always on" (day
+- Glow is for the inner car only, as far as we know: Nadeo's list of skin files has no glow map
+  for the body, but one was never tried in the game (the user doubts it, 2026-09-29: the test is
+  on `IMPROVEMENTS.md`). Don't tell the user the body can't glow as a fact. `s.glow(part, colour,
+  kind)`. Seen working: "always on" (day
   and night), "night only" (at night and sunset), "front lights" (at night and sunset only, the
   brightest), "brake lights" (at night, and when braking), "energy" (only in the garage, tinted by
   the game; dark on the track), "brake

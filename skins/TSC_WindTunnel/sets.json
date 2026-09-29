@@ -1,0 +1,32 @@
+{
+ "car": "TSC_WindTunnel",
+ "sets": [
+  {
+   "n": 1,
+   "title": "3 concepts",
+   "words": "sure lets try",
+   "made": "2026-09-29T07:41:20",
+   "state": "painting",
+   "options": [
+    {
+     "key": "A",
+     "title": "Flow Paint",
+     "skin": "TSC_WindTunnel_FlowPaint"
+    },
+    {
+     "key": "B",
+     "title": "Smoke",
+     "skin": "TSC_WindTunnel_Smoke"
+    },
+    {
+     "key": "C",
+     "title": "Pressure",
+     "skin": "TSC_WindTunnel_Pressure"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
+  }
+ ]
+}

@@ -188,6 +188,13 @@ These need the user to drive or look, so they're tested when a skin uses them.
   letters, the tread patterns, Nadeo's lettering gone), whether the lettering reads at 2 to 2.5 cm
   from the chase cameras and in the garage, and whether the band (30.9 to 35.3 cm from the axle)
   clears the wheel covers' edge and the three dark patches of the game's own shading.
+- **A glow on the body** (2026-09-29, TSC_WindTunnel: Claude said the body can't glow, the user:
+  "I don't think this is true btw"). The tool lets only the inner car glow because Nadeo's list of
+  skin files has a glow map (`Details_I`) for the inner car and none for the body, and the stock
+  model carries `Glass_I` and `Wheels_I` but no `Skin_I`. A `Skin_I` was never tried. Idea: a test
+  skin with a `Skin_I` in `Details_I`'s format (BC3, the same alpha codes): a stripe always on, a
+  patch at night only, one lit with the brakes; install it on the PC and look in the garage and at
+  night. If the game takes it, `Skin.glow` works on the body too (the viewer's night view as well).
 - **The upload size limit.** Zips stay under 8.5 MB until a limit shows up (2026-09-24,
   checkpoint 1); the install halves the roughness maps to fit (2026-09-25). Undocumented;
   Ubisoft said in 2022 that 9 MB "may be too big".

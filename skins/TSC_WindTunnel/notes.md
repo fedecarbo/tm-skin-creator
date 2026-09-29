@@ -20,3 +20,11 @@ The car painted by the wind. Renamed TSC_WindTunnel, brief card written (`brief.
 yes, with a thermal camera car (the car painted by its own heat) held back as the next pitch.
 
 Brief approved 2026-09-29 (user): "sure lets try".
+
+Concepts started 2026-09-29, set 1 ("3 concepts"), a concept designer each: A Flow Paint
+(TSC_WindTunnel_FlowPaint: F1 flow-vis paint, matte carbon #151618 and fluorescent #d6f53a
+dragged into organic streaks from the leading edges), B Smoke (TSC_WindTunnel_Smoke: a 1970s wind
+tunnel photograph, gloss black #0c0d0f, 10 to 14 even satin-white smoke lines #efeee9, one signal
+red #e2231a line down the spine, the lines breaking into a wake at the tail), C Pressure
+(TSC_WindTunnel_Pressure: a CFD pressure plot, satin, six stepped bands from black-violet #0d0a12
+through crimson, red, orange and amber to pale yellow #fff4c2 where the air hits head-on).
