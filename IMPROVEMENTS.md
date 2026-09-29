@@ -26,6 +26,16 @@ the design as asked), then speed.
   measured rather than typed (`SPOTS`), a check on every paint for graphics crossing a fold or an
   opening, and streaks combed along the flow. TSC_WindTunnel waits for the user. Notes:
   `CHECKLIST.md`, "The car map".
+  **First, the user's review (2026-09-29):** "I don't think you did the green and the yellows and
+  magenta mapping right. Some lines just looked very wobbly ... They just don't follow the lines of
+  the cars and the curvature properly." Right: the shoulder and the lower edge are a threshold on
+  each slice's facing (50 and 125 degrees), smoothed along the car, so on a rounded edge they sit
+  wherever the threshold falls, not on the body's own crease, and they wander where the section
+  changes (the sidepods' front, the nose's lip, the nose's tip); the front and back areas are a
+  threshold on the facing too, so they come out as blotches. Idea: find the car's real feature lines
+  from its curvature (the ridges where the surface bends most), trace each as one continuous curve
+  along the car, and take the shoulder and the lower edge from those; the front and the back as
+  whole faces bounded by them.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a
