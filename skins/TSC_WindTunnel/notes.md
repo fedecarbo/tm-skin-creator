@@ -35,3 +35,5 @@ surfaces facing back. B and C left as their designers made them (C darker than i
 74 % dark: more heat lit the sidepod fronts into a face). Shown 2026-09-29: the picture
 (TSC_WindTunnel_FlowPaint_picture.png in .snap: front, left, top, the driving camera), set 1 opened
 in the Lab. Claude suggested B.
+Picked 2026-09-29, set 1 (user, in the Lab's timeline): B Smoke. Its design is the car's now,
+painted under TSC_WindTunnel; A and C deleted (their pictures kept in sets/1/).

@@ -6,27 +6,30 @@
    "title": "3 concepts",
    "words": "sure lets try",
    "made": "2026-09-29T07:41:20",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Flow Paint",
-     "skin": "TSC_WindTunnel_FlowPaint"
+     "skin": "TSC_WindTunnel_FlowPaint",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Smoke",
-     "skin": "TSC_WindTunnel_Smoke"
+     "skin": "TSC_WindTunnel_Smoke",
+     "picture": "sets/1/B.png"
     },
     {
      "key": "C",
      "title": "Pressure",
-     "skin": "TSC_WindTunnel_Pressure"
+     "skin": "TSC_WindTunnel_Pressure",
+     "picture": "sets/1/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "B",
+   "decision": "Smoke: thin white smoke lines over gloss black, one red line down the nose, a wake at the tail",
+   "done": "2026-09-29T09:38:07"
   }
  ]
 }
