@@ -84,11 +84,11 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres` photographs the library
   (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
-- The car's lines, pinned by the user: the Lab's lines room (`lab.html?room=lines`,
-  `viewer/lab-lines.js`) saves them through `/api/lines` to `car/lines.json` (committed);
-  `tool/lines.py` fits each as one smooth curve on the body (`PY -m tool.lines` lists them and how
-  far each strays from its pins) and `shapes.line`, `near`, `line_offset` take a pinned line's name
-  before the map's. Notes: "The car's lines, pinned by the user" in `CHECKLIST.md`.
+- The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in
+  the viewer's clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
+  `car/lines.json` (committed); `PY -m tool.lines` lists them. Marks for the blueprints, not
+  curves (the curve maths was measured and dropped: "The car's lines, pinned by the user" in
+  `CHECKLIST.md`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

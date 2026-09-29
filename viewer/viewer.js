@@ -1743,8 +1743,9 @@ window.viewer = {
   // The Lab's lines room (viewer/lab-lines.js): the user's pins for the car's lines, and the curves
   // through them drawn on the body.
   // snap: points ([[x, y, z]] metres) put back on the body along their normals (either way, the
-  // nearer hit within 5 cm; a point with no body that near stays put). Only the parts shown count.
-  snap(points, normals) {
+  // nearer hit within `reach` metres, 5 cm unless said; a point with no body that near stays put).
+  // Only the parts shown count.
+  snap(points, normals, reach = 0.05) {
     const meshes = Object.values(parts).filter((m) => m.visible);
     const p = new THREE.Vector3(), n = new THREE.Vector3(), from = new THREE.Vector3(), dir = new THREE.Vector3();
     return points.map((q, i) => {
@@ -1752,12 +1753,12 @@ window.viewer = {
       n.set(...((normals && normals[i]) || [0, 1, 0])).normalize();
       let best = null;
       for (const sgn of [1, -1]) {
-        from.copy(p).addScaledVector(n, 0.05 * sgn);
+        from.copy(p).addScaledVector(n, reach * sgn);
         dir.copy(n).multiplyScalar(-sgn);
         snapRay.set(from, dir);
-        snapRay.far = 0.1;
+        snapRay.far = 2 * reach;
         const hit = snapRay.intersectObjects(meshes, false).find((h) => partsState.data[partOfHit(h) * 4] > 0);
-        if (hit && (!best || Math.abs(hit.distance - 0.05) < Math.abs(best.distance - 0.05))) best = hit;
+        if (hit && (!best || Math.abs(hit.distance - reach) < Math.abs(best.distance - reach))) best = hit;
       }
       return best ? best.point.toArray() : q;
     });

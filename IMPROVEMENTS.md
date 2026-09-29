@@ -25,13 +25,15 @@ the design as asked), then speed.
   The pivot: the lines come from a human eye, and Claude draws everything else as smooth curves on
   blueprints (side, top, front pictures of the car), wrapped onto the body and checked from the
   same view. The order, with an early stop (the user: "If it's not what I was hoping we can scrap
-  it"): **(1) the Lab's lines room, done 2026-09-29** (`viewer/lab-lines.js`, `tool/lines.py`,
-  `/api/lines`, `car/lines.json`; notes in `CHECKLIST.md`, "The car's lines, pinned by the user"):
-  the user turns the 3D car and clicks a few pins along a line, the tool draws the smooth curve
-  through them on the body (Catmull-Rom, put back on the skin, smoothed), the same recipe in the
-  page and in the paint; `shapes.line`, `near` and `line_offset` go by a pinned line's name before
-  the map's. **(2) The user pins two or three lines and looks at them close up: if they don't
-  convince, stop here.** (3) The blueprints (`tool/blueprint.py`: orthographic views at a known
+  it"): **(1) the Lab's lines room, built 2026-09-29** (`viewer/lab-lines.js`, `tool/lines.py`,
+  `/api/lines`, `car/lines.json`; the car in clay with the wheels off, the lines to start from in
+  plain words, each lighting the part it means; notes in `CHECKLIST.md`, "The car's lines, pinned
+  by the user"): the user turns the 3D car and clicks a few pins along a line and names it. **The
+  curve through the pins was tried and dropped the same day** (measured: a spline through pins
+  30 cm apart leaves the body by centimetres and lands on the wrong surface when pulled back; a
+  path built on the body wanders 4 cm from its pins; the user: "omg, im not sure this is the
+  approach. I think we just stick to blueprint"): the pins are marks for the blueprints, drawn
+  through there, not curves. (2) → (3) The blueprints (`tool/blueprint.py`: orthographic views at a known
   scale with a hit buffer, pixel to texel and back), (4) drawing on a view (`shapes.view_line`,
   `view_shape`, `view_lines` across views, `view_point`), (5) the check (the same view rendered
   from the painted texture, the intended path drawn over it, the band's centre measured against

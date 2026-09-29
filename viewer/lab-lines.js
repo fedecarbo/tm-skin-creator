@@ -6,35 +6,42 @@
 // kept in car/lines.json through the viewer's server (tool/view.py, /api/lines): a small asset,
 // committed, the same on both computers. shapes.line, near and line_offset go by a pinned line's name.
 //   /lab.html?room=lines
-// The car is the viewer itself (index.html?embed=1), wearing the stock paint: the body's shape shows
-// best plain. Turn it with a drag. Click the body along a line to pin it; click a pin to pick it,
-// then click the body to move it there, or press Delete; click between two pins to add one.
+// The car is the viewer itself (index.html?embed=1) in the Studio's clay, matte, with the wheels off
+// (the user, 2026-09-29: "hide wheels ... make the skin maybe clayish and matte so I can see
+// properly"; a switch puts them back). Turn it with a drag. Click the body along a line to pin it;
+// click a pin to pick it, then click the body to move it there, or press Delete; click between two
+// pins to add one. The lines to start from are said in plain words, and hovering one lights the
+// part of the car it means (the user: "I struggle to know what are the sidepods, shoulders etc").
 // Everything saves as you go.
 
 const $ = (id) => document.getElementById(id);
 const CM = 100;  // the viewer works in metres, the file in cm
 const SPACING = 1.0;  // cm between the drawn curve's points
 
-// Names to start from, with what each means on this car; any other name works too.
+// Lines to start from: a plain name, what it means on this car, and the parts lit while it's hovered
+// (uvmap.json's part names). Any other name works too; Claude goes by the name.
 const SUGGESTED = [
-  ['shoulder', 'The crease along the flank, over both wheels, nose to tail'],
-  ['lower edge', 'Where the side turns under the car'],
-  ['sidepod top', "The top edge of the sidepod's flank"],
-  ['sidepod bottom', "The bottom edge of the sidepod's flank"],
-  ['front arch', 'The rim of the front wheel arch'],
-  ['rear arch', 'The rim of the rear wheel arch'],
-  ['nose crease', 'A crease over the nose (one side; the tool mirrors it)'],
-  ['tail edge', "The tail's top edge"],
+  ['side crease', 'The crease that runs along the side of the car, above both wheels, from the nose to the tail. Designers call it the shoulder.', ['rear flank', 'sidepod top', 'nose panel']],
+  ['bottom edge', 'Where the side of the car turns under, just above the ground, from the nose to the tail.', ['side skirt', 'diffuser']],
+  ['side box top', 'The box beside the driver with the air scoop in its front is the side box (a sidepod). This is its top edge.', ['sidepod top', 'sidepod inlet']],
+  ['side box bottom', "The side box's bottom edge, where it meets the skirt.", ['sidepod inlet', 'side skirt']],
+  ['front arch', 'The rim of the opening round the front wheel (the wheels are off so you can see it).', []],
+  ['rear arch', 'The rim of the opening round the rear wheel.', []],
+  ['nose crease', 'A crease over the nose, one side; the tool mirrors it.', ['nose panel', 'nose tip']],
+  ['tail edge', "The top edge of the tail, where the deck ends.", ['tail panel', 'tail corner']],
 ];
+// The wheels: the tyres, the rims and brakes, and the wheel covers on the body.
+const WHEEL = (p) => p.mesh === 'Wheels' || p.parent === 'rims and brakes' || p.parent === 'wheel cover';
 
 let doc = { lines: [] };  // as car/lines.json: [{ name, mirror, points: [[x, y, z] cm], normals }]
 let cur = -1;             // the line being pinned
 let sel = -1;             // the picked pin of it
 let car = null;           // the viewer's window.viewer
-let partInfo = new Map(); // uvmap.json's parts by id: which map a click lands on
+let partInfo = new Map(); // uvmap.json's parts by id: which map a click lands on, and what to light
+let wheels = false;       // the wheels shown
 const undo = [];          // earlier states, newest last
 let saveTimer = null;
-let savedAt = null;
+let litTimer = null;
 let opened = false;
 
 // ---- the curve through the pins: a centripetal Catmull-Rom spline, then put back on the body ----
@@ -89,13 +96,20 @@ function normalsAlong(L, pts) {
   });
 }
 
-function curveOf(L) {  // cm, on the body
+const JUMP = 1.5;   // cm: a later snap that moves a point further than this caught another panel (a step, a lip): kept off it
+const REACH = 0.2;  // metres: how far the first snap looks for the body (between two pins the spline cuts through its bulge)
+
+function curveOf(L) {  // cm, on the body (tool/lines.py draws the same, and paints by it)
   if (L.points.length < 2) return [];
   let pts = catmullRom(L.points);
   const nrm = normalsAlong(L, pts);
-  const onBody = (p) => car.snap(p.map((q) => scale(q, 1 / CM)), nrm).map((q) => scale(q, CM));
-  pts = smooth(onBody(pts));
-  return onBody(pts);
+  const onBody = (p, reach, guard) => car.snap(p.map((q) => scale(q, 1 / CM)), nrm, reach).map((q, i) => {
+    const s = scale(q, CM);
+    return guard && norm(sub(s, p[i])) > JUMP ? p[i] : s;
+  });
+  pts = onBody(pts, REACH, false);
+  for (let k = 0; k < 2; k++) pts = onBody(smooth(pts), 0.05, true);
+  return smooth(pts);
 }
 
 // ---- drawing ----
@@ -111,8 +125,8 @@ function draw() {
     const pts = curveOf(L);
     if (!pts.length) return;
     const m = pts.map((p) => scale(p, 1 / CM));
-    list.push({ key: `l${i}`, points: m, colour: isCur(i) ? '#e8ff47' : '#f2f4f7', radius: isCur(i) ? 0.0035 : 0.0025, dim: !isCur(i) });
-    if (L.mirror) list.push({ key: `m${i}`, points: m.map(mirror), colour: isCur(i) ? '#e8ff47' : '#f2f4f7', radius: 0.002, dim: true });
+    list.push({ key: `l${i}`, points: m, colour: isCur(i) ? '#e8ff47' : '#3a3d45', radius: isCur(i) ? 0.0035 : 0.0025, dim: !isCur(i) });
+    if (L.mirror) list.push({ key: `m${i}`, points: m.map(mirror), colour: isCur(i) ? '#e8ff47' : '#3a3d45', radius: 0.002, dim: true });
   });
   car.curves(list);
   const L = doc.lines[cur];
@@ -146,6 +160,21 @@ function pick(i) {
   sel = sel === i ? -1 : i;
   for (const el of $('lnDots').children) el.classList.toggle('picked', Number(el.dataset.key.slice(1)) === sel);
   hint();
+}
+
+// Light the parts a suggestion means, on the car, while it's hovered (or for a moment).
+const idsOf = (names) => [...partInfo.values()].filter((p) => names.includes(p.name)).map((p) => p.id);
+function light(names, moment = false) {
+  if (!car) return;
+  clearTimeout(litTimer);
+  car.light(idsOf(names || []));
+  if (moment && names && names.length) litTimer = setTimeout(() => car.light([]), 3000);
+}
+
+function showWheels(on) {
+  wheels = on;
+  if (car) car.hide(on ? [] : [...partInfo.values()].filter(WHEEL).map((p) => p.id));
+  $('lnWheels').setAttribute('aria-pressed', String(on));
 }
 
 // ---- the pins ----
@@ -185,7 +214,7 @@ function insert(L, at, n) {
 function pinned(id, hit) {  // a click on the car
   const p = partInfo.get(id);
   if (p && p.mesh !== 'Skin') { say(`The lines live on the body. That's ${p.label || 'the inner car'}.`); return; }
-  if (cur < 0) newLine();
+  if (cur < 0) { say('Start a line first: pick one on the right.'); return; }
   const L = doc.lines[cur];
   const at = hit.at.map((v) => Math.round(v * CM * 100) / 100);
   const n = hit.normal.map((v) => Math.round(v * 1000) / 1000);
@@ -207,20 +236,16 @@ function removePin() {
 
 // ---- the lines ----
 
-function freshName() {
+function newLine(name) {
   const taken = new Set(doc.lines.map((l) => l.name.toLowerCase()));
-  const next = SUGGESTED.find(([n]) => !taken.has(n));
-  if (next) return next[0];
-  for (let k = doc.lines.length + 1; ; k++) if (!taken.has(`line ${k}`)) return `line ${k}`;
-}
-
-function newLine() {
+  if (!name) for (let k = doc.lines.length + 1; !name; k++) if (!taken.has(`line ${k}`)) name = `line ${k}`;
+  if (taken.has(name.toLowerCase())) { openLine(doc.lines.findIndex((l) => l.name.toLowerCase() === name.toLowerCase())); return; }
   remember();
-  doc.lines.push({ name: freshName(), mirror: true, points: [], normals: [] });
+  doc.lines.push({ name, mirror: true, points: [], normals: [] });
   cur = doc.lines.length - 1;
   sel = -1;
   changed();
-  setTimeout(() => { $('lnName').focus(); $('lnName').select(); });
+  light(null);
 }
 
 function openLine(i) {
@@ -259,6 +284,8 @@ function changed() {
 
 // ---- the panel ----
 
+const meaning = (name) => SUGGESTED.find(([n]) => n === name.toLowerCase());
+
 function panel() {
   const list = $('lnList');
   list.textContent = '';
@@ -273,12 +300,29 @@ function panel() {
     list.appendChild(b);
   });
   $('lnCount').textContent = doc.lines.length ? String(doc.lines.length) : '';
+  // the lines to start from, less the ones pinned already
+  const taken = new Set(doc.lines.map((l) => l.name.toLowerCase()));
+  const sug = $('lnSuggest');
+  sug.textContent = '';
+  for (const [name, about, parts] of SUGGESTED) {
+    if (taken.has(name)) continue;
+    const b = document.createElement('button');
+    b.className = 'lnSug';
+    b.innerHTML = '<b class="teko"></b><span></span>';
+    b.querySelector('b').textContent = name;
+    b.querySelector('span').textContent = about;
+    b.addEventListener('mouseenter', () => light(parts));
+    b.addEventListener('mouseleave', () => light(null));
+    b.addEventListener('click', () => newLine(name));
+    sug.appendChild(b);
+  }
   const L = doc.lines[cur];
   $('lnOpen').hidden = !L;
   if (L) {
     if (document.activeElement !== $('lnName')) $('lnName').value = L.name;
-    const s = SUGGESTED.find(([n]) => n === L.name.toLowerCase());
+    const s = meaning(L.name);
     $('lnAbout').textContent = s ? s[1] : 'Your own line: Claude goes by its name.';
+    $('lnWhere').hidden = !(s && s[2].length);
     for (const b of $('lnSides').querySelectorAll('[data-mirror]')) b.setAttribute('aria-pressed', String((b.dataset.mirror === 'both') === !!L.mirror));
     $('lnDelPin').hidden = sel < 0;
   }
@@ -287,7 +331,7 @@ function panel() {
 function hint() {
   const L = doc.lines[cur];
   const el = $('lnHint');
-  if (!L) el.textContent = 'Start a line, then click the body where it runs. Turn the car with a drag.';
+  if (!L) el.textContent = 'Pick a line to start from on the right, or start one of your own. Then click the body where it runs. Turn the car with a drag.';
   else if (sel >= 0) el.textContent = `Pin ${sel + 1} is picked: click the body to move it there, or press Delete to take it off.`;
   else if (L.points.length === 0) el.textContent = `Click the body where "${L.name}" starts. Five to eight pins are plenty: the tool draws the smooth curve through them.`;
   else if (L.points.length === 1) el.textContent = 'Click further along the line. The curve appears from the second pin.';
@@ -310,7 +354,6 @@ async function save() {
   try {
     const r = await fetch('api/lines', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lines: doc.lines }) });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || String(r.status));
-    savedAt = Date.now();
     $('lnSaved').textContent = 'Saved';
   } catch (e) {
     $('lnSaved').textContent = `Not saved: ${e.message}`;
@@ -324,6 +367,14 @@ async function load() {
   } catch { /* a server from before the lines */ }
   if (!doc || !Array.isArray(doc.lines)) doc = { lines: [] };
   for (const L of doc.lines) L.normals ||= L.points.map(() => [0, 1, 0]);
+}
+
+// The car in the Studio's clay (tool/view.py, ensure_clay): the stock textures with the clay ones over them.
+async function clay() {
+  const [stock, clayed] = await Promise.all([fetch('data/stock/stock.json').then((r) => r.json()), fetch('data/clay/clay.json').then((r) => r.json())]);
+  const urls = Object.fromEntries(stock.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`]));
+  for (const s of clayed) urls[s] = `clay/${s}.png`;
+  await car.dress(urls);
 }
 
 function embedCar() {
@@ -351,10 +402,12 @@ export async function open() {
   opened = true;
   const uv = await fetch('data/uvmap.json').then((r) => r.json()).catch(() => ({}));
   partInfo = new Map((uv.parts || []).map((p) => [p.id, p]));
-  $('lnNew').addEventListener('click', newLine);
+  $('lnOwn').addEventListener('click', () => { newLine(); setTimeout(() => { $('lnName').focus(); $('lnName').select(); }); });
   $('lnUndo').addEventListener('click', takeBack);
   $('lnDelete').addEventListener('click', deleteLine);
   $('lnDelPin').addEventListener('click', removePin);
+  $('lnWhere').addEventListener('click', () => { const s = doc.lines[cur] && meaning(doc.lines[cur].name); if (s) light(s[2], true); });
+  $('lnWheels').addEventListener('click', () => showWheels(!wheels));
   $('lnName').addEventListener('change', (e) => rename(e.target.value));
   $('lnName').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { e.target.value = doc.lines[cur].name; e.target.blur(); } });
   for (const b of $('lnSides').querySelectorAll('[data-mirror]')) {
@@ -367,8 +420,6 @@ export async function open() {
     if (e.key === 'Escape' && sel >= 0) pick(sel);
     if ((e.key === 'z' || e.key === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); takeBack(); }
   });
-  const list = $('lnSuggest');
-  for (const [n] of SUGGESTED) { const o = document.createElement('option'); o.value = n; list.appendChild(o); }
   await load();
   cur = doc.lines.length ? 0 : -1;
   hint();
@@ -376,7 +427,8 @@ export async function open() {
   try {
     await embedCar();
     if (car) {
-      await car.stock();
+      await clay();
+      showWheels(false);
       await car.show('left', false);
       draw();
     } else $('lnSaved').textContent = "The car couldn't be shown.";

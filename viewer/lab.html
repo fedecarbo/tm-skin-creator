@@ -146,6 +146,15 @@
   .lnOpen .tagButtons { flex-wrap: wrap; padding-left: 0; }
   .lnOpen .tagButtons .sk[hidden] { display: none; }
   .lnSaved { font-size: 12px; opacity: 0.55; margin: 10px 0 0; min-height: 1.4em; }
+  .lnWhere { font-size: 15px; padding: 5px 10px 2px; margin: 4px 0 6px 80px; }
+  .lnWhere[hidden] { display: none; }
+  .lnStart { margin: 18px 0 6px; font-size: 26px; font-weight: 600; transform: skewX(-9deg); }
+  .lnSuggest { display: flex; flex-direction: column; gap: 3px; }
+  .lnSug { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 7px 10px 6px; background: rgba(255, 255, 255, 0.05); }
+  .lnSug:hover { background: rgba(232, 255, 71, 0.13); box-shadow: inset 3px 0 var(--acc); }
+  .lnSug b { font-size: 20px; font-weight: 600; }
+  .lnSug span { font-size: 12.5px; line-height: 1.4; color: rgba(242, 244, 247, 0.7); margin-top: 2px; }
+  #lnWheels { margin-left: 10px; }
   #prMap { position: relative; background: var(--ball); cursor: crosshair; touch-action: none; }
   #prMap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   #prTag { position: absolute; z-index: 1; pointer-events: none; padding: 5px 10px; font-size: 13px; white-space: nowrap;
@@ -488,6 +497,7 @@
           <button class="sk" data-view="front"><span>Front</span></button>
           <button class="sk" data-view="rear"><span>Rear</span></button>
           <button class="sk" data-view="top"><span>Top</span></button>
+          <button class="sk" id="lnWheels" aria-pressed="false" title="the wheels are off so the body shows whole; put them back to see the car as it drives"><span>Wheels</span></button>
         </div>
       </div>
       <div id="lnStage">
@@ -502,10 +512,10 @@
       <h2 class="specName teko" style="margin-top: 14px">The lines <small id="lnCount"></small></h2>
       <p id="lnHint" class="lnHint"></p>
       <div id="lnList" class="lnList"></div>
-      <button id="lnNew" class="sk acc teko copyWide"><span>Start a line</span></button>
       <div id="lnOpen" class="lnOpen" hidden>
-        <div class="row"><span class="lab">Name</span><input id="lnName" list="lnSuggest" maxlength="40" autocomplete="off" spellcheck="false"><datalist id="lnSuggest"></datalist></div>
+        <div class="row"><span class="lab">Name</span><input id="lnName" maxlength="40" autocomplete="off" spellcheck="false"></div>
         <div class="row"><span class="lab">Means</span><span id="lnAbout"></span></div>
+        <button id="lnWhere" class="sk teko lnWhere" hidden><span>Show me where</span></button>
         <div class="row"><span class="lab">Sides</span><div id="lnSides" class="show teko">
           <button class="sk" data-mirror="both" aria-pressed="true"><span>Both, mirrored</span></button>
           <button class="sk" data-mirror="one" aria-pressed="false"><span>This side only</span></button>
@@ -517,6 +527,9 @@
         </div>
       </div>
       <p id="lnSaved" class="lnSaved"></p>
+      <h3 class="lnStart teko">Start a line</h3>
+      <div id="lnSuggest" class="lnSuggest"></div>
+      <button id="lnOwn" class="sk teko copyWide"><span>One of your own</span></button>
     </aside>
   </section>
   <div id="status">Loading…</div>

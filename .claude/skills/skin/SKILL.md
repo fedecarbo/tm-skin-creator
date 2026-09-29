@@ -67,9 +67,7 @@ card) and no game: install from the Windows PC after a push.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls.
-  Before the first design in a session, run **`python -m tool.lines`** (the car's lines as the
-  user pinned them in the Lab's lines room: `shapes.line`, `near` and `line_offset` go by their
-  names first, and a band offset from one is exact), read **the car map, `car/map.md`, and look at its
+  Before the first design in a session, read **the car map, `car/map.md`, and look at its
   pictures** (`car/map/`) **and the body sheet, `car/sheet.png`** (the skin flattened in true size,
   in millimetres: `car/sheet.json` has every line and station on it), then the docstrings of
   `tool/paintbox.py` (the key), `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in
@@ -171,12 +169,10 @@ card) and no game: install from the Windows PC after a push.
   H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.
-- **The car's lines** (`tool/lines.py`, `car/lines.json`, 2026-09-29): the user pins them on the 3D
-  car in the Lab's lines room, and the tool draws one smooth curve through the pins on the body.
-  They are the truth about where the body's lines run (a human eye, not the mesh's curvature):
-  `shapes.line_offset("shoulder", 30, 20)` is a 20 mm band exactly 30 mm below the pinned shoulder,
-  both sides, unbroken. If a line you need isn't pinned, ask the user to pin it (a minute in the
-  room) rather than guess it.
+- **The user's pins** (`tool/lines.py`, `car/lines.json`, 2026-09-29): in the Lab's lines room the
+  user can click a few pins along a line of the car and name it. They are marks of where a human
+  eye says a line runs, for the blueprints (`tool/blueprint.py`): draw through them there. They are
+  not curves: `python -m tool.lines` lists them.
 - **The car map** (`tool/carmap.py`, `car/map.md` and its pictures, 2026-09-29: the user wanted
   the AI to understand the car "so that no matter what design is done, the Ai just knows"). The
   body's shape worked out once from its mesh: its areas, its lines, positions that bend with it,

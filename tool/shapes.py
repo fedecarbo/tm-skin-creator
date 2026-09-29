@@ -27,8 +27,6 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.line("shoulder", 1.5)           a line along the shoulder, "lower", "fold", "opening", "join"
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.line_offset("shoulder", 30, 20) a 20 mm band 30 mm below the shoulder, parallel to it
-  The lines the user pinned on the car (tool/lines.py, the Lab's lines room; `python -m tool.lines`
-  lists them): line, near and line_offset take a pinned line's name first, the map's after.
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
   The body sheet (tool/surface.py: the skin flattened in true size; car/sheet.png, .svg, .json, in mm):
@@ -437,64 +435,35 @@ def along(a0, a1, soft=SOFT):
     return field(lambda p, n: np.minimum(_map().level("along", a0, p, n), -_map().level("along", a1, p, n)), soft)
 
 
-def _pinned(kind):
-    """The user's pinned line of that name (tool/lines.py, the Lab's lines room), if there is one:
-    the user's eye wins over the mesh's curvature when both have a line of the name."""
-    from tool import lines
-    f = lines.fitted()
-    return f if f.has(kind) else None
-
-
 def near(kind, reach, soft=SOFT):
-    """Within `reach` cm of one of the car's lines: a line the user pinned in the Lab's lines room
-    (by its name: `python -m tool.lines` lists them), or the car map's ("fold", "opening",
-    "join", "shoulder", "lower"). ~near(...) keeps a graphic clear of them."""
+    """Within `reach` cm of one of the car's lines (the car map's LINES: "fold", "opening", "join",
+    "shoulder", "lower"). ~near(...) keeps a graphic clear of them."""
     def dist(p, n):
-        from tool import carmap
-        f = _pinned(kind)
-        if f is not None:
-            d = f.distance(kind, p)
-        elif kind == "shoulder":
-            d = _map().mark_distance(p, 1)
+        m = _map()
+        if kind == "shoulder":
+            d = m.mark_distance(p, 1)
         elif kind == "lower":
-            d = _map().mark_distance(p, 2)
-        elif kind in carmap.LINES:
-            d = _map().distance(kind, p)
+            d = m.mark_distance(p, 2)
         else:
-            raise KeyError(f"no line called {kind!r}: pinned lines are {', '.join(lines_pinned()) or 'none yet'}; "
-                           f"the map's are {', '.join(carmap.LINES)}")
+            d = m.distance(kind, p)
         return reach - d
     return field(dist, soft)
 
 
-def lines_pinned():
-    """The names of the lines the user has pinned (tool/lines.py)."""
-    from tool import lines
-    return lines.fitted().names
-
-
 def line(kind, width=1.0, soft=SOFT):
-    """A line `width` cm wide drawn along one of the car's lines (see near): a pinned line is one
-    smooth curve on the body through the user's pins; the map's "shoulder" and "lower" are its
-    design lines, blended through the sidepod's corners (carmap.Map.design_lines). Either way
-    the line never breaks or kinks at a join."""
+    """A line `width` cm wide drawn along one of the car's lines (see near). "shoulder" and
+    "lower" are the map's design lines: one smooth curve per stretch, blended through the
+    sidepod's corners (carmap.Map.design_lines), so the line never breaks or kinks at a join."""
     return near(kind, width / 2, soft)
 
 
 def line_offset(kind, d, width, soft=SOFT):
-    """A band `width` mm wide whose centre runs `d` mm past a line, measured as the exact
+    """A band `width` mm wide whose centre runs `d` mm past one of the map's design lines
+    ("shoulder": down the side, "lower": on under; d < 0 the other way), measured as the exact
     distance in 3D to that one smooth curve, so the band is continuous across every UV seam,
     join and gap by construction and parallel to the line everywhere (on this body the chord is
-    within 0.2 mm of the arc at 30 mm). Both sides. A pinned line (tool/lines.py): d > 0 is
-    below it, down the body (or outboard where the line runs up and down); the map's "shoulder":
-    down the side, "lower": on under; d < 0 the other way. The earlier project's lesson
-    (2026-09-29): a band is a function of the point on the car, not of a flat sheet."""
-    f = _pinned(kind)
-    if f is not None:
-        return field(lambda p, n: width / 20 - np.abs(f.offset(kind, p) - d / 10), soft)
-    if kind not in ("shoulder", "lower"):
-        raise KeyError(f"no line called {kind!r} to offset from: pinned lines are "
-                       f"{', '.join(lines_pinned()) or 'none yet'}; the map's are shoulder and lower")
+    within 0.2 mm of the arc at 30 mm). Both sides. The earlier project's lesson (2026-09-29): a
+    band is a function of the point on the car, not of a flat sheet."""
     a = {"shoulder": 1, "lower": 2}[kind]
     return field(lambda p, n: width / 20 - np.abs(_map().across_level(p, a) - d / 10), soft)
 

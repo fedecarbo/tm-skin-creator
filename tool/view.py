@@ -350,7 +350,30 @@ def _write_slots(folder, textures):
     return written
 
 
+CLAY = DATA / "clay"
+
+
+def ensure_clay():
+    """Modelling clay for the viewer (the Lab's lines room shows the body in it so its shape reads):
+    the body and the inner car matte, no varnish, a mid grey (the Studio's near-white clay washes
+    out under the studio's light: the creases vanished, 2026-09-29). The slots it covers are in
+    clay.json; a page lays them over the stock ones."""
+    stamp = CLAY / "clay.json"
+    if not _stale(stamp):
+        return
+    n = 64
+    colour = np.full((n, n, 3), (128, 128, 126), np.uint8)
+    rm = np.zeros((n, n, 2), np.uint8)
+    rm[..., 0] = 235  # roughness: matte
+    rm[..., 1] = 0    # no metal
+    textures = {"Skin_B": colour, "Skin_R": rm, "Skin_CoatR": np.full((n, n, 1), 255, np.uint8),
+                "Details_B": colour, "Details_R": rm}
+    slots = _write_slots(CLAY, textures)
+    stamp.write_text(json.dumps(sorted(slots)))
+
+
 def ensure_stock():
+    ensure_clay()
     stamp = STOCK / "stock.json"
     sources = sorted(paths.MODEL_SOURCE.glob("*.dds"))
     if not _stale(stamp, *sources):

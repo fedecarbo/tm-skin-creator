@@ -3971,8 +3971,34 @@ for the snap).
   side only", a rename, a second line, the list, the top view with the mirror; the file after each
   step read back through the API; a bad name refused with 400. Pictures in
   `build/lines_room/`. Not yet: the user's own pins.
-- **Next:** the user pins two or three lines and looks at them close up (step 2 of the item in
-  `IMPROVEMENTS.md`). Only if they convince: the blueprints.
+- **The same evening: clay, no wheels, plain words** (the user: "hide wheels ... make the skin
+  maybe clayish and matte so I can see properly. Also, I struggle to know what are the sidepods,
+  shoulders etc"). The car wears the viewer's clay (`view.ensure_clay`: a mid grey, matte, no
+  varnish; the Studio's near-white washed out under the studio light) with the wheels, rims,
+  brakes and wheel covers off (a Wheels switch puts them back); the lines to start from are
+  buttons in plain words ("side crease ... designers call it the shoulder", "side box top ... the
+  box beside the driver with the air scoop is the side box (a sidepod)"), hovering one lights the
+  parts it means on the car (`viewer.light`), and an open line has "Show me where".
+- **The curve through the pins: tried, measured, dropped.** A spline through 6 pins 30 cm apart
+  along the flank leaves the body by up to 22 cm (the bulge, the ends carried on) and, pulled
+  onto the nearest surface (`Map.project`: a nearest sample's plane, 3 cm wrong from far off;
+  then libigl's exact nearest point), lands on the wrong surface for stretches: mean 0.3 mm off
+  the skin but strays 10 to 18 mm from its own pins, 33 mm off the skin at worst. A path built on
+  the body instead (each chord split at its middle, the middle pulled onto the skin, then faired
+  with pulls in between) stays on the skin (0.1 mm mean) but wanders round the wheel opening,
+  40 mm from its pins, and unbounded splitting hung once. A guard that keeps points off a
+  neighbouring panel (a pull over 1.5 cm refused) stopped the first pull working at all. The
+  measurements: raggedness (a point's distance from the chord of its neighbours 1 cm either
+  side), distance from the skin, distance from the pins, distance from a true section line of
+  the flank. The lesson: sparse pins on a curved body need a surface parameterisation to be
+  joined smoothly (the sheet, or a view), not 3D splines and pulls; and the user's patience is
+  the budget ("omg, im not sure this is the approach. I think we just stick to blueprint"). So
+  the pins are marks for the blueprints, where a curve drawn on a view lands on the body point by
+  point along the line of sight and is exact by construction. `tool/lines.py` keeps load, save
+  and the listing; `shapes` went back to the map's lines; the room's own preview curve (a spline
+  snapped along the pins' normals, JavaScript) stays as a rough picture. The test drive:
+  `build/lines_room/`.
+- **Next:** the blueprints (step 3 of the item in `IMPROVEMENTS.md`).
 
 ## Decisions (for Claude)
 
