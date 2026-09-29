@@ -392,21 +392,19 @@ def _map():
 
 
 AREAS = ("top", "sides", "under", "front", "back")
-FACING_EDGE = 0.7  # a surface facing forward or back more than this is the front or the back
 
 
 def area(name, soft=SOFT):
     """One of the body's areas, split along the car's own lines (the car map): "top" (between the
     shoulders), "sides" (from the shoulder down to where the side turns under), "under", "front"
-    (facing forward: the nose's tip, the sidepods' fronts) and "back" (facing back: the tail).
-    Edges crisp, where the body itself turns."""
+    (the whole faces facing forward, bounded by the ridges: the sidepods' fronts to their rims,
+    the nose's tip) and "back" (the tail, to its top edge and corners). Edges crisp, on the ridges."""
     if name not in AREAS:
         raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)}")
 
     def dist(p, n):
         m = _map()
-        fwd = m.level("facing_z", FACING_EDGE, p, n)     # > 0: facing forward
-        back = -m.level("facing_z", -FACING_EDGE, p, n)  # > 0: facing back
+        fwd, back = m.face_distance(p, 1, n), m.face_distance(p, 2, n)  # > 0: on the front, the back
         if name == "front":
             return fwd
         if name == "back":
@@ -465,16 +463,13 @@ def hit(lo, hi=1.01, soft=SOFT):
     return field(dist, soft)
 
 
-def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
-    """Lines `width` cm wide along the air's path over the body (the car map's streamlines), traced
-    from seed points (x, y, z) in cm on the body: a smoke rake's row at the nose, say. both: the
-    seeds mirrored onto the other side too. The traced lines are kept on the zone as .lines."""
+def polyline(lines, width=1.5, soft=SOFT):
+    """Lines `width` cm wide along polylines on the body: one (n, 3) array of points in cm, or a
+    list of them (the car map's ridges, say: shapes.polyline(carmap.load().ridges[3]))."""
     from scipy.spatial import cKDTree
-    seeds = np.asarray(seeds, np.float64)
-    if both:
-        seeds = np.concatenate([seeds, seeds[np.abs(seeds[:, 0]) > 0.3] * np.array([-1.0, 1.0, 1.0])])
-    lines = _map().streamlines(seeds, step, length)
-    pts = np.concatenate([l for l in lines if len(l) > 1]) if lines else np.zeros((0, 3))
+    from tool import carmap
+    lines = [np.asarray(l, np.float64) for l in lines] if isinstance(lines, (list, tuple)) else [np.asarray(lines, np.float64)]
+    pts = carmap._resample([l for l in lines if len(l) > 1])  # a point every 0.25 cm: no beads
     tree = cKDTree(pts) if len(pts) else None
 
     def dist(p, n):
@@ -482,7 +477,18 @@ def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
             return np.full(len(p), -1.0, np.float32)
         d, _ = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
         return (width / 2 - np.minimum(d, width * 2)).astype(np.float32)
-    z = field(dist, soft)
+    return field(dist, soft)
+
+
+def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
+    """Lines `width` cm wide along the air's path over the body (the car map's streamlines), traced
+    from seed points (x, y, z) in cm on the body: a smoke rake's row at the nose, say. both: the
+    seeds mirrored onto the other side too. The traced lines are kept on the zone as .lines."""
+    seeds = np.asarray(seeds, np.float64)
+    if both:
+        seeds = np.concatenate([seeds, seeds[np.abs(seeds[:, 0]) > 0.3] * np.array([-1.0, 1.0, 1.0])])
+    lines = _map().streamlines(seeds, step, length)
+    z = polyline(lines, width, soft)
     z.lines = lines
     return z
 

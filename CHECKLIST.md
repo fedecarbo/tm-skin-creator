@@ -3364,6 +3364,126 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        and on the wing's pylons: the pylons left the outlines with the fin and the mirror mounts.
        Pressure and streaks: TSC_Map_Air shows the air's hit as a pressure map, and the flow field
        is there for streaks (noise combed along `Map.flow`), not drawn yet.
+  7. [x] **The lines redone from the car's curvature, checked by measurement** (2026-09-29, the car
+     mapper on the Mac, after the user's review and the handover below; the method changed mid-way at
+     the user's word: "There has to be a more optimised way of doing this. I don't think it's feasible
+     to do it by eye": the gate for "right" became numbers the tool computes on every rebuild).
+     - **The ridges** (`carmap._smooth_normals`, `_curvature`, `_principal`, `_trace_ridges`): the
+       normals averaged over 2.5 cm (SMOOTH), the curvature tensor per vertex (Rusinkiewicz 2004 per
+       triangle, summed at the corners), its greatest bend k1 and directions; every ridge traced from
+       the crests bent over RIDGE_SEED (0.09/cm), a 1 cm step at a time along the least-bent direction,
+       pulled back each step onto the nearest local maximum of k1 across (never the biggest in the
+       window: where the nose's crease and the lip converge to 4 cm the biggest would jump ridges),
+       refined by a parabola, with samples off the body (past an open edge: the tail's top edge) left
+       out; all seeds at once, then strongest first each cut where it runs within 1.5 cm of a kept one,
+       the pieces of one ridge joined end to end (`_join`, gap 4 cm, nearly straight), pieces under
+       10 cm dropped, each smoothed as a curve (2 cm) and put back on the body; then made the same on
+       both sides (`_symmetric`: the left side's traces mirrored; the two sides' own traces differed by
+       a cm or two and in where they ended). 62 ridges, 38 m in all; `line("fold")` is now these
+       (the 35 degree dihedral found almost nothing on this car's rounded edges). Their test car:
+       TSC_Map_Lines, every ridge in its own colour on clay (`shapes.polyline`).
+     - **The named lines** (`_marks`, per 1 cm slice, on the ridges the slice's outline crosses, each
+       crossing the ridge's own point in the slice's plane, `_in_plane`): the shoulder is the crossing
+       up to 4 cm past where the outline first runs steeper than 50 degrees for 3 cm that turns the
+       surface most (2 to 6 cm after against before, at least 20 degrees; of a double crest within 8 cm
+       the outer), else the crossing within 2 cm of that point, else no crease; the top's end at the
+       sidepod's front (an open edge) is the shoulder there. The lower edge: where the skin contiguous
+       with the shoulder (chained through gaps over hidden skin, or over nothing under 6 cm) reaches
+       the floor (an open edge under 30 cm, not at the middle), the mesh's own edge (the skirt, the
+       body's edge under the rear flanks; the sidepod's side-panel crease above it stays a fold);
+       else the first crest facing out-and-down (45 to 150 degrees) beyond which the surface faces
+       past 110 degrees (2 cm on, or the median over 4 or 10 cm) and stays under for the rest of its
+       stretch (the lip over the nose's belly, the tail corner's lower crease; at the tip the lip is
+       both lines). Kinds per slice: 0 a ridge, 1 the skin's end, 2 no crease, 3 a ridge with the
+       skin ending below (the lip), 4 the skin's own open edge (exact). A slice whose choice differs
+       from both neighbours while they agree is repaired to the crossing nearest them (`_repair`, runs
+       of up to three). No median or smoothing along the car any more: they put the line between two
+       ridges, on neither. `sec_kind`, `sec_raw`, `sec_draw` (the slices where a line is drawn) are
+       stored with the map; `line("shoulder"/"lower")` draws nothing on undrawn slices.
+     - **The front and the back** (`_faces`, `Map.face_distance`): whole faces grown over the mesh's
+       triangles from those facing squarely forward or back (0.85), across shared edges, never across
+       a ridge (both ends within 1.5 cm) nor onto a triangle facing under 0.5 or a wheel cover; their
+       edge is the boundary between labelled triangles and the rest, or the smooth 0.5 contour where no
+       ridge bounds them (the nose's tip). `shapes.area("front"/"back")` use them; "top", "sides",
+       "under" leave them out.
+     - **The check** (`tool/mapcheck.py`, `python -m tool.carmap --check [-v]`): per slice and line, on
+       both sides (the right side's sections from the mirrored mesh): ridge (cm from the line to the
+       crest of the bend across the section, a parabola on 0.25 cm samples), contrast (the crest over
+       the flatter side 3 to 10 cm off, or over the body's median bend with one side only), shift
+       (the crest's move under 1, 2 and 4 cm of smoothing), step, bend (beyond the ridge's own),
+       sides, jumps (a step beyond the line's slope, not at a ridge's end), texture (a jump in the
+       flat texture within one island beyond the texel scale). Limits from the mesh (median edge 2.17
+       cm, median bend 0.073/cm): ridge 0.6 (a quarter edge), contrast 1.5, shift 2.2 (one edge),
+       step 1.5, bend 0.25, sides 0.5, jumps 0, texture 0. Exempt: slices where the ridge runs across
+       the car (over 45 degrees to its length: corners, the tail's top edge), where another ridge is
+       within 8 cm or the ridge turns a corner (no single crest across the slice), a ridge's last 8 cm
+       (its fade-out), the slices either side of a change of kind (the car's own steps), a mesh edge's
+       bends (its facets). A stretch is "no line" when under half its slices are drawn, with the
+       reason. `sec_draw` comes from the same measures at build (`mapcheck.draw_mask`).
+     - **Tried and dropped:** tracking each line along z from the tip (it started on the only
+       crossing the first slices have, the skirt's front, and followed it the whole way); a slope
+       threshold for the top's end (the nose's flank runs at 45 degrees like the engine cover at 43:
+       the turn at the crest tells them apart); the deepest crest for the lower edge (it took the
+       diffuser's strakes at the tail and the belly's inner lip at the nose); the mean of facings
+       past 180 degrees (it wraps to nothing: the median of |facing|); the median-and-smooth cleanup;
+       a peak within 3 cm of the visible end for the skin's edge (it wobbled between the crest and
+       the cut); snapping to any boundary point within 5 cm (it took the underside's inner edges).
+     - **State at hand-back** (the check's table is in the report and below): the shoulder passes on
+       every stretch, both sides, except the sidepods' front and inlets (z 35 to -12), where it is
+       the rim's crease behind the inlet, the top's open edge over the sidepod's front, and no crease
+       for 11 slices between the lip's end and the drop, with a 9 cm jog at the rim's outer corner
+       that the check counts as a jump. The lower edge passes from the tip to the front flank's lip;
+       behind, it is the skin's own edge along the skirt (the mesh's boundary), and its steps of 2 to
+       7 cm from slice to slice (the boundary's own notches, the arch, the sidepod's front end) and a
+       2.5 cm difference between the sides fail the step and sides limits; at the tail it is the
+       corner's lower crease on 19 slices and "skin's end" behind z -142. The front flank's lower edge
+       moves from the lip to the skirt at z 70 (the car's own).
+
+       ```
+       /app/tool/carmap.py:441: RuntimeWarning: All-NaN axis encountered
+         return np.nanmax([soon, on, at2]) > UNDER and (len(rest) < 4 or (rest < 100.0).mean() < 0.4)
+       line      side  stretch                           ridge  contr  shift   step   bend  sides jumps  tex  verdict
+       --------------------------------------------------------------------------------------------------------------
+       shoulder  left  the nose's tip                        -      -      -   0.90   0.13      -     0    0  ok (3: the skin's own edge) [2 slices at a ridge's end]
+       shoulder  left  the nose                           0.59   8.86   1.92   0.45   0.06   0.00     0    0  ok [3 slices at a ridge's end]
+       shoulder  left  the fin's plate                    0.41   7.24   1.67   0.35   0.05   0.00     0    0  ok
+       shoulder  left  the bonnet                         0.21   5.83   0.12   0.31   0.05   0.00     0    0  ok
+       shoulder  left  the front flank and its lip        0.28   3.83   2.12   0.53   0.23   0.00     0    0  ok (7: no crease) [8 slices at a ridge's end]
+       shoulder  left  the sidepods' front and inlets        -      -      -   6.89   6.48   0.00     1    0  FAIL step bend jumps (11: no crease, 12: the skin's own edge) [42 slices at a ridge's end]
+       shoulder  left  the sidepods                       0.26   2.62   1.46   0.58   0.16   0.00     0    0  ok (2: no crease) [6 slices at a ridge's end]
+       shoulder  left  the rear flanks and the deck       0.58   2.40   2.04   0.83   0.07   0.01     0    0  ok (1: no crease) [9 slices at a ridge's end]
+       shoulder  left  the tail                           0.32   5.14   1.70   0.41   0.07   0.00     0    0  ok (6: no crease)
+       shoulder  right the nose's tip                        -      -      -   0.90   0.13      -     0    0  ok (3: no crease) [2 slices at a ridge's end]
+       shoulder  right the nose                           0.59   8.86   1.92   0.45   0.06   0.00     0    0  ok [3 slices at a ridge's end]
+       shoulder  right the fin's plate                    0.41   7.24   1.67   0.35   0.05   0.00     0    0  ok
+       shoulder  right the bonnet                         0.21   5.83   0.12   0.31   0.05   0.00     0    0  ok
+       shoulder  right the front flank and its lip        0.28   3.83   2.12   0.53   0.23   0.00     0    0  ok (7: no crease) [8 slices at a ridge's end]
+       shoulder  right the sidepods' front and inlets        -      -      -   6.89   6.48   0.00     1    0  FAIL step bend jumps (11: no crease, 12: the skin's own edge) [42 slices at a ridge's end]
+       shoulder  right the sidepods                       0.26   2.62   1.46   0.58   0.14   0.00     0    0  ok (2: no crease) [6 slices at a ridge's end]
+       shoulder  right the rear flanks and the deck       0.58   2.40   2.04   0.83   0.07   0.01     0    0  ok (1: no crease) [9 slices at a ridge's end]
+       shoulder  right the tail                           0.32   5.14   1.70   0.41   0.07   0.00     0    0  ok (6: no crease)
+       lower     left  the nose's tip                        -      -      -   0.90   0.13      -     0    0  ok (3: skin's end, 13: ridge, skin ends below) [2 slices at a ridge's end]
+       lower     left  the nose                           0.57   2.89   2.14   0.30   0.03   0.01     0    0  ok (50: ridge, skin ends below, 4: weak or wandering crest)
+       lower     left  the fin's plate                    0.47   4.88   1.36   0.25   0.02   0.00     0    0  ok (25: ridge, skin ends below)
+       lower     left  the bonnet                         0.43   7.37   1.65   0.25   0.01   0.00     0    0  ok (28: ridge, skin ends below)
+       lower     left  the front flank and its lip        0.41   6.20   0.02   3.26   0.01   1.59     1    0  FAIL step sides jumps (20: ridge, skin ends below, 35: the skin's own edge)
+       lower     left  the sidepods' front and inlets        -      -      -   2.69      -   0.00     4    0  FAIL step jumps (47: the skin's own edge) [16 slices at a ridge's end]
+       lower     left  the sidepods                          -      -      -   2.93      -   2.54     6    0  FAIL step sides jumps (38: the skin's own edge)
+       lower     left  the rear flanks and the deck          -      -      -   5.57   0.00   2.58     5    0  FAIL step sides jumps (61: the skin's own edge) [4 slices at a ridge's end]
+       lower     left  the tail                           0.08   4.57   1.20   3.53   1.43   0.00     1    0  no line (19/40 slices drawn: 21: skin's end, 2: ridge, skin ends below); FAIL step bend jumps [9 slices at a ridge's end]
+       lower     right the nose's tip                        -      -      -   0.90   0.13      -     0    0  ok (3: skin's end, 13: ridge, skin ends below) [3 slices at a ridge's end]
+       lower     right the nose                           0.57   2.89   2.14   0.30   0.03   0.01     0    0  ok (50: ridge, skin ends below, 4: weak or wandering crest)
+       lower     right the fin's plate                    0.47   4.88   1.36   0.25   0.02   0.00     0    0  ok (26: ridge, skin ends below)
+       lower     right the bonnet                         0.43   7.37   1.65   0.24   0.01   0.00     0    0  ok (28: ridge, skin ends below)
+       lower     right the front flank and its lip        0.41   6.20   0.02   2.12   0.01   1.59     2    0  FAIL step sides jumps (20: ridge, skin ends below, 35: the skin's own edge)
+       lower     right the sidepods' front and inlets        -      -      -   2.69      -   0.00     4    0  FAIL step jumps (47: the skin's own edge) [16 slices at a ridge's end]
+       lower     right the sidepods                          -      -      -   2.93      -   2.54     5    0  FAIL step sides jumps (38: the skin's own edge)
+       lower     right the rear flanks and the deck          -      -      -   5.57   0.00   2.58     4    0  FAIL step sides jumps (61: the skin's own edge) [3 slices at a ridge's end]
+       lower     right the tail                           0.08   5.05   1.20  19.43  19.40  38.52     2    0  FAIL step bend sides jumps (19: skin's end, 3: ridge, skin ends below) [7 slices at a ridge's end]
+       
+       limits: ridge 0.6, contrast 1.5, shift 2.2, step 1.5, bend 0.25, sides 0.5, jumps 0, texture 0
+       12 stretches fail
+       ```
   Later, once those work: what each game camera shows of the car, the flat spots for pictures
   measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
 - **Handover (2026-09-29, the user: "I just prefer another session with an agent that actually

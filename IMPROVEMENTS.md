@@ -35,7 +35,13 @@ the design as asked), then speed.
   threshold on the facing too, so they come out as blotches. Idea: find the car's real feature lines
   from its curvature (the ridges where the surface bends most), trace each as one continuous curve
   along the car, and take the shoulder and the lower edge from those; the front and the back as
-  whole faces bounded by them.
+  whole faces bounded by them. **Done 2026-09-29 (the car mapper, step 7 in `CHECKLIST.md`)**, judged
+  by measurement (`python -m tool.carmap --check`), not by eye (the user: "I don't think it's feasible
+  to do it by eye"): the shoulder passes on every stretch but the sidepods' front; the lower edge
+  passes from the tip to the front flank, and behind is the skin's own edge along the skirt, whose
+  steps still fail the check. Waiting for the user's look at the lines (`car/map/lines.jpg`,
+  `car/map/areas.jpg`) before anything built on the map (the rakes, the grid, the station table) is
+  called done.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a

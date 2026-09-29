@@ -17,6 +17,9 @@ Layers (per welded vertex of the body):
     open     how much of the open air a spot sees, 0 (inside an inlet, under a panel) to 1 (the top
              of the sidepod): the cosine-weighted share of 200 directions it's seen from, with the
              inner car in the way and the wheels and glass not
+    face     1 on the front (the sidepods' fronts, the nose's tip), 2 on the back (the tail), else 0:
+             whole faces grown from where the body faces squarely forward or back, bounded by the
+             ridges (_faces; shapes.area("front"), area("back"))
     across   where a spot sits round the car's section at its length: 0 the top's middle, 1 the
              shoulder (where the top turns down into the side), 2 the lower edge (where the side
              turns under), 3 the underside's middle. The shoulder and the lower edge are found on
@@ -41,25 +44,28 @@ The air (the car driving forward into still air, so the air comes at it along -z
              would run: shapes.streamlines(seeds, width) draws them
 
 Lines (points along the welded body's edges, and the across layer's own edges):
-    fold      where the surface bends sharply (more than 35 degrees between neighbouring triangles)
+    fold      the ridges of the body's curvature (_trace_ridges: every crease and rounded edge, traced
+              end to end; Map.ridges holds each as its own curve)
     opening   an edge with nothing beyond it: the cockpit's rim, the inlets' mouths, the arches
     join      where two named panels meet, and the edges of a loose panel lying on another
-    shoulder  where the top turns into the side (across = 1)
-    lower     where the side turns under (across = 2)
+    shoulder  where the top turns into the side (across = 1): on the ridges, slice by slice (_marks),
+              drawn only where the check finds a clear crest or the skin's own edge (sec_draw)
+    lower     where the side turns under (across = 2): the same
 
     python -m tool.carmap            build it and print a summary
+    python -m tool.carmap --check    measure its lines, stretch by stretch (tool/mapcheck.py)
 """
 
 import functools
 
 import numpy as np
-from scipy.ndimage import gaussian_filter1d, median_filter
+from scipy.ndimage import gaussian_filter1d
 from scipy.spatial import cKDTree
 
 from tool import fbx, parts, paths
 
 CACHE = paths.CACHE / "carmap.npz"
-VERSION = 14
+VERSION = 15
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 SLICE = 1.0      # cm between the sections
@@ -253,9 +259,11 @@ def _outline(V, F, open_, faces, z0):
     shoulder, down the side and under: the section's open surface (its hidden stretches, the insides
     of inlets and panels lying under others, left out), each stretch in order of where it starts
     round the section, the gaps between them bridged. Returns (points (n, 2), girth (n,) in cm from
-    the middle line, bridge (n,): the step before each point crosses a gap), or None."""
+    the middle line, bridge (n,): the step before each point crosses a gap: 1 over hidden skin (the
+    same piece of skin carries on, out of sight), 2 over nothing (the skin ends: an open edge, the
+    inner car between)), or None."""
     parts = []
-    for p, o in _chains(V, F, open_, faces, z0):
+    for c, (p, o) in enumerate(_chains(V, F, open_, faces, z0)):
         keep = (o >= HIDDEN) & (p[:, 0] > -0.3)
         # split into runs of kept points
         idx = np.flatnonzero(keep)
@@ -266,29 +274,30 @@ def _outline(V, F, open_, faces, z0):
             if len(run) < 2:
                 continue
             q = p[run]
-            parts.append(q)
+            parts.append((q, c))
     if not parts:
         return None
-    allp = np.concatenate(parts)
+    allp = np.concatenate([q for q, _ in parts])
     yc = 0.5 * (allp[:, 1].min() + allp[:, 1].max())
     ang = lambda q: np.degrees(np.arctan2(np.maximum(q[:, 0], 0), q[:, 1] - yc))  # 0 up, 180 down
     runs = []
-    for q in parts:
+    for q, c in parts:
         a = ang(q)
         if a[-1] < a[0]:
             q, a = q[::-1], a[::-1]
-        runs.append((a.min(), a.max(), np.hypot(q[:, 0], q[:, 1] - yc).mean(), q))
+        runs.append((a.min(), a.max(), np.hypot(q[:, 0], q[:, 1] - yc).mean(), q, c))
     runs.sort(key=lambda r: r[0])
     # a stretch lying under another (inside its angles, nearer the middle) is a panel under a panel
     kept = []
-    for lo, hi, rad, q in runs:
-        if any(lo >= klo - 0.5 and hi <= khi + 0.5 and rad < krad - 0.5 for klo, khi, krad, _ in kept):
+    for lo, hi, rad, q, c in runs:
+        if any(lo >= klo - 0.5 and hi <= khi + 0.5 and rad < krad - 0.5 for klo, khi, krad, _, _ in kept):
             continue
-        kept.append((lo, hi, rad, q))
+        kept.append((lo, hi, rad, q, c))
     pts, bridge = [], []
-    for i, (_, _, _, q) in enumerate(kept):
+    for i, (_, _, _, q, c) in enumerate(kept):
         pts.append(q)
-        bridge.append(np.r_[i > 0, np.zeros(len(q) - 1, bool)])
+        first = 0 if i == 0 else 1 if c == kept[i - 1][4] else 2
+        bridge.append(np.r_[first, np.zeros(len(q) - 1, np.int8)])
     q = np.concatenate(pts)
     bridge = np.concatenate(bridge)
     step = np.linalg.norm(np.diff(q, axis=0), axis=1)
@@ -296,101 +305,262 @@ def _outline(V, F, open_, faces, z0):
     return q, g, bridge
 
 
-def _marks(q, g, bridge):
-    """Along an outline: the girth where the top turns down into the side (the shoulder) and where
-    the side turns under (the lower edge), read from the outline's own direction smoothed over about
-    2 cm, over its surface only (never a bridged gap).
+def _dense(q, g, bridge, step=0.25):
+    """An outline every `step` cm along its surface: points, girth, and per point the gap that
+    begins after it (0 none; 1 over hidden skin; 2 over nothing: _outline), a bridged gap of 2 cm
+    or more (a smaller one, a slot's edge or a seam's shadow, is crossed as surface)."""
+    dq, dg, gap = [], [], []
+    for i in range(len(q) - 1):
+        if bridge[i + 1] and np.linalg.norm(q[i + 1] - q[i]) >= 2.0:
+            gap[-1][-1] = bridge[i + 1]
+            continue
+        n = max(1, int(np.ceil((g[i + 1] - g[i]) / step)))
+        s = np.arange(n) / n
+        dq.append(q[i] + s[:, None] * (q[i + 1] - q[i]))
+        dg.append(g[i] + s * (g[i + 1] - g[i]))
+        gap.append(np.zeros(n, np.int8))
+    dq.append(q[-1:])
+    dg.append(g[-1:])
+    gap.append(np.zeros(1, np.int8))
+    return np.concatenate(dq), np.concatenate(dg), np.concatenate(gap)
 
-    The shoulder: the first turn past 50 degrees from facing up that lasts 2 cm (a seam's lip doesn't),
-    or where the top's surface ends and the outline carries on lower down (the body stops there and
-    the inner car takes over), whichever comes first. The lower edge: where the side turns under for
-    good, the first turn past 125 degrees after which the outline faces out for less than 6 cm more
-    (so a lip's underside, with the flank carrying on below it, isn't taken)."""
-    grid = np.arange(g[0], g[-1], 0.25)
-    if len(grid) < 8:
-        return g[-1], g[-1]
-    x = gaussian_filter1d(np.interp(grid, g, q[:, 0]), 4)
-    y = gaussian_filter1d(np.interp(grid, g, q[:, 1]), 4)
-    tx, ty = np.gradient(x), np.gradient(y)
-    nx, ny = -ty, tx  # walking out and down from the top, the outward normal is the tangent turned anticlockwise
-    ang = np.degrees(np.arctan2(nx, ny))  # 0 up, 90 out, 180 down; negative: facing in
-    # grid points within 1.5 cm of a bridged gap aren't surface
-    near_gap = np.zeros(len(grid), bool)
-    drops = []
-    for i in np.flatnonzero(bridge):
-        near_gap |= (grid > g[i - 1] - 1.5) & (grid < g[i] + 1.5)
-        if q[i, 1] < q[i - 1, 1] - 5.0:
-            drops.append(g[i - 1])
-    run = int(2.0 / 0.25)
 
-    def runs(cond, start):
-        cond = cond & ~near_gap
-        return [grid[i] for i in np.flatnonzero(cond & (grid >= start)) if cond[i:i + run].all()]
+def _angle(q, gap, sigma=4):
+    """The outline's facing at each dense point, degrees: 0 up, 90 out, 180 down, negative in;
+    smoothed over about 2 cm within each stretch of surface."""
+    ang = np.zeros(len(q))
+    for run in np.split(np.arange(len(q)), np.flatnonzero(gap > 0) + 1):
+        if len(run) < 3:
+            continue
+        x = gaussian_filter1d(q[run, 0], sigma, mode="nearest")
+        y = gaussian_filter1d(q[run, 1], sigma, mode="nearest")
+        tx, ty = np.gradient(x), np.gradient(y)
+        ang[run] = np.degrees(np.arctan2(-ty, tx))  # the outward normal: the tangent turned anticlockwise
+    return ang
 
-    turns = runs(ang > 50.0, g[0])
-    shoulder = min([c for c in (turns[:1] + drops[:1])] or [g[-1]])
-    side = (ang > 50.0) & (ang < 125.0) & ~near_gap
-    lower = g[-1]
-    for c in runs(ang > 125.0, shoulder):
-        if side[grid > c].sum() * 0.25 < 6.0:
-            lower = c
+
+SIDE = 50.0    # degrees from facing up: the surface is a side from here
+FLOOR = 30.0   # cm up from the ground: the body's lowest edges (the skirt, 16 to 22) are below this
+TURN = 20.0    # degrees: the least a crease turns the surface to end the top
+UNDER = 110.0  # degrees from facing up: the surface faces under from here
+
+
+def _marks(q, g, gap, ang, cross, slant):
+    """Along a dense outline (from the top's middle out, round and under): where the shoulder and
+    the lower edge sit, each on one of the car's ridges where the outline crosses one (cross: the
+    indices of the crossings; slant: per crossing, how much the ridge runs along the car there,
+    |dz/ds|: under 0.5 it runs across the slices, a corner or the tail's edge, and can't be either
+    line), read with the outline's facing (ang, degrees from up). Each slice is read on its own;
+    _sections then repairs a slice against its neighbours (_repair).
+
+    The shoulder: where the top ends. The surface becomes a side where its facing first passes SIDE
+    degrees and stays there 3 cm; the shoulder is the ridge up to 4 cm past that point that turns
+    the surface most (its facing 2 to 6 cm after against 2 to 6 cm before, at least TURN degrees):
+    the nose's crease (a 35 degree turn, though the flank below it runs at 45 degrees and only
+    passes SIDE near the lip), the sidepod's outer top edge (85 degrees; the deck's soft inner
+    crease before it turns the other way), the lip at the nose's tip, where there is no crease; or
+    the ridge within 2 cm of that point when the turn can't be read (the inlet rim's crease, with
+    the rim's lip ending in a gap 2 cm on); or, if none, the point itself (no crease there: the
+    surface just curls), or, if earlier, where the top's surface ends and the outline carries on
+    lower down (the sidepod's front, the inner car). The lower edge: where the side turns under:
+    on the skin contiguous with the shoulder (its stretches chained through gaps over hidden skin,
+    or over nothing under 6 cm: a slot), the deepest ridge whose crest faces out and down (60 to
+    150 degrees: not the belly's inner lip, facing in) beyond which the surface faces under (past
+    UNDER degrees on average 1 to 10 cm on), or which sits within 2 cm of the chain's end (the
+    skirt's rounded edge, its underside hidden): the front flank's lip, with the nose's belly
+    under it (the skirt below is another piece of skin, across nothing); the skirt's edge along
+    the flanks and the sidepods; the tail corner's lower crease; at the nose's tip the shoulder
+    itself, the lip. If none, the chain's end. Returns (shoulder index, lower index, kinds): a
+    kind per mark, 0 a ridge, 1 the skin's end, 2 a turn with no ridge, 3 a ridge under which the
+    skin ends and the outline carries on lower down (the lip: the inner car shows below, the skirt
+    further down)."""
+    n = len(q)
+    if n < 8:
+        return n - 1, n - 1, (1, 1)
+    ends = np.flatnonzero(gap > 0)  # the last point of each stretch but the last
+    along = [c for c, t in zip(cross, slant) if t >= 0.5]
+
+    def stretch_end(i):
+        e = ends[ends >= i]
+        return int(e[0]) if len(e) else n - 1
+
+    def chain_end(i):
+        """The end of the skin contiguous with point i: on through gaps over hidden skin, or over
+        nothing under 6 cm."""
+        e = stretch_end(i)
+        while e < n - 1 and (gap[e] == 1 or np.linalg.norm(q[e + 1] - q[e]) < 6.0):
+            e = stretch_end(e + 1)
+        return e
+
+    def mean_between(i, c0, c1, end=None, mag=False):
+        """The mean facing from c0 to c1 cm after point i, within its stretch (or up to end); mag:
+        the median of |facing| instead, for surfaces facing down, where the sign flips round 180
+        (a median: a small return fold, 3 cm doubling back under the tail's corner, doesn't count)."""
+        j0, j1 = i + int(c0 / 0.25), min(i + int(c1 / 0.25), stretch_end(i) if end is None else end)
+        if j1 <= j0 + 3:
+            return np.nan
+        return np.median(np.abs(ang[j0:j1 + 1])) if mag else ang[j0:j1 + 1].mean()
+
+    run = 12  # 3 cm of points
+    steep = np.array([abs(ang[i:i + run]).min() > SIDE and gap[i:i + run - 1].sum() == 0 for i in range(n - run)])
+    drops = [int(e) for e in ends if q[min(e + 1, n - 1), 1] < q[e, 1] - 5.0]
+    first = int(np.flatnonzero(steep)[0]) if steep.any() else n - 1
+
+    def turn(c):
+        after, before = mean_between(c, 2.0, 6.0), np.nan
+        j0, j1 = max(c - int(6.0 / 0.25), 0), c - int(2.0 / 0.25)
+        if j1 > j0 + 3 and not gap[j0:c].any():
+            before = ang[j0:j1 + 1].mean()
+        return after - before if np.isfinite(after) and np.isfinite(before) else np.nan
+
+    turns = [(turn(c), c) for c in along if (c - first) * 0.25 <= 4.0]
+    turns = [(t, c) for t, c in turns if np.isfinite(t) and t > TURN]
+    near = [c for c in along if abs(c - first) * 0.25 <= 2.0]
+    sh, sh_kind = (max(turns)[1], 0) if turns else (min(near, key=lambda c: abs(c - first)), 0) if near else (first, 2)
+    later = [c for t, c in turns if sh < c <= sh + 32]  # a double crest, within 8 cm: the top ends at the outer one
+    if later:
+        sh = max(later)
+    if drops and drops[0] < sh:
+        sh, sh_kind = drops[0], 1
+    # the pieces of skin from the shoulder on: its own, then the ones below (the sidepod's side
+    # under the top's end at the rim, across the hidden inlet)
+    chains, start = [], sh
+    while start < n:
+        e = chain_end(start)
+        chains.append((start, e))
+        start = e + 1
+    def under(c, end):
+        if not 45.0 <= ang[c] <= 150.0:
+            return False
+        e = stretch_end(c)
+        if e - c <= 8 and q[e, 1] < FLOOR:
+            return True
+        soon, on = mean_between(c, 1.0, 4.0, end, mag=True), mean_between(c, 1.0, 10.0, end, mag=True)
+        at2 = abs(ang[c + 8]) if c + 8 <= end and not gap[c:c + 8].any() else np.nan
+        rest = np.abs(ang[min(c + 8, e):e + 1])  # the rest of the crest's own stretch of skin
+        return np.nanmax([soon, on, at2]) > UNDER and (len(rest) < 4 or (rest < 100.0).mean() < 0.4)
+
+    def lowest(c0, c1):
+        """The skin's lowest edge, if the piece of skin ends at the floor (not at the car's middle):
+        the mesh's own open edge, exact (the roll's crest sits a cm or two above it)."""
+        return c1 if q[c1, 1] < FLOOR and q[c1, 0] > 1.0 and (c1 == n - 1 or gap[c1] == 2) else None
+
+    lo, lo_kind = chains[0][1], 1
+    for c0, c1 in chains:
+        edge = lowest(c0, c1)
+        if edge is not None:
+            lo, lo_kind = edge, 4
             break
-    return shoulder, max(lower, shoulder + 0.5)
+        found = [c for c in along if max(c0, sh) <= c <= c1 and (c == sh or c > sh + 2) and under(c, c1)]
+        if found:
+            lo = found[0]
+            lo_kind = 3 if c1 < n - 1 and q[c1 + 1, 1] < q[c1, 1] - 5.0 else 0
+            break
+    if sh_kind == 1 and gap[sh] == 2:
+        sh_kind = 4  # the top's end is the skin's own open edge (over the sidepod's front): exact
+    return sh, lo, (sh_kind, lo_kind)
 
 
-def _clean(Z, raw, window=7, jump=4.0, sigma=1.0):
-    """A mark along the car: a slice's reading kept unless it strays more than `jump` cm from its
-    neighbours' median (a seam's lip, a panel's edge), which takes its place; then lightly smoothed.
-    Slices without a reading take their neighbours'."""
+def _in_plane(pts, i, z0, fallback):
+    """Where the ridge through its resampled point i crosses the plane z = z0: the point between
+    the two neighbours straddling it (so a mark is the ridge's own point, not the outline's nearest
+    sample, quantised to 0.25 cm); the outline's point if the ridge only touches the plane."""
+    for k in range(max(i - 4, 0), min(i + 4, len(pts) - 1)):
+        a, b = pts[k], pts[k + 1]
+        if np.linalg.norm(b - a) < 0.6 and (a[2] - z0) * (b[2] - z0) <= 0 and a[2] != b[2]:
+            t = (z0 - a[2]) / (b[2] - a[2])
+            return (a + t * (b - a))[:2]
+    return fallback
+
+
+def _repair(raw, marks_g, kind, crossings, reach=2.0, rounds=2):
+    """A run of up to three slices whose marks sit away from both flanking slices' (over `reach`
+    cm) while those agree with each other takes, on each slice, the crossing nearest the flanking
+    marks' mean, if one lies within reach: a slice that read a ridge crossing its line (the deck's
+    crease across the rear flank's shoulder), or missed its own, no longer flips the line."""
+    n = len(raw)
+    for _ in range(rounds):
+        for j in range(2):
+            for L in (1, 2, 3):
+                for k in range(1, n - L):
+                    a, b = raw[k - 1, 2 * j:2 * j + 2], raw[k + L, 2 * j:2 * j + 2]
+                    if not (np.isfinite(a).all() and np.isfinite(b).all()) or np.hypot(*(a - b)) > reach:
+                        continue
+                    run = [raw[i, 2 * j:2 * j + 2] for i in range(k, k + L)]
+                    if any(np.hypot(*(c - a)) <= reach or np.hypot(*(c - b)) <= reach for c in run):
+                        continue
+                    mid = 0.5 * (a + b)
+                    picks = []
+                    for i in range(k, k + L):
+                        if i not in crossings or not len(crossings[i][0]):
+                            break
+                        q, g = crossings[i]
+                        d = np.hypot(*(q - mid).T)
+                        if d.min() > reach:
+                            break
+                        picks.append((i, int(d.argmin())))
+                    if len(picks) < L:
+                        continue
+                    for i, ii in picks:
+                        q, g = crossings[i]
+                        raw[i, 2 * j:2 * j + 2], marks_g[i, j], kind[i, j] = q[ii], g[ii], kind[k - 1, j]
+
+
+def _clean(Z, raw):
+    """A mark along the car: every slice's own reading, on its ridge (never blended along the car:
+    a median or a smoothing put the line between two ridges, on neither); slices without a
+    reading take their neighbours'."""
     good = np.isfinite(raw)
     arr = raw.copy()
     arr[~good] = np.interp(Z[~good], Z[good], raw[good])
-    med = median_filter(arr, window, mode="nearest")
-    arr = np.where(np.abs(arr - med) > jump, med, arr)
-    return gaussian_filter1d(arr, sigma, mode="nearest")
+    return arr
 
 
-def _sections(V, F, part, names, open_):
-    """Every slice's outline (kept for pictures) and where its marks sit: the shoulder's and the
-    lower edge's x and y, and the section's middle height, each cleaned along the car so the marks
-    run as smooth lines from the nose to the tail."""
+def _sections(V, F, part, names, open_, ridge_pts, edge_pts):
+    """Every slice's outline (kept for pictures, every 0.25 cm) and where its marks sit: the
+    shoulder's and the lower edge's x and y (on the ridges the outline crosses: _marks; a mark on
+    the skin's own edge, kind 4, moved onto the mesh's boundary itself, edge_pts, within 2 cm: the
+    outline is cut where the skin stops being seen, a cm or two short of the edge and unevenly),
+    each cleaned along the car, and each mark's kind per slice."""
     body = ~np.isin(names[part], WHEEL_COVERS + BLADES)
     faces = np.flatnonzero(body)
     Z = np.arange(TAIL_Z + SLICE / 2, NOSE_Z, SLICE)
+    tree = cKDTree(ridge_pts)
+    edges = cKDTree(edge_pts)
+    tan = np.gradient(ridge_pts.astype(np.float64), axis=0)
+    slant_all = np.abs(tan[:, 2]) / np.maximum(np.linalg.norm(tan, axis=1), 1e-9)
     qs, gs, starts = [], [], [0]
-    raw = np.full((len(Z), 5), np.nan)  # shoulder x, y; lower x, y; the middle height
+    raw = np.full((len(Z), 4), np.nan)  # shoulder x, y; lower x, y
     marks_g = np.full((len(Z), 2), np.inf)  # the slice's own shoulder and lower edge, as girth
+    kind = np.full((len(Z), 2), 2, np.int8)  # 2: no outline
+    crossings = {}
     for k, z0 in enumerate(Z):
         o = _outline(V, F, open_, faces, z0 + 1e-4)
         if o is not None:
-            q, g, bridge = o
-            sh, lo = _marks(q, g, bridge)
-            at = lambda gg: np.array([np.interp(gg, g, q[:, 0]), np.interp(gg, g, q[:, 1])])
-            # a mark in a bridged gap sits at the end of the surface before it
-            i_sh = min(np.searchsorted(g, sh, side="right") - 1, len(g) - 1)
-            i_lo = min(np.searchsorted(g, lo, side="right") - 1, len(g) - 1)
-            raw[k, 0:2] = q[i_sh] if bridge[min(i_sh + 1, len(g) - 1)] and g[i_sh] < sh else at(sh)
-            raw[k, 2:4] = q[i_lo] if bridge[min(i_lo + 1, len(g) - 1)] and g[i_lo] < lo else at(lo)
-            raw[k, 4] = 0.5 * (q[:, 1].min() + q[:, 1].max())
-            marks_g[k] = sh, lo
-            # every 0.25 cm along the outline, for finding where a point sits along it
-            dq, dg = [], []
-            for i in range(len(q) - 1):
-                if bridge[i + 1]:
-                    continue
-                n = max(1, int(np.ceil((g[i + 1] - g[i]) / 0.25)))
-                s = np.arange(n) / n
-                dq.append(q[i] + s[:, None] * (q[i + 1] - q[i]))
-                dg.append(g[i] + s * (g[i + 1] - g[i]))
-            dq.append(q[-1:])
-            dg.append(g[-1:])
-            q = np.concatenate(dq)
-            gs.append(np.concatenate(dg))
+            q, g, gap = _dense(*o)
+            d, ri = tree.query(np.c_[q, np.full(len(q), z0)], workers=-1)
+            hit = np.flatnonzero(d < 0.8)
+            cross = [int(r[np.argmin(d[r])]) for r in np.split(hit, np.flatnonzero(np.diff(hit) > 1) + 1) if len(r)]
+            exact = {c: _in_plane(ridge_pts, ri[c], z0, q[c]) for c in cross}
+            sh, lo, kind[k] = _marks(q, g, gap, _angle(q, gap), cross, slant_all[ri[cross]])
+            raw[k, 0:2], raw[k, 2:4] = exact.get(sh, q[sh]), exact.get(lo, q[lo])
+            for j, i in enumerate((sh, lo)):
+                if kind[k, j] == 4:  # onto the mesh's boundary just beyond the visible end (never a rim above it)
+                    cand = edges.query_ball_point(np.r_[q[i], z0], 2.0)
+                    cand = [c for c in cand if edge_pts[c, 1] <= q[i, 1] + 0.5 and abs(edge_pts[c, 2] - z0) < 0.6]
+                    if cand:
+                        ie = min(cand, key=lambda c: np.hypot(*(edge_pts[c, :2] - q[i])))
+                        raw[k, 2 * j:2 * j + 2] = edge_pts[ie, :2]
+            marks_g[k] = g[sh], g[lo]
+            crossings[k] = (np.array([exact[c] for c in cross]).reshape(-1, 2), g[cross])
             qs.append(q)
+            gs.append(g)
         starts.append(starts[-1] + (len(qs[-1]) if o is not None else 0))
+    _repair(raw, marks_g, kind, crossings)
     marks = {name: _clean(Z, raw[:, i]) for i, name in enumerate(("sh_x", "sh_y", "lo_x", "lo_y"))}
     return dict(Z=Z, starts=np.array(starts), q=np.concatenate(qs).astype(np.float32),
-                g=np.concatenate(gs).astype(np.float32), sh_g=marks_g[:, 0], lo_g=marks_g[:, 1], **marks)
+                g=np.concatenate(gs).astype(np.float32), sh_g=marks_g[:, 0], lo_g=marks_g[:, 1],
+                kind=kind, raw=raw, **marks)
 
 
 def _across(ax, y, sx, sy, lx, ly, region):
@@ -411,6 +581,278 @@ def _across(ax, y, sx, sy, lx, ly, region):
     # a wheel cover; a line drawn along a mark keeps off such points
     off = np.abs(raw - across) * scale
     return across, scale, off
+
+
+# ---- the car's feature lines: the ridges of its curvature ----
+
+SMOOTH = 2.5       # cm: the normals averaged over this radius before the curvature is taken, so a
+                   # rounded edge reads as one crest at its middle, not as its facets
+RIDGE_SEED = 0.09  # 1/cm: a ridge is traced from crests bent at least this much (the skirt's edge under the sidepods bends 0.10)
+RIDGE_END = 0.05   # 1/cm: a traced ridge ends where the bend fades below this
+RIDGE_STEP = 1.0   # cm along the ridge per step
+RIDGE_REACH = 2.0  # cm either side of a step the crest is looked for
+RIDGE_MIN = 10.0   # cm: shorter pieces are dropped (a fastener's dimple, a facet)
+
+
+def _smooth_normals(V, F, fn, vn, area, R=SMOOTH):
+    """Each vertex's normal as the area-weighted mean of the triangles within R cm that face its
+    way (not the inside of a thin panel or the far wall of an inlet)."""
+    near = cKDTree(V[F].mean(1)).query_ball_point(V, R, workers=-1)
+    out = vn.copy()
+    for i, c in enumerate(near):
+        c = np.array(c, int)
+        ok = fn[c] @ vn[i] > 0
+        if ok.any():
+            out[i] = (fn[c][ok] * area[c][ok][:, None]).sum(0)
+    return out / np.maximum(np.linalg.norm(out, axis=1, keepdims=True), 1e-12)
+
+
+def _curvature(V, F, ns):
+    """The curvature tensor per vertex (3 x 3, in the car's own axes): per triangle, the 2 x 2 form
+    that turns each edge into the change of the normal along it (Rusinkiewicz 2004, least squares
+    over the three edges), summed at the corners by area. Positive where the surface is convex."""
+    p, n = V[F], ns[F]
+    e = np.stack([p[:, 2] - p[:, 1], p[:, 0] - p[:, 2], p[:, 1] - p[:, 0]], 1)
+    dn = np.stack([n[:, 2] - n[:, 1], n[:, 0] - n[:, 2], n[:, 1] - n[:, 0]], 1)
+    t = np.cross(e[:, 0], e[:, 1])
+    a2 = np.linalg.norm(t, axis=1)
+    t /= np.maximum(a2, 1e-12)[:, None]
+    u = e[:, 0] / np.maximum(np.linalg.norm(e[:, 0], axis=1), 1e-12)[:, None]
+    v = np.cross(t, u)
+    eu, ev = (e * u[:, None]).sum(2), (e * v[:, None]).sum(2)
+    du, dv = (dn * u[:, None]).sum(2), (dn * v[:, None]).sum(2)
+    A = np.zeros((len(F), 6, 3))
+    b = np.zeros((len(F), 6))
+    A[:, :3, 0], A[:, :3, 1], b[:, :3] = eu, ev, du
+    A[:, 3:, 1], A[:, 3:, 2], b[:, 3:] = eu, ev, dv
+    x = np.linalg.solve(np.einsum("tki,tkj->tij", A, A) + 1e-9 * np.eye(3), np.einsum("tki,tk->ti", A, b)[:, :, None])[:, :, 0]
+    II = np.stack([np.stack([x[:, 0], x[:, 1]], 1), np.stack([x[:, 1], x[:, 2]], 1)], 1)
+    B = np.stack([u, v], 2)
+    M = np.einsum("tik,tkl,tjl->tij", B, II, B)
+    w = 0.5 * a2
+    Mv, wv = np.zeros((len(V), 3, 3)), np.zeros(len(V))
+    for k in range(3):
+        np.add.at(Mv, F[:, k], M * w[:, None, None])
+        np.add.at(wv, F[:, k], w)
+    return Mv / np.maximum(wv, 1e-12)[:, None, None]
+
+
+def _principal(M, n):
+    """From curvature tensors (m, 3, 3) and normals (m, 3): the greatest curvature k1 and its
+    direction e1 (across a ridge), the least k2 and its direction e2 (along it)."""
+    P = np.eye(3)[None] - n[:, :, None] * n[:, None, :]
+    w, vec = np.linalg.eigh(P @ M @ P)
+    # the eigenvector along the normal carries nothing: the other two are the principal ones
+    jn = np.abs(np.einsum("mij,mi->mj", vec, n)).argmax(1)
+    r = np.arange(len(M))
+    j = np.array([[a for a in range(3) if a != k] for k in jn])
+    ww = w[r[:, None], j]
+    hi = ww.argmax(1)
+    j1, j2 = j[r, hi], j[r, 1 - hi]
+    return w[r, j1], w[r, j2], vec[r, :, j1], vec[r, :, j2]
+
+
+def _trace_ridges(m):
+    """Every ridge of the body's curvature as one continuous curve: from each crest (a vertex bent
+    at least RIDGE_SEED, the most bent within 2 cm), a step at a time along the direction of least
+    curvature, pulled back onto the crest at each step (the most bent of samples RIDGE_REACH either
+    way across), until the bend fades (RIDGE_END), the line leaves the body, turns sharply or runs
+    onto a wheel cover or a blade. All traced at once; then, strongest first, each cut where it runs
+    within 1.5 cm of one already kept, the pieces of one ridge joined end to end (_join), short
+    ones dropped, and each smoothed as a curve. Returns a list of (n, 3) arrays, points RIDGE_STEP
+    apart."""
+    V, k1, open_ = m.V, m.layers["k1"], m.layers["open"]
+    off = np.isin(m.part_names[m.part], WHEEL_COVERS + BLADES)
+    off_v = np.zeros(len(V), bool)
+    off_v[m.F[off]] = True
+    cand = np.flatnonzero((k1 > RIDGE_SEED) & (open_ > 0.15) & ~off_v)
+    near = cKDTree(V[cand]).query_ball_point(V[cand], 2.0, workers=-1)
+    seeds = cand[[i for i, c in enumerate(near) if k1[cand[i]] >= k1[cand[c]].max()]]
+    ts = np.arange(-RIDGE_REACH, RIDGE_REACH + 1e-6, 0.5)
+
+    def frame(p):
+        n = m.value("ns", p)
+        n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
+        c = m.value("curv", p, n)
+        M = c[:, [[0, 1, 2], [1, 3, 4], [2, 4, 5]]]
+        kk, _, e1, e2 = _principal(M.astype(np.float64), n)
+        return kk, e1, e2, n
+
+    def crest(q, e1, n):
+        """The points pulled across, along e1, onto the ridge they're on: the nearest local maximum
+        of the bend among samples RIDGE_REACH either way (never the biggest in the window: where two
+        ridges converge, the nose's crease and the lip 4 cm apart, that would jump to the stronger),
+        refined by a parabola through the samples round it (the bend is linear over each triangle,
+        so the sample alone would jump from vertex row to vertex row). Samples off the body (past an
+        open edge: the tail's top edge, the lip) don't count; a point with no ridge under it is
+        left where it is, far from any crest, and the line ends there."""
+        s = q[:, None, :] + ts[None, :, None] * e1[:, None, :]
+        nn = np.repeat(n, len(ts), 0)
+        kk = m.value("k1", s.reshape(-1, 3), nn).reshape(len(q), len(ts)).astype(np.float64)
+        on = m.project(s.reshape(-1, 3), nn)[2].reshape(len(q), len(ts)) < 0.5
+        kk = np.where(on, kk, -1.0)
+        mid = len(ts) // 2
+        top = np.full(len(q), np.inf)
+        for i in range(len(q)):
+            k = kk[i]
+            peaks = [j for j in range(len(ts)) if on[i, j] and k[j] >= k[max(j - 1, 0)] and k[j] >= k[min(j + 1, len(ts) - 1)]]
+            if not peaks:
+                continue
+            j = min(peaks, key=lambda j: abs(j - mid))
+            w = [a for a in range(j - 2, j + 3) if 0 <= a < len(ts) and on[i, a]]
+            top[i] = ts[j]
+            if len(w) >= 3:
+                a, b, _ = np.polyfit(ts[w], k[w], 2)
+                if a < -1e-6:
+                    top[i] = np.clip(-b / (2 * a), ts[j] - 0.5, ts[j] + 0.5)
+        lost = ~np.isfinite(top)
+        p, nn, dist = m.project(q + np.where(lost, 0.0, top)[:, None] * e1, n)
+        return p, nn, np.where(lost, 9.0, dist)
+
+    _, e1, _, n = frame(V[seeds])
+    p0, n0, _ = crest(V[seeds], e1, n)
+    halves = []
+    for sign in (1.0, -1.0):
+        p, n = p0.copy(), n0.copy()
+        d = sign * frame(p)[2]
+        lines = [[q.copy()] for q in p]
+        alive = np.ones(len(p), bool)
+        for _ in range(int(500 / RIDGE_STEP)):
+            idx = np.flatnonzero(alive)
+            if not len(idx):
+                break
+            kk, e1, e2, nn = frame(p[idx])
+            e2 *= np.sign((e2 * d[idx]).sum(1, keepdims=True) + 1e-12)
+            q, nq, _ = m.project(p[idx] + RIDGE_STEP * e2, nn)
+            _, e1q, _, nq = frame(q)
+            q, nq, dist = crest(q, e1q, nq)
+            step = q - p[idx]
+            moved = np.linalg.norm(step, axis=1)
+            turn = (step * d[idx]).sum(1) / np.maximum(moved, 1e-9)
+            face, _, _ = m.at(q, nq)
+            end = (m.value("k1", q, nq) < RIDGE_END) | (dist > 1.0) | (m.value("open", q, nq) < 0.1)
+            end |= (turn < 0.5) | (moved < 0.3 * RIDGE_STEP) | off[face]
+            for j, k in enumerate(idx):
+                if not end[j]:
+                    lines[k].append(q[j].copy())
+            p[idx], n[idx], d[idx] = q, nq, step / np.maximum(moved, 1e-9)[:, None]
+            alive[idx[end]] = False
+        halves.append(lines)
+    whole = [np.array(b[::-1] + f[1:]) for b, f in zip(halves[1], halves[0])]
+    strength = [m.value("k1", l).sum() for l in whole]
+    kept = []
+    for i in np.argsort(strength)[::-1]:
+        l = whole[i]
+        far = cKDTree(np.concatenate(kept)).query(l, workers=-1)[0] > 1.5 if kept else np.ones(len(l), bool)
+        for run in np.split(np.arange(len(l)), np.flatnonzero(np.diff(far.astype(int)) != 0) + 1):
+            if far[run[0]] and len(run) >= 4:
+                kept.append(l[run])
+    out = []
+    for piece in _join(kept):
+        if len(piece) * RIDGE_STEP >= RIDGE_MIN:
+            piece = gaussian_filter1d(piece, 2.0, axis=0, mode="nearest")
+            piece, _, _ = m.project(piece, m.value("ns", piece))
+            out.append(piece.astype(np.float32))
+    return _symmetric(out)
+
+
+def _symmetric(lines):
+    """The lines made the same on both sides: the left side's (x > -1, a line across the middle
+    cut there) kept, and their mirror images added for the right (the traces on the two sides
+    differed by a cm or two and in where they ended; the mesh itself is mirrored to 0.2 cm)."""
+    flip = np.array([-1.0, 1.0, 1.0], np.float32)
+    left = []
+    for l in lines:
+        keep = l[:, 0] > -1.0
+        for run in np.split(np.arange(len(l)), np.flatnonzero(np.diff(keep.astype(int)) != 0) + 1):
+            if keep[run[0]] and len(run) * RIDGE_STEP >= RIDGE_MIN:
+                left.append(l[run])
+    right = [l[::-1] * flip for l in left if l[:, 0].max() > 1.0]
+    return _join(left + right)
+
+
+def _join(pieces, gap=4.0, agree=0.85):
+    """Pieces of one ridge (traced from different seeds and cut against each other) joined end to
+    end: an end within `gap` cm of another piece's end, both running the same way (cosines over
+    `agree` between the last steps and the gap)."""
+    pieces = [np.asarray(p, np.float64) for p in pieces]
+    joined = True
+    while joined:
+        joined = False
+        for i in range(len(pieces)):
+            for j in range(len(pieces)):
+                if i == j or pieces[i] is None or pieces[j] is None:
+                    continue
+                a, b = pieces[i], pieces[j]
+                for flip in (False, True):
+                    bb = b[::-1] if flip else b
+                    g = bb[0] - a[-1]
+                    d = np.linalg.norm(g)
+                    if d > gap or d < 1e-6:
+                        continue
+                    da = a[-1] - a[-min(4, len(a) - 1)]
+                    db = bb[min(3, len(bb) - 1)] - bb[0]
+                    ok = ((da @ g) / max(np.linalg.norm(da) * d, 1e-9) > agree and
+                          (db @ g) / max(np.linalg.norm(db) * d, 1e-9) > agree)
+                    if ok:
+                        pieces[i] = np.concatenate([a, bb])
+                        pieces[j] = None
+                        joined = True
+                        break
+                if joined:
+                    break
+            if joined:
+                break
+    return [p for p in pieces if p is not None]
+
+
+def _resample(lines, spacing=0.25):
+    """Points every `spacing` cm along polylines, for the distance trees."""
+    out = []
+    for l in lines:
+        seg = np.linalg.norm(np.diff(l, axis=0), axis=1)
+        s = np.r_[0, np.cumsum(seg)]
+        u = np.arange(0, s[-1], spacing)
+        out.append(np.stack([np.interp(u, s, l[:, k]) for k in range(3)], 1))
+    return np.concatenate(out).astype(np.float32) if out else np.zeros((0, 3), np.float32)
+
+
+# ---- the front and the back: whole faces bounded by the ridges ----
+
+FACE_SEED, FACE_KEEP = 0.85, 0.35  # facing forward (or back): where a face starts, and how far it may grow
+
+
+def _faces(V, F, fn, ridge_pts, body, area, least=50.0):
+    """Per triangle, 1 on the front, 2 on the back, 0 elsewhere: grown over the mesh from the
+    triangles facing squarely forward (or back, FACE_SEED), across shared edges, never across a
+    ridge (an edge with both ends within 1.5 cm of one) and never onto a triangle facing away
+    (under FACE_KEEP) or off the outer body (body: not a wheel cover, a blade or a hidden inside);
+    a face under `least` cm² is a patch, not a face: the sidepods' fronts to their rims, the tail to
+    its top edge and corners; at the nose's tip, where the crease fades, the face fades with the
+    facing (Map.face_distance)."""
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import connected_components
+    e = np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
+    tid = np.tile(np.arange(len(F)), 3)
+    e.sort(1)
+    key = e[:, 0].astype(np.int64) * len(V) + e[:, 1]
+    order = np.argsort(key, kind="stable")
+    key, tid = key[order], tid[order]
+    same = key[1:] == key[:-1]
+    a, b = tid[:-1][same], tid[1:][same]  # the pairs of triangles sharing an edge
+    near = cKDTree(ridge_pts).query(V, workers=-1)[0] < 1.5
+    ends = e[order][:-1][same]
+    wall = near[ends[:, 0]] & near[ends[:, 1]]
+    out = np.zeros(len(F), np.int8)
+    for label, sign in ((1, 1.0), (2, -1.0)):
+        facing = sign * fn[:, 2]
+        ok = ~wall & body[a] & body[b] & (facing[a] > FACE_KEEP) & (facing[b] > FACE_KEEP)
+        g = coo_matrix((np.ones(ok.sum()), (a[ok], b[ok])), shape=(len(F), len(F)))
+        _, comp = connected_components(g, directed=False)
+        seeded = np.unique(comp[facing > FACE_SEED])
+        big = np.flatnonzero(np.bincount(comp, weights=area, minlength=comp.max() + 1) >= least)
+        out[np.isin(comp, seeded) & np.isin(comp, big) & body & (facing > FACE_KEEP)] = label
+    return out
 
 
 # ---- the car's lines ----
@@ -530,16 +972,29 @@ def build():
     chase = _seen(V, vn, chase_d[None], _occluders())[:, 0] * np.maximum(vn @ chase_d, 0)
     cone = dirs[:, 2] > np.cos(np.radians(FRONT_CONE))
     front_open = seen[:, cone].mean(1)
-    sec = _sections(V, F, part, names, open_)
+    ns = _smooth_normals(V, F, fn, vn, area)
+    Mv = _curvature(V, F, ns)
+    k1 = _principal(Mv, ns)[0]
+    data = dict(version=VERSION, V=V, F=F, fn=fn, part=part, vn=vn, area=area, dirs=dirs,
+                seen=np.packbits(seen, axis=1), open=open_.astype(np.float32),
+                front_open=front_open.astype(np.float32), chase=chase.astype(np.float32),
+                ns=ns.astype(np.float32), k1=k1.astype(np.float32),
+                curv=Mv[:, [0, 0, 0, 1, 1, 2], [0, 1, 2, 1, 2, 2]].astype(np.float32))
+    ridges = _trace_ridges(Map(data))
+    data["ridge_starts"] = np.r_[0, np.cumsum([len(r) for r in ridges])]
+    data["ridge_pts"] = np.concatenate(ridges)
     lines, walls = _edge_lines(V, F, fn, part)
+    lines["fold"] = _resample(ridges)
+    sec = _sections(V, F, part, names, open_, lines["fold"], lines["opening"])
+    outer = ~np.isin(names[part], WHEEL_COVERS + BLADES) & (open_[F].mean(1) >= 0.3)
+    data["face"] = _faces(V, F, fn, lines["fold"], outer, area)
     flow_v, _ = _flow_field(V, F, walls)
+    data.update(flow=flow_v.astype(np.float32), **{f"sec_{k}": v for k, v in sec.items()},
+                **{f"line_{k}": v for k, v in lines.items()})
+    from tool import mapcheck  # the slices where a line is drawn: on a ridge that stands out and stays put
+    data["sec_draw"] = mapcheck.draw_mask(mapcheck.measure(Map(data)))
     CACHE.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(CACHE, version=VERSION, V=V, F=F, fn=fn, part=part, vn=vn, area=area,
-                        dirs=dirs, seen=np.packbits(seen, axis=1), open=open_.astype(np.float32),
-                        front_open=front_open.astype(np.float32), flow=flow_v.astype(np.float32),
-                        chase=chase.astype(np.float32),
-                        **{f"sec_{k}": v for k, v in sec.items()},
-                        **{f"line_{k}": v for k, v in lines.items()})
+    np.savez_compressed(CACHE, **data)
     load.cache_clear()
     return load()
 
@@ -549,7 +1004,6 @@ class Map:
         self.V, self.F, self.fn, self.part = data["V"], data["F"], data["fn"], data["part"]
         self.vn, self.area, self.dirs = data["vn"], data["area"], data["dirs"]
         self.seen = np.unpackbits(data["seen"], axis=1)[:, :len(self.dirs)].astype(bool)
-        self.flow_v = data["flow"]
         self.part_names = np.array([inst["name"] for inst in parts.load().instances])
         self.sec = {k[4:]: data[k] for k in data if k.startswith("sec_")}
         self.lines = {k[5:]: data[k] for k in data if k.startswith("line_")}
@@ -559,14 +1013,23 @@ class Map:
         self._grad = {}
         self._line_trees = {}
         self._slice_trees = {}
-        st = self.sec["starts"]
-        has = np.flatnonzero(st[1:] > st[:-1])
-        self._fill = has[np.abs(np.arange(len(st) - 1)[:, None] - has[None]).argmin(1)]
-        across, _, _ = self.section(self.V)
-        self.layers = {"open": data["open"], "across": across, "front_open": data["front_open"], "chase": data["chase"],
+        self.layers = {"open": data["open"], "front_open": data["front_open"], "chase": data["chase"],
+                       "ns": data["ns"], "curv": data["curv"], "k1": data["k1"],
                        "along": ((NOSE_Z - self.V[:, 2]) / (NOSE_Z - TAIL_Z)).astype(np.float32),
                        "facing_x": (self.vn[:, 0] * np.sign(self.V[:, 0] + 1e-9)).astype(np.float32),
                        "facing_y": self.vn[:, 1].astype(np.float32), "facing_z": self.vn[:, 2].astype(np.float32)}
+        self.face = data.get("face")
+        self._face_trees = {}
+        if "ridge_pts" in data:  # the traced ridges, each an (n, 3) array
+            st = data["ridge_starts"]
+            self.ridges = [data["ridge_pts"][st[i]:st[i + 1]] for i in range(len(st) - 1)]
+        if not self.sec:  # the bare map the ridges are traced on, while building
+            return
+        self.flow_v = data["flow"]
+        st = self.sec["starts"]
+        has = np.flatnonzero(st[1:] > st[:-1])
+        self._fill = has[np.abs(np.arange(len(st) - 1)[:, None] - has[None]).argmin(1)]
+        self.layers["across"] = self.section(self.V)[0]
 
     # ---- round the section ----
 
@@ -610,9 +1073,15 @@ class Map:
 
     def mark_distance(self, pos, a):
         """Distance (cm) from the points to a mark (across = 1, the shoulder; 2, the lower edge),
-        counting how far a point lies outside its region's range, so a bulge isn't on the line."""
+        counting how far a point lies outside its region's range, so a bulge isn't on the line;
+        no line (far) on the slices where the mark isn't on a clear ridge (sec_draw: the skin's
+        end, a weak or wandering crest)."""
         across, scale, off = self.section(pos)
-        return np.hypot((across - a) * scale, off).astype(np.float32)
+        d = np.hypot((across - a) * scale, off).astype(np.float32)
+        if "draw" in self.sec:
+            drawn = np.interp(np.asarray(pos)[:, 2], self.sec["Z"], self.sec["draw"][:, int(a) - 1].astype(float)) > 0.5
+            d[~drawn] = 1e6
+        return d
 
     # ---- the air ----
 
@@ -792,6 +1261,8 @@ class Map:
         """A per-vertex layer interpolated at the points."""
         face, bary, _ = self.at(pos, nrm)
         vals = self.layers[layer][self.F[face]]
+        if vals.ndim == 3:  # a layer of vectors
+            return (bary[:, :, None] * vals).sum(1).astype(np.float32)
         return (bary * vals).sum(1).astype(np.float32)
 
     def gradient(self, layer):
@@ -814,6 +1285,32 @@ class Map:
         face, bary, _ = self.at(pos, nrm)
         vals = (bary * self.layers[layer][self.F[face]]).sum(1)
         return ((vals - level) / np.maximum(self.gradient(layer)[face], floor)).astype(np.float32)
+
+    def face_distance(self, pos, label, nrm=None):
+        """Signed distance (cm) from the points to the edge of a face (1 the front, 2 the back):
+        positive on it. The face is the triangles labelled so (_faces); its edge the points along
+        the edges between them and the rest, or, where no ridge bounds it (the nose's tip), the
+        smooth contour where the facing passes FACE_KEEP."""
+        if label not in self._face_trees:
+            F, on = self.F, self.face == label
+            e = np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
+            t = np.tile(on, 3)
+            e.sort(1)
+            key = e[:, 0].astype(np.int64) * len(self.V) + e[:, 1]
+            order = np.argsort(key, kind="stable")
+            key, t, e = key[order], t[order], e[order]
+            same = key[1:] == key[:-1]
+            edge = e[:-1][same & (t[1:] != t[:-1])]
+            pts = _resample([self.V[i] for i in edge]) if len(edge) else np.zeros((0, 3), np.float32)
+            self._face_trees[label] = cKDTree(pts) if len(pts) else None
+        tree = self._face_trees[label]
+        pos = np.asarray(pos, np.float64)
+        d = tree.query(pos, workers=-1)[0] if tree is not None else np.full(len(pos), 1e6)
+        face, _, _ = self.at(pos, nrm)
+        sign = 1.0 if label == 1 else -1.0
+        lv = sign * self.level("facing_z", sign * FACE_KEEP, pos, nrm)  # > 0 where facing enough
+        on = self.face[face] == label
+        return np.where(on, np.minimum(d, np.maximum(lv, 0.0)), -np.minimum(d, np.abs(lv))).astype(np.float32)
 
     def distance(self, kind, pos):
         """Distance (cm) from the points to the nearest of one of the car's lines (fold, opening, join);
@@ -890,9 +1387,11 @@ def describe(m=None):
          "z forward (the nose's tip at 215, the tail at -162).", "",
          "## The pictures", "",
          "The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):", "",
-         "- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey, facing forward "
-         "yellow, facing back orange, the hidden insides violet; the shoulder green, the lower edge magenta, folds "
-         "black, openings red, joins blue.",
+         "- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey, the front yellow, "
+         "the back orange, the hidden insides violet; the shoulder green, the lower edge magenta (each drawn only "
+         "where the check finds a clear crest or the skin's own edge: `python -m tool.carmap --check`), folds black, "
+         "openings red, joins blue.",
+         "- `car/map/lines.jpg` (TSC_Map_Lines): every ridge of the body's curvature on clay, each in its own colour.",
          "- `car/map/grid.jpg` (TSC_Map_Grid): across every quarter and along every tenth: how a band placed by "
          "them bends with the body.",
          "- `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet "
@@ -908,11 +1407,11 @@ def describe(m=None):
         k = int(np.argmin(np.abs(Z - z)))
         sx, sy, lx, ly = (float(m.sec[n][k]) for n in ("sh_x", "sh_y", "lo_x", "lo_y"))
         L.append(f"| {z} | {what} | {sx:.0f}, {sy:.0f} | {lx:.0f}, {ly:.0f} |")
-    high = Z[(m.sec["lo_y"] > 40) & (Z > 0)]
+    high = Z[(m.sec["kind"][:, 1] == 3) & (Z > 60)]
     L += ["", "The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the "
-          f"lower edge's. Where the lower edge sits high (z {high.min():.0f} to {high.max():.0f}), the body's skin "
-          "ends under the nose's and the front flank's lip and the inner car carries on below: paint on \"body\" "
-          "stops there.", ""]
+          "lower edge's." + (f" At z {high.min():.0f} to {high.max():.0f} the lower edge is the nose's and the front "
+          "flank's lip, with the nose's belly rolled under it: the skin ends there and the inner car carries on below "
+          "(the skirt further down is another piece); paint on \"body\" stops at the lip." if len(high) else ""), ""]
     L += ["## Openings", "", "Loops of open edges 30 cm round or more (`shapes.near(\"opening\", r)` keeps clear of them); "
           "a wall is one the oncoming air runs into, which the air turns round.", "",
           "| round | parts | x | y | z | a wall |", "|---|---|---|---|---|---|"]
@@ -989,6 +1488,10 @@ if __name__ == "__main__":
     if "--describe" in sys.argv:
         print(describe())
         raise SystemExit
+    if "--check" in sys.argv:
+        from tool import mapcheck
+        mapcheck.check(verbose="-v" in sys.argv)
+        raise SystemExit
     t = time.time()
     m = build()
     print(f"built in {time.time() - t:.0f} s: {len(m.V)} vertices, {len(m.F)} triangles, {len(m.dirs)} directions")
@@ -999,6 +1502,9 @@ if __name__ == "__main__":
         np.mean(a < 1), np.mean((a >= 1) & (a < 2)), np.mean(a >= 2)))
     for k, v in m.lines.items():
         print(f"line {k}: {len(v)} points")
+    print(f"ridges: {len(m.ridges)}, {sum(len(r) for r in m.ridges) * RIDGE_STEP:.0f} cm in all; the longest:")
+    for r in sorted(m.ridges, key=len)[::-1][:12]:
+        print(f"  {len(r) * RIDGE_STEP:4.0f} cm, x {r[:, 0].min():5.0f}..{r[:, 0].max():5.0f}, y {r[:, 1].min():3.0f}..{r[:, 1].max():3.0f}, z {r[:, 2].min():5.0f}..{r[:, 2].max():5.0f}")
     Z = m.sec["Z"]
     for z in (200, 170, 150, 120, 100, 60, 20, -20, -60, -100, -140):
         i = int(np.argmin(np.abs(Z - z)))

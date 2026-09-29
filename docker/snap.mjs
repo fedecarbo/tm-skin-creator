@@ -8,6 +8,7 @@
 //   node docker/snap.mjs <name> --cams           the game's Cam 1 and 2 and their alts, day and night, at
 //                                                16:9 -> build/<name>_cams.png
 //   node docker/snap.mjs <name> --body           the body alone, no wheels, nine views (the car map's)
+//   node docker/snap.mjs <name> --stretches      the car map's close looks, each stretch of the body, no wheels
 //   node docker/snap.mjs <name> --review         the angles the other sheets miss, for the studio's
 //                                                critic -> build/<name>_review.png
 // Each sheet is copied to .snap/ too, for Claude to look at on the Mac.
@@ -159,13 +160,13 @@ if (args[0] === '--page') {
   process.exit(0);
 }
 if (!args.length || args[0].startsWith('-')) {
-  console.log('node docker/snap.mjs <name> [--close | --cams | --review | --body] [--size 960x720] | <name> [<more> ...] --picture [--titles ...] [--views ...] [--close-row <name> N ...]');
+  console.log('node docker/snap.mjs <name> [--close | --cams | --review | --body | --stretches] [--size 960x720] | <name> [<more> ...] --picture [--titles ...] [--views ...] [--close-row <name> N ...]');
   process.exit(1);
 }
 if (args.includes('--picture')) picture(args);
 else {
   const kind = args.includes('--close') ? 'close' : args.includes('--cams') ? 'cams' : args.includes('--review') ? 'review'
-    : args.includes('--body') ? 'body' : 'views';
+    : args.includes('--body') ? 'body' : args.includes('--stretches') ? 'stretches' : 'views';
   const i = args.indexOf('--size');
   const size = (i >= 0 ? args[i + 1] : kind === 'cams' ? '1280x720' : '960x720').split('x').map(Number);
   await snap(args[0], kind, size);
