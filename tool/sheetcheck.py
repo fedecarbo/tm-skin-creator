@@ -3,6 +3,8 @@ close-up of the sidepod's rear corner, 2026-09-29: the checker sheared and the b
 two panels met, and the sheet's own figures, percentiles over the whole body, had let it through).
 
     python -m tool.sheetcheck TSC_Map_Sheet      the checks on that car's painted textures
+    python -m tool.sheetcheck TSC_Map_Sheet --falsify   three panels' paint moved 7.6 mm first: the
+                                                 crossings check must fail, or it measures nothing
 
 Three checks, all by number, on the painted Skin texture (build/<name>/painted.npz) and every
 texel's place on the sheet (surface.sheet_cm):
@@ -35,6 +37,7 @@ SCALE_LIMIT = 10.0  # %: local stretch a texel patch may show (twice the sheet's
 SHEAR_LIMIT = 6.0   # degrees
 PATCH = 25.0      # cm² of texels over the limits that counts as a failure
 GAP, TURN = 1.0, 2.0  # mm, degrees: a band across a crossing
+WINDOW = 1.5  # cm along the curve either side of a crossing that the band's step and turn are read over
 SIZE = 4096
 
 
@@ -124,97 +127,143 @@ def _band_texels(painted, colour, tol=40):
 
 
 def crossings(sheet, uv, pos, tri, painted, bands):
-    """For each band (a colour and its sheet polylines in mm): where its polyline crosses a
-    sewn join between panels or a UV seam, the painted band's texels within 3 cm either side,
-    a line fitted to each, the sideways gap and the turn. Returns rows (name, place (3), gap
-    mm, turn deg)."""
+    """For each band (name, colour, its sheet polylines in mm, the 3D design curve it follows,
+    the curve's kind for the map, its offset and width): every place where the band crosses from
+    one panel of the model to another or from one island of the texture to another (its sheet
+    polyline walked in 2 mm steps and read on the car: the part and the island under each step),
+    then the painted band's texels either side: the step, the difference between the two sides'
+    offsets from the design curve (each side's texels' distance to the curve within WINDOW cm of
+    the crossing along the curve, their median: a continuous band has the same offset on both
+    sides whatever the curve does round a corner), and the turn between lines fitted to each side
+    over twice that, less the turn the curve itself makes between them (a band round a corner
+    bends; the excess is the kink). Returns rows (name, kind, place (3), step mm, turn deg,
+    offset a, offset b, "part a | part b")."""
+    from tool import uvmap
     m = sheet.m
     pn = m.part_names[m.part]
-    rows = []
-    # a join: the sheet's sewn edges (an edge whose two triangles come from different parts), a UV
-    # seam: an edge whose two triangles are on different islands of the texture
-    from tool import uvmap
     label = uvmap.islands("Skin")[0]
-    tri_part = np.where(sheet.tri >= 0, pn[np.maximum(sheet.tri, 0)], "gap")
-    e = surface._edges(sheet.Fs)
-    tid = np.tile(np.arange(len(sheet.Fs)), 3)
-    key = e[:, 0].astype(np.int64) * len(sheet.Vs) + e[:, 1]
-    _, inv, cnt = np.unique(key, return_inverse=True, return_counts=True)
-    order = np.argsort(inv, kind="stable")
-    starts = np.r_[0, np.cumsum(cnt)]
-    two = np.flatnonzero(cnt == 2)
-    ta, tb = tid[order[starts[two]]], tid[order[starts[two] + 1]]
-    is_join = tri_part[ta] != tri_part[tb]
-    is_seam = (sheet.tri[ta] >= 0) & (sheet.tri[tb] >= 0) & (label[np.maximum(sheet.tri[ta], 0)] != label[np.maximum(sheet.tri[tb], 0)])
-    idx = np.flatnonzero(is_join | is_seam)  # into two, ta, tb
-    sel = two[idx]
-    ta, tb = ta[idx], tb[idx]
-    kinds = np.where(is_join[idx], "join", "UV seam")
-    ea = e[order[starts[sel]]]
-    A2, B2 = sheet.uv[ea[:, 0]], sheet.uv[ea[:, 1]]  # the crossing edges on the sheet (cm)
-    body = np.isfinite(uv[..., 0]) & (tri >= 0)
-    for name, colour, lines in bands:
-        on = _band_texels(painted, colour) & body
+    rows = []
+    for name, colour, lines, curve, a_kind, target, width in bands:
+        c3 = np.concatenate([curve, curve * [-1, 1, 1]])
+        tg = np.concatenate([np.gradient(curve, axis=0), np.gradient(curve * [-1, 1, 1], axis=0)])
+        tg /= np.maximum(np.linalg.norm(tg, axis=1, keepdims=True), 1e-9)
+        ctree = cKDTree(c3)
+        on = _band_texels(painted, colour) & (tri >= 0)  # every painted texel on the car, on the sheet or not
         ys, xs = np.nonzero(on)
         if not len(ys):
             continue
+        keep = np.abs(m.mark_distance(pos[ys, xs], a_kind) * 10 - target) <= width / 2 + 12.0  # the band's own texels (a broken band's too, up to 12 mm off)
+        ys, xs = ys[keep], xs[keep]
+        if not len(ys):
+            continue
         P = pos[ys, xs]
-        Uv = uv[ys, xs]
         ptree = cKDTree(P)
+        tp = pn[tri[ys, xs]]
+        li = label[tri[ys, xs]]
         for line in lines:
-            l = np.asarray(line, np.float64) / 10  # cm
-            for i in range(len(l) - 1):
-                p, q = l[i], l[i + 1]
-                # segment p-q against every crossing edge
-                r, s_ = q - p, B2 - A2
-                den = r[0] * s_[:, 1] - r[1] * s_[:, 0]
-                ok = np.abs(den) > 1e-12
-                t = ((A2[:, 0] - p[0]) * s_[:, 1] - (A2[:, 1] - p[1]) * s_[:, 0]) / np.where(ok, den, 1)
-                u = ((A2[:, 0] - p[0]) * r[1] - (A2[:, 1] - p[1]) * r[0]) / np.where(ok, den, 1)
-                hit = ok & (t >= 0) & (t < 1) & (u >= 0) & (u <= 1)
-                for k in np.flatnonzero(hit):
-                    x_sheet = p + t[k] * r
-                    where0 = sheet.to_body(x_sheet[None])[0]
-                    if not np.isfinite(where0).all():
+            l = np.asarray(line, np.float64) / 10
+            seg = np.linalg.norm(np.diff(l, axis=0), axis=1)
+            sarc = np.r_[0, np.cumsum(seg)]
+            u = np.arange(0, sarc[-1], 0.2)
+            walk = np.stack([np.interp(u, sarc, l[:, k]) for k in range(2)], 1)
+            body = sheet.to_body(walk)
+            ok = np.isfinite(body).all(1)
+            if ok.sum() < 2:
+                continue
+            face, _, dist = m.at(body[ok])
+            part_w = np.where(dist < 1.0, pn[face], "")
+            isl_w = np.where(dist < 1.0, label[face], -1)
+            steps = np.flatnonzero(ok)
+            for j in range(1, len(steps)):
+                pa, pb = part_w[j - 1], part_w[j]
+                ia, ib = isl_w[j - 1], isl_w[j]
+                if pa == "" or pb == "" or pa in surface.BLADES or pb in surface.BLADES or "nose fin" in (pa, pb):
+                    continue  # a strut or a blade under a band is another surface, not a join of the skin
+                if pa == pb and ia == ib:
+                    continue
+                kind = "join" if pa != pb else "UV seam"
+                where0 = 0.5 * (body[steps[j - 1]] + body[steps[j]])
+                for where in (where0, where0 * [-1, 1, 1]):  # the crossing on the left, and its mirror on the right
+                    near = np.array(ptree.query_ball_point(where, 4.0))
+                    if len(near) < 12:
                         continue
-                    for where in (where0, where0 * [-1, 1, 1]):  # the crossing on the left, and its mirror on the right
-                        near = ptree.query_ball_point(where, 3.0)
-                        if len(near) < 12:
-                            continue
-                        pts = P[near]
-                        side_a, side_b = tri_part[ta[k]], tri_part[tb[k]]
-                        tp = pn[tri[ys[near], xs[near]]]
-                        if kinds[k] == "join":
-                            ga, gb = tp == side_a, tp == side_b
-                        else:  # a UV seam: the island of each texel
-                            li = label[tri[ys[near], xs[near]]]
-                            ga, gb = li == label[sheet.tri[ta[k]]], li == label[sheet.tri[tb[k]]]
-                        if ga.sum() < 6 or gb.sum() < 6:
-                            continue
-                        # a line through each side's texels (their principal direction), in 3D
-                        def fit(pp):
-                            c = pp.mean(0)
-                            d = np.linalg.svd(pp - c, full_matrices=False)[2][0]
-                            return c, d
-                        ca, da = fit(pts[ga])
-                        cb, db = fit(pts[gb])
-                        if da @ db < 0:
-                            db = -db
-                        turn = np.degrees(np.arccos(np.clip(da @ db, -1, 1)))
-                        # the sideways gap: side b's centre off side a's line, measured across the band on the surface
-                        off = cb - ca
-                        off -= (off @ da) * da
-                        gap = np.linalg.norm(off) * 10
-                        rows.append((name, kinds[k], where, gap, turn))
-    return rows
+                    pts = P[near]
+                    ga, gb = (tp[near] == pa, tp[near] == pb) if kind == "join" else (li[near] == ia, li[near] == ib)
+                    ci = ctree.query(pts)[1]
+                    c0 = ctree.query(where)[1]
+                    slab = np.abs(ci - c0) * 0.25 <= WINDOW
+                    wide = np.abs(ci - c0) * 0.25 <= 2 * WINDOW
+                    if (ga & slab).sum() < 4 or (gb & slab).sum() < 4:
+                        continue
+                    offs = m.mark_distance(pts, a_kind) * 10
+                    oa, ob = float(np.median(offs[ga & slab])), float(np.median(offs[gb & slab]))
+                    gap = abs(oa - ob)
+
+                    def fit(pp):
+                        c = pp.mean(0)
+                        vt = np.linalg.svd(pp - c, full_matrices=False)[2]
+                        return c, vt[0], vt[-1]  # the centre, the band's direction, the surface's normal there
+                    ca, da, na = fit(pts[ga & wide])
+                    cb, db, nb = fit(pts[gb & wide])
+                    if da @ db < 0:
+                        db = -db
+                    turn = np.degrees(np.arccos(np.clip(da @ db, -1, 1)))
+                    ka, kb = int(np.median(ci[ga & wide])), int(np.median(ci[gb & wide]))
+                    own = np.degrees(np.arccos(np.clip(abs(tg[ka] @ tg[kb]), -1, 1)))
+                    turn = max(turn - own, 0.0)
+                    if np.degrees(np.arccos(np.clip(abs(na @ nb), -1, 1))) > 20.0:
+                        # the two panels face apart (a strut under the nose, a mirror's mount): the band lands
+                        # on another surface there, not across a join of the skin: no step or kink to judge
+                        rows.append((name, kind, where, 0.0, 0.0, oa, ob, f"{pa} | {pb}, facing apart"))
+                        continue
+                    rows.append((name, kind, where, gap, turn, oa, ob, f"{pa} | {pb}"))
+    # one row per crossing: the same place found from both ends of a walk is kept once
+    out = []
+    for r in rows:
+        if not any(r[0] == q[0] and np.linalg.norm(r[2] - q[2]) < 1.0 for q in out):
+            out.append(r)
+    return out
 
 
-def check(name, bands=None):
-    """The three checks on a painted car. bands: [(name, colour (r, g, b) 0..255, polylines mm)];
-    None: TSC_Map_Sheet's."""
+def bands_of(spec):
+    """Bands for crossings() from (name, colour, line kind, offset mm, width mm): the band's sheet polylines
+    (the design line's, offset on the sheet, to find where it crosses a join) and the design curve
+    itself (3D, for the bend)."""
+    from tool import shapes
+    out = []
+    for name, colour, kind, d, width in spec:
+        k = {"shoulder": 0, "lower": 1}[kind]
+        curve = np.concatenate([dense for dense, _ in surface.load().m.design_lines(k)])
+        lines = [shapes.offset(l, d) if d else l for l in shapes.sheet_lines("design-" + kind)]
+        out.append((name, colour, lines, curve, k + 1, d, width))
+    return out
+
+
+# (name, colour, the design line, offset mm, width mm)
+SHEET_CAR = (("shoulder line", (0xd0, 0x20, 0x8e), "shoulder", 0, 8), ("30 mm band", (0xe0, 0x20, 0x20), "shoulder", 30, 8),
+             ("60 mm band", (0x1f, 0x8f, 0x3a), "shoulder", 60, 8), ("90 mm band", (0x20, 0x50, 0xe0), "shoulder", 90, 8))
+PROOF_CAR = (("shoulder pinstripe", (217, 164, 65), "shoulder", 0, 6), ("teal band", (47, 143, 157), "shoulder", 25, 14),
+             ("pale band", (232, 226, 208), "shoulder", 48, 6))
+FALSIFY_TEXELS = 10  # under --falsify these panels are painted 10 texels (about 9 mm) off along the texture, once per axis
+FALSIFY_PARTS = ("rear flank", "nose tip", "sidepod top")  # the panels on one side of the crossings measured
+
+
+def check(name, spec=None, falsify=False):
+    """The three checks on a painted car. spec: the bands as (name, colour, line kind, offset mm);
+    None: TSC_Map_Sheet's or TSC_Map_Proof's by the car's name. falsify: the sidepod's top's paint
+    moved FALSIFY_TEXELS texels along the texture before measuring, a break the crossings check
+    must catch (nothing falsified is ever cached: the check reads the painted file and writes
+    nothing)."""
     sheet = surface.load()
     painted = dict(np.load(paths.BUILD / name / "painted.npz"))
     uv, pos, tri = _uv_and_pos(name)
+    if falsify:
+        m = sheet.m
+        top = np.isin(m.part_names[m.part][np.maximum(tri, 0)], FALSIFY_PARTS) & (tri >= 0)
+        honest_B = painted["Skin_B"]
+        shifts = [np.where(top[..., None], np.roll(honest_B, FALSIFY_TEXELS, axis=ax), honest_B) for ax in (0, 1)]
+        print(f"falsify: {', '.join(FALSIFY_PARTS)} painted {FALSIFY_TEXELS} texels off along the texture (about "
+              f"{FALSIFY_TEXELS * 0.9:.1f} mm on the car), once along each axis; the crossings check must fail on each")
     fails = []
     n, p, j = continuity(uv, pos, tri, sheet)
     print(f"continuity: {n} texel pairs next to each other on the car jump on the sheet off any declared seam" +
@@ -244,22 +293,41 @@ def check(name, bands=None):
             print(f"    a patch of {sizes[c]:.0f} cm² at ({q[0]:.0f}, {q[1]:.0f}, {q[2]:.0f}), stretch up to {stretch[bad][lab == c].max():.0f} %, shear up to {shear[bad][lab == c].max():.0f} deg")
         if sizes.max() >= PATCH:
             fails.append("scale")
-    if bands is None:
-        from tool import shapes
-        sh = shapes.sheet_lines("shoulder")
-        bands = [("shoulder line", (0xd0, 0x20, 0x8e), sh)] + [(f"{d} mm band", col, [shapes.offset(l, d) for l in sh])
-                                                            for d, col in ((30, (0xe0, 0x20, 0x20)), (60, (0x1f, 0x8f, 0x3a)), (90, (0x20, 0x50, 0xe0)))]
+    bands = bands_of(spec or (PROOF_CAR if "Proof" in name else SHEET_CAR))
     rows = crossings(sheet, uv, pos, tri, painted, bands)
+    if falsify:
+        honest = rows
+        broken = [crossings(sheet, uv, pos, tri, {**painted, "Skin_B": B}, bands) for B in shifts]
     worst = sorted(rows, key=lambda r: -(r[3] / GAP + r[4] / TURN))
     bad_rows = [r for r in rows if r[3] > GAP or r[4] > TURN]
-    print(f"crossings: {len(rows)} places where a band crosses a join or a UV seam; {len(bad_rows)} with a gap over {GAP} mm or a turn over {TURN} deg")
-    for nm, kind, where, gap, turn in worst[:8]:
-        print(f"    {nm:14} at a {kind:7} near ({where[0]:6.1f}, {where[1]:6.1f}, {where[2]:6.1f}): gap {gap:.2f} mm, turn {turn:.1f} deg")
+    print(f"crossings: {len(rows)} places where a band crosses a join or a UV seam; {len(bad_rows)} with a gap over {GAP} mm or a turn over {TURN} deg (less the curve's own bend)")
+    for nm, kind, where, gap, turn, oa, ob, sides in worst[:10]:
+        corner = (" (the sidepod's rear corner)" if abs(where[2] + 50) < 8 and abs(where[0]) > 70 else
+                  " (the sidepod's front panel edge)" if -20 < where[2] < 40 and abs(where[0]) > 35 and "sidepod top" in sides else "")
+        print(f"    {nm:18} at a {kind:7} near ({where[0]:6.1f}, {where[1]:6.1f}, {where[2]:6.1f}): step {gap:.2f} mm "
+              f"(offsets {oa:.1f} | {ob:.1f} mm, {sides}), turn {turn:.1f} deg{corner}")
     if bad_rows:
         fails.append("crossings")
+    if falsify:
+        # each break must show as a step over the limit that the honest paint doesn't have, at a
+        # crossing on a panel that was moved
+        key = lambda r: (r[0], tuple(np.round(r[2], 0)))
+        base = {key(h): h[3] for h in honest}
+        out = []
+        for ax, rows_b in zip(("v", "u"), broken):
+            grew = [abs(r[3] - base.get(key(r), 0.0)) for r in rows_b
+                    if any(p in r[7] for p in FALSIFY_PARTS) and r[3] > GAP and abs(r[3] - base.get(key(r), 0.0)) >= 2.0]
+            keys_b = {key(r) for r in rows_b}
+            gone = [h for h in honest if key(h) not in keys_b and any(p in h[7] for p in FALSIFY_PARTS) and "facing apart" not in h[7]]
+            caught = bool(grew) or bool(gone)
+            print(f"falsify along {ax}: {'caught' if caught else 'NOT CAUGHT'}: " +
+                  (f"{len(grew)} crossings' steps moved by up to {max(grew):.1f} mm from the honest paint's, over the limit" if grew else "no crossing's step moved by 2 mm") +
+                  (f"; {len(gone)} crossings' bands no longer meet at the join at all" if gone else ""))
+            out.append(caught)
+        return [] if all(out) else ["falsify not caught"]
     print("the painted sheet passes" if not fails else f"FAIL: {', '.join(fails)}")
     return fails
 
 
 if __name__ == "__main__":
-    check(sys.argv[1])
+    check(sys.argv[1], falsify="--falsify" in sys.argv)

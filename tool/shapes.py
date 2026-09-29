@@ -31,9 +31,9 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
   The body sheet (tool/surface.py: the skin flattened in true size; car/sheet.png, .svg, .json, in mm):
     shapes.sheet("stripes.svg")            an SVG drawn in the sheet's frame, painted on the car true size
     shapes.sheet(picture, box=(x0, y0, x1, y1)), shapes.sheet(lines, width=8), shapes.sheet(lambda x, y: ...)
-    shapes.sheet_line("shoulder", 8)       a line 8 mm wide along a line of the map, its width true on the paint
-    shapes.sheet_near("fold", 20)          within 20 mm over the body of a fold (~ keeps clear)
-    shapes.sheet(shapes.offset(shapes.sheet_lines("shoulder")[0], 30), width=6)   6 mm, 30 mm below the shoulder
+    shapes.line_offset("shoulder", 30, 8)  a band 8 mm wide, 30 mm below the shoulder everywhere: the distance
+                                           in 3D to the map's one smooth design line (never a step at a join)
+    shapes.sheet_near("fold", 20)          within 20 mm on the sheet of a fold (~ keeps clear); sheet_line likewise
     shapes.along_cm(50, 70), shapes.across_cm(10, 14)   bands measured over the body (cm), not through the air
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Lengths: the car runs from z = -162 (tail) to 215 (nose tip); the wheels sit at z = 179 and
@@ -450,8 +450,21 @@ def near(kind, reach, soft=SOFT):
 
 
 def line(kind, width=1.0, soft=SOFT):
-    """A line `width` cm wide drawn along one of the car's lines (see near)."""
+    """A line `width` cm wide drawn along one of the car's lines (see near). "shoulder" and
+    "lower" are the map's design lines: one smooth curve per stretch, blended through the
+    sidepod's corners (carmap.Map.design_lines), so the line never breaks or kinks at a join."""
     return near(kind, width / 2, soft)
+
+
+def line_offset(kind, d, width, soft=SOFT):
+    """A band `width` mm wide whose centre runs `d` mm past one of the map's design lines
+    ("shoulder": down the side, "lower": on under; d < 0 the other way), measured as the exact
+    distance in 3D to that one smooth curve, so the band is continuous across every UV seam,
+    join and gap by construction and parallel to the line everywhere (on this body the chord is
+    within 0.2 mm of the arc at 30 mm). Both sides. The earlier project's lesson (2026-09-29): a
+    band is a function of the point on the car, not of a flat sheet."""
+    a = {"shoulder": 1, "lower": 2}[kind]
+    return field(lambda p, n: width / 20 - np.abs(_map().across_level(p, a) - d / 10), soft)
 
 
 def hit(lo, hi=1.01, soft=SOFT):
@@ -503,8 +516,11 @@ def rake(z, across):
 # ---- The body sheet (tool/surface.py): drawing flat on the car's own pattern, in millimetres ----
 # The sheet is the outer skin flattened in true size (car/sheet.png, car/sheet.svg, car/sheet.json:
 # the nose's tip at the left, the top centreline along the top, y down). A shape drawn on it lands
-# on the car with its true size, the right side mirrored; a line drawn 30 mm below the shoulder is
-# 30 mm below it on the paint everywhere. Everything here speaks the sheet's millimetres.
+# on the car with its true size, the right side mirrored. It is for lattices (a checker, a hex), logos
+# and decals, where true size and no shear matter and a step at a cut is bearable; a line, a band
+# or a pinstripe is a function of the point on the car instead: line(), near(), line_offset(), the
+# distance to one smooth 3D curve, continuous across every join. Everything here speaks the
+# sheet's millimetres.
 
 _TEXELS = None  # (canvas, texel indices) while the paint box asks a zone about its own texels
 

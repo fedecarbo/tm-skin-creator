@@ -823,6 +823,11 @@ class Sheet:
                 self._lines[name] = self._chains(pts[pts[:, 0] > -0.05])
             self._lines["seam"] = [q for _, s in self.seams for q in self._seam_sides(s)]
             self._lines["outline"] = self._outlines()
+            for name, kind in (("shoulder", 0), ("lower", 1)):  # the design lines: one smooth curve per stretch, and their blends
+                self._lines["design-" + name] = [q for dense, _ in self.m.design_lines(kind) for q in self._on_sheet(dense)]
+            self._lines["blend"] = [q for kind in (0, 1) for dense, blend in self.m.design_lines(kind)
+                                    for run in np.split(np.flatnonzero(blend), np.flatnonzero(np.diff(np.flatnonzero(blend)) > 1) + 1)
+                                    if len(run) >= 16 for q in self._on_sheet(dense[run])]
         return self._lines
 
     def _on_sheet(self, pts):

@@ -10,7 +10,8 @@ import sys
 from tool import paths, snap
 
 # (label, dir, dist, target in metres): the left side; the right is mirrored
-_JOINS = (("sidepod's rear corner", [0.85, 0.4, -0.35], 0.75, [0.78, 0.52, -0.5]),
+_JOINS = (("sidepod's front panel edge", [0.75, 0.45, 0.5], 0.85, [0.6, 0.5, 0.05]),
+          ("sidepod's rear corner", [0.85, 0.4, -0.35], 0.75, [0.78, 0.52, -0.5]),
           ("sidepod's rear corner, from behind", [0.5, 0.35, -0.8], 0.8, [0.75, 0.5, -0.55]),
           ("sidepod's front corner", [0.8, 0.45, 0.4], 0.8, [0.6, 0.55, 0.28]),
           ("sidepod's outer edge", [0.9, 0.45, 0.0], 0.8, [0.84, 0.55, -0.2]),

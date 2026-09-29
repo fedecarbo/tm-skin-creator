@@ -1,0 +1,164 @@
+{
+ "about": "The body's separate pieces (tool/pieces.py): parts, area, boundary length, the gap to the nearest other piece (cm), how much of the boundary lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it.",
+ "non_manifold_edges": 156,
+ "pieces": [
+  {
+   "piece": 0,
+   "parts": [
+    "body shell",
+    "rear flank",
+    "side skirt",
+    "nose tip",
+    "wing pylon",
+    "cockpit surround",
+    "engine cover",
+    "rear quarter panel",
+    "nose fin",
+    "fuel cap",
+    "nose panel",
+    "engine cover panel",
+    "number panel"
+   ],
+   "cm2": 55054,
+   "boundary_cm": 2876,
+   "gap_cm": 0.13,
+   "boundary_within_1cm": 0.06,
+   "nearest": "diffuser strake",
+   "hidden_skin_behind_cm2": 160,
+   "z": [
+    -152,
+    215
+   ]
+  },
+  {
+   "piece": 1,
+   "parts": [
+    "tail corner",
+    "tail panel"
+   ],
+   "cm2": 3585,
+   "boundary_cm": 296,
+   "gap_cm": 1.74,
+   "boundary_within_1cm": 0.0,
+   "nearest": "body shell",
+   "hidden_skin_behind_cm2": 104,
+   "z": [
+    -162,
+    -123
+   ]
+  },
+  {
+   "piece": 177,
+   "parts": [
+    "diffuser strake",
+    "diffuser"
+   ],
+   "cm2": 3279,
+   "boundary_cm": 235,
+   "gap_cm": 0.05,
+   "boundary_within_1cm": 0.15,
+   "nearest": "diffuser strake",
+   "hidden_skin_behind_cm2": 80,
+   "z": [
+    -145,
+    -107
+   ]
+  },
+  {
+   "piece": 178,
+   "parts": [
+    "sidepod top"
+   ],
+   "cm2": 2528,
+   "boundary_cm": 222,
+   "gap_cm": 0.41,
+   "boundary_within_1cm": 0.19,
+   "nearest": "body shell",
+   "hidden_skin_behind_cm2": 35,
+   "z": [
+    -50,
+    12
+   ]
+  },
+  {
+   "piece": 179,
+   "parts": [
+    "sidepod top"
+   ],
+   "cm2": 2528,
+   "boundary_cm": 222,
+   "gap_cm": 0.41,
+   "boundary_within_1cm": 0.19,
+   "nearest": "body shell",
+   "hidden_skin_behind_cm2": 35,
+   "z": [
+    -50,
+    12
+   ]
+  },
+  {
+   "piece": 3,
+   "parts": [
+    "sidepod inlet"
+   ],
+   "cm2": 1887,
+   "boundary_cm": 182,
+   "gap_cm": 1.39,
+   "boundary_within_1cm": 0.0,
+   "nearest": "sidepod top",
+   "hidden_skin_behind_cm2": 0,
+   "z": [
+    -46,
+    19
+   ]
+  },
+  {
+   "piece": 82,
+   "parts": [
+    "sidepod inlet"
+   ],
+   "cm2": 1887,
+   "boundary_cm": 182,
+   "gap_cm": 1.39,
+   "boundary_within_1cm": 0.0,
+   "nearest": "sidepod top",
+   "hidden_skin_behind_cm2": 0,
+   "z": [
+    -46,
+    19
+   ]
+  },
+  {
+   "piece": 180,
+   "parts": [
+    "diffuser strake"
+   ],
+   "cm2": 866,
+   "boundary_cm": 113,
+   "gap_cm": 0.04,
+   "boundary_within_1cm": 0.24,
+   "nearest": "diffuser strake",
+   "hidden_skin_behind_cm2": 78,
+   "z": [
+    -143,
+    -107
+   ]
+  },
+  {
+   "piece": 2,
+   "parts": [
+    "nose fin"
+   ],
+   "cm2": 23,
+   "boundary_cm": 14,
+   "gap_cm": 0.35,
+   "boundary_within_1cm": 0.83,
+   "nearest": "body shell",
+   "hidden_skin_behind_cm2": 0,
+   "z": [
+    125,
+    131
+   ]
+  }
+ ]
+}

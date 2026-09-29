@@ -886,6 +886,13 @@ BREAK = 3.0     # cm: a jump between neighbouring marks that is a corner or an e
 DROP = 0.8      # cm: evidence further than this from the curve fitted to the rest is left out (a
                 # second edge's points interleaved with the line's: the arch's rim against the corner's;
                 # a traced ridge's crest jitters by up to 5 mm and stays in)
+BLEND_GAP = 60.0   # cm: a gap between two curves of a named line no wider than this is bridged by the design line
+                   # (the shoulder's 47 cm over the sidepod's front, where the measured line is a panel's edge; the lower
+                   # edge's 64 cm behind the sidepods, where the body has no line, stays a break)
+BLEND_KNOT = 6.0   # cm between the design line's knots
+BLEND_REACH = 10.0  # cm either side of a gap that counts as the blend
+BLEND_SHORT = 15.0  # cm: a gap this short is bridged whatever the ends' directions (a corner)
+BLEND_TURN = 60.0   # degrees: the most the chord across a gap may turn from either curve's end for the gap to be bridged
 
 
 def _lsq(t, v, knots):
@@ -1275,17 +1282,94 @@ class Map:
         self._sec_last = (key, out)
         return out
 
+    def design_lines(self, kind):
+        """The named line (kind 0 the shoulder, 1 the lower edge) as ONE smooth curve per stretch the
+        body carries it on: the map's fitted curves of that kind, nose to tail, chained, and each
+        gap between two of them under BLEND_GAP cm bridged by the same C2 cubic B-spline fitted
+        through both (the blend: at the sidepod's rear corner the sidepod's edge ends and the rear
+        flank's crease starts 4 cm on and lower, and a band offset from each stepped there, the
+        user's close-up of 2026-09-29). A wider gap (no lower edge behind the sidepods, 64 cm) stays
+        a break: the body has no line there. The left side; a list of (points (n, 3) every 0.25 cm,
+        blend (n,) whether the point lies in a blend). The measured curves (Map.curves) stay as they
+        are for the check; the areas, `line`, `near` and the offsets go by these."""
+        if not hasattr(self, "_design"):
+            self._design = {}
+        if kind not in self._design:
+            pieces = []
+            Z, kinds = self.sec["Z"], self.sec["kind"][:, kind]
+            for c in self.curves:
+                if c["kind"] != kind or len(c["pts"]) < 8:
+                    continue
+                p = c["pts"].astype(np.float64)
+                if kind == 0:
+                    # the shoulder over the sidepod's front and inlet is the shell's own edge round the
+                    # sidepod's top (kind 4), a panel gap: a band offset from it wrapped round the
+                    # panel's corner (the user's close-up, 2026-09-29). The design line keeps the crease
+                    # evidence and bridges that stretch smoothly
+                    k4 = kinds[np.clip(np.rint((p[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)] == 4
+                    for run in np.split(np.arange(len(p)), np.flatnonzero(np.diff(k4.astype(int)) != 0) + 1):
+                        if not k4[run[0]] and len(run) >= 8:
+                            pieces.append(p[run])
+                else:
+                    pieces.append(p)
+            pieces = sorted(pieces, key=lambda p: -p[:, 2].mean())
+            pieces = [p if p[0, 2] >= p[-1, 2] else p[::-1] for p in pieces]  # nose to tail
+            chains, cur = [], []
+            for p in pieces:
+                if cur and not self._continues(cur[-1], p):
+                    chains.append(cur)
+                    cur = []
+                cur.append(p)
+            if cur:
+                chains.append(cur)
+            out = []
+            for chain in chains:
+                pts = np.concatenate(chain)
+                s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]
+                ends = np.cumsum([len(p) for p in chain])[:-1]  # where each gap begins
+                knots = list(np.arange(s[0] + BLEND_KNOT, s[-1] - BLEND_KNOT / 2, BLEND_KNOT))
+                for e in ends:  # no knot inside a gap: the spline spans it as one smooth piece
+                    knots = [k for k in knots if not (s[e - 1] - BLEND_KNOT / 2 < k < s[e] + BLEND_KNOT / 2)]
+                fs = [_lsq(s, pts[:, k], knots) for k in range(3)]
+                sd = np.arange(0, s[-1], 0.25)
+                dense = np.stack([f(sd) for f in fs], 1)
+                blend = np.zeros(len(sd), bool)
+                for e in ends:
+                    blend |= (sd >= s[e - 1] - BLEND_REACH) & (sd <= s[e] + BLEND_REACH)
+                if blend.any():  # a bridge lies on the skin, not through the air: put back on the body, then smoothed
+                    for _ in range(2):
+                        dense[blend] = self.project(dense[blend])[0]
+                        dense = gaussian_filter1d(dense, 8, axis=0, mode="nearest")
+                out.append((dense, blend))
+            self._design[kind] = out
+        return self._design[kind]
+
+    @staticmethod
+    def _continues(a, b):
+        """Whether curve b carries on from curve a: their ends within BLEND_GAP, and the chord between
+        them within BLEND_TURN degrees of both curves' end tangents (the sidepod's corner, the
+        sweep over its front: yes; the lower edge's hand-over from the nose's lip down to the
+        skirt's crest at z 70, a 25 cm drop between two different edges: no)."""
+        chord = b[0] - a[-1]
+        L = np.linalg.norm(chord)
+        if L > BLEND_GAP:
+            return False
+        if L <= BLEND_SHORT:  # a short gap is a corner or a notch: always bridged (the sidepod's rear corner)
+            return True
+        ta, tb = a[-1] - a[max(len(a) - 21, 0)], b[min(20, len(b) - 1)] - b[0]
+        cos = min(chord @ ta / max(L * np.linalg.norm(ta), 1e-9), chord @ tb / max(L * np.linalg.norm(tb), 1e-9))
+        return cos >= np.cos(np.radians(BLEND_TURN))
+
     def _frames(self, a):
-        """The named line's curves (a = 1 the shoulder, 2 the lower edge), both sides, with at each
-        point the direction across the line on the skin (N x T) pointing to the top (the shoulder:
-        inboard and up) or up (the lower edge): a point's side of the line is the sign of its offset
-        along it."""
+        """The named line's design curves (a = 1 the shoulder, 2 the lower edge), both sides, with at
+        each point the direction across the line on the skin (N x T) pointing to the top (the
+        shoulder: inboard and up) or up (the lower edge): a point's side of the line is the sign of
+        its offset along it."""
         key = f"frame{int(a)}"
         if key not in self._line_trees:
             pts, B, inner = [], [], []
-            for c in self.curves:
-                if c["kind"] != int(a) - 1 or len(c["pts"]) < 3:
-                    continue
+            for dense, _ in self.design_lines(int(a) - 1):
+                c = {"pts": dense}
                 for flip in (1.0, -1.0):
                     p = c["pts"].astype(np.float64) * np.array([flip, 1.0, 1.0])
                     inner.append(np.r_[np.zeros(8, bool), np.ones(max(len(p) - 16, 0), bool), np.zeros(min(8, len(p)), bool)][:len(p)])
@@ -1318,7 +1402,13 @@ class Map:
             de = self.distance("opening", pos)
             return np.where(past, de, -de).astype(np.float32)
         d, i = tree.query(pos, workers=-1)
-        on = np.abs(cpts[i, 2] - pos[:, 2]) < 3.0
+        # the line exists at the point's length: some design curve of this kind spans its z (the
+        # nearest point's own z said no for a point far from a slanted curve, and the shoulder's
+        # bands then followed the skirt's edge, 2026-09-29)
+        spans = [(c[:, 2].min() - 3.0, c[:, 2].max() + 3.0) for c, _ in self.design_lines(int(a) - 1)]
+        on = np.zeros(len(pos), bool)
+        for lo, hi in spans:
+            on |= (pos[:, 2] >= lo) & (pos[:, 2] <= hi)
         de = self.distance("opening", pos)
         out = np.where(past, 1.0, -1.0) * np.where(on, d, de)
         near = on & (d < 5.0) & inner[i]  # not at a curve's ends, 2 cm in, where its frame says nothing beyond it
@@ -1327,10 +1417,10 @@ class Map:
 
     def mark_distance(self, pos, a):
         """Distance (cm) from the points to a named line (a = 1 the shoulder, 2 the lower edge): the
-        fitted curves (Map.curves), both sides; far from them where the body has no line."""
+        design curves (Map.design_lines), both sides; far from them where the body has no line."""
         key = f"mark{int(a)}"
         if key not in self._line_trees:
-            pts = [c["pts"] for c in self.curves if c["kind"] == int(a) - 1]
+            pts = [dense.astype(np.float32) for dense, _ in self.design_lines(int(a) - 1)]
             line = np.concatenate(pts) if pts else np.zeros((0, 3), np.float32)
             self._line_trees[key] = cKDTree(np.concatenate([line, line * np.array([-1, 1, 1], np.float32)])) if len(line) else None
         tree = self._line_trees[key]
@@ -1653,14 +1743,32 @@ def describe(m=None):
           "tail, y down from the top centreline). One piece holds the top and both flanks with the sidepod's top sewn in; the "
           "skirt (the underside, cut at the skirt's crest), the tail (2 cm behind the rear flank), the diffuser and the inlet's "
           "duct lie below it as their own pieces. Its lines are the map's own (the shoulder green, the lower edge magenta, "
-          "folds black, openings red, joins blue), with the stations (z 150, 100 ...) marked along the top. A shape drawn "
-          "on it lands on the car with its true size, the right side mirrored, and a line drawn 30 mm below the shoulder is "
-          "30 mm below it on the paint everywhere: `shapes.sheet(...)`, `shapes.sheet_line`, `shapes.sheet_near`, "
-          "`shapes.offset`, `shapes.along_cm`, `shapes.across_cm`, `s.decal(picture, \"sheet\", at=(x, y), width=mm)`. "
+          "folds black, openings red, joins blue; under them, paler, the design lines: each named line as one smooth curve "
+          "per stretch, blended in orange across the gap at the sidepod's rear corner where the measured line is two "
+          "curves), with the stations (z 150, 100 ...) marked along the top. A lattice, a logo or a decal drawn on the sheet "
+          "lands on the car with its true size, the right side mirrored (`shapes.sheet(...)`, `s.decal(picture, \"sheet\", "
+          "at=(x, y), width=mm)`, `shapes.along_cm`, `shapes.across_cm`); a line, a band or a pinstripe is never drawn on "
+          "the sheet: it is the exact 3D distance to the design line (`shapes.line(\"shoulder\", w)`, "
+          "`shapes.line_offset(\"shoulder\", 30, 8)`: a band 8 mm wide 30 mm below the shoulder everywhere), so it never "
+          "breaks at a join. "
           "How true it is, by number: `python -m tool.carmap --check` (the sheet's table: a 20 mm stripe drawn at any angle "
           "is 20 mm on the paint within a millimetre over 95 % of the painted body) and `python -m tool.sheetcheck <car>` on a "
           "painted car (every band's crossing of a join measured on the texture). Where the body turns through three faces "
           "(the sidepod's corners) the sheet shears a little rather than cut the paint: the check names those spots.", ""]
+    from tool import pieces as pieces_mod
+    plist, nm = pieces_mod.write()
+    L += ["## The model's pieces", "",
+          f"The body is {len(plist)} separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers "
+          f"left out), and {nm} edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, "
+          "the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge "
+          "lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it. A line or a band "
+          "carries over a gap because it is measured from one 3D curve; a lattice, a logo or a decal drawn on the sheet is cut "
+          "by a gap and must not straddle one (`tool/pieces.py`, `car/pieces.json`).", "",
+          "| parts | cm² | edge cm | gap cm | edge within 1 cm | hidden skin behind, cm² | z |", "|---|---|---|---|---|---|---|"]
+    for q in plist:
+        L.append(f"| {', '.join(q['parts'])} | {q['cm2']} | {q['boundary_cm']} | {q['gap_cm'] if q['gap_cm'] is not None else '-'} | "
+                 f"{q['boundary_within_1cm']:.0%} | {q['hidden_skin_behind_cm2']} | {q['z'][0]} to {q['z'][1]} |")
+    L += [""]
     L += ["## The front and the back", "",
           f"The body's skin has no front or back face: only {fwd:.0f} cm² of it faces within 45 degrees of straight "
           f"ahead and {bwd:.0f} cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the "

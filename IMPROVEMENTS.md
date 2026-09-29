@@ -53,10 +53,23 @@ the design as asked), then speed.
   95 % of the body; 30 mm below the shoulder is 30 mm along the surface within 1.28 mm, by
   potpourri3d's exact geodesics) and on the painted texture (`tool.sheetcheck`: continuity, local
   scale, every band's crossing of a join). Test cars TSC_Map_Sheet and TSC_Map_Proof, not yet
-  installed. Open: the sidepod's rear and front corners, where the surface turns through three faces
-  and the sheet shears (up to 39 % stretch over 107 cm² each side) rather than cut the paint, and a
-  band offset from the shoulder steps there because the map's shoulder is two curves; the tail is a
-  piece of its own (a 2 cm slot). Notes: `CHECKLIST.md`, "The car map", step 10.
+  installed. **Round 2 (the user's close-ups):** a line, a band or a pinstripe is the exact 3D distance
+  to one smooth design line per named line (`Map.design_lines`, `shapes.line_offset`), so it never
+  breaks at a join; the sheet is for lattices, logos and decals, which move clear of panel edges and
+  report their aspect; the crossing check walks every band on the car and has a `--falsify` switch;
+  the model's pieces are named and measured (`tool/pieces.py`). Open: two roundels that fail the 3 %
+  aspect where the sheet shears (the sidepod's side, the rear flank); the tail's 2 cm slot. Notes:
+  `CHECKLIST.md`, "The car map", step 10.
+- **The car map isn't the same on the two computers** (2026-09-29, the car mapper, found while
+  building the body sheet): rebuilt fresh on the Mac, the map traces 66 ridges and draws 12 folds
+  where the PC recorded 62 and 8, and `python -m tool.carmap --check` fails 4 stretches (the shoulder
+  over the rear flanks, ridge 0.85; the lower edge at the sidepods, a 16 cm step) and 1 curve (the
+  shoulder 188 to -50: ragged 3.4 mm, texture 4.2 mm) that step 9 recorded as passing. The ridge
+  tracing (`carmap._trace_ridges`: seeds by a strict local maximum of k1, crests refined by a
+  parabola, cuts at 1.5 cm) decides differently on tiny numeric differences between the two
+  computers' numpy and BLAS. Idea: make the tracing's decisions tolerant (a seed a clear maximum by a
+  margin, ties broken by position), or build the map on one computer and commit its cache's hash so
+  the other checks it matches. Not fixed: it didn't block the sheet.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a

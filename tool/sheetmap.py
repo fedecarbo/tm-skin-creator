@@ -23,7 +23,11 @@ from tool import carmap, fonts, paths, surface
 SVG, PNG, BODY_PNG, JSON = (paths.REPO / "car" / f"sheet{s}" for s in (".svg", ".png", "_body.png", ".json"))
 AREA_FILL = {"top": "#f4f2ec", "sides": "#9fc3e6", "under": "#7d828a"}
 LINE = {"shoulder": ("#1f8f3a", 1.6), "lower": ("#d0208e", 1.6), "fold": ("#111111", 0.8), "opening": ("#e02020", 0.8),
-        "join": ("#2050e0", 0.6), "seam": ("#ff8c00", 1.2), "outline": ("#333333", 0.6)}
+        "join": ("#2050e0", 0.6), "seam": ("#ff8c00", 1.2), "outline": ("#333333", 0.6),
+        "design-shoulder": ("#9fdc9f", 0.8), "design-lower": ("#f0a0d0", 0.8), "blend": ("#ff8c00", 1.6)}
+# the design lines (the map's named lines as one smooth curve per stretch, carmap.Map.design_lines) run under the
+# measured ones in a paler shade; where they bridge a gap between two measured curves (the sidepod's rear corner)
+# the blend is orange: a band offset from the line follows the blend there
 STATIONS = [z for z, _ in carmap.STATIONS]
 GRID = 10.0  # cm
 
@@ -199,7 +203,7 @@ def _svg(f):
         if s["x_top"] is not None:
             L.append(f'<text x="{10 * s["x_top"]:.0f}" y="-8" font-size="30" fill="#555" stroke="none" text-anchor="middle">z {z0}</text>')
     L.append("</g>")
-    for name in ("join", "opening", "fold", "lower", "shoulder", "seam"):
+    for name in ("join", "opening", "fold", "design-lower", "design-shoulder", "lower", "shoulder", "blend", "seam"):
         col, w = LINE[name]
         L.append(f'<g id="{name}" fill="none" stroke="{col}" stroke-width="{10 * w / 2:.1f}">')
         for k, line in enumerate(f["lines"][name]):
@@ -246,7 +250,7 @@ def _png(sheet, f, scale=5):
                 d.line(P(line), fill=(150, 150, 150) if not shaded else (120, 120, 130), width=1)
             if s["x_top"] is not None:
                 d.text((60 + scale * s["x_top"], 36), f"z {z0}", fill=(80, 80, 80) if not shaded else (200, 200, 200), font=small, anchor="mm")
-        for name in ("outline", "join", "opening", "fold", "lower", "shoulder", "seam"):
+        for name in ("outline", "join", "opening", "fold", "design-lower", "design-shoulder", "lower", "shoulder", "blend", "seam"):
             col, w = LINE[name]
             rgb = tuple(int(col.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
             for line in (f["lines"][name] if name != "outline" else [l for p in f["pieces"] for l in p["loops"]]):
@@ -268,7 +272,11 @@ def _json(sheet, f):
               "the top centreline. Pieces: the body (the top and the flanks in one), the sidepod's top, the skirt, the tail, the diffuser, the "
               "inlet's duct, each with its outline, bounds [x0, y0, x1, y1] and distortion (95th percentile by area over the painted body: "
               "area %, angle degrees, stretch %). lines: the map's lines as polylines. stations: where each z of car/map.md runs on the sheet, "
-              "and x_top, the top centreline's x there. Draw in mm; shapes.sheet() paints the drawing on the car, the right side mirrored.",
+              "and x_top, the top centreline's x there. lines.design-shoulder and lines.design-lower are the design lines: each "
+              "named line as one smooth curve per stretch, blended (lines.blend, orange on the picture) across the gap between two "
+              "measured curves at the sidepod's rear corner; a band or a pinstripe is measured in 3D from them (shapes.line, "
+              "shapes.line_offset), never on the sheet. Draw lattices, logos and decals in mm here; shapes.sheet() paints the "
+              "drawing on the car, the right side mirrored.",
         size_mm=[round(10 * v) for v in f["size"]],
         lines={name: [mm(l) for l in lines] for name, lines in f["lines"].items()},
         pieces=[dict(name=p["name"], bounds_mm=[round(10 * v) for v in p["bounds"]], outline=[mm(l) for l in p["loops"]], distortion=p["distortion"]) for p in f["pieces"]],

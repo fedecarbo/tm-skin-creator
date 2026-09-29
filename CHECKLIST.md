@@ -3800,11 +3800,89 @@ screenshots); 9.7, repainting only the station that changed, stays as it is and 
        shoulder over the rear flanks: ridge 0.85; the lower edge at the sidepods: a 16 cm step) and 1
        curve (the shoulder 188 to −50: ragged 3.4 mm, texture 4.2 mm) where step 9 recorded all
        passing: the ridge tracing isn't the same on the two computers' numpy. To look at.
+     - **Round 2 (the user's two close-ups: "The lines don't follow continuously"; "the lines are such
+       a mess (hidden, wobbly, not even connect)"; the earlier project's lesson, trackmania-skin-studio's
+       `forge/composite.py` and check 17: a line or a band is a function of the point on the car, the
+       distance to ONE smooth 3D curve, continuous across every seam, join and gap by construction; the
+       sheet is only for lattices, logos and decals).**
+       - **The design lines** (`Map.design_lines`, `BLEND_*`): each named line as one smooth curve per
+         stretch the body carries it on: the map's measured curves (unchanged, for the check) chained
+         nose to tail and each gap bridged by one C2 cubic B-spline through both (no knot inside a gap;
+         the bridge put back on the skin and smoothed); a gap is bridged when it is under 15 cm (a
+         corner) or under 60 cm with the chord within 60° of both ends (a continuation), so the lower
+         edge's 25 cm drop from the nose's lip to the skirt's crest at z 70 stays a hand-over and its 64
+         cm behind the sidepods a break. For the shoulder the measured line's stretch on the shell's own
+         edge round the sidepod's top (kind 4, z 34 to -12, a panel gap, not a crease) is left out and
+         bridged: a band offset from it had wrapped round the panel's corner. Result: the shoulder one
+         curve, z 207 to -154, 428 cm, blends at the nose's tip (26 cm), over the sidepod's front (79 cm,
+         crossing the inlet's mouth, a hole: up to 19 mm off the skin there, 2.5 mm elsewhere) and at
+         the sidepod's rear corner (32 cm, 10 mm off in the slot); off the measured curves outside the
+         blends by 2.7 mm (95 %). The lower edge in three (the lip 207 to 71, the skirt 69 to -32 with
+         a 31 cm blend, the tail). Drawn on the sheet in a paler shade, the blends orange (`car/sheet.png`,
+         `.json`: `lines.design-shoulder`, `design-lower`, `blend`).
+       - **Bands from the curve in 3D** (`shapes.line_offset(kind, d_mm, width_mm)`; `line` and `near` on
+         "shoulder"/"lower" now go by the design lines; `across_level` tests the line's existence by its
+         z span, not the nearest point's z, which had sent the shoulder's bands along the skirt's edge):
+         the exact signed distance to the one curve (`Map.across_level`); on this body the chord is within
+         0.2 mm of the arc at 30 mm on the tightest 9 cm crease, and the exact geodesic check holds.
+         potpourri3d's signed heat method wants each curve segment inside one face, so it wasn't used.
+         `sheet_line`, `sheet_near`, `offset` stay for drawings on the sheet only.
+       - **The sheet for lattices and decals; lettering reads on both sides** (`_sheet_decal`: the right
+         side samples the picture flipped). **A decal never straddles a panel's edge, a fold, an opening
+         or a seam:** its box is moved up to CLEAR = 60 mm clear (a note says from where to where) or it
+         is refused (a FAIL note saying where); and its size on the paint is measured (the painted
+         texels' extents along their two principal directions against the picture's): aspect off by
+         over ASPECT = 3 % is a FAIL note. TSC_Map_Proof's roundels as decals: the front flank's 2.6 %
+         (at 60 mm below the shoulder; 11.6 % at 110 mm, on the flank's roll toward the lip), the
+         sidepod's side 5.6 % FAIL, the rear flank's 8.0 % FAIL (the sheet shears there), the "10" 1.6 %,
+         one roundel moved 30 mm clear of the sidepod's edge.
+       - **The model's pieces** (`tool/pieces.py`, `car/pieces.json`, a table in `car/map.md`): the body
+         (wheel covers out) is 9 pieces of 5 cm² or more, 156 edges shared by three or more triangles.
+         The main piece (the shell, the rear flanks, the skirt, the nose, the cockpit surround, the engine
+         cover and its loose panels: 55,054 cm² both sides); the sidepod's top (2,528 cm² each, 0.41 cm
+         off the shell at the closest, 19 % of its edge within 1 cm, 35 cm² of shell hidden behind it);
+         the tail (3,585 cm², 1.74 cm behind the rear flank, 104 cm² hidden behind it); the inlet duct
+         (1.39 cm off); the diffuser and its strakes (0.05 cm, 158 cm² hidden); the fin's blade. "Hidden"
+         paint in the user's close-up: the 3D bands paint the shell's rim under the sidepod's top and the
+         skin inside the slot (open under 0.2, not on the sheet), which the viewer shows only edge-on.
+       - **The crossing check redone** (`sheetcheck.crossings`): every band's line walked on the car in
+         2 mm steps, a crossing wherever the panel or the texture's island under it changes (so the
+         sidepod top's own edges count, which the sheet's sewn edges had hidden); at each, the painted
+         band's texels either side within 1.5 cm along the curve, their offsets from the curve (medians):
+         the step; and lines fitted over 3 cm either side, the turn less the curve's own bend between
+         them; not judged where the two panels face apart by over 20° (a strut under the nose, a mirror's
+         mount, the sidepod's rounded rear edge against the flank), which is another surface, not a join
+         of the skin. **`--falsify`:** the rear flank, the nose tip and the sidepod's top painted 10
+         texels (9 mm) off along the texture, once per axis, against the honest paint: caught when a
+         crossing's step moves by 2 mm over the limit or its band no longer meets the join; nothing
+         falsified is cached.
+       - **Numbers.** TSC_Map_Sheet before round 2 (the sheet's own offsets): 10 crossings, 2 over: the 30
+         mm band at the sidepod's rear corner, gap 1.64 mm, turn 7.4°. After: 18 crossings, 0 over: the
+         rear corner 0.38 mm (the 90 mm band, offsets 89.7 | 90.1), the nose panel's joins 0.13 to 0.34
+         mm and 0.4 to 0.7°; falsify caught along both axes (3.3 and 8.5 mm). TSC_Map_Proof before: 4 of
+         10 over (the pale band 18.6 mm, the teal 4.9 mm and 8.3° at the corner). After: 12 crossings, 0
+         over (the nose panel's joins 0.04 to 0.50 mm, 0.2 to 0.6°; the rear corner's teal and pale bands
+         "facing apart": the sidepod's rounded rear edge against the flank); falsify caught along u (8.4
+         mm), not along v, where the shift runs along the bands at the joins it reaches. The sheet's mesh
+         checks unchanged (the body 5.2 % / 3.3°, stripe 0.92 mm, offset 1.28 mm).
+       - **The model or the method?** The model: nine separate pieces with real gaps (0.4 cm round the
+         sidepod's top, 1.7 cm behind the tail, 1.4 cm at the inlet duct), 156 non-manifold edges, a
+         doubled shell here and there, and hidden skin under the loose panels: a band drawn across a gap
+         is cut by it, whatever draws it; its two sides line up only because the band is measured from
+         one curve. The method's part in the two close-ups: the first sheet flattened the sidepod's top
+         apart from the flank (a step in every band at its edge) and sheared the rear flank's front (the
+         checker leaning); the bands were the sheet's y (a step wherever the sheet stepped); the
+         shoulder's design line followed a panel's edge (the bands wrapped round the corner); a roundel
+         was drawn across the sewn join. All four are gone; what remains is the model's.
+       - Pictures: `build/TSC_Map_Proof_joins_before2.png` (the user's view, before) against
+         `build/TSC_Map_Proof_joins.png` (after; the first tile is that view), `TSC_Map_Sheet_joins.png`,
+         `TSC_Map_Proof_close.png`, `_views.png`, `_body.png`; `car/map/sheet.jpg`, `car/map/proof.jpg`.
      - **Left:** the install of TSC_Map_Sheet and TSC_Map_Proof on the PC (the user's drive, day and
-       night, F12); the sidepod's corners (a seam at the model's own slot, or a shear: the user's
-       call); the tail's join (a 2 cm slot: a line drawn across it steps); TSC_WindTunnel's bands
-       redrawn on the sheet (its lines are streamlines, already traced on the surface, 1.7 cm wide by
-       3D distance: the sheet would change them by under 0.4 %); the cross-computer difference above.
+       night, F12); the roundels that fail the aspect check on the sidepod's side and the rear flank
+       (the sheet shears there: place them elsewhere or darts); the tail's join (a 2 cm slot: a line
+       drawn across it steps); TSC_WindTunnel's bands redrawn on the sheet (its lines are streamlines,
+       already traced on the surface, 1.7 cm wide by 3D distance: the sheet would change them by under
+       0.4 %); the cross-computer difference (an item in `IMPROVEMENTS.md`).
   Later, once those work: what each game camera shows of the car, the flat spots for pictures
   measured rather than typed, a check on every paint for graphics crossing a fold or an opening.
 - **Handover (2026-09-29, the user: "I just prefer another session with an agent that actually

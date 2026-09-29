@@ -44,7 +44,23 @@ The top's half-width is the shoulder's x; the sides run from the shoulder's heig
 
 ## The body sheet: design on it first
 
-The outer skin flattened into a sewing pattern in true size (`tool/surface.py`; `car/sheet.png` to look at, `car/sheet.svg` and `car/sheet.json` to read and write, all in millimetres: x from the nose's tip at the left to the tail, y down from the top centreline). One piece holds the top and both flanks with the sidepod's top sewn in; the skirt (the underside, cut at the skirt's crest), the tail (2 cm behind the rear flank), the diffuser and the inlet's duct lie below it as their own pieces. Its lines are the map's own (the shoulder green, the lower edge magenta, folds black, openings red, joins blue), with the stations (z 150, 100 ...) marked along the top. A shape drawn on it lands on the car with its true size, the right side mirrored, and a line drawn 30 mm below the shoulder is 30 mm below it on the paint everywhere: `shapes.sheet(...)`, `shapes.sheet_line`, `shapes.sheet_near`, `shapes.offset`, `shapes.along_cm`, `shapes.across_cm`, `s.decal(picture, "sheet", at=(x, y), width=mm)`. How true it is, by number: `python -m tool.carmap --check` (the sheet's table: a 20 mm stripe drawn at any angle is 20 mm on the paint within a millimetre over 95 % of the painted body) and `python -m tool.sheetcheck <car>` on a painted car (every band's crossing of a join measured on the texture). Where the body turns through three faces (the sidepod's corners) the sheet shears a little rather than cut the paint: the check names those spots.
+The outer skin flattened into a sewing pattern in true size (`tool/surface.py`; `car/sheet.png` to look at, `car/sheet.svg` and `car/sheet.json` to read and write, all in millimetres: x from the nose's tip at the left to the tail, y down from the top centreline). One piece holds the top and both flanks with the sidepod's top sewn in; the skirt (the underside, cut at the skirt's crest), the tail (2 cm behind the rear flank), the diffuser and the inlet's duct lie below it as their own pieces. Its lines are the map's own (the shoulder green, the lower edge magenta, folds black, openings red, joins blue; under them, paler, the design lines: each named line as one smooth curve per stretch, blended in orange across the gap at the sidepod's rear corner where the measured line is two curves), with the stations (z 150, 100 ...) marked along the top. A lattice, a logo or a decal drawn on the sheet lands on the car with its true size, the right side mirrored (`shapes.sheet(...)`, `s.decal(picture, "sheet", at=(x, y), width=mm)`, `shapes.along_cm`, `shapes.across_cm`); a line, a band or a pinstripe is never drawn on the sheet: it is the exact 3D distance to the design line (`shapes.line("shoulder", w)`, `shapes.line_offset("shoulder", 30, 8)`: a band 8 mm wide 30 mm below the shoulder everywhere), so it never breaks at a join. How true it is, by number: `python -m tool.carmap --check` (the sheet's table: a 20 mm stripe drawn at any angle is 20 mm on the paint within a millimetre over 95 % of the painted body) and `python -m tool.sheetcheck <car>` on a painted car (every band's crossing of a join measured on the texture). Where the body turns through three faces (the sidepod's corners) the sheet shears a little rather than cut the paint: the check names those spots.
+
+## The model's pieces
+
+The body is 9 separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers left out), and 156 edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it. A line or a band carries over a gap because it is measured from one 3D curve; a lattice, a logo or a decal drawn on the sheet is cut by a gap and must not straddle one (`tool/pieces.py`, `car/pieces.json`).
+
+| parts | cm² | edge cm | gap cm | edge within 1 cm | hidden skin behind, cm² | z |
+|---|---|---|---|---|---|---|
+| body shell, rear flank, side skirt, nose tip, wing pylon, cockpit surround, engine cover, rear quarter panel, nose fin, fuel cap, nose panel, engine cover panel, number panel | 55054 | 2876 | 0.13 | 6% | 160 | -152 to 215 |
+| tail corner, tail panel | 3585 | 296 | 1.74 | 0% | 104 | -162 to -123 |
+| diffuser strake, diffuser | 3279 | 235 | 0.05 | 15% | 80 | -145 to -107 |
+| sidepod top | 2528 | 222 | 0.41 | 19% | 35 | -50 to 12 |
+| sidepod top | 2528 | 222 | 0.41 | 19% | 35 | -50 to 12 |
+| sidepod inlet | 1887 | 182 | 1.39 | 0% | 0 | -46 to 19 |
+| sidepod inlet | 1887 | 182 | 1.39 | 0% | 0 | -46 to 19 |
+| diffuser strake | 866 | 113 | 0.04 | 24% | 78 | -143 to -107 |
+| nose fin | 23 | 14 | 0.35 | 83% | 0 | 125 to 131 |
 
 ## The front and the back
 

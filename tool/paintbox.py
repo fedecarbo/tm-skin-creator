@@ -87,6 +87,8 @@ LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display"
 REAR_BANDS = (0.4747, 0.4903, 0.5030, 0.5157)
 # a part the paint also lands on (shared texels) is named when it takes this share of its paint
 SHARED_NOTE = 0.05
+CLEAR = 60    # mm: how far a decal on the sheet may be moved to clear a panel's edge, a fold or an opening
+ASPECT = 0.03  # a decal's aspect on the paint may differ from the picture's by this
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
 # seen from, the largest sensible width (cm). Measured on the model (2026-09-24).
@@ -876,25 +878,72 @@ class Skin:
                 raise ValueError("a decal on the sheet needs at=(x_mm, y_mm) and width=mm, or box=(x0, y0, x1, y1)")
             h = width * image.height / image.width
             box = (at[0] - width / 2, at[1] - h / 2, at[0] + width / 2, at[1] + h / 2)
+        # a picture must never straddle a panel's edge, a fold, an opening or a seam of the sheet (it
+        # would be cut, and stretched where the sheet shears): the box is moved clear, up to CLEAR mm
+        # off along the sheet, or the decal is refused and the note says where
+        lines = surface.load().lines
+        blockers = [l * 10 for kind in ("join", "opening", "fold", "seam") for l in lines[kind]]
+
+        def crossing(bx):
+            for l in blockers:
+                inside = (l[:, 0] > bx[0]) & (l[:, 0] < bx[2]) & (l[:, 1] > bx[1]) & (l[:, 1] < bx[3])
+                if inside.any():
+                    return l[inside]
+            return None
+        hit = crossing(box)
+        if hit is not None:
+            w, h = box[2] - box[0], box[3] - box[1]
+            centre = np.array([(box[0] + box[2]) / 2, (box[1] + box[3]) / 2])
+            away = centre - hit.mean(0)
+            away = away / max(np.linalg.norm(away), 1e-9)
+            moved = None
+            for step in range(2, CLEAR + 1, 2):
+                for d in (away, -away, np.array([away[1], -away[0]]), np.array([-away[1], away[0]])):
+                    cx, cy = centre + step * d
+                    bx = (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+                    if crossing(bx) is None:
+                        moved = bx
+                        break
+                if moved is not None:
+                    break
+            if moved is None:
+                self.notes.append(f"FAIL decal on the sheet at ({centre[0]:.0f}, {centre[1]:.0f}) mm: it would straddle a panel's edge, "
+                                  f"a fold or an opening at ({hit.mean(0)[0]:.0f}, {hit.mean(0)[1]:.0f}) mm and nowhere within {CLEAR} mm is clear: not painted")
+                return self
+            self.notes.append(f"decal on the sheet moved {np.linalg.norm(np.array(moved[:2]) - np.array(box[:2])):.0f} mm, from "
+                              f"({centre[0]:.0f}, {centre[1]:.0f}) to ({(moved[0] + moved[2]) / 2:.0f}, {(moved[1] + moved[3]) / 2:.0f}) mm, "
+                              "clear of a panel's edge, a fold or an opening")
+            box = moved
         ink = sheetink.Ink.image(image, box)
-        c = self.canvas("Skin")
+        flipped = sheetink.Ink.image(image.transpose(Image.FLIP_LEFT_RIGHT), box)  # the right side is the sheet's
+        c = self.canvas("Skin")                                                    # mirror: lettering reads right there too
         uv = surface.sheet_cm("Skin", c.w, c.h).reshape(-1, 2)
         near = np.flatnonzero(np.isfinite(uv[:, 0]) & (uv[:, 0] * 10 >= box[0] - 1) & (uv[:, 0] * 10 <= box[2] + 1)
                               & (uv[:, 1] * 10 >= box[1] - 1) & (uv[:, 1] * 10 <= box[3] + 1))
-        m = ink.sample(uv[near])
+        right = c.pos[near][:, 0] < 0
+        sample = lambda idx_, colour=False: np.where((c.pos[idx_][:, 0] < 0)[:, None] if colour else c.pos[idx_][:, 0] < 0,
+                                                     flipped.sample(uv[idx_], colour), ink.sample(uv[idx_], colour))
+        m = sample(near)
         keep = m > 0.002
         idx, m = near[keep], m[keep]
         if not len(idx):
             self.notes.append("decal on the sheet: nothing landed on the car")
             return self
-        for kind in ("fold", "opening", "seam"):
-            for line in surface.load().lines[kind]:
-                l = line * 10
-                inside = (l[:, 0] > box[0]) & (l[:, 0] < box[2]) & (l[:, 1] > box[1]) & (l[:, 1] < box[3])
-                if inside.any():
-                    p = l[inside].mean(0)
-                    self.notes.append(f"decal on the sheet: crosses {'an' if kind == 'opening' else 'a'} {kind} at ({p[0]:.0f}, {p[1]:.0f}) mm; it will look cut there")
-                    break
+        # its size on the paint: the painted texels' extents along their two principal directions
+        # in 3D against the picture's, so a stretched decal fails by number (within ASPECT)
+        solid = idx[m > 0.5]
+        if len(solid) > 50:
+            alpha = np.asarray(image.getchannel("A"))
+            ay, ax = np.nonzero(alpha > 128)
+            pw, ph = (ax.max() - ax.min() + 1) * (box[2] - box[0]) / image.width, (ay.max() - ay.min() + 1) * (box[3] - box[1]) / image.height
+            q = c.pos[solid[c.pos[solid][:, 0] > 0]] if (c.pos[solid][:, 0] > 0).sum() > 50 else c.pos[solid]
+            q = q - q.mean(0)
+            axes = np.linalg.svd(q, full_matrices=False)[2][:2]
+            e1, e2 = np.ptp(q @ axes[0]) * 10, np.ptp(q @ axes[1]) * 10
+            want, got = max(pw, ph) / max(min(pw, ph), 1e-9), max(e1, e2) / max(min(e1, e2), 1e-9)
+            off = abs(got / want - 1)
+            self.notes.append(f"{'FAIL ' if off > ASPECT else ''}decal on the sheet at ({(box[0] + box[2]) / 2:.0f}, {(box[1] + box[3]) / 2:.0f}) mm: "
+                              f"{pw:.0f} x {ph:.0f} mm drawn, {max(e1, e2):.0f} x {min(e1, e2):.0f} mm on the paint, aspect off by {100 * off:.1f} %")
         if zone is not None:
             shapes._TEXELS = (c, idx)
             try:
@@ -902,7 +951,7 @@ class Skin:
             finally:
                 shapes._TEXELS = None
         fin = finishes.get(finish) if isinstance(finish, str) else finish
-        col = np.broadcast_to(np.asarray(colours.get(rgb), np.float32), (len(idx), 3)) if rgb is not None else ink.sample(uv[idx], colour=True)
+        col = np.broadcast_to(np.asarray(colours.get(rgb), np.float32), (len(idx), 3)) if rgb is not None else sample(idx, colour=True)
         c.blend(idx, m, col, np.full(len(idx), fin.roughness, np.float32), np.full(len(idx), fin.metalness, np.float32),
                 np.full(len(idx), fin.varnish, np.float32))
         return self
