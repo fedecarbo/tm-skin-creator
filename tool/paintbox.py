@@ -495,6 +495,12 @@ class Skin:
             self.drawn.append({"view": zone.view, "path": zone.path, "kind": zone.kind, "width": getattr(zone, "width", None),
                                "at": getattr(zone, "at", None), "strokes": getattr(zone, "strokes", None), "colour": [float(v) for v in col],
                                "where": where if isinstance(where, str) else list(where)})
+        if getattr(zone, "curve", None) is not None:  # drawn on the car's skin: kept for tool/skincheck.py
+            curve = zone.curve
+            self.drawn.append({"kind": zone.kind, "width": getattr(zone, "width", None), "name": curve.name,
+                               "points": [[round(float(v), 4) for v in p] for p in curve.pts],
+                               "colour": [float(v) for v in col],
+                               "where": where if isinstance(where, str) else list(where)})
         t0 = time.time()
         for tset, ids in targets.items():
             c = self.canvas(tset)

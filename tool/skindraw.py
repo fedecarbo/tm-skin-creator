@@ -33,6 +33,10 @@ from tool import shapes, skinmesh
 from tool.noise import smoothstep
 
 STEP = 0.25       # cm: the curve resampled this finely for the distance (as carmap does: no beads)
+NEAR = 0.15       # cm: a texel takes its offset from a ribbon point no further than this, so a
+                  # texel outside the ribbon is not painted. It must be under the model's real
+                  # gaps (the sidepod's top 4 mm, the inlet 14 mm, the tail 17 mm) or the band
+                  # hops them, and over the ribbon's own spacing or the band comes out in pieces.
 TURN = 75.0       # degrees: the band stops where the surface faces this much away from how the
                   # curve faces. Wide on purpose -- a real fold (the shoulder) turns 60 and must
                   # still take paint -- while the far face of a panel turns about 180. See --agree.
@@ -211,6 +215,22 @@ def mirror(curve, name=""):
 _TEXELS = {}   # canvas -> (face, bary) for its texels, worked out once
 
 
+def _faces_of(pos, nrm):
+    """The face on the skin under each point a zone is asked about.
+
+    The normal matters: where two pieces of the model almost touch -- the rear flank and the tail
+    corner are under a millimetre apart -- asking only for the nearest face gives whichever, and a
+    band on one piece then counted as being on the other and was painted. Measured before this:
+    34.6 cm2 of the flank sweep on the tail corner, a piece its curve never walked."""
+    skin = skinmesh.load()
+    if shapes._TEXELS is not None:
+        canvas, idx = shapes._TEXELS
+        if canvas.set != "Skin":
+            return None
+    f, _ = skin.nearest(np.asarray(pos, np.float64), np.asarray(nrm, np.float64))
+    return f
+
+
 def _texel_faces(canvas, idx):
     """The face on the skin, and the weights there, of the texels the paint box is asking about."""
     key = (id(canvas), canvas.set, canvas.w, canvas.h)
@@ -224,43 +244,103 @@ def _texel_faces(canvas, idx):
     return f[idx], b[idx]
 
 
-def _gate_normals(curve, pts, pos, nrm):
-    """Which texels the band is ALLOWED to reach: those whose surface faces the same way as the
-    curve does where it passes nearest them.
+def _ribbon(curve, half, along=0.05, across=0.025):
+    """The band's own surface, as a cloud of points each carrying how far it is from the curve
+    ALONG THE SURFACE (cm, signed).
 
-    The old view-drawn band measured distance through space alone, so it painted the far face of
-    any panel thinner than its half width and climbed onto a face turning away that happened to be
-    near in space (the swoosh onto the sidepod's top, CHECKLIST.md:4045). Over a half width of a
-    centimetre or two the real surface cannot have turned far, so the far face -- whose normal
-    points the other way entirely -- is the one thing that can be told apart cheaply, per texel,
-    with no solver and nothing interpolated from the mesh's corners."""
-    from scipy.spatial import cKDTree
-    _, j = cKDTree(pts).query(pos.astype(np.float64), workers=-1)
-    return (nrm * curve.normals(pts)[np.minimum(j, len(pts) - 1)]).sum(1)
+    Why not simply the distance through space, which is what the first try used: across a sharp
+    fold -- the shoulder, the sidepod's edge -- the straight line through the air is shorter than
+    the way over the skin, so a band set by it narrows exactly where the car bends most. Measured
+    on TSC_Skin's hoop, which crosses the fold from the flank onto the engine cover: 2.96 mm out of
+    40 at the 95th percentile. Here every point is reached by walking the surface with an exact
+    geodesic (potpourri3d's tracer), so its offset is the real one, and the cloud is fine enough
+    (0.25 mm across) that a texel takes its offset from a point nearer than a quarter of a texel.
+    """
+    skin = curve.skin
+    pts = curve.resample(along)
+    f, b = skin.nearest(pts)
+    d = np.gradient(pts, axis=0)
+    nrm = skin.fn[np.maximum(f, 0)]
+    tan = d - nrm * (d * nrm).sum(1)[:, None]
+    tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-12)
+    side = np.cross(nrm, tan)
+    reach = half * 1.15                      # a little past the edge, so the feather has room
+    out, off = [pts], [np.zeros(len(pts))]
+    tracer = skin.solver("trace")
+    for sign in (1.0, -1.0):
+        for k in range(len(pts)):
+            if f[k] < 0:
+                continue
+            path = np.asarray(tracer.trace_geodesic_from_face(int(f[k]), b[k], side[k] * sign * reach), np.float64)
+            if len(path) < 2:
+                continue
+            s = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(path, axis=0), axis=1))])
+            t = np.arange(across, s[-1], across)
+            if not len(t):
+                continue
+            out.append(np.stack([np.interp(t, s, path[:, c]) for c in range(3)], 1))
+            off.append(t * sign)
+    return np.vstack(out), np.concatenate(off)
 
 
 def band(curve, width, soft=shapes.SOFT, turn=TURN):
     """A zone `width` mm wide centred on a curve, measured over the car.
 
-    The band's EDGE is the exact distance in space from the texel's own place to the curve,
-    worked out per texel, so it never facets -- per-corner values on a 35 mm mesh are what made the
-    old bands look like crayon. What the band may REACH is settled by whether the surface there
-    faces the way the curve does, which is what keeps it off the far side of a thin panel and off
-    faces turning away."""
+    The width is the real one on the skin: every texel takes its distance from the curve off a
+    cloud of points walked out from it by exact geodesics, so the band is as wide over a fold as
+    it is on a flat panel. Nothing is interpolated from the mesh's corners -- per-corner values on
+    a 35 mm mesh are what made the old bands look like crayon -- and the cloud is finer than a
+    texel, so the edge is smooth. Whether the surface faces the way the curve does is still
+    checked, to keep paint off the far side of a thin panel."""
     from scipy.spatial import cKDTree
     half = width / 20.0                                # mm across -> cm from the middle
-    pts = curve.resample()
+    pts, off = _ribbon(curve, half)
     tree = cKDTree(pts)
+    face, _ = curve.skin.nearest(pts)
+    ribbon_n = curve.skin.fn[np.maximum(face, 0)]      # which way the skin faces at each ribbon point
+    # The band may only land on the piece of surface it walked on. Distance alone -- however
+    # measured -- lets paint hop onto a piece the curve never touched but that lies near it in
+    # space: measured on TSC_Skin, the spine put 97 cm2 on the tail panel and the flank sweep
+    # 61 cm2 on the tail corner, both on the tail, which is its own piece across a real gap in the
+    # model. Gating on the piece rather than on the faces walked leaves no holes: a face the
+    # ribbon crossed but whose centre it did not fall nearest is still on the same piece.
+    walked = np.zeros(int(curve.skin.comp.max()) + 1, bool)
+    walked[curve.skin.comp[face[face >= 0]]] = True
+    spine = curve.resample()
+    spine_tree = cKDTree(spine)
     limit = np.cos(np.radians(turn))
+    # The band stops at the curve's ends. Without this a texel past the end takes its offset from
+    # the last ribbon point, which is small, and the band grows a cap: measured, the flank sweep
+    # put 61 cm2 round onto the tail corner, a part its curve never ran over.
+    head, tail = spine[0], spine[-1]
+    d_head, d_tail = spine[0] - spine[1], spine[-1] - spine[-2]
+    d_head /= max(np.linalg.norm(d_head), 1e-9)
+    d_tail /= max(np.linalg.norm(d_tail), 1e-9)
 
-    def fn(p, n):
-        d, _ = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=half * 4)
-        w = smoothstep(-soft / 2, soft / 2, half - np.minimum(d, half * 4))
-        live = w > 0
-        if live.any():
-            agree = np.zeros(len(p))
-            agree[live] = _gate_normals(curve, pts, p[live], n[live])
-            w = w * (agree >= limit)
+    def fn(p, n, face=None):
+        p = p.astype(np.float64)
+        rough, _ = spine_tree.query(p, workers=-1, distance_upper_bound=half * 3)
+        live = np.isfinite(rough)
+        w = np.zeros(len(p), np.float32)
+        if not live.any():
+            return w
+        d, j = tree.query(p[live], workers=-1, distance_upper_bound=NEAR)
+        good = np.isfinite(d)
+        reach = np.full(int(live.sum()), np.inf)
+        reach[good] = np.abs(off[j[good]])             # how far over the skin, not through the air
+        wl = smoothstep(-soft / 2, soft / 2, half - reach)
+        # the far side of a thin panel is close in space and faces the other way: keep it off
+        agree = np.ones(len(wl))
+        hot = wl > 0
+        if hot.any():
+            agree[hot] = (n[live][hot] * ribbon_n[j[hot]]).sum(1)
+        ok = agree >= limit
+        q = p[live]
+        ok &= ((q - head) @ d_head <= 0) & ((q - tail) @ d_tail <= 0)
+        here = _faces_of(q, n[live])
+        if here is not None:
+            ok &= (here >= 0) & walked[curve.skin.comp[np.maximum(here, 0)]]
+        w[live] = wl * ok
         return w
 
     z = shapes.Zone(fn)
