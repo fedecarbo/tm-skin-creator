@@ -16,3 +16,7 @@ __pycache__/
 
 # The pictures that come with the Lab's notes on the car, for Claude (tool/notes.py)
 .notes/
+
+# Substance Painter templates from the community: not ours to publish
+*.spp
+*.spp.zip
