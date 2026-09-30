@@ -67,16 +67,13 @@ card) and no game: install from the Windows PC after a push.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls.
-  Before the first design in a session, look at **the blueprints, `car/blueprints/*.png`** (the
-  body flat from the left, the right, above, the front and the rear, 1 px = 1 mm, in the car's own
-  mm, the user's pins marked: `blueprints.json` lists them per view) and read **the car map,
-  `car/map.md`, and look at its pictures** (`car/map/`) **and the body sheet, `car/sheet.png`** (the skin flattened in true size,
-  in millimetres: `car/sheet.json` has every line and station on it), then the docstrings of
-  `tool/paintbox.py` (the key), `tool/shapes.py` (zones) and `tool/finishes.py`, and `SPOTS` in
-  `tool/paintbox.py`. **Design on the sheet first:** a graphic drawn on it (`shapes.sheet(...)`,
-  `shapes.sheet_line`, `shapes.offset`, `s.decal(picture, "sheet", at=(x, y), width=mm)`) lands
-  on the car at true size and follows its lines; the 3D zones are for what the sheet can't say. Part names are in
-  `car/parts.json`. Colour and finish words go through `finishes.resolve()`.
+  Before the first design in a session, read **the car map's description, `car/map.md`** (the body
+  station by station, its openings, every panel) and look at its pictures (`car/map/`), then the
+  docstrings of `tool/paintbox.py` (the key), `tool/skindraw.py` (lines on the car), `tool/shapes.py`
+  (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. **Lines, stripes, bands and
+  rings are drawn on the car's own skin** ("Draw lines on the car's own skin", below); the 3D zones
+  are for areas: a split, a fade, a spot. Part names are in `car/parts.json`. Colour and finish
+  words go through `finishes.resolve()`.
 - **Built in steps, from clay (the Lab, the user's idea, 2026-09-26).** A new design
   starts with `s.clay()`: the body, wheel covers and inner car in the Lab's neutral white
   clay, which stays on any part no later step paints, in the game too (the user's choice). So
@@ -171,57 +168,49 @@ card) and no game: install from the Windows PC after a push.
   H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.
-- **Draw lines and shapes on the blueprints** (`tool/blueprint.py`, `car/blueprints/`, 2026-09-30:
-  the user's pivot from lines guessed off the mesh, "it paints blindly ... wobbly lines"). Look at
-  the view, write the graphic as an SVG path in that view's mm (crop and enlarge the picture to
-  read positions; `python -m tool.blueprint --pins left` prints the user's pins in a view), **keep
-  it on the plain grey: the blue-hatched surfaces turn away from that view** (the top faces from
-  the side, the flanks from above; draw those from the view that faces them), **and probe it
-  before painting: `python -m tool.blueprint --probe left "<path>"`** says every 25 mm what the
-  path lands on (the part, how squarely it faces the view); a path that lands on a fin, a wheel,
-  an opening or a surface turning away is redrawn, not painted. Then paint it with `shapes.view_line(view, path, width_mm)` (a line, its width exact in 3D, unbroken
-  at seams), **`shapes.view_fill(view, (h, v), [strokes])` (the paint bucket: the way a livery
-  designer works, a few sweeping strokes cut the side into areas and each area takes a colour;
-  the strokes themselves can be pinstriped with `view_line`; a stroke must run off the car's edge
-  or onto another stroke, else the fill runs round its tip and the tool says so)**,
-  `shapes.view_shape(view, path)` (a filled outline) or `shapes.view_point(view, h, v)` (a spot
-  for a disc or a decal). Each spot of the body belongs to the view it faces most: the flanks are
-  the sides', the roof and bonnet the top's; a colour that crosses the shoulder is filled from
-  both. TSC_Blueprint is the worked example. The same path on "left" and "right" is the mirror. A line says
-  where it leaves the body (an opening, a wheel): read that line and redraw rather than leave a
-  gap you didn't mean. A path drawn up to an edge climbs over it: stop short if you mean to stop.
-  **After painting, run `python -m tool.blueprintcheck <name>`** and read its pictures
-  (`build/<name>_blueprint_<view>.png`) before showing the user; a FAIL is yours to fix.
-- **The user's pins** (`tool/lines.py`, `car/lines.json`, 2026-09-29): in the Lab's lines room the
-  user can click a few pins along a line of the car and name it. They are marks of where a human
-  eye says a line runs, drawn on the blueprints: draw through them there. They are not curves:
-  `python -m tool.lines` lists them.
+- **Draw lines on the car's own skin** (`tool/skindraw.py` on `tool/skinmesh.py`, 2026-09-30: the
+  user, after years of wobbly and broken lines, "I cant figure out how ai can draw the car without
+  making mistakes"; the earlier ways -- a view's projection, a flat sewing pattern, lines fitted off
+  the mesh, splines through pins -- are retired). A line is a curve ON the surface:
+  `skindraw.through([place, place, ...])` joins places by the surface's own straight lines. A place
+  is a name from `SPOTS`, a pinned line's name (its pins, in order), or `(x, y, z)` in cm with a
+  word for the way the skin faces there (`"up"`, `"side"`, `"front"`, `"rear"`, `"down"`): the car
+  has upstands where a bare point can land on either face. `skindraw.circle(centre, radius_mm)` is
+  a true circle; `skindraw.parallel(curve, mm)` the curve moved sideways over the skin (positive to
+  its left as it runs: upwards for a line run nose to tail on the left flank), so the colours of a
+  tricolour, drawn as parallels of one curve, keep their gaps over every fold;
+  `skindraw.mirror(curve)` the other side. Paint with `s.paint(where, finish, colour=,
+  zone=skindraw.band(curve, width_mm))`. A band keeps its width over folds and seams, never jumps a
+  gap onto another piece of the car, and stops at its curve's ends: run a stripe off the car by
+  starting its curve at the edge, not mid-panel. Two places give the straightest line between them,
+  which goes round an obstacle, not over it: add places to choose the route. **Probe before
+  painting:** `python -m tool.skindraw --probe "place, place"` prints the length, the parts crossed
+  and any sharp corner (a corner at a crease is the line crossing it, not a kink). The car has no
+  skin down the middle of its top from z +70 to -45 (the cockpit): a middle stripe passes beside it,
+  or splits round it. A split along one height, or a height that follows the car, is a 3D zone:
+  `shapes.below(y)`, or `shapes.field(lambda p, n: f(p[:, 2]) - p[:, 1])` (TSC_Split_Level,
+  TSC_Split_Follow). A fill bounded by a drawn curve isn't built yet (`IMPROVEMENTS.md`). **After
+  painting, run `python -m tool.skincheck <name>`:** every band's width and middle measured on the
+  car, off the paint; a FAIL is yours to fix. The worked example is TSC_Solstice; the test cars are
+  TSC_Skin and TSC_SkinMore (in a test car give each band its own colour: the check knows paint by
+  its colour).
+- **The user's pins** (`tool/lines.py`, `car/lines.json`): in the Lab's lines room the user clicks a
+  few pins along a line of the car and names it, to show where a line should run. A pinned line's
+  name is a place list for `skindraw.through`: the curve runs through its pins. `python -m
+  tool.lines` lists them.
 - **The car map** (`tool/carmap.py`, `car/map.md` and its pictures, 2026-09-29: the user wanted
   the AI to understand the car "so that no matter what design is done, the Ai just knows"). The
-  body's shape worked out once from its mesh: its areas, its lines, positions that bend with it,
-  what's open, what the chase cameras see and the air over it. Place graphics by it, not by cm
-  guesses: `shapes.area("top")` (between the shoulders; never the ledges and lips low down),
-  `shapes.outside(0.4)` (never inside an inlet or under a panel), `shapes.across(a0, a1)` and
-  `shapes.along(a0, a1)` for bands that follow the body, `~shapes.near("opening", 3)` or
-  `near("fold", 2)` to keep clear, `shapes.line("shoulder", w)` along its lines, `shapes.hit` and
-  `shapes.streamlines` for the air. A round spot seen from above: `shapes.cylinder((x, -50, z),
-  (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. The map rebuilds itself when the
-  mesh changes (`python -m tool.carmap`, 30 s); after a change to its code, rebuild, repaint the
-  four TSC_Map_ cars, take their `--body` sheets into `car/map/` and `--describe` again.
-- **The body sheet** (`tool/surface.py`, `car/sheet.png`, `.svg`, `.json`, 2026-09-29: the user
-  wanted the model's curvature mapped so "any design AI can easily understand it and accurately
-  design"): the outer skin flattened into a sewing pattern in true millimetres, the nose's tip at
-  the left, the top centreline along the top, the map's lines and the stations drawn on it. A
-  shape drawn on the sheet is that size on the paint and follows the body; the right side is the
-  mirror. `shapes.sheet(svg | picture, box= | polylines, width= | f(x, y))`, `shapes.sheet_line`,
-  `shapes.sheet_near`, `shapes.offset(line, mm)` (a band 30 mm below the shoulder:
-  `shapes.sheet(shapes.offset(shapes.sheet_lines("shoulder")[0], 30), width=8)`), `along_cm`,
-  `across_cm`, and `s.decal(picture, "sheet", at=(x, y), width=mm)`. Its checks: `python -m
-  tool.carmap --check` (the sheet's table) and `python -m tool.sheetcheck <car>` on a painted car
-  (every band's crossing of a join measured on the texture). The test cars: TSC_Map_Sheet (a 10 cm
-  checker and offset bands) and TSC_Map_Proof (a livery drawn only on the sheet). Where the body
-  turns through three faces (the sidepod's rear and front corners) the sheet shears a little
-  rather than cut the paint: keep fine lettering off those two corners.
+  body's shape worked out once from its mesh: its areas, what's open, what the chase cameras see
+  and the air over it. Place areas by it, not by cm guesses: `shapes.area("top")` (between the
+  shoulders; never the ledges and lips low down), `shapes.outside(0.4)` (never inside an inlet or
+  under a panel), `shapes.across(a0, a1)` and `shapes.along(a0, a1)` for areas that follow the body,
+  `~shapes.near("opening", 3)` or `near("fold", 2)` to keep clear, `shapes.hit` and
+  `shapes.streamlines` for the air (TSC_WindTunnel). A round spot seen from above:
+  `shapes.cylinder((x, -50, z), (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. Its
+  lines (`shapes.line`) are fitted off the mesh and show the map on its own test cars: draw lines
+  with `skindraw`. The map rebuilds itself when the mesh changes (`python -m tool.carmap`, 30 s);
+  after a change to its code, rebuild, repaint the TSC_Map_ cars, take their `--body` pictures into
+  `car/map/` and `--describe` again.
 - **Keep clear** of the places the map can't know are special: the number panel (x ±19, z -78 to
   -62) and the engine cover panel (x ±19, z -120 to -82), where the game draws the player's number
   and name, and the nose fin's plate (x ±8, z 118 to 142): its fin stands upright, so a spot there

@@ -84,20 +84,15 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres` photographs the library
   (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
-- The blueprints: `PY -m tool.blueprint` renders `car/blueprints/<view>.png` (+ `blueprints.json`)
-  from the body mesh, every pixel's triangle cached in the work folder; `shapes.view_line`,
-  `view_shape` and `view_point` draw by them; `PY -m tool.blueprintcheck <name>` (and `--falsify`)
-  checks a painted car's drawings from the views. Notes: "The blueprints" in `CHECKLIST.md`.
-- Drawing on the skin: `tool/skinmesh.py` is the whole car's paintable surface as one mesh (the
-  sheet's sewn pieces mirrored and subdivided; `PY -m tool.skinmesh --build`, cached in the work
-  folder); `tool/skindraw.py` draws on it (`through`, `parallel`, `circle`, `loop`, `mirror`, `band`; `PY -m
+- Drawing on the skin, the one way lines are drawn: `tool/skinmesh.py` is the whole car's
+  paintable surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
+  subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on it (`through`, `parallel`, `circle`, `loop`, `mirror`, `band`; `PY -m
   tool.skindraw --probe "place,place"`); `PY -m tool.skincheck <name>` (`--falsify`, `--floor`)
   measures every band on the car. Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
 - The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in
   the viewer's clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
-  `car/lines.json` (committed); `PY -m tool.lines` lists them. Marks for the blueprints, not
-  curves (the curve maths was measured and dropped: "The car's lines, pinned by the user" in
-  `CHECKLIST.md`).
+  `car/lines.json` (committed); `PY -m tool.lines` lists them. A pinned line's name is a place
+  list for `skindraw.through`, which runs a curve through its pins.
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

@@ -21,52 +21,9 @@ the design as asked), then speed.
   on the car by exact geodesics across each band (`tool/skincheck.py`, `--falsify`). Built and
   measured: widths within 0.2 mm, middles within 0.1 mm, on seventeen bands of eight kinds.
   **Left:** the nose band over the bonnet's centre fin; the hoop down the flanks; a break and
-  stray-paint measure that can be trusted; a filled area spanning parts; the skill's drawing
-  section; retiring the blueprint drawing.
+  stray-paint measure that can be trusted; a filled area bounded by a drawn curve (a split along a
+  sweep, one colour each side).
   Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
-- **The car's lines pinned by the user, then drawing on blueprints** (the user, 2026-09-29: "I
-  initially thought that claude actually knew how to paint just by having the 3d model and the UV
-  map ... it paints blindly ... ending up with wobbly lines, or disjointed lines"). Right: the mesh
-  is a 2 cm game mesh, fine to paint on (every texel has a 3D position) but poor to *read* design
-  lines from, and Nadeo's files hold none (the stock `Skin_B` is plain grey, `Skin_AO` soft shading,
-  the template only the mesh's wireframe, no normal map on the body). Ten steps of the car map
-  gave the machinery for painting a band (the exact 3D distance to one smooth curve) but drew the
-  curves from the mesh's curvature, which is why they wobble and differ between the two computers.
-  The pivot: the lines come from a human eye, and Claude draws everything else as smooth curves on
-  blueprints (side, top, front pictures of the car), wrapped onto the body and checked from the
-  same view. The order, with an early stop (the user: "If it's not what I was hoping we can scrap
-  it"): **(1) the Lab's lines room, built 2026-09-29** (`viewer/lab-lines.js`, `tool/lines.py`,
-  `/api/lines`, `car/lines.json`; the car in clay with the wheels off, the lines to start from in
-  plain words, each lighting the part it means; notes in `CHECKLIST.md`, "The car's lines, pinned
-  by the user"): the user turns the 3D car and clicks a few pins along a line and names it. **The
-  curve through the pins was tried and dropped the same day** (measured: a spline through pins
-  30 cm apart leaves the body by centimetres and lands on the wrong surface when pulled back; a
-  path built on the body wanders 4 cm from its pins; the user: "omg, im not sure this is the
-  approach. I think we just stick to blueprint"): the pins are marks for the blueprints, drawn
-  through there, not curves. **(3) The blueprints, built 2026-09-30** (`tool/blueprint.py`,
-  `car/blueprints/`: the body from the left, the right, above, the front and the rear at 1 px = 1 mm
-  in the car's own mm, creases and panel edges drawn, a labelled grid, the user's pins marked, the
-  wheels' faces an outline only; every pixel's triangle cached in the work folder); **(4) drawing on
-  a view, built** (`shapes.view_line`, `view_shape`, `view_point`: an SVG path in the view's mm,
-  each point landed on the body along the line of sight, a line painted as the exact 3D distance
-  to that curve, a shape as what the view sees inside the outline; a line says out loud where it
-  leaves the body); **(5) the check, built** (`tool/blueprintcheck.py`: the painted texture seen
-  through the view's own hit buffer, the path drawn over it, the band's centre measured against the
-  path every 2 mm, breaks counted, a shape's edge against its outline; `--falsify` moves every path
-  5 mm and must fail: it does); the proof car TSC_Blueprint (a 20 mm line through the user's side
-  crease pins, a 30 mm swoosh from the nose to the sidepod's top, a chevron on the bonnet from
-  above): the lines' centres within 0.6 mm of the path on average, the shape's edge within 1.5 mm
-  everywhere. The user's look at the first swoosh ("starts above the body and ends up going below
-  the body") taught the rule that a view is trustworthy only on the surfaces that face it: the
-  views now land only there, the pictures hatch the rest, and `--probe` says what a path lands
-  on before it's painted. **The paint bucket, built the same day** (`shapes.view_fill`: strokes cut
-  the view into areas, a spot picks one; each spot of the body belongs to the view it faces most;
-  a stroke must run off the car or onto another stroke, and the tool warns when it doesn't): the
-  test car remade as a livery artist would, two sweeps on the side, colours between them,
-  pinstripes on the strokes, a spine from above. Left: `view_lines` across two views (a line wrapping from the side over the nose to
-  the other side), (6) the proof car in the game (nothing of this has been seen in the game yet),
-  (7) painted pictures projected from a view (the user: "Anything"), blended over several views
-  where the body turns away. The plan: `~/.claude/plans/hi-i-need-to-lucky-parnas.md` on the Mac.
 - **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
   concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
   design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care
@@ -97,24 +54,10 @@ the design as asked), then speed.
   Behind the sidepods (z -95 to -35) the body has no clear lower edge: the sides run to the skin's
   own end there. Waiting for the user's look at the lines (`car/map/lines.jpg`,
   `car/map/areas.jpg`) before anything built on the map (the rakes, the grid, the station table) is
-  called done. **Step 10, the body sheet (2026-09-29, the user: "map them so that any design AI can
-  easily understand it and accurately design"):** the skin flattened in true millimetres
-  (`tool/surface.py`, libigl's LSCM and ARAP; `car/sheet.png`, `.svg`, `.json`), the map's lines on
-  it, every texel's place cached, so a shape drawn flat lands on the car true size and follows the
-  body (`shapes.sheet`, `sheet_line`, `offset`, `along_cm`, `across_cm`, `s.decal(..., "sheet")`);
-  checked by number on the mesh (`--check`: a 20 mm stripe is 20 mm on the paint within 0.92 mm over
-  95 % of the body; 30 mm below the shoulder is 30 mm along the surface within 1.28 mm, by
-  potpourri3d's exact geodesics) and on the painted texture (`tool.sheetcheck`: continuity, local
-  scale, every band's crossing of a join). Test cars TSC_Map_Sheet and TSC_Map_Proof, not yet
-  installed. **Round 2 (the user's close-ups):** a line, a band or a pinstripe is the exact 3D distance
-  to one smooth design line per named line (`Map.design_lines`, `shapes.line_offset`), so it never
-  breaks at a join; the sheet is for lattices, logos and decals, which move clear of panel edges and
-  report their aspect; the crossing check walks every band on the car and has a `--falsify` switch;
-  the model's pieces are named and measured (`tool/pieces.py`). Open: two roundels that fail the 3 %
-  aspect where the sheet shears (the sidepod's side, the rear flank); the tail's 2 cm slot. Notes:
-  `CHECKLIST.md`, "The car map", step 10. **Later the same day:** the map's own line-finding is no
-  longer where the lines come from (the item above): what stays is the band machinery, the sheet,
-  the mesh's own edges (openings, joins) and the checks.
+  called done. Step 10, a flat sewing pattern of the skin to draw on, and bands drawn from the map's
+  fitted lines were retired on 2026-09-30 for drawing on the car's own skin (the item above); the
+  map keeps its areas, what's open, the air and the chase cameras. Notes: `CHECKLIST.md`, "The car
+  map", and "Drawing on the car's own skin".
 - **The car map isn't the same on the two computers** (2026-09-29, the car mapper, found while
   building the body sheet): rebuilt fresh on the Mac, the map traces 66 ridges and draws 12 folds
   where the PC recorded 62 and 8, and `python -m tool.carmap --check` fails 4 stretches (the shoulder
@@ -124,8 +67,9 @@ the design as asked), then speed.
   parabola, cuts at 1.5 cm) decides differently on tiny numeric differences between the two
   computers' numpy and BLAS. Idea: make the tracing's decisions tolerant (a seed a clear maximum by a
   margin, ties broken by position), or build the map on one computer and commit its cache's hash so
-  the other checks it matches. Not fixed: it didn't block the sheet. Closed for the design once
-  the pinned lines take over (the item above): nothing design-facing depends on the tracing then.
+  the other checks it matches. Not fixed. Lines are no longer drawn from the tracing (drawing on the
+  skin, above), but the map's areas are still cut by its fitted lines, so `area("top")` and
+  `across` can differ a little between the two computers.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
   actually work on every single detail from start to finish"). Built the same day in four goes: a
@@ -265,16 +209,14 @@ the design as asked), then speed.
     pinned in `requirements.txt` with the date.
   **Used, 2026-09-29 (step 10 of the car map):** both have wheels for CPython 3.14 on Windows x64 and
   macOS arm64 (libigl 2.6.3 as cp312-abi3, potpourri3d 1.4.0 as cp314), pinned in `requirements.txt`,
-  installed in the Mac's venv (the PC gets them at its next session). libigl flattens the sheet
-  (`igl.lscm`, `igl.arap_solve`: 3.7 % / 2.3° on the skin piece against 5.3 % / 3.1° from our own
-  ARAP) and its `principal_curvature` is the `igl` column of `--check`'s curves table (the named
+  installed in the Mac's venv (the PC gets them at its next session). libigl flattened the sheet
+  until it was retired (2026-09-30); its `principal_curvature` is the `igl` column of `--check`'s
+  curves table (the named
   lines and most folds stand out on both measures; per vertex they correlate only 0.26, and it marks
-  half the welded body's vertices unfit for its quadric fit). potpourri3d's `GeodesicTracer` measures
-  the sheet's offsets by exact geodesics and its `MeshVectorHeatSolver.compute_log_map` checks the
-  sheet round a decal's spot (sound near the source only); its signed heat method wants curves on
-  edges, so it wasn't used. The heat-method distance and the log map for `shapes.near` over the
-  surface are not needed: the sheet's own distance serves, and within 3 cm of a line the 3D distance
-  is within 0.4 % of the geodesic on this body.
+  half the welded body's vertices unfit for its quadric fit). potpourri3d now draws: since
+  2026-09-30 every line on the car is a chain of its exact geodesics (`EdgeFlipGeodesicSolver`),
+  and a band's width and the check across it are walked with its `GeodesicTracer` (`tool/skindraw.py`,
+  `tool/skincheck.py`); its signed heat method wants curves on edges, so it isn't used.
   Looked at and left out (the same search): Substance 3D Painter (US$200 once on Steam, but it's
   painted by hand, not driven by words); Hunyuan3D-Paint and Meshy (they paint the whole mesh from
   a sentence, loosely, ignoring the map and the game's format); Recraft (vector logos and lettering,
