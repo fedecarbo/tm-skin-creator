@@ -41,9 +41,16 @@ from scipy.sparse.csgraph import connected_components
 from tool import carmap, paths, surface
 
 CACHE = paths.CACHE / "skinmesh.npz"
-VERSION = 1
+VERSION = 2
 WELD = 0.05      # cm: two corners this near each other are the same corner (the centre line, and panels that touch)
+# The model's body is coarse: its triangles are 35 mm across (127 mm at the 95th). A curve runs
+# corner to corner, so a place asked for lands up to half a triangle away -- measured, 29 to 48 mm
+# typically, which is more than the width of most of the lines drawn on it. Splitting every
+# triangle into four, twice, puts the corners about 9 mm apart without moving the surface at all
+# (every new corner sits on an edge of the old one), so a place lands where it was asked.
+SUBDIVIDE = 2
 CENTRE = 0.02    # cm: a corner this near x = 0 is pinned to it before mirroring, so the two halves meet exactly
+REACH = 0.3      # cm: a point found by nearness must land this close to count as on the skin
 # Blades: thin things standing off the body, which are surface too, so a curve would climb them.
 # The nose's "fin" is NOT one of them, measured: 84 of its 94 triangles face up, and it spans x 0
 # to 8 cm -- it is the raised centre panel of the bonnet, with a small upstand along it. Leaving it
@@ -63,6 +70,22 @@ def _components(V, F):
     A = coo_matrix((np.ones(len(u)), (u[:, 0], u[:, 1])), shape=(len(V), len(V)))
     n, lab = connected_components(A + A.T, directed=False)
     return n, lab
+
+
+def _split4(V, F, src, side):
+    """Every triangle split into four, with new corners at the edges' middles. The surface does not
+    move: a new corner sits on an edge of the old triangle, so the shape, the normals and the areas
+    are what they were -- only the corners are closer together."""
+    e = np.stack([np.sort(F[:, [1, 2]], 1), np.sort(F[:, [2, 0]], 1), np.sort(F[:, [0, 1]], 1)], 1)
+    flat = e.reshape(-1, 2)
+    uniq, inv = np.unique(flat, axis=0, return_inverse=True)
+    mid = len(V) + inv.reshape(-1, 3)
+    V = np.vstack([V, (V[uniq[:, 0]] + V[uniq[:, 1]]) / 2.0])
+    a, b, c = F[:, 0], F[:, 1], F[:, 2]
+    ma, mb, mc = mid[:, 0], mid[:, 1], mid[:, 2]     # opposite a, b, c
+    F = np.concatenate([np.stack([a, mc, mb], 1), np.stack([b, ma, mc], 1),
+                        np.stack([c, mb, ma], 1), np.stack([ma, mb, mc], 1)])
+    return V, F, np.tile(src, 4), np.tile(side, 4)
 
 
 def _thin(V, F, src, side):
@@ -174,6 +197,8 @@ def build(log=print):
         F = _orient(V, F, want, log=lambda msg, name=s.piece_names[k]: log(f"  {name}: {msg}"))
         F, n, origin = surface._split_fans(F, len(V))
         V = V[origin]
+        for _ in range(SUBDIVIDE):
+            V, F, psrc, pside = _split4(V, F, psrc, pside)
         log(f"  {str(s.piece_names[k]):18} {len(V):5d} corners {len(F):5d} triangles"
             + (f", {dropped} dropped (a doubled shell)" if dropped else "")
             + (f", {n - len(origin) + (n - len(V)) * 0} pinches split" if n > len(origin) else ""))
@@ -185,6 +210,22 @@ def build(log=print):
         off += len(V)
     V, F = np.vstack(Vs), np.vstack(Fs)
     piece, src, side = np.concatenate(piece), np.concatenate(src), np.concatenate(side)
+
+    # The right half is the left one mirrored, so its faces came out remembering the LEFT car
+    # triangle they were copied from. But a texel on the car's right belongs to the RIGHT triangle,
+    # the left one's mirror twin, and could never find its face: measured, only 38 % of the skin's
+    # texels mapped, all of them on the left, and every band drawn on the right read as "no paint".
+    # Each right face takes its own triangle, the twin (surface._twins, corners within 2 mm).
+    twin = surface._twins(m)                        # right triangle -> its left twin
+    cen = m.V[m.F].mean(1)
+    right_of = np.full(len(m.F), -1, np.int64)
+    rt = np.flatnonzero((twin >= 0) & (cen[:, 0] < -0.05))
+    right_of[twin[rt]] = rt
+    mapped = (side > 0) & (right_of[src] >= 0)
+    src = np.where(mapped, right_of[src], src)
+    lost = int(((side > 0) & ~mapped).sum())
+    log(f"the right half: {int(mapped.sum())} faces take their own car triangle"
+        + (f", {lost} have no mirror twin in the model (round the number panel) and are found by nearness" if lost else ""))
 
     u, c = _edges(F)
     ncomp, lab = _components(V, F)
@@ -307,6 +348,16 @@ class Skin:
             out[better] = f[better]
             bary[better] = np.clip(b[better[on]], 0.0, 1.0)
         bary /= np.maximum(bary.sum(1, keepdims=True), 1e-12)
+        # A point whose triangle has no face here is found by nearness -- but only if it then lands
+        # ON the skin. The few right triangles with no mirror twin do; a texel on the inner car or a
+        # wheel cover is not on the skin at all, and without this test was dragged onto the nearest
+        # face up to 48 cm away.
+        miss = (out < 0) & (tri >= 0)
+        if miss.any():
+            f2, b2 = self.nearest(pos[miss])
+            close = np.linalg.norm(self.point(f2, b2) - pos[miss], axis=1) < REACH
+            m_idx = np.flatnonzero(miss)[close]
+            out[m_idx], bary[m_idx] = f2[close], b2[close]
         return out, bary
 
     def nearest(self, pos, nrm=None, k=12):

@@ -234,6 +234,7 @@ class Skin:
         self.notes = []  # what the tool decided, for the record
         self.icon_colours = []
         self.drawn = []  # what was drawn on the blueprints (shapes.view_line, view_shape), for tool/blueprintcheck.py
+        self.palette = []  # every colour laid on the car, so a check can tell a band's paint from the rest
         self.steps = []  # the design's steps (step()), for the Studio
         self.clay_left = None  # the parts still in clay when the design is done (end_steps)
         self.frames = False  # skin.show sets it: write the car at the end of each step for the Studio
@@ -491,6 +492,7 @@ class Skin:
                 leftover.remove(word)
         if leftover:
             self.notes.append(f"{what!r}: didn't understand {' '.join(leftover)!r}")
+        self.palette.append([float(v) for v in col])   # every colour laid on the car, for the checks
         if getattr(zone, "view", None):  # drawn on a blueprint: kept for the check
             self.drawn.append({"view": zone.view, "path": zone.path, "kind": zone.kind, "width": getattr(zone, "width", None),
                                "at": getattr(zone, "at", None), "strokes": getattr(zone, "strokes", None), "colour": [float(v) for v in col],
@@ -1230,7 +1232,8 @@ def save_painted(skin):
         arrays[name] = np.clip(np.rint(np.asarray(arr) * 255), 0, 255).astype(np.uint8)
         meta[name] = {"fourcc": fourcc, **opts}
     np.savez(out / "painted.npz", **arrays)
-    (out / "painted.json").write_text(json.dumps({"textures": meta, "icon": skin.icon_colours, "notes": skin.notes, "drawn": skin.drawn}, indent=1))
+    (out / "painted.json").write_text(json.dumps({"textures": meta, "icon": skin.icon_colours, "notes": skin.notes, "drawn": skin.drawn,
+                                                "palette": skin.palette}, indent=1))
     return out
 
 

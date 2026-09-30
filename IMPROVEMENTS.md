@@ -14,6 +14,16 @@ the design as asked), then speed.
 
 ## Under way
 
+- **Drawing on the skin** (the user, 2026-09-30: "Current approaches are not working ... I cant
+  figure out how ai can draw the car without making mistakes ... perfect lines that are accurate and
+  continuous"). Lines are drawn ON the surface as geodesics (`tool/skindraw.py`: `through`,
+  `circle`, `loop`, `mirror`, `band`) on one mesh of the whole car (`tool/skinmesh.py`), and checked
+  on the car by exact geodesics across each band (`tool/skincheck.py`, `--falsify`). Built and
+  measured: widths within 0.2 mm, middles within 0.1 mm, on seventeen bands of eight kinds.
+  **Left:** the nose band over the bonnet's centre fin; the hoop down the flanks; a break and
+  stray-paint measure that can be trusted; a filled area spanning parts; the skill's drawing
+  section; retiring the blueprint drawing once this is seen in the game; and the game itself.
+  Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
 - **The car's lines pinned by the user, then drawing on blueprints** (the user, 2026-09-29: "I
   initially thought that claude actually knew how to paint just by having the 3d model and the UV
   map ... it paints blindly ... ending up with wobbly lines, or disjointed lines"). Right: the mesh

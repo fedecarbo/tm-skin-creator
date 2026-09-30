@@ -88,6 +88,11 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   from the body mesh, every pixel's triangle cached in the work folder; `shapes.view_line`,
   `view_shape` and `view_point` draw by them; `PY -m tool.blueprintcheck <name>` (and `--falsify`)
   checks a painted car's drawings from the views. Notes: "The blueprints" in `CHECKLIST.md`.
+- Drawing on the skin: `tool/skinmesh.py` is the whole car's paintable surface as one mesh (the
+  sheet's sewn pieces mirrored and subdivided; `PY -m tool.skinmesh --build`, cached in the work
+  folder); `tool/skindraw.py` draws on it (`through`, `circle`, `loop`, `mirror`, `band`; `PY -m
+  tool.skindraw --probe "place,place"`); `PY -m tool.skincheck <name>` (`--falsify`, `--floor`)
+  measures every band on the car. Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
 - The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in
   the viewer's clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
   `car/lines.json` (committed); `PY -m tool.lines` lists them. Marks for the blueprints, not

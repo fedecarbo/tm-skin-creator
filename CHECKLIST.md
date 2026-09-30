@@ -4090,6 +4090,67 @@ weights are cached (`cache/blueprint_<view>_1.npz`, 7 s for all five); the pictu
   inlet, wants a seed of its own.
 - **Seen in the game:** not yet.
 
+### Drawing on the car's own skin (started 2026-09-30)
+
+The user, after the blueprints: "Current approaches are not working btw, so don't get
+influenced." Every way of drawing tried so far defined the line somewhere that isn't the car:
+per-corner values on the car map (a 35 mm mesh facets every edge: crayon), the flat sheet (shears
+5.6 to 8.0 %), splines through pins in the air (off the body by 22 cm), a view's projection (stops
+where the body turns past 53 degrees, and no path can cross two views). A line on a car is a curve
+ON the surface, so the tool now draws there. `tool/skinmesh.py`, `tool/skindraw.py`,
+`tool/skincheck.py`; test cars TSC_Skin and TSC_SkinMore. No new library: potpourri3d 1.4.0 was
+already here, used only to *check* the sheet; it now draws.
+
+**Things we learned**
+
+- **The shortest geodesic is not a drawing tool.** Nose to tail it strays 278 mm off the centre
+  line and kinks 83 degrees: the short way round an obstacle is round the side of it. A curve is a
+  chain of geodesics through places the designer picks (`through`), each link the surface's own
+  straight line.
+- **The car has a hole down the middle of its top**: the cockpit, z +70 to -45, nearest up-facing
+  skin 8 to 28 cm out. A middle stripe must pass beside it. And the "nose fin" is not a blade but
+  the bonnet's raised centre panel (84 of its 94 triangles face up, x 0 to 8 cm); leaving it off
+  punched an 84 mm hole, so it stays, and a place near it says which way it faces ("up").
+- **The sheet holds the car's LEFT half only**; the right is mirrored onto it. The skin mirrors each
+  sewn piece into the whole car, welded on the centre line. Welding the pieces to EACH OTHER twisted
+  the surface (the tail met the body wound the other way): each piece stays its own surface.
+- **The right half must remember its own triangles.** Mirrored, its faces remembered the left car
+  triangle they were copied from, so nothing on the car's right could be read: only 38 % of the
+  skin's texels mapped, all left, and every band on the right read "no paint". Each right face now
+  takes its mirror twin (`surface._twins`); 77 % map, left 977 645 and right 978 131.
+- **The mesh is coarse** (35 mm triangles) so a place landed 29 to 48 mm from where it was asked.
+  Split into four twice (`SUBDIVIDE`): 8.7 mm, the same 61 486 cm2, places land 6 to 12 mm off.
+- **A band's width is walked, not measured through the air.** `band` lays a ribbon of points
+  walked out from the curve by exact geodesics, 0.25 mm apart, and each texel takes its offset from
+  the nearest. Three things kept it on its own band, each found by the check: the piece of surface
+  it walked (paint hopped a gap onto the tail, a separate piece); the curve's ends (a cap grew past
+  the end and round the tail corner); and the texel's own normal when choosing its face (two
+  pieces a millimetre apart).
+- **A ring is not a shortened loop.** `find_geodesic_loop` pulls a loop tight, and a ring on a panel
+  pulled to 98 mm; closing a chain and shortening it gave 18 mm. `circle(centre, r)` walks a
+  geodesic out every degree, all the same length: the ring's length came out 1381 mm for 2 pi x 220
+  = 1382. A ring through places is a polygon (you could count its corners).
+- **The checker was the problem more often than the drawing.** Reading paint through
+  `carmap.Map.at` put widths at +-1.1 to 2.2 mm, which was wrongly put down to "the texture's grain"
+  and the limits loosened to match. Read through the skin, the same bands are +-0.16 mm, their
+  middles within 0.1 mm. Also: the edge is the AREA under the coverage ramp, not its first crossing
+  of a half; a walk that runs off the car is "cut by the car", not a wrong width; a reused loop
+  variable sent every other walk from the wrong place; and two bands of one colour are one band to
+  it, so every band in a test car needs its own colour.
+
+**Measured** (python -m tool.skincheck, widths at the 95th): TSC_Skin's spine 30.0 +- 0.16, flank
+sweeps 20.0 +- 0.17, hoop 40.0 +- 0.15. TSC_SkinMore: eight parallel 10 mm stripes 10.1 to 10.2
++- 0.5, a 12 mm true circle 12.1 +- 0.3, a 4 mm hairline 4.8 +- 1.0 (thin lines come out about
+0.8 mm wide of what was asked), a 24 mm diagonal 24.0 +- 0.14. `--falsify` moves every curve 5.00
+mm and reads it back 4.99 to 5.01; all 17 bands fail, as they must.
+
+**Open**: (1) the nose band FAILS where it drapes over the bonnet's centre fin (+-12 mm); (2) the
+hoop's middle wobbles 1.8 mm and a third of its places can't be measured where it goes down the
+flanks; (3) the break and stray-paint measures disagree with direct measurement on bands that are
+whole (every one of the spine's 107 899 texels lies within 22 mm of its curve, yet the walk reports
+a 40 mm break), so they are printed and not judged; (4) nothing is seen in the game yet; (5) a
+filled area spanning parts, the plan's fourth proof, isn't built.
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every

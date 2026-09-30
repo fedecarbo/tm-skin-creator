@@ -52,10 +52,17 @@ FACING = {"up": (0.0, 1.0, 0.0), "down": (0.0, -1.0, 0.0), "left": (1.0, 0.0, 0.
 class Curve:
     """A curve lying on the skin: its points in cm, and what it crosses."""
 
-    def __init__(self, skin, pts, faces, places=None, snapped=None, name=""):
-        self.skin, self.name = skin, name
-        self.pts = np.asarray(pts, np.float64)
-        self.faces = np.asarray(faces, np.int64)
+    def __init__(self, skin, pts, faces, places=None, snapped=None, name="", closed=False):
+        self.skin, self.name, self.closed = skin, name, closed
+        pts = np.asarray(pts, np.float64)
+        faces = np.asarray(faces, np.int64)
+        # Drop repeated points. Legs joined end to end share a point, and a repeat gives a zero
+        # tangent, so the ribbon skipped every trace there: a ring came out a fifth painted.
+        if len(pts) > 1:
+            keep = np.concatenate([[True], np.linalg.norm(np.diff(pts, axis=0), axis=1) > 1e-7])
+            pts, faces = pts[keep], faces[keep]
+        self.pts = pts
+        self.faces = faces
         self.places = places
         self.snapped = snapped                     # how far each asked-for place moved, mm
         seg = np.linalg.norm(np.diff(self.pts, axis=0), axis=1)
@@ -200,14 +207,88 @@ def through(items, name=""):
     return Curve(skin, pts, f, places=asked, snapped=np.asarray(snapped), name=name or "a curve")
 
 
+def circle(centre, radius, name=""):
+    """A true circle on the car: every point `radius` mm from the centre, measured over the skin.
+
+    Not a polygon through places. A ring built by joining places has a corner at every one of
+    them -- measured, 25 degrees per 100 mm on an 11-place ring, and you could count its corners in
+    the picture. Here a geodesic is walked out from the centre every degree, all the same length,
+    and their ends are the circle. On a flat panel it is a circle; on a curved one it is what a
+    circle IS on that surface, the way a ring of vinyl would lie."""
+    skin = skinmesh.load()
+    f, b, want, moved = place(skin, centre)
+    r = radius / 10.0
+    n = skin.fn[f]
+    e1 = np.cross(n, [0.0, 0.0, 1.0])
+    if np.linalg.norm(e1) < 1e-6:
+        e1 = np.cross(n, [1.0, 0.0, 0.0])
+    e1 /= np.linalg.norm(e1)
+    e2 = np.cross(n, e1)
+    tracer = skin.solver("trace")
+    pts, short = [], 0
+    for a in np.radians(np.arange(0.0, 360.0, 1.0)):
+        d = np.cos(a) * e1 + np.sin(a) * e2
+        path = np.asarray(tracer.trace_geodesic_from_face(int(f), np.asarray(b, np.float64), d * r), np.float64)
+        if len(path) < 2:
+            short += 1
+            continue
+        walked = np.linalg.norm(np.diff(path, axis=0), axis=1).sum()
+        if walked < r * 0.98:
+            short += 1                               # it ran off the car before the radius
+        pts.append(path[-1])
+    pts = np.asarray(pts)
+    pts = np.vstack([pts, pts[:1]])
+    fc, _ = skin.nearest(pts)
+    c = Curve(skin, pts, fc, places=[want], snapped=np.asarray([moved]),
+              name=name or f"a {radius:.0f} mm circle", closed=True)
+    c.short = short
+    return c
+
+
+def loop(items, name=""):
+    """A closed curve through places on the car: a ring, an outline, anything that comes back to
+    where it started. Each link is the surface's own straight line, as `through`, and the ends
+    join, so the band has no cap and no seam."""
+    skin = skinmesh.load()
+    if len(items) < 3:
+        raise ValueError("a loop needs at least three places")
+    verts, snapped, asked = [], [], []
+    for it in items:
+        f, b, want, _ = place(skin, it)
+        v = int(skin.F[f][int(np.argmax(b))])
+        if v in verts:
+            continue
+        snapped.append(float(np.linalg.norm(skin.V[v] - want) * 10))
+        asked.append(want)
+        verts.append(v)
+    if len(verts) < 3:
+        raise ValueError("those places landed on fewer than three corners of the mesh")
+    # Link by link, each one the shortest way between two neighbouring places, and NOT shortened
+    # as a whole. Anything that shortens a closed curve pulls it tight, and a ring drawn on a panel
+    # can be pulled to nothing: asked for a ring on the engine cover, find_geodesic_loop gave back
+    # 98 mm with a 180 degree corner, and closing the chain and shortening that gave 18 mm. A ring
+    # on a car is not the shortest loop through its places; it is the loop THROUGH them.
+    flip = skin.solver("flip")
+    legs = []
+    ring = verts + verts[:1]
+    for a, b in zip(ring[:-1], ring[1:]):
+        leg = np.asarray(flip.find_geodesic_path(int(a), int(b)), np.float64)
+        if len(leg) < 2:
+            raise ValueError(f"no way over the skin between two of the places (corners {a} and {b})")
+        legs.append(leg if not legs else leg[1:])
+    pts = np.vstack(legs)
+    f, _ = skin.nearest(pts)
+    return Curve(skin, pts, f, places=asked, snapped=np.asarray(snapped), name=name or "a loop", closed=True)
+
+
 def mirror(curve, name=""):
     """The same curve on the other side of the car. The two halves of the drawing surface are their
     own geometry (skinmesh mirrors the sheet's half car), so this is a real second curve, not the
     same texels read twice: an asymmetric design stays asymmetric."""
     pts = curve.pts * [-1.0, 1.0, 1.0]
     f, _ = curve.skin.nearest(pts)
-    return Curve(curve.skin, pts, f, places=None,
-                 snapped=curve.snapped, name=name or f"{curve.name}, mirrored")
+    return Curve(curve.skin, pts, f, places=None, snapped=curve.snapped,
+                 name=name or f"{curve.name}, mirrored", closed=curve.closed)
 
 
 # ---- the paint ----
@@ -336,7 +417,8 @@ def band(curve, width, soft=shapes.SOFT, turn=TURN):
             agree[hot] = (n[live][hot] * ribbon_n[j[hot]]).sum(1)
         ok = agree >= limit
         q = p[live]
-        ok &= ((q - head) @ d_head <= 0) & ((q - tail) @ d_tail <= 0)
+        if not curve.closed:   # a ring has no ends: this test cut a closed ring to a fifth of itself
+            ok &= ((q - head) @ d_head <= 0) & ((q - tail) @ d_tail <= 0)
         here = _faces_of(q, n[live])
         if here is not None:
             ok &= (here >= 0) & walked[curve.skin.comp[np.maximum(here, 0)]]
