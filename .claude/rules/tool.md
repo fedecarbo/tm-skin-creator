@@ -90,7 +90,7 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   checks a painted car's drawings from the views. Notes: "The blueprints" in `CHECKLIST.md`.
 - Drawing on the skin: `tool/skinmesh.py` is the whole car's paintable surface as one mesh (the
   sheet's sewn pieces mirrored and subdivided; `PY -m tool.skinmesh --build`, cached in the work
-  folder); `tool/skindraw.py` draws on it (`through`, `circle`, `loop`, `mirror`, `band`; `PY -m
+  folder); `tool/skindraw.py` draws on it (`through`, `parallel`, `circle`, `loop`, `mirror`, `band`; `PY -m
   tool.skindraw --probe "place,place"`); `PY -m tool.skincheck <name>` (`--falsify`, `--floor`)
   measures every band on the car. Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
 - The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in

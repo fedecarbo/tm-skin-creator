@@ -71,25 +71,50 @@ def _texel_of(pos, nrm, w, h):
     return col, row, np.where(f >= 0, d, np.inf)
 
 
-def _edge(rgb, dist, colour, base):
-    """How far the paint reaches along a walk, in cm.
+def _edge(rgb, dist, colour, palette):
+    """How far the paint reaches along a walk, in cm: where the walk last leaves it, read to a
+    fraction of a sample.
 
-    Each sample is scored 1 where it is the paint's colour and 0 where it is whatever lies beyond;
-    the band's edge is feathered over shapes.SOFT (2 mm, about two texels) on purpose, so that
-    score is a ramp, not a step. The reach is the AREA under that ramp, which is where the edge
-    sits however noisy the ramp is -- reading off the first sample below a half instead lets one
-    stray texel, picked up by the nearest-triangle lookup, call the edge early. Returns None if the
-    walk never gets clear of the paint, which means the car ended before the band did."""
-    c = np.asarray(colour, np.float64) * 255.0
-    b = np.asarray(base, np.float64)
-    span = c - b
-    n2 = float(span @ span)
-    if n2 < 1.0:                       # the paint and what is beyond are the same colour: unmeasurable
+    Each sample is sorted into the colour on the car it is nearest (`palette`: every colour laid).
+    The first version scored samples along one axis, from the paint's colour to whatever the walk
+    ended on, and a real livery broke it: the three colours of a sweep 4 mm apart merged into one
+    band 44 mm wide, and cream over its gold edging read as gold. Sorting into the car's own colours
+    keeps neighbours apart. The walk may start on a colour laid later (a band laid under another --
+    the gold under a cream stripe, showing only as its edging); it is measured from its visible
+    outer edge. Returns None if the walk never reaches the paint or never leaves it."""
+    pal = np.asarray(palette, np.float64) * 255.0
+    mine_c = np.asarray(colour, np.float64) * 255.0
+    mine = int(np.argmin(np.linalg.norm(pal - mine_c, axis=1)))
+    x = rgb.astype(np.float64)
+    cls = np.argmin(np.linalg.norm(x[:, None, :] - pal[None], axis=2), axis=1)
+    on = np.flatnonzero(cls == mine)
+    if not len(on):
         return None
-    alpha = np.clip(((rgb.astype(np.float64) - b) @ span) / n2, 0.0, 1.0)
-    if alpha[0] < 0.5 or alpha[-1] > 0.5:
-        return None                    # it does not start on the paint, or never leaves it
-    return float(np.trapezoid(alpha, dist))
+    after = np.flatnonzero((cls != mine) & (np.arange(len(cls)) > on[0]))
+    if not len(after):
+        return None                    # never leaves: the car ended first
+    k = int(after[0])
+    # What lies beyond is where the walk SETTLES, 2 mm on (the feather is 2 mm across), not the
+    # first sample sorted as something else: half-way between black and the grey body sits nearest
+    # graphite, and a 4 mm hairline read 2.8 mm with graphite taken for what lay beyond it.
+    beyond = pal[cls[min(k + 10, len(cls) - 1)]]
+    span = mine_c - beyond
+    n2 = float(span @ span)
+    if n2 < 1.0:
+        return float(dist[k])
+    # The half-way point itself, looked for a few samples either side of where the sorting changed:
+    # a blend half-way between two colours can sit nearer a third colour on the car (orange and
+    # midnight half and half is nearer graphite), which calls the change early and read the orange
+    # a quarter of a millimetre narrow on each side.
+    lo, hi = max(k - 6, 0), min(k + 10, len(x))
+    a = ((x[lo:hi] - beyond) @ span) / n2
+    below = np.flatnonzero(a < 0.5)
+    below = below[below > 0]
+    if not len(below):
+        return float(dist[k])
+    m = int(below[0])
+    frac = np.clip((a[m - 1] - 0.5) / max(a[m - 1] - a[m], 1e-9), 0.0, 1.0)
+    return float(dist[lo + m - 1] + frac * (dist[lo + m] - dist[lo + m - 1]))
 
 
 def _is(rgb, colour, others):
@@ -172,7 +197,7 @@ def measure(skin, drawing, img, others, read=None):
                 edge.append(None)
                 cut = True
                 continue
-            hit = _edge(rgb, dist, colour, rgb[-1])     # what lies beyond is whatever the walk ends on
+            hit = _edge(rgb, dist, colour, others)
             if hit is None:
                 # the paint never ended before the car did: this place is cut by the car, not
                 # mismeasured. A band that runs along the lip of the cockpit really is narrower

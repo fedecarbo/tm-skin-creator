@@ -281,6 +281,38 @@ def loop(items, name=""):
     return Curve(skin, pts, f, places=asked, snapped=np.asarray(snapped), name=name or "a loop", closed=True)
 
 
+def parallel(curve, mm, name=""):
+    """The curve moved `mm` sideways over the skin, every point the same distance from it along the
+    surface: a line exactly parallel to another however the car curves between them. Positive is
+    to the curve's left as it runs, seen from outside the car (for a line run nose to tail on the
+    car's left flank, that is upwards). Bands on parallels of one curve keep their gaps exact, the
+    way a tricolour stripe's colours must, where offsetting in a picture or in the air would open
+    and close them over every fold."""
+    skin = curve.skin
+    d = mm / 10.0
+    pts = curve.resample(0.2)
+    if abs(d) < 1e-9:
+        f, _ = skin.nearest(pts)
+        return Curve(skin, pts, f, name=name or curve.name, closed=curve.closed)
+    f, b = skin.nearest(pts)
+    tan = np.gradient(pts, axis=0)
+    n = skin.fn[np.maximum(f, 0)]
+    tan = tan - n * (tan * n).sum(1)[:, None]
+    tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-12)
+    side = np.cross(n, tan) * np.sign(d)
+    tracer = skin.solver("trace")
+    out = []
+    for k in range(len(pts)):
+        if f[k] < 0:
+            continue
+        path = np.asarray(tracer.trace_geodesic_from_face(int(f[k]), b[k], side[k] * abs(d)), np.float64)
+        if len(path) >= 2 and np.linalg.norm(np.diff(path, axis=0), axis=1).sum() >= abs(d) * 0.98:
+            out.append(path[-1])                     # a walk cut short by the car's edge leaves a gap
+    out = np.asarray(out)
+    fo, _ = skin.nearest(out)
+    return Curve(skin, out, fo, name=name or f"{curve.name}, {mm:+.0f} mm", closed=curve.closed)
+
+
 def mirror(curve, name=""):
     """The same curve on the other side of the car. The two halves of the drawing surface are their
     own geometry (skinmesh mirrors the sheet's half car), so this is a real second curve, not the

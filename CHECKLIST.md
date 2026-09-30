@@ -4144,6 +4144,27 @@ sweeps 20.0 +- 0.17, hoop 40.0 +- 0.15. TSC_SkinMore: eight parallel 10 mm strip
 0.8 mm wide of what was asked), a 24 mm diagonal 24.0 +- 0.14. `--falsify` moves every curve 5.00
 mm and reads it back 4.99 to 5.01; all 17 bands fail, as they must.
 
+**The first crafted car, TSC_Solstice** (the user: "I see only test lines ... Something more
+crafted"): a midnight body, a gold / orange / red sweep of three 16 mm bands 20 mm apart
+(`skindraw.parallel`: each colour a geodesic parallel of one curve, so the 4 mm gaps hold over every
+fold), and twin 36 mm cream stripes on 46 mm gold either side of the cockpit, run off the nose's front
+edge and kept outside the number and name panels. All ten bands pass: 15.7 to 15.8 for 16, 36.1 for
+36, 45.8 for 46, middles within 0.15 mm. A real livery broke the checker twice more: colours side by
+side merged into one band (the orange read 44 mm) until each texel was sorted into the nearest colour
+on the car (`palette`, now recorded in painted.json); and a blend half-way between two colours can sit
+nearest a third (black on grey is nearest graphite), so what lies beyond an edge is read where the
+walk settles, 2 mm on. A band laid under another (gold edging under cream) is measured from its visible
+outer edge. The route report's "corners" at the nose and behind the cockpit were the line crossing a
+crease, not a kink: nothing shows close up.
+
+**A split seen from the side** (the user: "a color split right a the middle of the car if we look at
+it sideways ... Magenta bottom and top to be Cyan"): halfway up the side runs from 31 cm at the nose to
+51 mid-car and 42 at the tail, so "the middle" has two readings, shown as TSC_Split_Level (below 45 cm)
+and TSC_Split_Follow (below a parabola through the halfway points, within 1.4 cm of them). Both are one
+rule about height, so they are exact and continuous by construction; a curve on the surface is for
+lines that aren't a level or a plane. Seen from above, the skin that dips below the line beside the
+cockpit shows as slivers of the lower colour.
+
 **Open**: (1) the nose band FAILS where it drapes over the bonnet's centre fin (+-12 mm); (2) the
 hoop's middle wobbles 1.8 mm and a third of its places can't be measured where it goes down the
 flanks; (3) the break and stray-paint measures disagree with direct measurement on bands that are
