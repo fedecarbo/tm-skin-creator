@@ -296,6 +296,16 @@ class Blueprint:
         return im, marks
 
 
+    def owns(self, nrm):
+        """Whether this view owns spots of the body with these normals: they face it at least
+        FACING and no other view better (the flanks belong to the sides, the roof and the bonnet
+        to the top, the shoulder between them to whichever it faces more), so fills from two
+        views meet without fighting."""
+        n = np.asarray(nrm, np.float64)
+        F = n @ np.array([VIEWS[v]["toward"] for v in VIEWS], np.float64).T
+        mine = F[:, list(VIEWS).index(self.view)]
+        return (mine >= FACING) & (mine >= F.max(1) - 1e-6)
+
     def part_of(self, tri_ids):
         """The part's name of each triangle id (-1: none)."""
         if self.part is None:

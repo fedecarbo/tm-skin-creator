@@ -493,7 +493,8 @@ class Skin:
             self.notes.append(f"{what!r}: didn't understand {' '.join(leftover)!r}")
         if getattr(zone, "view", None):  # drawn on a blueprint: kept for the check
             self.drawn.append({"view": zone.view, "path": zone.path, "kind": zone.kind, "width": getattr(zone, "width", None),
-                               "colour": [float(v) for v in col], "where": where if isinstance(where, str) else list(where)})
+                               "at": getattr(zone, "at", None), "strokes": getattr(zone, "strokes", None), "colour": [float(v) for v in col],
+                               "where": where if isinstance(where, str) else list(where)})
         t0 = time.time()
         for tset, ids in targets.items():
             c = self.canvas(tset)

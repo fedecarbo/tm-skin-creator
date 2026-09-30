@@ -4065,6 +4065,29 @@ weights are cached (`cache/blueprint_<view>_1.npz`, 7 s for all five); the pictu
   of the path on average. Also the stretch of the front flank the side view can't see for the
   wheel (359 mm, behind the wheel's disc): the line stops there and starts again; if a line must
   run behind a wheel, that stretch is drawn from another view or left to the wheel.
+- **The paint bucket (2026-09-30; the user: "those artists that have a side view of a car and do
+  strokes of lines to separate colours").** `shapes.view_fill(view, at, strokes)`: a few strokes cut
+  the view into areas, and a fill is everything the view *owns* that can be reached from a spot
+  without crossing a stroke or leaving the body, so the car's own outline (the arches, the inlet)
+  closes areas too. A view owns a spot when the body faces it at least FACING and no other view
+  better (`Blueprint.owns`): the flanks belong to the sides, the roof and the bonnet to the top,
+  the shoulder to whichever it faces more, so fills from two views meet without fighting
+  (`view_shape` goes by the same rule now). A 1 px stroke stops a 4-connected flood; two fills
+  either side of a stroke both reach its centre, so no base colour shows between them; a stroke
+  cuts OVERRUN (10 mm) beyond each end. What the first attempt taught: **a stroke must run off the
+  car's edge or onto another stroke, or the fill runs round its tip** (the low sweep ended a hair
+  inside the body and the "dark below it" fill flooded the whole sidepod; ending it just before
+  the rear arch wasn't enough either, because the sill runs *under* the arch and joins the two
+  sides: a livery artist carries that stroke down to the sill, and so it does now). The room says
+  so: the fill prints each area's size, and warns when an area lies on both sides of a stroke's
+  tip. The check treats a fill like a shape along each of its strokes, allowing for a pinstripe
+  painted on the same stroke (its half width), and a pixel counts as a paint's only if its colour
+  is nearer that paint than any other drawn in the view (a dark sill beside a black pinstripe was
+  pulling the pinstripe's centre). TSC_Blueprint remade this way: two sweeps A and B on the side
+  views, white above A, red between, dark below B, A and B pinstriped 6 and 4 mm, a red spine down
+  the nose between two strokes from above; both sides; 14 checks pass, `--falsify` fails. Left
+  for a designer: the sidepod's front face behind the inlet, cut off from both red areas by the
+  inlet, wants a seed of its own.
 - **Seen in the game:** not yet.
 
 ## Decisions (for Claude)

@@ -180,8 +180,14 @@ card) and no game: install from the Windows PC after a push.
   before painting: `python -m tool.blueprint --probe left "<path>"`** says every 25 mm what the
   path lands on (the part, how squarely it faces the view); a path that lands on a fin, a wheel,
   an opening or a surface turning away is redrawn, not painted. Then paint it with `shapes.view_line(view, path, width_mm)` (a line, its width exact in 3D, unbroken
-  at seams), `shapes.view_shape(view, path)` (a filled shape) or `shapes.view_point(view, h, v)`
-  (a spot for a disc or a decal). The same path on "left" and "right" is the mirror. A line says
+  at seams), **`shapes.view_fill(view, (h, v), [strokes])` (the paint bucket: the way a livery
+  designer works, a few sweeping strokes cut the side into areas and each area takes a colour;
+  the strokes themselves can be pinstriped with `view_line`; a stroke must run off the car's edge
+  or onto another stroke, else the fill runs round its tip and the tool says so)**,
+  `shapes.view_shape(view, path)` (a filled outline) or `shapes.view_point(view, h, v)` (a spot
+  for a disc or a decal). Each spot of the body belongs to the view it faces most: the flanks are
+  the sides', the roof and bonnet the top's; a colour that crosses the shoulder is filled from
+  both. TSC_Blueprint is the worked example. The same path on "left" and "right" is the mirror. A line says
   where it leaves the body (an opening, a wheel): read that line and redraw rather than leave a
   gap you didn't mean. A path drawn up to an edge climbs over it: stop short if you mean to stop.
   **After painting, run `python -m tool.blueprintcheck <name>`** and read its pictures

@@ -49,7 +49,11 @@ the design as asked), then speed.
   everywhere. The user's look at the first swoosh ("starts above the body and ends up going below
   the body") taught the rule that a view is trustworthy only on the surfaces that face it: the
   views now land only there, the pictures hatch the rest, and `--probe` says what a path lands
-  on before it's painted. Left: `view_lines` across two views (a line wrapping from the side over the nose to
+  on before it's painted. **The paint bucket, built the same day** (`shapes.view_fill`: strokes cut
+  the view into areas, a spot picks one; each spot of the body belongs to the view it faces most;
+  a stroke must run off the car or onto another stroke, and the tool warns when it doesn't): the
+  test car remade as a livery artist would, two sweeps on the side, colours between them,
+  pinstripes on the strokes, a spine from above. Left: `view_lines` across two views (a line wrapping from the side over the nose to
   the other side), (6) the proof car in the game (nothing of this has been seen in the game yet),
   (7) painted pictures projected from a view (the user: "Anything"), blended over several views
   where the body turns away. The plan: `~/.claude/plans/hi-i-need-to-lucky-parnas.md` on the Mac.

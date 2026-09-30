@@ -30,6 +30,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
   Drawn on the blueprints (tool/blueprint.py, car/blueprints/: flat views in the car's own mm):
     shapes.view_line("left", "M -1600,620 C ...", 20)   a 20 mm line drawn on the left view, landed on the body
     shapes.view_shape("top", "M ... Z")                  a filled shape drawn on the top view
+    shapes.view_fill("left", (600, 450), [STROKE_A, STROKE_B])   the paint bucket: the area at that spot, between the strokes
     shapes.view_point("left", -400, 650)                 the spot on the body under that point of the view
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
@@ -505,34 +506,105 @@ def view_line(view, path, width, soft=SOFT, min_facing=None):
     return z
 
 
-def view_shape(view, path, soft=SOFT, min_facing=None, tolerance=0.5):
-    """A filled shape drawn on a blueprint as a closed SVG path (subpaths add up), landed on the
-    body: every spot of the body the view sees inside the outline (within `tolerance` cm of what
-    the view shows, facing it at least `min_facing`, blueprint.FACING unless said), the edge
-    feathered in the view's mm. The far side, anything hidden behind the body and the surfaces
-    turning away from the view stay unpainted."""
+def _landed(bp, filled, soft, tolerance):
+    """A zone from a mask over a blueprint's pixels: its signed distance (mm) sampled at each
+    texel's place in the view, on the spots the view shows (within `tolerance` cm of its depth)
+    and owns (blueprint.Blueprint.owns)."""
     from scipy.ndimage import distance_transform_edt, map_coordinates
-    from PIL import Image, ImageDraw
     from tool import blueprint
-    bp = blueprint.load(view)
-    min_facing = blueprint.FACING if min_facing is None else min_facing
-    mask = Image.new("L", (bp.W, bp.H), 0)
-    d = ImageDraw.Draw(mask)
-    for sub in blueprint.sample_path(path, 1.0):
-        px, py = bp.to_pixel(sub[:, 0], sub[:, 1])
-        d.polygon([(float(x), float(y)) for x, y in zip(px, py)], fill=255)
-    inside = np.asarray(mask) > 127
-    sdf = (distance_transform_edt(inside) - distance_transform_edt(~inside)).astype(np.float32) / blueprint.SCALE  # mm, + inside
+    sdf = (distance_transform_edt(filled) - distance_transform_edt(~filled)).astype(np.float32) / blueprint.SCALE
 
     def dist(p, n):
         h, v, depth = bp.to_view(p)
         px, py = bp.to_pixel(h, v)
         d_mm = map_coordinates(sdf, [py - 0.5, px - 0.5], order=1, mode="constant", cval=-1e4)
         shown = np.abs(depth - bp.depth_at(h, v)) <= tolerance
-        facing = (np.asarray(n, np.float64) @ bp.toward) >= min_facing
-        return np.where(shown & facing, d_mm / 10, -1e4).astype(np.float32)
-    z = field(dist, soft)
+        return np.where(shown & bp.owns(n), d_mm / 10, -1e4).astype(np.float32)
+    return field(dist, soft)
+
+
+OVERRUN = 10.0  # mm: a stroke cuts this much beyond each end, so one ending a hair inside the body's edge still closes the area
+
+
+def _rasterised(bp, paths, fill):
+    """Paths drawn into a mask of the blueprint's pixels: filled polygons, or 1 px lines (an open
+    line carried straight on by OVERRUN mm at each end)."""
+    from PIL import Image, ImageDraw
+    from tool import blueprint
+    mask = Image.new("L", (bp.W, bp.H), 0)
+    d = ImageDraw.Draw(mask)
+    for path in ([paths] if isinstance(paths, str) else paths):
+        for sub in blueprint.sample_path(path, 1.0):
+            if not fill and len(sub) > 2 and np.linalg.norm(sub[0] - sub[-1]) > 1.0:
+                t0 = sub[0] - sub[min(5, len(sub) - 1)]
+                t1 = sub[-1] - sub[max(len(sub) - 6, 0)]
+                t0 /= max(np.linalg.norm(t0), 1e-9)
+                t1 /= max(np.linalg.norm(t1), 1e-9)
+                sub = np.vstack([sub[0] + t0 * OVERRUN, sub, sub[-1] + t1 * OVERRUN])
+            px, py = bp.to_pixel(sub[:, 0], sub[:, 1])
+            pts = [(float(x), float(y)) for x, y in zip(px, py)]
+            if fill:
+                d.polygon(pts, fill=255)
+            else:
+                d.line(pts, fill=255, width=1)
+    return np.asarray(mask) > 127
+
+
+def view_shape(view, path, soft=SOFT, tolerance=0.5):
+    """A filled shape drawn on a blueprint as a closed SVG path (subpaths add up), landed on the
+    body: every spot the view shows inside the outline and owns (faces it at least
+    blueprint.FACING and no other view better), the edge feathered in the view's mm. The far
+    side, anything hidden, and the surfaces another view owns stay unpainted: draw those there."""
+    from tool import blueprint
+    bp = blueprint.load(view)
+    z = _landed(bp, _rasterised(bp, path, True), soft, tolerance)
     z.view, z.path, z.kind = view, path, "shape"
+    return z
+
+
+def view_fill(view, at, strokes=(), soft=SOFT, tolerance=0.5):
+    """The paint bucket, the way a livery designer works on a side view: a few strokes cut the
+    body into areas, and each area takes a colour. `at` is (h, v) mm, a spot inside the area;
+    `strokes` the SVG paths that bound it (open curves are fine): the area is everything the
+    view owns that can be reached from `at` without crossing a stroke or leaving the body, so the
+    car's own outline (the arches, the inlet, the sidepod's edge where the body turns away)
+    closes it too. Two fills either side of a stroke meet on the stroke's centre. Refuses a spot
+    that's off the body, on a stroke, or on a surface another view owns."""
+    from scipy.ndimage import binary_dilation, label
+    from tool import blueprint
+    bp = blueprint.load(view)
+    tri, bary = bp.hits()
+    from tool import raster
+    n = raster.interpolate(tri, bary, bp.N)
+    n /= np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-9)
+    owned = (tri >= 0) & bp.owns(n.reshape(-1, 3)).reshape(bp.H, bp.W)
+    barrier = _rasterised(bp, list(strokes), False)
+    free = owned & ~barrier
+    labels, _ = label(free)  # 4-connected: a 1 px line stops it
+    col, row, inside = bp._at([at[0]], [at[1]])
+    if not inside[0] or labels[row[0], col[0]] == 0:
+        why = "isn't on the body" if not inside[0] or tri[row[0], col[0]] < 0 else "is on a stroke" if barrier[row[0], col[0]] else "is on a surface this view doesn't own (it turns away: fill it from the view that faces it)"
+        raise ValueError(f"view_fill {view}: the spot ({at[0]}, {at[1]}) {why}")
+    area = labels == labels[row[0], col[0]]
+    # a stroke that ends inside the area doesn't close it: the fill runs round its end and lies on
+    # both sides of it (a designer's stroke runs off the car's edge or meets another stroke)
+    for k, stroke in enumerate(strokes):
+        for sub in blueprint.sample_path(stroke, 1.0):
+            if len(sub) < 12:
+                continue
+            for end, inner in ((sub[0], sub[8]), (sub[-1], sub[-9])):
+                t = end - inner
+                t /= max(np.linalg.norm(t), 1e-9)
+                side = np.array([-t[1], t[0]]) * 4.0
+                c, r, ins = bp._at([inner[0] + side[0], inner[0] - side[0]], [inner[1] + side[1], inner[1] - side[1]])
+                if ins.all() and area[r, c].all():
+                    print(f"view_fill {view}: stroke {k + 1} ends inside the area at ({end[0]:.0f}, {end[1]:.0f}): the fill runs round it. "
+                          "Run the stroke off the car's edge or onto another stroke to close the area.")
+    filled = area | (barrier & binary_dilation(area))  # up to the strokes' centres, so neighbours meet
+    z = _landed(bp, filled, soft, tolerance)
+    z.view, z.path, z.kind, z.at, z.strokes = view, " ".join(strokes), "fill", tuple(at), list(strokes)
+    z.area_cm2 = float(filled.sum()) / (10 * blueprint.SCALE) ** 2
+    print(f"view_fill {view}: the area at ({at[0]:.0f}, {at[1]:.0f}) covers {z.area_cm2:.0f} cm² of the view")
     return z
 
 
