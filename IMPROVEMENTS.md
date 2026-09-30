@@ -22,7 +22,7 @@ the design as asked), then speed.
   measured: widths within 0.2 mm, middles within 0.1 mm, on seventeen bands of eight kinds.
   **Left:** the nose band over the bonnet's centre fin; the hoop down the flanks; a break and
   stray-paint measure that can be trusted; a filled area spanning parts; the skill's drawing
-  section; retiring the blueprint drawing once this is seen in the game; and the game itself.
+  section; retiring the blueprint drawing.
   Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
 - **The car's lines pinned by the user, then drawing on blueprints** (the user, 2026-09-29: "I
   initially thought that claude actually knew how to paint just by having the 3d model and the UV

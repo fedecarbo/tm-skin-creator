@@ -28,8 +28,8 @@ like what you show them.
 - Show rather than describe. A preview picture beats a paragraph.
 - Ask only about taste and real trade-offs. Don't ask about things good design handles anyway:
   a question about their driving camera felt pointless (2026-09-23).
-- The user is happy to test in the game (drive, brake, turbo, day and night, F12 screenshots).
-  Ask for that whenever the game is the only way to know.
+- Don't ask the user to test in the game. They try things there when they want to, and not
+  everything needs it (the user, 2026-09-30). If they share F12 screenshots, use them.
 
 ## Where things are
 

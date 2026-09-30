@@ -4148,8 +4148,8 @@ mm and reads it back 4.99 to 5.01; all 17 bands fail, as they must.
 hoop's middle wobbles 1.8 mm and a third of its places can't be measured where it goes down the
 flanks; (3) the break and stray-paint measures disagree with direct measurement on bands that are
 whole (every one of the spine's 107 899 texels lies within 22 mm of its curve, yet the walk reports
-a 40 mm break), so they are printed and not judged; (4) nothing is seen in the game yet; (5) a
-filled area spanning parts, the plan's fourth proof, isn't built.
+a 40 mm break), so they are printed and not judged; (4) a filled area spanning parts, the plan's
+fourth proof, isn't built.
 
 ## Decisions (for Claude)
 
