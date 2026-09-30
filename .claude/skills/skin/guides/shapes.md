@@ -35,7 +35,7 @@ with the car's name.
   width over every fold and seam, run off the car's edge rather than stopped mid-panel. A
   multi-colour stripe is parallels of one curve, so its gaps hold. See `SKILL.md`, "Draw lines on
   the car's own skin", and TSC_Solstice.
-- Zones (`tool/shapes.py`): the map's first (`area`, `outside`, `across`, `along`, `line`, `near`,
+- Zones (`tool/shapes.py`): the map's first (`area`, `outside`, `along`, `near`,
   `hit`, `streamlines`), which follow the body by themselves; then planes for diagonal
   splits, `facing`, `blob`, `grass`, `fade`, combined with & | ~. Spots and shapes seen from above:
   `& shapes.area("top") & shapes.outside(0.4)`. A line that runs with the car's shape: `skindraw`; with the air: `streamlines`. Patterns made of things: `s.scatter`;

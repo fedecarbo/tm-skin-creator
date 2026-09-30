@@ -4165,6 +4165,23 @@ rule about height, so they are exact and continuous by construction; a curve on 
 lines that aren't a level or a plane. Seen from above, the skin that dips below the line beside the
 cockpit shows as slivers of the lower colour.
 
+**Retired, 2026-09-30** (the user: "Ok so this tool works a lot better. Can you remove deprecated
+and clean up"). Gone, with their test cars and pictures: the blueprints (`tool/blueprint.py`,
+`tool/blueprintcheck.py`, `shapes.view_line`, `view_shape`, `view_fill`, `view_point`,
+`car/blueprints/`, TSC_Blueprint); the body sheet (`tool/surface.py`, `tool/sheetink.py`,
+`tool/sheetcheck.py`, `tool/sheetmap.py`, `shapes.sheet`, `sheet_line`, `sheet_near`, `offset`,
+`along_cm`, `across_cm`, `s.decal(..., "sheet")`, `car/sheet.*`, the map's `--sheet` and its sheet
+check, TSC_Map_Sheet, TSC_Map_Proof); bands off the map's fitted lines (`shapes.line_offset`); and
+`tool/joins.py`, which nothing used. None of the skins installed in the game used any of them. The
+skin took the sheet's panel sewing into `tool/skinmesh.py`, but sews every join: the sheet unsewed
+the ones that strained its flattening, which only left breaks a line couldn't cross (6 pieces of
+surface now where there were 8, the same 61 530 cm2; the three skin-drawn cars measured the same
+before and after). The car map stays: its areas are cut by its fitted lines, and its openings, air
+and chase cameras are used; `shapes.line` only shows the map on its test cars. The cleanup found
+that a pinned line's name had never worked as a place (the file keeps `points` and `normals`, the
+code read `pins`): `skindraw.through(["side crease"])` now runs through all six pins, over the
+stitched join from the rear flank onto the sidepod's top.
+
 **Open**: (1) the nose band FAILS where it drapes over the bonnet's centre fin (+-12 mm); (2) the
 hoop's middle wobbles 1.8 mm and a third of its places can't be measured where it goes down the
 flanks; (3) the break and stray-paint measures disagree with direct measurement on bands that are

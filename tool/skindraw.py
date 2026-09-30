@@ -157,22 +157,17 @@ def place(skin, item):
         if word == "side":                       # whichever flank this point is on
             nrm = (1.0 if float(item[0]) >= 0 else -1.0, 0.0, 0.0)
         nrm = np.asarray(nrm, np.float64)
-    if isinstance(item, str):
+    if isinstance(item, dict):                   # a pin: its place and the way the skin faces there
+        want = np.asarray(item["pos"], np.float64)
+        nrm = np.asarray(item["normal"], np.float64)
+    elif isinstance(item, str):
         key = item.strip()
-        if key in paintbox.SPOTS:
-            spot = paintbox.SPOTS[key]
-            want = np.asarray(spot["centre"], np.float64)
-            nrm = np.asarray(spot["facing"], np.float64) if "facing" in spot else None
-        else:
-            from tool import lines as pins
-            found = None
-            for ln in pins.load():
-                if ln["name"] == key:
-                    found = np.asarray([p["pos"] for p in ln["pins"]], np.float64)
-            if found is None:
-                raise ValueError(f"no place called {key!r}: try one of {', '.join(paintbox.SPOTS)}, "
-                                 f"a pinned line's name, or (x, y, z) in cm")
-            want = found.mean(0)
+        if key not in paintbox.SPOTS:
+            raise ValueError(f"no place called {key!r}: try one of {', '.join(paintbox.SPOTS)}, "
+                             f"a pinned line's name (python -m tool.lines), or (x, y, z) in cm")
+        spot = paintbox.SPOTS[key]
+        want = np.asarray(spot["centre"], np.float64)
+        nrm = np.asarray(spot["facing"], np.float64) if "facing" in spot else None
     else:
         want = np.asarray(item, np.float64)
     f, b = skin.nearest(want[None], None if nrm is None else nrm[None])
@@ -183,12 +178,32 @@ def place(skin, item):
     return int(f[0]), b[0], want, moved
 
 
+def pinned(name):
+    """A line the user pinned in the Lab's lines room (tool/lines.py), as places: its pins in the
+    order they were pinned, each with the way the skin faces there. None if there's no such line."""
+    from tool import lines as pins
+    for ln in pins.load()["lines"]:
+        if ln["name"] == name:
+            return [{"pos": p, "normal": n} for p, n in zip(ln["points"], ln["normals"])]
+    return None
+
+
+def _expand(items):
+    """Places, with a pinned line's name opened out into its pins."""
+    out = []
+    for it in items:
+        pins = pinned(it.strip()) if isinstance(it, str) else None
+        out.extend(pins if pins else [it])
+    return out
+
+
 def through(items, name=""):
     """A curve through places on the car: each link the surface's own straight line. `items` is a
-    list of names (paintbox.SPOTS or a pinned line) and/or (x, y, z) in cm, nose to tail or however
-    you mean it to run. Two places give one straight line on the surface; add more to choose the
+    list of names from paintbox.SPOTS, pinned lines' names (the curve runs through all their pins,
+    in order), and/or (x, y, z) in cm, nose to tail or however you mean it to run. Two places give one straight line on the surface; add more to choose the
     route, because the shortest way between two places goes round obstacles, not over them."""
     skin = skinmesh.load()
+    items = _expand(items)
     if len(items) < 2:
         raise ValueError("a curve needs at least two places")
     verts, snapped, asked = [], [], []
@@ -464,14 +479,19 @@ def band(curve, width, soft=shapes.SOFT, turn=TURN):
 
 def main():
     ap = argparse.ArgumentParser(description="drawing on the car's skin")
-    ap.add_argument("--probe", metavar="PLACES", help="a curve through these places, comma separated")
+    ap.add_argument("--probe", metavar="PLACES", help='a curve through these places, comma separated: '
+                    'names ("bonnet", a pinned line) or "x y z [facing]" in cm')
     ap.add_argument("--agree", action="store_true", help="the two distance measures checked against each other")
     a = ap.parse_args()
     if a.probe:
         items = []
         for s in a.probe.split(","):
-            s = s.strip()
-            items.append(tuple(float(x) for x in s.split()) if " " in s else s)
+            words = s.split()
+            try:                                     # "x y z" in cm, perhaps with a facing word
+                nums = tuple(float(x) for x in words[:3])
+                items.append(nums + tuple(words[3:4]) if len(words) > 3 else nums)
+            except ValueError:                       # a name: a spot or a pinned line
+                items.append(s.strip())
         print(through(items, name=a.probe).report())
     if a.agree:
         agree()

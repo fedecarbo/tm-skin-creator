@@ -9,7 +9,6 @@ point on the car. In a design, through `tool.shapes`:
     shapes.area("top")            the top, between the shoulders ("sides", "under"; the body has no front or
                                   back face: car/map.md)
     shapes.outside(0.4)           the outer body: spots that see at least 40 % of the open air
-    shapes.across(0, 0.3)         a band the same share of the way across the top all along the car
     shapes.along(0.2, 0.4)        a band 20 % to 40 % of the way from the nose to the tail
     shapes.line("shoulder", 1.5)  a line 1.5 cm wide along one of the car's lines (LINES)
     shapes.near("opening", 3)     within 3 cm of one of them (to keep a graphic clear, use ~)
@@ -1710,16 +1709,11 @@ def describe(m=None):
          "tool.carmap --check`), the real folds black, openings red, joins blue.",
          "- `car/map/lines.jpg` (TSC_Map_Lines): every ridge of the body's curvature on clay, each in its own colour.",
          "- `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.",
-         "- `car/map/grid.jpg` (TSC_Map_Grid): across every quarter and along every tenth: how a band placed by "
-         "them bends with the body.",
          "- `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet "
          "(hidden).",
          "- `car/map/air.jpg` (TSC_Map_Air): where the oncoming air hits, a warm ramp over black, and smoke lines "
          "traced along its flow from a rake at the nose.",
-         "- `car/map/sheet.jpg` (TSC_Map_Sheet): a 10 cm checker and bands 30, 60 and 90 mm below the shoulder, drawn "
-         "only on the body sheet (`car/sheet.png`): every square 10 cm on the paint, the bands parallel to the shoulder.",
-         "- `car/map/proof.jpg` (TSC_Map_Proof): a livery drawn only on the sheet: pinstripes along the shoulder, the "
-         "lower edge and the folds, bands and contour lines at fixed offsets, roundels at true size, a decal.", "",
+         "",
          "The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 "
          "(https://sketchfab.com/amogusstrikesback2).", ""]
     L += ["## The body along its length", "",
@@ -1737,33 +1731,20 @@ def describe(m=None):
     fa_ = m.area
     outer = ~np.isin(names[m.part], WHEEL_COVERS + BLADES)
     fwd, bwd = fa_[(m.fn[:, 2] > 0.7) & outer].sum(), fa_[(m.fn[:, 2] < -0.7) & outer].sum()
-    L += ["## The body sheet: design on it first", "",
-          "The outer skin flattened into a sewing pattern in true size (`tool/surface.py`; `car/sheet.png` to look at, "
-          "`car/sheet.svg` and `car/sheet.json` to read and write, all in millimetres: x from the nose's tip at the left to the "
-          "tail, y down from the top centreline). One piece holds the top and both flanks with the sidepod's top sewn in; the "
-          "skirt (the underside, cut at the skirt's crest), the tail (2 cm behind the rear flank), the diffuser and the inlet's "
-          "duct lie below it as their own pieces. Its lines are the map's own (the shoulder green, the lower edge magenta, "
-          "folds black, openings red, joins blue; under them, paler, the design lines: each named line as one smooth curve "
-          "per stretch, blended in orange across the gap at the sidepod's rear corner where the measured line is two "
-          "curves), with the stations (z 150, 100 ...) marked along the top. A lattice, a logo or a decal drawn on the sheet "
-          "lands on the car with its true size, the right side mirrored (`shapes.sheet(...)`, `s.decal(picture, \"sheet\", "
-          "at=(x, y), width=mm)`, `shapes.along_cm`, `shapes.across_cm`); a line, a band or a pinstripe is never drawn on "
-          "the sheet: it is the exact 3D distance to the design line (`shapes.line(\"shoulder\", w)`, "
-          "`shapes.line_offset(\"shoulder\", 30, 8)`: a band 8 mm wide 30 mm below the shoulder everywhere), so it never "
-          "breaks at a join. "
-          "How true it is, by number: `python -m tool.carmap --check` (the sheet's table: a 20 mm stripe drawn at any angle "
-          "is 20 mm on the paint within a millimetre over 95 % of the painted body) and `python -m tool.sheetcheck <car>` on a "
-          "painted car (every band's crossing of a join measured on the texture). Where the body turns through three faces "
-          "(the sidepod's corners) the sheet shears a little rather than cut the paint: the check names those spots.", ""]
+    L += ["## Lines on the car", "",
+          "Lines, stripes, bands, pinstripes and rings are drawn on the car's own skin (`tool/skindraw.py`): each one a "
+          "curve on the surface through places you pick, its width measured over the body, exact over every fold and "
+          "seam, and checked on the painted car (`python -m tool.skincheck <car>`). The map's own lines below are fitted "
+          "off the mesh to cut its areas; they are not for drawing.", ""]
     from tool import pieces as pieces_mod
     plist, nm = pieces_mod.write()
     L += ["## The model's pieces", "",
           f"The body is {len(plist)} separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers "
           f"left out), and {nm} edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, "
           "the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge "
-          "lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it. A line or a band "
-          "carries over a gap because it is measured from one 3D curve; a lattice, a logo or a decal drawn on the sheet is cut "
-          "by a gap and must not straddle one (`tool/pieces.py`, `car/pieces.json`).", "",
+          "lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it. Where two pieces "
+          "almost touch the skin is sewn and a line carries straight over; across a real gap (the tail's 2 cm slot) a line "
+          "stops, as a real wrap would, and a decal must not straddle one (`tool/pieces.py`, `car/pieces.json`).", "",
           "| parts | cm² | edge cm | gap cm | edge within 1 cm | hidden skin behind, cm² | z |", "|---|---|---|---|---|---|---|"]
     for q in plist:
         L.append(f"| {', '.join(q['parts'])} | {q['cm2']} | {q['boundary_cm']} | {q['gap_cm'] if q['gap_cm'] is not None else '-'} | "
@@ -1830,11 +1811,10 @@ def describe(m=None):
           "- `shapes.area(\"top\" | \"sides\" | \"under\" | \"front\" | \"back\")`: the body's areas, split along "
           "its own lines.",
           "- `shapes.outside(0.4)`: the outer body only (keeps paint out of the inlets, the wheel pockets, under panels).",
-          "- `shapes.across(a0, a1)`: a band round the section (0 the top's middle, 1 the shoulder, 2 the lower edge, 3 "
-          "under), the same share of the way all along the car.",
           "- `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).",
-          "- `shapes.line(kind, width)`, `shapes.near(kind, reach)`: along or near a fold, an opening, a join, the "
-          "shoulder, the lower edge; `~shapes.near(...)` keeps a graphic clear.",
+          "- `shapes.near(kind, reach)`: near a fold, an opening, a join, the shoulder, the lower edge; `~shapes.near(...)` "
+          "keeps a graphic clear. (`shapes.line(kind, width)` shows the map's own lines on its test cars.)",
+          "- Lines on the car: `tool/skindraw.py`.",
           "- `shapes.hit(lo, hi)`: where the oncoming air hits, 0..1 (bands of it make a pressure map).",
           "- `shapes.streamlines(shapes.rake(z, [across ...]), width)`: smoke lines along the air's flow from a "
           "row of seeds.",
@@ -1854,13 +1834,6 @@ if __name__ == "__main__":
         mapcheck.check(verbose="-v" in sys.argv)  # the evidence, slice by slice
         print()
         mapcheck.curves()  # the lines as the eye sees them
-        print()
-        mapcheck.sheet()  # the body sheet: distortion, the round trip, offsets, symmetry, seams
-        raise SystemExit
-    if "--sheet" in sys.argv:
-        from tool import sheetmap
-        for p in sheetmap.write():
-            print(p)
         raise SystemExit
     t = time.time()
     m = build()

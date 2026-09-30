@@ -3,14 +3,11 @@ car/lines.json: a few pins on the body per line (cm; x the car's left, y up, z f
 tool/paint.py), a name, and whether it's mirrored to the other side. Claude can't see or click;
 the user can (2026-09-29: "Maybe we build a tool to build the tool").
 
-The pins are marks, not curves. Turning sparse pins into one smooth curve on this body was tried
-the same day and dropped (the user: "I think we just stick to blueprint"): a spline through pins
-30 cm apart cuts through the body's bulge by centimetres and, pulled onto the skin, lands on the
-wrong surface (off by up to 5 cm); a path built on the body by splitting chords and pulling their
-middles wanders round openings (4 cm from its pins); the room's own preview (a spline snapped
-along the pins' normals) is only a rough picture. Where a pinned line is wanted in a design, it's
-drawn on the blueprints (tool/blueprint.py) through the pins' marks, and that curve is exact by
-construction: a point on a view lands on the body along the line of sight.
+The pins say where a line runs; the tool draws it. A pinned line's name is a place list for
+tool/skindraw.py: skindraw.through(["side crease"]) runs a chain of the surface's own straight lines
+through its pins in order, exact and on the body. (Sparse pins joined by a spline through the air
+were tried the same day and dropped: it cut through the body's bulge by centimetres and, pulled back
+onto the skin, landed on the wrong surface. The room's own preview is still only a rough picture.)
 
     python -m tool.lines             every line and its pins
     lines.load(), lines.save(doc)    the file (standard library only: the viewer's server writes it, /api/lines)

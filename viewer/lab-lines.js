@@ -4,7 +4,7 @@
 // line is a handful of pins (5 to 8 are plenty), and the curve through them is put back on the body
 // and smoothed, here for the eye and in tool/lines.py for the paint, the same recipe. The lines are
 // kept in car/lines.json through the viewer's server (tool/view.py, /api/lines): a small asset,
-// committed, the same on both computers. shapes.line, near and line_offset go by a pinned line's name.
+// committed, the same on both computers. tool/skindraw.py draws a line through a pinned line's pins by its name.
 //   /lab.html?room=lines
 // The car is the viewer itself (index.html?embed=1) in the Studio's clay, matte, with the wheels off
 // (the user, 2026-09-29: "hide wheels ... make the skin maybe clayish and matte so I can see

@@ -22,25 +22,14 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
   The car map's (tool/carmap.py, car/map.md: they follow the body's own shape):
     shapes.area("top")                     the top between the shoulders; "sides", "under"
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
-    shapes.across(0, 0.3)                  a band round the section (0 top's middle, 1 shoulder, 2 lower edge)
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
-    shapes.line("shoulder", 1.5)           a line along the shoulder, "lower", "fold", "opening", "join"
+    shapes.line("fold", 1.5)               a line along the map's own "fold", "opening", "join", "shoulder",
+                                           "lower" (it shows the map; draw lines with tool/skindraw.py)
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
-    shapes.line_offset("shoulder", 30, 20) a 20 mm band 30 mm below the shoulder, parallel to it
-  Drawn on the blueprints (tool/blueprint.py, car/blueprints/: flat views in the car's own mm):
-    shapes.view_line("left", "M -1600,620 C ...", 20)   a 20 mm line drawn on the left view, landed on the body
-    shapes.view_shape("top", "M ... Z")                  a filled shape drawn on the top view
-    shapes.view_fill("left", (600, 450), [STROKE_A, STROKE_B])   the paint bucket: the area at that spot, between the strokes
-    shapes.view_point("left", -400, 650)                 the spot on the body under that point of the view
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
-  The body sheet (tool/surface.py: the skin flattened in true size; car/sheet.png, .svg, .json, in mm):
-    shapes.sheet("stripes.svg")            an SVG drawn in the sheet's frame, painted on the car true size
-    shapes.sheet(picture, box=(x0, y0, x1, y1)), shapes.sheet(lines, width=8), shapes.sheet(lambda x, y: ...)
-    shapes.line_offset("shoulder", 30, 8)  a band 8 mm wide, 30 mm below the shoulder everywhere: the distance
-                                           in 3D to the map's one smooth design line (never a step at a join)
-    shapes.sheet_near("fold", 20)          within 20 mm on the sheet of a fold (~ keeps clear); sheet_line likewise
-    shapes.along_cm(50, 70), shapes.across_cm(10, 14)   bands measured over the body (cm), not through the air
+  Lines, stripes, bands and rings are drawn on the car's own skin: tool/skindraw.py, whose band()
+  gives a zone like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Lengths: the car runs from z = -162 (tail) to 215 (nose tip); the wheels sit at z = 179 and
 -120, the cockpit opening at about z = -50 .. 90, the deck behind it to z = -133. Its width is
@@ -428,13 +417,6 @@ def outside(at_least=0.4, soft=SOFT):
     return field(lambda p, n: _map().level("open", at_least, p, n), soft)
 
 
-def across(a0, a1, soft=SOFT):
-    """A band round the body's section, the same share of the way across it all along the car (the
-    car map's "across": 0 the top's middle, 1 the shoulder, 2 the lower edge, 3 the underside's
-    middle), so it follows the body's shape. On both sides."""
-    return field(lambda p, n: np.minimum(_map().across_level(p, a0), -_map().across_level(p, a1)), soft)
-
-
 def along(a0, a1, soft=SOFT):
     """A band across the car from a0 to a1 of the way from the nose's tip (0) to the tail (1)."""
     return field(lambda p, n: np.minimum(_map().level("along", a0, p, n), -_map().level("along", a1, p, n)), soft)
@@ -456,166 +438,10 @@ def near(kind, reach, soft=SOFT):
 
 
 def line(kind, width=1.0, soft=SOFT):
-    """A line `width` cm wide drawn along one of the car's lines (see near). "shoulder" and
-    "lower" are the map's design lines: one smooth curve per stretch, blended through the
-    sidepod's corners (carmap.Map.design_lines), so the line never breaks or kinks at a join."""
+    """A line `width` cm wide along one of the car map's own lines (see near), to show the map on its
+    test cars (TSC_Map_Areas). "shoulder" and "lower" are fitted off the mesh; they cut the map's
+    areas and aren't for drawing a design: lines are drawn with tool/skindraw.py."""
     return near(kind, width / 2, soft)
-
-
-def line_offset(kind, d, width, soft=SOFT):
-    """A band `width` mm wide whose centre runs `d` mm past one of the map's design lines
-    ("shoulder": down the side, "lower": on under; d < 0 the other way), measured as the exact
-    distance in 3D to that one smooth curve, so the band is continuous across every UV seam,
-    join and gap by construction and parallel to the line everywhere (on this body the chord is
-    within 0.2 mm of the arc at 30 mm). Both sides. The earlier project's lesson (2026-09-29): a
-    band is a function of the point on the car, not of a flat sheet."""
-    a = {"shoulder": 1, "lower": 2}[kind]
-    return field(lambda p, n: width / 20 - np.abs(_map().across_level(p, a) - d / 10), soft)
-
-
-# ---- The blueprints (tool/blueprint.py): drawn flat on a view, landed on the body ----
-
-def view_line(view, path, width, soft=SOFT, min_facing=None):
-    """A line `width` mm wide drawn on a blueprint ("left", "right", "top", "front", "rear") as an
-    SVG path in the view's mm (tool/blueprint.py says the axes: (z, y) on the sides, (x, z) from
-    above, (x, y) front and rear; M, L, C, Q, S, T, Z, no arcs). Each point of the path lands on
-    the body along the line of sight, and the line is painted as the exact 3D distance to that
-    curve, so its width holds where the body curves and it never breaks at a seam. It lands only
-    where the body faces the view (blueprint.FACING, or `min_facing`): where the path leaves the
-    body's outline, crosses a wheel or a fin, or runs onto a surface turning away from the view (a
-    top face from the side, the underside's slope: the first proof's swoosh did both), the line
-    stops there and says so; draw that stretch from the view that faces it. The zone keeps
-    .pieces (the curve on the body, cm) for the check."""
-    from tool import blueprint
-    bp = blueprint.load(view)
-    least = blueprint.FACING if min_facing is None else min_facing
-    pieces, gaps, away = [], [], []
-    for sub in blueprint.sample_path(path, 1.0):
-        pos, nrm, ok = bp.hit(sub[:, 0], sub[:, 1])
-        faces = ok & ((nrm @ bp.toward) >= least)
-        for run in np.split(np.arange(len(faces)), np.flatnonzero(np.diff(faces.astype(int)) != 0) + 1):
-            if faces[run[0]] and len(run) > 1:
-                pieces.append(pos[run])
-            elif not faces[run[0]] and len(run) >= 5:
-                (away if ok[run].any() else gaps).append((tuple(sub[run[0]].round()), tuple(sub[run[-1]].round()), len(run)))
-    say = lambda what, runs: "; ".join(f"{what} for {n} mm between ({a[0]:.0f}, {a[1]:.0f}) and ({b[0]:.0f}, {b[1]:.0f})" for a, b, n in runs)
-    if gaps or away:  # said out loud: nothing is painted there
-        print(f"view_line {view}: " + "; ".join(filter(None, [say("off the body", gaps), say("the body turns away from the view", away)])))
-    z = polyline(pieces, width / 10, soft)
-    z.pieces, z.view, z.path, z.gaps, z.kind, z.width = pieces, view, path, gaps, "line", width
-    return z
-
-
-def _landed(bp, filled, soft, tolerance):
-    """A zone from a mask over a blueprint's pixels: its signed distance (mm) sampled at each
-    texel's place in the view, on the spots the view shows (within `tolerance` cm of its depth)
-    and owns (blueprint.Blueprint.owns)."""
-    from scipy.ndimage import distance_transform_edt, map_coordinates
-    from tool import blueprint
-    sdf = (distance_transform_edt(filled) - distance_transform_edt(~filled)).astype(np.float32) / blueprint.SCALE
-
-    def dist(p, n):
-        h, v, depth = bp.to_view(p)
-        px, py = bp.to_pixel(h, v)
-        d_mm = map_coordinates(sdf, [py - 0.5, px - 0.5], order=1, mode="constant", cval=-1e4)
-        shown = np.abs(depth - bp.depth_at(h, v)) <= tolerance
-        return np.where(shown & bp.owns(n), d_mm / 10, -1e4).astype(np.float32)
-    return field(dist, soft)
-
-
-OVERRUN = 10.0  # mm: a stroke cuts this much beyond each end, so one ending a hair inside the body's edge still closes the area
-
-
-def _rasterised(bp, paths, fill):
-    """Paths drawn into a mask of the blueprint's pixels: filled polygons, or 1 px lines (an open
-    line carried straight on by OVERRUN mm at each end)."""
-    from PIL import Image, ImageDraw
-    from tool import blueprint
-    mask = Image.new("L", (bp.W, bp.H), 0)
-    d = ImageDraw.Draw(mask)
-    for path in ([paths] if isinstance(paths, str) else paths):
-        for sub in blueprint.sample_path(path, 1.0):
-            if not fill and len(sub) > 2 and np.linalg.norm(sub[0] - sub[-1]) > 1.0:
-                t0 = sub[0] - sub[min(5, len(sub) - 1)]
-                t1 = sub[-1] - sub[max(len(sub) - 6, 0)]
-                t0 /= max(np.linalg.norm(t0), 1e-9)
-                t1 /= max(np.linalg.norm(t1), 1e-9)
-                sub = np.vstack([sub[0] + t0 * OVERRUN, sub, sub[-1] + t1 * OVERRUN])
-            px, py = bp.to_pixel(sub[:, 0], sub[:, 1])
-            pts = [(float(x), float(y)) for x, y in zip(px, py)]
-            if fill:
-                d.polygon(pts, fill=255)
-            else:
-                d.line(pts, fill=255, width=1)
-    return np.asarray(mask) > 127
-
-
-def view_shape(view, path, soft=SOFT, tolerance=0.5):
-    """A filled shape drawn on a blueprint as a closed SVG path (subpaths add up), landed on the
-    body: every spot the view shows inside the outline and owns (faces it at least
-    blueprint.FACING and no other view better), the edge feathered in the view's mm. The far
-    side, anything hidden, and the surfaces another view owns stay unpainted: draw those there."""
-    from tool import blueprint
-    bp = blueprint.load(view)
-    z = _landed(bp, _rasterised(bp, path, True), soft, tolerance)
-    z.view, z.path, z.kind = view, path, "shape"
-    return z
-
-
-def view_fill(view, at, strokes=(), soft=SOFT, tolerance=0.5):
-    """The paint bucket, the way a livery designer works on a side view: a few strokes cut the
-    body into areas, and each area takes a colour. `at` is (h, v) mm, a spot inside the area;
-    `strokes` the SVG paths that bound it (open curves are fine): the area is everything the
-    view owns that can be reached from `at` without crossing a stroke or leaving the body, so the
-    car's own outline (the arches, the inlet, the sidepod's edge where the body turns away)
-    closes it too. Two fills either side of a stroke meet on the stroke's centre. Refuses a spot
-    that's off the body, on a stroke, or on a surface another view owns."""
-    from scipy.ndimage import binary_dilation, label
-    from tool import blueprint
-    bp = blueprint.load(view)
-    tri, bary = bp.hits()
-    from tool import raster
-    n = raster.interpolate(tri, bary, bp.N)
-    n /= np.maximum(np.linalg.norm(n, axis=-1, keepdims=True), 1e-9)
-    owned = (tri >= 0) & bp.owns(n.reshape(-1, 3)).reshape(bp.H, bp.W)
-    barrier = _rasterised(bp, list(strokes), False)
-    free = owned & ~barrier
-    labels, _ = label(free)  # 4-connected: a 1 px line stops it
-    col, row, inside = bp._at([at[0]], [at[1]])
-    if not inside[0] or labels[row[0], col[0]] == 0:
-        why = "isn't on the body" if not inside[0] or tri[row[0], col[0]] < 0 else "is on a stroke" if barrier[row[0], col[0]] else "is on a surface this view doesn't own (it turns away: fill it from the view that faces it)"
-        raise ValueError(f"view_fill {view}: the spot ({at[0]}, {at[1]}) {why}")
-    area = labels == labels[row[0], col[0]]
-    # a stroke that ends inside the area doesn't close it: the fill runs round its end and lies on
-    # both sides of it (a designer's stroke runs off the car's edge or meets another stroke)
-    for k, stroke in enumerate(strokes):
-        for sub in blueprint.sample_path(stroke, 1.0):
-            if len(sub) < 12:
-                continue
-            for end, inner in ((sub[0], sub[8]), (sub[-1], sub[-9])):
-                t = end - inner
-                t /= max(np.linalg.norm(t), 1e-9)
-                side = np.array([-t[1], t[0]]) * 4.0
-                c, r, ins = bp._at([inner[0] + side[0], inner[0] - side[0]], [inner[1] + side[1], inner[1] - side[1]])
-                if ins.all() and area[r, c].all():
-                    print(f"view_fill {view}: stroke {k + 1} ends inside the area at ({end[0]:.0f}, {end[1]:.0f}): the fill runs round it. "
-                          "Run the stroke off the car's edge or onto another stroke to close the area.")
-    filled = area | (barrier & binary_dilation(area))  # up to the strokes' centres, so neighbours meet
-    z = _landed(bp, filled, soft, tolerance)
-    z.view, z.path, z.kind, z.at, z.strokes = view, " ".join(strokes), "fill", tuple(at), list(strokes)
-    z.area_cm2 = float(filled.sum()) / (10 * blueprint.SCALE) ** 2
-    print(f"view_fill {view}: the area at ({at[0]:.0f}, {at[1]:.0f}) covers {z.area_cm2:.0f} cm² of the view")
-    return z
-
-
-def view_point(view, h, v):
-    """The spot on the body under a point of a blueprint (view mm) -> (x, y, z) cm, for placing a
-    disc, a decal or a pattern's centre by eye on the picture."""
-    from tool import blueprint
-    pos, _, ok = blueprint.load(view).hit([h], [v])
-    if not ok[0]:
-        raise ValueError(f"({h}, {v}) on the {view} blueprint is off the body")
-    return tuple(float(x) for x in pos[0])
 
 
 def hit(lo, hi=1.01, soft=SOFT):
@@ -664,122 +490,9 @@ def rake(z, across):
     return _map().rake(z, across)
 
 
-# ---- The body sheet (tool/surface.py): drawing flat on the car's own pattern, in millimetres ----
-# The sheet is the outer skin flattened in true size (car/sheet.png, car/sheet.svg, car/sheet.json:
-# the nose's tip at the left, the top centreline along the top, y down). A shape drawn on it lands
-# on the car with its true size, the right side mirrored. It is for lattices (a checker, a hex), logos
-# and decals, where true size and no shear matter and a step at a cut is bearable; a line, a band
-# or a pinstripe is a function of the point on the car instead: line(), near(), line_offset(), the
-# distance to one smooth 3D curve, continuous across every join. Everything here speaks the
-# sheet's millimetres.
-
-_TEXELS = None  # (canvas, texel indices) while the paint box asks a zone about its own texels
-
-
-def _sheet():
-    from tool import surface
-    return surface.load()
-
-
-def _sheet_uv(p, n):
-    """Sheet coordinates (cm) of the points a zone is asked about: each texel's own, cached, when
-    the paint box is asking (paintbox._mask); otherwise looked up on the body."""
-    from tool import surface
-    if _TEXELS is not None:
-        canvas, idx = _TEXELS
-        if len(idx) == len(p):
-            if canvas.set != "Skin":
-                return np.full((len(p), 2), np.nan)
-            return surface.sheet_cm("Skin", canvas.w, canvas.h).reshape(-1, 2)[canvas.near[idx]]
-    return _sheet().uv_at(p, n)
-
-
-def sheet(drawing, box=None, width=None):
-    """A zone from a drawing on the body sheet, in the sheet's millimetres: an SVG (a file or its
-    text, in car/sheet.svg's frame: filled shapes are ink, stroked ones lines), a picture with
-    its `box` (x0, y0, x1, y1) mm (its alpha, or its lightness, is the ink), polylines (a list of
-    (n, 2) arrays) drawn `width` mm wide, or a function f(x, y) of the sheet's mm grid giving
-    0..1 (shapes.sheet(lambda x, y: np.hypot(x - 1200, y - 300) < 100): a 20 cm disc). Off the
-    sheet (the wheels, the inner car, hidden skin) the zone is 0. Combines with every other zone."""
-    from tool import sheetink
-    if callable(drawing):
-        ink = sheetink.Ink.where(drawing)
-    elif box is not None:
-        ink = sheetink.Ink.image(drawing, box)
-    elif width is not None:
-        ink = sheetink.Ink.lines(drawing, width)
-    else:
-        ink = sheetink.Ink.svg(drawing)
-    return Zone(lambda p, n: ink.sample(_sheet_uv(p, n)))
-
-
-def sheet_lines(kind):
-    """The map's lines on the sheet, in mm: "shoulder", "lower", "fold", "opening", "join",
-    "seam", "outline": a list of (n, 2) arrays, each running nose to tail (or top down), so
-    offset(line, d) with d > 0 moves it down the sheet, away from the top centreline."""
-    out = []
-    for l in _sheet().lines[kind]:
-        l = np.asarray(l, np.float64) * 10
-        ext = l.max(0) - l.min(0)
-        k = 0 if ext[0] >= ext[1] else 1
-        out.append(l if l[-1, k] >= l[0, k] else l[::-1])
-    return out
-
-
-def offset(line, d):
-    """A polyline (n, 2) mm moved d mm to the right of its direction (for the map's lines, drawn
-    nose to tail, d > 0 is down the sheet: 30 mm below the shoulder is offset(shoulder, 30))."""
-    l = np.asarray(line, np.float64)
-    t = np.gradient(l, axis=0)
-    t /= np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1e-9)
-    return l + d * np.c_[-t[:, 1], t[:, 0]]
-
-
-def sheet_near(kind, mm, soft=SOFT):
-    """Within `mm` of one of the map's lines measured over the body (on the sheet), not through
-    the air: "shoulder", "lower", "fold", "opening", "join", "seam", "outline". Nothing off the sheet."""
-    from scipy.spatial import cKDTree
-    pts = []
-    for l in sheet_lines(kind):  # a point every millimetre along each line
-        s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(l, axis=0), axis=1))]
-        u = np.arange(0, s[-1], 1.0)
-        pts.append(np.stack([np.interp(u, s, l[:, k]) for k in range(2)], 1))
-    tree = cKDTree(np.concatenate(pts) / 10)
-
-    def dist(p, n):
-        uv = _sheet_uv(p, n)
-        ok = np.isfinite(uv).all(1)
-        out = np.full(len(p), -1e3, np.float32)
-        out[ok] = mm / 10 - tree.query(uv[ok], workers=-1)[0]
-        return out
-    return field(dist, soft)
-
-
-def sheet_line(kind, width=10.0, soft=SOFT):
-    """A line `width` mm wide along one of the map's lines, its width true on the paint (see sheet_near)."""
-    return sheet_near(kind, width / 2, soft)
-
-
-def along_cm(x0, x1, soft=SOFT):
-    """A band between two lengths measured over the body from the nose's tip (the sheet's x, cm):
-    the body piece."""
-    def dist(p, n):
-        uv = _sheet_uv(p, n)
-        x = np.where(np.isfinite(uv[:, 0]), uv[:, 0], -1e3)
-        return np.minimum(x - x0, x1 - x)
-    return field(dist, soft)
-
-
-def across_cm(y0, y1, soft=SOFT):
-    """A band between two depths measured over the body down from the top centreline (cm): the
-    body piece, where the sheet's y counts from the top centreline's own place at that length."""
-    def dist(p, n):
-        uv = _sheet_uv(p, n)
-        ok = np.isfinite(uv).all(1)
-        y = np.full(len(p), -1e3)
-        y[ok] = uv[ok, 1] - _sheet().top_y(uv[ok, 0])
-        return np.minimum(y - y0, y1 - y)
-    return field(dist, soft)
+# while the paint box asks a zone about its own texels: (canvas, texel indices). tool/skindraw.py
+# reads it to find each texel's face on the skin without looking it up again.
+_TEXELS = None
 
 
 def front_rake(xs, top=True):

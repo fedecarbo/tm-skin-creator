@@ -203,7 +203,7 @@ card) and no game: install from the Windows PC after a push.
   body's shape worked out once from its mesh: its areas, what's open, what the chase cameras see
   and the air over it. Place areas by it, not by cm guesses: `shapes.area("top")` (between the
   shoulders; never the ledges and lips low down), `shapes.outside(0.4)` (never inside an inlet or
-  under a panel), `shapes.across(a0, a1)` and `shapes.along(a0, a1)` for areas that follow the body,
+  under a panel), `shapes.along(a0, a1)` for a stretch of the car from the nose (0) to the tail (1),
   `~shapes.near("opening", 3)` or `near("fold", 2)` to keep clear, `shapes.hit` and
   `shapes.streamlines` for the air (TSC_WindTunnel). A round spot seen from above:
   `shapes.cylinder((x, -50, z), (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. Its
