@@ -25,7 +25,6 @@ import hashlib
 import io
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -49,7 +48,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 
 # What runs in each fresh process, from the code tree it's started in. Only calls both sides have.
 CHILD = r'''
-import hashlib, json, sys, time
+import hashlib, json, re, sys, time
 import numpy as np
 from tool import dds, paintbox, skin
 
@@ -88,12 +87,13 @@ for tex, (arr, fourcc, opts) in sorted(s.textures().items()):
         arrays[tex + ".dds"] = np.frombuffer(blob, np.uint8)
 if dump:
     np.savez(dump, **arrays)
-record = {"notes": s.notes, "drawn": s.drawn, "palette": s.palette, "icon": s.icon_colours,
+record = {"drawn": s.drawn, "palette": s.palette, "icon": s.icon_colours,
           "steps": [{"name": st["name"], "paints": st.get("paints", [])} for st in s.steps],
           "clay": s.clay_left}
+notes = [re.sub(r"\(\d+ s\)", "(… s)", n) for n in s.notes]  # how long a step took isn't the paint
 json.dump({"textures": textures, "record": sha(json.dumps(record, sort_keys=True, default=str).encode()),
-           "notes": s.notes, "seconds": {"paint": round(painted, 1), "encode": round(time.time() - t, 1),
-                                         "total": round(time.time() - t0, 1)}}, open(out, "w"), indent=1)
+           "notes": notes, "seconds": {"paint": round(painted, 1), "encode": round(time.time() - t, 1),
+                                       "total": round(time.time() - t0, 1)}}, open(out, "w"), indent=1)
 '''
 
 SNAP_CHILD = r'''
@@ -167,12 +167,10 @@ def same(a, b):
         if bad:
             textures.append(f"{t}: {', '.join(bad)} differ")
     other = []
-    timeless = lambda notes: [re.sub(r"\(\d+ s\)", "(… s)", n) for n in notes]  # how long a step took isn't the paint
-    na, nb = timeless(a["notes"]), timeless(b["notes"])
-    if na != nb:
+    if a["notes"] != b["notes"]:
         other.append("notes differ:\n      " + "\n      ".join(
-            [f"- {n}" for n in na if n not in nb] + [f"+ {n}" for n in nb if n not in na]))
-    elif a["record"] != b["record"]:
+            [f"- {n}" for n in a["notes"] if n not in b["notes"]] + [f"+ {n}" for n in b["notes"] if n not in a["notes"]]))
+    if a["record"] != b["record"]:
         other.append("the record differs (lines drawn, palette, steps, clay)")
     return textures, other
 

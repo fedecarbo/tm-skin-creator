@@ -1894,8 +1894,10 @@ function pickCam(view) {
 function fail(err) {
   console.error(err);
   if (window.viewer.ready) return;  // the car is up: a later error isn't a skin that failed to show
-  window.viewer.error = String(err && err.stack || err);
-  statusBox.textContent = `Couldn't show the skin: ${err && err.message || err}`;
+  // a file that didn't load rejects with its element's error event: name the file
+  const said = err instanceof Event ? `couldn't load ${err.target?.src || err.target?.href || 'a file'}` : err && err.message || err;
+  window.viewer.error = err instanceof Event ? said : String(err && err.stack || err);
+  statusBox.textContent = `Couldn't show the skin: ${said}`;
 }
 window.addEventListener('error', (e) => fail(e.error || e.message));
 window.addEventListener('unhandledrejection', (e) => fail(e.reason));
