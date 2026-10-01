@@ -173,7 +173,7 @@ def installed():
 
 
 def borrows(text, names):
-    """The names among `names` whose folder this design loads (paths.SKINS / "<name>" / ...)."""
+    """The names among `names` whose design this one loads (`borrow("<name>")`, tool/skin.py)."""
     return [n for n in names if re.search(r"[\"'/\\]" + re.escape(n) + r"[\"'/\\]", text)]
 
 

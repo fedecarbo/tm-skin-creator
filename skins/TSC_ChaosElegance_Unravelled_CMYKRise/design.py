@@ -13,17 +13,15 @@ lower lines yellow, to center magenta? like a gradient?, or from front to back",
 body", "I meant is in the whole cyan magenta yellow". The ivory one and the round's other concepts
 were deleted on 2026-09-27 (the user: "They are not bad, but I won't drive them"); this design
 moved here from TSC_ChaosElegance_Unravelled."""
-import importlib.util
 
 import numpy as np
 
-from tool import noise, paths, shapes
+from tool import noise, shapes
+from tool.skin import borrow
 
 # the game's own lamps inside the car and the parts it lights in a turbo, found part by part on
 # the CMYK car (TSC_CMYK_BlackTail's lists), and the CMYK car's inks
-_spec = importlib.util.spec_from_file_location("cmyk_black_tail", paths.SKINS / "TSC_CMYK_BlackTail" / "design.py")
-_tail = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_tail)
+_tail = borrow("TSC_CMYK_BlackTail")
 
 WORDS = "I want chaos and elegance"
 CMYK_WORDS = "Can you do a cmyk as well, lower lines yellow, to center magenta? like a gradient?, or from front to back"

@@ -2,16 +2,14 @@
 some texture, more like for the black paint?"), take B: CMYK is print, so the wrap is printed
 black on black. A halftone screen of glossy dots on the matte black, small at the nose and
 growing towards the tail until they nearly touch: seen as the light moves over them."""
-import importlib.util
 
 import numpy as np
 from scipy.spatial import cKDTree
 
-from tool import looks, paths, shapes
+from tool import looks, shapes
+from tool.skin import borrow
 
-_spec = importlib.util.spec_from_file_location("cmyk_ends_in_k", paths.SKINS / "TSC_CMYK_EndsInK" / "design.py")
-_ends = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_ends)
+_ends = borrow("TSC_CMYK_EndsInK")
 WORDS = "Can we start adding some texture, more like for the black paint?"
 
 

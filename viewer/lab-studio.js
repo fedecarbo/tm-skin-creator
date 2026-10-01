@@ -311,8 +311,9 @@ async function poll() {
     if (now.stamp && now.stamp !== following && !writing && !tags.openKey) {
       following = now.stamp;
       fresh = true;
-      if (skin && now.skin !== skin.name) { note(now.skin); await openSkin(now.skin); return; }
+      if (!skin || now.skin !== skin.name) { note(now.skin); await openSkin(now.skin); return; }
     }
+    if (!skin) return;  // opened before any skin was painted: waiting for Claude's first
     if (doc && !doc.stamp && !fresh) return;  // made before the Lab kept steps: nothing to ask for until Claude paints it
     const res = await fetch(`data/skins/${encodeURIComponent(skin.name)}/steps.json`, { cache: 'no-store' });
     if (res.ok) {
@@ -362,11 +363,11 @@ export async function open() {
   following = now.stamp;
   let name = new URLSearchParams(location.search).get('skin') || now.skin;
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
-  if (!name) { live(); $('stCover').classList.add('off'); return; }
   try {
-    await openSkin(name);
+    if (name) await openSkin(name);
+    else live();
   } finally {
     $('stCover').classList.add('off');  // the car dressed, framed and turned (or failed): shown
   }
-  setInterval(poll, POLL);
+  setInterval(poll, POLL);  // follows Claude's painting, from the first skin painted
 }

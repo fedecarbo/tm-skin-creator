@@ -5,16 +5,14 @@ every light the game put there takes the run's colours, the turbo lights the car
 quilted seat and printer's registration marks raised on the tail. TSC_CMYK_EndsInK (Claude's
 idea) is the same with design(s, tail="k"): the wrap torn right to the tail, over the run all
 the way back."""
-import importlib.util
 
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import finishes, paths, shapes
+from tool import finishes, shapes
+from tool.skin import borrow
 
-_spec = importlib.util.spec_from_file_location("cmyk_more", paths.SKINS / "TSC_CMYK_Peel_More" / "design.py")
-_more = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_more)
+_more = borrow("TSC_CMYK_Peel_More")
 C, M, ORANGE, BLACK, DARK = _more.C, _more.M, _more.ORANGE, _more.BLACK, _more.DARK
 
 # the game's own lights that the car still showed in its stock teal and white (found part by part,

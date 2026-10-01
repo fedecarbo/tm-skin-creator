@@ -2,7 +2,7 @@
 
     python -m tool.skin show <name>            paint it, put it in the viewer, snapshot it
     python -m tool.skin show <name> --open     ... and open the viewer in the browser
-    python -m tool.skin install <name>         write the DDS files and the zip, install it
+    python -m tool.skin install <name>         paint it, write the DDS files and the zip, install it (the PC)
     python -m tool.skin list                   every skin, newest first
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
@@ -27,15 +27,21 @@ from PIL import Image
 from tool import gallery, install, paintbox, paths, snap, view
 
 
-def load_design(name):
-    folder = paths.SKINS / name
-    script = folder / "design.py"
+def borrow(name):
+    """Another skin's design, to build on: its module, with its design(), helpers and colours.
+    Run afresh at each call, so two designs that borrow it never share its state. A design names
+    the skin it borrows in quotes, `borrow("TSC_CMYK_EndsInK")`, which is how tool/sets.py sees it."""
+    script = paths.SKINS / name / "design.py"
     if not script.exists():
         raise FileNotFoundError(f"no design at {script}")
     spec = importlib.util.spec_from_file_location(f"skins.{name}.design", script)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.design
+    return mod
+
+
+def load_design(name):
+    return borrow(name).design
 
 
 def _try_lock(f):
@@ -132,19 +138,19 @@ def keep_version(name, thumb):
 
 
 def do_install(name):
+    """Paint the skin, build its zip and put it in the game. Always painted afresh: a paint kept
+    from an earlier show can't know whether a design it borrows, its pictures or the tool changed
+    since (and a skin shown on the other computer has none here)."""
+    install.game_folder()  # before painting: only the PC has the game
     t0 = time.time()
-    folder = paths.SKINS / name
-    # a skin shown on the other computer, or changed since it was shown here, is painted first
-    painted = paths.BUILD / name / "painted.json"
     icon = None
-    thumb = folder / "thumb.png"
+    thumb = paths.SKINS / name / "thumb.png"
     if thumb.exists():
         im = Image.open(thumb).convert("RGB")
         side = min(im.size)
         icon = im.crop(((im.width - side) // 2, (im.height - side) // 2, (im.width + side) // 2, (im.height + side) // 2)).resize((256, 256), Image.LANCZOS)
     with paint_slot():
-        if not painted.exists() or painted.stat().st_mtime < (folder / "design.py").stat().st_mtime:
-            paintbox.save_painted(paint(name))
+        paintbox.save_painted(paint(name))
         zip_path = paintbox.build_zip(name, icon)
     print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
     target = install.install(zip_path)

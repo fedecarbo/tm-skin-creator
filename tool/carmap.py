@@ -1207,6 +1207,18 @@ def build():
     return load()
 
 
+def _same(a, b):
+    """Whether two calls asked the same: tuples of arrays (or None, or plain values), compared whole.
+    The memos once compared a shape and the first and last points, which another set can share."""
+    for x, y in zip(a, b):
+        if isinstance(x, np.ndarray) or isinstance(y, np.ndarray):
+            if not (isinstance(x, np.ndarray) and isinstance(y, np.ndarray) and np.array_equal(x, y)):
+                return False
+        elif x != y:
+            return False
+    return True
+
+
 class Map:
     def __init__(self, data):
         self.V, self.F, self.fn, self.part = data["V"], data["F"], data["fn"], data["part"]
@@ -1270,12 +1282,11 @@ class Map:
         """Where points sit round the car's section: across (0 the top's middle, 1 the shoulder, 2
         the lower edge, 3 under: see _across) and the scale there (cm per unit of across)."""
         pos = np.asarray(pos, np.float64)
-        key = (pos.shape, pos[:1].tobytes(), pos[-1:].tobytes())
-        if self._sec_last is not None and self._sec_last[0] == key:
+        if self._sec_last is not None and _same(self._sec_last[0], (pos,)):  # zones ask again for the same points
             return self._sec_last[1]
         out = tuple(v.astype(np.float32) for v in _across(np.abs(pos[:, 0]), pos[:, 1], *self._marks_at(pos[:, 2]),
                                                           self._region(pos)))
-        self._sec_last = (key, out)
+        self._sec_last = ((pos.copy(),), out)
         return out
 
     def design_lines(self, kind):
@@ -1580,21 +1591,21 @@ class Map:
         of a thin panel, isn't mistaken for it). Also the distance (cm): far means the point
         isn't on the body (an inner part)."""
         pos = np.asarray(pos, np.float64)
-        key = (pos.shape, pos[:1].tobytes(), pos[-1:].tobytes(), None if nrm is None else np.asarray(nrm)[:1].tobytes())
-        if self._last is not None and self._last[0] == key:
+        nrm = None if nrm is None else np.asarray(nrm, np.float64)
+        asked = (pos, nrm, k)
+        if self._last is not None and _same(self._last[0], asked):  # zones ask again for the same points
             return self._last[1]
         tree = self._lookup()
         d, i = tree.query(pos, k=k, workers=-1)
         pick = np.zeros(len(pos), np.int64)
         if nrm is not None:
-            nrm = np.asarray(nrm, np.float64)
             agree = (self.fn[self._sf[i]] * nrm[:, None, :]).sum(2) > 0.2
             first = np.argmax(agree, axis=1)
             pick = np.where(agree.any(1), first, 0)
         r = np.arange(len(pos))
         s = i[r, pick]
         out = (self._sf[s], self._sb[s], d[r, pick])
-        self._last = (key, out)
+        self._last = ((pos.copy(), None if nrm is None else nrm.copy(), k), out)
         return out
 
     def value(self, layer, pos, nrm=None):

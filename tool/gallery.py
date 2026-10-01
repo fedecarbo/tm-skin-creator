@@ -88,7 +88,7 @@ def refresh():
         })
     entries.sort(key=lambda e: (-e["made"], e["title"]))
     DATA.mkdir(parents=True, exist_ok=True)
-    (DATA / "gallery.json").write_text(json.dumps(entries, indent=1), encoding="utf-8")
+    paths.write(DATA / "gallery.json", json.dumps(entries, indent=1))
     return entries
 
 

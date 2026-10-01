@@ -2,13 +2,11 @@
 ragged patches with hard edges and a hard shadow (a thin layer on top), satin cyan > magenta > yellow underneath, fading along the car
 like the run inside. The inner car is the Bold's. TSC_CMYK_Peel_More is the same with half the
 wrap gone."""
-import importlib.util
 
-from tool import paths, shapes
+from tool import shapes
+from tool.skin import borrow
 
-_spec = importlib.util.spec_from_file_location("stealth_cmyk", paths.SKINS / "TSC_Stealth_CMYK" / "design.py")
-_cmyk = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_cmyk)
+_cmyk = borrow("TSC_Stealth_CMYK")
 C, M, Y = _cmyk.C, _cmyk.M, _cmyk.Y
 
 

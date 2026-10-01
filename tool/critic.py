@@ -33,6 +33,7 @@ import json
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -59,11 +60,20 @@ def load(car):
 
 
 def save(review):
+    """The whole file or nothing, retrying while Windows holds it open (as tool/sets.py does)."""
     p = path(review["car"])
     p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".tmp")
+    tmp = p.with_suffix(f".{os.getpid()}.tmp")
     tmp.write_text(json.dumps(review, indent=1, ensure_ascii=False) + "\n", "utf-8")
-    os.replace(tmp, p)
+    for k in range(20):
+        try:
+            os.replace(tmp, p)
+            return
+        except PermissionError:
+            if k == 19:
+                tmp.unlink(missing_ok=True)
+                raise
+            time.sleep(0.05)
 
 
 def slug(label):

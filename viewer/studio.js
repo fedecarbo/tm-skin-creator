@@ -92,9 +92,10 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
 
 // The soft shadow right under the car, where the studio's light can't reach: the car seen from the
 // floor up, its nearness as darkness, blurred. The depth pass sees the car at rest (its own material
-// leaves out the wings' and wheels' movement), so the picture changes only when a mesh is shown or
-// hidden: it's drawn again then, not every frame.
-function groundShadow(scene, pick, { z = 0, size = 5.6, height = 0.9, blur = 3.2, opacity = 0.92, power = 1.6, res = 512, order = 2 } = {}) {
+// leaves out the wings' and wheels' movement), so the picture changes only when a mesh or a part is
+// shown or hidden: it's drawn again then, not every frame. parts: the viewer's part table (a part
+// whose texel is dark is hidden, and casts nothing) and the count of its changes.
+function groundShadow(scene, pick, parts, { z = 0, size = 5.6, height = 0.9, blur = 3.2, opacity = 0.92, power = 1.6, res = 512, order = 2 } = {}) {
   const target = new THREE.WebGLRenderTarget(res, res), spare = new THREE.WebGLRenderTarget(res, res);
   target.texture.generateMipmaps = spare.texture.generateMipmaps = false;
   const plane = new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2);
@@ -111,8 +112,19 @@ function groundShadow(scene, pick, { z = 0, size = 5.6, height = 0.9, blur = 3.2
   cam.updateMatrixWorld();
   const depth = new THREE.MeshDepthMaterial();  // depth-tested: the surface nearest the floor wins
   depth.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace('gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );',
-      `gl_FragColor = vec4( vec3( 0.0 ), pow( 1.0 - fragCoordZ, ${power.toFixed(2)} ) );`);
+    shader.uniforms.partTable = { value: parts.table };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+        attribute float part; varying float vGroundPart;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vGroundPart = part;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        uniform sampler2D partTable; varying float vGroundPart;`)
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+        if ( texture2D( partTable, vec2( ( vGroundPart + 0.5 ) / 256.0, 0.25 ) ).r < 0.5 ) discard;`)
+      .replace('gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );',
+        `gl_FragColor = vec4( vec3( 0.0 ), pow( 1.0 - fragCoordZ, ${power.toFixed(2)} ) );`);
   };
   depth.customProgramCacheKey = () => `ground-${power.toFixed(2)}`;
   const hBlur = new FullScreenQuad(new THREE.ShaderMaterial(HorizontalBlurShader));
@@ -133,7 +145,7 @@ function groundShadow(scene, pick, { z = 0, size = 5.6, height = 0.9, blur = 3.2
   shadow.onBeforeRender = (r) => {
     const meshes = [];
     scene.traverse((o) => { if (o.isMesh && o.visible && pick(o)) meshes.push(o); });
-    const now = meshes.map((o) => o.uuid).join();
+    const now = `${meshes.map((o) => o.uuid).join()} ${parts.changes()}`;
     if (!meshes.length || now === drawn) return;
     drawn = now;
     for (const o of meshes) o.layers.enable(5 + order);
@@ -157,8 +169,9 @@ function groundShadow(scene, pick, { z = 0, size = 5.6, height = 0.9, blur = 3.2
   return shadow;
 }
 
-// The studio in the scene. light: FLOOR's scale (viewer.js's ?room= to try another).
-export function createStudio({ scene, renderer, centre, light = 1 }) {
+// The studio in the scene. light: FLOOR's scale (viewer.js's ?room= to try another). parts: as
+// groundShadow's.
+export function createStudio({ scene, renderer, centre, parts, light = 1 }) {
   const colour = FLOOR.map((c) => c * light);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const z = centre.z;
@@ -228,7 +241,7 @@ export function createStudio({ scene, renderer, centre, light = 1 }) {
   // two layers of ground shadow, as KeyShot's ground occlusion looks: a wide soft one from
   // everything within 90 cm of the floor, a tight dark one where the tyres and the plank come nearest
   const isCar = (o) => Boolean(o.geometry.getAttribute('part'));
-  groundShadow(scene, isCar, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
-  groundShadow(scene, isCar, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
+  groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
+  groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
 
 }

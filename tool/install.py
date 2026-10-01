@@ -33,16 +33,21 @@ def load_manifest():
 
 
 def save_manifest(manifest):
-    paths.INSTALLED_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-    paths.INSTALLED_MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    paths.write(paths.INSTALLED_MANIFEST, json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+
+
+def game_folder():
+    """The game's skin folder, or a plain error on a computer without the game (the Mac)."""
+    if not GAME_SKINS.is_dir():
+        raise SystemExit(f"The game isn't on this computer (no {GAME_SKINS}): install from the Windows PC.")
+    return GAME_SKINS
 
 
 def install(zip_path):
     zip_path = Path(zip_path)
     if " " in zip_path.name:
         raise ValueError(f"{zip_path.name}: no spaces allowed in skin names")
-    if not GAME_SKINS.is_dir():
-        raise FileNotFoundError(f"The game's skin folder isn't there: {GAME_SKINS}")
+    game_folder()
     manifest = load_manifest()
     target = GAME_SKINS / zip_path.name
     if target.exists():

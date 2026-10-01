@@ -4,16 +4,14 @@ the tears there showed nothing (the user, 2026-09-27: "the cmyk gradient doesnt 
 far back"): the run now goes cyan, magenta, orange all the way back, and the black wrap is the K.
 The orange also comes back as light (the speed digits, the rear lights' last band, the tail's
 openings in a turbo). The wrap has a tiny grain in its sheen (the user, 2026-09-27)."""
-import importlib.util
 from dataclasses import replace
 
 import numpy as np
 
-from tool import finishes, paths
+from tool import finishes
+from tool.skin import borrow
 
-_spec = importlib.util.spec_from_file_location("cmyk_black_tail", paths.SKINS / "TSC_CMYK_BlackTail" / "design.py")
-_tail = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_tail)
+_tail = borrow("TSC_CMYK_BlackTail")
 
 
 def grain(s):

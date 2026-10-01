@@ -553,7 +553,7 @@ function addGlow(material, codeMap) {
 // per part, row 0: visible and highlighted flags, row 1: its colour for "colour by part". The
 // materials' shaders read it, so hiding a part is a discard and needs no extra meshes. ----
 
-const partsState = { doc: null, table: null, data: null, mode: { value: 0 }, shared: { value: 0 }, rows: [] };
+const partsState = { doc: null, table: null, data: null, hides: 0, mode: { value: 0 }, shared: { value: 0 }, rows: [] };
 
 function partTable() {
   if (partsState.table) return partsState.table;
@@ -577,6 +577,7 @@ function partTable() {
 function setPartFlag(ids, channel, on) {  // channel 0: visible, 1: highlighted
   for (const i of ids) partsState.data[i * 4 + channel] = on ? 255 : 0;
   partsState.table.needsUpdate = true;
+  if (channel === 0) partsState.hides++;  // the floor's shadow is drawn again
 }
 
 // One surface of a flat map lit where its paint shows on the car (the Lab's UV map, lightSurface):
@@ -1072,8 +1073,8 @@ function addWing(material) {
   };
   material.customProgramCacheKey = () => `${previousKey()}-wing`;
 }
-// The Skin's and Details' shadow: it follows the wing, and a hidden part casts none (the Lab's
-// Details room takes the shell off).
+// The car's shadow: it follows the wing and the wheels' turn, and a hidden part casts none (the
+// Lab's rooms take the shell or the wheels off).
 function wingDepthMaterial() {
   const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
   addWing(m);
@@ -1414,7 +1415,7 @@ function dressCar(geoms, tex) {
       const mesh = new THREE.Mesh(geoms[name], material);
       mesh.castShadow = name !== 'Glass';
       mesh.receiveShadow = true;
-      if (name === 'Skin' || name === 'Details') mesh.customDepthMaterial = wingDepthMaterial();  // its shadow follows the wing
+      if (name !== 'Glass') mesh.customDepthMaterial = wingDepthMaterial();  // its shadow follows the wing
       parts[name] = mesh;
       car.add(mesh);
     }
@@ -1468,11 +1469,13 @@ function markStudio() {
 
 let geometries = null;
 let gallery = [];  // tool/gallery.py's entries
-let loading = 0;   // the latest request wins when skins are clicked quickly
+let loading = 0;   // the latest request wins when skins are clicked quickly (loadSkin, dress)
+let wanted = '';   // the skin last asked for: shown, or on its way
 const titleOf = (name) => name.replace(/^TSC_/, '').replaceAll('_', ' ').replace(/([a-z])(?=[A-Z])/g, '$1 ');
 
 async function loadSkin(name) {
   const ticket = ++loading;
+  wanted = name;
   const res = await fetch(`data/skins/${encodeURIComponent(name)}/skin.json`);
   if (!res.ok) throw new Error(`no skin called ${name} has been prepared for the viewer`);
   const skin = await res.json();
@@ -1529,7 +1532,7 @@ async function buildSkinList() {
 
 async function switchSkin(name) {
   document.body.classList.remove('railOpen');
-  if (name === skinName) return;
+  if (name === wanted) return;
   const p = new URLSearchParams(location.search);
   p.set('skin', name);
   history.replaceState(null, '', `?${p}`);
@@ -1539,6 +1542,7 @@ async function switchSkin(name) {
   try {
     await loadSkin(name);
   } catch (err) {
+    if (wanted === name) wanted = skinName;
     showSkinName();
     statusBox.textContent = `Couldn't show ${titleOf(name)}: ${err.message}`;
     setTimeout(() => { statusBox.textContent = ''; }, 4000);
@@ -1686,6 +1690,7 @@ window.viewer = {
     const off = new Set(ids);
     partsState.doc.parts.forEach((p, i) => { partsState.data[i * 4] = off.has(i) ? 0 : 255; });
     partsState.table.needsUpdate = true;
+    partsState.hides++;  // the floor's shadow is drawn again
     for (const a of tracked) a.behind = undefined;  // a part taken off may have hidden a tag's point
   },
   light(ids) {
@@ -1784,7 +1789,9 @@ window.viewer = {
   },
   // The Lab's stand: dress the car in one step's textures ({slot: url}, as skin.json's).
   async dress(urls) {
+    const ticket = ++loading;  // a later dress or skin wins, whichever finishes first
     const tex = await loadTextures(urls);
+    if (ticket !== loading) return;
     dressCar(geometries, tex);
     freeTexturesExcept(urls);
     await frames(2);
@@ -1864,9 +1871,10 @@ function pickCam(view) {
 }
 
 function fail(err) {
+  console.error(err);
+  if (window.viewer.ready) return;  // the car is up: a later error isn't a skin that failed to show
   window.viewer.error = String(err && err.stack || err);
   statusBox.textContent = `Couldn't show the skin: ${err && err.message || err}`;
-  console.error(err);
 }
 window.addEventListener('error', (e) => fail(e.error || e.message));
 window.addEventListener('unhandledrejection', (e) => fail(e.reason));
@@ -1889,7 +1897,7 @@ async function start() {
   partsState.doc = doc;
   partTable();
   buildPartsList();
-  createStudio({ scene, renderer, centre: CENTRE, light: TUNE.room });
+  createStudio({ scene, renderer, centre: CENTRE, light: TUNE.room, parts: { table: partTable(), changes: () => partsState.hides } });
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();
@@ -1898,7 +1906,8 @@ async function start() {
   showAirbrakes(drive.airbrake);
   // The Lab (embed, no skin) dresses the car itself, and its first dress builds it: no stock car
   // loaded first and thrown away (a second or more of the Lab's load, 2026-09-28).
-  if (!embed || params.has('skin')) await loadSkin(skinName);
+  if (skinName && (!embed || params.has('skin'))) await loadSkin(skinName);
+  else if (!embed) await window.viewer.stock();  // no skin painted yet: the stock car
   setMood('day');
   if (!snap && !embed) {  // on unless this browser turned it off last time
     let on = true;

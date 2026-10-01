@@ -141,10 +141,6 @@ the design as asked), then speed.
   on" never says so (they're a handful of texels). The skin paints the strip by hand
   (`fasteners()` in TSC_CMYK_BlackTail's design). Idea: name them ("fasteners") in
   `tool/naming.py` so any design can paint them.
-- **Saving the user's picture while it's open on their screen fails on Windows** (2026-09-27):
-  `tool.snap --picture` stopped with "Invalid argument" while the last picture was still open;
-  it worked when run again. Idea: retry the save a few times, a moment apart, as `view._write_json`
-  now does for the Studio's files.
 - **A finer, evenly shaped grain** (2026-09-27, TSC_CMYK_EndsInK, the user after driving it:
   "Maybe I couldve wanted a bit more finer evenly shaped grain, but looks fine to me, maybe for
   next session?"). The textured wrap (WT-07) makes its specks from noise, so they come in mixed
@@ -154,18 +150,6 @@ the design as asked), then speed.
   one per 4x4 block from a handful of variants, so the compressed blocks repeat and zip squeezes
   them (a guess: 1.5 to 2 MB at 4096², the zip about 8.1 MB); if that's still too big, free room
   elsewhere (the suspension's blasted grain in Details_R). Check the zip first, then the game.
-
-- **A tidy-up, from a code check** (2026-09-27, the user: "it's been forever I have refactored, so
-  not sure if things need to be optimised a bit more?"). The code is in fair shape; no big
-  rewrite. The two the user would feel are done (2026-09-27: a show about 35 s faster, the UV
-  map's data rebuilt only when it changes; "Things we learned"). Done 2026-09-28 (the user: "Sure"):
-  the test-skin scripts from before the paint box retired (`stock()` moved to `dds.py`), the helpers
-  nothing called removed, the viewer's bare address opens the last or newest skin, and `tool.view`
-  and `tool.snap` show a skin as last shown, not its last build. Left, most useful first:
-  1. Designs that load another design (9 of them, chains up to 5 deep) copy the same importlib
-     lines. One `borrow()` helper.
-  2. The work folder keeps a coverage cache per `parts.json` version (0.8 GB on the Mac) and a
-     250 to 285 MB `painted.npz` per skin in `build/`: prune the old coverage keys.
 
 - **Repainting only the map that changed** (2026-09-27, the Lab's step 9.7, queued here when the
   design studio took over the Lab on 2026-09-28). Every `show` paints the whole car (90 to 127 s for

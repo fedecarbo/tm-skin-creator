@@ -168,7 +168,7 @@ def export_mesh():
         b = bake.bake(tset, w, h)
         shared = ((b["tri"] >= 0) & (b["count"] > 1)).astype(np.uint8) * 255
         Image.fromarray(shared, "L").save(DATA / f"{tset}_Shared.png", compress_level=1)
-    out_json.write_text(json.dumps({"units": "m", "lift_cm": float(lift), "meshes": index}, indent=1))
+    _json(out_json, {"units": "m", "lift_cm": float(lift), "meshes": index})
 
 
 UVMAP_VERSION = 1  # bump when export_uvmap or _surfaces change what they write
@@ -400,7 +400,7 @@ def export_skin(name, textures):
             urls[slot] = f"stock/{slot}.png"
         else:
             urls[slot] = None
-    (folder / "skin.json").write_text(json.dumps({"name": name, "textures": urls, "own": sorted(own)}, indent=1))
+    _json(folder / "skin.json", {"name": name, "textures": urls, "own": sorted(own)})
 
 
 # ---- The Lab's Studio: the car at the end of each step of a design (paintbox.Skin.step) ----
@@ -411,7 +411,7 @@ def start_steps(name):
     import shutil
     ensure_stock()
     shutil.rmtree(DATA / "skins" / name / "steps", ignore_errors=True)
-    _write_json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
+    _json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
 
 
 def save_frame(name, k, slot, image, digest):
@@ -444,22 +444,12 @@ def export_steps(name, steps, painting, clay=None):
     doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out}
     if clay is not None:
         doc["clay"] = [{"id": i, "name": n} for i, n in clay]
-    _write_json(DATA / "skins" / name / "steps.json", doc)
+    _json(DATA / "skins" / name / "steps.json", doc)
 
 
-def _write_json(path, doc):
-    """Whole or not at all: the Studio reads these while they're being rewritten."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(doc, indent=1))
-    for attempt in range(20):  # on Windows the replace is refused while the page is reading it
-        try:
-            tmp.replace(path)
-            return
-        except PermissionError:
-            if attempt == 19:
-                raise
-            time.sleep(0.05)
+def _json(path, doc):
+    """A JSON file the pages read, written whole (paths.write)."""
+    paths.write(path, json.dumps(doc, indent=1))
 
 
 def skin_from_build(name):

@@ -3,7 +3,9 @@
 parts.Parts.coverage() rasterises a part's triangles with 2x2 samples per texel, which takes
 about a second per part at 4096: painting a whole car would spend minutes on it. This stores
 every part's coverage once, sparsely (most texels are 0, and most covered ones are exactly 1),
-in the work folder, and rebuilds when car/parts.json changes.
+in the work folder, with which parts share paint (twins), and builds it again when anything it's
+made from changes: car/parts.json, the code that cuts and rasterises the parts, the mesh. Building
+a new one keeps only the one before it (which the self-test's earlier commit may still read).
 
     cov = coverage.load(p, "Skin", 4096, 4096)
     cov.get([id, id, ...])   -> float32 (h, w), 0..1, the parts' coverage added up (clipped to 1)
@@ -14,14 +16,23 @@ in the work folder, and rebuilds when car/parts.json changes.
 """
 
 import hashlib
+import json
 
 import numpy as np
 
-from tool import bake, parts, paths
+from tool import bake, fbx, parts, paths
+
+MADE_FROM = ("parts.py", "raster.py", "segment.py", "coverage.py")
 
 
 def _key():
-    return hashlib.sha256(parts.PARTS_JSON.read_bytes()).hexdigest()[:16]
+    """What the coverage is made from (parts' cuts live in parts.py), so that a change to any of it
+    makes a new file rather than reading an old one."""
+    h = hashlib.sha256(parts.PARTS_JSON.read_bytes())
+    for name in MADE_FROM:
+        h.update((paths.REPO / "tool" / name).read_bytes())
+    h.update(str(fbx.CACHE.stat().st_mtime_ns if fbx.CACHE.exists() else 0).encode())
+    return h.hexdigest()[:16]
 
 
 class Coverage:
@@ -29,30 +40,41 @@ class Coverage:
         self.p, self.set, self.w, self.h = p, texture_set, width, height
         self.ids = [i for i, inst in enumerate(p.instances) if inst["mesh"] == texture_set]
         self.file = paths.CACHE / f"coverage_{texture_set}_{width}x{height}_{_key()}.npz"
-        self.sparse = self._load() or self._build()
         self._all = None
+        self._twins = None
+        if not self._load():
+            self._build()
 
     def _load(self):
         if not self.file.exists():
-            return None
+            return False
         d = np.load(self.file)
-        return {i: (d[f"idx_{i}"], d[f"val_{i}"]) for i in self.ids if f"idx_{i}" in d.files}
+        self.sparse = {i: (d[f"idx_{i}"], d[f"val_{i}"]) for i in self.ids if f"idx_{i}" in d.files}
+        self._twins = {int(i): (t, s, {int(j): c for j, c in o.items()})
+                       for i, (t, s, o) in json.loads(str(d["twins"])).items()}
+        return True
 
     def _build(self):
         print(f"coverage: rasterising {len(self.ids)} parts of {self.set} at {self.w}x{self.h} (once per size)...", flush=True)
         b = bake.bake(self.set, self.w, self.h)
-        out = {}
+        self.sparse = {}
         for i in self.ids:
             c = self.p.coverage(b, self.set, ids=[i])
             idx = np.flatnonzero(c > 0).astype(np.uint32)
-            out[i] = (idx, np.rint(c.reshape(-1)[idx] * 255).astype(np.uint8))
-        self.file.parent.mkdir(parents=True, exist_ok=True)
-        arrays = {}
-        for i, (idx, val) in out.items():
+            self.sparse[i] = (idx, np.rint(c.reshape(-1)[idx] * 255).astype(np.uint8))
+        self._twins = self._find_twins()
+        arrays = {"twins": np.array(json.dumps(self._twins))}
+        for i, (idx, val) in self.sparse.items():
             arrays[f"idx_{i}"] = idx
             arrays[f"val_{i}"] = val
-        np.savez_compressed(self.file, **arrays)
-        return out
+        self.file.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.file.with_name(self.file.stem + ".tmp.npz")
+        np.savez_compressed(tmp, **arrays)
+        tmp.replace(self.file)
+        kept = sorted((f for f in self.file.parent.glob(f"coverage_{self.set}_{self.w}x{self.h}_*.npz") if ".tmp" not in f.name),
+                      key=lambda f: f.stat().st_mtime)
+        for old in kept[:-2]:
+            old.unlink(missing_ok=True)
 
     def get(self, ids):
         """The parts' coverage added up and clipped to 1. Added, not the largest: where two
@@ -118,12 +140,16 @@ class Coverage:
         index[cells[start]] = inv.reshape(-1)
         return index.reshape(gh, gw), [tuple(int(i) for i in r if i >= 0) for r in uniq]
 
-    def twins(self, least=64):
+    def twins(self):
         """Which parts share paint: {id: (texels, shared, {other id: texels both use})}. Counts
         texels a part covers by three quarters or more, so where two parts meet on one island,
         the texel they split counts for neither. texels: the part's; shared: how many of those
-        another part uses too; the pairs are those sharing at least `least` texels. Not always
-        mirror twins with one name: the front wing and the floor share most of theirs."""
+        another part uses too; the pairs are those sharing at least 64 texels. Not always
+        mirror twins with one name: the front wing and the floor share most of theirs. Worked out
+        once, with the coverage."""
+        return self._twins
+
+    def _find_twins(self, least=64):
         idx, who = [], []
         for i, (t, v) in self.sparse.items():
             t = t[v >= 191]

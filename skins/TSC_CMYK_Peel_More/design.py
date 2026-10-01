@@ -3,15 +3,13 @@ rather than yellow (the user, 2026-09-25), and the lights are in the run's colou
 lights at the front, magenta speed numbers, rear lights that go cyan > magenta > orange as the
 gears climb, and rims that glow orange-hot when braking hard. The wheels are matte black, with
 a line round each tyre that runs cyan > magenta > orange from the wheel's front to its back."""
-import importlib.util
 
 import numpy as np
 
-from tool import paths, shapes
+from tool import shapes
+from tool.skin import borrow
 
-_spec = importlib.util.spec_from_file_location("cmyk_peel", paths.SKINS / "TSC_CMYK_Peel" / "design.py")
-_peel = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_peel)
+_peel = borrow("TSC_CMYK_Peel")
 C, M = _peel.C, _peel.M
 ORANGE = "#ff9a1a"
 DARK = "#1e1f22"

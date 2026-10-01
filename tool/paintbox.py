@@ -1114,21 +1114,24 @@ def export_to_viewer(skin):
     textures = {name: arr for name, (arr, fourcc, opts) in skin.textures().items()}
     view.export_mesh()
     view.ensure_hdri()
+    view.ensure_floor()
     view.ensure_stock()
     view.export_skin(skin.name, textures)
 
 
 def save_painted(skin):
-    """Keep the painted textures (uint8) so installing needn't paint again."""
+    """Keep the painted textures (uint8) for building the zip (build_zip) and for the checks that read
+    the paint (tool/skincheck.py). Each file replaced whole, the textures first."""
     out = paths.BUILD / skin.name
     out.mkdir(parents=True, exist_ok=True)
     arrays, meta = {}, {}
     for name, (arr, fourcc, opts) in skin.textures().items():
         arrays[name] = np.clip(np.rint(np.asarray(arr) * 255), 0, 255).astype(np.uint8)
         meta[name] = {"fourcc": fourcc, **opts}
-    np.savez(out / "painted.npz", **arrays)
-    (out / "painted.json").write_text(json.dumps({"textures": meta, "icon": skin.icon_colours, "notes": skin.notes, "drawn": skin.drawn,
-                                                "palette": skin.palette}, indent=1))
+    np.savez(out / "painted.tmp.npz", **arrays)
+    (out / "painted.tmp.npz").replace(out / "painted.npz")
+    paths.write(out / "painted.json", json.dumps({"textures": meta, "icon": skin.icon_colours, "notes": skin.notes,
+                                                  "drawn": skin.drawn, "palette": skin.palette}, indent=1))
     return out
 
 

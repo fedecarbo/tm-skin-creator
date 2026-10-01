@@ -212,7 +212,9 @@ def picture(names, titles=None, views=("front", "rear", "top"), close=None, open
         for j, t in enumerate(tiles):
             out.paste(t.convert("RGB").resize((tw, th)), (j * tw, y + band))
     path = paths.BUILD / f"{names[0]}_picture.png"
-    out.save(path)
+    png = io.BytesIO()
+    out.save(png, "PNG")
+    paths.write(path, png.getvalue())  # the last one may still be open on the user's screen
     print(f"picture: {path}")
     if open_it:
         paths.open_file(path)

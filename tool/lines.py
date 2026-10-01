@@ -15,10 +15,8 @@ onto the skin, landed on the wrong surface. The room's own preview is still only
 
 import json
 import math
-import os
 import re
 import sys
-import tempfile
 
 from tool import paths
 
@@ -73,16 +71,7 @@ def load():
 def save(doc):
     """Keep the lines (checked), replacing the file whole. Returns them as kept."""
     doc = _clean(doc)
-    FILE.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=FILE.parent, prefix=".lines-", suffix=".json")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(doc, f, indent=1)
-            f.write("\n")
-        os.replace(tmp, FILE)
-    finally:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
+    paths.write(FILE, json.dumps(doc, indent=1) + "\n")
     return doc
 
 

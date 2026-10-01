@@ -127,8 +127,9 @@ card) and no game: install from the Windows PC after a push.
   drop`. Name the options A, B, C in replies too.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
-- For a skin that builds on an earlier one, load that design (as
-  `skins/TSC_CMYK_Peel/design.py` does) rather than copy it.
+- For a skin that builds on an earlier one, borrow that design rather than copy it:
+  `_base = borrow("TSC_CMYK_Peel")` (`from tool.skin import borrow`), then `_base.design(s)` and its
+  colours. Read what a borrowed helper paints before reusing it.
 - When something isn't in the box, write it. A reusable pattern or placement goes in `tool/`. A
   new finish goes in `finishes.LIBRARY` and at the end of its family in `finishes.CATALOGUE`
   (never reorder it: the codes are what the user copies), so the Lab shows it.
