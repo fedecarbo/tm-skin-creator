@@ -147,6 +147,12 @@ the design as asked), then speed.
 - **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
   maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
 
+- **The Lab is empty before a new car's first paint** (2026-10-01, TSC_Water: "why is there no car
+  or previews?"). Opened on a new car whose concepts are still being designed, the Lab shows only the
+  floor and "Being painted..." until the first paint starts (`lab-studio.js`: the embedded viewer
+  dresses nothing when the skin has no paint yet). Idea: dress the car in the Lab's clay while the
+  skin has nothing painted, with a line on the stage ("Claude is designing the concepts: the car
+  appears as the first is painted").
 - **Real scanned materials** (the user's pick, 2026-09-29, from a search for useful tools). Poly
   Haven and ambientCG give measured scans for free (CC0): carbon, brushed metal, scratches, chipped
   paint, grime. They'd feed the textures library (`tool/textures.py`, `textures/library.json`) and
