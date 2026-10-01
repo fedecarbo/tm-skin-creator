@@ -64,8 +64,9 @@ def build_zip(name, icon_image=None):
     specs = {}
     for tex_name, spec in meta["textures"].items():
         spec = dict(spec)
-        specs[tex_name] = (spec.pop("fourcc"), spec)
-        (out / f"{tex_name}.dds").write_bytes(dds.texture(data[tex_name].astype(np.float32) / 255, specs[tex_name][0], **spec))
+        fourcc = spec.pop("fourcc")
+        specs[tex_name] = (fourcc, spec)
+        (out / f"{tex_name}.dds").write_bytes(dds.texture(data[tex_name].astype(np.float32) / 255, fourcc, **spec))
     zip_path = pack.pack(name, out, icon_image)
     packed = pack.sizes(zip_path)  # each file's size in the zip, compressed
     normals = [t for t in specs if t.endswith("_N") and data[t].shape[0] > 2048]

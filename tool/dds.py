@@ -156,11 +156,11 @@ def _blocks(image):
 
 def _each_distinct(blocks, encode):
     """encode() run once per distinct block, a chunk at a time, its result copied to every block
-    that's the same. blocks: (n, k) uint8; encode: (m, k) uint8 -> (m, 8) uint8."""
+    that's the same. blocks: (n, k); encode: (m, k) -> (m, 8) uint8."""
     blocks = np.ascontiguousarray(blocks)
-    rows = blocks.view(np.dtype((np.void, blocks.shape[1]))).ravel()
+    rows = blocks.view(np.dtype((np.void, blocks.shape[1] * blocks.itemsize))).ravel()
     distinct, where = np.unique(rows, return_inverse=True)
-    distinct = distinct.view(np.uint8).reshape(-1, blocks.shape[1])
+    distinct = distinct.view(blocks.dtype).reshape(-1, blocks.shape[1])
     out = np.concatenate([encode(distinct[k:k + CHUNK]) for k in range(0, len(distinct), CHUNK)])
     return out[where.ravel()]
 

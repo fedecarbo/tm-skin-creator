@@ -71,8 +71,8 @@ class Coverage:
         tmp = self.file.with_name(self.file.stem + ".tmp.npz")
         np.savez_compressed(tmp, **arrays)
         tmp.replace(self.file)
-        kept = sorted((f for f in self.file.parent.glob(f"coverage_{self.set}_{self.w}x{self.h}_*.npz") if ".tmp" not in f.name),
-                      key=lambda f: f.stat().st_mtime)
+        kin = [f for f in self.file.parent.glob(f"coverage_{self.set}_{self.w}x{self.h}_*.npz") if ".tmp" not in f.name]
+        kept = sorted(kin, key=lambda f: f.stat().st_mtime)
         for old in kept[:-2]:
             old.unlink(missing_ok=True)
 

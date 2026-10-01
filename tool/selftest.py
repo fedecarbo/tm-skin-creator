@@ -136,7 +136,8 @@ def child(script, cwd, log, *args):
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     env["PYTHONHASHSEED"] = "0"
     with open(log, "w") as f:
-        r = subprocess.run([sys.executable, "-B", "-c", script, *args], cwd=cwd, env=env, stdout=f, stderr=subprocess.STDOUT)
+        r = subprocess.run([sys.executable, "-B", "-c", script, *args], cwd=cwd, env=env,
+                           stdout=f, stderr=subprocess.STDOUT)
     if r.returncode:
         tail = log.read_text(errors="replace").strip().splitlines()[-1:] or ["(no output)"]
         return {"error": tail[0]}
@@ -168,8 +169,9 @@ def same(a, b):
             textures.append(f"{t}: {', '.join(bad)} differ")
     other = []
     if a["notes"] != b["notes"]:
-        other.append("notes differ:\n      " + "\n      ".join(
-            [f"- {n}" for n in a["notes"] if n not in b["notes"]] + [f"+ {n}" for n in b["notes"] if n not in a["notes"]]))
+        gone = [f"- {n}" for n in a["notes"] if n not in b["notes"]]
+        new = [f"+ {n}" for n in b["notes"] if n not in a["notes"]]
+        other.append("notes differ:\n      " + "\n      ".join(gone + new))
     if a["record"] != b["record"]:
         other.append("the record differs (lines drawn, palette, steps, clay)")
     return textures, other
