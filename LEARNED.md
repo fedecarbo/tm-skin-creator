@@ -415,9 +415,9 @@ areas, what's open, the air and the chase cameras are still used.
 The user: "I've made lots of iterations on the tool and I'm kind of concerned that it's become a bit
 messy? Or slow? ... Making it simple wherever it can, make sure things work properly and is
 optimised properly." Done on the Mac, each step checked by `tool/selftest.py` (written first):
-every skin paints the same textures, game files, notes and record as commit b0ca0e8, but one fixed
-on purpose (TSC_WindTunnel, below), and the viewer's snapshots are the same to the pixel. The PC's
-check is queued in `IMPROVEMENTS.md`.
+every skin paints the same textures, game files, notes and record as commit b0ca0e8 (`--all`: 48 of
+50 designs identical; the other two, the cars that draw smoke lines, corrected on purpose, below),
+and the viewer's snapshots are the same to the pixel. The PC's check is queued in `IMPROVEMENTS.md`.
 
 - **Encode each distinct block once.** A painted body map is about 2 % distinct 4x4 blocks
   (TSC_Solstice: 22,489 of 1,048,576), and every BC1 and BC4 block is encoded on its own (no
@@ -443,10 +443,11 @@ check is queued in `IMPROVEMENTS.md`.
   the floor's soft shadow was drawn again only when a whole mesh was hidden.
 - **Install reused a kept paint by its design's date,** blind to the designs it borrows (chains five
   deep), its pictures and the tool. It always paints now: one paint, far cheaper than a stale car.
-- **The car map's memos remembered the wrong points** (TSC_WindTunnel): they matched a call by its
-  points' count and first and last points, and the smoke lines' traced points keep their ends while
-  their middles move, so 480 of 7,540 lookups got a neighbour's answer. They compare all the points
-  now; the car's smoke lines shift a little on the deck and the sidepods, the same design.
+- **The car map's memos remembered the wrong points** (TSC_WindTunnel, TSC_Map_Air): they matched a
+  call by its points' count and first and last points, and the smoke lines' traced points keep their
+  ends while their middles move, so 480 of 7,540 lookups (349 of 2,990 on TSC_Map_Air) got a
+  neighbour's answer. They compare all the points now: a few smoke lines shift a little, the same
+  designs. `car/map/air.jpg` was taken before the fix; retake it with the map's next rebuild.
 - **A check stays apart from what it checks:** `skincheck` keeps its own copies of what it shares
   with `skindraw` rather than importing them.
 - **"Couldn't show the skin: [object Event]"** was a file that failed to load, rarely, on a busy
