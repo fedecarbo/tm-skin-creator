@@ -47,3 +47,8 @@ apart), two along each flank, waving into a wake behind the sidepods; the red li
 streamline, stopping at the cockpit's rim. The design went from 403 lines to 76. Not shown to the
 user yet; the shapes field (the red line's notch at the fin, the wake's lines touching on the deck)
 is still to do when the user comes back to the car.
+
+Repainted 2026-10-01 (the deep tidy-up, Opus 5.5): the car map's memos had matched a lookup by its
+points' count and first and last points, so 480 of the smoke lines' 7,540 lookups got a neighbouring
+step's answer. Fixed: the same design, a few smoke lines shifted slightly on the deck and the
+sidepods. Not in the game, so nothing to reinstall.

@@ -414,10 +414,10 @@ areas, what's open, the air and the chase cameras are still used.
 
 The user: "I've made lots of iterations on the tool and I'm kind of concerned that it's become a bit
 messy? Or slow? ... Making it simple wherever it can, make sure things work properly and is
-optimised properly." Done on the Mac in five commits, each checked by `tool/selftest.py` (written
-first): every existing skin paints the same textures, game files, notes and record as commit
-b0ca0e8, and the viewer's snapshots are the same to the pixel. The PC's check is queued in
-`IMPROVEMENTS.md`.
+optimised properly." Done on the Mac, each step checked by `tool/selftest.py` (written first):
+every skin paints the same textures, game files, notes and record as commit b0ca0e8, but one fixed
+on purpose (TSC_WindTunnel, below), and the viewer's snapshots are the same to the pixel. The PC's
+check is queued in `IMPROVEMENTS.md`.
 
 - **Encode each distinct block once.** A painted body map is about 2 % distinct 4x4 blocks
   (TSC_Solstice: 22,489 of 1,048,576), and every BC1 and BC4 block is encoded on its own (no
@@ -443,6 +443,10 @@ b0ca0e8, and the viewer's snapshots are the same to the pixel. The PC's check is
   the floor's soft shadow was drawn again only when a whole mesh was hidden.
 - **Install reused a kept paint by its design's date,** blind to the designs it borrows (chains five
   deep), its pictures and the tool. It always paints now: one paint, far cheaper than a stale car.
+- **The car map's memos remembered the wrong points** (TSC_WindTunnel): they matched a call by its
+  points' count and first and last points, and the smoke lines' traced points keep their ends while
+  their middles move, so 480 of 7,540 lookups got a neighbour's answer. They compare all the points
+  now; the car's smoke lines shift a little on the deck and the sidepods, the same design.
 - **A check stays apart from what it checks:** `skincheck` keeps its own copies of what it shares
   with `skindraw` rather than importing them.
 - **"Couldn't show the skin: [object Event]"** was a file that failed to load, rarely, on a busy
@@ -450,13 +454,14 @@ b0ca0e8, and the viewer's snapshots are the same to the pixel. The PC's check is
 - **Cancelled `.hdr` requests** (`net::ERR_ABORTED`) show in the old and the new viewer alike, and
   the car still comes up: harmless.
 
-Timings on the Mac (before, after):
+Timings on the Mac, with other work running (before, after):
 
 | | before | after |
 |---|---|---|
 | a zip built (TSC_CMYK_EndsInK, two maps halved) | 147 s | 29 s |
-| the whole show (TSC_CMYK_EndsInK, 8 steps) | TODO | TODO |
-| the whole install, paint and build (TSC_CMYK_EndsInK) | TODO | TODO |
+| an install's paint and build (TSC_CMYK_EndsInK) | about 170 s | about 52 s |
+| a car's game files encoded (the self-test's 13 cars) | 33 to 87 s | 4 to 26 s |
+| a show's paint and its 8 step pictures (TSC_CMYK_EndsInK) | 47 s | 43 s |
 | the page online at rest, draw calls in 3 s | 2,880 | 0 |
 
 Left alone, on purpose: the car map's algorithms (the Mac and the PC trace different ridges:
