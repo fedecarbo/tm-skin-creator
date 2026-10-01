@@ -463,7 +463,8 @@ Left alone, on purpose: the car map's algorithms (the Mac and the PC trace diffe
 `IMPROVEMENTS.md`); drawing on the skin, paused by the user; re-routing the `taut` cars (it changes
 their paint); the viewer's shaders (no measured cost); an indexed `car.bin` (GitHub Pages already
 gzips it, 11.5 to 2.1 MB); baking the skies in Python (its half-float rounding differs from the
-browser's); the step records' unused fields (harmless data).
+browser's); the step records' unused fields (harmless data); the viewer's calibration settings in
+its address (the wings', air brakes' and plate's), kept for the open fine-tuning items.
 
 ## Under way: working notes
 

@@ -45,9 +45,10 @@ like what you show them.
   in progress.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
   picture maker) and the user's Mac (designing, the viewer, snapshots). Both run the tool the same
-  way. A hook in
-  `.claude/settings.json` pulls at the start of each session: if it failed, sort that out
-  first. Work that isn't pushed doesn't exist on the other computer.
+  way. A hook in `.claude/settings.json` pulls at the start of each session: if it failed, sort
+  that out first. Work that isn't pushed doesn't exist on the other computer.
+  **On the Windows PC, the first session after 2026-10-01 starts with "The PC's check of the
+  tidy-up"** (`IMPROVEMENTS.md`, Under way), before anything else; it deletes this line when done.
 - **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/,
   the skins in the game in 3D. `PY -m tool.publish` rebuilds it and replaces the `gh-pages`
   branch; it never goes on `main`.

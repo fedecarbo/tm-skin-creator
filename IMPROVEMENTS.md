@@ -24,7 +24,8 @@ the design as asked), then speed.
      processor has to agree with the Mac's, the texture encoder above all.
   3. One real `PY -m tool.skin install` of a skin already in the game (it replaces itself, e.g.
      TSC_CMYK_EndsInK), timed. Before the tidy-up its zip took 196 to 258 s to build on the PC.
-  4. Write both results under "The deep tidy-up" in `LEARNED.md`, then delete this item.
+  4. Write both results under "The deep tidy-up" in `LEARNED.md`, then delete this item and its
+     line in `CLAUDE.md`.
 
   If anything differs, don't install: find and fix the difference first, and tell the user in one
   line. Never ask the user to test; they may look in the garage if they want to.
