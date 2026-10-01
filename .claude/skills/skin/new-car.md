@@ -6,8 +6,7 @@ way the user works: the car in front of them, their notes on it, and options to 
 there's more than one way to go (the user, 2026-09-28: "Two main things I like. It's having the car
 and me being able to iterate. and I also like a place where you can provide options before
 building"). Read this when the user wants a new car, not for a change to one; `SKILL.md` still
-applies for everything it says about designing, checking, showing, the record and installing. The
-history (the studio's steps, the wizard, and why they went): "The design studio" in `CHECKLIST.md`.
+applies for everything it says about designing, checking, showing, the record and installing.
 
 ## How it runs
 
@@ -183,8 +182,8 @@ for the user: they hear what was found and fixed.
 6. Tell the user in a few lines: what the critic found, what was fixed, what was left and why.
 
 The critic's test car, TSC_CriticTest, has seven faults of known kinds (its design's docstring):
-after a change to the critic's instructions, run it there and compare with the score in
-`CHECKLIST.md` (W2).
+after a change to the critic's instructions, run it there and compare with its score in
+`LEARNED.md` ("The critic").
 
 **In the game.** On the Windows PC: `tool.skin install <car>`. The user drives it when they want
 to; never ask them to test (`CLAUDE.md`). If they share F12 screenshots, look only at those taken

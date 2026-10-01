@@ -13,8 +13,9 @@ judged close up, so you judge it close up first.
 
 ## Before you start
 
-1. `CHECKLIST.md`, "The car map": the plan, what each step built and learned, and the **handover**:
-   what can be trusted, what's wrong, the idea for the redo, how to check. Read all of it.
+1. `LEARNED.md`: "The car map" and the car map's working notes at the end: what can be trusted,
+   what's wrong, how to check. Read all of it. The full story of its steps is in git
+   (`git show b0ca0e8:CHECKLIST.md`, "The car map").
 2. `IMPROVEMENTS.md`, the car map's item, and the user's review in it (their words).
 3. `tool/carmap.py` (its docstring is the key), the map's words in `tool/shapes.py`, `car/map.md`,
    and the pictures in `car/map/`.
@@ -36,8 +37,8 @@ Never open the game's own skin folder (anything under `Documents\Trackmania\Skin
 - **Where the car has no line, say so.** Where the body's skin ends and the inner car carries on
   (under the front flank's lip), or where an edge fades out, the map says that; it doesn't invent a
   line to keep a rule tidy.
-- **One step at a time, recorded.** After each step: its notes in `CHECKLIST.md` (what was built,
-  what was tried and why it failed), `car/map.md` and its pictures redone if they changed, a commit
+- **One step at a time, recorded.** After each step: its working notes in `LEARNED.md` (what was
+  built, what was tried and why it failed), `car/map.md` and its pictures redone if they changed, a commit
   and push. Nothing that depends on the map (`area`, `along`, the rakes) is called done
   until its lines are.
 - Keep the code small and plain, in the tool's own style; the map rebuilds in under a minute.

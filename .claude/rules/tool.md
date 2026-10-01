@@ -8,87 +8,103 @@ paths:
 
 # Working on the tool
 
-`CHECKLIST.md` records why the tool works as it does: each checkpoint's "Notes for Claude",
-"Decisions", and "Things we learned" (what the game, the tests and the user showed). Search
-it before changing how something works. The top docstring of each `tool/*.py` is its key.
+`LEARNED.md` records why the tool works as it does: the user's decisions and what the game, the
+tests and the user showed, by topic. Search it before changing how something works. The top
+docstring of each `tool/*.py` is its key.
+
+## Checking a change
+
+Every change to the tool keeps every existing skin's paint and game files identical, unless the
+change is meant to alter them (then say which, and why, in its commit):
+
+- `PY -m tool.selftest --against <commit>` paints a representative set of skins with this code
+  and with that commit's, and compares every texture, every DDS file, the notes and the record;
+  `--all` takes every design (about an hour a side), `--snap` compares the viewer's sheets pixel
+  for pixel, `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in
+  the work folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
+- A cache whose contents change must change its name or version (`coverage._key`,
+  `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
+- The page online and Claude's snapshots must not change with a change made for the Lab (the
+  embedded viewer's features are `embed`-only). Every page draws only when something changed
+  (`rouse` in `viewer/viewer.js`): anything new that changes the picture on its own must call it.
+  Snapshots (`?snap=1`) draw every frame and load every mood first.
 
 ## Commands for the machinery
 
 `PY` is the tool's Python, one for each computer (`CLAUDE.md`), from the repo root. The two
 computers' differences live in `tool/paths.py` (the work folder, the snapshots' browser, opening a
-picture) and `requirements.txt` (the picture maker's packages, the PC only).
+picture, writing a file whole) and `requirements.txt` (the picture maker's packages, the PC only).
 
 - Set up a fresh clone: Python 3.14 (on the Mac Homebrew's `python@3.14`), `python -m venv <the
   work folder>/venv`, `PY -m pip install -r requirements.txt`, on the Mac `PY -m playwright install
-  --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths` looks),
-  `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks them;
-  the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
+  --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths`
+  looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks
+  them; the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
   (the picture maker's 16 GB of weights).
-- `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in
-  the background.
-- `PY -m tool.install <name> ...` installs built zips.
+- A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/build.py` puts it in the
+  viewer and builds the zip (`PY -m tool.build <name>`: a trial build of the last show's zip, to
+  see its size), `tool/install.py` puts it in the game (`PY -m tool.install <name> ...` installs
+  built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in
+  the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
+- `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in the
+  background. `tool/server.py` is the server: the pages, the work folder's data, and the Lab's
+  `/api/notes`, `/api/sets` and `/api/lines`, for this computer's pages only.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
-  for every finish in `finishes.CATALOGUE` and opens it.
-  After a change to `tool/server.py`, `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own
-  `tool.swatches` or `tool.view`) and start `PY -m tool.swatches --no-tab` in the background:
-  it serves without opening a tab (`--no-open` only paints).
-  **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
-  in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). Notes: "The Lab" in
-  `CHECKLIST.md`. The UV map room (`lab.html?room=uv`, `viewer/lab-rooms.js`) comes from
-  `tool/rooms.py` (its maps, parts and camera; every part must be in a room) and reads
-  `view.export_uvmap`'s data (the map picks surfaces: `view._surfaces`, the shapes it outlines,
-  `<Set>_Surfaces.png`), which `tool.view` and `tool.swatches` rebuild when the parts, the rooms or
-  their code change. The car's room (the user's pick of the fresh layouts, A, 2026-09-28) is the car
-  (`viewer/lab-studio.js`; the tags, `viewer/lab-tags.js`) and its timeline beside it, "With Claude"
-  (`viewer/lab-car.js`, A of the timeline's mockups, 2026-09-28), with the car's name, in the game
-  and Claude's status over them. The car
-  reads the frames `tool.skin show` writes at each `Skin.step` (`view.export_steps`, `studio.json`)
-  and follows Claude's painting; `install` paints without them. It drives the embedded viewer
-  (`index.html?embed=1`) through `window.viewer`: `inset` (the box the car is framed in, the rest left
-  to the tags), `track` (its points' places on the page, pushed at the end of each frame that moves
-  them), `project`, `camera`, `go`, `mood`, `views` (the viewer's own Cam buttons: "Game view") and
-  `picture({ crop: 'inset' })`. All of it is embed-only: the page online and Claude's snapshots
-  mustn't change (compare a snapshot before and after). The embedded viewer draws only when something
-  changed (the camera, a `window.viewer` call, a resize: `rouse`), so anything new that changes the
-  picture on its own must call `rouse`. The embedded viewer with no skin has no car until its first
-  `dress` (or `stock()`). Its notes on the car (`tool/notes.py`, `.notes/notes.json`: git-ignored,
-  each computer keeps its own, writers take an mkdir lock) go through the viewer's server (`/api/notes`,
-  this computer's pages only) and reach Claude through a UserPromptSubmit hook (`.claude/settings.json`),
-  or at once through `tool.notes wait` in the background.
+  for every finish in `finishes.CATALOGUE` and serves it. After a change to `tool/server.py`,
+  `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own `tool.swatches` or
+  `tool.view`) and start `PY -m tool.swatches --no-tab` in the background (`--no-open` only
+  paints). **The Lab shows only the tool's own data**, never a list of its own that could drift: a
+  gap in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). Its rooms share
+  `viewer/lab-common.js`:
+  - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
+    (`lab-car.js`). The car follows the frames `tool.skin show` writes at each `Skin.step`
+    (`view.export_steps`, `studio.json`; `install` paints without them), and drives the embedded
+    viewer (`index.html?embed=1`, no car until its first `dress` or `stock()`) through
+    `window.viewer`: `inset`, `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`.
+  - the UV map room (`lab.html?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
+    in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
+    their code change.
+  - the lines room (the user's pins, below) and the materials (`lab.js`; the balls by `balls.js`).
+  - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
+    writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)
+    or at once through `tool.notes wait` in the background. The hook runs `notes.py` as a script,
+    perhaps on the Mac's own python3: it stays standard library only.
 - The sets of options: `tool/sets.py` (its docstring is the key, standard library only) writes
   `skins/<car>/sets.json`, the only writer; the Lab's timeline reads it through `/api/sets?skin=<name>`
   (`sets.lab`: the car the skin is or is an option of), which also carries `said`, everything said in
-  the Lab about the car and its options (`notes.timeline`: the user's notes, done or not, with their
-  pictures, served as `/notes/<file>`, and Claude's lines, `by: "claude"`, from `tool.notes say` and
-  `done --say`). Each option's picture is its gallery thumb, and a pick keeps every option's picture
-  in `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
+  the Lab about the car and its options (`notes.timeline`: the user's notes, with their pictures,
+  served as `/notes/<file>`, and Claude's lines, `by: "claude"`, from `tool.notes say` and `done
+  --say`). Each option's picture is its gallery thumb, and a pick keeps every option's picture in
+  `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
   note with `answer` (the set, the option), the box's words a note with no point: the car's tags
-  leave both out. Notes: "The design studio" (W3) and "The Lab's timeline" in `CHECKLIST.md`.
+  leave both out.
 - `PY -m tool.snap --page "<page>"` photographs any page of the viewer's whole, e.g. a Lab room.
 - The studio's critic: an agent, `.claude/agents/critic.md`, given only a car's brief and pictures
   (never the design). `tool/critic.py` (its docstring is the key) cuts `tool.snap`'s four sheets
   into its pictures (`--review`: the angles the others miss) and keeps its findings in
   `skins/<car>/review.json` (keep, mark: standard library only). Its test car, TSC_CriticTest,
-  carries seven known faults (its design's docstring, never given to the critic). Notes: W2 in
-  "The design studio", `CHECKLIST.md`.
-- Several at once (the studio's three concept designers): paints take turns on a computer
-  (`skin.paint_slot`, an OS lock on `paint<k>.lock` in the work folder, freed if a paint dies;
-  `TSC_PAINTS=<n>` for more slots), since each paint needs a few GB and the Mac's old container (7.7 GB)
-  lost two of three to its memory limit.
+  carries seven known faults (its design's docstring, never given to the critic).
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
-  on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres` photographs the library
-  (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
-- Drawing on the skin, the one way lines are drawn: `tool/skinmesh.py` is the whole car's
-  paintable surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
-  subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on it (`through`, `taut`, `parallel`, `circle`, `loop`, `mirror`, `edge`, `meet`, `band`; `PY -m
-  tool.skindraw --probe "place,place"`); `PY -m tool.skincheck <name>` (`--falsify`, `--floor`)
-  measures every band on the car. Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
+  on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres`
+  photographs the library (`tool/tyresheet.py`); `tyresheet.page(folder)` fills
+  `viewer/tyres.html` for the user's page.
+- Drawing on the skin, the one way lines are drawn: `tool/skinmesh.py` is the whole car's paintable
+  surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
+  subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on
+  it (its docstring is the reference; `PY -m tool.skindraw --probe "place,place"`); `PY -m
+  tool.skincheck <name>` (`--falsify`, `--floor`) measures every band on the car, importing nothing
+  from the drawing code it checks.
 - The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in
-  the viewer's clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
+  the viewer's grey clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
   `car/lines.json` (committed); `PY -m tool.lines` lists them. A pinned line's name is a place
-  list for `skindraw.through`, which runs a curve through its pins.
+  list for `skindraw.through`, which runs a curve through its pins (the room's own curve is only a
+  rough picture).
+- The car map (`tool/carmap.py`, `car/map.md` and its pictures in `car/map/`) rebuilds itself when
+  the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its code: rebuild, repaint the
+  TSC_Map_ cars, take their `--body` pictures into `car/map/` and `--describe` again (on the
+  computer whose map is in `car/map.md`: the two trace different ridges, `IMPROVEMENTS.md`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

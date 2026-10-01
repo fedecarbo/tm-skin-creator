@@ -11,10 +11,25 @@ goes blind, and nothing needs a flattening, so nothing shears.
     python -m tool.skindraw --probe "nose,bonnet,tail"   the curve through those places, what it crosses
     python -m tool.skindraw --agree                      the two distance measures checked against each other
 
-    skindraw.through(["nose", "bonnet", "tail"])          a curve through named places or (x, y, z) cm
-    skindraw.band(curve, 30)                             a zone 30 mm wide on that curve, for the paint box
-    skindraw.edge(place, 15)                             a line 15 mm in from the car's edge nearest a place
-    skindraw.meet(curve, other)                          the curve cut where it reaches another's middle (a T)
+    skindraw.through(["nose", "bonnet", "tail"])     a curve through places, a corner at each (smooth=mm rounds them)
+    skindraw.loop(places)                           the same, closed
+    skindraw.circle(place, 40)                      a true circle, 40 mm round a place
+    skindraw.parallel(curve, 6)                     the curve moved 6 mm sideways over the skin (+: to its left
+                                                    as it runs, so upwards for a line run nose to tail on the
+                                                    left flank): the colours of a tricolour keep their gaps
+    skindraw.mirror(curve)                          the same curve on the car's other side
+    skindraw.rim(place), skindraw.edge(place, 15)   the car's own edge nearest a place, and a line 15 mm in
+                                                    from it (the cockpit's rim is clean; look before
+                                                    following another edge: most are ragged)
+    skindraw.meet(curve, other)                     the curve cut where it reaches another's middle (a T: run
+                                                    it on past the other, and paint the other after it)
+    skindraw.band(curve, 30)                        a zone 30 mm wide on that curve, for s.paint(..., zone=)
+    skindraw.taut(places)                           the first way: a string pulled tight past the places, not
+                                                    through them (up to 217 mm off); only the cars drawn
+                                                    with it use it
+  A place is a name from paintbox.SPOTS, a pinned line's name (car/lines.json: its pins, in order), or
+  (x, y, z) in cm with a word for the way the skin faces there, (x, y, z, "up"): "up", "side",
+  "front", "rear" or "down" (the car has upstands, where a bare point can land on either face).
 
 What the exam car showed (TSC_SkinExam, 2026-10-01): 2 mm is the thinnest line the body's texture
 holds whole (its texels are 0.9 mm; 1.5 and 1 mm lines go patchy), and from the game's chase cameras

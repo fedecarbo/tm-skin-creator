@@ -2,11 +2,11 @@
 
 The queue of things the tool should do better. Newest at the bottom of each group. The `skin`
 skill says how it's kept: during a skin, Claude fixes only what that skin needs and adds
-anything else here. The user says when to work on the list. A finished item is deleted
-from here, and what it taught goes under "Things we learned" in `CHECKLIST.md`.
+anything else here. The user says when to work on the list. A finished item is deleted from
+here, and what it taught goes under its topic in `LEARNED.md`.
 
 Each item: what's wrong or missing, when and where it showed up, and an idea for the fix. A
-bigger item keeps its working notes under "Improvements after the build" in `CHECKLIST.md`.
+bigger item under way keeps its working notes at the end of `LEARNED.md`.
 
 What matters most (the user, 2026-09-28: "We can always define improvements on performance, and
 most importantly quality and accuracy"): quality and accuracy first (the car as the game shows it,
@@ -14,85 +14,59 @@ the design as asked), then speed.
 
 ## Under way
 
+- **The PC's check of the tidy-up** (2026-10-01, the deep tidy-up, done on the Mac while the PC was
+  away: the user asked for it as a queued task). **On the first session on the Windows PC, before
+  any install or anything else:**
+  1. The session's pull brings it; install the requirements if they changed
+     (`PY -m pip install -r requirements.txt`).
+  2. `PY -m tool.selftest --against b0ca0e8` (about 25 minutes the first time: it paints the old
+     code's side once). Every texture and every DDS file must come out identical: the PC's
+     processor has to agree with the Mac's, the texture encoder above all.
+  3. One real `PY -m tool.skin install` of a skin already in the game (it replaces itself, e.g.
+     TSC_CMYK_EndsInK), timed. Before the tidy-up its zip took 196 to 258 s to build on the PC.
+  4. Write both results under "The deep tidy-up" in `LEARNED.md`, then delete this item.
+
+  If anything differs, don't install: find and fix the difference first, and tell the user in one
+  line. Never ask the user to test; they may look in the garage if they want to.
 - **Drawing on the skin** (the user, 2026-09-30: "Current approaches are not working ... I cant
   figure out how ai can draw the car without making mistakes ... perfect lines that are accurate and
-  continuous"). Lines are drawn ON the surface as geodesics (`tool/skindraw.py`: `through`,
-  `circle`, `loop`, `mirror`, `band`) on one mesh of the whole car (`tool/skinmesh.py`), and checked
-  on the car by exact geodesics across each band (`tool/skincheck.py`, `--falsify`). Built and
-  measured: widths within 0.2 mm, middles within 0.1 mm, on seventeen bands of eight kinds.
-  **Left:** the nose band over the bonnet's centre fin; the hoop down the flanks; a break and
-  stray-paint measure that can be trusted; a filled area bounded by a drawn curve (a split along a
-  sweep, one colour each side).
-  Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
-  **The exam, 2026-10-01** (TSC_SkinExam, the user's pick of four test ideas, with "a famous livery
-  look: black and gold pinstripes" to follow, not started): 15 of its 17 lines pass the check (the
-  two that don't are the 1.5 and 1 mm pinstripes, too thin for the texture), and the earlier cars
-  were re-measured, with a few spots still flagged (TSC_Skin's flank sweeps at a panel joint z -82,
-  SkinMore's two middle stripes and Solstice's cream stripe at their ends). Several real faults were
-  found and fixed on the way (`CHECKLIST.md`). **The user, after it: "lets stop. None of the cars
-  make me think it's working."** The numbers passing hasn't convinced them by eye: ask what they'd
-  need to see before building more, and don't count a check passing as the item working.
-- **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
-  concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
-  design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care
-  that the Ai can prperly understand how to design cars"). Built the same day, six steps
-  (`tool/carmap.py`; `car/map.md` and its pictures, read before every design): what's open, the
-  areas split along the car's own lines, its lines, positions that bend with the body, the air over
-  it (where it hits, its flow, smoke lines), what the chase cameras see. Tested on TSC_WindTunnel,
-  whose smoke lines it now draws (403 lines of design down to 76). Left, from the plan's "later":
-  what each game camera shows (only the chase cameras' view so far), the flat spots for pictures
-  measured rather than typed (`SPOTS`), a check on every paint for graphics crossing a fold or an
-  opening, and streaks combed along the flow. TSC_WindTunnel waits for the user. Notes:
-  `CHECKLIST.md`, "The car map".
-  **First, the user's review (2026-09-29):** "I don't think you did the green and the yellows and
-  magenta mapping right. Some lines just looked very wobbly ... They just don't follow the lines of
-  the cars and the curvature properly." Right: the shoulder and the lower edge are a threshold on
-  each slice's facing (50 and 125 degrees), smoothed along the car, so on a rounded edge they sit
-  wherever the threshold falls, not on the body's own crease, and they wander where the section
-  changes (the sidepods' front, the nose's lip, the nose's tip); the front and back areas are a
-  threshold on the facing too, so they come out as blotches. Idea: find the car's real feature lines
-  from its curvature (the ridges where the surface bends most), trace each as one continuous curve
-  along the car, and take the shoulder and the lower edge from those; the front and the back as
-  whole faces bounded by them. **Done 2026-09-29 (the car mapper, step 7 in `CHECKLIST.md`)**, judged
-  by measurement (`python -m tool.carmap --check`), not by eye (the user: "I don't think it's feasible
-  to do it by eye"). After round 3 (step 9): the named lines are smooth curves fitted to the
-  evidence (the shoulder from the nose to the sidepod's rear corner in one, evidence within 4.5 mm),
-  the areas are cut by those curves and the mesh's own edges, only real folds are drawn (8), and the
-  check measures the curves as the eye sees them (mm limits on the car and in the flat texture).
-  Behind the sidepods (z -95 to -35) the body has no clear lower edge: the sides run to the skin's
-  own end there. Waiting for the user's look at the lines (`car/map/lines.jpg`,
-  `car/map/areas.jpg`) before anything built on the map (the rakes, the grid, the station table) is
-  called done. Step 10, a flat sewing pattern of the skin to draw on, and bands drawn from the map's
-  fitted lines were retired on 2026-09-30 for drawing on the car's own skin (the item above); the
-  map keeps its areas, what's open, the air and the chase cameras. Notes: `CHECKLIST.md`, "The car
-  map", and "Drawing on the car's own skin".
-- **The car map isn't the same on the two computers** (2026-09-29, the car mapper, found while
-  building the body sheet): rebuilt fresh on the Mac, the map traces 66 ridges and draws 12 folds
-  where the PC recorded 62 and 8, and `python -m tool.carmap --check` fails 4 stretches (the shoulder
-  over the rear flanks, ridge 0.85; the lower edge at the sidepods, a 16 cm step) and 1 curve (the
-  shoulder 188 to -50: ragged 3.4 mm, texture 4.2 mm) that step 9 recorded as passing. The ridge
-  tracing (`carmap._trace_ridges`: seeds by a strict local maximum of k1, crests refined by a
-  parabola, cuts at 1.5 cm) decides differently on tiny numeric differences between the two
-  computers' numpy and BLAS. Idea: make the tracing's decisions tolerant (a seed a clear maximum by a
-  margin, ties broken by position), or build the map on one computer and commit its cache's hash so
-  the other checks it matches. Not fixed. Lines are no longer drawn from the tracing (drawing on the
-  skin, above), but the map's areas are still cut by its fitted lines, so `area("top")` and
-  `across` can differ a little between the two computers.
+  continuous"). Lines are drawn ON the surface (`tool/skindraw.py`) on one mesh of the whole car
+  (`tool/skinmesh.py`) and checked on the car (`tool/skincheck.py`). **The user, after the exam car
+  (TSC_SkinExam, 2026-10-01): "lets stop. None of the cars make me think it's working."** The
+  numbers passing hasn't convinced them by eye: ask what they'd need to see before building more,
+  and don't count a check passing as the item working. Left: the nose band over the bonnet's centre
+  fin; the hoop down the flanks; a break and stray-paint measure that can be trusted; a filled area
+  bounded by a drawn curve; "a famous livery look: black and gold pinstripes" (the user's pick, not
+  started). Working notes: `LEARNED.md`.
+- **The car map: the AI understanding the car** (the user, 2026-09-29: "I actually care that the Ai
+  can prperly understand how to design cars"). Built (`tool/carmap.py`; `car/map.md` and its
+  pictures, read before every design): what's open, the areas split along the car's own lines,
+  positions along the car, the air over it, what the chase cameras see. Its own lines are no longer
+  drawn with (drawing on the skin, above). Waiting for the user's look at the lines and areas
+  (`car/map/lines.jpg`, `car/map/areas.jpg`) before anything built on them is called done.
+  TSC_WindTunnel waits for the user too. Left: what each game camera shows (only the chase
+  cameras' view so far), the flat spots for pictures measured rather than typed (`SPOTS`), a check
+  on every paint for graphics crossing a fold or an opening, and streaks combed along the flow.
+  Working notes: `LEARNED.md`.
+- **The car map isn't the same on the two computers** (2026-09-29, the car mapper): rebuilt fresh on
+  the Mac, the map traces 66 ridges and draws 12 folds where the PC recorded 62 and 8, and `python
+  -m tool.carmap --check` fails 4 stretches and 1 curve that passed on the PC. The ridge tracing
+  (`carmap._trace_ridges`: seeds by a strict local maximum of k1, crests refined by a parabola,
+  cuts at 1.5 cm) decides differently on tiny numeric differences between the two computers' numpy
+  and BLAS. The map's areas are cut by its fitted lines, so `area("top")` can differ a little
+  between the two computers (TSC_Map_Areas, TSC_WindTunnel's rakes). Idea: make the tracing's
+  decisions tolerant (a seed a clear maximum by a margin, ties broken by position), or build the
+  map on one computer and commit its cache's hash so the other checks it matches.
 - **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
   actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
-  actually work on every single detail from start to finish"). Built the same day in four goes: a
-  studio of eleven steps, experts (the step guides, the concept designers, the critic), a wizard in
-  the Lab; then, at the user's word, three steps, then none: "I don't really work that way". Now:
-  the car and the user's notes, and sets of options in the Lab's timeline whenever they ask (the fresh
-  layouts' A); a new car gets a short talk, three concepts as its first set, every detail with the
-  guides, and the critic before the game (`new-car.md`). Notes: `CHECKLIST.md`, "The design
-  studio". The test against the quick way (W4) dropped (the user, 2026-09-28): "ill probably
-  explore ways to make the workflow better for designing". Left: the user's word on it as they use
-  it, and whatever they explore.
-- **The Lab's list as a timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right
-  as the ai helper ... a scrollable timeline ... the latest would be at the bottom"). The user picked
-  A of the mockups, a chat with two voices. Built 2026-09-28 on the Mac, the leftovers of the earlier
-  layouts cleared first: waiting for the user's try. Notes: `CHECKLIST.md`, "The Lab's timeline".
+  actually work on every single detail from start to finish"; then "I don't really work that
+  way" to a studio of steps). Now: the car and the user's notes, sets of options in the Lab's
+  timeline whenever they ask, and for a new car a short talk, three concepts, every detail with the
+  guides and the critic before the game (`new-car.md`). Left: the user's word on it as they use it
+  ("ill probably explore ways to make the workflow better for designing").
+- **The Lab's timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right as the
+  ai helper ... a scrollable timeline ... the latest would be at the bottom"; they picked A of the
+  mockups, a chat with two voices). Built 2026-09-28: waiting for the user's try.
 
 ## The tool
 
@@ -151,12 +125,11 @@ the design as asked), then speed.
   them (a guess: 1.5 to 2 MB at 4096², the zip about 8.1 MB); if that's still too big, free room
   elsewhere (the suspension's blasted grain in Details_R). Check the zip first, then the game.
 
-- **Repainting only the map that changed** (2026-09-27, the Lab's step 9.7, queued here when the
-  design studio took over the Lab on 2026-09-28). Every `show` paints the whole car (90 to 127 s for
-  TSC_CMYK_EndsInK), even when a note changed only the tyres. A change often touches one of the
-  game's maps (Skin, Details, Wheels, Glass), so it could repaint that map only. Only if the game
-  files come out identical to a whole repaint. It makes every change faster. Notes: `CHECKLIST.md`, The Lab,
-  step 9.
+- **Repainting only the map that changed** (2026-09-27). Every `show` paints the whole car (about a
+  minute for TSC_CMYK_EndsInK on the Mac, 90 to 127 s on the PC), even when a note changed only the
+  tyres. A change often touches one of the game's maps (Skin, Details, Wheels, Glass), so it could
+  repaint that map only, if the game files come out identical to a whole repaint (`tool.selftest`
+  says). It makes every change faster.
 
 - **The picture maker on the Mac** (2026-09-28, TSC_Ladybird): it runs only on the PC's graphics
   card, so a car designed on the Mac can't have new pictures made for it. Idea:
@@ -179,38 +152,6 @@ the design as asked), then speed.
   paint, grime. They'd feed the textures library (`tool/textures.py`, `textures/library.json`) and
   "worn paint that reads as worn". Idea: fetch only what a finish needs, record each one's source,
   and add no new library.
-- **Proven geometry libraries for the car map's accuracy** (2026-09-29, the user: "what I struggle
-  is the accuracy when dealing with a 3d model and uv map ... maps the curvatures from the model into
-  the uv map so the ai just knows"). The bake already gives every texel its 3D position and facing.
-  The curvature, the ridges and the curves (`carmap._curvature`, `_principal`, `_trace_ridges`,
-  `tool/mapcheck.py`) are our own numpy code. Give these to the car mapper after its current step,
-  not during it:
-  - **libigl** (Python bindings, 2.6.2 on PyPI, March 2026, MPL-2.0): tested principal curvatures
-    and directions, as a second, independent measure for `--check`, or in place of ours.
-  - **potpourri3d** (geometry-central's bindings, MIT): distances along the surface (the heat
-    method) and the logarithmic map, which gives every texel near a point its coordinates measured
-    along the body. With it, a stripe, a logo or a grid is placed by measuring on the car, so it
-    wraps without stretching and lines up across the UV seams and the mirrored halves. That serves
-    the positions that bend with the body, measured `SPOTS`, and "motifs lined up across panels".
-  - Before adding either one: its latest release, wheels for Python 3.14 on Windows and macOS arm64,
-    pinned in `requirements.txt` with the date.
-  **Used, 2026-09-29 (step 10 of the car map):** both have wheels for CPython 3.14 on Windows x64 and
-  macOS arm64 (libigl 2.6.3 as cp312-abi3, potpourri3d 1.4.0 as cp314), pinned in `requirements.txt`,
-  installed in the Mac's venv (the PC gets them at its next session). libigl flattened the sheet
-  until it was retired (2026-09-30); its `principal_curvature` is the `igl` column of `--check`'s
-  curves table (the named
-  lines and most folds stand out on both measures; per vertex they correlate only 0.26, and it marks
-  half the welded body's vertices unfit for its quadric fit). potpourri3d now draws: since
-  2026-09-30 every line on the car is a chain of its exact geodesics (`EdgeFlipGeodesicSolver`),
-  and a band's width and the check across it are walked with its `GeodesicTracer` (`tool/skindraw.py`,
-  `tool/skincheck.py`); its signed heat method wants curves on edges, so it isn't used.
-  Looked at and left out (the same search): Substance 3D Painter (US$200 once on Steam, but it's
-  painted by hand, not driven by words); Hunyuan3D-Paint and Meshy (they paint the whole mesh from
-  a sentence, loosely, ignoring the map and the game's format); Recraft (vector logos and lettering,
-  subscription) and Z-Image-Turbo (a free picture maker to compare with FLUX.2 klein): quality, not
-  accuracy, so revisit those when quality is the focus. TypeSafe's Jev only picks from fixed
-  answers, so it's no use here.
-
 ## The viewer, from the user's screenshots and videos
 
 - **The game's cameras at speed** (2026-09-25, the user). Cam 1 and 2 and their alts are fitted
@@ -228,7 +169,7 @@ the design as asked), then speed.
   or down, then apart) at the video's pace, and raises the air brakes (rear quarter panels,
   nose panel, with their arms) while braking. How far the wings move, the air brakes' angles
   and how quick they are were set by eye. A short video from the side (pull away, brake hard,
-  let go) would pin them. Notes under the lights improvement in `CHECKLIST.md`.
+  let go) would pin them (`WING` and `AIRBRAKE` in `viewer/viewer.js`).
 - **The page online, sharper on big screens** (2026-09-25, `tool/publish.py`): it carries
   2048² paint so a phone can hold it, so on a computer, close up, it's softer than the viewer
   here. Idea: publish the 4096² colour maps too and let the viewer take them when the screen

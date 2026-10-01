@@ -56,7 +56,7 @@ card) and no game: install from the Windows PC after a push.
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user: a titled row per take (views: front, rear, left, right, top, night), plus rows of close looks (`--close-row` again for each take). Opens it on their screen. |
 | `PY -m tool.gallery` (background) | The page of all skins. Clicking one spins it in 3D. |
 | `PY -m tool.swatches` (background) | The Lab, http://localhost:8765/lab.html: the car (the user's notes hang on it as tags) with its timeline beside it, "With Claude" (the notes, Claude's lines, the sets of options); the UV map and every material the tool knows on a ball (with its code, numbers and a "Copy for Claude" button) in the car's menu. |
-| `PY -m tool.skin install <name>` | Builds the game files (2 to 3 minutes) and installs them. Reinstalling a skin replaces it. |
+| `PY -m tool.skin install <name>` | Paints it, builds the game files (about a minute or two) and installs them. Reinstalling a skin replaces it. |
 | `PY -m tool.publish` | Puts the skins in the game on the page online (the user's phone and friends), about 10 s plus the upload. `--here` shows it on this computer only. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]` | Candidate cut-out pictures on one sheet, `build/pictures/<slug>.png`, about 20 s each. Styles: sticker (default), flat, print, painted, line art, retro, photo. |
 | `PY -m tool.pictures tile "<words>"` | Seamless tiles, for a continuous print. |
@@ -134,7 +134,7 @@ card) and no game: install from the Windows PC after a push.
   new finish goes in `finishes.LIBRARY` and at the end of its family in `finishes.CATALOGUE`
   (never reorder it: the codes are what the user copies), so the Lab shows it.
   A shape for one skin only stays in its `design.py`. Keep it small. Record what the game or
-  a test teaches under "Things we learned" in `CHECKLIST.md`.
+  a test teaches under its topic in `LEARNED.md`.
 - Each picture-maker run needs its own wording or style: two runs with the same words share a
   folder, and the second overwrites the first.
 
@@ -146,11 +146,10 @@ card) and no game: install from the Windows PC after a push.
 - During a skin, fix only what this skin needs. Anything else that falls short goes on the
   list, whether you spotted it or the user did: the date, what's wrong, the skin that showed
   it, and an idea for the fix. Tell the user in one line that it's on the list.
-- Anything the user asks the tool to do better, in or out of a skin, is an item here, never a
-  new checkpoint. A big one keeps its working notes under "Improvements after the build" in
-  `CHECKLIST.md`.
+- Anything the user asks the tool to do better, in or out of a skin, is an item here. A big one
+  keeps its working notes at the end of `LEARNED.md`.
 - Work on the list when the user asks. When an item is done, delete it from the list and
-  record what it taught under "Things we learned" in `CHECKLIST.md`. An item marked for the
+  record what it taught under its topic in `LEARNED.md`. An item marked for the
   game is settled when the user drives a skin that uses it and says or shows what they saw; never
   ask them to test.
 
@@ -170,47 +169,30 @@ card) and no game: install from the Windows PC after a push.
   H I K O X 0 3 8 (the library's are): for the user's own word, say
   which side reads right (`reads="right"` swaps) or suggest a flip-proof one. A new look for the
   tyres goes in the library (its layouts are short), not in a design.
-- **Draw lines on the car's own skin** (`tool/skindraw.py` on `tool/skinmesh.py`, 2026-09-30: the
-  user, after years of wobbly and broken lines, "I cant figure out how ai can draw the car without
-  making mistakes"; the earlier ways -- a view's projection, a flat sewing pattern, lines fitted off
-  the mesh, splines through pins -- are retired). A line is a curve ON the surface:
-  `skindraw.through([place, place, ...])` passes through every place, joined by the surface's own
-  straight lines, with a sharp corner wherever it changes direction (a chevron's tip, an outline's
-  corner; `smooth=mm` rounds them off for a line meant to flow). `skindraw.taut` is the old way, a
-  string pulled tight past the places, which it doesn't pass through (up to 217 mm off): only the
-  cars drawn with it (TSC_Skin, TSC_SkinMore, TSC_Solstice, one line of TSC_SkinExam) use it. A place
-  is a name from `SPOTS`, a pinned line's name (its pins, in order), or `(x, y, z)` in cm with a
-  word for the way the skin faces there (`"up"`, `"side"`, `"front"`, `"rear"`, `"down"`): the car
-  has upstands where a bare point can land on either face. `skindraw.circle(centre, radius_mm)` is
-  a true circle; `skindraw.parallel(curve, mm)` the curve moved sideways over the skin (positive to
-  its left as it runs: upwards for a line run nose to tail on the left flank), so the colours of a
-  tricolour, drawn as parallels of one curve, keep their gaps over every fold;
-  `skindraw.mirror(curve)` the other side; `skindraw.edge(place, mm)` a line `mm` in from the
-  car's own edge nearest the place (the cockpit's rim is clean: 14.7 for 15; most other edges of the
-  model are ragged, so look before following one); `skindraw.meet(curve, other)` a line ending ON
-  another (a T): run it on past the other line, `meet` cuts it at that line's middle along that
-  line's own direction, and paint the other line after it, on top: clean at any angle. Paint with
-  `s.paint(where, finish, colour=, zone=skindraw.band(curve, width_mm))`. **Widths:** 2 mm is the
-  thinnest line the body's texture holds whole (its texels are 0.9 mm: 1.5 and 1 mm go patchy), and
-  from the game's chase cameras 3 to 4 mm reads as a line, 2 mm faintly (TSC_SkinExam). A
-  pinstripe meant to be seen while driving is 3 mm or more; a 2 mm one partners a wider line. A band keeps its width over folds and seams, never jumps a
-  gap onto another piece of the car, and stops at its curve's ends: run a stripe off the car by
-  starting its curve at the edge, not mid-panel. Two places give the straightest line between them,
-  which goes round an obstacle, not over it: add places to choose the route. **Probe before
-  painting:** `python -m tool.skindraw --probe "place, place"` prints the length, the parts crossed
-  and any sharp corner (a corner at a crease is the line crossing it, not a kink). The car has no
-  skin down the middle of its top from z +70 to -45 (the cockpit): a middle stripe passes beside it,
-  or splits round it. A split along one height, or a height that follows the car, is a 3D zone:
-  `shapes.below(y)`, or `shapes.field(lambda p, n: f(p[:, 2]) - p[:, 1])` (TSC_Split_Level,
-  TSC_Split_Follow). A fill bounded by a drawn curve isn't built yet (`IMPROVEMENTS.md`). **After
-  painting, run `python -m tool.skincheck <name>`:** every band's width and middle measured on the
-  car, off the paint, and whether it has holes, stray paint, a gap or a spike where it ends on
-  another, and how far it runs from the user's pins or its edge; a FAIL is yours to fix. Bands of one
-  colour (a gold livery) are told apart by their curves. The worked example is TSC_Solstice; the
-  test cars are TSC_Skin, TSC_SkinMore and TSC_SkinExam (the hard cases: pinstripe widths, corners,
-  T's, a crossing, an edge line, the user's crease). The user's "side crease" runs past the cut-out
-  by the rear wheel, and between its two rearmost pins a curve has to go round that opening: its
-  middle pins (`skindraw.pinned("side crease")[2:5]`, the sidepod's back to the wheel) are clean.
+- **Lines, stripes, bands and rings are drawn on the car's own skin** (`tool/skindraw.py`, whose
+  docstring is the reference; the user, 2026-09-30: "I cant figure out how ai can draw the car
+  without making mistakes"). Paint one with `s.paint(where, finish, colour=, zone=skindraw.band(curve,
+  width_mm))`. The rules that matter:
+  - You choose the route: a curve runs through the places you give, with a corner at each
+    (`smooth=mm` for a flowing line). Two places give the shortest way, which goes round an
+    obstacle: add places to steer it. Probe first: `PY -m tool.skindraw --probe "place, place"`
+    (the length, the parts crossed, any sharp corner; a corner at a crease is the line crossing it).
+  - Widths: 2 mm is the thinnest the body's texture holds whole; from the chase cameras 3 to 4 mm
+    reads as a line and 2 mm faintly, so a pinstripe meant to be seen while driving is 3 mm or more.
+  - The colours of a multi-colour stripe are parallels of one curve, so their gaps hold over every
+    fold. A band stops at its curve's ends and never jumps a gap onto another piece: start a stripe
+    at the car's edge to run it off the car.
+  - The top has no skin down its middle from z +70 to -45 (the cockpit): a middle stripe passes
+    beside it or splits round it.
+  - A split along a height is a 3D zone: `shapes.below(y)`, or `shapes.field(lambda p, n:
+    f(p[:, 2]) - p[:, 1])` for a height that follows the car (TSC_Split_Level, TSC_Split_Follow). A
+    fill bounded by a drawn curve isn't built yet.
+  - After painting, `PY -m tool.skincheck <name>` measures every band on the car (width, middle,
+    holes, stray paint, ends): a FAIL is yours to fix. The worked example is TSC_Solstice; the test
+    cars are TSC_Skin, TSC_SkinMore and TSC_SkinExam.
+  - The user's "side crease" runs past the cut-out by the rear wheel: between its two rearmost pins
+    a curve has to go round that opening; its middle pins (`skindraw.pinned("side crease")[2:5]`)
+    are clean.
 - **The user's pins** (`tool/lines.py`, `car/lines.json`): in the Lab's lines room the user clicks a
   few pins along a line of the car and names it, to show where a line should run. A pinned line's
   name is a place list for `skindraw.through`: the curve runs through its pins. `python -m
@@ -224,10 +206,7 @@ card) and no game: install from the Windows PC after a push.
   `~shapes.near("opening", 3)` or `near("fold", 2)` to keep clear, `shapes.hit` and
   `shapes.streamlines` for the air (TSC_WindTunnel). A round spot seen from above:
   `shapes.cylinder((x, -50, z), (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. Its
-  lines (`shapes.line`) are fitted off the mesh and show the map on its own test cars: draw lines
-  with `skindraw`. The map rebuilds itself when the mesh changes (`python -m tool.carmap`, 30 s);
-  after a change to its code, rebuild, repaint the TSC_Map_ cars, take their `--body` pictures into
-  `car/map/` and `--describe` again.
+  own lines (`shapes.line`) only show the map on its test cars: never draw with them.
 - **Keep clear** of the places the map can't know are special: the number panel (x ±19, z -78 to
   -62) and the engine cover panel (x ±19, z -120 to -82), where the game draws the player's number
   and name, and the nose fin's plate (x ±8, z 118 to 142): its fin stands upright, so a spot there
@@ -245,8 +224,6 @@ card) and no game: install from the Windows PC after a push.
   sidepod, 34 cm) and "bonnet" (45 cm). The front flank has a deep fold, so it takes lettering
   only, on its top strip ("left flank" with `at=(35, 62, 60)`, "right flank" with `at=(-35, 62,
   60)`). `show` reports a decal that crosses a fold or runs off an edge.
-- Keep lettering and detail off "number panel" and "engine cover panel": the game draws the
-  player's number and name there.
 - Crisp edges. The zone edge is 0.2 cm (about two texels). A fade along an edge reads as soft.
 - Aged paint: `under = s.keep()` of the primer, paint the livery, then `s.wear(under, fade=,
   chips=, scrapes=, clearcoat=)` (stone chips, wall scrapes, sun). Light primer under chips, not
@@ -256,18 +233,16 @@ card) and no game: install from the Windows PC after a push.
 - Glow is for the inner car only, as far as we know: Nadeo's list of skin files has no glow map
   for the body, but one was never tried in the game (the user doubts it, 2026-09-29: the test is
   on `IMPROVEMENTS.md`). Don't tell the user the body can't glow as a fact. `s.glow(part, colour,
-  kind)`. Seen working: "always on" (day
-  and night), "night only" (at night and sunset), "front lights" (at night and sunset only, the
-  brightest), "brake lights" (at night, and when braking), "energy" (only in the garage, tinted by
-  the game; dark on the track), "brake
-  heat" (rims glow while braking hard, building over about 1.5 s), "turbo" (glows in the
-  turbo pad's colour, yellow for a yellow pad, for about 3 s after it: the stock hubs carry it,
-  seen inside the wheels). Exhaust heat and boost were never seen to light up, so don't
-  promise them.
+  kind)`. Seen working: "always on" (day and night), "night only" (at night and sunset), "front
+  lights" (at night and sunset only, the brightest), "brake lights" (at night, and when braking),
+  "energy" (only in the garage, tinted by the game; dark on the track), "brake heat" (rims glow
+  while braking hard, building over about 1.5 s), "turbo" (glows in the turbo pad's colour for
+  about 3 s after it: the stock hubs carry it, seen inside the wheels). Exhaust heat and boost
+  were never seen to light up, so don't promise them.
 - The car's own lights take any colour: `s.relight("speed numbers" | "brake lights" | "rear
   lights", colour)`. The rear lights fill up with the gear in that colour and turn red when
-  braking, whatever the colour, and for about 1.5 s after a turbo pad. A tinted rear lens ("rear light lens") colours them too, and
-  filters the braking red: keep it clear or warm.
+  braking, whatever the colour, and for about 1.5 s after a turbo pad. A tinted rear lens ("rear
+  light lens") colours them too, and filters the braking red: keep it clear or warm.
 - `s.glass(colour, strength)` only tints. It also tints the lights behind the lenses.
 - Most inner parts share their paint with their twin on the other side, so `"…|left"` also
   paints the right, and some share with other parts: the front wing's panels wear the floor's
@@ -275,9 +250,9 @@ card) and no game: install from the Windows PC after a push.
   every part a colour also lands on, with how much: read it. All four wheels and tyres share one
   paint.
 - `s.dirt(amount)`: how dirty the car gets on dirt (1 = stock, 0 never).
-- Say these can't be done, if asked: holographic or colour-shift paint, relief on the body,
-  the player's number and name or their colour (the game mode sets it: white in a normal race), the turbo colour,
-  the gear display on the glass.
+- Say these can't be done, if asked: holographic or colour-shift paint, relief on the body, the
+  player's number and name or their colour (the game mode sets it: white in a normal race), the
+  turbo colour, the gear display on the glass.
 
 ## Before showing anything
 

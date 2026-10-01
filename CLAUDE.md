@@ -33,18 +33,19 @@ like what you show them.
 
 ## Where things are
 
-- The tool was built in checkpoints 0 to 8 (`CHECKLIST.md`). That file is the history, not a
-  to-do list: every decision, and "Things we learned" from the game and the tests. It's long,
-  so search it rather than read it all. `.claude/rules/tool.md` loads with the tool's code:
-  commands for the machinery, the source assets and the game's texture format.
+- `LEARNED.md`: the user's decisions and what the game, the tests and the user taught us, by
+  topic. Search it before changing how something works, and add what a skin or a test teaches.
+  `.claude/rules/tool.md` loads with the tool's code: how to check a change (the self-test), the
+  commands for the machinery, the source assets and the game's texture format. The story of how
+  the tool was built is in git (`CHECKLIST.md`, deleted 2026-10-01).
 - `IMPROVEMENTS.md`: the queue of things the tool should do better. **Whatever the user asks the
-  tool to do better (the viewer, new abilities, fixes) is an improvement, never a new
-  checkpoint** (the user, 2026-09-25): it goes on that list, and a big one keeps its working
-  notes under "Improvements after the build" in `CHECKLIST.md`. The `skin` skill says how the
-  list is kept. Work on it when the user asks. "Under way" says what's in progress.
+  tool to do better (the viewer, new abilities, fixes) is an improvement** (the user, 2026-09-25):
+  it goes on that list, and a big one keeps its working notes at the end of `LEARNED.md`. The
+  `skin` skill says how the list is kept. Work on it when the user asks. "Under way" says what's
+  in progress.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
-  picture maker) and the user's Mac (designing, the viewer, snapshots; no Docker since
-  2026-09-29). Both run the tool the same way. A hook in
+  picture maker) and the user's Mac (designing, the viewer, snapshots). Both run the tool the same
+  way. A hook in
   `.claude/settings.json` pulls at the start of each session: if it failed, sort that out
   first. Work that isn't pushed doesn't exist on the other computer.
 - **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/,
@@ -56,12 +57,13 @@ like what you show them.
 - `PY` is the tool's Python, run from the repo root: on the PC
   `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac
   `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`.
-- Work folder `TrackmaniaSkinChallenge`, the venv's parent above: `venv`, `browsers` (the Mac's snapshots), `official` (unpacked zips),
-  `cache` (the parsed mesh and bakes), `build` (pictures, DDS files and zips), `models` (the
-  picture maker's weights), `textures`, `viewer` (what the viewer page loads). All of it is
-  rebuildable.
-- Record technical decisions in the repo (the code, `CHECKLIST.md`, or this file if every
-  session needs them), so the next cold session finds them.
+- Work folder `TrackmaniaSkinChallenge`, the venv's parent above: `venv`, `browsers` (the Mac's
+  snapshots), `official` (unpacked zips), `cache` (the parsed mesh, bakes and coverage), `build`
+  (painted textures, pictures, DDS files and zips), `models` (the picture maker's weights, the PC),
+  `fonts`, `textures`, `viewer` (what the viewer page loads), `site` (the page online),
+  `selftest` (the self-test's code and results). All of it is rebuildable.
+- Record technical decisions in the repo (the code, `LEARNED.md`, or this file if every session
+  needs them), so the next cold session finds them.
 - Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. Commit and push
   without asking after each finished piece of work (a skin shown or installed, an improvement
   or a step of one, a checkpoint ticked), and before a session stops mid-way, so the other
