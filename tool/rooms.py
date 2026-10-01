@@ -6,7 +6,7 @@ where a picked surface lights up. It has a day and night picker (the user, 2026-
 night only, not Trackmania's sunrise and sunset).
 
 The rooms before it were one per map, Body, Details, Tyres and Glass, each with a camera on its
-area (and before that Body, Wheels, Details and Lights: CHECKLIST.md, "The Lab"). The user,
+area (and before that Body, Wheels, Details and Lights). The user,
 2026-09-27: "I'm starting to not find the views (body, details, etc) so helpful." They had said the
 UV map's surfaces would be useful ("for the uv map separating surfaces, that's going to be
 useful"), so the maps stay as one room. A room is an entry in ROOMS: its parts are the ones painted

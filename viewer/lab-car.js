@@ -1,6 +1,6 @@
 // The Lab's car room: the car fills it (lab-studio.js: the car and the user's notes on it), and beside
 // it "With Claude", the car's timeline (the user's pick of the timeline's mockups, A, 2026-09-28:
-// CHECKLIST.md, "The Lab's timeline"; https://claude.ai/artifact/6nKpAWW1VFPfbrAZTfVZWM). Like an AI
+// https://claude.ai/artifact/6nKpAWW1VFPfbrAZTfVZWM). Like an AI
 // chat, newest at the bottom: the user's notes on the car and their words on the right, Claude's lines
 // on the left, each set of options Claude offers as Claude's (a click puts an option on the car, a Pick
 // on each), a pick and "In the game" as they happen. It opens at the bottom and follows what comes

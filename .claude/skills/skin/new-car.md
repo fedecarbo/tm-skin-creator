@@ -17,7 +17,7 @@ applies for everything it says about designing, checking, showing, the record an
   they can still say otherwise. Technical choices stay yours.
 - **A new car starts fresh:** it borrows no looks from earlier cars, and no design of theirs, unless
   the user names one. What the game has taught about the car itself (`SKILL.md`, "What works on
-  this car", and "Things we learned") still counts.
+  this car", and `LEARNED.md`) still counts.
 - **Each field has its expert's know-how:** short guides in `guides/` beside this file, read when
   the work reaches their field and at no other time: `mood.md` and `shapes.md` for the concepts;
   on the car, `shapes.md` and `colours.md` for the shapes and finishes, `wheels.md`, `details.md`
@@ -183,7 +183,7 @@ for the user: they hear what was found and fixed.
 
 The critic's test car, TSC_CriticTest, has seven faults of known kinds (its design's docstring):
 after a change to the critic's instructions, run it there and compare with its score in
-`LEARNED.md` ("The critic").
+`LEARNED.md` (Decisions, "Models and machines").
 
 **In the game.** On the Windows PC: `tool.skin install <car>`. The user drives it when they want
 to; never ask them to test (`CLAUDE.md`). If they share F12 screenshots, look only at those taken

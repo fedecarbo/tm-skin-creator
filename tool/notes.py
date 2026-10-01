@@ -1,7 +1,6 @@
 """Notes on the car, and the Lab's timeline with Claude. In the Lab the user clicks the car where they
-mean and writes what they want there (their pick of the mockups, 2026-09-27: CHECKLIST.md, "The
-Lab", steps 7 and 9), or says something in the box under the timeline (the Lab's timeline, A, the
-user's pick, 2026-09-28: CHECKLIST.md, "The Lab's timeline"). Each note keeps the skin (the one on
+mean and writes what they want there (their pick of the mockups, 2026-09-27), or says something in
+the box under the timeline (the Lab's timeline, A, the user's pick, 2026-09-28). Each note keeps the skin (the one on
 the car: the car, or one of its options), the part under the click, the point (for its pin), the
 view and the user's words, in .notes/notes.json, and a picture of what the user was looking at with
 the pin drawn on, beside it. The page saves them through the viewer's server (tool/view.py,

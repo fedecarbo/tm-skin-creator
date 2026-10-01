@@ -121,7 +121,7 @@ def keep_version(name, thumb):
     import shutil
     folder = paths.SKINS / name / "versions"
     folder.mkdir(exist_ok=True)
-    kept = sorted(folder.glob("*.png"), key=lambda p: int(p.stem))
+    kept = sorted((p for p in folder.glob("*.png") if p.stem.isdigit()), key=lambda p: int(p.stem))
     if kept and kept[-1].read_bytes() == thumb.read_bytes():
         return
     n = int(kept[-1].stem) + 1 if kept else 1

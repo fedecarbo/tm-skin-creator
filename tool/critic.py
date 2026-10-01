@@ -1,4 +1,4 @@
-"""The studio's critic (CHECKLIST.md, "The design studio", W2): the pictures it's given, and what it
+"""The studio's critic: the pictures it's given, and what it
 found, kept as the car's review. The critic itself is an agent, .claude/agents/critic.md: it sees only
 the car's pictures and its brief, never the design, the notes or the designer's reasons (the skin skill's new-car.md, 4).
 

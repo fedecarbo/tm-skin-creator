@@ -1,6 +1,5 @@
-// The Lab's car (the user's pick of the fresh layouts, A, 2026-09-28: CHECKLIST.md, "The design studio",
-// W3): the car being built fills the page, turned by a drag, by day or night or from the game's own
-// camera, with the user's notes hanging on it as tags (lab-tags.js). Click the car where you mean and
+// The Lab's car (the user's pick of the fresh layouts, A, 2026-09-28): the car being built fills the
+// page, turned by a drag, by day or night or from the game's own camera, with the user's notes hanging on it as tags (lab-tags.js). Click the car where you mean and
 // write what you want there: the note keeps the point, the part under it, the view (a click on its tag
 // turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
 // viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message (or at

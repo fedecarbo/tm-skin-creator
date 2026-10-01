@@ -137,7 +137,7 @@ PARTS = [
 # The groups, the top of the parts list: the game's four maps, each part in the one it's painted
 # on (the user, 2026-09-26: "just for now go back to the default, Body, Details, Tyres, Glass ...
 # I'm just trying to simplify things"). A day of groups by what parts are (Body, Floor, Wheels,
-# Mechanicals, Cockpit) came before: CHECKLIST.md, "Defining the parts". The paint box's words
+# Mechanicals, Cockpit) came before. The paint box's words
 # "body", "details", "tyres" and "glass" name the same maps ("body" leaves the wheel covers out).
 GROUPS = [
     ("body", "the painted shell and the wheel covers"),

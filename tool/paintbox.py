@@ -237,7 +237,7 @@ class Skin:
         self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
         self._final = None  # the finished textures, built once when the design is done (end_steps)
 
-    # ---- steps: the Lab's Studio draws the car at the end of each (CHECKLIST.md, "The Lab", 5) ----
+    # ---- steps: the Lab draws the car at the end of each ----
 
     def step(self, name, does, words=None, look=None):
         """Start a step of the design. name: a few words ("The colour run"); does: what it

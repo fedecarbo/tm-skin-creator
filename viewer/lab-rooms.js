@@ -3,7 +3,7 @@
 // (the Car tab). On the map, point at a surface (a shape of its own) to see where its paint goes on
 // the car, and click to pick it; on the car, click a part to pick it; copy the line for Claude. A
 // day and night picker. It was four rooms, one per map, each with a camera on its area, until the
-// user found them not much help (2026-09-27). CHECKLIST.md, "The Lab" and "Defining the parts".
+// user found them not much help (2026-09-27).
 //   /lab.html?room=uv[&tab=car][&map=<set>][&part=<id>][&skin=<name>]
 // Everything comes from the tool (tool/view.py, export_uvmap): uvmap.json (each map; each part in
 // words and numbers; the rooms, each with its parts and camera), <Set>_Parts.png (the part covering

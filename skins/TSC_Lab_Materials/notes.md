@@ -38,5 +38,5 @@ The body has ten bands down each side, nose to tail, with thin matte black gaps.
 
 ## Record
 
-- Made 2026-09-26 with the Lab (CHECKLIST.md, "The Lab", step 1). Not installed yet: install
+- Made 2026-09-26 with the Lab. Not installed yet: install
   it on the Windows PC with `tool.skin install TSC_Lab_Materials`.

@@ -155,8 +155,8 @@ the design as asked), then speed.
 ## The viewer, from the user's screenshots and videos
 
 - **The game's cameras at speed** (2026-09-25, the user). Cam 1 and 2 and their alts are fitted
-  to the user's screenshots standing still (Things we learned, "the game's lens" and "fitting a
-  game camera"). In the game they
+  to the user's screenshots standing still (`LEARNED.md`, "The game's cameras, lens and moods"). In
+  the game they
   pull back and lower as the speed rises and close in again when the car slows (the
   straight-line video; the lights test's and turbo videos show Cam 1 through whole runs, up to
   about 440 km/h). Idea: fit Cam 1 at a few speeds from those videos' frames the same way (the

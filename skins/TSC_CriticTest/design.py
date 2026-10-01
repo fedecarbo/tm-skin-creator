@@ -1,4 +1,4 @@
-"""TSC_CriticTest (2026-09-28): the studio critic's test car (CHECKLIST.md, "The design studio", W2).
+"""TSC_CriticTest (2026-09-28): the studio critic's test car.
 Never shown to the critic: this docstring is the answer key.
 
 TSC_Ladybird as it stood after its Details step (commit 7ce51ee), before the user's notes 7 and 8

@@ -85,4 +85,4 @@ on the screen.
 - Driven 2026-09-27 (the user): the four moods on one editor map, the steps as written, plus each
   camera's second view: 24 screenshots, 09:18 to 09:22 (sunrise, day, sunset, night; each Cam 1,
   1 again, 2, 2 again, 3, 3 again). Read on Cam 2; the viewer matched to them the same day (what
-  they showed: `CHECKLIST.md`, Things we learned, "the four moods").
+  they showed: `LEARNED.md`, "The game's cameras, lens and moods").

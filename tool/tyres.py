@@ -728,7 +728,7 @@ def apply(canvas, art, reads="left"):
 
 
 # ---- the library ----
-# Layouts after real tyres (research, 2026-09-27: CHECKLIST.md, "Tyre markings"), rebuilt in our
+# Layouts after real tyres (research, 2026-09-27; LEARNED.md, "The tyres"), rebuilt in our
 # own words and shapes: no maker's name or logo. The words are all flip-proof: MAKER is the maker's
 # name on every marking; the model's name changes with the family.
 

@@ -1,5 +1,4 @@
-// The stand's tags (viewer/lab-studio.js; the user's pick, B, 2026-09-27: CHECKLIST.md, "The Lab",
-// step 9). Each tag hangs beside the car in one of two gutters, the car framed between them
+// The stand's tags (viewer/lab-studio.js; the user's pick, B, 2026-09-27). Each tag hangs beside the car in one of two gutters, the car framed between them
 // (viewer.inset), and a line joins it to a dot on its point on the car. The viewer reports where the
 // points are at the end of every frame it moves them (viewer.track), and the dots and lines are drawn
 // from that in the same frame. The tags themselves stay put while the car turns, and settle into

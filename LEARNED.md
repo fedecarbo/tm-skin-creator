@@ -41,7 +41,13 @@ The user's standing calls on how the tool works. Technical choices stay Claude's
   draws the game's. The page online carries only the skins in the game.
 - **Tools** (2026-09-23, 24): Python, each library its latest release pinned in `requirements.txt`,
   the venv outside OneDrive, the car read straight from the FBX. Always suggest a one-time-payment
-  tool of far better quality; a subscription needs a discussion first.
+  tool of far better quality; a subscription needs a discussion first. In use from a search for
+  useful tools (2026-09-29): potpourri3d (its exact geodesics draw every line) and libigl (a second
+  curvature measure in the map's check), both with wheels for Python 3.14 on both computers. Looked
+  at and left out: Substance 3D Painter (US$200 once, but painted by hand, not by words);
+  Hunyuan3D-Paint and Meshy (they paint the whole mesh loosely from a sentence, ignoring the map and
+  the game's format); Recraft (subscription) and Z-Image-Turbo (quality, not accuracy: revisit when
+  quality is the focus); TypeSafe's Jev (it only picks from fixed answers).
 - **Don't take the game's own files apart** (2026-09-24, asked twice): encrypted packs and compiled
   shaders, the licence forbids it, and it wouldn't replace tests. Fair game: Nadeo's published
   files, the stock textures, the user's screenshots and videos, a file the game's skin editor saves.
@@ -360,13 +366,15 @@ areas, what's open, the air and the chase cameras are still used.
 
 - **Our own encoders** (`tool/dds.py`): Pillow's BC4 put 1 % of glow texels on the wrong code; its
   BC1 was 5 dB worse, with fringes (the user saw pixelated stickers). `dds.bc1_blocks` (principal
-  axis, least squares, a local search) is on a par with texconv. A 2-minute build is worth it.
+  axis, least squares, a local search) is on a par with texconv: quality over build time (the
+  user, 2026-09-24). Each distinct block is encoded once (2026-10-01), so it's quick as well.
 - **ATI2's first block is channel 0** (X in a normal map, roughness in `_R`), as Nadeo's files store
   it, with "A2XY" in the bit-count field; the first test's chrome nose confirmed it in the game.
 - **Mips keep glow codes exact**: Nadeo's own average them (35 % off-code at mip 6); ours
   point-sample the alpha. Colour is averaged in linear light. Legacy headers, a full mip chain.
-- **Painting is the slow part** (1 to 2 minutes a car at 4096²). The nearest covered texels are kept
-  (`Canvas.near`) and `Skin.textures()` built once. The UV map's data rebuilds only when
+- **Painting is most of a show** (20 to 60 s a car on the Mac, more on the PC). The nearest covered
+  texels are kept (`Canvas.near`), `Skin.textures()` is built once, and a step's picture for the Lab
+  rebuilds only the texture sets painted since the last step. The UV map's data rebuilds only when
   `paintbox.SIZES` or `UVMAP_VERSION` change: bump it when `export_uvmap` or `_surfaces` write anew.
   Paints take turns (`skin.paint_slot`): each needs a few GB, and three at once killed two.
 - **The self-test** (`tool/selftest.py`) paints skins with this code and an earlier commit's and
@@ -401,6 +409,61 @@ areas, what's open, the air and the chase cameras are still used.
   session; until then give a general-purpose agent the same text.
 - **`car/parts.json` shows up changed**: delete the work folder's `parts_stats.json` and run
   `tool.parts`. **ambientCG wants a User-Agent** (a bare Python one gets 403).
+
+## The deep tidy-up (2026-10-01)
+
+The user: "I've made lots of iterations on the tool and I'm kind of concerned that it's become a bit
+messy? Or slow? ... Making it simple wherever it can, make sure things work properly and is
+optimised properly." Done on the Mac in five commits, each checked by `tool/selftest.py` (written
+first): every existing skin paints the same textures, game files, notes and record as commit
+b0ca0e8, and the viewer's snapshots are the same to the pixel. The PC's check is queued in
+`IMPROVEMENTS.md`.
+
+- **Encode each distinct block once.** A painted body map is about 2 % distinct 4x4 blocks
+  (TSC_Solstice: 22,489 of 1,048,576), and every BC1 and BC4 block is encoded on its own (no
+  statistics across blocks), so encoding the distinct ones and copying them gives byte-identical
+  files. `np.unique` on the blocks viewed as `np.void` takes 0.08 s; `np.unique(axis=0)` 6.6 s.
+- **Sparse coverage looked faster and wasn't.** Working on the parts' own texels instead of the
+  whole 16.7M-texel map gives the same floats but took 2.3 to 3 s a call against 0.14 to 0.17 s
+  for the dense sums: numpy's whole-array passes are cheap, gathers and unions aren't.
+- **Measure the paint before caching it.** TSC_CMYK_EndsInK paints in 23 s on the Mac, its cost
+  spread thin (distance transforms 2.8 s, blends 2.1 s, noise 3 s, coverage 2.9 s, the canvases'
+  set-up 3.8 s, the peel 5 s): no cache on disk is worth a gigabyte for that.
+- **Don't merge look-alike code that rounds differently.** The three float-to-uint8 conversions
+  (float32 against float64) differ by one level on about 4 % of painted values, and the normal
+  maps' Z is rebuilt by two formulas that differ in the last bit: merging either changes files.
+- **A timing in a note isn't the paint:** the self-test leaves "(8 s)" out of the notes it compares.
+- **The viewer drew a parked car every frame:** 2,880 draw calls in 3 still seconds on the page
+  online. Every page now draws only when something changes (0 at rest), and every frame while
+  driving or coasting, as before. Claude's snapshots still draw every frame.
+- **The page online showed the Lab's link** (to a page it doesn't publish) as soon as a skin
+  loaded: the viewer rewrites its address to `./lab.html?skin=...`, which `a[href="./lab.html"]` in
+  `public.css` no longer matched.
+- **Hidden parts cast shadows:** only Skin and Details had the depth material that skips them, and
+  the floor's soft shadow was drawn again only when a whole mesh was hidden.
+- **Install reused a kept paint by its design's date,** blind to the designs it borrows (chains five
+  deep), its pictures and the tool. It always paints now: one paint, far cheaper than a stale car.
+- **A check stays apart from what it checks:** `skincheck` keeps its own copies of what it shares
+  with `skindraw` rather than importing them.
+- **"Couldn't show the skin: [object Event]"** was a file that failed to load, rarely, on a busy
+  computer, in the old code too. The viewer now names the file.
+- **Cancelled `.hdr` requests** (`net::ERR_ABORTED`) show in the old and the new viewer alike, and
+  the car still comes up: harmless.
+
+Timings on the Mac (before, after):
+
+| | before | after |
+|---|---|---|
+| a zip built (TSC_CMYK_EndsInK, two maps halved) | 147 s | 29 s |
+| the whole show (TSC_CMYK_EndsInK, 8 steps) | TODO | TODO |
+| the whole install, paint and build (TSC_CMYK_EndsInK) | TODO | TODO |
+| the page online at rest, draw calls in 3 s | 2,880 | 0 |
+
+Left alone, on purpose: the car map's algorithms (the Mac and the PC trace different ridges:
+`IMPROVEMENTS.md`); drawing on the skin, paused by the user; re-routing the `taut` cars (it changes
+their paint); the viewer's shaders (no measured cost); an indexed `car.bin` (GitHub Pages already
+gzips it, 11.5 to 2.1 MB); baking the skies in Python (its half-float rounding differs from the
+browser's); the step records' unused fields (harmless data).
 
 ## Under way: working notes
 
