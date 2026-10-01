@@ -27,8 +27,8 @@ from scipy.sparse.csgraph import connected_components
 
 from tool import fbx, paths
 
-MESHES = ("Skin_01", "Details_01", "Wheels_01", "Glass_01")
-SETS = ("Skin", "Details", "Wheels", "Glass")
+SETS = tuple(fbx.MESH_OF)
+MESHES = tuple(fbx.MESH_OF.values())
 CACHE = paths.CACHE / "segments.npz"
 
 

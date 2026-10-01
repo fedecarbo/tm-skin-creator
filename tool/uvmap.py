@@ -20,8 +20,6 @@ from scipy.sparse.csgraph import connected_components
 
 from tool import bake, fbx, paths
 
-MESH_OF = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
-
 
 def islands(texture_set):
     """Per triangle: the UV island it belongs to, and the island's UV units per cm (area-weighted
@@ -31,7 +29,7 @@ def islands(texture_set):
         d = np.load(cache)
         if "offset" in d:
             return d["label"], d["density"], d["angle"]
-    m = fbx.meshes()[MESH_OF[texture_set]]
+    m = fbx.meshes()[fbx.MESH_OF[texture_set]]
     P = m["positions"][m["tri_vertex"]].astype(np.float64)
     UV = m["tri_uv"].astype(np.float64)
     T = len(P)

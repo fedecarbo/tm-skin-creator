@@ -23,13 +23,12 @@ import json
 import numpy as np
 from scipy.spatial import cKDTree
 
-from tool import naming, paths, segment
+from tool import fbx, naming, paths, segment
 from tool.shapes import WHEEL_Y, WHEEL_Z  # the wheel centres, fitted to the tyres and covers
 
 PARTS_JSON = paths.REPO / "car" / "parts.json"
 CACHE = paths.CACHE / "parts.npz"
 ENDED = {"rims and brakes", "tyre", "wheel cover", "front suspension", "rear suspension"}  # assemblies split front/rear
-MESH_NAME = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
 MESH_TRIS = {"Skin": 27184, "Details": 65246, "Wheels": 4896, "Glass": 2239}
 
 
@@ -328,7 +327,7 @@ class Parts:
         h, w = bake["tri"].shape
         if not hasattr(self, "_meshes"):
             self._meshes = fbx.meshes()
-        uv = self._meshes[MESH_NAME[texture_set]]["tri_uv"][tri_mask].astype(np.float64)
+        uv = self._meshes[fbx.MESH_OF[texture_set]]["tri_uv"][tri_mask].astype(np.float64)
         xy = np.stack([uv[..., 0] * w, (1 - uv[..., 1]) * h], -1)
         if samples == 1:
             return raster.rasterise(xy, w, h)[0] >= 0
@@ -412,7 +411,7 @@ class Parts:
         ids = self.select(name, side, end) if ids is None else ids
         if not hasattr(self, "_meshes"):
             self._meshes = fbx.meshes()
-        m = self._meshes[MESH_NAME[texture_set]]
+        m = self._meshes[fbx.MESH_OF[texture_set]]
         tris = self.tri_mask(texture_set, None, ids=ids)
         uv = m["tri_uv"][tris].astype(np.float64)
         xy = np.stack([uv[..., 0] * width, (1 - uv[..., 1]) * height], -1)

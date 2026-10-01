@@ -27,7 +27,6 @@ def _basis(view):
     return right, up, d
 
 
-MESH_ORDER = ("Skin", "Details", "Wheels", "Glass")
 
 
 def _project(view, size, scale, include, centre=(0, 40.0, 27.0)):
@@ -38,8 +37,8 @@ def _project(view, size, scale, include, centre=(0, 40.0, 27.0)):
     meshes = fbx.meshes()
     xy, z, n, gid = [], [], [], []
     offset = 0
-    for tex_name in MESH_ORDER:
-        m = meshes[{"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}[tex_name]]
+    for tex_name, mesh_name in fbx.MESH_OF.items():
+        m = meshes[mesh_name]
         count = len(m["tri_vertex"])
         if tex_name in include:
             p = m["positions"][m["tri_vertex"]].astype(np.float64) - np.asarray(centre)

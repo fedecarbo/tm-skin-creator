@@ -13,9 +13,8 @@
 // another, the rooms follow it, and they show each step as it lands (steps.json).
 // The car is the viewer itself (?embed=1).
 
-import { note, wanted } from './lab-address.js';
+import { $, ago, embedViewer, followed, note, titleOf, wanted } from './lab-common.js';
 
-const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const POLL = 1500;
 const GROUND = [5, 5, 6];      // the Lab's ball ground (--ball)
@@ -44,11 +43,6 @@ const toLin = (v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
 const toSrgb = (v) => 255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055);
 // the viewer lights a part by mixing it 65 % toward (1, .85, .2) in linear light
 const TINT = [1, 0.85, 0.2].map((l) => Uint8ClampedArray.from({ length: 256 }, (_, v) => toSrgb(toLin(v / 255) * 0.35 + l * 0.65)));
-const titleOf = (name) => name.replace(/^TSC_/, '').replaceAll('_', ' ').replace(/([a-z])(?=[A-Z])/g, '$1 ');
-const ago = (t) => {
-  const s = Math.max(0, Date.now() / 1000 - t);
-  return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
-};
 
 // ---- loading ----
 
@@ -422,14 +416,6 @@ async function wear(next) {  // dress the car and the map in a skin's textures
   }
 }
 
-async function followed() {  // the skin Claude painted last: { skin, stamp }
-  try {
-    const r = await fetch('data/studio.json', { cache: 'no-store' });
-    if (r.ok) return await r.json();
-  } catch { /* none yet */ }
-  return {};
-}
-
 async function poll() {
   if ($('roomPaint').hidden) return;  // another room is open
   try {
@@ -446,24 +432,10 @@ async function poll() {
   } catch (e) { console.error(e); }
 }
 
-function embedCar() {
-  return new Promise((resolve) => {
-    const frame = $('prCar');
-    frame.addEventListener('load', () => {
-      const wait = setInterval(() => {
-        const v = frame.contentWindow && frame.contentWindow.viewer;
-        if (!v || !(v.ready || v.error)) return;
-        clearInterval(wait);
-        if (v.error) { resolve(null); return; }
-        car = v;
-        car.onPick = (id) => pickId(id);
-        const credit = frame.contentDocument.getElementById('credit');
-        if (credit) $('prCredit').innerHTML = credit.innerHTML;  // the car model's licence asks for it
-        resolve(car);
-      }, 150);
-    }, { once: true });
-    frame.src = './index.html?embed=1';  // no skin: the stock car, dressed in the skin's textures
-  });
+async function embedCar() {  // no skin: the stock car, dressed in the skin's textures
+  car = await embedViewer($('prCar'), $('prCredit'));
+  if (car) car.onPick = (id) => pickId(id);
+  return car;
 }
 
 // ---- start ----

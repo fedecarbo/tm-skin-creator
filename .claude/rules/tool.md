@@ -29,7 +29,7 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
 - `PY -m tool.install <name> ...` installs built zips.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and opens it.
-  After a change to `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own
+  After a change to `tool/server.py`, `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own
   `tool.swatches` or `tool.view`) and start `PY -m tool.swatches --no-tab` in the background:
   it serves without opening a tab (`--no-open` only paints).
   **The Lab shows only the tool's own data**, never a list of its own that could drift: a gap
@@ -131,7 +131,7 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
 - The game reads the wheel files and `Glass_T` (not the `Glass_D` in Nadeo's post).
 - Every texture is optional: anything left out of the zip keeps the stock look. Skin, Details
   and Wheels take 4096² (Wheels 1024×2048). Keep zips ≤ 8.5 MB until an upload limit shows up:
-  `build_zip` halves the normal map, then the roughness maps, when a zip runs over.
+  `build.build_zip` halves the normal map, then the roughness maps, when a zip runs over.
 - Relief on the inner car (`Details_N`, `tool/relief.py`) is drawn over Nadeo's own map with its
   rounding noise set flat (it cost 1.5 MB zipped and carries no shape).
 - `Skin_CoatR` is the varnish: 0 lays a glossy clear varnish over anything, 255 none, and a

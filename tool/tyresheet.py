@@ -14,13 +14,12 @@ shown in the viewer as TyreLib_<code>, which no gallery lists. One Edge session 
 
 import io
 import json
-import os
 import time
 
 from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
-from tool import paths, snap, tyres, view
+from tool import paths, server, snap, tyres, view
 from tool.paintbox import Skin
 
 OUT = paths.BUILD / "tyres"
@@ -55,8 +54,8 @@ def paint(codes):
 
 
 def photograph(codes):
-    server = view.start_server(0)
-    port = server.server_address[1]
+    httpd = server.start(0)
+    port = httpd.server_address[1]
     try:
         with sync_playwright() as p:
             browser = paths.launch(p)
@@ -77,7 +76,7 @@ def photograph(codes):
             for e in errors:
                 print(f"page error: {e}")
     finally:
-        server.shutdown()
+        httpd.shutdown()
 
 
 def sheet(codes, cols=8, tile=(400, 300), strip=34):

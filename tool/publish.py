@@ -32,7 +32,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from tool import gallery, install, paths, view
+from tool import gallery, install, paths, server, view
 
 SITE = paths.WORK / "site"
 BRANCH = "gh-pages"
@@ -201,7 +201,7 @@ def push(entries):
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
-    extensions_map = {**view.Handler.extensions_map, ".jpg": "image/jpeg", ".css": "text/css"}
+    extensions_map = {**server.Handler.extensions_map, ".jpg": "image/jpeg", ".css": "text/css"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(SITE), **kwargs)

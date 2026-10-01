@@ -27,7 +27,6 @@ import inspect
 import json
 import re
 import time
-import webbrowser
 
 import numpy as np
 from PIL import Image
@@ -94,18 +93,9 @@ def paint_look(fin, colour, params=None):
     pos, nrm, uv = ball()
     n = len(pos)
     params = {"seed": 0, "wrap": "uv", "uv": uv, **(params or {})}
-    if fin.look:
-        r = looks.apply(fin, colour, pos, nrm, params)
-        col = r["colour"]
-        rough = r.get("roughness", np.full(n, fin.roughness, np.float32))
-        metal = r.get("metalness", np.full(n, fin.metalness, np.float32))
-        varnish = r.get("varnish", np.full(n, fin.varnish, np.float32))
-        if "weight" in r:
-            wgt = r["weight"][:, None]
-            col = np.broadcast_to(colour, (n, 3)) * (1 - wgt) + col * wgt
-    else:
-        col = np.broadcast_to(colour, (n, 3))
-        rough, metal, varnish = (np.full(n, v, np.float32) for v in (fin.roughness, fin.metalness, fin.varnish))
+    col, rough, metal, varnish, weight = looks.lay(fin, colour, pos, nrm, params)
+    if weight is not None:  # a pattern over the ball's own colour
+        col = np.broadcast_to(colour, (n, 3)) * (1 - weight[:, None]) + col * weight[:, None]
     h, w = SIZE[1], SIZE[0]
     return (np.asarray(col).reshape(h, w, 3), np.asarray(rough).reshape(h, w), np.asarray(metal).reshape(h, w),
             np.asarray(varnish).reshape(h, w), fin, colour)
@@ -272,19 +262,9 @@ def main():
     infos = build(args.all)
     print(f"{len(infos)} materials")
     view.export_mesh()  # the car, and the Lab's rooms' data (view.export_uvmap)
-    url = f"http://localhost:{view.PORT}/lab.html"
-    if args.no_open:
-        return
-    try:
-        server = view.start_server(view.PORT)
-    except OSError:
-        server = None
-    print(f"the Lab: {url}", flush=True)
-    if not args.no_tab:
-        webbrowser.open(url)
-    if server:
-        import threading
-        threading.Event().wait()
+    if not args.no_open:
+        from tool import server
+        server.serve("lab.html", "the Lab", open_tab=not args.no_tab)
 
 
 if __name__ == "__main__":

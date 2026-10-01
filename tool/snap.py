@@ -33,7 +33,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
-from tool import fonts, paths, view
+from tool import fonts, paths, server, view
 
 # (label, view, night, hidden meshes[, parts]). A view is a name from viewer.js's VIEWS, or
 # {"dir": [x, y, z], "dist": metres, "target": [x, y, z]} for a close look. parts is an optional
@@ -105,8 +105,8 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
     thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture)."""
     if prepare:
         view.prepare(name)
-    server = view.start_server(0)
-    url = f"http://127.0.0.1:{server.server_address[1]}/?skin={name}&snap=1" + (f"&{query}" if query else "")
+    httpd = server.start(0)
+    url = f"http://127.0.0.1:{httpd.server_address[1]}/?skin={name}&snap=1" + (f"&{query}" if query else "")
     tiles, errors = [], []
     try:
         with sync_playwright() as p:
@@ -127,7 +127,7 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
                 tiles.append((label, Image.open(io.BytesIO(page.screenshot()))))
             browser.close()
     finally:
-        server.shutdown()
+        httpd.shutdown()
     for e in errors:
         print(f"page error: {e}")
     return sheet(name, tiles, out, size, thumb)
@@ -136,14 +136,14 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
 def page(path, size=(1600, 1000)):
     """Any page of the viewer's, e.g. "lab.html?room=uv", photographed whole once it says it's
     ready (window.lab), into build/<page>.png."""
-    server = view.start_server(0)
+    httpd = server.start(0)
     out = paths.BUILD / (re.sub(r"[^\w-]+", "_", path.replace(".html", "")).strip("_") + ".png")
     try:
         with sync_playwright() as p:
             browser = paths.launch(p)
             pg = browser.new_page(viewport={"width": size[0], "height": size[1]})
             pg.on("pageerror", lambda e: print(f"page error: {e}"))
-            pg.goto(f"http://127.0.0.1:{server.server_address[1]}/{path}")
+            pg.goto(f"http://127.0.0.1:{httpd.server_address[1]}/{path}")
             pg.wait_for_function("window.lab && (window.lab.ready || window.lab.error)", timeout=120_000)
             err = pg.evaluate("window.lab.error")
             if err:
@@ -152,7 +152,7 @@ def page(path, size=(1600, 1000)):
             pg.screenshot(path=str(out), full_page=True)
             browser.close()
     finally:
-        server.shutdown()
+        httpd.shutdown()
     print(f"page: {out}")
     return out
 

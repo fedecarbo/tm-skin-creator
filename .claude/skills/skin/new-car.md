@@ -179,8 +179,7 @@ for the user: they hear what was found and fixed.
    with their numbers and the new pictures (its instructions' re-check); keep that round too.
    Stop when it finds nothing new to fix, three rounds at most.
 5. What the critic can't see is yours: parts left in clay (`tool.skin paint <car>` names them), and
-   the size, a trial build (`paintbox.build_zip(<car>, icon)`, about 90 s on the Mac)
-   against `ZIP_BUDGET`.
+   the size, a trial build (`PY -m tool.build <car>`, after a show) against the zip's budget.
 6. Tell the user in a few lines: what the critic found, what was fixed, what was left and why.
 
 The critic's test car, TSC_CriticTest, has seven faults of known kinds (its design's docstring):

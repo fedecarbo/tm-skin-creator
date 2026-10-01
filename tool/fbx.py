@@ -13,6 +13,8 @@ import numpy as np
 from tool import paths
 
 CACHE = paths.CACHE / "mesh.npz"
+# the game's four texture sets, each painted on one mesh of the model, in the order the tool keeps them
+MESH_OF = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
 ARRAY_TYPES = {"f": ("<f4", 4), "d": ("<f8", 8), "l": ("<i8", 8), "i": ("<i4", 4), "b": ("u1", 1)}
 
 

@@ -16,7 +16,8 @@
 // the one taken when it was written (/notes/<file>).
 //   /lab.html?skin=<name>    the car <name> is or is an option of, <name> on the car
 
-const $ = (id) => document.getElementById(id);
+import { $, post } from './lab-common.js';
+
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
 const POLL = 2000;
 const STUCK = 40;  // px from the bottom that still counts as at the bottom
@@ -30,7 +31,6 @@ let status = null;        // what Claude is doing ('lab:status')
 let gallery = new Map();  // gallery.json by name: titles, thumbs, in the game
 let stick = true;         // the timeline follows what comes: the user is at the bottom
 
-const post = (body) => fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 const when = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 const clock = (t) => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 const dayOf = (t) => {

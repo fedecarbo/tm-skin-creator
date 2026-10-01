@@ -15,10 +15,9 @@
 // or a tag is open. It says which skin it shows ('lab:stand') and what Claude is doing ('lab:status').
 // The car is the viewer itself (index.html?embed=1).
 
-import { note } from './lab-address.js';
+import { $, ago, embedViewer, followed, note, post, titleOf } from './lab-common.js';
 import { createTags } from './lab-tags.js';
 
-const $ = (id) => document.getElementById(id);
 const POLL = 1500;
 
 let skin = null;          // { name, title, entry: gallery.json's }: on the car
@@ -37,11 +36,6 @@ const lookOf = (step) => {
   const words = (step.look || '').split(/\s+/);
   return { view: ['front', 'rear', 'left', 'right', 'top'].find((w) => words.includes(w)) || 'front', night: words.includes('night') };
 };
-const titleOf = (name) => name.replace(/^TSC_/, '').replaceAll('_', ' ').replace(/([a-z])(?=[A-Z])/g, '$1 ');
-const ago = (t) => {
-  const s = Math.max(0, Date.now() / 1000 - t);
-  return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
-};
 
 // ---- the stage: the car framed between the gutters where its tags hang ----
 
@@ -49,20 +43,6 @@ const ago = (t) => {
 const gutter = () => (matchMedia('(max-width: 1000px)').matches ? 0
   : Math.round(Math.min(300, Math.max(200, $('stStage').clientWidth * 0.2))));
 const box = () => ({ left: gutter(), right: gutter(), top: 56, bottom: 10 });  // the top: the buttons over the car
-
-function viewer(frame) {
-  return new Promise((resolve) => {
-    frame.addEventListener('load', () => {
-      const wait = setInterval(() => {
-        const v = frame.contentWindow && frame.contentWindow.viewer;
-        if (!v || !(v.ready || v.error)) return;
-        clearInterval(wait);
-        resolve(v.error ? null : v);
-      }, 150);
-    }, { once: true });
-    frame.src = './index.html?embed=1';  // no skin: no car until the first dress
-  });
-}
 
 function framed() {  // the box the car frames itself in, after a resize
   if (!$('stStage').clientWidth) return;
@@ -76,8 +56,6 @@ function moodShown(m) {
   $('stand').classList.toggle('night', m === 'night');
   for (const b of $('stMood').querySelectorAll('[data-mood]')) b.setAttribute('aria-pressed', String(b.dataset.mood === m));
 }
-
-const post = (body) => fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
 async function loadNotes(force = false) {
   if (!skin) return;
@@ -277,12 +255,8 @@ async function openSkin(name) {
   doc = null; stageLook = '';
   notes = []; nextN = 1; writing = null;
   if (!stage) {
-    stage = await viewer($('stCar'));
-    if (stage) {
-      stage.onPick = startNote;
-      const credit = $('stCar').contentDocument.getElementById('credit');
-      if (credit) $('stCredit').innerHTML = credit.innerHTML;  // the car model's licence asks for it
-    }
+    stage = await embedViewer($('stCar'), $('stCredit'));
+    if (stage) stage.onPick = startNote;
     framed();
   }
   moodShown('day');
@@ -291,14 +265,6 @@ async function openSkin(name) {
   const first = await load(name);
   if (first) await apply(first);
   else live();
-}
-
-async function followed() {  // the skin Claude painted last: { skin, stamp }
-  try {
-    const r = await fetch('data/studio.json', { cache: 'no-store' });
-    if (r.ok) return await r.json();
-  } catch { /* none yet */ }
-  return {};
 }
 
 async function poll() {

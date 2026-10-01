@@ -41,6 +41,19 @@ def apply(finish, colour, pos, nrm, params):
     return fn(pos, nrm, np.asarray(colour, np.float32), finish, params or {})
 
 
+def lay(fin, colour, pos, nrm, params):
+    """What a finish in a colour lays on points: colour (n, 3), roughness, metalness and varnish
+    (n,), and the weight its pattern gives each point (n,), None for none. Its look's pattern
+    (apply) where it has one, else the plain finish."""
+    n = len(pos)
+    plain = lambda v: np.full(n, v, np.float32)
+    if not fin.look:
+        return np.broadcast_to(colour, (n, 3)), plain(fin.roughness), plain(fin.metalness), plain(fin.varnish), None
+    r = apply(fin, colour, pos, nrm, params)
+    return (r["colour"], r.get("roughness", plain(fin.roughness)), r.get("metalness", plain(fin.metalness)),
+            r.get("varnish", plain(fin.varnish)), r.get("weight"))
+
+
 # ---- helpers ----
 
 

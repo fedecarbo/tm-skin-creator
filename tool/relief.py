@@ -15,7 +15,7 @@ OpenGL (+v up the image), which the wing domes confirmed in checkpoint 4.
 
 Nadeo's own relief (their Details_N) stays under ours, blended, unless a call replaces it. Their
 map is 2048²; ours is drawn at the Details canvas's size (4096²) and ships there when the zip has
-room, else halved to 2048² (paintbox.build_zip). At 2048² a texel is about 4 mm on most parts:
+room, else halved to 2048² (build.build_zip). At 2048² a texel is about 4 mm on most parts:
 keep features to 1 cm and up, with bevels of 2 mm or more.
 """
 
@@ -31,8 +31,7 @@ _frames = {}
 def frames(texture_set="Details"):
     """Per triangle of a mesh: the unit directions of +u and +v on the surface, (T, 3) each."""
     if texture_set not in _frames:
-        from tool.bake import MESH_OF
-        m = fbx.meshes()[MESH_OF[texture_set]]
+        m = fbx.meshes()[fbx.MESH_OF[texture_set]]
         p = m["positions"][m["tri_vertex"]].astype(np.float64)
         uv = m["tri_uv"].astype(np.float64)
         e1, e2 = p[:, 1] - p[:, 0], p[:, 2] - p[:, 0]

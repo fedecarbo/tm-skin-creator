@@ -44,6 +44,8 @@ from scipy.spatial import cKDTree
 
 from tool import paint, paths, skinmesh
 
+# The check imports nothing from tool/skindraw.py, the code it checks: what it shares with it (the
+# stop at TURN, the old default feather, the polyline resampling) is written out here again.
 STEP = 2.0        # cm along the curve between measurements
 # The limits, measured. Read through the skin, the bands on TSC_Skin came out 30.0 +- 0.16,
 # 40.0 +- 0.15 and 20.0 +- 0.17 mm at the 95th, their middles within 0.1 mm: a fifth of a texel.

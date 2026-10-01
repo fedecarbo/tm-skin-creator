@@ -14,15 +14,13 @@ import numpy as np
 
 from tool import fbx, paths, raster
 
-MESH_OF = {"Skin": "Skin_01", "Details": "Details_01", "Wheels": "Wheels_01", "Glass": "Glass_01"}
-
 
 def bake(texture_set, width, height):
     cache = paths.CACHE / f"bake2_{texture_set}_{width}x{height}.npz"
     mesh_file = paths.CACHE / "mesh.npz"
     if cache.exists() and mesh_file.exists() and cache.stat().st_mtime > mesh_file.stat().st_mtime:
         return dict(np.load(cache))
-    m = fbx.meshes()[MESH_OF[texture_set]]
+    m = fbx.meshes()[fbx.MESH_OF[texture_set]]
     uv = m["tri_uv"].astype(np.float64)
     xy = np.stack([uv[..., 0] * width, (1 - uv[..., 1]) * height], -1)  # image row = 1 - v
     tri, bary = raster.rasterise(xy, width, height)

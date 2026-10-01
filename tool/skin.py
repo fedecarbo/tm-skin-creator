@@ -24,7 +24,7 @@ import time
 
 from PIL import Image
 
-from tool import gallery, install, paintbox, paths, snap, view
+from tool import build, gallery, install, paintbox, paths, snap, view
 
 
 def borrow(name):
@@ -99,8 +99,8 @@ def show(name, open_browser=False, snapshot=True):
     with paint_slot():
         s = paint(name, frames=True)
         t0 = time.time()
-        paintbox.export_to_viewer(s)
-        paintbox.save_painted(s)
+        build.export_to_viewer(s)
+        build.save_painted(s)
         print(f"exported in {time.time() - t0:.0f} s")
     if snapshot:
         # the front three-quarter view becomes the skin's picture in the gallery, and a numbered
@@ -111,16 +111,8 @@ def show(name, open_browser=False, snapshot=True):
     gallery.refresh()
     if open_browser:
         import urllib.parse
-        import webbrowser
-        url = f"http://localhost:{view.PORT}/?skin={urllib.parse.quote(name)}"
-        try:
-            view.start_server(view.PORT)
-        except OSError:
-            pass
-        webbrowser.open(url)
-        print(f"viewer: {url}")
-        import threading
-        threading.Event().wait()
+        from tool import server
+        server.serve(f"?skin={urllib.parse.quote(name)}", "viewer")
     return s
 
 
@@ -150,8 +142,8 @@ def do_install(name):
         side = min(im.size)
         icon = im.crop(((im.width - side) // 2, (im.height - side) // 2, (im.width + side) // 2, (im.height + side) // 2)).resize((256, 256), Image.LANCZOS)
     with paint_slot():
-        paintbox.save_painted(paint(name))
-        zip_path = paintbox.build_zip(name, icon)
+        build.save_painted(paint(name))
+        zip_path = build.build_zip(name, icon)
     print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
     target = install.install(zip_path)
     print(f"installed {target.name}")

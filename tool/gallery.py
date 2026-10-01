@@ -18,7 +18,6 @@ import json
 import re
 import shutil
 import subprocess
-import webbrowser
 
 from tool import install, paths, view
 
@@ -93,17 +92,9 @@ def refresh():
 
 
 def main():
+    from tool import server
     refresh()
-    url = f"http://localhost:{view.PORT}/gallery.html"
-    try:
-        server = view.start_server(view.PORT)
-    except OSError:
-        server = None
-    print(f"gallery: {url}", flush=True)
-    webbrowser.open(url)
-    if server:
-        import threading
-        threading.Event().wait()
+    server.serve("gallery.html", "gallery")
 
 
 if __name__ == "__main__":

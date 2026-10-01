@@ -13,9 +13,9 @@
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { THUMB, daySky, dress, shape, stage, textures } from './balls.js';
+import { $ } from './lab-common.js';
 
 const params = new URLSearchParams(location.search);
-const $ = (id) => document.getElementById(id);
 const SOURCE = {
   lab: 'Set against the game with the lab skins (24 Sep 2026).',
   measured: 'Colour measured from the real metal (Physically Based), then set by eye. Not yet seen in the game.',

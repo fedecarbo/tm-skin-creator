@@ -13,7 +13,8 @@
 // part of the car it means (the user: "I struggle to know what are the sidepods, shoulders etc").
 // Everything saves as you go.
 
-const $ = (id) => document.getElementById(id);
+import { $, embedViewer } from './lab-common.js';
+
 const CM = 100;  // the viewer works in metres, the file in cm
 const SPACING = 1.0;  // cm between the drawn curve's points
 
@@ -375,24 +376,10 @@ async function clay() {
   await car.dress(urls);
 }
 
-function embedCar() {
-  return new Promise((resolve) => {
-    const frame = $('lnCar');
-    frame.addEventListener('load', () => {
-      const wait = setInterval(() => {
-        const v = frame.contentWindow && frame.contentWindow.viewer;
-        if (!v || !(v.ready || v.error)) return;
-        clearInterval(wait);
-        if (v.error) { resolve(null); return; }
-        car = v;
-        car.onPick = pinned;
-        const credit = frame.contentDocument.getElementById('credit');
-        if (credit) { $('lnCredit').innerHTML = credit.innerHTML; $('lnCredit').hidden = false; }  // the car model's licence asks for it
-        resolve(car);
-      }, 150);
-    }, { once: true });
-    frame.src = './index.html?embed=1';
-  });
+async function embedCar() {
+  car = await embedViewer($('lnCar'), $('lnCredit'));
+  if (car) car.onPick = pinned;
+  return car;
 }
 
 export async function open() {

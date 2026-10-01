@@ -50,26 +50,22 @@ the user's words that asked for it:
     s.step("Lights", "...", look="rear night")      # a step the day's front view can't show
 Paint before the first step is a step of its own ("The design" when it's the only one).
 
-The result: Skin.textures() gives the game's textures as float arrays; tool.skin's show puts
-them in the viewer and takes Claude's snapshot sheet, and its install writes the DDS files and the
-zip (build_zip) and puts it in the game. Sets the design never touches aren't shipped, so they keep the stock look.
+The result: Skin.textures() gives the game's textures as float arrays; tool/build.py puts them in
+the viewer and builds the game's DDS files and the zip. Sets the design never touches aren't
+shipped, so they keep the stock look.
 """
 
 import hashlib
-import json
 import os
 import re
-import time
 
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import bake, colours, coverage, dds, finishes, fonts, looks, pack, paint, parts, paths, raster, shapes
+from tool import bake, colours, coverage, finishes, fonts, looks, paint, parts, paths, raster, shapes
 from tool.dds import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
-# uploads may fail near 9 MB (a Nadeo developer, 2022); 8.45 and 8.65 MB zips have worked
-ZIP_BUDGET = 8.5e6
 SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside": "Details",
              "tyres": "Wheels", "tires": "Wheels", "glass": "Glass"}
 # "body" is the paint set without the wheel covers: the wheels are their own design step and
@@ -77,7 +73,6 @@ SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside":
 # a wheel but the tyre: the covers (Skin) and the rims, hubs and wheel rings (Details).
 WHEEL_COVER_PARTS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "brake light", "wheel ring")
-GLOW_CODES = np.array([0, 32, 64, 96, 128, 160, 192, 224, 255])
 # the lights a skin can recolour, in plain words (the lights test, 2026-09-25), for relight()
 LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display", "speedometer": "digit display",
                "digits": "digit display", "brake lights": "brake light", "rear lights": "rear light",
@@ -139,7 +134,7 @@ class Canvas:
             i = stock("Details_I", (w, h), Image.NEAREST)
             self.glow_rgb = np.ascontiguousarray(i[..., :3].reshape(n, 3)).astype(np.float32)
             a = np.rint(i[..., 3].reshape(n) * 255)
-            self.glow_code = GLOW_CODES[np.digitize(a, (GLOW_CODES[1:] + GLOW_CODES[:-1]) / 2)].astype(np.uint8)
+            self.glow_code = finishes.glow_codes(a)
         # the design's relief (tool/relief.py): slopes along u and v, and how much of Nadeo's own
         # relief stays under it; None until a design asks for relief
         self.slope = self.keep_stock = None
@@ -506,7 +501,7 @@ class Skin:
             if not len(idx):
                 continue
             m = m * blend
-            pos, nrm = c.pos[idx], c.nrm[idx]
+            extra = {}
             if fin.look:
                 # flat patterns on the body are drawn in the car's own unfolding (tool/uvmap.py),
                 # which has almost no stretch (user, 2026-09-24: projections distorted the dots);
@@ -514,18 +509,9 @@ class Skin:
                 extra = {"wrap": "uv" if tset == "Skin" else "planes"}
                 if extra["wrap"] == "uv":
                     extra["uv"] = c.uv_cm[idx]
-                r = looks.apply(fin, col, pos, nrm, {**extra, **params})
-                colour_v = r["colour"]
-                rough = r.get("roughness", np.full(len(idx), fin.roughness, np.float32))
-                metal = r.get("metalness", np.full(len(idx), fin.metalness, np.float32))
-                varnish = r.get("varnish", np.full(len(idx), fin.varnish, np.float32))
-                if "weight" in r:
-                    m = m * r["weight"]
-            else:
-                colour_v = np.broadcast_to(col, (len(idx), 3))
-                rough = np.full(len(idx), fin.roughness, np.float32)
-                metal = np.full(len(idx), fin.metalness, np.float32)
-                varnish = np.full(len(idx), fin.varnish, np.float32)
+            colour_v, rough, metal, varnish, weight = looks.lay(fin, col, c.pos[idx], c.nrm[idx], {**extra, **params})
+            if weight is not None:
+                m = m * weight
             if tset == "Glass":
                 c.colour[idx] = c.colour[idx] * (1 - m[:, None]) + colour_v * m[:, None]
                 c.touched[idx] = True
@@ -876,164 +862,8 @@ class Skin:
         patches): each copy takes the picture least used among its neighbours, a copy that
         doesn't fit is nudged, turned and shrunk before it's given up, and a second pass fills
         any patch still bare with smaller copies."""
-        from scipy.spatial import cKDTree
-        images = list(image) if isinstance(image, (list, tuple)) else [image]
-        arrs = []
-        for im in images:
-            if isinstance(im, (str, bytes, os.PathLike)) or hasattr(im, "read"):
-                im = Image.open(im)
-            arrs.append(np.asarray(im.convert("RGBA"), np.float32) / 255)
-        aspects = [a.shape[0] / a.shape[1] for a in arrs]
-        tallest = max(aspects)
-        sizes = (float(size), float(size)) if np.isscalar(size) else (float(size[0]), float(size[1]))
-        spacing = spacing or sizes[1] * max(1.0, tallest) * 1.15
-        rng = np.random.default_rng(self.seed if seed is None else seed)
-        fin = finishes.get(finish) if isinstance(finish, str) else finish
-        z_axis = np.array([0, 0, 1.0], np.float32)
-        placed = skipped = filled = 0
-        t0 = time.time()
-        for tset, ids in self._ids(where).items():
-            c = self.canvas(tset)
-            idx, m = self._mask(tset, ids, zone, c)
-            if not len(idx):
-                continue
-            pos, nrm = c.pos[idx], c.nrm[idx]
-            # a coarse 3D grid over the parts' texels, so each copy only looks at its neighbourhood
-            reach = sizes[1] * max(1.0, tallest) * 0.75
-            cell = np.floor(pos / reach).astype(np.int64)
-            cmin = cell.min(0)
-            cell -= cmin
-            dims = cell.max(0) + 1
-            ckey = (cell[:, 0] * dims[1] + cell[:, 1]) * dims[2] + cell[:, 2]
-            order = np.argsort(ckey, kind="stable")
-            skeys = ckey[order]
-
-            def neighbourhood(pt):
-                pc = np.floor(pt / reach).astype(np.int64) - cmin
-                sub = []
-                for dx in (-1, 0, 1):
-                    for dy in (-1, 0, 1):
-                        for dz in (-1, 0, 1):
-                            q = pc + (dx, dy, dz)
-                            if (q < 0).any() or (q >= dims).any():
-                                continue
-                            k = (q[0] * dims[1] + q[1]) * dims[2] + q[2]
-                            a, b = np.searchsorted(skeys, k), np.searchsorted(skeys, k, side="right")
-                            if b > a:
-                                sub.append(order[a:b])
-                return np.concatenate(sub) if sub else None
-
-            def frame(n, ang):
-                up = z_axis - n * float(n @ z_axis)
-                if np.linalg.norm(up) < 0.2:
-                    up = np.array([1.0, 0, 0], np.float32) - n * float(n[0])
-                up /= np.linalg.norm(up)
-                up = np.cos(ang) * up + np.sin(ang) * np.cross(n, up)
-                return up, np.cross(up, n)
-
-            def place(pt, kind, size_range):
-                """Try to lay one copy near pt: nudged, turned and shrunk before giving up.
-                Returns the centre it landed at, or None."""
-                nonlocal placed
-                sub = neighbourhood(pt)
-                if sub is None:
-                    return None
-                ps, ns = pos[sub], nrm[sub]
-                nearest = np.argmin(((ps - pt) ** 2).sum(1))
-                n = ns[nearest]
-                n = n / max(np.linalg.norm(n), 1e-6)
-                if turn == "random":
-                    ang0 = rng.uniform(0, 2 * np.pi)
-                elif turn == "length":
-                    ang0 = 0.0
-                else:
-                    ang0 = np.radians(float(turn))
-                w_cm = rng.uniform(*size_range)
-                arr = arrs[kind]
-                centre = ps[nearest]
-                # attempts: as is; nudged; turned (only when the turn is free); then smaller
-                tries = [(0.0, 0.0, 1.0), (0.3, 0.0, 1.0), (0.3, 0.0, 1.0)]
-                if turn == "random":
-                    tries += [(0.2, np.pi / 2, 1.0), (0.2, np.pi / 4, 1.0), (0.2, -np.pi / 4, 1.0)]
-                tries += [(0.3, 0.0, 0.8), (0.3, np.pi / 2 if turn == "random" else 0.0, 0.65), (0.4, 0.0, 0.5)]
-                for shift_k, dang, scale in tries:
-                    up, right = frame(n, ang0 + dang)
-                    if shift_k:
-                        shift = rng.normal(0, shift_k * w_cm, 2)
-                        cand = centre + shift[0] * right + shift[1] * up
-                        cen = ps[np.argmin(((ps - cand) ** 2).sum(1))]
-                    else:
-                        cen = centre
-                    w_try = w_cm * scale
-                    alpha, info = paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., 3], cen, right, up, w_try, n, min_facing)
-                    if info["landed"] >= min_landed and info["step_cm"] <= step_cm:
-                        hit = np.flatnonzero(alpha > 0.002)
-                        if not len(hit):
-                            return None
-                        col = np.stack([paint.project_points(ps, ns, np.ones(len(ps), bool), arr[..., k], cen, right, up, w_try, n, min_facing)[0][hit]
-                                        for k in range(3)], 1)
-                        gi = idx[sub[hit]]
-                        mm = alpha[hit] * m[sub[hit]]
-                        c.blend(gi, mm, col, np.full(len(gi), fin.roughness, np.float32), np.full(len(gi), fin.metalness, np.float32),
-                                np.full(len(gi), fin.varnish, np.float32))
-                        covered[sub[hit[alpha[hit] > 0.3]]] = True
-                        placed += 1
-                        return cen
-                return None
-
-            def kinds_for(points, done_points, done_kinds):
-                """A picture per point: the one least used among the neighbours already decided
-                (within 2.2 spacings, the nearer ones counting more), ties broken at random,
-                so no picture bunches up."""
-                if len(arrs) == 1:
-                    return [0] * len(points)
-                all_pts = np.asarray(list(done_points) + list(points), np.float32)
-                kinds = list(done_kinds) + [-1] * len(points)
-                tree = cKDTree(all_pts)
-                base = len(done_points)
-                for i in range(len(points)):
-                    j = base + i
-                    counts = np.zeros(len(arrs))
-                    for q in tree.query_ball_point(all_pts[j], 2.2 * spacing):
-                        if q != j and kinds[q] >= 0:
-                            counts[kinds[q]] += 1 / (1 + np.linalg.norm(all_pts[q] - all_pts[j]) / spacing)
-                    best = np.flatnonzero(counts == counts.min())
-                    kinds[j] = int(rng.choice(best))
-                return kinds[base:]
-
-            covered = np.zeros(len(pos), bool)  # texels under a copy, for finding bare patches
-            points = looks.surface_points(pos, spacing, seed=int(rng.integers(1 << 30)), regular=False, relax=8)
-            kinds = kinds_for(points, [], [])
-            centres, centre_kinds = [], []
-            for pt, kind in zip(points, kinds):
-                cen = place(pt, kind, sizes)
-                if cen is None:
-                    skipped += 1
-                else:
-                    centres.append(cen)
-                    centre_kinds.append(kind)
-            # second pass: texels far from the outline of every copy are a bare patch; sprinkle
-            # it again with smaller copies (it's bare because the full size didn't fit there)
-            for _ in range(2):
-                on = np.flatnonzero(covered)
-                if not len(on):
-                    break
-                sample = pos[rng.choice(len(pos), min(len(pos), 60_000), replace=False)]
-                d, _ = cKDTree(pos[rng.choice(on, min(len(on), 120_000), replace=False)]).query(sample, workers=-1)
-                bare = sample[d > 0.55 * spacing]  # a gap wider than one spacing
-                if len(bare) < 50:
-                    break
-                more = looks.surface_points(bare, 0.8 * spacing, seed=int(rng.integers(1 << 30)), regular=False, relax=4)
-                more_kinds = kinds_for(more, centres, centre_kinds)
-                small = (sizes[0] * 0.7, sizes[1] * 0.85)
-                for pt, kind in zip(more, more_kinds):
-                    cen = place(pt, kind, small)
-                    if cen is not None:
-                        centres.append(cen)
-                        centre_kinds.append(kind)
-                        filled += 1
-        self.notes.append(f"scatter on {where}: {placed} copies placed ({filled} of them smaller ones filling bare patches), "
-                          f"{skipped} spots left bare for crossing a fold or an edge ({time.time() - t0:.0f} s)")
+        from tool import scatter
+        scatter.scatter(self, image, where, size, spacing, turn, finish, zone, seed, min_facing, step_cm, min_landed)
         return self
 
     def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,
@@ -1064,8 +894,24 @@ class Skin:
         return out
 
     def summary(self):
+        """What was painted and the notes, for Claude: the parts whose paint lands on the same others
+        (a small patch serves many inner parts) named together, once."""
         lines = [f"{self.name}: {', '.join(sorted(self.textures()))}"]
-        lines += [f"  note: {n}" for n in dict.fromkeys(self.notes)]
+        shared, said = {}, []
+        for n in dict.fromkeys(self.notes):
+            name, sep, tail = n.partition(": its paint also lands on ")
+            if sep:
+                if tail not in shared:
+                    said.append(tail)
+                shared.setdefault(tail, []).append(name)
+            else:
+                said.append(n)
+        for n in said:
+            if n in shared:
+                names = shared[n]
+                who = names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}"
+                n = f"{who}: {'its' if len(names) == 1 else 'their'} paint also lands on {n}"
+            lines.append(f"  note: {n}")
         return "\n".join(lines)
 
 
@@ -1104,71 +950,3 @@ def render_text(text, font_name, height_cm, outline=None, outline_width=0.08, we
         outl = outl.transform(outl.size, Image.AFFINE, shear, resample=Image.BILINEAR)
     to_rgba = lambda im: Image.merge("RGBA", (im, im, im, im))
     return {"fill": to_rgba(fill), "outline": to_rgba(outl)}, W / px_per_cm
-
-
-# ---- building ----
-
-
-def export_to_viewer(skin):
-    from tool import view
-    textures = {name: arr for name, (arr, fourcc, opts) in skin.textures().items()}
-    view.export_mesh()
-    view.ensure_hdri()
-    view.ensure_floor()
-    view.ensure_stock()
-    view.export_skin(skin.name, textures)
-
-
-def save_painted(skin):
-    """Keep the painted textures (uint8) for building the zip (build_zip) and for the checks that read
-    the paint (tool/skincheck.py). Each file replaced whole, the textures first."""
-    out = paths.BUILD / skin.name
-    out.mkdir(parents=True, exist_ok=True)
-    arrays, meta = {}, {}
-    for name, (arr, fourcc, opts) in skin.textures().items():
-        arrays[name] = np.clip(np.rint(np.asarray(arr) * 255), 0, 255).astype(np.uint8)
-        meta[name] = {"fourcc": fourcc, **opts}
-    np.savez(out / "painted.tmp.npz", **arrays)
-    (out / "painted.tmp.npz").replace(out / "painted.npz")
-    paths.write(out / "painted.json", json.dumps({"textures": meta, "icon": skin.icon_colours, "notes": skin.notes,
-                                                  "drawn": skin.drawn, "palette": skin.palette}, indent=1))
-    return out
-
-
-def build_zip(name, icon_image=None):
-    """DDS files and the zip from build/<name>/painted.npz. A zip over ZIP_BUDGET gets its
-    normal map, then its roughness maps, at half size (the stock's own 2048²), largest first,
-    until it fits: the relief is drawn to read at 2048² (tool/relief.py); where a design kept
-    the stock look the roughness maps hold nothing finer, and a finish on a whole part keeps
-    its edges (the island's). Colour and glow always ship at full size."""
-    out = paths.BUILD / name
-    meta = json.loads((out / "painted.json").read_text())
-    data = np.load(out / "painted.npz")
-    for old in out.glob("*.dds"):
-        old.unlink()
-    specs = {}
-    for tex_name, spec in meta["textures"].items():
-        spec = dict(spec)
-        specs[tex_name] = (spec.pop("fourcc"), spec)
-        dds.write(out / f"{tex_name}.dds", data[tex_name].astype(np.float32) / 255, specs[tex_name][0], **spec)
-    if icon_image is None:
-        cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
-        icon_image = pack.icon(name[:8], cols[0], cols[-1])
-    zip_path = pack.pack(name, out, icon_image)
-    normals = [t for t in specs if t.endswith("_N") and data[t].shape[0] > 2048]
-    rough = [t for t in specs if t.endswith("_R")]
-    while zip_path.stat().st_size > ZIP_BUDGET and (normals or rough):
-        sizes = pack.sizes(zip_path)
-        group = normals or rough
-        # the tyres' roughness first: it carries only the lettering's shine, where the body's
-        # carries a grain that needs its full size (TSC_CMYK_EndsInK, 2026-09-27)
-        t = max(group, key=lambda t: (t.startswith("Wheels"), sizes.get(f"{t}.dds", 0)))
-        group.remove(t)
-        fourcc, spec = specs[t]
-        half = dds.halve(data[t].astype(np.float32) / 255)
-        dds.write(out / f"{t}.dds", half, fourcc, **spec)
-        zip_path = pack.pack(name, out, icon_image)
-        print(f"{t} at {half.shape[1]}x{half.shape[0]}, to keep the zip under {ZIP_BUDGET / 1e6} MB")
-    if zip_path.stat().st_size > ZIP_BUDGET:
-        print(f"warning: the zip is still over {ZIP_BUDGET / 1e6} MB; the upload may fail")
-    return zip_path
