@@ -50,19 +50,19 @@ def design(s):
 
     s.step("The spine", "One band from the nose to the tail, past the cockpit: six parts, no break.",
            words="the car's own skin")
-    spine = skindraw.through(SPINE, name="the spine")
+    spine = skindraw.taut(SPINE, name="the spine")
     print(spine.report())
     s.paint(BODY, "gloss", colour="#c8102e", zone=skindraw.band(spine, 30))
 
     s.step("The hoop", "A band up one flank, over the engine cover and down the other.",
            words="the car's own skin")
-    hoop = skindraw.through(HOOP, name="the hoop")
+    hoop = skindraw.taut(HOOP, name="the hoop")
     print(hoop.report())
     s.paint(BODY, "gloss", colour="#1d3fb0", zone=skindraw.band(hoop, 40))
 
     s.step("The flank sweep", "A long curve along the side, straight past the front wheel.",
            words="the car's own skin")
-    flank = skindraw.through(FLANK, name="the flank sweep")
+    flank = skindraw.taut(FLANK, name="the flank sweep")
     print(flank.report())
     for curve in (flank, skindraw.mirror(flank)):
         s.paint(BODY, "gloss", colour="#f2c200", zone=skindraw.band(curve, 20))

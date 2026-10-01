@@ -172,15 +172,26 @@ card) and no game: install from the Windows PC after a push.
   user, after years of wobbly and broken lines, "I cant figure out how ai can draw the car without
   making mistakes"; the earlier ways -- a view's projection, a flat sewing pattern, lines fitted off
   the mesh, splines through pins -- are retired). A line is a curve ON the surface:
-  `skindraw.through([place, place, ...])` joins places by the surface's own straight lines. A place
+  `skindraw.through([place, place, ...])` passes through every place, joined by the surface's own
+  straight lines, with a sharp corner wherever it changes direction (a chevron's tip, an outline's
+  corner; `smooth=mm` rounds them off for a line meant to flow). `skindraw.taut` is the old way, a
+  string pulled tight past the places, which it doesn't pass through (up to 217 mm off): only the
+  cars drawn with it (TSC_Skin, TSC_SkinMore, TSC_Solstice) use it. A place
   is a name from `SPOTS`, a pinned line's name (its pins, in order), or `(x, y, z)` in cm with a
   word for the way the skin faces there (`"up"`, `"side"`, `"front"`, `"rear"`, `"down"`): the car
   has upstands where a bare point can land on either face. `skindraw.circle(centre, radius_mm)` is
   a true circle; `skindraw.parallel(curve, mm)` the curve moved sideways over the skin (positive to
   its left as it runs: upwards for a line run nose to tail on the left flank), so the colours of a
   tricolour, drawn as parallels of one curve, keep their gaps over every fold;
-  `skindraw.mirror(curve)` the other side. Paint with `s.paint(where, finish, colour=,
-  zone=skindraw.band(curve, width_mm))`. A band keeps its width over folds and seams, never jumps a
+  `skindraw.mirror(curve)` the other side; `skindraw.edge(place, mm)` a line `mm` in from the
+  car's own edge nearest the place (the cockpit's rim is clean: 14.7 for 15; most other edges of the
+  model are ragged, so look before following one); `skindraw.meet(curve, other)` a line ending ON
+  another (a T): run it on past the other line, `meet` cuts it at that line's middle along that
+  line's own direction, and paint the other line after it, on top: clean at any angle. Paint with
+  `s.paint(where, finish, colour=, zone=skindraw.band(curve, width_mm))`. **Widths:** 2 mm is the
+  thinnest line the body's texture holds whole (its texels are 0.9 mm: 1.5 and 1 mm go patchy), and
+  from the game's chase cameras 3 to 4 mm reads as a line, 2 mm faintly (TSC_SkinExam). A
+  pinstripe meant to be seen while driving is 3 mm or more; a 2 mm one partners a wider line. A band keeps its width over folds and seams, never jumps a
   gap onto another piece of the car, and stops at its curve's ends: run a stripe off the car by
   starting its curve at the edge, not mid-panel. Two places give the straightest line between them,
   which goes round an obstacle, not over it: add places to choose the route. **Probe before
@@ -191,9 +202,13 @@ card) and no game: install from the Windows PC after a push.
   `shapes.below(y)`, or `shapes.field(lambda p, n: f(p[:, 2]) - p[:, 1])` (TSC_Split_Level,
   TSC_Split_Follow). A fill bounded by a drawn curve isn't built yet (`IMPROVEMENTS.md`). **After
   painting, run `python -m tool.skincheck <name>`:** every band's width and middle measured on the
-  car, off the paint; a FAIL is yours to fix. The worked example is TSC_Solstice; the test cars are
-  TSC_Skin and TSC_SkinMore (in a test car give each band its own colour: the check knows paint by
-  its colour).
+  car, off the paint, and whether it has holes, stray paint, a gap or a spike where it ends on
+  another, and how far it runs from the user's pins or its edge; a FAIL is yours to fix. Bands of one
+  colour (a gold livery) are told apart by their curves. The worked example is TSC_Solstice; the
+  test cars are TSC_Skin, TSC_SkinMore and TSC_SkinExam (the hard cases: pinstripe widths, corners,
+  T's, a crossing, an edge line, the user's crease). The user's "side crease" runs past the cut-out
+  by the rear wheel, and between its two rearmost pins a curve has to go round that opening: its
+  middle pins (`skindraw.pinned("side crease")[2:5]`, the sidepod's back to the wheel) are clean.
 - **The user's pins** (`tool/lines.py`, `car/lines.json`): in the Lab's lines room the user clicks a
   few pins along a line of the car and names it, to show where a line should run. A pinned line's
   name is a place list for `skindraw.through`: the curve runs through its pins. `python -m

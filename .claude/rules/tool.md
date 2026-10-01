@@ -86,7 +86,7 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   (`tool/tyresheet.py`); `tyresheet.page(folder)` fills `viewer/tyres.html` for the user's page.
 - Drawing on the skin, the one way lines are drawn: `tool/skinmesh.py` is the whole car's
   paintable surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
-  subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on it (`through`, `parallel`, `circle`, `loop`, `mirror`, `band`; `PY -m
+  subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on it (`through`, `taut`, `parallel`, `circle`, `loop`, `mirror`, `edge`, `meet`, `band`; `PY -m
   tool.skindraw --probe "place,place"`); `PY -m tool.skincheck <name>` (`--falsify`, `--floor`)
   measures every band on the car. Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
 - The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in

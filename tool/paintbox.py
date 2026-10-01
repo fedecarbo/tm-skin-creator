@@ -495,8 +495,11 @@ class Skin:
             curve = zone.curve
             self.drawn.append({"kind": zone.kind, "width": getattr(zone, "width", None), "name": curve.name,
                                "points": [[round(float(v), 4) for v in p] for p in curve.pts],
-                               "colour": [float(v) for v in col],
-                               "where": where if isinstance(where, str) else list(where)})
+                               "colour": [float(v) for v in col], "closed": bool(curve.closed),
+                               "soft": getattr(zone, "soft", None),
+                               "order": len(self.palette) - 1,   # colours laid after it may cover it
+                               "where": where if isinstance(where, str) else list(where),
+                               **getattr(curve, "extra", {})})
         t0 = time.time()
         for tset, ids in targets.items():
             c = self.canvas(tset)

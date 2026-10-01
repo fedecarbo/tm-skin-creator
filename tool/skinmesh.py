@@ -44,7 +44,7 @@ from scipy.spatial import cKDTree
 from tool import carmap, paths
 
 CACHE = paths.CACHE / "skinmesh.npz"
-VERSION = 3
+VERSION = 4
 HIDDEN = carmap.HIDDEN   # open: skin under this is out of sight and left off
 PIECE_MIN = 300.0        # cm2: smaller loose pieces are left off
 STITCH = 1.0             # cm: a gap between panels under this is one surface and is sewn; a wider slot is an opening
@@ -63,6 +63,10 @@ WELD = 0.05      # cm: two corners this near each other are the same corner (the
 SUBDIVIDE = 2    # times every triangle is split into four (35 mm -> 9 mm corners)
 CENTRE = 0.02    # cm: a corner this near x = 0 is pinned to it before mirroring, so the two halves meet exactly
 REACH = 0.3      # cm: a point found by nearness must land this close to count as on the skin
+MEND = 12.0      # cm: an edge loop shorter than this round is a flaw in the model, filled: a curve's walks
+                 # stop at any edge, and a 4 cm hole by the cockpit's rear corner bit a 12 mm notch out of
+                 # TSC_Skin's spine (TSC_SkinExam, 2026-10-01). The openings round the mirror mounts and
+                 # the wing pylon (13 cm and up) are real, and stay.
 
 
 # ---- sewing the panels (moved from the flat pattern, tool/surface.py, retired 2026-09-30) ----
@@ -310,6 +314,28 @@ def _split_fans(F, n):
     return F, n, np.array(origin)
 
 
+def _mend(V, F, src, side):
+    """Fill every edge loop shorter than MEND round with a fan of triangles from its middle. They
+    carry no paint (src -1, like a strip sewn across a join); they only let a walk over the skin
+    carry on across a flaw in the model instead of stopping at it."""
+    loops = _loops(F, len(V))
+    newV, newF = [], []
+    for lp in loops:
+        P = V[lp]
+        if np.linalg.norm(np.diff(np.vstack([P, P[:1]]), axis=0), axis=1).sum() >= MEND:
+            continue
+        c = len(V) + len(newV)
+        newV.append(P.mean(0))
+        for a, b in zip(lp, lp[1:] + lp[:1]):
+            newF.append((b, a, c))              # the loop runs with the skin on its left: wind the other way
+    if not newV:
+        return V, F, src, side, 0
+    nf = len(newF)
+    cen = np.asarray(newV)[np.asarray([f[2] for f in newF]) - len(V)]
+    return (np.vstack([V, newV]), np.vstack([F, newF]), np.concatenate([src, np.full(nf, -1, src.dtype)]),
+            np.concatenate([side, (cen[:, 0] < 0).astype(side.dtype)]), len(newV))
+
+
 def _twins(m):
     """Per triangle of the map, its mirror twin on the left (-1 without one): the triangle whose
     three corners lie within 0.2 cm of the mirrored corners, in any order (a centroid alone
@@ -504,9 +530,11 @@ def build(log=print):
         F = _orient(V, F, want, log=lambda msg, name=name: log(f"  {name}: {msg}"))
         F, n, origin = _split_fans(F, len(V))
         V = V[origin]
+        V, F, psrc, pside, mended = _mend(V, F, psrc, pside)
         for _ in range(SUBDIVIDE):
             V, F, psrc, pside = _split4(V, F, psrc, pside)
-        log(f"  {name:18} {len(V):6d} corners {len(F):6d} triangles" + (f", {dropped} dropped (a doubled shell)" if dropped else ""))
+        log(f"  {name:18} {len(V):6d} corners {len(F):6d} triangles" + (f", {dropped} dropped (a doubled shell)" if dropped else "")
+            + (f", {mended} small hole(s) filled" if mended else ""))
         Vs.append(V)
         Fs.append(F + off)
         piece.append(np.full(len(F), k, np.int32))
@@ -587,6 +615,12 @@ class Skin:
         for k in range(3):
             np.add.at(n, self.F[:, k], self.fn)
         return n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+
+    @functools.cached_property
+    def loops(self):
+        """The skin's edges -- the cockpit's rim, every opening's lip, the body's lower edge -- each
+        as a loop of corners, run with the skin on its left (seen from outside)."""
+        return _loops(self.F, len(self.V))
 
     @functools.cached_property
     def area(self):

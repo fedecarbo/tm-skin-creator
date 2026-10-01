@@ -4189,6 +4189,48 @@ whole (every one of the spine's 107 899 texels lies within 22 mm of its curve, y
 a 40 mm break), so they are printed and not judged; (4) a filled area spanning parts, the plan's
 fourth proof, isn't built.
 
+**The exam car, TSC_SkinExam (2026-10-01)**. The user: "I would like to put it as a test"; of four
+ideas they picked the exam car (the hard cases, measured and shown close up) and a black and gold
+pinstripe livery after it (not started). The exam: pinstripes 4 to 1 mm, a double coachline on the
+user's crease, two lines ending on it (square and at 30 degrees), a line 15 mm out from the cockpit's
+rim, an outline with square corners, a chevron, two lines crossing, and the 70 mm nose band. What it
+found, every one fixed and the earlier cars re-measured:
+
+- **`through` didn't pass through its places.** find_geodesic_path_poly pulls the whole chain tight
+  and keeps only which side of each place it goes: TSC_Skin's hoop ran 196 mm from its places,
+  Solstice's sweep 217 mm, the user's side crease 92 mm from their pins, and a chevron came out a
+  straight line. Every check passed, because the paint matched the curve. `through` now runs leg by
+  leg (a corner at each place; `smooth=` rounds them), the old way is `taut`, and the three earlier
+  cars use `taut` so they look as they did.
+- **Curves ran corner to corner of the mesh**, up to 10 mm from a place (the rear flank's faces are
+  15 to 28 mm): each curve now gets a solver on the skin with its places inserted as corners (0.1 s);
+  the crease runs through the skin under the user's pins (the pins sit 1 to 5 mm off it).
+- **Every thin line wore a half-strength fringe**: the walks stopped at 1.15 times the half width, ON
+  a thin line's edge, and texels up to NEAR beyond copied that 50 %; a 3 mm line read 5 mm. The walks
+  now reach past the feather. The feather is a third of the width on a thin line (never under a texel).
+- **Corners**: the outside is filled by fans of walks (round); the inside had specks where a texel
+  took the far arm's offset, fixed by taking the least of offset plus distance over the nearest 8.
+- **The facing gate** (75 degrees) left texels bare in the groove where the nose panel's raised edge
+  meets the nose (89 degrees): now 100, and any of the nearest points may vouch for a texel.
+- **Band ends** are square to the curve's last centimetre (the last step made them slant).
+- **The skin had small holes** (a 4 cm one by the cockpit's rear corner, a 10 cm crack at the bonnet
+  strip's front): a walk stops at any edge, and the spine had a 12 mm bite out of it. Loops under 12 cm
+  are now filled (skinmesh VERSION 4; the mirror mounts' and pylon's openings stay).
+- **New abilities**: `edge(place, mm)` (a line in from the car's edge: 14.7 mm for 15 off the cockpit's
+  rim; the contour of geometry-central's heat distance was tried and dropped, out by -18 to +22 mm),
+  `meet(curve, other)` (a T, cut along the other line's middle and run on under it: no gap, no spike).
+- **The check now judges** holes in the core (geodesic discs, its own construction), stray paint
+  (blends of two other colours excluded), joins set aside, a T's gap and spike, and distance from pins
+  or the edge; bands of one colour are told apart by their curves. Its own errors found on the way: a
+  walk cut short by the cockpit's rim threw away a good measure; a step in the body (the nose panel's
+  edge) counted as a corner; the blend at a T read as a gap. `--falsify` fails every band on all four cars.
+- **Widths**: 2 mm is the thinnest whole line (texels 0.9 mm); from the chase cameras 3 to 4 mm reads
+  as a line, 2 mm faintly.
+
+Left flagged: TSC_Skin's flank sweeps (40 mm2 of holes at a panel joint, z -82), SkinMore's two middle
+stripes and Solstice's cream stripe (3 to 6 mm2 at their ends). **The user, after the exam: "lets
+stop. None of the cars make me think it's working."**
+
 ## Decisions (for Claude)
 
 - **The foundation comes first (user, 2026-09-23).** The tool must truly know the car: every

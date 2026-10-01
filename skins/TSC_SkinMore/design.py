@@ -58,14 +58,14 @@ def design(s):
     # Every band gets a colour of its own: the check knows paint by its colour, so two bands the
     # same colour are one band to it (it read a stripe's 78 cm2 as the ring's stray paint).
     for route, colour in zip((S1, S2, S3, S4), ("#c8102e", "#d43fb0", "#1d3fb0", "#118c4e")):
-        c = skindraw.through(route, name=f"stripe at x {route[0][0]:.0f}")
+        c = skindraw.taut(route, name=f"stripe at x {route[0][0]:.0f}")
         print(c.report())
         for curve in (c, skindraw.mirror(c)):
             s.paint(BODY, "gloss", colour=colour, zone=skindraw.band(curve, 10))
 
     s.step("A wide band across the nose", "Seventy millimetres, flank over the top to flank, where "
            "the body curves hardest.", words="the car's own skin")
-    nose = skindraw.through(NOSEBAND, name="the nose band")
+    nose = skindraw.taut(NOSEBAND, name="the nose band")
     print(nose.report())
     s.paint(BODY, "gloss", colour="#2b1a5e", zone=skindraw.band(nose, 70))
 
@@ -82,7 +82,7 @@ def design(s):
 
     s.step("A diagonal", "Across both flanks at an angle to everything the car is made of.",
            words="the car's own skin")
-    diag = skindraw.through(DIAG, name="the diagonal")
+    diag = skindraw.taut(DIAG, name="the diagonal")
     print(diag.report())
     for curve in (diag, skindraw.mirror(diag)):
         s.paint(BODY, "gloss", colour="#f2c200", zone=skindraw.band(curve, 24))

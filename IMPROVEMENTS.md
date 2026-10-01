@@ -24,6 +24,14 @@ the design as asked), then speed.
   stray-paint measure that can be trusted; a filled area bounded by a drawn curve (a split along a
   sweep, one colour each side).
   Notes: "Drawing on the car's own skin" in `CHECKLIST.md`.
+  **The exam, 2026-10-01** (TSC_SkinExam, the user's pick of four test ideas, with "a famous livery
+  look: black and gold pinstripes" to follow, not started): 15 of its 17 lines pass the check (the
+  two that don't are the 1.5 and 1 mm pinstripes, too thin for the texture), and the earlier cars
+  were re-measured, with a few spots still flagged (TSC_Skin's flank sweeps at a panel joint z -82,
+  SkinMore's two middle stripes and Solstice's cream stripe at their ends). Several real faults were
+  found and fixed on the way (`CHECKLIST.md`). **The user, after it: "lets stop. None of the cars
+  make me think it's working."** The numbers passing hasn't convinced them by eye: ask what they'd
+  need to see before building more, and don't count a check passing as the item working.
 - **The car map: the AI understanding the car** (the user, 2026-09-29, after TSC_WindTunnel's
   concepts: "would it be best to focus on actually mapping the car properly, so that no matter what
   design is done, the Ai just knows?", then "I don't care about a car anymore, because I actually care

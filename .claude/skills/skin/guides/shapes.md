@@ -31,10 +31,11 @@ with the car's name.
   "What works on this car". The car runs from z -162 (tail) to 215 (nose), the wheels at z 179 and
   -120. The front flank isn't flat: its lower half sits back under a lip along a diagonal crease.
 - **Lines on the car's own skin** (`tool/skindraw.py`): stripes, bands, pinstripes, rings and
-  sweeps are curves on the surface (`through`, `circle`, `parallel`, `mirror`, `band`), exact in
-  width over every fold and seam, run off the car's edge rather than stopped mid-panel. A
-  multi-colour stripe is parallels of one curve, so its gaps hold. See `SKILL.md`, "Draw lines on
-  the car's own skin", and TSC_Solstice.
+  sweeps are curves on the surface (`through`, `circle`, `parallel`, `mirror`, `edge`, `meet`,
+  `band`), exact in width over every fold and seam, run off the car's edge rather than stopped
+  mid-panel. A multi-colour stripe is parallels of one curve, so its gaps hold. Pinstripes: 2 mm at
+  the least, 3 to 4 mm to be seen while driving. See `SKILL.md`, "Draw lines on the car's own skin",
+  TSC_Solstice and TSC_SkinExam.
 - Zones (`tool/shapes.py`): the map's first (`area`, `outside`, `along`, `near`,
   `hit`, `streamlines`), which follow the body by themselves; then planes for diagonal
   splits, `facing`, `blob`, `grass`, `fade`, combined with & | ~. Spots and shapes seen from above:

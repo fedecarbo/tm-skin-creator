@@ -8,7 +8,7 @@ midnight gap between them; over the top, twin cream stripes edged in gold run ei
 cockpit (the car has no skin down its middle there) and past the number and name panels, which they
 leave clear for the game.
 
-Every line is one curve on the surface and the bands are measured over it (skindraw.through,
+Every line is one curve on the surface and the bands are measured over it (skindraw.taut, which pulls the curve tight past its places,
 parallel, mirror, band): python -m tool.skincheck TSC_Solstice.
 """
 
@@ -51,7 +51,7 @@ def design(s):
     s.step("The sunset sweep", "Gold, orange and red from the nose along each flank, over the sidepod "
            "and on to the tail, three parallel colours with a thin gap of midnight between them.",
            words="something more crafted")
-    sweep = skindraw.through(SWEEP, name="the sweep")
+    sweep = skindraw.taut(SWEEP, name="the sweep")
     print(sweep.report())
     for mm, colour in BANDS:
         line = skindraw.parallel(sweep, mm, name=f"the sweep's {'gold' if mm > 0 else 'orange' if mm == 0 else 'red'}")
@@ -60,7 +60,7 @@ def design(s):
 
     s.step("Twin stripes", "Two cream stripes edged in gold over the top, either side of the cockpit "
            "and clear of the number and name panels.", words="something more crafted")
-    top = skindraw.through(TOP, name="the top stripe")
+    top = skindraw.taut(TOP, name="the top stripe")
     print(top.report())
     for curve in (top, skindraw.mirror(top)):
         s.paint("body", FINISH["graphic"], colour=GOLD, zone=skindraw.band(curve, 46))
