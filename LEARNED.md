@@ -93,8 +93,8 @@ unless said). `GLOWS` in `tool/finishes.py` and the viewer's `GLOW` follow it.
 
 - **Always on (96)** keeps its colour: about 0.63 of it on the screen by day, 0.8 at night.
 - **Night only (255)** is off by day and at sunrise, on at sunset and at night.
-- **Front lights (128)** are off by day too (the "bright white by day" of 2026-09-24 was white
-  paint), the brightest glow at sunset and night. They sit at z 192 to 213, some behind small
+- **Front lights (128)** are off by day too (white paint on them looks lit by
+  day), the brightest glow at sunset and night. They sit at z 192 to 213, some behind small
   lenses.
 - **Brake lights (0)** are the slotted crescent inside each front wheel (part "brake light"; left
   and right share texels): dim at night at rest, near white while braking, in the skin's colour.

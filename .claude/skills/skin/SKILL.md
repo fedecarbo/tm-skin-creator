@@ -11,12 +11,11 @@ Their words, if they came with the command: $ARGUMENTS
 If they haven't said what they want yet, ask: **what skin would you like?** One word ("lava")
 or a whole scene is fine.
 
-## One way of working
+## How the user works
 
 The user works by looking at the car and changing it, with options to pick whenever there's more
 than one way to go (2026-09-28: "Two main things I like. It's having the car and me being able to
-iterate. and I also like a place where you can provide options before building"). The quick way
-and the studio's steps became this one way the same day.
+iterate. and I also like a place where you can provide options before building").
 
 - **A new car** (a new idea, not a change to one): read `new-car.md` beside this file and follow
   it: a short talk and its card, the first concepts as a set, then the car finished field by field
@@ -71,7 +70,7 @@ card) and no game: install from the Windows PC after a push.
   slice by slice, its openings, every panel) and look at its pictures (`car/map/`), then the
   docstrings of `tool/paintbox.py` (the key), `tool/skindraw.py` (lines on the car), `tool/shapes.py`
   (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. **Lines, stripes, bands and
-  rings are drawn on the car's own skin** ("Draw lines on the car's own skin", below); the 3D zones
+  rings are drawn on the car's own skin** (below, "What works on this car"); the 3D zones
   are for areas: a split, a fade, a spot. Part names are in `car/parts.json`. Colour and finish
   words go through `finishes.resolve()`.
 - **Built in steps, from clay (the Lab, the user's idea, 2026-09-26).** A new design
@@ -230,11 +229,10 @@ card) and no game: install from the Windows PC after a push.
   bare metal: metal mirrors the dark and reads as black specks.
 - Paint can't fake big 3D shapes (curls, folds): use small, crisp cues. A painted shadow must be
   the same width all round (as if lit from above), or it looks wrong from the other camera.
-- Glow is for the inner car only, as far as we know: Nadeo's list of skin files has no glow map
-  for the body, but one was never tried in the game (the user doubts it, 2026-09-29: the test is
-  on `IMPROVEMENTS.md`). Don't tell the user the body can't glow as a fact. `s.glow(part, colour,
-  kind)`. Seen working: "always on" (day and night), "night only" (at night and sunset), "front
-  lights" (at night and sunset only, the brightest), "brake lights" (at night, and when braking),
+- Glow lights the inner car: `s.glow(part, colour, kind)`. A glow on the body is untested: Nadeo's
+  list of skin files has no glow map for it, and one was never tried in the game (the test is on
+  `IMPROVEMENTS.md`, "A glow on the body"). Seen working: "always on" (day and night), "night
+  only" (at night and sunset), "front lights" (at night and sunset only, the brightest), "brake lights" (at night, and when braking),
   "energy" (only in the garage, tinted by the game; dark on the track), "brake heat" (rims glow
   while braking hard, building over about 1.5 s), "turbo" (glows in the turbo pad's colour for
   about 3 s after it: the stock hubs carry it, seen inside the wheels). Exhaust heat and boost

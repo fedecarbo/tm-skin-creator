@@ -10,7 +10,7 @@ applies for everything it says about designing, checking, showing, the record an
 
 ## How it runs
 
-- **No steps.** The user sees the car in the Lab and its timeline beside it: a short talk,
+- **The car is always in view.** The user sees the car in the Lab and its timeline beside it: a short talk,
   the first concepts as a set, then the car, finished field by field from their notes, then the
   check and the release. They stop only for a real choice: a set of options (`SKILL.md`, "Sets of
   options"), picked in the Lab or in the chat. When there's one sensible answer, do it and show it;
@@ -86,7 +86,7 @@ Their guides: `guides/mood.md` (the directions: a world, a colour story, the fin
 
 Three truly different ideas on the car, rough on purpose: flat colour in each one's base finish,
 the big shapes only, no details. Each a different reading of the card, with its own mood: the
-world it draws from, its colour story and its finish (the mood lives on the car, not on boards).
+world it draws from, its colour story and its finish (the mood lives on the car).
 
 1. Name three readings that truly differ (the mood guide: in at least two of the colour story, the
    finish, the graphic language and the world), each a title and a few lines: what the car is in

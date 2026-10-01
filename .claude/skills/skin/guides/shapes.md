@@ -34,7 +34,7 @@ with the car's name.
   sweeps are curves on the surface (`through`, `circle`, `parallel`, `mirror`, `edge`, `meet`,
   `band`), exact in width over every fold and seam, run off the car's edge rather than stopped
   mid-panel. A multi-colour stripe is parallels of one curve, so its gaps hold. Pinstripes: 2 mm at
-  the least, 3 to 4 mm to be seen while driving. See `SKILL.md`, "Draw lines on the car's own skin",
+  the least, 3 to 4 mm to be seen while driving. See `SKILL.md`, "What works on this car",
   TSC_Solstice and TSC_SkinExam.
 - Zones (`tool/shapes.py`): the map's first (`area`, `outside`, `along`, `near`,
   `hit`, `streamlines`), which follow the body by themselves; then planes for diagonal

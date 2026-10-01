@@ -1,8 +1,7 @@
 # Mood: the mood and research designer's guide
 
 Read for a new car's first concepts (`new-car.md`, 2): each concept's reading carries its own mood,
-on the car, not on boards beside it (the mood step and its boards went with the studio's steps,
-2026-09-28). It grows with every car: once the concepts are picked, add what the car taught under
+painted on the car. It grows with every car: once the concepts are picked, add what the car taught under
 "Learned", dated, with the car's name.
 
 ## What good looks like
@@ -46,5 +45,5 @@ on the car, not on boards beside it (the mood step and its boards went with the 
 ## Learned
 
 - 2026-09-28, TSC_Ladybird: pale marks on a drawn ladybird's head read as cartoon eyes (the
-  brief: no face): a drawn creature gets no face unless the brief asks. The user may keep two
-  boards ("c and b actually"): the concepts then take one reading from each and one that blends.
+  brief: no face): a drawn creature gets no face unless the brief asks. The user may like two
+  directions ("c and b actually"): the next round takes one reading from each and one that blends.
