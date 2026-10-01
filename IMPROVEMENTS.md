@@ -147,6 +147,14 @@ the design as asked), then speed.
 - **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
   maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
 
+- **A new car's first concepts take far too long** (2026-10-01, TSC_Water, the user: "what is taking
+  so long? Thing's used to be quicker? Why are there so many checks and corrections?"). Three
+  concept designers took about 22 minutes each for a simple idea (layers of cyan); a paint itself
+  takes 10 s on the Mac. The time went to each designer reading the car map, the guides and the
+  tool's docs from scratch, then three paints each with all four picture sheets, then the
+  director's own look and repaints. Idea: the director paints the concepts itself, one after the
+  other, reading once; one paint and the views per concept, the close looks only on the picked
+  one; the designers and the full checks only when the user asks for a studio round.
 - **The Lab is empty before a new car's first paint** (2026-10-01, TSC_Water: "why is there no car
   or previews?"). Opened on a new car whose concepts are still being designed, the Lab shows only the
   floor and "Being painted..." until the first paint starts (`lab-studio.js`: the embedded viewer

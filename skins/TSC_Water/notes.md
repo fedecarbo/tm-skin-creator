@@ -13,3 +13,12 @@ crests raked back from the nose like a powerboat's bow wave, saturated cyan on d
 Everything else (wheels, inner car) one dark colour for now. The brief card (`brief.md`) was written
 from their words and shown with the concepts rather than before, since they asked for the cyan
 first. The trap to watch: pale cyans with white read as an ice car.
+
+Set 1 opened 2026-10-01: the three concepts by three concept designers (about 22 minutes each,
+three paints each). Depth's palest cyan read near-white from above (an ice car): deepened to
+#86E5F2 with more colour, the shelf to #3EC4DE (two repaints). Wake's designer was stopped after
+its third paint, to show the set sooner: its design is as painted then.
+The user, waiting (2026-10-01): "Ok this is so stupid, what is taking so long?  Thing's used to be
+quicker?  Why are there so many checks and corrections?  Did I end up with a tool that can't even
+paint?" The paint is 10 s; the time is the concept process. On IMPROVEMENTS.md; from here, changes
+are painted directly.
