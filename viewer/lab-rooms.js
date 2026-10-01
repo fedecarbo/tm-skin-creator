@@ -466,6 +466,7 @@ async function begin(helpers) {
   addEventListener('resize', fit);
   every(POLL, poll);
   $('status').textContent = '';
+  window.lab.ready = true;  // for Claude's pictures of the page (tool/snap.py --page)
 }
 
 // The rooms (the UV map), from the tool, for lab.js's tabs.
