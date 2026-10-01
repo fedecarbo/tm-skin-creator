@@ -15,8 +15,8 @@ the design as asked), then speed.
 ## Under way
 
 - **The PC's check of the tidy-up** (2026-10-01, the deep tidy-up, done on the Mac while the PC was
-  away: the user asked for it as a queued task). **On the first session on the Windows PC, before
-  any install or anything else:**
+  away). **Waits for the user to ask, on the Windows PC** (the user: "That's something I will do
+  when I can"); until then the PC works as usual. When they ask:
   1. The session's pull brings it; install the requirements if they changed
      (`PY -m pip install -r requirements.txt`).
   2. `PY -m tool.selftest --against b0ca0e8` (about 25 minutes the first time: it paints the old
@@ -24,8 +24,7 @@ the design as asked), then speed.
      processor has to agree with the Mac's, the texture encoder above all.
   3. One real `PY -m tool.skin install` of a skin already in the game (it replaces itself, e.g.
      TSC_CMYK_EndsInK), timed. Before the tidy-up its zip took 196 to 258 s to build on the PC.
-  4. Write both results under "The deep tidy-up" in `LEARNED.md`, then delete this item and its
-     line in `CLAUDE.md`.
+  4. Write both results under "The deep tidy-up" in `LEARNED.md`, then delete this item.
 
   If anything differs, don't install: find and fix the difference first, and tell the user in one
   line. Never ask the user to test; they may look in the garage if they want to.

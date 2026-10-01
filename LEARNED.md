@@ -417,7 +417,7 @@ messy? Or slow? ... Making it simple wherever it can, make sure things work prop
 optimised properly." Done on the Mac, each step checked by `tool/selftest.py` (written first):
 every skin paints the same textures, game files, notes and record as commit b0ca0e8 (`--all`: 48 of
 50 designs identical; the other two, the cars that draw smoke lines, corrected on purpose, below),
-and the viewer's snapshots are the same to the pixel. The PC's check is queued in `IMPROVEMENTS.md`.
+and the viewer's snapshots are the same to the pixel. The PC's check waits in `IMPROVEMENTS.md` for the user to ask.
 
 - **Encode each distinct block once.** A painted body map is about 2 % distinct 4x4 blocks
   (TSC_Solstice: 22,489 of 1,048,576), and every BC1 and BC4 block is encoded on its own (no
