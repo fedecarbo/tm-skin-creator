@@ -16,7 +16,7 @@
 // the one taken when it was written (/notes/<file>).
 //   /lab.html?skin=<name>    the car <name> is or is an option of, <name> on the car
 
-import { $, post } from './lab-common.js';
+import { $, every, post } from './lab-common.js';
 
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
 const POLL = 2000;
@@ -384,7 +384,7 @@ export async function open(from) {
   stand = await import('./lab-studio.js');
   await stand.open();
   await refresh();
-  setInterval(refresh, POLL);
+  every(POLL, refresh);
   // ready once the timeline's pictures are in (Claude's snapshots of the page wait for it), 8 s at most
   const pics = [...$('stream').querySelectorAll('img')];
   await Promise.race([Promise.all(pics.map((i) => i.decode().catch(() => {}))), new Promise((r) => setTimeout(r, 8000))]);

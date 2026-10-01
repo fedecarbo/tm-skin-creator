@@ -4,7 +4,10 @@ Every block comes from our own numpy encoders. Colour blocks (BC1, and the colou
 from bc1_blocks: endpoints on each block's principal axis, refined by least squares; Pillow's
 "bcn" encoder was 5 dB worse and put visible fringes round sticker outlines (2026-09-24).
 Single-channel blocks (BC4, both halves of BC5, the alpha half of BC3) from bc4_blocks, which
-keeps Details_I glow codes exact. The header is written here, copying the layout of
+keeps Details_I glow codes exact. Each block is encoded on its own, so each distinct block is
+encoded once and copied wherever it repeats: a car is mostly flat paint, and only 2 % of a
+body's 4x4 blocks differ from all the others (TSC_Solstice, 2026-10-01), so this is the same
+file, many times faster. The header is written here, copying the layout of
 Nadeo's reference files (flags 0xA1007, caps 0x401008, "A2XY" in the ATI2 bit-count field).
 Nadeo's ATI2 files store the first block = channel 0 (normal X, roughness): see CHECKLIST.md.
 
@@ -135,18 +138,44 @@ def _local_search(px, q0, q1, rounds=1):
     return q0, q1
 
 
+CHUNK = 1 << 16  # distinct blocks encoded at once: the encoders' temporaries stay in tens of MB
+
+
+def _blocks(image):
+    """A uint8 image (h, w) or (h, w, c) as its 4x4 blocks, each a row of texels row by row (and
+    channels within a texel), the sides padded to whole blocks by repeating the edge (the
+    smallest mips)."""
+    image = image[..., None] if image.ndim == 2 else image
+    h, w, c = image.shape
+    if h % 4 or w % 4:
+        image = np.pad(image, ((0, -h % 4), (0, -w % 4), (0, 0)), mode="edge")
+        h, w = image.shape[:2]
+    return image.reshape(h // 4, 4, w // 4, 4, c).transpose(0, 2, 1, 3, 4).reshape(-1, 16 * c)
+
+
+def _each_distinct(blocks, encode):
+    """encode() run once per distinct block, a chunk at a time, its result copied to every block
+    that's the same. blocks: (n, k) uint8; encode: (m, k) uint8 -> (m, 8) uint8."""
+    blocks = np.ascontiguousarray(blocks)
+    rows = blocks.view(np.dtype((np.void, blocks.shape[1]))).ravel()
+    distinct, where = np.unique(rows, return_inverse=True)
+    distinct = distinct.view(np.uint8).reshape(-1, blocks.shape[1])
+    out = np.concatenate([encode(distinct[k:k + CHUNK]) for k in range(0, len(distinct), CHUNK)])
+    return out[where.ravel()]
+
+
 def bc1_blocks(rgb, iters=3, search=1):
-    """Our own BC1 encoder for a uint8 (h, w, 3) image (sides multiples of 4). Returns
-    (n_blocks, 8) uint8, every block in 4-colour mode (color0 > color1, or equal with all
-    indices 0), so no texel turns transparent. Endpoints start at the ends of each block's
-    principal axis, are refined by least squares against the chosen indices (3 passes:
-    more don't help), then a local search nudges them a step at a time (`search` rounds).
-    Quality over build time: the user's call (2026-09-24)."""
-    h, w = rgb.shape[:2]
-    if h % 4 or w % 4:  # the smallest mips: pad to whole blocks by repeating the edge
-        rgb = np.pad(rgb, ((0, -h % 4), (0, -w % 4), (0, 0)), mode="edge")
-        h, w = rgb.shape[:2]
-    px = rgb.reshape(h // 4, 4, w // 4, 4, 3).transpose(0, 2, 1, 3, 4).reshape(-1, 16, 3).astype(np.float32)
+    """Our own BC1 encoder for a uint8 (h, w, 3) image. Returns (n_blocks, 8) uint8, every block
+    in 4-colour mode (color0 > color1, or equal with all indices 0), so no texel turns
+    transparent. Endpoints start at the ends of each block's principal axis, are refined by
+    least squares against the chosen indices (3 passes: more don't help), then a local search
+    nudges them a step at a time (`search` rounds). Quality over build time: the user's call
+    (2026-09-24)."""
+    return _each_distinct(_blocks(rgb), lambda b: _bc1(b.reshape(-1, 16, 3).astype(np.float32), iters, search))
+
+
+def _bc1(px, iters, search):
+    """BC1 blocks (n, 8) for the blocks' texels, px (n, 16, 3) float."""
     n = len(px)
     mean = px.mean(1, keepdims=True)
     cen = px - mean
@@ -201,12 +230,11 @@ def bc4_blocks(channel):
     8 steps between the extremes, or 6 steps between the extremes other than 0 and 255, which
     stay exact. Blocks with up to two values, or two values plus 0 and 255, come out exact.
     """
-    h, w = channel.shape
-    ph, pw = -h % 4, -w % 4
-    a = np.pad(channel, ((0, ph), (0, pw)), mode="edge").astype(np.float64)
-    bh, bw = a.shape[0] // 4, a.shape[1] // 4
-    v = a.reshape(bh, 4, bw, 4).transpose(0, 2, 1, 3).reshape(-1, 16)  # texels row by row
+    return _each_distinct(_blocks(channel), lambda b: _bc4(b.astype(np.float64)))
 
+
+def _bc4(v):
+    """BC4 blocks (n, 8) for the blocks' 16 values each, v (n, 16) float."""
     hi, lo = v.max(1), v.min(1)
     steps8 = np.arange(1, 7) / 7
     pal8 = np.concatenate([hi[:, None], lo[:, None], hi[:, None] * (1 - steps8) + lo[:, None] * steps8], 1)
@@ -269,15 +297,11 @@ def encode(levels, fourcc):
     return header(w, h, len(levels), fourcc, len(data[0])) + b"".join(data)
 
 
-def write(path, image, fourcc, srgb=False, normal=False, codes_in_alpha=False):
-    """image: float array 0..1, (h, w) or (h, w, c). Writes the DDS and returns its levels."""
+def texture(image, fourcc, srgb=False, normal=False, codes_in_alpha=False):
+    """The whole DDS file, as bytes, for a float image 0..1, (h, w) or (h, w, c)."""
     if image.ndim == 2:
         image = image[..., None]
-    levels = build_mips(image, srgb=srgb, normal=normal, codes_in_alpha=codes_in_alpha)
-    blob = encode(levels, fourcc)
-    with open(path, "wb") as f:
-        f.write(blob)
-    return levels
+    return encode(build_mips(image, srgb=srgb, normal=normal, codes_in_alpha=codes_in_alpha), fourcc)
 
 
 # ---- Reading, for self-tests and for reading Nadeo's files ----

@@ -13,7 +13,7 @@
 // another, the rooms follow it, and they show each step as it lands (steps.json).
 // The car is the viewer itself (?embed=1).
 
-import { $, ago, embedViewer, followed, note, titleOf, wanted } from './lab-common.js';
+import { $, ago, embedViewer, every, followed, note, titleOf, wanted } from './lab-common.js';
 
 const params = new URLSearchParams(location.search);
 const POLL = 1500;
@@ -464,7 +464,7 @@ async function begin(helpers) {
   frame.addEventListener('click', (e) => { const p = hit(e); if (p) pick(p); });
   $('prCopy').addEventListener('click', (e) => picked && copyLine({ line: $('prLine').textContent }, e.currentTarget));  // a surface's too
   addEventListener('resize', fit);
-  setInterval(poll, POLL);
+  every(POLL, poll);
   $('status').textContent = '';
 }
 

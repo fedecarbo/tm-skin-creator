@@ -25,6 +25,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -166,9 +167,11 @@ def same(a, b):
         if bad:
             textures.append(f"{t}: {', '.join(bad)} differ")
     other = []
-    if a["notes"] != b["notes"]:
+    timeless = lambda notes: [re.sub(r"\(\d+ s\)", "(… s)", n) for n in notes]  # how long a step took isn't the paint
+    na, nb = timeless(a["notes"]), timeless(b["notes"])
+    if na != nb:
         other.append("notes differ:\n      " + "\n      ".join(
-            [f"- {n}" for n in a["notes"] if n not in b["notes"]] + [f"+ {n}" for n in b["notes"] if n not in a["notes"]]))
+            [f"- {n}" for n in na if n not in nb] + [f"+ {n}" for n in nb if n not in na]))
     elif a["record"] != b["record"]:
         other.append("the record differs (lines drawn, palette, steps, clay)")
     return textures, other

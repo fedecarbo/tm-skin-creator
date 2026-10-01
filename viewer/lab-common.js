@@ -45,6 +45,17 @@ export function embedViewer(frame, credit) {
   });
 }
 
+// fn every `ms` while the page is in view, one at a time: a slow answer never stacks up behind
+// the next ask, and a tab in the background asks nothing.
+export function every(ms, fn) {
+  let busy = false;
+  setInterval(async () => {
+    if (busy || document.hidden) return;
+    busy = true;
+    try { await fn(); } catch (err) { console.error(err); } finally { busy = false; }
+  }, ms);
+}
+
 // The skin Claude painted last (tool/view.py's studio.json): { skin, stamp }, or {} before any.
 export async function followed() {
   try {

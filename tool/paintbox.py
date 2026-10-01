@@ -232,6 +232,8 @@ class Skin:
         self.clay_left = None  # the parts still in clay when the design is done (end_steps)
         self.frames = False  # skin.show sets it: write the car at the end of each step for the Studio
         self._frame_slots = {}  # slot -> (digest, url) of the last frame's picture of it
+        self._frame_sets = {}  # texture set -> its slots in the last frame, in order
+        self._touched = set()  # the texture sets reached (Skin.canvas) since the last frame
         self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
         self._final = None  # the finished textures, built once when the design is done (end_steps)
 
@@ -297,22 +299,30 @@ class Skin:
 
     def _end_step(self, done=False):
         """The car as it is now becomes the open step's frame: its pictures in the viewer's data at
-        half size (only the ones that changed), and the Studio's list rewritten."""
+        half size (only the ones that changed), and the Lab's list rewritten. A texture set no paint
+        reached since the last frame keeps its pictures without being built again."""
         if not self.frames or not self.steps:
             return
         from tool import view
         k = len(self.steps) - 1
         if "textures" not in self.steps[k]:
-            own = {}
-            for tex_name, (arr, _, _) in self.textures().items():
-                for slot, im in view.convert(tex_name, arr).items():
-                    if im.width >= 2048:
-                        im = im.resize((im.width // 2, im.height // 2), Image.NEAREST if slot.endswith("_Code") else Image.LANCZOS)
-                    digest = hashlib.sha1(im.tobytes()).hexdigest()[:12]
-                    if self._frame_slots.get(slot, ("",))[0] != digest:
-                        url = view.save_frame(self.name, k, slot, im, digest)
-                        self._frame_slots[slot] = (digest, url)
-                    own[slot] = self._frame_slots[slot][1]
+            for tset, c in self.canvases.items():
+                if tset not in self._touched and tset in self._frame_sets:
+                    continue
+                textures = ({t: v for t, v in self._final.items() if t.startswith(f"{tset}_")} if self._final is not None
+                            else c.textures())
+                self._frame_sets[tset] = []
+                for tex_name, (arr, _, _) in textures.items():
+                    for slot, im in view.convert(tex_name, arr).items():
+                        if im.width >= 2048:
+                            im = im.resize((im.width // 2, im.height // 2), Image.NEAREST if slot.endswith("_Code") else Image.LANCZOS)
+                        digest = hashlib.sha1(im.tobytes()).hexdigest()[:12]
+                        if self._frame_slots.get(slot, ("",))[0] != digest:
+                            url = view.save_frame(self.name, k, slot, im, digest)
+                            self._frame_slots[slot] = (digest, url)
+                        self._frame_sets[tset].append(slot)
+            self._touched.clear()
+            own = {slot: self._frame_slots[slot][1] for tset in self.canvases for slot in self._frame_sets.get(tset, ())}
             self.steps[k]["textures"] = own
             self.steps[k]["frame"] = hashlib.sha1(repr(sorted(self._frame_slots.items())).encode()).hexdigest()[:12]
         view.export_steps(self.name, self.steps, painting=not done, clay=self.clay_left if done else None)
@@ -325,7 +335,10 @@ class Skin:
         return self.steps[-1]
 
     def canvas(self, tset):
+        """A texture set's layers, made when first painted. Everything that paints reaches them here,
+        which is how a step's frame knows which sets changed."""
         self._open_step()
+        self._touched.add(tset)
         if tset not in self.canvases:
             w, h = self.sizes[tset]
             self.canvases[tset] = Canvas(tset, w, h)

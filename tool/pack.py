@@ -1,12 +1,14 @@
 """Build a skin zip: the DDS textures at its root plus an Icon.tga. No spaces in the name."""
 
 import zipfile
+import zlib
 
 from PIL import Image, ImageDraw, ImageFont
 
 from tool import paint
 
 ICON_SIZE = 256
+LEVEL = 9  # zlib's best compression
 
 
 def icon(label, left, right):
@@ -28,12 +30,24 @@ def sizes(zip_path):
         return {i.filename: i.compress_size for i in z.infolist()}
 
 
+def deflated(data):
+    """The bytes' size once compressed in the zip (pack's own compression)."""
+    z = zlib.compressobj(LEVEL, zlib.DEFLATED, -15)
+    return len(z.compress(data)) + len(z.flush())
+
+
+def size(deflated_sizes):
+    """The zip's size in bytes for files {name: deflated size}: each file's local header and its
+    entry in the central directory, and the directory's end."""
+    return sum(30 + len(n) + c + 46 + len(n) for n, c in deflated_sizes.items()) + 22
+
+
 def pack(name, folder, icon_image):
     if " " in name:
         raise ValueError("skin names can't contain spaces")
     icon_image.save(folder / "Icon.tga")
     zip_path = folder.parent / f"{name}.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=LEVEL) as z:
         for f in sorted(folder.glob("*.dds")) + [folder / "Icon.tga"]:
             z.write(f, f.name)
     return zip_path

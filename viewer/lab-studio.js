@@ -15,7 +15,7 @@
 // or a tag is open. It says which skin it shows ('lab:stand') and what Claude is doing ('lab:status').
 // The car is the viewer itself (index.html?embed=1).
 
-import { $, ago, embedViewer, followed, note, post, titleOf } from './lab-common.js';
+import { $, ago, embedViewer, every, followed, note, post, titleOf } from './lab-common.js';
 import { createTags } from './lab-tags.js';
 
 const POLL = 1500;
@@ -335,5 +335,5 @@ export async function open() {
   } finally {
     $('stCover').classList.add('off');  // the car dressed, framed and turned (or failed): shown
   }
-  setInterval(poll, POLL);  // follows Claude's painting, from the first skin painted
+  every(POLL, poll);  // follows Claude's painting, from the first skin painted
 }

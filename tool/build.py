@@ -51,35 +51,41 @@ def build_zip(name, icon_image=None):
     normal map, then its roughness maps, at half size (the stock's own 2048²), largest first,
     until it fits: the relief is drawn to read at 2048² (tool/relief.py); where a design kept
     the stock look the roughness maps hold nothing finer, and a finish on a whole part keeps
-    its edges (the island's). Colour and glow always ship at full size."""
+    its edges (the island's). Colour and glow always ship at full size. Which maps to halve is
+    decided from each file's size in the first zip, so the zip is written again only once."""
     out = paths.BUILD / name
     meta = json.loads((out / "painted.json").read_text())
     data = np.load(out / "painted.npz")
     for old in out.glob("*.dds"):
         old.unlink()
+    if icon_image is None:
+        cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
+        icon_image = pack.icon(name[:8], cols[0], cols[-1])
     specs = {}
     for tex_name, spec in meta["textures"].items():
         spec = dict(spec)
         specs[tex_name] = (spec.pop("fourcc"), spec)
-        dds.write(out / f"{tex_name}.dds", data[tex_name].astype(np.float32) / 255, specs[tex_name][0], **spec)
-    if icon_image is None:
-        cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
-        icon_image = pack.icon(name[:8], cols[0], cols[-1])
+        (out / f"{tex_name}.dds").write_bytes(dds.texture(data[tex_name].astype(np.float32) / 255, specs[tex_name][0], **spec))
     zip_path = pack.pack(name, out, icon_image)
+    packed = pack.sizes(zip_path)  # each file's size in the zip, compressed
     normals = [t for t in specs if t.endswith("_N") and data[t].shape[0] > 2048]
     rough = [t for t in specs if t.endswith("_R")]
-    while zip_path.stat().st_size > ZIP_BUDGET and (normals or rough):
-        sizes = pack.sizes(zip_path)
+    halved = False
+    while pack.size(packed) > ZIP_BUDGET and (normals or rough):
         group = normals or rough
         # the tyres' roughness first: it carries only the lettering's shine, where the body's
         # carries a grain that needs its full size (TSC_CMYK_EndsInK, 2026-09-27)
-        t = max(group, key=lambda t: (t.startswith("Wheels"), sizes.get(f"{t}.dds", 0)))
+        t = max(group, key=lambda t: (t.startswith("Wheels"), packed[f"{t}.dds"]))
         group.remove(t)
         fourcc, spec = specs[t]
         half = dds.halve(data[t].astype(np.float32) / 255)
-        dds.write(out / f"{t}.dds", half, fourcc, **spec)
-        zip_path = pack.pack(name, out, icon_image)
+        blob = dds.texture(half, fourcc, **spec)
+        (out / f"{t}.dds").write_bytes(blob)
+        packed[f"{t}.dds"] = pack.deflated(blob)
+        halved = True
         print(f"{t} at {half.shape[1]}x{half.shape[0]}, to keep the zip under {ZIP_BUDGET / 1e6} MB")
+    if halved:
+        zip_path = pack.pack(name, out, icon_image)
     if zip_path.stat().st_size > ZIP_BUDGET:
         print(f"warning: the zip is still over {ZIP_BUDGET / 1e6} MB; the upload may fail")
     return zip_path

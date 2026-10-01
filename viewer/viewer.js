@@ -389,13 +389,21 @@ function outline(pos, target, round = false) {
   return box;
 }
 
-// The Lab's cars (embed) are drawn only when something has changed: the camera moved, the Lab called
-// (dress, show, mood, hide...), or the page was resized. Nothing moves on its own there, and two cars
-// drawn at the screen's rate (240 a second on the user's PC) kept a processor core busy with the
-// Lab standing still (2026-09-28: "the website now is soooo slow"). wake: frames still to draw.
+// The car is drawn only when something has changed: the camera moved, the car is driving (its wheels,
+// wings, air brakes, glows), the user touched the page, a skin or a texture arrived, the Lab called
+// (dress, show, mood, hide...), or the page was resized. Two cars drawn at the screen's rate (240 a
+// second on the user's PC) kept a processor core busy with the Lab standing still (2026-09-28: "the
+// website now is soooo slow"), and a phone warms up showing a car at rest. Claude's snapshots draw
+// every frame. wake: frames still to draw; anything new that changes the picture on its own rouses.
 let wake = 0;
 const drawnCam = new THREE.Matrix4(), drawnProj = new THREE.Matrix4();
 const rouse = (n = 3) => { wake = Math.max(wake, n); };
+THREE.DefaultLoadingManager.onProgress = () => rouse();  // a texture or the lighting arrived
+if (!snap) {
+  for (const type of ['pointerdown', 'pointermove', 'pointerup', 'wheel', 'keydown', 'keyup', 'click', 'input', 'change']) {
+    addEventListener(type, () => rouse(), { capture: true, passive: true });
+  }
+}
 
 function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -451,15 +459,24 @@ function sunlessSky(hdr, most) {
   hdr.needsUpdate = true;
 }
 
-async function loadLighting() {
-  const loader = new HDRLoader();
-  await Promise.all(Object.entries(LOOKS).map(async ([id, look]) => {
-    const hdr = await loader.loadAsync(`data/${look.hdr}.hdr`);
+// A mood's sky, loaded once; the mood on show takes it as soon as it arrives.
+const skies = {};
+function loadSky(id) {
+  return (skies[id] ||= new HDRLoader().loadAsync(`data/${LOOKS[id].hdr}.hdr`).then((hdr) => {
+    const look = LOOKS[id];
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     if (look.sunless) sunlessSky(hdr, look.sunless);
     if (look.tint) tintSky(hdr, look.tint);
     envMaps[id] = hdr;
+    if (mood === id) scene.environment = hdr;
+    return hdr;
   }));
+}
+
+// The day's sky before the car shows (the page opens on day), the other moods' once it's up (9 MB
+// in all, the day's 5); Claude's snapshots, which show the night too, wait for all four.
+async function loadLighting() {
+  await (snap ? Promise.all(Object.keys(LOOKS).map(loadSky)) : loadSky('day'));
 }
 
 // ---- The car ----
@@ -1179,9 +1196,11 @@ function stepWing(dt) {
     ? Math.min(1, d.airbrake + dt / AIRBRAKE.up) : Math.max(0, d.airbrake - dt / AIRBRAKE.down);
   if (air !== d.airbrake) showAirbrakes(d.airbrake = air);
 }
+// One frame of driving; true when the car looks any different for it.
 function stepDrive(now) {
   const dt = drive.last ? Math.min(0.1, (now - drive.last) / 1000) : 0;
   drive.last = now;
+  const was = [drive.speed, drive.turbo, drive.heat, drive.wingOut, drive.wingApart, drive.airbrake];
   if (drive.turbo > 0) {
     if (drive.turbo > TURBO.glow - TURBO.push && !drive.brake) drive.speed += TURBO.climb * dt;
     drive.turbo = Math.max(0, drive.turbo - dt);
@@ -1216,6 +1235,7 @@ function stepDrive(now) {
     rearUniforms.rearGear.value = drive.gear;
     byId('padGear').textContent = drive.gear;
   }
+  return drive.speed > 0 || [drive.speed, drive.turbo, drive.heat, drive.wingOut, drive.wingApart, drive.airbrake].some((v, i) => v !== was[i]);
 }
 function hold(pedal, on) {
   if (drive[pedal] === on) return;
@@ -1408,6 +1428,7 @@ function makeMaterials(tex) {
 
 // Dresses the car in a skin's textures; the first call builds the car.
 function dressCar(geoms, tex) {
+  rouse();
   const materials = makeMaterials(tex);
   if (!Object.keys(parts).length) {
     const car = new THREE.Group();
@@ -1917,10 +1938,10 @@ async function start() {
   renderer.setAnimationLoop((now) => {
     const gliding = !!glide;
     stepGlide();
-    if (!snap && !embed) stepDrive(now);
+    if (!snap && !embed && stepDrive(now)) rouse(1);
     controls.update();
     let draw = true;
-    if (embed) {
+    if (!snap) {
       camera.updateMatrixWorld();
       const moved = !drawnCam.equals(camera.matrixWorld) || !drawnProj.equals(camera.projectionMatrix);
       draw = moved || gliding || wake > 0;
@@ -1936,6 +1957,7 @@ async function start() {
   await frames(2);
   statusBox.textContent = '';
   window.viewer.ready = true;
+  if (!snap) for (const id of Object.keys(LOOKS)) loadSky(id).catch((err) => console.error(err));
   if (!snap && !embed) buildSkinList().catch((err) => console.error(err));
 }
 
