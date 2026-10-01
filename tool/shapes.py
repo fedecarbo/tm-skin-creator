@@ -12,6 +12,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.left(), shapes.right()
     shapes.plane(point, normal)            one side of any plane: diagonal splits
     shapes.sphere(centre, radius), shapes.box(lo, hi)
+    shapes.radial(centre, radius)          1 at the centre fading to 0 at radius: for glows and blends
     shapes.wheel_ring(29.5, 30.5)          a ring round each wheel's axle: tyre sidewall stripes
     shapes.fade(axis="z", start=200, end=-150)  0 at start rising to 1 at end: for blends
     shapes.facing("up"), shapes.facing((1, 0, 0))  where the surface faces a direction
@@ -19,6 +20,7 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.blob((x, 0, z), 12)             a spot that isn't quite round, seen from above (axis="x": from the side)
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
+    shapes.noisy(zone, amount=6)           a zone's edge roughened: torn, ragged, hand-painted
   The car map's (tool/carmap.py, car/map.md: they follow the body's own shape):
     shapes.area("top")                     the top between the shoulders; "sides", "under"
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
@@ -68,10 +70,6 @@ class Zone:
 def field(fn, soft=SOFT):
     """A zone from a signed distance in cm: positive inside. The edge is feathered over `soft`."""
     return Zone(lambda p, n: smoothstep(-soft / 2, soft / 2, fn(p, n)))
-
-
-def everywhere():
-    return Zone(lambda p, n: np.ones(len(p), np.float32))
 
 
 def stripe(width, at=0.0, axis="x", soft=SOFT):
@@ -490,9 +488,9 @@ def rake(z, across):
     return _map().rake(z, across)
 
 
-# while the paint box asks a zone about its own texels: (canvas, texel indices). tool/skindraw.py
-# reads it to find each texel's face on the skin without looking it up again.
-_TEXELS = None
+# the texture set the paint box is painting while it asks a zone about its texels: a line drawn on
+# the car's skin (tool/skindraw.py) lands on the body's texture only
+PAINTING = None
 
 
 def front_rake(xs, top=True):

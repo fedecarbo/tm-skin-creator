@@ -251,20 +251,6 @@ def get(name):
     return LIBRARY[key]
 
 
-def names():
-    return list(LIBRARY)
-
-
-def rm(finish):
-    """(roughness, metalness) for a `_R` texture."""
-    return finish.roughness, finish.metalness
-
-
-def coat(finish):
-    """The `Skin_CoatR` value: 0 is a glossy varnish, 1 none."""
-    return 1.0 - finish.varnish
-
-
 def with_shine(finish, shine):
     """The finish's look with another finish's shine: "scratched matte", "brushed gloss"."""
     return replace(finish, roughness=shine.roughness, metalness=shine.metalness if finish.metalness == 0 else finish.metalness,

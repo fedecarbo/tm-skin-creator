@@ -1,6 +1,6 @@
-// The balls the Lab draws a finish on, and the mood boards (viewer/mood.html): one ball, or the
-// car's own tyre for a tread, with the viewer's lighting by day. tool/swatches.py paints the
-// textures: {B,RM,Coat}.png, a tread's {B,RM,N,AO}.png.
+// The balls the Lab draws a finish on: one ball, or the car's own tyre for a tread, with the
+// viewer's lighting by day. tool/swatches.py paints the textures: {B,RM,Coat}.png, a tread's
+// {B,RM,N,AO}.png.
 
 import * as THREE from 'three';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';

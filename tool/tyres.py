@@ -40,7 +40,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage
 
-from tool import bake, colours, fbx, finishes, fonts, paths
+from tool import bake, colours, fbx, finishes, fonts
 from tool.shapes import WHEEL_Y, WHEEL_Z
 
 W, H = 1024, 2048  # the tyres' map as shipped

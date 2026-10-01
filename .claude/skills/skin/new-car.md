@@ -187,15 +187,14 @@ The critic's test car, TSC_CriticTest, has seven faults of known kinds (its desi
 after a change to the critic's instructions, run it there and compare with the score in
 `CHECKLIST.md` (W2).
 
-**The road test.** The car in the game, on the Windows PC: `tool.skin install <car>`, then the
-user drives it (a map that suits the idea, day and night, brakes, turbo) and takes F12
-screenshots; look only at those taken after the install. A change is made on the car as any note
-is, and checked again where it matters. If the user waives the drive ("Let's assume it works"),
-note in `notes.md` what only the game could have shown.
+**In the game.** On the Windows PC: `tool.skin install <car>`. The user drives it when they want
+to; never ask them to test (`CLAUDE.md`). If they share F12 screenshots, look only at those taken
+after the install, and make a change on the car as any note is. Note in `notes.md` what only the
+game can show (a finish or a glow never seen there).
 
 ## 5. The release
 
-On their yes: the car final, in the game (installed at the road test, or now on the PC), on the
+On their yes: the car final, in the game (installed earlier, or now on the PC), on the
 page online (`tool.publish`, on the PC: it shows the skins in the game), and in its design book.
 
 - **The design book** is a private page on claude.ai (an artifact) the user can share: the car's

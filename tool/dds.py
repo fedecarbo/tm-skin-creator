@@ -19,12 +19,12 @@ from PIL import Image
 
 from tool import paths
 
-# FourCC -> (Pillow bcn mode, bytes per 4x4 block, channels taken from the source array)
-FORMATS = {
-    "DXT1": (1, 8, 3),  # BC1, RGB
-    "DXT5": (3, 16, 4),  # BC3, RGBA
-    "ATI1": (5, 8, 1),  # BC4, one channel (the red half of a BC5 block)
-    "ATI2": (5, 16, 2),  # BC5, two channels, stored first block = channel 0
+# FourCC -> bytes per 4x4 block
+BLOCK_BYTES = {
+    "DXT1": 8,   # BC1, RGB
+    "DXT5": 16,  # BC3, RGBA: a BC4 block for the alpha, then a BC1 block
+    "ATI1": 8,   # BC4, one channel
+    "ATI2": 16,  # BC5, two channels, stored first block = channel 0
 }
 FLAGS = 0xA1007  # CAPS | HEIGHT | WIDTH | PIXELFORMAT | MIPMAPCOUNT | LINEARSIZE
 CAPS = 0x401008  # COMPLEX | TEXTURE | MIPMAP
@@ -240,7 +240,6 @@ def bc4_blocks(channel):
 
 
 def encode_level(level, fourcc):
-    mode = FORMATS[fourcc][0]
     if level.ndim == 2:
         level = level[..., None]
     if fourcc == "DXT1":
@@ -293,7 +292,7 @@ def read(path):
     fourcc = blob[84:88].decode()
     if fourcc == "DX10":
         raise ValueError(f"{path}: DX10 header; the game needs legacy headers")
-    block = FORMATS[fourcc][1]
+    block = BLOCK_BYTES[fourcc]
     offset, levels = 128, []
     for w, h in mip_sizes(width, height)[: max(mips, 1)]:
         size = max(1, (w + 3) // 4) * max(1, (h + 3) // 4) * block

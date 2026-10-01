@@ -368,6 +368,5 @@ export async function open() {
   } finally {
     $('stCover').classList.add('off');  // the car dressed, framed and turned (or failed): shown
   }
-  addEventListener('lab:skin', (e) => openSkin(e.detail).catch((err) => console.error(err)));
   setInterval(poll, POLL);
 }

@@ -24,8 +24,8 @@ The pictures are renders in the studio's viewer, a neutral grey room. The grey f
 dark under the car, shadows on the floor and the white labels in the corners are not the car.
 
 - `views-*`: front three-quarter, rear three-quarter, left and right sides, from the top, and at night.
-- `close-*`: 1 to 8 close up where graphics meet folds, joins and holes (the left side); 9 the chase
-  camera, close.
+- `close-*`: 1 to 6 close up where graphics meet folds, joins and holes (the bonnet, the nose and
+  the left side, the deck and tail), 7 the right side, 8 the front wheel, 9 the chase camera, close.
 - `review-*`: straight on from the front, low from behind, under the tail, the whole underside
   (lit from above, so it's dark: judge its colour, not its light), and the right-hand flanks.
 - `cams-*`: the game's own chase cameras (Cam 1, Cam 2 and their alts), standing still, by day and

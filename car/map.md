@@ -148,7 +148,7 @@ By how much of the oncoming air each part takes (the Newtonian rule):
 
 ## Words for designs (tool/shapes.py)
 
-- `shapes.area("top" | "sides" | "under" | "front" | "back")`: the body's areas, split along its own lines.
+- `shapes.area("top" | "sides" | "under")`: the body's areas, split along its own lines.
 - `shapes.outside(0.4)`: the outer body only (keeps paint out of the inlets, the wheel pockets, under panels).
 - `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).
 - `shapes.near(kind, reach)`: near a fold, an opening, a join, the shoulder, the lower edge; `~shapes.near(...)` keeps a graphic clear. (`shapes.line(kind, width)` shows the map's own lines on its test cars.)

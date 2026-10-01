@@ -1,12 +1,11 @@
-// The Lab's lines room: the user pins the car's own lines on the 3D car, and the tool draws the smooth
-// curve through the pins on the body. Claude can't see or click; the user can (2026-09-29: "Maybe we
-// build a tool to build the tool"). Their clicks say where a line runs, the maths says smooth: a
-// line is a handful of pins (5 to 8 are plenty), and the curve through them is put back on the body
-// and smoothed, here for the eye and in tool/lines.py for the paint, the same recipe. The lines are
-// kept in car/lines.json through the viewer's server (tool/view.py, /api/lines): a small asset,
-// committed, the same on both computers. tool/skindraw.py draws a line through a pinned line's pins by its name.
+// The Lab's lines room: the user pins the car's own lines on the 3D car. Claude can't see or click;
+// the user can (2026-09-29: "Maybe we build a tool to build the tool"). A line is a handful of pins
+// (5 to 8 are plenty); the curve drawn through them here is only a rough picture for the eye. The
+// paint goes by the pins: tool/skindraw.py's `through` runs a line through a pinned line's pins by
+// its name, on the surface, with a corner at each pin. The lines are kept in car/lines.json through
+// the viewer's server (/api/lines): a small asset, committed, the same on both computers.
 //   /lab.html?room=lines
-// The car is the viewer itself (index.html?embed=1) in the Studio's clay, matte, with the wheels off
+// The car is the viewer itself (index.html?embed=1) in the viewer's grey clay, matte, with the wheels off
 // (the user, 2026-09-29: "hide wheels ... make the skin maybe clayish and matte so I can see
 // properly"; a switch puts them back). Turn it with a drag. Click the body along a line to pin it;
 // click a pin to pick it, then click the body to move it there, or press Delete; click between two
@@ -44,8 +43,7 @@ let saveTimer = null;
 let litTimer = null;
 let opened = false;
 
-// ---- the curve through the pins: a centripetal Catmull-Rom spline, then put back on the body ----
-// (tool/lines.py draws the same, and paints by it)
+// ---- the rough curve through the pins: a centripetal Catmull-Rom spline, put back on the body ----
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -54,7 +52,7 @@ const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const norm = (a) => Math.hypot(a[0], a[1], a[2]);
 const lerp = (a, b, t) => add(scale(a, 1 - t), scale(b, t));
 
-export function catmullRom(P, spacing = SPACING) {
+function catmullRom(P, spacing = SPACING) {
   if (P.length < 2) return P.map((p) => [...p]);
   if (P.length === 2) {
     const n = Math.max(2, Math.ceil(norm(sub(P[1], P[0])) / spacing) + 1);
@@ -369,7 +367,7 @@ async function load() {
   for (const L of doc.lines) L.normals ||= L.points.map(() => [0, 1, 0]);
 }
 
-// The car in the Studio's clay (tool/view.py, ensure_clay): the stock textures with the clay ones over them.
+// The car in the viewer's grey clay (tool/view.py, ensure_clay): the stock textures with the clay ones over them.
 async function clay() {
   const [stock, clayed] = await Promise.all([fetch('data/stock/stock.json').then((r) => r.json()), fetch('data/clay/clay.json').then((r) => r.json())]);
   const urls = Object.fromEntries(stock.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`]));

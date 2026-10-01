@@ -39,9 +39,9 @@ const VIEWS = {  // direction from the car's centre to the camera, and distance
   // tyres' outer edges and tops and the horizon, projected from the model, the lens free, then
   // raised 1.2 cm with the car (car.json's lift_cm). Cam 1 and 2 land within 1.5 px. The game's
   // lens is wider than the 58.7° tall (90° wide) first assumed: 70 to 75° tall, 100 to 110° wide
-  // at 16:9. The user had set Cam 1 and 2 by eye in the viewer first ("Copy Cam N", below): Cam 1
-  // 2.47 m up at 12° down, Cam 2 1.82 m up at 6°, through the narrower lens, which drew the car
-  // about 1.4 times too big.
+  // at 16:9. The user had set Cam 1 and 2 by eye in the viewer first: Cam 1 2.47 m up at 12°
+  // down, Cam 2 1.82 m up at 6°, through the narrower lens, which drew the car about 1.4 times too
+  // big.
   // Cam 1, the chase camera: 3.36 m up, 5.21 m behind the car's centre, 10.9° down.
   cam1: { dir: [0, 0.1891, -0.9820], dist: 5.970, target: [0, 2.238, 0.652], fov: 72.8, ours: 14.03 },
   // Cam 1 again (its key pressed twice), closer: 2.03 m up, 3.00 m behind, 7.7° down. Fitted on
@@ -1570,10 +1570,9 @@ function savePicture() {
 
 // ---- The game's cameras ----
 // Beside the views, the game's closer Cam 1 and Cam 2 (cam1alt and cam2alt in VIEWS, fitted to the
-// user's screenshots), as two buttons named Cam 1 and Cam 2 with no others (the user, 2026-09-27, who
-// also dropped the Driving menu and "Copy Cam N", which copied a camera set by eye for Claude).
+// user's screenshots), as two buttons named Cam 1 and Cam 2 with no others (the user, 2026-09-27).
 
-let camPicked = null;  // the Driving camera last picked, while the user moves it
+let camPicked = null;  // the game camera (Cam 1 or 2) last picked, while the user moves it
 
 // ---- Controls on the page ----
 

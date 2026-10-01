@@ -38,11 +38,11 @@ Narrow a part with "|left", "|right", "|front", "|rear": "brake caliper|left|fro
 "front wing" and "engine cover" name an assembly and a part in it; "|part" means the part only:
 "floor|left|part". The Lab's rooms copy the phrase for any part (parts.Parts.token).
 
-Steps (the Lab's Studio, which shows the car at the end of each, in a filmstrip): a design made
-in the Studio starts with s.clay(), the car in the Studio's neutral white clay, which stays on any
-part no later step paints (in the game too): at the end, the paint box names the parts still in
-clay (a note, and the Studio's last step), since clay and white paint look alike. Then each step
-opens with a name, what it does and the user's words that asked for it:
+Steps (the Lab shows the car at the end of each while it's painted): a design starts with
+s.clay(), the car in the Lab's neutral white clay, which stays on any part no later step paints
+(in the game too): at the end, the paint box names the parts still in clay (a note, and the last
+step's), since clay and white paint look alike. Then each step opens with a name, what it does and
+the user's words that asked for it:
     s.clay()
     s.step("The colour run", "Satin cyan to magenta to orange along the body.",
            words="make the body ... reveal cmyk color")
@@ -440,11 +440,11 @@ class Skin:
         idx = np.flatnonzero(cov > 0.002)
         m = cov[idx]
         if zone is not None:
-            shapes._TEXELS = (canvas, idx)  # a skin line reads each texel's own face on the skin
+            shapes.PAINTING = tset
             try:
                 m = m * zone(canvas.pos[idx], canvas.nrm[idx])
             finally:
-                shapes._TEXELS = None
+                shapes.PAINTING = None
             keep = m > 0.002
             idx, m = idx[keep], m[keep]
         return idx, m
@@ -500,7 +500,6 @@ class Skin:
                                "order": len(self.palette) - 1,   # colours laid after it may cover it
                                "where": where if isinstance(where, str) else list(where),
                                **getattr(curve, "extra", {})})
-        t0 = time.time()
         for tset, ids in targets.items():
             c = self.canvas(tset)
             idx, m = self._mask(tset, ids, zone, c)
@@ -538,13 +537,6 @@ class Skin:
                 self.notes.append(f"{fin.name} on {where}: only the inner car can glow; painted it bright instead")
         if len(self.icon_colours) < 2 and "Skin" in targets:
             self.icon_colours.append(tuple(float(v) for v in col))
-        return self
-
-    def blend_paint(self, where, what_a, what_b, zone, **params):
-        """Two paints blended by a zone's weight: 0 gives the first, 1 the second. For fades:
-        s.blend_paint("body", "candy purple", "teal", shapes.fade("z", 200, -150))."""
-        self.paint(where, what_a, **params)
-        self.paint(where, what_b, zone=zone, **params)
         return self
 
     def keep(self, tset="Skin"):
@@ -693,9 +685,6 @@ class Skin:
                 self.canvas(tset).dirt = float(amount)
         return self
 
-    def tyres(self, what="black rubber", **params):
-        return self.paint("tyres", what, **params)
-
     def tyre_marks(self, marking, reads="left", **options):
         """A tyre marking from the library (tool/tyres.py): "TY-07" or its name ("ring soft"), on
         all four tyres' sidewalls and tread, over the tyres' paint so far. options reach its layout
@@ -837,7 +826,7 @@ class Skin:
             spec["centre"] = at
         return spec
 
-    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None, box=None):
+    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None):
         """Lay a picture (PIL RGBA, or a path) on the body at a spot (SPOTS, or a dict with
         centre, right, up, facing). width in cm. rgb: paint every opaque pixel this colour
         instead of the picture's own (for one-colour lettering)."""

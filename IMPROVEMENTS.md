@@ -174,8 +174,8 @@ the design as asked), then speed.
   files come out identical to a whole repaint. It makes every change faster. Notes: `CHECKLIST.md`, The Lab,
   step 9.
 
-- **The picture maker on the Mac** (2026-09-28, TSC_Ladybird's mood boards): it runs only on the
-  PC's graphics card, so boards made on the Mac have only Claude's drawings, no pictures. Idea:
+- **The picture maker on the Mac** (2026-09-28, TSC_Ladybird): it runs only on the PC's graphics
+  card, so a car designed on the Mac can't have new pictures made for it. Idea:
   FLUX.2 [klein] natively on the Mac (Apple M5, 16 GB) through diffusers on Metal, quantised to fit
   (its two halves are 8 GB each at full size); look up the latest release first.
 - **Two tyre fonts don't paint on the Mac** (2026-09-28, TSC_Ladybird's wheels; narrowed
@@ -189,11 +189,6 @@ the design as asked), then speed.
   "Copy for Claude"). The new way is the user's to describe: start from their words, then mockups.
 - **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
   maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
-
-- **The concept designers share one scratch folder** (2026-09-29, TSC_WindTunnel's concepts): one
-  overwrote another's script of the same name. And on the Mac, two `snap.mjs` runs at once scramble
-  the cameras (a six-view sheet came out at the review angles). Idea: give each designer its own
-  scratch folder in its brief, and have `snap.mjs` wait its turn as `tool.skin` paints do.
 
 - **Real scanned materials** (the user's pick, 2026-09-29, from a search for useful tools). Poly
   Haven and ambientCG give measured scans for free (CC0): carbon, brushed metal, scratches, chipped
@@ -267,7 +262,8 @@ the design as asked), then speed.
 
 ## To check in the game
 
-These need the user to drive or look, so they're tested when a skin uses them.
+Only the game can settle these. Each is settled when the user drives a skin that uses it and says
+or shows what they saw; never ask them to test (`CLAUDE.md`).
 
 - **Finishes never seen in the game** (2026-09-24, checkpoint 5): candy, chrome rims, rust,
   leather, metallic flake.

@@ -267,12 +267,6 @@ def keep(slug_, k, skin, name):
     return dst
 
 
-def about(path):
-    """The prompt, seed and kind kept inside a picture."""
-    im = Image.open(path)
-    return {k: v for k, v in im.info.items() if isinstance(v, str)}
-
-
 def setup():
     """Download the model's weights (16 GB) into the work folder, once."""
     os.environ["HF_HUB_OFFLINE"] = "0"

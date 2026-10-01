@@ -68,7 +68,7 @@ card) and no game: install from the Windows PC after a push.
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls.
   Before the first design in a session, read **the car map's description, `car/map.md`** (the body
-  station by station, its openings, every panel) and look at its pictures (`car/map/`), then the
+  slice by slice, its openings, every panel) and look at its pictures (`car/map/`), then the
   docstrings of `tool/paintbox.py` (the key), `tool/skindraw.py` (lines on the car), `tool/shapes.py`
   (zones) and `tool/finishes.py`, and `SPOTS` in `tool/paintbox.py`. **Lines, stripes, bands and
   rings are drawn on the car's own skin** ("Draw lines on the car's own skin", below); the 3D zones
@@ -150,7 +150,8 @@ card) and no game: install from the Windows PC after a push.
   `CHECKLIST.md`.
 - Work on the list when the user asks. When an item is done, delete it from the list and
   record what it taught under "Things we learned" in `CHECKLIST.md`. An item marked for the
-  game gets tested when a skin uses it: ask the user to look.
+  game is settled when the user drives a skin that uses it and says or shows what they saw; never
+  ask them to test.
 
 ## What works on this car
 
@@ -176,7 +177,7 @@ card) and no game: install from the Windows PC after a push.
   straight lines, with a sharp corner wherever it changes direction (a chevron's tip, an outline's
   corner; `smooth=mm` rounds them off for a line meant to flow). `skindraw.taut` is the old way, a
   string pulled tight past the places, which it doesn't pass through (up to 217 mm off): only the
-  cars drawn with it (TSC_Skin, TSC_SkinMore, TSC_Solstice) use it. A place
+  cars drawn with it (TSC_Skin, TSC_SkinMore, TSC_Solstice, one line of TSC_SkinExam) use it. A place
   is a name from `SPOTS`, a pinned line's name (its pins, in order), or `(x, y, z)` in cm with a
   word for the way the skin faces there (`"up"`, `"side"`, `"front"`, `"rear"`, `"down"`): the car
   has upstands where a bare point can land on either face. `skindraw.circle(centre, radius_mm)` is

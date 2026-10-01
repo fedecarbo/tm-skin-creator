@@ -331,8 +331,8 @@ def hook():
 
 def wait(minutes=120.0):
     """For Claude waiting on the user's answer in the Lab (a Bash command in the background, which
-    wakes Claude when it ends): ends as soon as a note comes, printing it, so a pick in the wizard
-    reaches Claude without a message in the chat; or after `minutes` with nothing."""
+    wakes Claude when it ends): ends as soon as a note comes, printing it, so a pick in the Lab's
+    timeline reaches Claude without a message in the chat; or after `minutes` with nothing."""
     end = time.monotonic() + minutes * 60
     while time.monotonic() < end:
         try:

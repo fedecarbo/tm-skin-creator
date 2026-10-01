@@ -32,7 +32,7 @@ import webbrowser
 import numpy as np
 from PIL import Image
 
-from tool import colours, finishes, looks, paths, textures, tyres, view
+from tool import colours, finishes, looks, textures, tyres, view
 
 FOLDER = view.DATA / "materials"
 RADIUS = 15.0  # cm: a 30 cm ball
@@ -89,8 +89,7 @@ def paint_ball(name):
 
 def paint_look(fin, colour, params=None):
     """A finish in a colour on the ball, painted as looks.apply paints the car: B (h, w, 3) sRGB,
-    roughness, metalness, varnish (h, w), the finish and the colour. The Lab's balls, and the mood
-    boards' (tool/mood.py)."""
+    roughness, metalness, varnish (h, w), the finish and the colour: the Lab's balls."""
     colour = np.asarray(colour, np.float32)
     pos, nrm, uv = ball()
     n = len(pos)

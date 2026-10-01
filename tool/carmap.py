@@ -34,9 +34,8 @@ The air (the car driving forward into still air, so the air comes at it along -z
              the sidepods' lips and the cockpit's front rim take it; the flanks, the deck and the
              tail none
     Map.flow(pos, nrm)   which way the air runs over the surface: the oncoming air laid flat on it,
-             turned to slide along a wall, an opening it runs into off the surface (the cockpit's
-             front rim, an inlet's mouth; not a bottom edge it runs along), easing in FLOW_TURN cm
-             before it
+             held to slide along a wall, an opening it runs into off the surface (the cockpit's
+             front rim, an inlet's mouth; not a bottom edge it runs along)
     Map.streamlines(seeds)   lines traced along the flow from seed points on the body, as smoke
              would run: shapes.streamlines(seeds, width) draws them
 
@@ -69,7 +68,6 @@ VERSION = 15
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 SLICE = 1.0      # cm between the sections
-BIN = 0.4        # degrees, the sections' angular bins
 FOLD = 35.0      # degrees between neighbouring triangles for a fold
 NOSE_Z, TAIL_Z = 215.0, -162.0
 WHEEL_COVERS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
@@ -80,7 +78,6 @@ BLADES = ("nose fin", "mirror mount", "wing pylon")
 # the low parts a smoke rake doesn't start on: the ledges and the underside's
 LOW_PARTS = ("side skirt", "diffuser", "diffuser strake", "wing pylon")
 LINES = ("fold", "opening", "join", "shoulder", "lower")
-FLOW_TURN = 25.0  # cm: how far ahead of a wall the air starts to turn along it (12 made sharp jogs)
 FRONT_CONE = 25.0  # degrees round forward from which a spot counts as open to the oncoming air
 
 
@@ -1121,7 +1118,7 @@ def _flow_field(V, F, walls, weight=1e4):
     held tangent to the walls (a heavy penalty on its component across each wall edge). The oncoming
     air laid flat is itself the gradient of -z, so phi = -z plus a harmonic correction that turns the
     air round the walls smoothly and early, as potential flow does, and never merges two lines."""
-    from scipy.sparse import coo_matrix, diags, vstack
+    from scipy.sparse import coo_matrix, diags
     from scipy.sparse.linalg import spsolve
     A, B, C = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
     n = np.cross(B - A, C - A)
@@ -1808,7 +1805,7 @@ def describe(m=None):
     for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[6])[:6]:
         L.append(f"- {name}: {hit / htot:.0%}")
     L += ["", "## Words for designs (tool/shapes.py)", "",
-          "- `shapes.area(\"top\" | \"sides\" | \"under\" | \"front\" | \"back\")`: the body's areas, split along "
+          "- `shapes.area(\"top\" | \"sides\" | \"under\")`: the body's areas, split along "
           "its own lines.",
           "- `shapes.outside(0.4)`: the outer body only (keeps paint out of the inlets, the wheel pockets, under panels).",
           "- `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).",

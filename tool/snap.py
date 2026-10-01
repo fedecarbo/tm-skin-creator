@@ -12,8 +12,8 @@
                                              wheels, both sides (STRETCHES), to check its lines close up
     python -m tool.snap <name> --review -> build/<name>_review.png: the angles the other sheets miss
                                              (REVIEW), for the studio's critic (tool/critic.py)
-    python -m tool.snap --page "mood.html?car=<car>" [--size 1600x1000]
-                                          -> build/mood_car_<car>.png: any page of the viewer's, whole
+    python -m tool.snap --page "lab.html?room=uv" [--size 1600x1000]
+                                          -> build/lab_room_uv.png: any page of the viewer's, whole
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
                                              [--close-row <name> 2 5 9 [--close-row <other> 2 5 9]]
         -> build/<name>_picture.png, a row per skin from its views sheet (and a row of close
@@ -134,8 +134,8 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
 
 
 def page(path, size=(1600, 1000)):
-    """Any page of the viewer's, e.g. "mood.html?car=<car>", photographed whole once it says it's
-    ready (window.mood or window.lab), into build/<page>.png."""
+    """Any page of the viewer's, e.g. "lab.html?room=uv", photographed whole once it says it's
+    ready (window.lab), into build/<page>.png."""
     server = view.start_server(0)
     out = paths.BUILD / (re.sub(r"[^\w-]+", "_", path.replace(".html", "")).strip("_") + ".png")
     try:
@@ -144,9 +144,8 @@ def page(path, size=(1600, 1000)):
             pg = browser.new_page(viewport={"width": size[0], "height": size[1]})
             pg.on("pageerror", lambda e: print(f"page error: {e}"))
             pg.goto(f"http://127.0.0.1:{server.server_address[1]}/{path}")
-            pg.wait_for_function('["mood", "lab"].some((k) => window[k] && (window[k].ready || window[k].error))',
-                                 timeout=120_000)
-            err = pg.evaluate("(window.mood || window.lab).error")
+            pg.wait_for_function("window.lab && (window.lab.ready || window.lab.error)", timeout=120_000)
+            err = pg.evaluate("window.lab.error")
             if err:
                 raise RuntimeError(err)
             out.parent.mkdir(parents=True, exist_ok=True)

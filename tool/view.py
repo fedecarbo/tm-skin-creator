@@ -36,7 +36,6 @@ Dirt masks aren't shown: the viewer shows a clean car.
 """
 
 import argparse
-import functools
 import hashlib
 import http.server
 import io
@@ -407,14 +406,12 @@ def export_skin(name, textures):
 # ---- The Lab's Studio: the car at the end of each step of a design (paintbox.Skin.step) ----
 
 
-def start_steps(name, follow=True):
-    """A design is about to be painted: clear its old frames, and point the Studio at it (unless
-    follow is False: the Mac repainting its stale skins at start, which the Lab shouldn't chase)."""
+def start_steps(name):
+    """A design is about to be painted: clear its old frames, and point the Lab's car at it."""
     import shutil
     ensure_stock()
     shutil.rmtree(DATA / "skins" / name / "steps", ignore_errors=True)
-    if follow:
-        _write_json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
+    _write_json(DATA / "studio.json", {"skin": name, "stamp": time.time()})
 
 
 def save_frame(name, k, slot, image, digest):

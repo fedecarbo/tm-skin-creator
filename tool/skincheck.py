@@ -166,7 +166,7 @@ def _across(skin, face, bary, direction, reach):
     n = np.linalg.norm(d)
     if n < 1e-9:
         return np.zeros((0, 3)), np.zeros(0), False
-    path = np.asarray(skin.solver("trace").trace_geodesic_from_face(int(face), np.asarray(bary, np.float64),
+    path = np.asarray(skin.tracer().trace_geodesic_from_face(int(face), np.asarray(bary, np.float64),
                                                                    d / n * reach), np.float64)
     if len(path) < 2:
         return path, np.zeros(len(path)), False
@@ -353,7 +353,7 @@ def holes(skin, drawing, img, pal):
     tan = _tangents(line)
     samples, station, facing = [line], [np.arange(len(line))], [nrm]
     if core > 0.03:
-        tracer = skin.solver("trace")
+        tracer = skin.tracer()
         e1 = tan - nrm * (tan * nrm).sum(1)[:, None]
         e1 /= np.maximum(np.linalg.norm(e1, axis=1, keepdims=True), 1e-12)
         e2 = np.cross(nrm, e1)
@@ -464,7 +464,7 @@ def ends(skin, drawing, img, pal, drawn):
     half = float(drawing["width"]) / 20.0
     mine = pal.of(drawing["colour"])
     gap = spike = None
-    tracer = skin.solver("trace")
+    tracer = skin.tracer()
     for end, prev in ((pts[-1], pts[-2]), (pts[0], pts[1])):
         meets = None
         for other in drawn:

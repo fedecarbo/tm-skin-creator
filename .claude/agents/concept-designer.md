@@ -26,10 +26,10 @@ Read, in this order:
 
 1. The brief (its path is in your message) and your reading: the world it draws from, its colour
    story with its shares, its base finish, where its big shapes go. The brief's "Not" is a hard limit; its "Fixed" must be there.
-2. The car map: `car/map.md`, and look at its four pictures in `car/map/` (the body's areas and
-   lines, a grid that bends with it, what's open, the air over it). Place your big shapes by its
-   words (`shapes.area`, `across`, `along`, `line`, `near`, `outside`, `hit`, `streamlines`), not by
-   centimetres you guess.
+2. The car map: `car/map.md`, and look at its pictures in `car/map/` (the body's areas and lines,
+   what's open, the air over it). Place your big shapes by its words (`shapes.area`, `along`,
+   `near`, `outside`, `hit`, `streamlines`), not by centimetres you guess. Lines, stripes and bands
+   are drawn on the car's own skin (`tool/skindraw.py`), never with the map's `line`.
 3. `.claude/skills/skin/SKILL.md`: "Designing" and "What works on this car" (the places to keep
    clear, what works and what doesn't).
 4. `.claude/skills/skin/guides/shapes.md`: the livery designer's know-how and what earlier cars
@@ -45,8 +45,9 @@ the web.
 
 Only in your option's folder, `skins/<your skin name>/`: write `design.py` there, a `design(s)`
 function that starts with `s.clay()` and opens each step with `s.step(name, does, words=...)`.
-It stands on its own: it loads no other design. Touch nothing else: no other skin, no tool code,
-no sets, no rounds, no notes. If the tool lacks something your idea needs, draw it in your
+It stands on its own: it loads no other design. A script or picture of your own goes in a folder
+named after your skin in the scratchpad, never one the other designers share. Touch nothing else:
+no other skin, no tool code, no sets, no notes. If the tool lacks something your idea needs, draw it in your
 design with the zones it has, or say so in your report; a shape for one design stays in it.
 
 ## Paint, look, fix

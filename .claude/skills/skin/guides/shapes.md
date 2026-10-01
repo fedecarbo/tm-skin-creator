@@ -25,7 +25,7 @@ with the car's name.
 ## On this car
 
 - Where things are: **the car map**, `car/map.md` and its pictures (`car/map/`): the body along its
-  length (where the top ends and the side turns under at each station), its openings, every panel
+  length (where the top ends and the side turns under, slice by slice), its openings, every panel
   (where it sits, how open, how big from the chase cameras), where the air hits. The places the map
   can't know are special (the number and name panels, the nose fin's plate) are in `SKILL.md`,
   "What works on this car". The car runs from z -162 (tail) to 215 (nose), the wheels at z 179 and
@@ -62,7 +62,7 @@ with the car's name.
   the shape at the crease. Spots placed without the top's map were cut in half at the shell's
   edge; one ran down into a sidepod inlet (the outer panels only now). A zone of "everything low"
   made a green slab under the nose, where the side skirt runs forward as a ledge facing up.
-- 2026-09-28, the concept designers' trial (TSC_ConceptTrial): all three found it on their own: the
+- 2026-09-28, the concept designers' trial (a test car, since deleted): all three found it on their own: the
   side skirt runs forward of each sidepod as a ledge facing up, so grass or a green wash there shows
   from above as a strip at the car's waist; keep it the dark ground colour, or start the grass behind
   it. Spots over the deck's outer edge dip into the hollow above the rear wheels and come out
@@ -70,7 +70,7 @@ with the car's name.
   side of the nose can read as brows from straight on (the face test).
 - 2026-09-26, the concept round (Kintsugi, Thrown, Unravelled): crimson drops on black read as
   blood; noise finer than a few cm makes faceted edges; stripes draped round a line along the car
-  fan into a sunburst near the line (TSC_FlagPeel_CostaRica).
+  fan into a sunburst near the line (TSC_FlagPeel_CostaRica, deleted 2026-09-27).
 - 2026-09-30, TSC_Solstice (the first livery drawn on the car's own skin): a sweep of three
   colours reads as crafted when they are parallels of one curve with a thin gap of the base colour
   between them (16 mm bands, 4 mm gaps, held over every fold); twin stripes edged in a second colour
@@ -81,7 +81,7 @@ with the car's name.
   duct are pieces of their own, across real gaps in the model: a line stops at them.
 - 2026-09-29, the car map (TSC_WindTunnel's smoke lines): lines that follow the car are the map's
   now, never measured in a design (its first smoke lines cut the body into sections by hand: 403
-  lines). A band that bends with the body: `across`; a line with the air: `streamlines` from a
+  lines). A band along the car: `along`; a line with the air: `streamlines` from a
   `front_rake`, which covers the car evenly, as a wind tunnel's rake does; seeded on the nose alone
   they spread far apart over the sidepods. Lines waved for a wake cross where the body narrows:
   keep the wave small (under 2 cm).

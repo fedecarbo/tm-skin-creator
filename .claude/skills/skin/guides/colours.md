@@ -31,7 +31,7 @@ under "Learned", dated, with the car's name.
   the game's compression, a grain in the roughness holds (`WT-07`). Patterns under about 8 mm don't
   read on the car. A fine grain costs zip room (the budget halves the roughness maps).
 - Can't: holographic or colour-shift paint. Never seen in the game yet: candy, chrome rims,
-  metallic flake, rust, leather; say so if one's picked, and ask the user to look at the road test.
+  metallic flake, rust, leather; say so if one's picked; the game settles it when the user drives it.
 
 ## Check before showing
 

@@ -4,6 +4,7 @@
     python -m tool.selftest --against <ref> TSC_Tiger   only the skins named
     python -m tool.selftest --against <ref> --all       every design (about an hour a side)
     python -m tool.selftest --against <ref> --snap      the viewer's sheets of SNAP too, pixel for pixel
+    python -m tool.selftest --against <ref> --at <ref2> <ref2>'s code instead of the working tree's
     python -m tool.selftest                             this code alone: paint, encode, time
 
 Run it before and after any change to the tool. Each skin is painted in a fresh process, from the
@@ -13,9 +14,9 @@ image the viewer and install take, and the whole DDS file the game reads; per sk
 lines drawn, the palette, the steps and the parts left in clay. A difference is shown texel by
 texel, by painting that skin again on both sides.
 
-<ref>'s results are kept by commit in the work folder (selftest/<commit>/), so the old side is
-paid for once per computer: about two minutes a skin with the old encoder. The working tree's are
-painted afresh every run. Both sides share the work folder's caches, so a change to what a cache
+A commit's results are kept in the work folder (selftest/<commit>/), so each side is paid for once
+per computer: about two minutes a skin with the old encoder. The working tree's are painted afresh
+every run. Both sides share the work folder's caches, so a change to what a cache
 holds must change the cache's name or version, or the old side reads the new cache and agrees.
 """
 
@@ -227,6 +228,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("skins", nargs="*", help="the skins to test (the representative set if none)")
     ap.add_argument("--against", metavar="REF", help="the commit to compare with")
+    ap.add_argument("--at", metavar="REF", help="test this commit's code instead of the working tree's")
     ap.add_argument("--all", action="store_true", help="every design")
     ap.add_argument("--snap", action="store_true", help="the viewer's sheets too, pixel for pixel")
     args = ap.parse_args()
@@ -234,11 +236,15 @@ def main():
     old_cwd = commit = None
     if args.against:
         commit, old_cwd = tree(args.against)
-    live = HOME / "live"
-    print(f"{len(names)} skins" + (f", against {args.against} ({commit[:12]})" if commit else ""), flush=True)
+    new_cwd, live, fresh = paths.REPO, HOME / "live", True
+    if args.at:
+        at, new_cwd = tree(args.at)
+        live, fresh = HOME / at[:12], False
+    print(f"{len(names)} skins" + (f" at {args.at}" if args.at else "")
+          + (f", against {args.against} ({commit[:12]})" if commit else ""), flush=True)
     differing = []
     for name in names:
-        new = paint(name, paths.REPO, live, keep=False)
+        new = paint(name, new_cwd, live, keep=not fresh)
         if "error" in new:
             print(f"{name:<40} new: FAILED {new['error']}", flush=True)
             differing.append(name)
@@ -258,12 +264,12 @@ def main():
             if textures or other:
                 differing.append(name)
             if textures:
-                detail(name, old_cwd, paths.REPO)
+                detail(name, old_cwd, new_cwd)
         else:
             print(line, flush=True)
     if args.snap and commit:
         print("snapshots:", flush=True)
-        if not snapshots(SNAP, old_cwd, paths.REPO, commit):
+        if not snapshots(SNAP, old_cwd, new_cwd, commit):
             differing.append("snapshots")
     if commit:
         print("\nall identical" if not differing else f"\ndifferent: {', '.join(differing)}")

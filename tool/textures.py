@@ -61,10 +61,6 @@ def _load_library():
 _load_library()
 
 
-def names():
-    return list(SETS)
-
-
 def _get(url):
     return urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=120).read()
 

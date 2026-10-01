@@ -25,7 +25,7 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
   (the picture maker's 16 GB of weights).
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in
-  the background. `tool/preview.py` renders flat views without materials, for texture layout.
+  the background.
 - `PY -m tool.install <name> ...` installs built zips.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and opens it.
@@ -64,11 +64,7 @@ picture) and `requirements.txt` (the picture maker's packages, the PC only).
   in `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
   note with `answer` (the set, the option), the box's words a note with no point: the car's tags
   leave both out. Notes: "The design studio" (W3) and "The Lab's timeline" in `CHECKLIST.md`.
-- Mood boards: `tool/mood.py` (its docstring is the key) paints each board's finishes on balls with
-  the Lab's own code (`swatches.paint_look`, `write_ball`) and writes `mood/<car>/boards.json` for
-  `viewer/mood.html`. The balls are drawn by `viewer/balls.js`, shared with the Lab's materials room
-  (`lab.js`), so both look the same. Claude's drawings show as pictures of their own (data URIs), so
-  their ids never clash. `PY -m tool.snap --page "<page>"` photographs any page whole.
+- `PY -m tool.snap --page "<page>"` photographs any page of the viewer's whole, e.g. a Lab room.
 - The studio's critic: an agent, `.claude/agents/critic.md`, given only a car's brief and pictures
   (never the design). `tool/critic.py` (its docstring is the key) cuts `tool.snap`'s four sheets
   into its pictures (`--review`: the angles the others miss) and keeps its findings in

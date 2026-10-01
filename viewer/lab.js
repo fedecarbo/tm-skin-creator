@@ -252,9 +252,7 @@ async function rooms() {
     materials.before(b);
   }
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
-  let want = params.get('room');
-  if (['body', 'details', 'tyres', 'glass', 'wheels', 'lights'].includes(want)) want = 'uv';  // the rooms before the UV map (2026-09-27)
-  if (want === 'build') want = 'studio';  // the wizard's room, gone with the steps (2026-09-28)
+  const want = params.get('room');
   openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
 }
 rooms().catch(failed);

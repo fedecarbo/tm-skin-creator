@@ -1,5 +1,4 @@
 """A heavy pattern: matte urban camo over the whole car, gunmetal wheels, black inner car."""
-from tool import shapes
 
 
 def design(s):

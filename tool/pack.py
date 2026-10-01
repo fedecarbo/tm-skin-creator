@@ -2,7 +2,6 @@
 
 import zipfile
 
-import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from tool import paint

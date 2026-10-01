@@ -75,13 +75,12 @@ def paint_slot():
         time.sleep(1)
 
 
-def paint(name, frames=False, follow=True):
-    """frames: also draw the car at the end of each step, for the Lab's Studio (show does).
-    follow=False: the Lab doesn't turn to this skin (the Mac repainting its stale skins at start)."""
+def paint(name, frames=False):
+    """frames: also draw the car at the end of each step, for the Lab (show does)."""
     t0 = time.time()
     s = paintbox.Skin(name)
     if frames:
-        view.start_steps(name, follow)
+        view.start_steps(name)
         s.frames = True
     load_design(name)(s)
     s.end_steps()
@@ -90,9 +89,9 @@ def paint(name, frames=False, follow=True):
     return s
 
 
-def show(name, open_browser=False, snapshot=True, follow=True):
+def show(name, open_browser=False, snapshot=True):
     with paint_slot():
-        s = paint(name, frames=True, follow=follow)
+        s = paint(name, frames=True)
         t0 = time.time()
         paintbox.export_to_viewer(s)
         paintbox.save_painted(s)

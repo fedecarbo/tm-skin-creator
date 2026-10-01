@@ -586,7 +586,7 @@ class Skin:
         self.piece_names = list(data["piece_names"])
         self._m = None
         self._fan = None
-        self._solvers = {}
+        self._tracer = None
 
     # ---- the car underneath ----
 
@@ -629,15 +629,13 @@ class Skin:
 
     # ---- the geometry libraries (potpourri3d / geometry-central) ----
 
-    def solver(self, kind):
-        """A potpourri3d solver on this mesh, built once: "trace", "flip", "heat" or "signed"."""
-        if kind not in self._solvers:
+    def tracer(self):
+        """potpourri3d's geodesic tracer on this mesh, built once: it walks straight on the surface
+        from a point in a direction."""
+        if self._tracer is None:
             import potpourri3d as pp3d
-            make = {"trace": pp3d.GeodesicTracer, "flip": pp3d.EdgeFlipGeodesicSolver,
-                    "heat": pp3d.MeshHeatMethodDistanceSolver, "signed": pp3d.MeshSignedHeatSolver,
-                    "vector": pp3d.MeshVectorHeatSolver}[kind]
-            self._solvers[kind] = make(self.V, self.F)
-        return self._solvers[kind]
+            self._tracer = pp3d.GeodesicTracer(self.V, self.F)
+        return self._tracer
 
     # ---- from a place on the car to a face here ----
 

@@ -130,11 +130,6 @@ class Curve:
         t = np.arange(0.0, s[-1], step)
         return np.stack([np.interp(t, s, self.pts[:, k]) for k in range(3)], 1)
 
-    def nodes(self):
-        """The curve as source nodes for the surface measure: (face, [b1, b2]) per point."""
-        f, b = self.skin.nearest(self.pts)
-        return [(int(ff), [float(bb[1]), float(bb[2])]) for ff, bb in zip(f, b)]
-
     def report(self):
         """What the curve is, in plain numbers. Read it before painting."""
         t = self.turn
@@ -350,7 +345,7 @@ def circle(centre, radius, name=""):
         e1 = np.cross(n, [1.0, 0.0, 0.0])
     e1 /= np.linalg.norm(e1)
     e2 = np.cross(n, e1)
-    tracer = skin.solver("trace")
+    tracer = skin.tracer()
     pts, short = [], 0
     for a in np.radians(np.arange(0.0, 360.0, 1.0)):
         d = np.cos(a) * e1 + np.sin(a) * e2
@@ -406,7 +401,7 @@ def parallel(curve, mm, name=""):
     tan = tan - n * (tan * n).sum(1)[:, None]
     tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-12)
     side = np.cross(n, tan) * np.sign(d)
-    tracer = skin.solver("trace")
+    tracer = skin.tracer()
     out = []
     for k in range(len(pts)):
         if f[k] < 0:
@@ -561,9 +556,6 @@ def place_point(skin, item):
 
 # ---- the paint ----
 
-_TEXELS = {}   # canvas -> (face, bary) for its texels, worked out once
-
-
 def _faces_of(pos, nrm):
     """The face on the skin under each point a zone is asked about.
 
@@ -571,26 +563,11 @@ def _faces_of(pos, nrm):
     corner are under a millimetre apart -- asking only for the nearest face gives whichever, and a
     band on one piece then counted as being on the other and was painted. Measured before this:
     34.6 cm2 of the flank sweep on the tail corner, a piece its curve never walked."""
+    if shapes.PAINTING not in (None, "Skin"):
+        return None
     skin = skinmesh.load()
-    if shapes._TEXELS is not None:
-        canvas, idx = shapes._TEXELS
-        if canvas.set != "Skin":
-            return None
     f, _ = skin.nearest(np.asarray(pos, np.float64), np.asarray(nrm, np.float64))
     return f
-
-
-def _texel_faces(canvas, idx):
-    """The face on the skin, and the weights there, of the texels the paint box is asking about."""
-    key = (id(canvas), canvas.set, canvas.w, canvas.h)
-    if key not in _TEXELS:
-        skin = skinmesh.load()
-        tri = canvas.bake["tri"].reshape(-1)[canvas.near]
-        pos = canvas.pos
-        f, b = skin.in_tri(tri, pos)
-        _TEXELS[key] = (f, b)
-    f, b = _TEXELS[key]
-    return f[idx], b[idx]
 
 
 def _ribbon(curve, half, soft, along=0.05, across=0.025):
@@ -621,7 +598,7 @@ def _ribbon(curve, half, soft, along=0.05, across=0.025):
     # that came out 0.8 mm wide was this).
     reach = max(half * 1.15, half + soft / 2.0 + 2 * across)
     out, off = [pts], [np.zeros(len(pts))]
-    tracer = skin.solver("trace")
+    tracer = skin.tracer()
 
     def walk(k, direction, sign):
         path = np.asarray(tracer.trace_geodesic_from_face(int(f[k]), b[k], direction * reach), np.float64)

@@ -486,7 +486,6 @@ async function begin(helpers) {
   } finally {
     $('prCover').classList.add('off');  // the car dressed: shown (lab.html, #stCover)
   }
-  addEventListener('lab:skin', (e) => readSkin(e.detail).then((next) => next && wear(next)).catch((err) => console.error(err)));
   const frame = $('prMap');
   frame.addEventListener('pointermove', (e) => point(hit(e), e));
   frame.addEventListener('pointerleave', () => point(null));
