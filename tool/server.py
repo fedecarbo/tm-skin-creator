@@ -66,10 +66,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     # options (tool/sets.py's lab(), from the repo's skins/ folder, which /data/ doesn't reach) and
     # everything said in the Lab about it and its options (`said`: tool/notes.py's timeline()).
     # The pictures a pick kept of each option: /sets/<car>/<n>/<letter>.png, from the repo's
-    # skins/<car>/sets/ (tool/sets.py); a note's picture: /notes/<skin>-<n>.jpg, from .notes/, for
-    # this computer's pages only. Nothing else.
+    # skins/<car>/sets/ (tool/sets.py); a note's picture, /notes/<skin>-<n>.jpg, and a question's
+    # choice's, /notes/<skin>-ask<k><key>.png or .jpg, from .notes/, for this computer's pages only.
+    # Nothing else.
     SET_PICTURE = re.compile(r"/sets/([A-Za-z0-9_\-]+)/(\d{1,4})/([A-Z])\.png")
-    NOTE_PICTURE = re.compile(r"/notes/([A-Za-z0-9_\-]+-\d{1,5}\.jpg)")
+    NOTE_PICTURE = re.compile(r"/notes/([A-Za-z0-9_\-]+-(?:\d{1,5}\.jpg|ask\d{1,4}[A-F]\.(?:jpg|png)))")
 
     def do_GET(self):
         url = urllib.parse.urlsplit(self.path)
@@ -83,7 +84,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 return self._json(404, {"error": "no such picture"})
             data = f.read_bytes()
             self.send_response(200)
-            self.send_header("Content-Type", "image/png" if m else "image/jpeg")
+            self.send_header("Content-Type", "image/png" if m or f.suffix == ".png" else "image/jpeg")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)

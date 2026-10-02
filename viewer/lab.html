@@ -306,6 +306,32 @@
   .past figure.on { box-shadow: 0 0 0 2px var(--acc); }
   .past figure.on img { opacity: 1; }
   .past figcaption { position: absolute; left: 4px; top: 3px; font-size: 13px; padding: 1px 5px 0; background: var(--text); color: var(--ground); }
+  /* a question of Claude's (choices with a swatch or a picture, or yes and no), and the box under a
+     widget for the user's own words */
+  .ask { display: flex; flex-direction: column; gap: 8px; }
+  .askQ { padding-left: 10px; box-shadow: inset 2px 0 var(--acc); font-size: 14.5px; color: rgba(242, 244, 247, 0.94); }
+  .choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+  .choice { position: relative; display: flex; flex-direction: column; background: #0f1114; text-align: left; }
+  .choice:hover { background: #15181c; }
+  .choice.on::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 2px var(--acc); pointer-events: none; }
+  .choice .sw { display: block; height: 46px; }
+  .choice .shot { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--ball); }
+  .choice .lb { display: block; padding: 7px 8px 5px; font-size: 17px; font-weight: 600; transform: skewX(-9deg); overflow-wrap: anywhere; }
+  .choice .key { display: inline-block; background: var(--text); color: var(--ground); padding: 2px 5px 0; margin-right: 6px; font-size: 14px; font-weight: 600; }
+  .choice > .key { position: absolute; left: 5px; top: 5px; transform: skewX(-9deg); }
+  .ask.shut .choice { cursor: default; }
+  .ask.shut .choice:hover { background: #0f1114; }
+  .ask.shut .choice:not(.on) { opacity: 0.4; }
+  .yesNo { display: flex; gap: 8px; }
+  .yesNo .sk { font-size: 19px; padding: 7px 20px 4px; }
+  .askWords { display: flex; gap: 6px; align-items: center; }
+  .askWords .words { flex: 1; min-width: 0; height: 32px; box-sizing: border-box; padding: 0 10px; background: rgba(255, 255, 255, 0.04);
+                     color: var(--text); border: 1px solid rgba(255, 255, 255, 0.12); outline: none;
+                     font: 13px "Segoe UI", system-ui, -apple-system, sans-serif; }
+  .askWords .words:focus { border-color: var(--acc); }
+  .askWords .words::placeholder { color: rgba(242, 244, 247, 0.42); }
+  .askWords .sk { font-size: 16px; padding: 5px 11px 2px; }
+  .askState { font-size: 12px; opacity: 0.6; }
   /* the box: words to Claude */
   .compose { flex: none; padding: 12px 16px 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
   .compose p { margin: 7px 0 0; font-size: 12px; opacity: 0.5; }

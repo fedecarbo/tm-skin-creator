@@ -57,11 +57,6 @@ the design as asked), then speed.
   between the two computers (TSC_Map_Areas, TSC_WindTunnel's rakes). Idea: make the tracing's
   decisions tolerant (a seed a clear maximum by a margin, ties broken by position), or build the
   map on one computer and commit its cache's hash so the other checks it matches.
-- **Choices in the Lab's chat, as widgets** (the user, 2026-10-02: "keep the interactivity in the
-  chat, whenever the user gets to pick something. Similar to A2UI"). Claude describes a widget from
-  a small fixed catalog (a set's painted options, with "None of these"; a choice of labels, swatches
-  or pictures; yes or no), the Lab draws it in the timeline with a words box, and the answer comes
-  back as a note (`tool.notes ask`). In progress on the Mac.
 - **The Lab's timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right as the
   ai helper ... a scrollable timeline ... the latest would be at the bottom"; they picked A of the
   mockups, a chat with two voices). Built 2026-09-28: waiting for the user's try.

@@ -3,7 +3,10 @@
 // https://claude.ai/artifact/6nKpAWW1VFPfbrAZTfVZWM). Like an AI
 // chat, newest at the bottom: the user's notes on the car and their words on the right, Claude's lines
 // on the left, each set of options Claude offers as Claude's (a click puts an option on the car, a Pick
-// on each), a pick and "In the game" as they happen. It opens at the bottom and follows what comes
+// on each, "None of these"), Claude's questions as widgets (choices with a swatch or a picture, or yes
+// and no: tool.notes ask; the user, 2026-10-02: "keep the interactivity in the chat, whenever the user
+// gets to pick something. Similar to A2UI"), each with a box for the user's own words, a pick and "In
+// the game" as they happen. It opens at the bottom and follows what comes
 // unless the user has scrolled up; the top fades while there's more above. The box under it sends the
 // user's words to Claude, about the option on the car when one is. Picks and words go through the notes
 // channel (/api/notes, tool/notes.py) and reach Claude at once while it waits (tool.notes wait), else
@@ -30,6 +33,8 @@ let onCar = null;         // the skin on the car ('lab:stand')
 let status = null;        // what Claude is doing ('lab:status')
 let gallery = new Map();  // gallery.json by name: titles, thumbs, in the game
 let stick = true;         // the timeline follows what comes: the user is at the bottom
+const drafts = new Map(); // a widget's words being typed, by widget, kept across the timeline's redraws
+const chosen = new Map(); // a question's choices ticked so far (several at once), by widget
 
 const when = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 const clock = (t) => new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -43,6 +48,8 @@ const optionOf = (skin) => { for (const s of car ? car.sets : []) for (const o o
 const optionName = (skin) => { const h = optionOf(skin); return h ? `${h.o.key} · ${h.o.title}` : null; };
 const thumbOf = (name) => { const e = gallery.get(name); return e && e.thumb ? `data/${e.thumb}?t=${Math.floor(e.stamp)}` : null; };
 const mine = () => car ? car.said.filter((x) => x.by !== 'claude') : [];
+const answerTo = (q) => mine().filter((a) => a.answer && a.answer.ask === q.ask.n && a.skin === q.skin).pop();
+const asking = () => car ? car.said.filter((x) => x.ask && !x.ask.settled && !answerTo(x)) : [];
 
 // ---- over the page: the car, in the game, Claude ----
 
@@ -55,10 +62,12 @@ function top() {
   const painting = status && status.painting;
   const open = waiting().some((s) => s.state === 'open');
   const busy = waiting().some((s) => s.state === 'painting');
-  $('statusLabel').classList.toggle('on', !!(painting || open || busy));
-  $('statusLabel').classList.toggle('quiet', !(painting || open || busy));
+  const asked = asking().length > 0;
+  $('statusLabel').classList.toggle('on', !!(painting || open || busy || asked));
+  $('statusLabel').classList.toggle('quiet', !(painting || open || busy || asked));
   $('statusLabel').querySelector('span').textContent = painting ? status.text
-    : busy ? 'Claude is painting your options' : open ? 'Waiting for your pick' : (status && status.text) || '';
+    : busy ? 'Claude is painting your options' : open ? 'Waiting for your pick' : asked ? 'Waiting for your answer'
+      : (status && status.text) || '';
 }
 
 function menu() {  // the cars, newest first, then the other rooms
@@ -139,12 +148,19 @@ function note(x) {  // a note on the car: its number, the part, what the user sa
   return b;
 }
 
-function words(x) {  // the user's words: in the box, or a pick
+function answered(a) {  // an answer in a few words: the pick, none of them, yes or no; '' for words only
+  if (a.set) return a.pick === 'none' ? 'None of these' : a.pick ? `Pick: ${a.pick} · ${a.title}` : '';
+  return a.yes != null ? (a.yes ? 'Yes' : 'No') : a.labels.join(', ');
+}
+
+function words(x) {  // the user's words: in the box, or an answer to a set or a question
   const b = el('div', 'me');
   b.append(who('You', x.made));
-  if (x.answer) b.append(el('p', 'picked teko', `Pick: ${x.answer.pick} · ${x.answer.title}`));
+  const short = x.answer ? answered(x.answer) : '';
+  if (short) b.append(el('p', 'picked teko', short));
   if (x.text) b.append(el('p', null, x.text));
-  const on = !x.answer && x.skin !== car.car ? optionName(x.skin) || 'an option' : null;
+  const on = x.answer ? (x.answer.set ? x.answer.name : `“${x.answer.question}”`)
+    : x.skin !== car.car ? optionName(x.skin) || 'an option' : null;
   if (on) b.append(el('div', 'on', `About ${on}`));
   const st = stateOf(x);
   if (st) b.append(st);
@@ -152,8 +168,91 @@ function words(x) {  // the user's words: in the box, or a pick
 }
 
 function claude(x) {
+  if (x.ask) return question(x);
   const b = el('div', 'ai');
   b.append(who('Claude', x.made), el('p', null, x.text));
+  return b;
+}
+
+// ---- the widgets: a box for the user's own words, and Claude's questions ----
+
+function wordsBox(id, hint, send) {  // its words outlive the timeline's redraws; Enter sends
+  const input = Object.assign(el('input', 'words'), { placeholder: hint, autocomplete: 'off', value: drafts.get(id) || '' });
+  input.dataset.draft = id;
+  input.addEventListener('input', () => drafts.set(id, input.value));
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); send(input.value.trim()); } });
+  input.addEventListener('click', (e) => e.stopPropagation());
+  return input;
+}
+
+async function reply(id, body) {  // an answer sent: the widget's words and ticks are spent
+  if (await send(body)) { drafts.delete(id); chosen.delete(id); }
+}
+
+function question(x) {  // a question of Claude's: choices or yes and no, and the user's own words
+  const q = x.ask, id = `ask:${x.skin}:${q.n}`;
+  const got = answerTo(x);
+  const shut = !!(got || q.settled);
+  const ticked = chosen.get(id) || new Set();
+  const send = (pick, yes) => {
+    const text = (drafts.get(id) || '').trim();
+    if (!text && !pick.length && yes == null) return;
+    reply(id, { skin: x.skin, text, answer: q.kind === 'yes' ? { ask: q.n, yes } : { ask: q.n, pick } });
+  };
+  const b = el('div', 'ai wide');
+  b.append(who('Claude', x.made));
+  const sec = el('section', `ask${shut ? ' shut' : ''}`);
+  sec.append(el('p', 'askQ', x.text));
+  if (q.kind === 'yes') {
+    const row = el('div', 'yesNo');
+    for (const [label, yes] of [['Yes', true], ['No', false]]) {
+      const on = got && got.answer.yes === yes;
+      const btn = el('button', `sk teko${on ? ' acc' : ''}`);
+      btn.append(el('span', null, label));
+      btn.setAttribute('aria-disabled', String(shut && !on));
+      if (!shut) btn.addEventListener('click', () => send([], yes));
+      row.append(btn);
+    }
+    sec.append(row);
+  } else {
+    const grid = el('div', 'choices');
+    const was = got ? new Set(got.answer.pick) : ticked;
+    for (const c of q.choices) {
+      const btn = el('button', `choice${was.has(c.key) ? ' on' : ''}`);
+      btn.setAttribute('aria-pressed', String(was.has(c.key)));
+      if (c.picture) btn.append(picture(c.picture, 'shot'));
+      else if (c.colour) btn.append(Object.assign(el('span', 'sw'), { style: `background:${c.colour}` }));
+      const lb = el('span', 'lb teko');
+      const key = el('b', 'key teko', c.key);  // on the swatch or picture's corner, else before the words
+      if (c.picture || c.colour) btn.append(key);
+      else lb.append(key);
+      lb.append(document.createTextNode(c.label));
+      btn.append(lb);
+      if (shut) btn.setAttribute('aria-disabled', 'true');
+      else btn.addEventListener('click', () => {
+        if (!q.several) return send([c.key]);
+        if (ticked.has(c.key)) ticked.delete(c.key);
+        else ticked.add(c.key);
+        chosen.set(id, ticked);
+        timeline();
+      });
+      grid.append(btn);
+    }
+    sec.append(grid);
+  }
+  if (q.settled) sec.append(el('div', 'askState', `Settled in the chat: ${q.settled}`));
+  else if (!got) {
+    const row = el('div', 'askWords');
+    row.append(wordsBox(id, q.several ? 'Anything to add? (optional)' : 'Or say it in your own words…', () => send([...ticked])));
+    if (q.several) {
+      const go = el('button', `sk teko${ticked.size ? ' acc' : ''}`);
+      go.append(el('span', null, 'Send'));
+      go.addEventListener('click', () => send([...ticked]));
+      row.append(go);
+    }
+    sec.append(row);
+  }
+  b.append(sec);
   return b;
 }
 
@@ -163,8 +262,10 @@ function event(text, t) {
   return b;
 }
 
+const pickOf = (s) => [...mine()].reverse().find((a) => a.answer && a.answer.set === s.n && a.answer.pick && a.state !== 'done');
+
 function option(s, o) {  // an option waiting: a click puts it on the car, a Pick sends it
-  const pending = [...mine()].reverse().find((a) => a.answer && a.answer.set === s.n && a.state !== 'done');
+  const pending = pickOf(s);
   const shown = o.skin === onCar;
   const b = el('div', `opt${shown ? ' on' : ''}`);
   b.setAttribute('role', 'button');
@@ -186,7 +287,7 @@ function option(s, o) {  // an option waiting: a click puts it on the car, a Pic
     p.setAttribute('aria-disabled', String(!!picked));
     p.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!picked) pick(s, o, pending);
+      if (!picked) pick(s, o.key, o.title, pending);
     });
     cap.append(p);
   }
@@ -214,6 +315,20 @@ function set(s) {  // a set of options, as Claude's
   }
   if (s.state === 'painting' || s.state === 'open') {
     for (const o of s.options) sec.append(option(s, o));
+    if (s.state === 'open') {  // none of them, or a mix or a change in their own words
+      const id = `set:${car.car}:${s.n}`, pending = pickOf(s);
+      const row = el('div', 'askWords');
+      row.append(wordsBox(id, 'Or in your own words…', (text) => {
+        if (text) reply(id, { skin: car.car, text, answer: { set: s.n, name: s.title, pick: '', title: '' } });
+      }));
+      const none = pending && pending.answer.pick === 'none';
+      const btn = el('button', `sk teko${none ? ' acc' : ''}`);
+      btn.append(el('span', null, none ? 'None of these: sent' : 'None of these'));
+      btn.setAttribute('aria-disabled', String(!!none));
+      if (!none) btn.addEventListener('click', () => pick(s, 'none', '', pending));
+      row.append(btn);
+      sec.append(row);
+    }
   } else {  // decided: the pictures the pick kept, the pick outlined
     const row = el('div', 'past');
     for (const o of s.options) {
@@ -253,6 +368,8 @@ function moments() {
 function timeline() {
   const box = $('stream');
   const keep = box.scrollTop;
+  const act = document.activeElement;  // a widget's words being typed keep their focus and caret
+  const typing = act && box.contains(act) && act.dataset.draft ? [act.dataset.draft, act.selectionStart, act.selectionEnd] : null;
   box.replaceChildren();
   if (!car) return;
   const all = moments();
@@ -278,6 +395,8 @@ function timeline() {
   painting();
   box.scrollTop = keep;
   follow();
+  const back = typing && box.querySelector(`[data-draft="${CSS.escape(typing[0])}"]`);
+  if (back) { back.focus({ preventScroll: true }); back.setSelectionRange(typing[1], typing[2]); }
 }
 
 function painting() {  // Claude at work, the last line of the timeline
@@ -302,9 +421,10 @@ function draw() {
 
 // ---- the user's picks and words ----
 
-async function pick(s, o, replacing) {
+async function pick(s, key, title, replacing) {  // an option, or 'none'; the words typed go with it
+  const id = `set:${car.car}:${s.n}`;
   if (replacing && replacing.state === 'new') await post({ skin: replacing.skin, remove: replacing.n });
-  await send({ skin: car.car, text: '', answer: { set: s.n, name: s.title, pick: o.key, title: o.title } });
+  await reply(id, { skin: car.car, text: (drafts.get(id) || '').trim(), answer: { set: s.n, name: s.title, pick: key, title } });
 }
 
 async function send(body) {

@@ -356,6 +356,13 @@ areas, what's open, the air and the chase cameras are still used.
 
 ## The viewer, the Lab and the page online
 
+- **Choices as widgets, A2UI's idea without its library** (2026-10-02): A2UI (Google's agent-to-UI
+  protocol, v0.9.1 stable, v1.0 a release candidate) has the agent describe widgets from a catalog
+  the client trusts, the client draw them, and the user's actions come back as events. The Lab
+  borrows that shape with three widgets (a set, a choice, yes or no), each with a words box, written
+  by `tool.notes ask` and answered as notes: no renderer to add for so few. Typed words and ticks
+  have to live outside the timeline, which redraws whole (driven in the hidden browser: they and
+  the focus survive a redraw).
 - **Draw only when something changed** (2026-09-28): `setAnimationLoop` draws at the screen's rate
   (239 Hz here): the Lab's two cars cost 70 % of a core standing still, 1 % after. Anything that
   moves by itself must call `rouse`. Same-origin iframes share the main thread: a hidden viewer

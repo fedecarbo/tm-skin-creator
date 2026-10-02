@@ -78,6 +78,12 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
   note with `answer` (the set, the option), the box's words a note with no point: the car's tags
   leave both out.
+- The widgets in the timeline (`tool/notes.py`'s docstring is the key): a set, Claude's question
+  (`tool.notes ask`, `settle`: a Claude line with `ask`, its choices' pictures copied into `.notes/`
+  and served as `/notes/<skin>-ask<k><key>.png`) and yes or no. An answer is a note with `answer`,
+  checked in `notes.add` against its question. The timeline redraws whole on every change, so
+  `lab-car.js` keeps a widget's typed words and ticks by widget (`drafts`, `chosen`) and gives the
+  focus back.
 - `PY -m tool.snap --page "<page>"` photographs any page of the viewer's whole, e.g. a Lab room.
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`

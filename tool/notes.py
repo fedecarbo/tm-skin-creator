@@ -19,12 +19,25 @@ it's handled: its pin leaves the car, and the note stays in the timeline, pictur
     python -m tool.notes done <skin> [N ...] [--say "..."]  mark notes done (all of the skin's, without
                                                             numbers), and say in the Lab what changed
     python -m tool.notes say <skin> "..."                   a line from Claude in the Lab's timeline
+    python -m tool.notes ask <skin> "<question>" --choice "<label>" [--colour "#rrggbb"]
+                             [--picture <png or jpg>] --choice ... [--several]
+    python -m tool.notes ask <skin> "<question>" --yes      a question as a widget in the timeline
+    python -m tool.notes settle <skin> <K> "<what was decided>"
+                                                            question K answered elsewhere (in the chat)
     python -m tool.notes wait [minutes]                     end as soon as a note comes, printing it
                                                             (default 120)
 
-The Lab's sets of options (tool/sets.py) send the user's picks the same way: a note on the car with
-`answer`, the set and the option picked, and no point. While Claude waits for an answer, it runs
-`wait` in the background, which wakes it the moment one comes, with no message in the chat needed.
+Whenever the user gets to pick something, it comes to the timeline as a widget (the user, 2026-10-02:
+"keep the interactivity in the chat, whenever the user gets to pick something. Similar to A2UI"):
+Claude describes it from a small fixed catalog, the Lab draws it, and the answer comes back as a note.
+The catalog: a set of options (tool/sets.py: painted cars, Pick or "None of these"); a choice (two to
+six labels, each with a colour swatch or a small picture if wanted; one, or several with --several);
+yes or no. Each has a box for the user's own words. A question is one of Claude's lines with `ask`
+({n, kind, choices [{key, label, colour, picture}], several, settled}); an answer is a note with
+`answer` and no point: {set, name, pick (a letter, "none" or "" for words only), title} or {ask,
+question, kind, pick [keys], labels, yes}, checked here against the question. While Claude waits for
+an answer, it runs `wait` in the background, which wakes it the moment one comes, with no message in
+the chat needed.
 
 The server (on threads), the hook and the command line all write the file. Each write takes a lock,
 a folder made with mkdir, which is atomic on Windows and macOS; then it replaces the file whole, retrying while Windows
@@ -113,9 +126,10 @@ def save(notes):
 
 
 def _skin(skin):
-    """A skin with a design, or a car with sets (a new car's concepts come before it has one)."""
+    """A skin with a design, or a car with sets or a record (a new car is asked and shown things before
+    it has a design)."""
     if not isinstance(skin, str) or not NAME.fullmatch(skin) or not any(
-            (REPO / "skins" / skin / f).is_file() for f in ("design.py", "sets.json")):
+            (REPO / "skins" / skin / f).is_file() for f in ("design.py", "sets.json", "notes.md")):
         raise ValueError(f"no skin called {skin!r}")
     return skin
 
@@ -141,6 +155,10 @@ def timeline(skins):
             x = dict(x)
             pic = picture_path(x)
             x["picture"] = f"notes/{pic.name}" if pic and pic.exists() else None
+            if x.get("ask"):  # a question's pictures, while they're on this computer
+                x["ask"] = dict(x["ask"], choices=[dict(c, picture=f"notes/{c['picture']}" if c.get("picture") and
+                                                        (HOME / c["picture"]).exists() else None)
+                                                   for c in x["ask"]["choices"]])
             out.append(x)
     return out
 
@@ -185,15 +203,53 @@ def _view(v):
         return None
 
 
-def _answer(v):
-    """A pick in the Lab's sets of options ({"set", "name", "pick", "title"}: the set's number and title,
-    the option picked and its title), checked; None when it isn't one."""
-    if not isinstance(v, dict) or not isinstance(v.get("set"), int) or isinstance(v.get("set"), bool) or not 0 < v["set"] < 10000:
+def _number(v):
+    return v if isinstance(v, int) and not isinstance(v, bool) and 0 < v < 10000 else None
+
+
+def _asked(notes, skin, k):
+    """Question k of Claude's to this skin."""
+    return next((x for x in notes if x["skin"] == skin and x.get("ask") and x["ask"]["n"] == k), None)
+
+
+def _answer(v, notes, skin):
+    """The user's answer from the Lab's timeline, checked; None when it isn't one. In a set of options
+    ({"set", "name", "pick", "title"}): the option picked (a letter), "none" of them, or "" when the
+    words say it. To a question of Claude's ({"ask", "pick" or "yes"}): checked against the question,
+    which lends the answer its words, so Claude reads it without looking the question up."""
+    if not isinstance(v, dict):
         return None
-    pick = v.get("pick")
-    if not isinstance(pick, str) or not re.fullmatch(r"[A-Z]", pick):
+    if _number(v.get("set")):
+        pick = v.get("pick")
+        if not isinstance(pick, str) or not re.fullmatch(r"[A-Z]|none|", pick):
+            return None
+        return {"set": v["set"], "name": str(v.get("name") or "")[:80], "pick": pick, "title": str(v.get("title") or "")[:80]}
+    k = _number(v.get("ask"))
+    if not k:
         return None
-    return {"set": v["set"], "name": str(v.get("name") or "")[:80], "pick": pick, "title": str(v.get("title") or "")[:80]}
+    q = _asked(notes, skin, k)
+    if not q:
+        raise ValueError(f"{skin} has no question {k}")
+    a = q["ask"]
+    out = {"ask": k, "question": q["text"][:200], "kind": a["kind"], "pick": [], "labels": [], "yes": None}
+    if a["kind"] == "yes":
+        if isinstance(v.get("yes"), bool):
+            out["yes"] = v["yes"]
+        return out
+    keys = {c["key"]: c["label"] for c in a["choices"]}
+    pick = v.get("pick") or []
+    if not isinstance(pick, list) or any(p not in keys for p in pick) or len(set(pick)) != len(pick):
+        raise ValueError("not one of the question's choices")
+    if len(pick) > 1 and not a.get("several"):
+        raise ValueError("the question takes one choice")
+    out["pick"] = sorted(pick)
+    out["labels"] = [keys[p] for p in out["pick"]]
+    return out
+
+
+def _answered(answer):
+    """Whether an answer says something without words: a pick, none of them, or a yes or a no."""
+    return bool(answer and (answer.get("pick") or answer.get("yes") is not None))
 
 
 def _drop_picture(note):
@@ -207,18 +263,18 @@ def add(skin, text, part=None, at=None, normal=None, picture=None, view=None, an
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
     the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
     on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); answer: the
-    user's pick in a set of options (a pick needs no words). No point and no answer: words in the
-    timeline's box. Returns the note."""
+    user's answer to a set of options or a question of Claude's (a pick needs no words). No point and
+    no answer: words in the timeline's box. Returns the note."""
     text = str(text or "").strip()[:LONGEST]
-    answer = _answer(answer)
-    if not text and not answer:
-        raise ValueError("an empty note")
     _skin(skin)
     vec = lambda v: [round(float(x), 4) for x in v][:3] if isinstance(v, list) and len(v) == 3 else None
     part = part if isinstance(part, dict) else {}
     jpeg = _picture(picture)
     with _locked():
         notes = load()
+        answer = _answer(answer, notes, skin)
+        if not text and not _answered(answer):
+            raise ValueError("an empty note")
         note = {
             "skin": skin,
             "n": next_n(skin, notes),
@@ -255,8 +311,8 @@ def remove(skin, n):
 
 def done(skin, numbers=(), said=""):
     """Mark notes done, their pictures kept for the timeline, and `said`, when there's one, as
-    Claude's line about them. The skin may be gone: a pick deletes the options it doesn't keep
-    (TSC_Ladybird's concepts, 2026-09-28), and their notes still need closing."""
+    Claude's line about them. The skin may be gone: a pick deletes the options it doesn't keep, and
+    their notes still need closing."""
     if not isinstance(skin, str) or not NAME.fullmatch(skin):
         raise ValueError(f"not a skin's name: {skin!r}")
     numbers = {int(k) for k in numbers}
@@ -288,11 +344,80 @@ def say(skin, text):
         save(notes)
 
 
+COLOUR = re.compile(r"#[0-9a-fA-F]{6}")
+PICTURES = {".png": b"\x89PNG", ".jpg": b"\xff\xd8", ".jpeg": b"\xff\xd8"}
+
+
+def ask(skin, question, choices=(), yes=False, several=False):
+    """A question of Claude's as a widget in the Lab's timeline: yes or no, or two to six choices, each
+    {"label", "colour" ("#rrggbb"), "picture" (a PNG or JPEG on this computer, copied beside the
+    notes)}. Returns its number."""
+    _skin(skin)
+    question = str(question or "").strip()[:LONGEST]
+    if not question:
+        raise ValueError("ask what?")
+    if yes == bool(choices):
+        raise ValueError("either --yes or two to six --choice")
+    if not yes and not 2 <= len(choices) <= 6:
+        raise ValueError("two to six choices")
+    made = []
+    for key, c in zip("ABCDEF", choices):
+        label = str(c.get("label") or "").strip()[:60]
+        if not label:
+            raise ValueError("a choice needs a label")
+        colour = c.get("colour")
+        if colour and not COLOUR.fullmatch(colour):
+            raise ValueError(f"not a colour: {colour!r} (#rrggbb)")
+        pic = Path(c["picture"]) if c.get("picture") else None
+        if pic:
+            data = pic.read_bytes()
+            if pic.suffix.lower() not in PICTURES or not data.startswith(PICTURES[pic.suffix.lower()]) or len(data) > BIGGEST:
+                raise ValueError(f"not a PNG or JPEG under {BIGGEST >> 20} MB: {pic}")
+        made.append({"key": key, "label": label, "colour": colour.lower() if colour else None, "picture": pic})
+    with _locked():
+        notes = load()
+        k = max((x["ask"]["n"] for x in notes if x["skin"] == skin and x.get("ask")), default=0) + 1
+        for c in made:
+            if c["picture"]:
+                name = f"{skin}-ask{k}{c['key']}{c['picture'].suffix.lower().replace('.jpeg', '.jpg')}"
+                (HOME / name).write_bytes(c["picture"].read_bytes())
+                c["picture"] = name
+        q = _line(skin, question)
+        q["ask"] = {"n": k, "kind": "yes" if yes else "choice", "choices": made, "several": bool(several), "settled": ""}
+        notes.append(q)
+        save(notes)
+    return k
+
+
+def settle(skin, k, decided):
+    """Question k answered elsewhere (in the chat): its widget closes, saying what was decided."""
+    decided = str(decided or "").strip()[:200]
+    if not decided:
+        raise ValueError("say what was decided")
+    with _locked():
+        notes = load()
+        q = _asked(notes, skin, int(k))
+        if not q:
+            raise ValueError(f"{skin} has no question {k}")
+        q["ask"]["settled"] = decided
+        save(notes)
+
+
+def answer_words(a):
+    """An answer as Claude reads it, without the user's own words."""
+    if "set" in a:
+        return (f"set {a['set']} ({a['name']}), " + (f"picked {a['pick']} ({a['title']})" if len(a["pick"]) == 1
+                else "none of these" if a["pick"] == "none" else "in their own words"))
+    said = ("yes" if a["yes"] else "no") if a["yes"] is not None else ", ".join(
+        f"{k} ({t})" for k, t in zip(a["pick"], a["labels"])) or "in their own words"
+    return f"question {a['ask']} (\"{a['question']}\"): {said}"
+
+
 def line(x):
     a = x.get("answer")
-    if a:  # a pick in a set of options, not a point on the car
+    if a:  # an answer to a set of options or a question, not a point on the car
         words = f": \"{x['text']}\"" if x["text"] else ""
-        return f"- {x['skin']}, note {x['n']}, in the Lab's timeline, set {a['set']} ({a['name']}), picked {a['pick']} ({a['title']}){words}"
+        return f"- {x['skin']}, note {x['n']}, in the Lab's timeline, {answer_words(a)}{words}"
     if not x.get("at"):  # words in the timeline's box
         return f"- {x['skin']}, note {x['n']}, in the Lab's box: \"{x['text']}\""
     where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
@@ -311,7 +436,8 @@ def deliver(since):
         if not new:
             return False
         print(f"Notes the user left in the Lab {since} (their words: on the car, each pinned to the part they "
-              "clicked, so look at its picture; in the box under the timeline; or a pick in a set of options. "
+              "clicked, so look at its picture; in the box under the timeline; or an answer to a set of options "
+              "or a question. "
               "Once one is handled, `python -m tool.notes done <skin> <n> --say \"<what changed, a line>\"`):")
         for x in new:
             print(line(x))
@@ -367,6 +493,29 @@ def main(args):
     if args[:1] == ["say"] and len(args) == 3:
         say(args[1], args[2])
         print("said in the Lab")
+        return
+    if args[:1] == ["ask"] and len(args) >= 4:
+        choices, yes, several, rest = [], False, False, args[3:]
+        while rest:
+            flag, rest = rest[0], rest[1:]
+            if flag in ("--yes", "--several"):
+                yes, several = yes or flag == "--yes", several or flag == "--several"
+                continue
+            if flag not in ("--choice", "--colour", "--picture") or not rest:
+                sys.exit(f"{flag}? " + __doc__)
+            value, rest = rest[0], rest[1:]
+            if flag == "--choice":
+                choices.append({"label": value})
+            elif not choices:
+                sys.exit(f"{flag} goes after the --choice it belongs to")
+            else:
+                choices[-1][flag[2:]] = value
+        k = ask(args[1], args[2], choices, yes, several)
+        print(f"asked in the Lab: question {k} (`settle {args[1]} {k} \"...\"` if it's answered in the chat)")
+        return
+    if args[:1] == ["settle"] and len(args) == 4:
+        settle(args[1], args[2], args[3])
+        print("settled in the Lab")
         return
     if args:
         sys.exit(__doc__)

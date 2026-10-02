@@ -27,6 +27,24 @@ sequence of steps (2026-10-02: "I also don't like the studio linear approach").
 - **Options, whenever they ask for a few ideas on anything, or there's a real choice:** a set
   ("Sets of options", below). They pick in the Lab's timeline or in the chat.
 
+## Asking the user
+
+Whenever the user gets to pick or confirm something about a car, it comes to the Lab's timeline as
+a widget (the user, 2026-10-02: "keep the interactivity in the chat, whenever the user gets to pick
+something. Similar to A2UI"), and the same question ends the reply in one bold line, so they answer
+wherever they are. Only for a real choice, never a sequence of steps.
+
+- Painted takes: a set ("Sets of options", below).
+- Anything else with two to six answers: `PY -m tool.notes ask <car> "<question>" --choice
+  "<label>" [--colour "#rrggbb"] [--picture <png or jpg>] --choice ... [--several]`. A swatch for a
+  colour, a picture (a crop of a close look, a ball) for a finish or a place.
+- Yes or no: `PY -m tool.notes ask <car> "<question>" --yes` ("Put it in the game?").
+
+Every widget has a box for their own words. Then start `PY -m tool.notes wait` with the Bash tool in
+the background and end the turn: the answer arrives as a note (`question 2 ("Gloss or satin?"): B
+(Satin)`), handled like any note (`tool.notes done <car> <n> --say "…"`). Answered in the chat
+instead: `PY -m tool.notes settle <car> <k> "<what was decided>"` closes the widget.
+
 ## Standing rules
 
 - Everyday model: **Opus 5.5** (the user's choice, 2026-09-25). If this session runs on another
