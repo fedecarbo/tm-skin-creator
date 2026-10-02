@@ -4,13 +4,40 @@ The queue of what the tool should do better: each item in two or three lines, wh
 idea for the fix. The user says when to work on it. A finished item is deleted; what it taught
 goes into the code.
 
+## The harness (the plan: `PLAN.md`)
+
+The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
+deleted here; `PLAN.md` keeps the why.
+
+- **1. Shortfalls measured, not seen**: after each `show`, where every step's paint runs and where
+  it stops short, per side, in cm, against the car's own geometry ("the band stops 9 cm short of
+  the rear flank's end"). First case: TSC_Snow's rear gap. With it, `tool.snap --before`: the last
+  close sheet kept per version, the tiles that changed marked.
+- **2. The topographic skeleton**: plane cuts through the body every x cm (sections along the
+  length, the map's 1 cm cuts; contours at fixed heights; profiles from the middle), saved once in
+  the repo so both computers hold the same car, painted on a skeleton car (TSC_Skeleton) for the
+  Lab and the game, and checked against the user's F12 screenshots in px.
+- **3. Fresh eyes on a finished car**: a second Claude with only the user's words, the pictures and
+  step 1's measures names what's cut, sunk, forgotten or off-brief, and in which picture; only
+  where the close looks already run, never on takes; about a minute.
+- **4. Rules that are checks**: a hook refuses a shell command naming the game's skin folder (the
+  install command excepted); a hook won't end a session with unpushed work; `skin install`
+  publishes the page online itself.
+- **5. Instructions that can't rot**: the self-test checks that every command and path the
+  guidance names exists.
+- **6. Where we are at a cold start**: `tool.notes open` lists every skin's open items; the
+  SessionStart hook prints it after the pull.
+- **7. The tool measured against the record**: every change the user ever asked for, with the
+  picture shown before it, as a test set; the eyes and the measures scored on it, on demand.
+
 ## Under way
 
 - **Drawing on the skin** (`tool/skindraw.py`): paused by the user ("lets stop. None of the cars
-  make me think it's working"). Before building more, ask what they'd need to see.
-- **The car map** (`tool/carmap.py`, `car/map.md`): waiting for the user's look at
-  `car/map/lines.jpg` and `areas.jpg`. The Mac and the PC trace slightly different ridges (numpy
-  and BLAS differences); idea: tolerant seeds, or build on one computer and check the other's hash.
+  make me think it's working") until the skeleton (step 2) is proven: lines follow the car's
+  edges, so the foundation comes first.
+- **The car map** (`tool/carmap.py`, `car/map.md`): its readings (the shoulder, the lower edge,
+  the ridges, the areas) differ slightly between the Mac and the PC (numpy and BLAS). Step 2 puts
+  committed cuts under them; the readings are then checked against the cuts.
 
 ## The tool
 
@@ -38,7 +65,8 @@ goes into the code.
   quantised; look up the latest release first.
 - **Two tyre fonts don't paint on the Mac** (Bahnschrift, Consolas). Idea: open look-alikes.
 - **Real scanned materials** (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
-- **The materials and the UV map, in a new way**: the user's to describe; start from their words.
+- **The materials and the UV map, in a new way**: the user's to describe, after step 2 (the user,
+  2026-10-02); start from their words.
 - **The car map against well-made skins** (the user's idea): a folder of official CarSport skins (the
   user checks which they may download), kept out of the repo and away from the game's skin folder. Lay
   their body textures' sharp colour edges on the car and compare them with the map's lines; fix the
