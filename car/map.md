@@ -1,12 +1,12 @@
 # The car map
 
-Written by `python -m tool.carmap --describe` from the car's own mesh (2026-09-30); `tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), when a design places shapes by the body's areas or needs exact positions. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
+Written by `python -m tool.carmap --describe` from the car's own mesh (2026-10-02); `tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), when a design places shapes by the body's areas or needs exact positions. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
 
 ## The pictures
 
 The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):
 
-- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch, absent where the body has no line: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
+- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch; the shoulder absent where the body has no line, the lower edge along where the skin turns to face the ground where it has no crease: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
 - `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.
 - `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.
 - `car/map/open.jpg`: how much of the open air each spot sees, white (all) to violet (hidden).
@@ -20,22 +20,22 @@ Where the top ends (the shoulder) and where the side turns under (the lower edge
 
 | z | what's there | shoulder x, y | lower edge x, y |
 |---|---|---|---|
-| 212 | the nose's tip | 12, 18 | 9, 16 |
+| 212 | the nose's tip | 12, 18 | 12, 17 |
 | 190 | the nose, over the front wing | 18, 42 | 18, 42 |
 | 178 | the front wheels' axle | 14, 51 | 20, 44 |
 | 150 | the nose | 16, 57 | 24, 46 |
 | 130 | the nose fin's plate | 18, 61 | 27, 47 |
 | 110 | the bonnet | 19, 64 | 30, 49 |
 | 85 | the cockpit opening's front | 21, 69 | 34, 51 |
-| 60 | the front flank | 23, 73 | 44, 19 |
-| 30 | the front flank, the sidepods begin | 36, 67 | 63, 26 |
-| 0 | the sidepods, their inlets | 70, 60 | 83, 28 |
-| -30 | the sidepods | 84, 58 | 84, 29 |
-| -60 | the sidepods' back, the number panel | 80, 58 | 60, 17 |
-| -90 | the deck, the engine cover panel | 59, 61 | 43, 15 |
-| -120 | the rear wheels' axle | 50, 62 | 49, 24 |
-| -140 | the tail | 48, 62 | 43, 24 |
-| -158 | the tail's end | 35, 64 | 31, 62 |
+| 60 | the front flank | 22, 73 | 44, 19 |
+| 30 | the front flank, the sidepods begin | 38, 65 | 69, 21 |
+| 0 | the sidepods, their inlets | 70, 60 | 81, 22 |
+| -30 | the sidepods | 84, 58 | 82, 22 |
+| -60 | the sidepods' back, the number panel | 80, 58 | 70, 21 |
+| -90 | the deck, the engine cover panel | 59, 61 | 51, 19 |
+| -120 | the rear wheels' axle | 50, 62 | 50, 22 |
+| -140 | the tail | 48, 62 | 50, 30 |
+| -158 | the tail's end | 35, 64 | 35, 63 |
 
 The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the lower edge's. At z 70 to 208 the lower edge is the nose's and the front flank's lip, with the nose's belly rolled under it: the skin ends there and the inner car carries on below (the skirt further down is another piece); paint on "body" stops at the lip.
 
@@ -61,7 +61,7 @@ The body is 9 separate pieces of 5 cm² or more (triangles joined across shared 
 
 ## The front and the back
 
-The body's skin has no front or back face: only 411 cm² of it faces within 45 degrees of straight ahead and 960 cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the tail's number panel are inner parts). The map gives no such areas; what faces the oncoming air is `shapes.hit`.
+The body's skin has no front or back face: only 411 cm² of it faces within 45 degrees of straight ahead and 872 cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the tail's number panel are inner parts). The map gives no such areas; what faces the oncoming air is `shapes.hit`.
 
 ## Openings
 
@@ -97,21 +97,21 @@ Each body part (a pair's two sides, or the four wheels', together): its area, wh
 
 | part | cm² | top / sides / under | open | seen from behind, cm² | air, cm² | z |
 |---|---|---|---|---|---|---|
-| body shell | 17642 | 47% / 43% / 10% | 88% | 3051 | 398 | -83 to 145 |
-| rear flank | 10924 | 11% / 80% / 9% | 60% | 1974 | 1 | -152 to -25 |
+| body shell | 17642 | 48% / 41% / 10% | 88% | 3051 | 398 | -83 to 145 |
+| rear flank | 10924 | 11% / 72% / 17% | 60% | 1974 | 1 | -152 to -25 |
 | wheel cover ring | 9566 | 0% / 51% / 49% | 76% | 409 | 463 | -150 to 208 |
-| side skirt | 9159 | 0% / 15% / 85% | 43% | 2 | 347 | -25 to 215 |
-| sidepod top | 5055 | 55% / 45% / 0% | 96% | 1208 | 21 | -50 to 12 |
+| side skirt | 9159 | 0% / 23% / 77% | 43% | 2 | 347 | -25 to 215 |
+| sidepod top | 5055 | 56% / 44% / 0% | 96% | 1208 | 21 | -50 to 12 |
 | engine cover | 4411 | 100% / 0% / 0% | 95% | 2343 | 1 | -133 to -51 |
 | wheel cover hub | 4087 | 0% / 50% / 50% | 37% | 0 | 96 | -130 to 188 |
-| sidepod inlet | 3774 | 44% / 56% / 0% | 20% | 0 | 59 | -51 to 19 |
-| wheel cover disc | 3575 | 0% / 53% / 47% | 64% | 80 | 35 | -139 to 197 |
-| nose tip | 3370 | 36% / 34% / 30% | 70% | 192 | 171 | 142 to 211 |
+| sidepod inlet | 3774 | 50% / 50% / 0% | 20% | 0 | 59 | -51 to 19 |
+| wheel cover disc | 3575 | 0% / 57% / 43% | 64% | 80 | 35 | -139 to 197 |
+| nose tip | 3370 | 36% / 34% / 29% | 70% | 192 | 171 | 142 to 211 |
 | cockpit surround | 2818 | 100% / 0% / 0% | 98% | 811 | 24 | -53 to 91 |
-| diffuser | 2117 | 0% / 3% / 97% | 93% | 72 | 0 | -145 to -109 |
-| diffuser strake | 2028 | 0% / 4% / 96% | 78% | 53 | 0 | -144 to -107 |
-| tail panel | 1822 | 96% / 4% / 0% | 99% | 849 | 0 | -162 to -131 |
-| tail corner | 1762 | 59% / 41% / 0% | 88% | 649 | 0 | -159 to -123 |
+| diffuser | 2117 | 0% / 1% / 99% | 93% | 72 | 0 | -145 to -109 |
+| diffuser strake | 2028 | 0% / 0% / 100% | 78% | 53 | 0 | -144 to -107 |
+| tail panel | 1822 | 95% / 5% / 1% | 99% | 849 | 0 | -162 to -131 |
+| tail corner | 1762 | 59% / 40% / 1% | 88% | 649 | 0 | -159 to -123 |
 | engine cover panel | 1621 | 100% / 0% / 0% | 100% | 1052 | 0 | -120 to -81 |
 | wing pylon | 1579 | 10% / 7% / 83% | 36% | 0 | 91 | 164 to 208 |
 | rear quarter panel | 1347 | 100% / 0% / 0% | 94% | 491 | 0 | -85 to -42 |

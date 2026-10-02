@@ -405,7 +405,7 @@ def area(name, soft=SOFT):
     def dist(p, n):
         m = _map()
         a1, a2 = m.across_level(p, 1), m.across_level(p, 2)
-        return {"top": -a1, "sides": np.minimum(a1, -a2), "under": a2}[name]
+        return {"top": np.minimum(-a1, -a2), "sides": np.minimum(a1, -a2), "under": a2}[name]
     return field(dist, soft)
 
 

@@ -21,8 +21,8 @@ and the worst value per stretch of the body (STRETCHES) is printed with pass or 
     texture   slices where the line's path in the flat texture jumps further than the texture's
               own scale explains, within one island of the texture
     edge      cm from a mark on the skin's own edge (kind 4) to the mesh's boundary: such a line is
-              the boundary itself and follows its notches (the sidepods' bottom edge steps 4 cm near
-              z 2), so it is measured as a curve on the boundary, not by steps from slice to slice
+              the boundary itself and follows its notches (the diffuser's edge under the tail corner),
+              so it is measured as a curve on the boundary, not by steps from slice to slice
 
 A slice whose crest is weak or wanders (contrast under CONTRAST, shift over SHIFT) has no clear
 edge: the map draws no line there (carmap stores it as sec_draw), and the table says "no line" for
@@ -96,7 +96,7 @@ def measure(m, sec=None, mirror=None):
     out = {k: np.full((n, 2), np.nan) for k in ("x", "y", "ridge", "contrast", "shift", "step", "bend", "sides")}
     out["kind"] = sec["kind"].astype(int)
     out["edge"] = np.full((n, 2), np.nan)  # a mark on the skin's own edge (kind 4): cm from the mesh's boundary
-    edge_tree = cKDTree(m.lines["opening"])
+    edge_tree = cKDTree(m.lines["edge"])
     out["jump"] = np.zeros((n, 2), bool)
     out["texture"] = np.zeros((n, 2), bool)
     # the bend along every outline point, at the map's scale and the check's
@@ -122,7 +122,7 @@ def measure(m, sec=None, mirror=None):
         out["x"][:, j], out["y"][:, j] = x, y
         for k in range(n):
             a, b = st[k], st[k + 1]
-            if b <= a:
+            if b <= a or not np.isfinite(x[k]):  # no outline, or no reading on this slice
                 out["jump"][k, j] = True
                 continue
             qq, gg, kk = q[a:b], g[a:b], k1[a:b]
@@ -146,8 +146,11 @@ def measure(m, sec=None, mirror=None):
                         shifts.append(abs(np.interp(pr, np.arange(len(gg)), gg) - np.interp(pk, np.arange(len(gg)), gg)))
                 out["shift"][k, j] = max(shifts) if shifts else np.nan
         # along the car: steps, bends (beyond the ridge's own), sides, texture
-        pts = np.c_[x, y, Z]
-        on4 = out["kind"][:, j] == 4
+        fin = np.isfinite(x)
+        idx = np.arange(n)
+        src = idx[fin][np.abs(idx[fin][None, :] - idx[:, None]).argmin(1)] if fin.any() else idx
+        pts = np.c_[x, y, Z][src]  # a slice without a reading looks up its nearest neighbour's (its own measures are skipped)
+        on4 = (out["kind"][:, j] == 4) & fin
         out["edge"][on4, j] = edge_tree.query(pts[on4], workers=-1)[0]
         step = np.hypot(np.diff(x), np.diff(y))
         out["step"][1:, j] = step
@@ -192,17 +195,18 @@ def measure(m, sec=None, mirror=None):
 
 def draw_mask(meas):
     """Per slice and line: whether the map draws the line there: it sits on a ridge (kind 0 or 3)
-    that stands out and stays put (or runs across the slices, where that can't be measured)."""
-    on = np.isin(meas["kind"], (0, 3, 5))
+    that stands out and stays put (or runs across the slices, where that can't be measured), on
+    a roll's crest (kind 5) that stands out and stays put, or on the skin's own edge (kind 4)."""
     clear = (meas["contrast"] >= LIMITS["contrast"]) & (meas["shift"] <= LIMITS["shift"])
-    return (on & (clear | meas["across"] | meas["crossed"] | meas["ends"])) | (meas["kind"] == 4)
+    ridge = np.isin(meas["kind"], (0, 3)) & (clear | meas["across"] | meas["crossed"] | meas["ends"])
+    return ridge | ((meas["kind"] == 5) & clear) | (meas["kind"] == 4)
 
 
 def mirrored_sections(m):
     """The right side's sections, mirrored onto the left."""
     flip = np.array([-1.0, 1.0, 1.0])
     return carmap._sections(m.V * flip, m.F, m.part, m.part_names, m.layers["open"], carmap._resample(m.ridges) * flip,
-                            m.lines["opening"] * flip, lambda p: m.value("k1", p * flip))
+                            m.lines["edge"] * flip, lambda p: m.value("k1", p * flip))
 
 
 CURVE_LIMITS = dict(fit95=6.0, fitmax=10.0, dropped=33.0, bends=4.0, ragged=2.0, texture=4.0)  # mm, mm, %, per metre, mm, mm

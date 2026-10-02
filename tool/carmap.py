@@ -47,7 +47,9 @@ Lines (points along the welded body's edges, and the across layer's own edges):
               least squares to its evidence, the ridges' own crossings and the mesh's own edges on each
               slice (_marks, _curves), broken only at a corner or an end, absent where the body has no
               line (sec_draw)
-    lower     where the side turns under (across = 2): the same
+    lower     where the side turns under (across = 2): the same, and where the body has no crease
+              there (the rear flanks roll under) the line runs where each slice's skin turns to face
+              the ground, one curve from the front flank's skirt to the tail
 
     python -m tool.carmap            build it and print a summary
     python -m tool.carmap --check    measure its lines, stretch by stretch (tool/mapcheck.py)
@@ -62,7 +64,7 @@ from scipy.spatial import cKDTree
 from tool import fbx, parts, paths
 
 CACHE = paths.CACHE / "carmap.npz"
-VERSION = 15
+VERSION = 16
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 SLICE = 1.0      # cm between the sections
@@ -71,8 +73,9 @@ NOSE_Z, TAIL_Z = 215.0, -162.0
 WHEEL_COVERS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 # thin blades and struts standing off the body: not part of its outline (the nose fin, upright on its
 # plate, made the top end at the car's middle over z 118 to 142; the wing's pylons under the nose were
-# taken for the nose's tip, and a smoke rake started on them)
-BLADES = ("nose fin", "mirror mount", "wing pylon")
+# taken for the nose's tip, and a smoke rake started on them; the diffuser's strakes under the tail
+# face sideways, and read as the side going on below the arch's rim)
+BLADES = ("nose fin", "mirror mount", "wing pylon", "diffuser strake")
 # the low parts a smoke rake doesn't start on: the ledges and the underside's
 LOW_PARTS = ("side skirt", "diffuser", "diffuser strake", "wing pylon")
 LINES = ("fold", "opening", "join", "shoulder", "lower")
@@ -266,9 +269,9 @@ def _outline(V, F, open_, faces, z0):
             continue
         breaks = np.flatnonzero(np.diff(idx) > 1)
         for run in np.split(idx, breaks + 1):
-            if len(run) < 2:
-                continue
             q = p[run]
+            if len(run) < 2 or np.linalg.norm(np.diff(q, axis=0), axis=1).sum() < 2.0:
+                continue  # a stub under 2 cm: the slice cutting a seam's lip or a slot's wall, not a stretch of skin
             parts.append((q, c))
     if not parts:
         return None
@@ -334,10 +337,9 @@ def _angle(q, gap, sigma=4):
     return ang
 
 
-SIDE = 50.0    # degrees from facing up: the surface is a side from here
-FLOOR = 30.0   # cm up from the ground: the body's lowest edges (the skirt, 16 to 22) are below this
+SIDE = 50.0    # degrees from facing up: the surface is a side from here, and faces the ground from 180 - SIDE
+FLOOR = 25.0   # cm up from the ground: the body's lowest edges (the sill's roll, 21 to 22, the splitter under the nose, 16) are below this; the arch's front rim, 29, is not
 TURN = 20.0    # degrees: the least a crease turns the surface to end the top
-UNDER = 110.0  # degrees from facing up: the surface faces under from here
 
 
 def _marks(q, g, gap, ang, cross, slant, at_edge, k1):
@@ -362,16 +364,21 @@ def _marks(q, g, gap, ang, cross, slant, at_edge, k1):
     surface just curls), or, if earlier, where the top's surface ends and the outline carries on
     lower down (the sidepod's front, the inner car). The lower edge: where the side turns under:
     on the skin contiguous with the shoulder (its stretches chained through gaps over hidden skin,
-    or over nothing under 6 cm: a slot), the deepest ridge whose crest faces out and down (60 to
-    150 degrees: not the belly's inner lip, facing in) beyond which the surface faces under (past
-    UNDER degrees on average 1 to 10 cm on), or which sits within 2 cm of the chain's end (the
-    skirt's rounded edge, its underside hidden): the front flank's lip, with the nose's belly
-    under it (the skirt below is another piece of skin, across nothing); the skirt's edge along
-    the flanks and the sidepods; the tail corner's lower crease; at the nose's tip the shoulder
-    itself, the lip. If none, the chain's end. Returns (shoulder index, lower index, kinds): a
-    kind per mark, 0 a ridge, 1 the skin's end, 2 a turn with no ridge, 3 a ridge under which the
-    skin ends and the outline carries on lower down (the lip: the inner car shows below, the skirt
-    further down)."""
+    or over nothing under 4 cm: a slot), the turn where its skin comes to face the ground (turn:
+    within SIDE degrees of straight down, and from there on; the sill under the sidepod's slot,
+    facing out at 95 to 118 degrees, is still the side, and the body turns under at its roll), or
+    the chain's end where it goes hidden facing down. There, the skin's own end at the floor on
+    the mesh's boundary (kind 4: the splitter under the nose's tip), or the crest it turns under
+    at (crest: a ridge crossing, kind 0, or the bend's own crest, kind 5: the lip, with the nose's
+    belly under it and the skirt another piece of skin further down; the skirt's crest along the
+    front flank; the sill's roll along the sidepods; the diffuser's edge at the tail corner), or
+    the turn itself, with no crease (kind 2: the rear flanks). A chain ending above the floor
+    still facing out, or at an opening's edge, holds no lower edge (the top's skin at the inlet's
+    rim; the flank at the arch's front): the next chain down is read. If no chain qualifies, the
+    first chain's end (kind 1). Returns (shoulder index, lower index, kinds, turn index): a kind
+    per mark, 0 a ridge, 1 the skin's end, 2 a turn with no ridge, 3 a ridge under which the skin
+    ends and the outline carries on lower down (the lip: the inner car shows below, the skirt
+    further down), 4 the skin's own edge, 5 a roll's crest."""
     n = len(q)
     if n < 8:
         return n - 1, n - 1, (1, 1)
@@ -384,20 +391,19 @@ def _marks(q, g, gap, ang, cross, slant, at_edge, k1):
 
     def chain_end(i):
         """The end of the skin contiguous with point i: on through gaps over hidden skin, or over
-        nothing under 6 cm."""
+        nothing under 4 cm (a slot: the sidepod's bottom edge over the sill; not the wheel
+        pocket's wall 5 cm in from the nose's lip)."""
         e = stretch_end(i)
-        while e < n - 1 and (gap[e] == 1 or np.linalg.norm(q[e + 1] - q[e]) < 6.0):
+        while e < n - 1 and (gap[e] == 1 or np.linalg.norm(q[e + 1] - q[e]) < 4.0):
             e = stretch_end(e + 1)
         return e
 
-    def mean_between(i, c0, c1, end=None, mag=False):
-        """The mean facing from c0 to c1 cm after point i, within its stretch (or up to end); mag:
-        the median of |facing| instead, for surfaces facing down, where the sign flips round 180
-        (a median: a small return fold, 3 cm doubling back under the tail's corner, doesn't count)."""
-        j0, j1 = i + int(c0 / 0.25), min(i + int(c1 / 0.25), stretch_end(i) if end is None else end)
+    def mean_between(i, c0, c1):
+        """The mean facing from c0 to c1 cm after point i, within its stretch."""
+        j0, j1 = i + int(c0 / 0.25), min(i + int(c1 / 0.25), stretch_end(i))
         if j1 <= j0 + 3:
             return np.nan
-        return np.median(np.abs(ang[j0:j1 + 1])) if mag else ang[j0:j1 + 1].mean()
+        return ang[j0:j1 + 1].mean()
 
     run = 12  # 3 cm of points
     steep = np.array([abs(ang[i:i + run]).min() > SIDE and gap[i:i + run - 1].sum() == 0 for i in range(n - run)])
@@ -431,59 +437,65 @@ def _marks(q, g, gap, ang, cross, slant, at_edge, k1):
         e = chain_end(start)
         chains.append((start, e))
         start = e + 1
-    def under(c, end):
-        if not 45.0 <= np.median(ang[c:c + 5]) <= 150.0:  # over a cm: at a stretch's first point the facing is one-sided
-            return False
-        e = stretch_end(c)
-        if e - c <= 8 and q[e, 1] < FLOOR:
-            return True
-        soon, on = mean_between(c, 1.0, 4.0, end, mag=True), mean_between(c, 1.0, 10.0, end, mag=True)
-        at2 = abs(ang[c + 8]) if c + 8 <= end and not gap[c:c + 8].any() else np.nan
-        rest = np.abs(ang[min(c + 8, e):e + 1])  # the rest of the crest's own stretch of skin
-        return np.nanmax([soon, on, at2]) > UNDER and (len(rest) < 4 or (rest < 100.0).mean() < 0.4)
+    def turn(c0, c1):
+        """Where the chain's skin from c0 to c1 turns to face the ground: the point before it first
+        passes within SIDE degrees of straight down (tilted out or in) and stays within 10 degrees
+        of that for 2 cm, after which the skin never faces up again for 2 cm (under the front
+        flank the belly folds back into the skirt's shelf: the body turns under at the skirt's
+        crest below; skin facing sideways after the ground, the wheel pocket's wall, is a cavity's,
+        not the side going on); the chain's end if it never does (the sill, hidden below)."""
+        a = np.abs(ang[c0:c1 + 1])
+        down = a >= 180.0 - SIDE
+        for t in np.flatnonzero(down[1:] & ~down[:-1]) + 1:
+            if (a[t:t + 8] >= 170.0 - SIDE).all() and (a[t:] < 60.0).sum() <= 8:
+                return c0 + int(t) - 1
+        return c1
 
-    def lowest(c0, c1):
-        """The skin's lowest edge on this piece of skin: the first of its points from c0 that sits
-        at the floor (under FLOOR, not at the car's middle) on the mesh's own boundary (within 2
-        cm): the sidepod's bottom edge, along which its skin and the skirt's touch and the outline
-        runs on; exact once moved onto the boundary (_sections)."""
-        for i in range(c0, c1 + 1):
-            if q[i, 1] < FLOOR and q[i, 0] > 1.0 and at_edge(i):
-                return i
-        return None
-
-    def roll(c0, c1):
-        """Where a piece of skin rolls under out of sight with no edge (the front flank down to the
-        skirt, the rear flanks): the crest of its bend within 6 cm of the visible end, if it bends
-        at least RIDGE_END there and the crest sits inside the window, refined by a parabola."""
-        if k1 is None or c1 - c0 < 24 or not q[c1, 1] < FLOOR:
-            return None
-        w = k1[c1 - 24:c1 + 1]
-        j = int(w.argmax())
-        if w[j] < RIDGE_END or j == 0 or j == 24:
-            return None
+    def crest(c0, c1, t):
+        """The crest the skin turns under at: the last ridge crossing within 3 cm before t or 2 cm
+        after it (kind 0; the lip's crease sits 2 to 3 cm above where its belly faces the ground),
+        or the crest of the bend by the curvature within 2 cm, the local maximum nearest t (kind
+        5, between the samples)."""
+        hi = min(t + 8, c1)
+        cs = [c for c in along if max(c0, sh) <= c <= hi and t - c <= 12 and (c == sh or c > sh + 2)
+              and 45.0 <= np.median(ang[c:c + 5]) <= 150.0]
+        if cs:
+            return cs[-1], 0
+        if k1 is None:
+            return None, None
+        lo_ = max(t - 8, c0)
+        w = k1[lo_:hi + 1]
+        peaks = [j for j in range(1, len(w) - 1) if w[j] >= w[j - 1] and w[j] >= w[j + 1] and w[j] >= RIDGE_END]
+        if not peaks:
+            return None, None
+        j = min(peaks, key=lambda j: abs(lo_ + j - t))
         a, b, c = w[j - 1], w[j], w[j + 1]
         d = a - 2 * b + c
-        return c1 - 24 + j + (float(np.clip(0.5 * (a - c) / d, -0.5, 0.5)) if abs(d) > 1e-9 else 0.0)
+        return lo_ + j + (float(np.clip(0.5 * (a - c) / d, -0.5, 0.5)) if abs(d) > 1e-9 else 0.0), 5
 
-    lo, lo_kind = chains[0][1], 1
+    lo, lo_kind, lo_turn = chains[0][1], 1, chains[0][1]
     for c0, c1 in chains:
-        edge = lowest(c0, c1)
-        found = [c for c in along if max(c0, sh) <= c <= c1 and (c == sh or c > sh + 2) and under(c, c1)]
-        if edge is not None and (not found or edge - found[0] <= 20):  # the edge, unless a crest turns under well above it (the arch's rim over the floor)
-            lo, lo_kind = edge, 4
+        t = turn(c0, c1)
+        if t == c1 and not (q[c1, 1] < FLOOR or (abs(ang[c1]) >= 160.0 - SIDE and not at_edge(c1))):
+            continue  # a chain ending above the floor facing out or up, or at an opening's edge (the top's skin at the inlet's rim, the flank at the arch's front)
+        lo, lo_kind, lo_turn = t, 2, t
+        # the skin's own end at the floor, within 2 cm of the turn: the chain's end, or a stretch's
+        # end over nothing, on the mesh's boundary (within 1 cm: the diffuser plate's edge lies 2 cm
+        # in from the flank's end under the arch, which tucks under it)
+        edge = [i for i in range(max(t - 8, c0), min(t + 8, c1) + 1)
+                if q[i, 1] < FLOOR and q[i, 0] > 1.0 and at_edge(i, 1.0) and (i == c1 or gap[i] == 2)]
+        if edge:
+            lo, lo_kind = edge[0], 4
             break
-        if found:
-            lo = found[0]
-            lo_kind = 3 if c1 < n - 1 and q[c1 + 1, 1] < q[c1, 1] - 5.0 else 0
-            break
-        crest = roll(c0, c1)
-        if crest is not None:
-            lo, lo_kind = crest, 5
-            break
+        c, kind = crest(c0, c1, t)
+        if c is not None:
+            lo, lo_kind = c, kind
+            if kind == 0 and c1 < n - 1 and q[c1 + 1, 1] < q[c1, 1] - 5.0:
+                lo_kind = 3
+        break
     if sh_kind == 1 and at_edge(sh):
         sh_kind = 4  # the top's end is the skin's own open edge (over the sidepod's front): exact
-    return sh, lo, (sh_kind, lo_kind)
+    return sh, lo, (sh_kind, lo_kind), lo_turn
 
 
 def _in_plane(pts, i, z0, fallback):
@@ -556,7 +568,8 @@ def _sections(V, F, part, names, open_, ridge_pts, edge_pts, k1_at=None):
     shoulder's and the lower edge's x and y (on the ridges the outline crosses: _marks; a mark on
     the skin's own edge, kind 4, moved onto the mesh's boundary itself, edge_pts, within 2 cm: the
     outline is cut where the skin stops being seen, a cm or two short of the edge and unevenly),
-    each cleaned along the car, and each mark's kind per slice."""
+    each cleaned along the car, each mark's kind per slice, and where the slice's skin turns to
+    face the ground (turn_x, turn_y: the lower edge where the body has no crease)."""
     body = ~np.isin(names[part], WHEEL_COVERS + BLADES)
     faces = np.flatnonzero(body)
     Z = np.arange(TAIL_Z + SLICE / 2, NOSE_Z, SLICE)
@@ -565,6 +578,7 @@ def _sections(V, F, part, names, open_, ridge_pts, edge_pts, k1_at=None):
     slant_all = np.abs(tan[:, 2]) / np.maximum(np.linalg.norm(tan, axis=1), 1e-9)
     qs, gs, starts = [], [], [0]
     raw = np.full((len(Z), 4), np.nan)  # shoulder x, y; lower x, y
+    turn = np.full((len(Z), 2), np.nan)  # where the slice's skin turns to face the ground
     marks_g = np.full((len(Z), 2), np.inf)  # the slice's own shoulder and lower edge, as girth
     kind = np.full((len(Z), 2), 2, np.int8)  # 2: no outline
     crossings = {}
@@ -579,7 +593,8 @@ def _sections(V, F, part, names, open_, ridge_pts, edge_pts, k1_at=None):
             near_z = edge_pts[np.abs(edge_pts[:, 2] - z0) < 0.5, :2]  # the boundary in the slice's own plane
             de = cKDTree(near_z).query(q, workers=-1)[0] if len(near_z) else np.full(len(q), np.inf)
             kk = k1_at(np.c_[q, np.full(len(q), z0)]) if k1_at else None
-            sh, lo, kind[k] = _marks(q, g, gap, _angle(q, gap), cross, slant_all[ri[cross]], lambda i: de[i] < 2.0, kk)
+            sh, lo, kind[k], lt = _marks(q, g, gap, _angle(q, gap), cross, slant_all[ri[cross]], lambda i, tol=2.0: de[i] < tol, kk)
+            turn[k] = q[lt]
             if kind[k, 1] == 5:  # a crest read on the slice: between the samples
                 t = lo - int(lo)
                 raw[k, 2:4] = q[int(lo)] + t * (q[min(int(lo) + 1, len(q) - 1)] - q[int(lo)])
@@ -588,11 +603,21 @@ def _sections(V, F, part, names, open_, ridge_pts, edge_pts, k1_at=None):
             if kind[k, 1] != 5:
                 raw[k, 2:4] = exact.get(lo, q[lo])
             marks_g[k] = g[sh], g[lo]
+            if q[lt, 0] < 1.0:  # the turn at the car's middle: the side's skin is hidden on this slice (under the arch) and the chain ran on over hidden skin to the floor: no reading, the neighbours' stand in
+                turn[k], raw[k, 2:4], marks_g[k, 1], kind[k, 1] = np.nan, np.nan, np.inf, 1
             crossings[k] = (np.array([exact[c] for c in cross]).reshape(-1, 2), g[cross])
             qs.append(q)
             gs.append(g)
         starts.append(starts[-1] + (len(qs[-1]) if o is not None else 0))
     _repair(raw, marks_g, kind, crossings)
+    for L in (1, 2, 3):  # a run of up to three slices whose turns sit away from both flanking slices' while those agree: between them
+        for k in range(1, len(Z) - L):
+            a, b = turn[k - 1], turn[k + L]
+            run = turn[k:k + L]
+            if (np.isfinite(a).all() and np.isfinite(b).all() and np.hypot(*(a - b)) < 2.0
+                    and all(min(np.hypot(*(c - a)), np.hypot(*(c - b))) > 2.0 for c in run)):
+                for i in range(L):
+                    turn[k + i] = a + (i + 1) / (L + 1) * (b - a)
     prev = [None, None]
     for k in range(len(Z) - 1, -1, -1):  # a mark on the skin's own edge: onto the mesh's boundary itself, from the nose back
         for j in range(2):
@@ -614,7 +639,7 @@ def _sections(V, F, part, names, open_, ridge_pts, edge_pts, k1_at=None):
     marks = {name: _clean(Z, raw[:, i]) for i, name in enumerate(("sh_x", "sh_y", "lo_x", "lo_y"))}
     return dict(Z=Z, starts=np.array(starts), q=np.concatenate(qs).astype(np.float32),
                 g=np.concatenate(gs).astype(np.float32), sh_g=marks_g[:, 0], lo_g=marks_g[:, 1],
-                kind=kind, raw=raw, **marks)
+                kind=kind, raw=raw, turn_x=_clean(Z, turn[:, 0]), turn_y=_clean(Z, turn[:, 1]), **marks)
 
 
 def _across(ax, y, sx, sy, lx, ly, region):
@@ -894,7 +919,12 @@ def _lsq(t, v, knots):
     when there are too few points for the knots)."""
     from scipy.interpolate import make_lsq_spline
     t, v = np.asarray(t, float), np.asarray(v, float)
-    knots = [k for k in knots if t[0] + 1e-6 < k < t[-1] - 1e-6]
+    kept, prev = [], t[0]
+    for k in knots:
+        if t[0] + 1e-6 < k < t[-1] - 1e-6 and ((t >= prev) & (t < k)).any():  # a knot interval with no point makes the fit singular
+            kept.append(k)
+            prev = k
+    knots = kept if not kept or ((t >= kept[-1]) & (t <= t[-1])).any() else kept[:-1]
     if knots and len(t) >= len(knots) + 4:
         try:
             return make_lsq_spline(t, v, np.r_[[t[0]] * 4, knots, [t[-1]] * 4], k=3)
@@ -964,9 +994,8 @@ def _curves(m, sec, edge_pts):
     _fit; the curve stays where it is fitted, within a millimetre of the skin its evidence lies
     on: put back on the faceted mesh it would take the facets' kinks), and the slice marks
     replaced by the curve's point there (so `across` is bounded by the curve). Where the body has
-    no lower line (behind the sidepods the flank rolls under out of sight), the sides run down to
-    the skin's own end, the mesh's boundary at the floor on that slice, exact. Returns the
-    curves' data (build)."""
+    no lower line (behind the sidepods the flank rolls under with no crease), the sides run down
+    to where the slice's skin turns to face the ground. Returns the curves' data (build)."""
     Z, draw, st, q, g = sec["Z"], sec["draw"], sec["starts"], sec["q"], sec["g"]
     out = []
     for j, (kx, ky, kg) in enumerate((("sh_x", "sh_y", "sh_g"), ("lo_x", "lo_y", "lo_g"))):
@@ -982,15 +1011,9 @@ def _curves(m, sec, edge_pts):
                     sel = zi == k
                     sec[kx][k], sec[ky][k] = dense[sel, 0].mean(), dense[sel, 1].mean()
                     covered[k] = True
-        if j == 1:
+        if j == 1:  # no lower line: the sides run down to where the slice's skin turns to face the ground
             for k in np.flatnonzero(~covered):
-                if st[k + 1] <= st[k]:
-                    continue
-                end = q[st[k + 1] - 1]
-                near = edge_pts[(np.abs(edge_pts[:, 2] - Z[k]) < 0.5) & (edge_pts[:, 1] < FLOOR) & (edge_pts[:, 0] > 1.0)]
-                if len(near):
-                    e = near[np.argmin(np.hypot(*(near[:, :2] - end).T))]
-                    sec[kx][k], sec[ky][k] = e[0], e[1]
+                sec[kx][k], sec[ky][k] = sec["turn_x"][k], sec["turn_y"][k]
         for k in range(len(Z)):  # the girth of the mark, for the regions round the section
             if st[k + 1] > st[k] and np.isfinite(sec[kx][k]):
                 qq = q[st[k]:st[k + 1]]
@@ -1053,10 +1076,11 @@ def _pack(curves):
 
 # ---- the car's lines ----
 
-def _edge_lines(V, F, fn, part, spacing=0.4):
+def _edge_lines(V, F, fn, part, names, spacing=0.4):
     """Points along the welded body's edges, by kind: "fold" (a bend over FOLD degrees), "opening"
     (an edge with one triangle and no surface beyond it within 1 cm), "join" (between two named
-    parts, or a loose panel's edge lying on another)."""
+    parts, or a loose panel's edge lying on another), "edge" (the openings of the body proper:
+    not the wheel covers' nor the blades', for the sections)."""
     e = np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
     tid = np.tile(np.arange(len(F)), 3)
     e.sort(1)
@@ -1083,6 +1107,7 @@ def _edge_lines(V, F, fn, part, spacing=0.4):
         lying[i] = any(abs(fn[c] @ fn[t0[i]]) > 0.8 and part[c] != part[t0[i]] for c in cand)
     kinds["join"] |= single & lying
     kinds["opening"] = single & ~lying
+    kinds["edge"] = kinds["opening"] & ~np.isin(names[part[t0]], WHEEL_COVERS + BLADES)
     # a wall to the air: an opening the oncoming air runs into, off the surface (the cockpit's front
     # rim, an inlet's mouth), not one it runs along (a bottom edge) or leaves behind (a back edge)
     ea, eb = V[ends[:, 0]], V[ends[:, 1]]
@@ -1179,17 +1204,17 @@ def build():
     ridges = _trace_ridges(Map(data))
     data["ridge_starts"] = np.r_[0, np.cumsum([len(r) for r in ridges])]
     data["ridge_pts"] = np.concatenate(ridges)
-    lines, walls = _edge_lines(V, F, fn, part)
+    lines, walls = _edge_lines(V, F, fn, part, names)
     lines["fold"] = _resample(ridges)
     flow_v, _ = _flow_field(V, F, walls)
     bare = Map(data)
-    sec = _sections(V, F, part, names, open_, lines["fold"], lines["opening"], lambda p: bare.value("k1", p))
+    sec = _sections(V, F, part, names, open_, lines["fold"], lines["edge"], lambda p: bare.value("k1", p))
     data.update(flow=flow_v.astype(np.float32), **{f"sec_{k}": v for k, v in sec.items()},
                 **{f"line_{k}": v for k, v in lines.items()})
     from tool import mapcheck  # the slices where a line is drawn: on a ridge that stands out and stays put
     data["sec_draw"] = mapcheck.draw_mask(mapcheck.measure(Map(data)))
     sec["draw"] = data["sec_draw"]
-    named = _curves(bare, sec, lines["opening"])  # the lines as curves, from the evidence
+    named = _curves(bare, sec, lines["edge"])  # the lines as curves, from the evidence
     folds = _folds(bare, ridges)
     # a real fold that is a named line, an opening's rim or a join is drawn as that, not again as a fold
     drawn = np.concatenate([c["pts"] for c in named] + [c["pts"] * np.array([-1, 1, 1], np.float32) for c in named]
@@ -1260,21 +1285,47 @@ class Map:
         Z = self.sec["Z"]
         return [np.interp(z, Z, self.sec[k]) for k in ("sh_x", "sh_y", "lo_x", "lo_y")]
 
-    def _region(self, pos):
+    def _region(self, pos, girths=None, with_dist=False):
         """0 top, 1 side, 2 under: where each point's nearest point on its nearest slice's outline
-        sits against that slice's own shoulder and lower edge."""
+        sits against that slice's shoulder and lower edge (its own marks, or girths given: the
+        design lines', _design_girths); with_dist: also how far that nearest outline point is
+        (cm; far means the slice doesn't see the point: a blade, hidden skin)."""
         Z, st, q, g = self.sec["Z"], self.sec["starts"], self.sec["q"], self.sec["g"]
+        sh_g, lo_g = girths or (self.sec["sh_g"], self.sec["lo_g"])
         k = self._fill[np.clip(np.rint((pos[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)]
         p2 = np.stack([np.abs(pos[:, 0]), pos[:, 1]], 1)
         out = np.zeros(len(pos), int)
+        dist = np.zeros(len(pos))
         for kk in np.unique(k):
             if kk not in self._slice_trees:
                 self._slice_trees[kk] = cKDTree(q[st[kk]:st[kk + 1]])
             sel = np.flatnonzero(k == kk)
-            _, i = self._slice_trees[kk].query(p2[sel])
+            dist[sel], i = self._slice_trees[kk].query(p2[sel])
             gp = g[st[kk]:st[kk + 1]][i]
-            out[sel] = np.where(gp < self.sec["sh_g"][kk], 0, np.where(gp <= self.sec["lo_g"][kk], 1, 2))  # on the lower mark: the side
-        return out
+            out[sel] = np.where(gp <= sh_g[kk], 0, np.where(gp <= lo_g[kk], 1, 2))  # on a mark: the area before it
+        return (out, dist) if with_dist else out
+
+    def _design_girths(self):
+        """Per slice, the girth of the shoulder's and the lower edge's design line where it runs
+        (the slice's own mark elsewhere): the areas are cut by the design lines, and a slice's own
+        mark can sit away from them where a line bridges a stretch (round the sidepod's rear top
+        corner the marks follow the panel's rounded corner inboard, the line runs straight). NaN
+        where the line's point lies on no skin the slice sees (nothing within 3 cm: under the
+        arch the flank's strip is hidden by the inner car on some slices)."""
+        if not hasattr(self, "_girths"):
+            Z, st, q, g = self.sec["Z"], self.sec["starts"], self.sec["q"], self.sec["g"]
+            out = [self.sec["sh_g"].copy(), self.sec["lo_g"].copy()]
+            for j in (0, 1):
+                for dense, _ in self.design_lines(j):
+                    zi = np.clip(np.rint((dense[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)
+                    for k in np.unique(zi):
+                        if st[k + 1] > st[k]:
+                            x, y = dense[zi == k, 0].mean(), dense[zi == k, 1].mean()
+                            qq = q[st[k]:st[k + 1]]
+                            dq = np.hypot(qq[:, 0] - x, qq[:, 1] - y)
+                            out[j][k] = g[st[k]:st[k + 1]][np.argmin(dq)] if dq.min() < 3.0 else np.nan
+            self._girths = tuple(out)
+        return self._girths
 
     def section(self, pos):
         """Where points sit round the car's section: across (0 the top's middle, 1 the shoulder, 2
@@ -1293,38 +1344,71 @@ class Map:
         gap between two of them under BLEND_GAP cm bridged by the same C2 cubic B-spline fitted
         through both (the blend: at the sidepod's rear corner the sidepod's edge ends and the rear
         flank's crease starts 4 cm on and lower, and a band offset from each stepped there, the
-        user's close-up of 2026-09-29). A wider gap (no lower edge behind the sidepods, 64 cm) stays
-        a break: the body has no line there. The left side; a list of (points (n, 3) every 0.25 cm,
-        blend (n,) whether the point lies in a blend). The measured curves (Map.curves) stay as they
-        are for the check; the areas, `line`, `near` and the offsets go by these."""
+        user's close-up of 2026-09-29); for the lower edge, the slices' turns (where the skin faces
+        the ground: _marks) stand in where the body has no crease, so it runs from the front flank's
+        skirt to the tail. A wider gap stays a break (the lower edge's hand-over from the nose's
+        lip down to the skirt's crest under the front flank, where the belly's skin ends, a 25 cm
+        drop between two different edges). The left
+        side; a list of (points (n, 3) every 0.25 cm, blend (n,) whether the point lies in a
+        blend). The measured curves (Map.curves) stay as they are for the check; the areas, `line`
+        and `near` go by these."""
         if not hasattr(self, "_design"):
             self._design = {}
         if kind not in self._design:
             pieces = []
-            Z, kinds = self.sec["Z"], self.sec["kind"][:, kind]
+            Z, kinds, draw = self.sec["Z"], self.sec["kind"][:, kind], self.sec["draw"][:, kind]
             for c in self.curves:
                 if c["kind"] != kind or len(c["pts"]) < 8:
                     continue
                 p = c["pts"].astype(np.float64)
-                if kind == 0:
-                    # the shoulder over the sidepod's front and inlet is the shell's own edge round the
-                    # sidepod's top (kind 4), a panel gap: a band offset from it wrapped round the
-                    # panel's corner (the user's close-up, 2026-09-29). The design line keeps the crease
-                    # evidence and bridges that stretch smoothly
-                    k4 = kinds[np.clip(np.rint((p[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)] == 4
-                    for run in np.split(np.arange(len(p)), np.flatnonzero(np.diff(k4.astype(int)) != 0) + 1):
-                        if not k4[run[0]] and len(run) >= 8:
-                            pieces.append(p[run])
-                else:
-                    pieces.append(p)
-            pieces = sorted(pieces, key=lambda p: -p[:, 2].mean())
-            pieces = [p if p[0, 2] >= p[-1, 2] else p[::-1] for p in pieces]  # nose to tail
-            chains, cur = [], []
-            for p in pieces:
-                if cur and not self._continues(cur[-1], p):
+                k = np.clip(np.rint((p[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)
+                # the design line keeps the crease evidence: the shoulder over the sidepod's front
+                # and inlet is the shell's own edge round the sidepod's top (kind 4), a panel gap,
+                # bridged smoothly (a band offset from it wrapped round the panel's corner: the
+                # user's close-up, 2026-09-29); and a curve ends at its last drawn crease (the
+                # measured curve runs on round the sidepod's rear top corner, over slices with no
+                # crease, to the panel's rear edge: bridged from there to the rear flank's crease
+                # the line would double back on itself, and the sidepod's top go to the sides)
+                keep = kinds[k] != 4 if kind == 0 else np.ones(len(p), bool)
+                ok = np.flatnonzero(keep & draw[k])
+                if len(ok) < 8:
+                    continue
+                p, keep = p[ok[0]:ok[-1] + 1], keep[ok[0]:ok[-1] + 1]
+                for run in np.split(np.arange(len(p)), np.flatnonzero(np.diff(keep.astype(int)) != 0) + 1):
+                    if keep[run[0]] and len(run) >= 8:
+                        pieces.append((p[run], id(c)))
+            pieces = sorted(pieces, key=lambda pc: -pc[0][:, 2].mean())
+            pieces = [(p if p[0, 2] >= p[-1, 2] else p[::-1], c) for p, c in pieces]  # nose to tail
+            if kind == 1:
+                # where the body has no lower line (behind the sidepods the flank rolls under with no
+                # crease) the line runs where each slice's skin turns to face the ground, along the
+                # floor, and behind the last crease on up the tail corner's hem, where the side's
+                # skin rolls under, to the deck's rear corner, where the turn meets the shoulder
+                # and the line ends
+                Z, tx, ty = self.sec["Z"], self.sec["turn_x"], self.sec["turn_y"]
+                low = ty < FLOOR + 5.0
+                met = np.hypot(tx - self.sec["sh_x"], ty - self.sec["sh_y"]) < 2.0
+                turns = []
+                for i, (p, c) in enumerate(pieces):
+                    z_next = pieces[i + 1][0][0, 2] if i + 1 < len(pieces) else -np.inf
+                    ks = np.flatnonzero((Z < p[-1, 2] - 0.5) & (Z > z_next + 0.5) & np.isfinite(tx))[::-1]
+                    if i + 1 == len(pieces):
+                        stop = np.flatnonzero(met[ks])
+                        ks = ks[:stop[0]] if len(stop) else ks
+                    else:
+                        ks = ks[low[ks]]
+                    if len(ks) >= 2:
+                        turns.append((np.c_[tx[ks], ty[ks], Z[ks]], ("turn", i)))
+                pieces = sorted(pieces + turns, key=lambda pc: -pc[0][:, 2].mean())
+            chains, cur, last = [], [], None
+            for p, c in pieces:
+                # the pieces of one measured curve are one line whatever lies between them; between
+                # two curves the gap decides
+                if cur and c != last and not self._continues(cur[-1], p):
                     chains.append(cur)
                     cur = []
                 cur.append(p)
+                last = c
             if cur:
                 chains.append(cur)
             out = []
@@ -1354,7 +1438,7 @@ class Map:
         """Whether curve b carries on from curve a: their ends within BLEND_GAP, and the chord between
         them within BLEND_TURN degrees of both curves' end tangents (the sidepod's corner, the
         sweep over its front: yes; the lower edge's hand-over from the nose's lip down to the
-        skirt's crest at z 70, a 25 cm drop between two different edges: no)."""
+        skirt's crest under the front flank, a 25 cm drop between two different edges: no)."""
         chord = b[0] - a[-1]
         L = np.linalg.norm(chord)
         if L > BLEND_GAP:
@@ -1367,24 +1451,24 @@ class Map:
 
     def _frames(self, a):
         """The named line's design curves (a = 1 the shoulder, 2 the lower edge), both sides, with at
-        each point the direction across the line on the skin (N x T) pointing to the top (the
-        shoulder: inboard and up) or up (the lower edge): a point's side of the line is the sign of
-        its offset along it."""
+        each point the direction across the line pointing to the top (the shoulder: inboard and
+        up) or up (the lower edge), made perpendicular to the line's run: a point's side of the
+        line is the sign of its offset along it. The direction is the car's own, not read off the
+        skin under the line: at an open edge the nearest skin can be a flange folded under the
+        panel out of sight (the sidepod's bottom edge), whose normal would lay the direction flat
+        along the flange, and flip it where the flange tilts the other way."""
         key = f"frame{int(a)}"
         if key not in self._line_trees:
             pts, B, inner = [], [], []
             for dense, _ in self.design_lines(int(a) - 1):
-                c = {"pts": dense}
                 for flip in (1.0, -1.0):
-                    p = c["pts"].astype(np.float64) * np.array([flip, 1.0, 1.0])
+                    p = dense.astype(np.float64) * np.array([flip, 1.0, 1.0])
                     inner.append(np.r_[np.zeros(8, bool), np.ones(max(len(p) - 16, 0), bool), np.zeros(min(8, len(p)), bool)][:len(p)])
                     T = np.gradient(p, axis=0)
                     T /= np.maximum(np.linalg.norm(T, axis=1, keepdims=True), 1e-9)
-                    N = self.value("ns", p).astype(np.float64)
-                    b = np.cross(N, T)
-                    b /= np.maximum(np.linalg.norm(b, axis=1, keepdims=True), 1e-9)
                     want = np.c_[-np.sign(p[:, 0] + 1e-9), np.ones(len(p)), np.zeros(len(p))] if a == 1 else np.tile([0.0, 1.0, 0.0], (len(p), 1))
-                    b *= np.sign((b * want).sum(1, keepdims=True) + 1e-9)
+                    b = want - (want * T).sum(1, keepdims=True) * T
+                    b /= np.maximum(np.linalg.norm(b, axis=1, keepdims=True), 1e-9)
                     pts.append(p)
                     B.append(b)
             pts = np.concatenate(pts) if pts else np.zeros((0, 3))
@@ -1394,15 +1478,29 @@ class Map:
 
     def across_level(self, pos, a):
         """Signed distance (cm) from the points to a named line, positive past it (further round
-        from the top's middle): near the line (within 5 cm, and not at a curve's ends) the offset
-        across the line's own curve in the curve's frame, so the areas are cut by the curve itself; further off, the distance
-        to the curve signed by the point's region round the section; where the body has no line
-        at that length (nothing within 3 cm along the car), the distance to the skin's own end, the
-        mesh's boundary, signed the same way."""
+        from the top's middle): near the line (within 2 cm, and not at a curve's ends) the offset
+        across the line's own curve in the curve's frame, so the areas are cut by the curve itself;
+        further off, the distance to the curve signed by the point's region round the section,
+        against the design lines' own place on its slice (_design_girths: the frame's direction
+        leans along the car where the line sweeps across it, over the sidepod's front, and a
+        cavity's wall a few cm off, the inlet's throat, is placed by its slice); beyond the lines'
+        ends (the nose's tip, the tail's end), and where the slice sees neither the line's point
+        nor the point itself (a blade, skin hidden by one), the nearest point's frame, unless the
+        slice places the point before the shoulder (the top, whatever the lower line); where the
+        body has no line at that length (nothing within 3 cm along the car), the distance to the
+        skin's own end, the mesh's boundary, signed the same way."""
         pos = np.asarray(pos, np.float64)
         tree, B, cpts, inner = self._frames(a)
-        region = self._region(pos)
+        girths = self._design_girths()
+        region, dist = self._region(pos, girths, with_dist=True)
         past = region >= int(a)
+        Z = self.sec["Z"]
+        k = self._fill[np.clip(np.rint((pos[:, 2] - Z[0]) / SLICE).astype(int), 0, len(Z) - 1)]
+        # the slice can't place the point: the line's point lies on no skin it sees, or the point
+        # does (a blade: the diffuser's strakes; skin hidden between them): the frame decides,
+        # unless the slice puts the point before the shoulder: that is the top whatever the lower
+        # line (the deck's middle, 50 cm from any lower line, is not for the tail hem's end frame)
+        blind = (~np.isfinite(girths[int(a) - 1][k]) & (region > 0)) | (dist > 3.0)
         if tree is None:
             de = self.distance("opening", pos)
             return np.where(past, de, -de).astype(np.float32)
@@ -1414,9 +1512,15 @@ class Map:
         on = np.zeros(len(pos), bool)
         for lo, hi in spans:
             on |= (pos[:, 2] >= lo) & (pos[:, 2] <= hi)
+        # beyond the lines' first or last point along the car (the nose's tip, the tail's end: rounded
+        # ends the slices cut across) the end's own frame decides, for both lines from where the
+        # first of them ends
+        z_nose = min(max(d[:, 2].max() for d, _ in self.design_lines(k)) for k in (0, 1))
+        z_tail = max(min(d[:, 2].min() for d, _ in self.design_lines(k)) for k in (0, 1))
+        beyond = (pos[:, 2] > z_nose) | (pos[:, 2] < z_tail)
         de = self.distance("opening", pos)
         out = np.where(past, 1.0, -1.0) * np.where(on, d, de)
-        near = on & (d < 5.0) & inner[i]  # not at a curve's ends, 2 cm in, where its frame says nothing beyond it
+        near = (on & (d < 2.0) & inner[i]) | beyond | (on & blind)  # not at a curve's ends, 2 cm in, where its frame says nothing beyond it
         out[near] = -((pos[near] - cpts[i[near]]) * B[i[near]]).sum(1)
         return out.astype(np.float32)
 
@@ -1710,7 +1814,8 @@ def describe(m=None):
          "## The pictures", "",
          "The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):", "",
          "- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, "
-         "the lower edge magenta (each one smooth curve per stretch, absent where the body has no line: `python -m "
+         "the lower edge magenta (each one smooth curve per stretch; the shoulder absent where the body has no line, "
+         "the lower edge along where the skin turns to face the ground where it has no crease: `python -m "
          "tool.carmap --check`), the real folds black, openings red, joins blue.",
          "- `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.",
          "- `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.",
