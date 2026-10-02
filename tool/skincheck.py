@@ -45,14 +45,11 @@ from scipy.spatial import cKDTree
 from tool import paint, paths, skinmesh
 
 # The check imports nothing from tool/skindraw.py, the code it checks: what it shares with it (the
-# stop at TURN, the old default feather, the polyline resampling) is written out here again.
+# stop at TURN, the default feather, the polyline resampling) is written out here again.
 STEP = 2.0        # cm along the curve between measurements
-# The limits, measured. Read through the skin, the bands on TSC_Skin came out 30.0 +- 0.16,
-# 40.0 +- 0.15 and 20.0 +- 0.17 mm at the 95th, their middles within 0.1 mm: a fifth of a texel.
-# (An earlier version read the paint through carmap.Map.at and got +- 1.1 to 2.2 mm, which was put
-# down to "the texture's grain" and the limits loosened to match. It was the lookup, not the
-# texture: --floor took the zone's own measurement at 0.00 and the gap was the reading, not the
-# grain. The limits are back where the numbers put them.)
+# The limits, measured. Read through the skin, bands of 30, 40 and 20 mm come out within 0.17 mm
+# at the 95th, their middles within 0.1 mm: a fifth of a texel. Read the paint through the skin:
+# carmap.Map.at's lookup adds 1.1 to 2.2 mm of its own (--floor measures the zone at 0.00).
 WIDTH = 1.0       # mm: how far the measured width may be from the width asked for (95th percentile)
 CENTRE = 0.5      # mm: how far the measured middle may be from the curve (95th percentile)
 WOBBLE = 1.0      # mm: how far the painted band's middle may jump from one place to the next (95th)
@@ -385,8 +382,8 @@ def holes(skin, drawing, img, pal):
         dh /= max(np.linalg.norm(dh), 1e-9)
         dt /= max(np.linalg.norm(dt), 1e-9)
         # two texels short of each end: the square end crosses the texels at any angle, and one up
-        # to a diagonal (1.3 mm) from it is painted or not by where its centre falls (TSC_Skin's
-        # spine read 45 mm2 of "holes", every one 1.0 to 1.4 mm from its end)
+        # to a diagonal (1.3 mm) from it is painted or not by where its centre falls (else a
+        # line reads up to 45 mm2 of "holes", every one 1.0 to 1.4 mm from its end)
         ok &= ((q - head) @ dh <= -2 * paint.TEXEL_CM) & ((q - tail) @ dt <= -2 * paint.TEXEL_CM)
     mine = pal.of(drawing["colour"])
     later = pal.after(drawing.get("order"))

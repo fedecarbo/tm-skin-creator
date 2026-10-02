@@ -13,12 +13,6 @@ distance to the border.
 The wrap reads as a thin layer on top through a narrow shadow just inside every tear's edge,
 the same width all round (a light from straight above), hard-edged: a solid band with a
 one-texel edge, no fade. The same all round so it reads from every camera.
-
-The user, 2026-09-24, in turn: a soft shadow (a fade over a centimetre) and a grey bevel all
-round made the edges look soft; strips of wrap folded back over it looked flat, not 3D; then
-"a bit of 3D so it looks like a slight layer on top, just crispier" gave a hard shadow cast by
-a light from ahead, with a lit hairline on the far edges; then "shorten the shadow" and make its
-angle "more neutral, because when the camera is on the rear it doesn't look 3D": this.
 """
 
 import time

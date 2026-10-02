@@ -1,8 +1,6 @@
 """The car map: the body's shape worked out once from its mesh, so every design knows the car.
 
-Before it, each design learned the car on its own (TSC_WindTunnel's smoke lines cut the body
-into sections to find where its top ends; the same folds, inlets and creases were learned over
-and over). The map is built from the body's mesh (Skin_01, welded into one surface), is
+The map is built from the body's mesh (Skin_01, welded into one surface), is
 cached in the work folder (`python -m tool.carmap` rebuilds it, about a minute), and answers for any
 point on the car. In a design, through `tool.shapes`:
 
@@ -506,7 +504,7 @@ def _repair(raw, marks_g, kind, crossings, reach=2.0, rounds=2):
     marks' mean, if one lies within reach (or, for a run of one or two slices between two on the
     same ridge, the point between the flanking marks: the ridge's crossing missing on a slice): a
     slice that read a ridge crossing its line (the deck's crease across the rear flank's shoulder),
-    or missed its own, no longer flips the line."""
+    or missed its own, doesn't flip the line."""
     n = len(raw)
     for _ in range(rounds):
         for j in range(2):
@@ -1711,14 +1709,14 @@ def describe(m=None):
          "z forward (the nose's tip at 215, the tail at -162).", "",
          "## The pictures", "",
          "The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):", "",
-         "- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey; the shoulder green, "
+         "- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, "
          "the lower edge magenta (each one smooth curve per stretch, absent where the body has no line: `python -m "
          "tool.carmap --check`), the real folds black, openings red, joins blue.",
-         "- `car/map/lines.jpg` (TSC_Map_Lines): every ridge of the body's curvature on clay, each in its own colour.",
+         "- `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.",
          "- `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.",
-         "- `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet "
+         "- `car/map/open.jpg`: how much of the open air each spot sees, white (all) to violet "
          "(hidden).",
-         "- `car/map/air.jpg` (TSC_Map_Air): where the oncoming air hits, a warm ramp over black, and smoke lines "
+         "- `car/map/air.jpg`: where the oncoming air hits, a warm ramp over black, and smoke lines "
          "traced along its flow from a rake at the nose.",
          "",
          "The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 "

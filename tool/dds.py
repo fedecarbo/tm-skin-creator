@@ -6,7 +6,7 @@ from bc1_blocks: endpoints on each block's principal axis, refined by least squa
 Single-channel blocks (BC4, both halves of BC5, the alpha half of BC3) from bc4_blocks, which
 keeps Details_I glow codes exact. Each block is encoded on its own, so each distinct block is
 encoded once and copied wherever it repeats: a car is mostly flat paint, and only 2 % of a
-body's 4x4 blocks differ from all the others (TSC_Solstice, 2026-10-01), so this is the same
+body's 4x4 blocks differ from all the others, so this is the same
 file, many times faster. The header is written here, copying the layout of
 Nadeo's reference files (flags 0xA1007, caps 0x401008, "A2XY" in the ATI2 bit-count field).
 Nadeo's ATI2 files store the first block = channel 0 (normal X, roughness), confirmed in the game.

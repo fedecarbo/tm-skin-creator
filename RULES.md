@@ -1,9 +1,8 @@
 # Rules
 
 How we work with AI on this project, written as the mistakes not to repeat: what not to do, why,
-and what to do instead. It stays a page. A new rule replaces or merges an old one. A fact about
-the game or the code goes into the code (a warning, a check, a docstring), not here. The story of
-how anything came to be is in git.
+and what to do instead. It stays a page: a new rule replaces or merges another. A fact about the
+game or the code goes into the code (a warning, a check, a docstring).
 
 ## With the user
 
@@ -12,13 +11,12 @@ how anything came to be is in git.
 - **Don't describe a car.** Words make the user imagine it. Show it: a picture, or the car in the Lab.
 - **Don't put a choice in plain text only.** The user picks by looking. Bring it to the Lab's chat as
   a widget, and ask it in one bold line in the reply.
-- **Don't run the user through a fixed sequence of steps** (a studio, a wizard, a form). They work by
-  reacting to the car. Make the change, show it, and offer options only when there's a real fork or
-  they ask.
+- **Don't run the user through a fixed sequence of steps.** They work by reacting to the car. Make
+  the change, show it, and offer options only when there's a real fork or they ask.
 - **Don't ask the user to test in the game.** They drive when they want. Use their F12 screenshots
   when they share them.
-- **Don't keep what the user didn't pick** (unpicked takes, old options, test cars). It turns into
-  noise in every list. Delete it; git keeps it.
+- **Don't keep what the user didn't pick** (unpicked takes, test cars). It turns into noise in every
+  list. Delete it; git keeps it.
 - **Don't show code, file names or jargon in replies** unless they ask. They don't read code.
 
 ## Designing
@@ -29,20 +27,21 @@ how anything came to be is in git.
   worth a slower build. But one paint and a look per take is enough; the close looks are for what's
   shown alone or picked.
 - **Don't leave any part as it came because it's hidden.** The user judges the whole car, close up.
-- **Don't call something done because a number passed.** The user's eye decides ("None of the cars
-  make me think it's working"). Show it close up, with the measure beside it.
+- **Don't call something done because a number passed.** The user's eye decides. Show it close up,
+  with the measure beside it.
 - **Don't promise what the game can't do.** Say so plainly (the skill lists what can't be done).
 
 ## Building the tool
 
-- **Don't add a step that every skin pays for.** Steps only ever got added, and a five-minute change
-  became an hour (2026-10-02). Say first what a step costs in time; if it slows every skin, it
-  doesn't go in.
+- **Don't add a step that every skin pays for.** The cost repeats on every car. Say first what a
+  step costs in time; if every skin would pay it, leave it out.
 - **Don't build machinery the user hasn't seen.** One step at a time, shown, then their OK. When they
   doubt something, ask what they'd need to see before building more on it.
-- **Don't grow the notes.** No lessons file, no history in the instructions: the more there is to
-  read, the slower and more alike the work. A fact that prevents a mistake goes into the code; the
-  story stays in git.
+- **Don't grow the instructions.** The more there is to read, the slower and more alike the work.
+  Replace or merge instead of adding; a fact that prevents a mistake goes into the code.
+- **Don't mention what no longer exists, or how things used to be,** in instructions, comments or
+  docstrings. Naming it puts it back in mind. Write as if things had always been this way; history
+  is in git. (A skin's `notes.md` is its record, and keeps its story.)
 - **Don't keep a list in the Lab that the tool doesn't produce.** It drifts out of date. The Lab shows
   only the tool's own data.
 - **Don't change the tool without the self-test.** Every car's game files stay identical, byte for

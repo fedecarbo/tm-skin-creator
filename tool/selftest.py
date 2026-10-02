@@ -15,7 +15,7 @@ lines drawn, the palette, the steps and the parts left in clay. A difference is 
 texel, by painting that skin again on both sides.
 
 A commit's results are kept in the work folder (selftest/<commit>/), so each side is paid for once
-per computer: about two minutes a skin with the old encoder. The working tree's are painted afresh
+per computer: a minute or two a skin. The working tree's are painted afresh
 every run. Both sides share the work folder's caches, so a change to what a cache
 holds must change the cache's name or version, or the old side reads the new cache and agrees.
 """
@@ -36,7 +36,7 @@ from tool import paths
 
 # Together they use every part of the paint box: the user's car (peel, relief, emboss, glows, relit
 # lights, a library finish, the canvas by hand) and TOUR, a test car of the self-test's own that
-# makes every other call once (2026-10-02: the skins were cleaned up to the user's car alone).
+# makes every other call once.
 SET = ("TSC_CMYK_EndsInK", "SelfTest_Tour")
 TOUR = "SelfTest_Tour"
 SNAP = ("TSC_CMYK_EndsInK",)

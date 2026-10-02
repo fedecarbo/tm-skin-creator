@@ -20,9 +20,8 @@ edge is a hard one-texel cut, as the tears' are (soft edges read as blurred: the
 - clearcoat: the share of the upward faces where the clear coat has failed in the sun: ragged
   patches, chalky and matte, paler than the paint around them.
 
-TSC_FlagPeel_CostaRica's worn takes, 2026-09-26 (the user: "Maybe in this concept its more on
-looking worn, the flag? Instead of torn paint?"). A first try showed bare aluminium in the chips:
-it mirrored the dark room and read as black specks, in a band along the sills like a pattern.
+Bare metal in the chips mirrors the dark room and reads as black specks: keep `under` a light
+primer.
 """
 
 import time

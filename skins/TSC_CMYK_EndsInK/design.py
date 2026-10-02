@@ -1,14 +1,9 @@
-"""CMYK Ends In K, the user's car (2026-09-24 to 27): a matte black wrap torn open in ragged
+"""CMYK Ends In K, the user's car: a matte black wrap torn open in ragged
 patches, a satin cyan > magenta > orange run showing through the tears from the nose to the tail
 (the black wrap is the K), a tiny grain in the wrap's sheen. Inside, every light the game put
 there takes the run's colours, the suspension is bead-blasted titanium, the seat quilted, and a
 printer's registration mark is raised at each end of the tail. The wheels are matte black with a
-line round each tyre running cyan > magenta > orange from the wheel's front to its back.
-
-It grew over a week of the user's notes, from a stealth black car with the run inside it, through
-a wrap starting to peel, half of it gone, a finished inner car, to this: each step was its own
-design, borrowing the last, and they were folded into this one on 2026-10-02 (the self-test:
-identical). The story is in notes.md and git."""
+line round each tyre running cyan > magenta > orange from the wheel's front to its back."""
 from dataclasses import replace
 
 import numpy as np
@@ -17,7 +12,7 @@ from PIL import Image, ImageDraw
 from tool import finishes, shapes
 
 C, M = "#00c8ff", "#ff1fa8"
-ORANGE = "#ff9a1a"   # the run's end (the user, 2026-09-25: "orangy rather than full yellow")
+ORANGE = "#ff9a1a"   # the run's end
 BLACK = "#232528"    # the wrap's black
 DARK = "#1e1f22"
 SHADE = "#1a1b1d"
@@ -26,14 +21,13 @@ SHADE = "#1a1b1d"
 SUSPENSION_CARBON = ["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm", "sidepod strut"]
 SUSPENSION_DARK = ["damper", "rear damper", "upright", "hub bracket", "driveshaft", "upright cover", "hub", "brake light",
                    "sidepod frame"]
-# the game's own lights that the car still showed in its stock teal and white (found part by part,
-# 2026-09-25): little lamps in the cockpit, nose and bulkhead, the strip under the floor, the vanes
+# the game's own lights, stock teal and white, found part by part: little lamps in the cockpit,
+# nose and bulkhead, the strip under the floor, the vanes
 # and sidepod panels, and the faint night glows on the airboxes, sidepod frames and steering
 LIGHTS = ["cockpit tub", "front bulkhead", "nose inner", "floor rail", "side vane", "sidepod panel", "front wing endplate",
           "airbox", "sidepod frame", "sidepod strut", "steering column", "steering wheel", "tie rod", "exhaust"]
-# the parts the game lights in the turbo pad's colour (yellow after a yellow pad: the whole inside
-# of each wheel, the user didn't like it). Those in the wheels glow magenta instead (the user's
-# pick; all four wheels share one paint), the rest in the run's colour where they sit
+# the parts the game lights in the turbo pad's colour: those in the wheels glow magenta (the
+# user's pick; all four wheels share one paint), the rest in the run's colour where they sit
 TURBO_WHEELS = ["hub", "hub bracket", "upright cover", "lower wishbone", "upper wishbone", "tie rod", "rear arm",
                 "driveshaft", "damper", "pushrod"]
 TURBO_REST = ["rear strake", "rear undertray", "front bulkhead", "antenna", "brake line", "wing bracket", "rear bumper corner",
@@ -41,20 +35,19 @@ TURBO_REST = ["rear strake", "rear undertray", "front bulkhead", "antenna", "bra
 # inside the tail's two openings, beside the speed digits: their walls, not the frame's face
 PORTS = shapes.box((-50, 20, -158), (50, 49, -120)) & ~shapes.facing((0, 0, -1), 0.7)
 TAIL = ["tail frame", "rear bumper", "rear strake"]
-# the colour inside takes the body's run where it sits, and the floor's edges glow at night (the
-# user's notes, 2026-09-27)
+# the colour inside takes the body's run where it sits, and the floor's edges glow at night
 ACCENTS = ["sidepod grille", "sidepod panel", "seat belt", "cockpit rim", "mirror", "mirror arm", "floor edge"]
 ACCENT_WORDS = ("I think these need to follow the gradient.  Not sure why it's blue. This as well need to follow the "
                 "gradient.  Basically the mirror and grill would be within the magenta. Would be nice to have that also "
                 "follow the gradient and make it glow at night")
-# the suspension went from matte carbon and dark satin to metal (the user, 2026-09-27). It shares
-# paint only with the small patch the front uprights wear, which goes metal with them
+# the suspension in metal: it shares paint only with the small patch the front uprights wear,
+# which goes metal with them
 SUSPENSION = ["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm", "damper", "rear damper", "upright",
               "hub bracket", "driveshaft"]
 CARBON_ARMS = ["lower wishbone", "upper wishbone", "pushrod", "tie rod", "rear arm"]
 # the fasteners on the cockpit, the engine cover, the nose and the front wing all wear one tiny strip
-# of the inner car's paint (u, v in texels of 4096), which the parts list gives to the front wing:
-# they came out cyan wherever they sat (the user's note on the mirrors, 2026-09-27, showed them)
+# of the inner car's paint (u, v in texels of 4096), which the parts list gives to the front wing,
+# so they take its cyan wherever they sit unless painted by hand
 FASTENERS = (2247, 2253, 2565, 2609)
 
 
@@ -154,7 +147,7 @@ def wrap(s):
     s.paint(["front wing", "wing mounts"], "satin", colour=C)
     s.paint(["tail frame", "rear bumper", "rear light"], "satin", colour=ORANGE)
     inner_run(s, ["cockpit rim", "mirror", "mirror arm"])
-    # the plate each grille sits in goes black, to break up the run (user, 2026-09-24)
+    # the plate each grille sits in goes black, to break up the run
     s.paint("sidepod grille plate", "satin", colour=DARK)
     s.glow(["sidepod grille", "side vent"], None, "always on")
     s.glow("brake caliper", None, "brake lights")
@@ -164,7 +157,7 @@ def wrap(s):
 
 
 def grain(s):
-    """The user's pick over a round of textures (carbon, halftone, brushed)."""
+    """A tiny grain in the wrap's sheen."""
     s.step("A fine grain", "A tiny grain in the black wrap's sheen, like textured vinyl: seen up close where the light falls. The trims plain matte.",
            words="I was just thinking tiny grain just to have a bit of texture.")
     s.paint("body", "textured wrap", colour=BLACK)
@@ -185,8 +178,8 @@ def design(s):
     s.paint("body", "satin", colour=M, zone=shapes.fade("z", 150, 50))
     s.paint("body", "satin", colour=ORANGE, zone=shapes.fade("z", -10, -100))
     under = s.keep()
-    # on top: the black wrap, with no seam lines ("the black tape", user), torn open
-    s.step("The black wrap", "Matte black over the whole body, no seam lines; the inner car in the run's colours.",
+    # on top: the black wrap, torn open
+    s.step("The black wrap", "Matte black over the whole body; the inner car in the run's colours.",
            words="Can you remove the black tape.")
     wrap(s)
     grain(s)
@@ -209,7 +202,7 @@ def design(s):
 
     s.step("Wheels", "Matte black covers, and a line round each tyre from cyan at the front to orange at the back.",
            words="If you can actually do a radial effect of that line that gradients the cmyk.")
-    # the wheel covers lose their stock mirror chrome (the user, 2026-09-25)
+    # the wheel covers matte black over the stock mirror chrome
     s.paint("wheel covers", "matte", colour=BLACK)
     tyre_line(s, 31.7, 32.9)
     s.relight("speed numbers", ORANGE)
@@ -224,8 +217,8 @@ def design(s):
     s.glow(TURBO_WHEELS, M, "exhaust heat", replacing="turbo", keep_level=True)
     turbo_run(s, TURBO_REST)
     s.glow("tail frame", ORANGE, "exhaust heat", zone=PORTS)  # the openings, orange-hot in a turbo
-    s.no_glow("rear bumper")  # under the deck, hidden by the body: it glowed white all the time
-    # the exhaust was bare titanium, the one bright silver part inside: heat-tinted now, as real
+    s.no_glow("rear bumper")  # under the deck, hidden by the body: stock, it glows white all the time
+    # the exhaust heat-tinted, as real
     # titanium pipes go, straw gold at the engine through magenta-purple to blue at the tips
     s.paint("exhaust", "brushed titanium", colour="#c9a24a")
     s.paint("exhaust", "brushed titanium", colour="#9a4f9e", zone=shapes.fade("z", -115, -130))
@@ -233,8 +226,8 @@ def design(s):
     # (before the tail: the pipes' trim shares a few texels with the tail's frame, and the tail
     # must win them, or they show as gold dashes along its edges)
     s.paint(TAIL, "matte", colour=BLACK)
-    # the openings under the quarter panels, seen whenever the air brakes lift, were still the
-    # stock grey: dark like the rest of the inside
+    # the openings under the quarter panels, seen whenever the air brakes lift: dark like the rest
+    # of the inside
     s.paint("airbox", "matte", colour=SHADE)
     # relief: a quilted seat, and a registration mark raised at each end of the tail's top band
     s.relief("seat", "quilted", depth=0.5, scale=7, replace=True)
@@ -244,9 +237,9 @@ def design(s):
            "where they sit; the floor's edges glow at night.", words=ACCENT_WORDS, look="night")
     paint_run(s, ACCENTS)
     # the cockpit rim and sidepod panels share a small patch of paint with many inner parts (all of
-    # the front uprights'): it goes back to the airbox's dark it had, or the uprights turned pink
+    # the front uprights'): the uprights go dark, or they'd take the run's pink
     s.paint("upright", "matte", colour=SHADE)
-    s.glow("sidepod grille", None, "always on")  # the grilles glow in their new colours
+    s.glow("sidepod grille", None, "always on")  # the grilles glow in the run's colours
     s.glow("floor edge", None, "night only")
     fasteners(s)
 

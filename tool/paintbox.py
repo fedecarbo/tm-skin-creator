@@ -202,8 +202,8 @@ def dark_take_codes(rgb, code, w, h, reach=3):
     """The glow codes, with every unlit texel within `reach` texels of a glow taking that glow's
     code. The game and the viewer blend the glow colour between texels but read the code of the
     nearest one, so an unlit texel of another code beside a glow lit the glow's colour on its
-    own terms along the edge: a dashed line of always-on orange round TSC_CMYK_BlackTail's
-    turbo-lit openings (2026-09-25). An unlit texel shows nothing whatever its code."""
+    own terms along the edge: a dashed line of always-on orange round
+    a turbo-lit opening. An unlit texel shows nothing whatever its code."""
     from scipy.ndimage import distance_transform_edt
     lit = (rgb.max(1) > 0.004).reshape(h, w)
     d, (iy, ix) = distance_transform_edt(~lit, return_distances=True, return_indices=True)
@@ -269,7 +269,7 @@ class Skin:
         """The parts no step painted: [(instance id, part name)] for each part with at least
         `least` of its texels (and `texels` of them) still in clay. None for a design that didn't
         start from clay. Clay is a neutral white, so a part left in it passes for white paint
-        and a white part looks forgotten (TSC_FlagPeel_CostaRica's cockpit rim, 2026-09-26)."""
+        and a white part looks forgotten."""
         found = None
         for tset, c in self.canvases.items():
             if c.clay is None:
@@ -293,7 +293,7 @@ class Skin:
         if self.clay_left:
             self.notes.append("still clay (no step paints them): " + ", ".join(dict.fromkeys(n for _, n in self.clay_left)))
         # nothing paints after this: the last frame, summary(), the viewer and save_painted all
-        # take these, where each used to build them again (15 to 25 s a show)
+        # take these rather than each building them again (15 to 25 s a show)
         self._final = self.textures()
         self._end_step(done=True)
 
@@ -423,10 +423,8 @@ class Skin:
 
     def _warn_reach(self, name, ids):
         """Note when a name reaches further than it seems: an assembly that shares its name with
-        one of its parts ("front wing" is the wing, its endplates and lenses; the brackets and the
-        pylons under the nose were in it until 2026-09-26), or one whose parts are in more than one
-        texture set. The wing's stripes
-        landed on the body's pylons, over the wrap (TSC_FlagPeel_CostaRica, 2026-09-26)."""
+        one of its parts ("front wing" is the wing, its endplates and lenses), or one whose parts are in
+        more than one texture set."""
         chosen = [self.parts.instances[i] for i in ids]
         if not {o["name"] for o in chosen} - {name}:
             return  # a part, or "|part"
@@ -871,8 +869,7 @@ class Skin:
         the copy's width in cm, or (smallest, largest); spacing: the least distance between
         copies in cm (default: a little more than the largest size, so they never overlap);
         turn: "random", "length" (along the car) or an angle in degrees from the car's length.
-        The spread is even (user, 2026-09-24: the first version bunched up and left bare
-        patches): each copy takes the picture least used among its neighbours, a copy that
+        The spread is even: each copy takes the picture least used among its neighbours, a copy that
         doesn't fit is nudged, turned and shrunk before it's given up, and a second pass fills
         any patch still bare with smaller copies."""
         from tool import scatter

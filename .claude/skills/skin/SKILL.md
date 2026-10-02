@@ -44,7 +44,7 @@ game: install from the Windows PC after a push.
 - Names: `TSC_<Idea>` in CamelCase. A change edits that skin unless the user wants both.
   `borrow("TSC_X")` (`tool.skin`) builds on another skin's design, only when the user names it.
 - Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
-  its family in `finishes.CATALOGUE` (the codes never reorder).
+  its family in `finishes.CATALOGUE`.
 - Read only when a design needs it: `car/map.md` and its pictures (the body's areas, openings and
   panels, for `shapes.area`, `outside`, `along`, `near`, `streamlines`), and `tool/skindraw.py`'s
   docstring (lines, stripes, bands and rings drawn on the skin).

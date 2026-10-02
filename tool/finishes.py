@@ -254,7 +254,7 @@ def get(name):
 def with_shine(finish, shine):
     """The finish's look with another finish's shine: "scratched matte", "brushed gloss"."""
     return replace(finish, roughness=shine.roughness, metalness=shine.metalness if finish.metalness == 0 else finish.metalness,
-                   varnish=shine.varnish, name=f"{shine.name} {finish.name}", code="")  # no longer the Lab's own
+                   varnish=shine.varnish, name=f"{shine.name} {finish.name}", code="")  # a mix has no Lab code
 
 
 _NAMED_COLOURS = None

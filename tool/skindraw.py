@@ -31,7 +31,7 @@ goes blind, and nothing needs a flattening, so nothing shears.
   (x, y, z) in cm with a word for the way the skin faces there, (x, y, z, "up"): "up", "side",
   "front", "rear" or "down" (the car has upstands, where a bare point can land on either face).
 
-What the exam car showed (TSC_SkinExam, 2026-10-01): 2 mm is the thinnest line the body's texture
+Measured on the car: 2 mm is the thinnest line the body's texture
 holds whole (its texels are 0.9 mm; 1.5 and 1 mm lines go patchy), and from the game's chase cameras
 3 to 4 mm reads as a line while 2 mm is faint; corners are round on the outside and whole inside;
 crossings, T's (square or slanted, via meet) and a line 15 mm off the cockpit's rim all measure within
@@ -232,7 +232,7 @@ def _corners(skin, items, closed=False):
     the user's own pins among them (for the check).
 
     Not the nearest existing corner: the rear flank's faces are 15 to 28 mm across, so a curve run
-    corner to corner passed the user's crease pins 7.6 mm off (measured on TSC_SkinExam). The solver
+    corner to corner passes the user's crease pins 7.6 mm off. The solver
     takes 0.1 s to build on the whole car, so each curve gets its own."""
     import potpourri3d as pp3d
     items = _expand(items)
@@ -286,11 +286,7 @@ def through(items, name="", smooth=0.0):
     for a line meant to flow through its places (the user's pins along a crease); the rounding
     cuts inside the corner by a fraction of a millimetre for the few degrees a flowing line turns.
 
-    Until 2026-10-01 this pulled the whole chain tight (geometry-central's find_geodesic_path_poly
-    shortens the path through all the places at once, keeping only which side of each place it
-    goes), so a middle place chose the way round and was not passed through: TSC_Skin's hoop ran
-    196 mm from its places, Solstice's sweep 217 mm, the user's side crease 92 mm from their pins,
-    and a chevron came out a straight line. That is `taut`, kept for the cars drawn with it."""
+    `taut` pulls the whole chain tight instead, and misses its middle places by up to 217 mm."""
     skin = skinmesh.load()
     solver, ids, snapped, asked, extra = _corners(skin, items)
     pts, corners = _legs(solver, ids)
@@ -304,8 +300,7 @@ def taut(items, name=""):
     """The shortest line over the skin from the first place to the last, pulled taut like a string
     and kept on the same side of each place in between: the places choose the way round (which side
     of the cockpit), and are NOT passed through -- measured, up to 217 mm from them. Smooth by
-    construction, with no corner anywhere. TSC_Skin, TSC_SkinMore and TSC_Solstice were drawn with
-    it (it was `through` until 2026-10-01); for a line that must pass through its places, `through`."""
+    construction, with no corner anywhere. For a line that must pass through its places, `through`."""
     skin = skinmesh.load()
     solver, ids, snapped, asked, extra = _corners(skin, items)
     pts = np.asarray(solver.find_geodesic_path_poly(ids), np.float64)
@@ -589,10 +584,10 @@ def _ribbon(curve, half, soft, along=0.05, across=0.025):
     """The band's own surface, as a cloud of points each carrying how far it is from the curve
     ALONG THE SURFACE (cm, signed).
 
-    Why not simply the distance through space, which is what the first try used: across a sharp
+    Why not simply the distance through space: across a sharp
     fold -- the shoulder, the sidepod's edge -- the straight line through the air is shorter than
     the way over the skin, so a band set by it narrows exactly where the car bends most. Measured
-    on TSC_Skin's hoop, which crosses the fold from the flank onto the engine cover: 2.96 mm out of
+    on a hoop crossing the fold from the flank onto the engine cover: 2.96 mm out of
     40 at the 95th percentile. Here every point is reached by walking the surface with an exact
     geodesic (potpourri3d's tracer), so its offset is the real one, and the cloud is fine enough
     (0.25 mm across) that a texel takes its offset from a point nearer than a quarter of a texel.
@@ -633,8 +628,8 @@ def _ribbon(curve, half, soft, along=0.05, across=0.025):
     # outside and leave a wedge no walk reaches, a notch in the band's outer edge: at a chevron's tip
     # or an outline's corner, the whole width of the band. More walks from the turn's own point,
     # swept across the wedge, fill it the way a brush rounding a corner would. Both sides get them:
-    # which side is the outside was guessed from the turn in space, and where TSC_Skin's spine hugs
-    # the cockpit's rim (52 degrees in 5 mm, over the rim's rolled lip) it guessed wrong and left a
+    # which side is the outside is guessed from the turn in space, and where a line hugs
+    # the cockpit's rim (52 degrees in 5 mm, over the rim's rolled lip) it guesses wrong and leaves a
     # bite out of the band. On the inside the added walks are harmless, since a texel takes the
     # least distance its nearest ribbon points give (band).
     for k in range(len(pts) - 1):
@@ -660,7 +655,7 @@ def band(curve, width, soft=shapes.SOFT, turn=TURN):
     The width is the real one on the skin: every texel takes its distance from the curve off a
     cloud of points walked out from it by exact geodesics, so the band is as wide over a fold as
     it is on a flat panel. Nothing is interpolated from the mesh's corners -- per-corner values on
-    a 35 mm mesh are what made the old bands look like crayon -- and the cloud is finer than a
+    a 35 mm mesh look like crayon -- and the cloud is finer than a
     texel, so the edge is smooth. Whether the surface faces the way the curve does is still
     checked, to keep paint off the far side of a thin panel.
 
@@ -682,7 +677,7 @@ def band(curve, width, soft=shapes.SOFT, turn=TURN):
     ribbon_n = curve.skin.fn[np.maximum(face, 0)]      # which way the skin faces at each ribbon point
     # The band may only land on the piece of surface it walked on. Distance alone -- however
     # measured -- lets paint hop onto a piece the curve never touched but that lies near it in
-    # space: measured on TSC_Skin, the spine put 97 cm2 on the tail panel and the flank sweep
+    # space: measured, a line along the top put 97 cm2 on the tail panel and a flank sweep
     # 61 cm2 on the tail corner, both on the tail, which is its own piece across a real gap in the
     # model. Gating on the piece rather than on the faces walked leaves no holes: a face the
     # ribbon crossed but whose centre it did not fall nearest is still on the same piece.
@@ -695,8 +690,8 @@ def band(curve, width, soft=shapes.SOFT, turn=TURN):
     # the last ribbon point, which is small, and the band grows a cap: measured, the flank sweep
     # put 61 cm2 round onto the tail corner, a part its curve never ran over.
     # Square to the curve's last centimetre, not its last step: a geodesic arriving at its end place
-    # can bend in its final millimetres, and the end cut by the last 2.5 mm alone came out slanted
-    # across TSC_Skin's spine, a staircase of texels (2026-10-01).
+    # can bend in its final millimetres, and an end cut by the last 2.5 mm alone comes out slanted,
+    # a staircase of texels.
     head, tail = spine[0], spine[-1]
     d_head, d_tail = spine[0] - spine[min(4, len(spine) - 1)], spine[-1] - spine[max(-5, -len(spine))]
     d_head /= max(np.linalg.norm(d_head), 1e-9)

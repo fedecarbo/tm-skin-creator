@@ -6,11 +6,11 @@ Written by `python -m tool.carmap --describe` from the car's own mesh (2026-09-3
 
 The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):
 
-- `car/map/areas.jpg` (TSC_Map_Areas): the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch, absent where the body has no line: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
-- `car/map/lines.jpg` (TSC_Map_Lines): every ridge of the body's curvature on clay, each in its own colour.
+- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch, absent where the body has no line: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
+- `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.
 - `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.
-- `car/map/open.jpg` (TSC_Map_Open): how much of the open air each spot sees, white (all) to violet (hidden).
-- `car/map/air.jpg` (TSC_Map_Air): where the oncoming air hits, a warm ramp over black, and smoke lines traced along its flow from a rake at the nose.
+- `car/map/open.jpg`: how much of the open air each spot sees, white (all) to violet (hidden).
+- `car/map/air.jpg`: where the oncoming air hits, a warm ramp over black, and smoke lines traced along its flow from a rake at the nose.
 
 The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 (https://sketchfab.com/amogusstrikesback2).
 

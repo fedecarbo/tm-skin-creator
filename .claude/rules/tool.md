@@ -8,13 +8,10 @@ paths:
 
 # Working on the tool
 
-The top docstring of each `tool/*.py` is its key. Why something works as it does is in the code
-and in git's history (the old lessons file: `git show 78f8a8f:LEARNED.md`).
+The tool's manual: what to run and how the pieces fit, read when working on the tool. The rules
+are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
 
 ## Checking a change
-
-Every change to the tool keeps every existing skin's paint and game files identical, unless the
-change is meant to alter them (then say which, and why, in its commit):
 
 - `PY -m tool.selftest --against <commit>` paints the user's car and the self-test's own tour car
   (every other paint call) with this code and with that commit's, and compares every texture,
@@ -52,8 +49,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   for every finish in `finishes.CATALOGUE` and serves it. After a change to `tool/server.py`,
   `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own `tool.swatches` or
   `tool.view`) and start `PY -m tool.swatches --no-tab` in the background (`--no-open` only
-  paints). **The Lab shows only the tool's own data**, never a list of its own that could drift: a
-  gap in the Lab is a gap in the tool, to fix in the tool (the user, 2026-09-26). Its rooms share
+  paints). A gap in the Lab is a gap in the tool, to fix in the tool. Its rooms share
   `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
     (`lab-car.js`). The car follows the frames `tool.skin show` writes at each `Skin.step`
@@ -102,9 +98,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   list for `skindraw.through`, which runs a curve through its pins (the room's own curve is only a
   rough picture).
 - The car map (`tool/carmap.py`, `car/map.md` and its pictures in `car/map/`) rebuilds itself when
-  the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its code: rebuild, repaint the
-  map's test cars (`TSC_Map_*`, in git at 2f79800), take their `--body` pictures into `car/map/`
-  and `--describe` again (on the computer whose map is in `car/map.md`: the two trace different
+  the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its code: rebuild, retake the
+  pictures in `car/map/` (`tool.snap <name> --body` of a car painted by the map's zones) and
+  `--describe` again (on the computer whose map is in `car/map.md`: the two trace different
   ridges, `IMPROVEMENTS.md`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
@@ -184,7 +180,7 @@ From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link i
   | Alpha | Behaviour |
   |---|---|
   | 0 | Brake lights: on at night, flaring when braking |
-  | 32 | Energy, tinted in game (team colour); the RGB must be grey. Dark on the track (2026-09-27) |
+  | 32 | Energy, tinted in game (team colour); the RGB must be grey. Dark on the track |
   | 64 | Brake heat, on when braking hard (builds over ~1.5 s) |
   | 96 | Always glowing |
   | 128 | Front lights: off by day, the brightest at night |

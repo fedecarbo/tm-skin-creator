@@ -79,8 +79,7 @@ class Coverage:
     def get(self, ids):
         """The parts' coverage added up and clipped to 1. Added, not the largest: where two
         parts meet, each covers part of the seam texel, and painting both must cover it fully
-        (the largest left the stock paint showing through as a dotted line along every seam;
-        found on TSC_Seams_Black, 2026-09-24). Shared texels (twins) just clip to 1."""
+        (the largest leaves the stock paint showing through as a dotted line along every seam). Shared texels (twins) just clip to 1."""
         flat = np.zeros(self.w * self.h, np.float32)
         for i in ids:
             if i not in self.sparse:
@@ -92,9 +91,8 @@ class Coverage:
     def share(self, ids):
         """The parts' share of each texel's covered area, 0..1: what paint on them should weigh.
         On an island's edge a texel is partly outside every triangle; get() gives the part
-        inside, so a second coat over a first left the first showing there at a quarter or so,
-        a dashed line along every edge (black over orange on TSC_CMYK_BlackTail's tail,
-        2026-09-25). Only where another part shares the texel does the paint mix."""
+        inside, so a second coat over a first would leave the first showing there at a quarter or so,
+        a dashed line along every edge. Only where another part shares the texel does the paint mix."""
         if self._all is None:
             self._all = self.get(self.ids).reshape(-1)
         mine = self.get(ids).reshape(-1)

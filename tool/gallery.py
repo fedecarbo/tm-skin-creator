@@ -36,7 +36,7 @@ def words_of(folder):
 
 
 def title_of(name):
-    """The name as the pages show it: "TSC_CMYK_Peel_More" -> "CMYK Peel More"."""
+    """The name as the pages show it: "TSC_CMYK_EndsInK" -> "CMYK Ends In K"."""
     name = name.removeprefix("TSC_").replace("_", " ")
     return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", name)
 

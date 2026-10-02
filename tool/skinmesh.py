@@ -64,12 +64,12 @@ SUBDIVIDE = 2    # times every triangle is split into four (35 mm -> 9 mm corner
 CENTRE = 0.02    # cm: a corner this near x = 0 is pinned to it before mirroring, so the two halves meet exactly
 REACH = 0.3      # cm: a point found by nearness must land this close to count as on the skin
 MEND = 12.0      # cm: an edge loop shorter than this round is a flaw in the model, filled: a curve's walks
-                 # stop at any edge, and a 4 cm hole by the cockpit's rear corner bit a 12 mm notch out of
-                 # TSC_Skin's spine (TSC_SkinExam, 2026-10-01). The openings round the mirror mounts and
+                 # stop at any edge, and a 4 cm hole by the cockpit's rear corner bites a 12 mm notch out
+                 # of a line along the top. The openings round the mirror mounts and
                  # the wing pylon (13 cm and up) are real, and stay.
 
 
-# ---- sewing the panels (moved from the flat pattern, tool/surface.py, retired 2026-09-30) ----
+# ---- sewing the panels ----
 
 def _edges(F):
     """Each triangle's three edges as sorted vertex pairs (3T, 2): the edges 01 of every triangle,

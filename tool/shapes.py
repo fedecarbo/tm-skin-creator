@@ -216,8 +216,8 @@ def grass(base=10.0, height=(14.0, 30.0), width=(4.0, 8.0), lean=0.4, every=3.0,
     side (along the car and up), so both sides show the same silhouette. A blade is `width` cm at
     its root and `height` cm tall, bending up to `lean` of its height forward or back; one every
     `every` cm on average, overlapping. Filled, with everything below `base`; or `line`: each blade
-    an ink stroke that wide at its root, thinning to the tip, and nothing else. Made for the grass
-    maps' cars (TSC_Ladybird's fringe, 2026-09-28): pair it with sides() to keep it off the top."""
+    an ink stroke that wide at its root, thinning to the tip, and nothing else. Pair it with sides()
+    to keep it off the top."""
     rnd = np.random.default_rng(seed)
     zs = np.arange(-190.0, 235.0, every)
     k = len(zs)
@@ -436,8 +436,8 @@ def near(kind, reach, soft=SOFT):
 
 
 def line(kind, width=1.0, soft=SOFT):
-    """A line `width` cm wide along one of the car map's own lines (see near), to show the map on its
-    test cars (TSC_Map_Areas). "shoulder" and "lower" are fitted off the mesh; they cut the map's
+    """A line `width` cm wide along one of the car map's own lines (see near), to show the map's
+    lines. "shoulder" and "lower" are fitted off the mesh; they cut the map's
     areas and aren't for drawing a design: lines are drawn with tool/skindraw.py."""
     return near(kind, width / 2, soft)
 

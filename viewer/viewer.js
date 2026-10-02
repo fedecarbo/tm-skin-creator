@@ -81,10 +81,9 @@ function throughOurLens(v) {
 if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', 'cam2alt']) VIEWS[k] = throughOurLens(VIEWS[k]);
 // The four moods, each a Poly Haven sky (CC0) lighting the car, matched to the user's screenshots of
 // the calibration car in the game. The game maps light to the screen straight, clipping each channel at white
-// (LinearToneMapping). Since 2026-09-27 every mood is a sky whose sun (or moon) is the key, the one
-// light that casts a shadow, with the sky only a fill (the user: "the car itself looks a little hazy",
-// "day time but not realistic, something like in trackmania", "apply that approach to the other
-// moods"): the tops keep the game's greys and the faces the key misses fall into shade.
+// (LinearToneMapping). Every mood is a sky whose sun (or moon) is the key, the one light that casts
+// a shadow, with the sky only a fill: the tops keep the game's greys and the faces the key misses
+// fall into shade.
 //   day      Kloofendal 48d Partly Cloudy: a blue sky with white clouds, its sun 48 degrees up over the
 //            car's front left; sunless cuts the sky's own sun disc to that luminance, so the key alone
 //            is the sun (its shadow and its highlight). Was a photo studio (Studio Small 09) until then.
@@ -852,8 +851,8 @@ function addDisplays(material) {
 // moves straight out, then its side pieces slide apart from its centre piece. The top wing (the
 // tail panel between the two tail corners) lifts, showing the tops of the rear light bars; the
 // bottom wing (the plate under the bumper: the diffuser and the undertray between the diffuser
-// strakes) drops. The blocks under each ("rear bumper", "rear bumper corner": white and purple
-// in TSC_Parts) move out with it but not apart, so they show in the gaps, as in the video. They
+// strakes) drops. The blocks under each ("rear bumper", "rear bumper corner")
+// move out with it but not apart, so they show in the gaps, as in the video. They
 // open from 60 km/h, stay open while coasting and close below 43 (the timeline: WING).
 // Provisional until a side view: how far they move, and what moves when braking. Snapshots keep
 // them shut. ----
@@ -1119,10 +1118,9 @@ function wingDepthMaterial() {
 // within a moment of braking, red-orange at 1 s, bright orange (their colour) at 1.5 s, and fade
 // out over about 1 s after letting go. The glow goes with the square of the heat, so it starts
 // faint. Show → Braking shows it full on.
-// Turbo (code 160) isn't on the pad: it comes from turbo pads. A first try lit it from 100 km/h,
-// but the lights test's videos (2026-09-25) show nothing green on a straight up to 357 km/h.
-// Levels on the screen (GLOW); set under the ACES curve and carried over to the straight one
-// (2026-09-27): braking well past white, brake heat and turbo about their own colour.
+// Turbo (code 160) isn't on the pad: it comes from turbo pads. Nothing lights it on a straight,
+// at any speed (the user's videos, up to 357 km/h).
+// Levels on the screen (GLOW): braking well past white, brake heat and turbo about their own colour.
 const BRAKING = { day: 6, night: 6 };
 const BRAKE_HEAT = { up: 1.5, down: 1.3, day: 1.1, night: 1.3 };
 let braking = false, mood = 'day';

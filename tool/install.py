@@ -1,6 +1,6 @@
 """Put a built skin zip into the game, safely.
 
-    python -m tool.install TSC_Test [TSC_Test_Sharp ...]
+    python -m tool.install <name> [<name> ...]
 
 This is the only code that writes into the game's skin folder, and the folder's path lives only
 here. It never lists that folder. It checks just its exact target file:

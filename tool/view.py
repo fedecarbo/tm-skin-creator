@@ -49,12 +49,9 @@ from tool import bake, dds, fbx, finishes, parts, paths
 DATA = paths.WORK / "viewer"
 STOCK = DATA / "stock"
 # The lighting, Poly Haven HDRIs (CC0): name -> (resolution, md5 from api.polyhaven.com/files/<name>).
-# A moonlit sky at night (the user's pick, 2026-09-24); sunrise and sunset since 2026-09-27 (the
-# user), skies like the game's (viewer.js: LOOKS). By day a photo studio (studio_small_09) until
-# 2026-09-27, then a sky like the game's.
+# A sky for each of the four moods, like the game's (viewer.js: LOOKS).
 HDRIS = {
-    # the day since 2026-09-27 (the user: "day time but not realistic, something like in
-    # trackmania"): a bright sky with white clouds and a high sun, as the game's
+    # the day: a bright sky with white clouds and a high sun, as the game's
     "kloofendal_48d_partly_cloudy_puresky": ("2k", "2eba3a4d7eeb23cbfbeca364c97e7980"),
     "dikhololo_night": ("1k", "4a760813214ec4d97da8e1739bb616a5"),
     "belfast_sunset_puresky": ("1k", "38890f597727936a44d17a97f7f73354"),
@@ -343,7 +340,7 @@ CLAY = DATA / "clay"
 def ensure_clay():
     """Modelling clay for the viewer (the Lab's lines room shows the body in it so its shape reads):
     the body and the inner car matte, no varnish, a mid grey (the Studio's near-white clay washes
-    out under the studio's light: the creases vanished, 2026-09-29). The slots it covers are in
+    out under the studio's light: the creases vanish). The slots it covers are in
     clay.json; a page lays them over the stock ones."""
     stamp = CLAY / "clay.json"
     if not _stale(stamp):

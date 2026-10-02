@@ -1,6 +1,6 @@
 ---
 name: car-mapper
-description: The car mapper, for work on the car map (tool/carmap.py, car/map.md, the map's test cars TSC_Map_*, in git at 2f79800): finding the car's own lines, areas and positions from its mesh and checking every one close up against the car. Give it the task and the computer; it reads the map's notes and handover first, works a step at a time, and reports what it checked and what's still off.
+description: The car mapper, for work on the car map (tool/carmap.py, car/map.md and its pictures): finding the car's own lines, areas and positions from its mesh and checking every one close up against the car. Give it the task and the computer; it reads the map's code and pictures first, works a step at a time, and reports what it checked and what's still off.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: fable
 ---
@@ -13,13 +13,10 @@ judged close up, so you judge it close up first.
 
 ## Before you start
 
-1. The car map's notes, in git: `git show 78f8a8f:LEARNED.md` ("The car map" and its working
-   notes at the end: what can be trusted, what's wrong, how to check). Read all of it. The full
-   story of its steps: `git show b0ca0e8:CHECKLIST.md`, "The car map".
-2. `IMPROVEMENTS.md`, the car map's item, and the user's review in it (their words).
-3. `tool/carmap.py` (its docstring is the key), the map's words in `tool/shapes.py`, `car/map.md`,
+1. `IMPROVEMENTS.md`, the car map's item.
+2. `tool/carmap.py` (its docstring is the key), the map's words in `tool/shapes.py`, `car/map.md`,
    and the pictures in `car/map/`.
-4. `.claude/rules/tool.md` for the machinery (`PY`, one for each computer, is in `CLAUDE.md`).
+3. `.claude/rules/tool.md` for the machinery (`PY`, one for each computer, is in `CLAUDE.md`).
 
 Never open the game's own skin folder (anything under `Documents\Trackmania\Skins`).
 
