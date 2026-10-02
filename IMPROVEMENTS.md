@@ -44,6 +44,10 @@ goes into the code.
 - **Two tyre fonts don't paint on the Mac** (Bahnschrift, Consolas). Idea: open look-alikes.
 - **Real scanned materials** (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
 - **The materials and the UV map, in a new way**: the user's to describe; start from their words.
+- **The car map against well-made skins** (the user's idea): a folder of official CarSport skins (the
+  user checks which they may download), kept out of the repo and away from the game's skin folder. Lay
+  their body textures' sharp colour edges on the car and compare them with the map's lines; fix the
+  map where they agree it's off, in pictures. For checking the map only: they never shape a design.
 
 ## The viewer
 
