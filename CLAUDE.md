@@ -5,95 +5,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## The project
 
 A tool that makes skins (paint jobs) from the user's words for the Trackmania 2020 stadium car
-(CarSport). The user describes a skin in a chat. Claude shows it on the car and changes it until
-the user says yes, then installs it so they can pick it in the game. From the user's brief
-(`BRIEF.md`), they judge it by four things:
+(CarSport). The user describes a skin in a chat; Claude shows it on the car and changes it until
+they say yes, then installs it. They judge it by four things (`BRIEF.md`): they'd drive it in the
+game; it's fast, minutes from their words to the car; it's all in words; it stays small and simple.
 
-- **They like the skin in the game:** one they would actually drive with, not only one that
-  looks good in a picture.
-- **It's fast:** from their words to the car in minutes, not hours.
-- **It's all in words:** they never open a paint program or touch a file.
-- **It stays small and simple:** they'd rather have less machinery than more.
+The user isn't technical and won't read code. Claude makes every technical decision.
 
-The user isn't technical and won't read code or the files that describe a design. Claude makes
-every technical decision. Ask them only about what the skin should look like, and whether they
-like what you show them.
+**Every request to make, change, show or install a skin goes through the `skin` skill.** Load it
+first.
 
-**Every request to make, change, show or install a skin goes through the `skin` skill**
-(`.claude/skills/skin/SKILL.md`). Load it first.
+## The rules
 
-## Talking to the user
-
-- Use plain words. Leave code, file names, paths and jargon out of replies unless they ask.
-- Show rather than describe. A preview picture beats a paragraph.
-- Ask only about taste and real trade-offs. Don't ask about things good design handles anyway:
-  a question about their driving camera felt pointless (2026-09-23). When they get to pick or
-  confirm something about a car, it comes to the Lab's chat as a widget too (the `skin` skill).
-- Don't ask the user to test in the game. They try things there when they want to, and not
-  everything needs it (the user, 2026-09-30). If they share F12 screenshots, use them.
+@RULES.md
 
 ## Where things are
 
-- `LEARNED.md`: the user's decisions and what the game, the tests and the user taught us, by
-  topic. Search it before changing how something works, and add what a skin or a test teaches.
-  `.claude/rules/tool.md` loads with the tool's code: how to check a change (the self-test), the
-  commands for the machinery, the source assets and the game's texture format. The story of how
-  the tool was built is in git (`CHECKLIST.md`, deleted 2026-10-01).
-- `IMPROVEMENTS.md`: the queue of things the tool should do better. **Whatever the user asks the
-  tool to do better (the viewer, new abilities, fixes) is an improvement** (the user, 2026-09-25):
-  it goes on that list, and a big one keeps its working notes at the end of `LEARNED.md`. The
-  `skin` skill says how the list is kept. Work on it when the user asks. "Under way" says what's
-  in progress.
+- `RULES.md`: how we work, as the mistakes not to repeat. `IMPROVEMENTS.md`: the queue of what the
+  tool should do better; whatever the user asks the tool to do better goes there, and it's worked
+  on when they ask. `.claude/rules/tool.md` loads with the tool's code: checking a change (the
+  self-test), the machinery's commands, the game's texture format.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
-  picture maker) and the user's Mac (designing, the viewer, snapshots). Both run the tool the same
-  way. A hook in `.claude/settings.json` pulls at the start of each session: if it failed, sort
-  that out first. Work that isn't pushed doesn't exist on the other computer.
-- **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/,
-  the skins in the game in 3D. `PY -m tool.publish` rebuilds it and replaces the `gh-pages`
-  branch; it never goes on `main`.
-- `tool/`: the Python machinery. `viewer/`: the 3D page and the gallery. `car/parts.json`: every
-  part's name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool has put
-  in the game.
+  picture maker) and the Mac (designing, the viewer, snapshots). A hook pulls at the start of each
+  session: if it failed, sort that out first.
+- `tool/`: the Python machinery. `viewer/`: the 3D page and the Lab. `car/parts.json`: every part's
+  name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool put in the game.
 - `PY` is the tool's Python, run from the repo root: on the PC
   `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac
-  `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`.
-- Work folder `TrackmaniaSkinChallenge`, the venv's parent above: `venv`, `browsers` (the Mac's
-  snapshots), `official` (unpacked zips), `cache` (the parsed mesh, bakes and coverage), `build`
-  (painted textures, pictures, DDS files and zips), `models` (the picture maker's weights, the PC),
-  `fonts`, `textures`, `viewer` (what the viewer page loads), `site` (the page online),
-  `selftest` (the self-test's code and results). All of it is rebuildable.
-- Record technical decisions in the repo (the code, `LEARNED.md`, or this file if every session
-  needs them), so the next cold session finds them.
-- Version control: GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. Commit and push
-  without asking after each finished piece of work (a skin shown or installed, an improvement
-  or a step of one, a checkpoint ticked), and before a session stops mid-way, so the other
-  computer starts from it (the user, 2026-09-23 and 2026-09-25). Never push files that aren't
-  ours to publish.
-- Before adding any tool or library, look up its latest release and use that version, then
-  record it. If a paid option would be far better, tell the user and discuss it before using it.
-  Always suggest a one-time-payment tool when its quality is far better (user, 2026-09-24).
-- Credit the car model's author, amogusstrikesback2 (CC-BY-4.0), wherever the model is reused.
+  `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`. Its parent folder
+  is the work folder (caches, builds, the viewer's data, the page online): all rebuildable.
+- **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/.
+  `PY -m tool.publish` rebuilds it on the `gh-pages` branch, never on `main`.
+- GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. Never push files that aren't ours to
+  publish. Credit the car model's author, amogusstrikesback2 (CC-BY-4.0), wherever it's reused.
 
 ## Don't look in the game's skin folder
 
 `C:\Users\fedec\OneDrive\Documents\Trackmania\Skins\Models\CarSport\`
 
-- It holds skins the user made outside this project. They are **not** reference designs or
-  examples of good practice. Never list, open, read, copy or unzip anything there by any
-  means: tools, shell or scripts. Never let them shape a design or technical choice. Work
-  from `official/`, Nadeo's documentation and your own research.
-- `.claude/settings.json` denies Claude's file tools on that folder. That also stops the Write
-  tool from creating files there. Shell commands and scripts aren't covered, so the rule
-  above is what stops them. Don't work around the deny.
-- The only thing that writes there is `tool/install.py`. It holds the folder path in its own
-  code. It checks only whether its exact target file name is free, and it never overwrites or
-  deletes a file this project didn't create (`skins/installed.json` + sha256).
-- Steam screenshots (F12) are in
-  `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`. 2225070 is
-  Trackmania. Look only at screenshots taken after the skin you're testing was installed.
+- It holds skins the user made outside this project. Never list, open, read, copy or unzip anything
+  there, by any means (tools, shell or scripts), and never let them shape a choice.
+  `.claude/settings.json` denies the file tools there; shell commands aren't covered, so this rule
+  is what stops them. Don't work around the deny.
+- Only `tool/install.py` writes there. It checks only its exact target file name, and never
+  overwrites or deletes a file this project didn't create (`skins/installed.json` and sha256).
 
 ## Keeping this file useful
 
-It loads every session, so keep it short: only what every session needs. Instructions for one
-part of the code go in `.claude/rules/*.md` with `paths:`. The design routine lives in the
-`skin` skill. Delete lines that stop being true.
+It loads every session: only what every session needs. Instructions for one part of the code go
+in `.claude/rules/*.md` with `paths:`; the design routine in the `skin` skill. Delete what stops
+being true.

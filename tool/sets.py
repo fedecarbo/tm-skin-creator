@@ -1,4 +1,4 @@
-"""A car's sets of options (the user's pick, 2026-09-28: LEARNED.md, Decisions): whenever the user
+"""A car's sets of options (the user's pick, 2026-09-28): whenever the user
 asks for a few ideas on anything, in any order ("can we try 3 different materials for X", "a few
 concepts for the wheels", or a loose idea's first takes), Claude paints each option as a whole car
 and they wait in the Lab's list, "For you to pick", until the user picks one there or in the chat.

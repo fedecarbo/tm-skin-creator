@@ -8,20 +8,19 @@ paths:
 
 # Working on the tool
 
-`LEARNED.md` records why the tool works as it does: the user's decisions and what the game, the
-tests and the user showed, by topic. Search it before changing how something works. The top
-docstring of each `tool/*.py` is its key.
+The top docstring of each `tool/*.py` is its key. Why something works as it does is in the code
+and in git's history (the old lessons file: `git show 78f8a8f:LEARNED.md`).
 
 ## Checking a change
 
 Every change to the tool keeps every existing skin's paint and game files identical, unless the
 change is meant to alter them (then say which, and why, in its commit):
 
-- `PY -m tool.selftest --against <commit>` paints a representative set of skins with this code
-  and with that commit's, and compares every texture, every DDS file, the notes and the record;
-  `--all` takes every design (about an hour a side), `--snap` compares the viewer's sheets pixel
-  for pixel, `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in
-  the work folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
+- `PY -m tool.selftest --against <commit>` paints the user's car and the self-test's own tour car
+  (every other paint call) with this code and with that commit's, and compares every texture,
+  every DDS file, the notes and the record; `--snap` compares the viewer's sheets pixel for pixel,
+  `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in the work
+  folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
 - A cache whose contents change must change its name or version (`coverage._key`,
   `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
 - The page online and Claude's snapshots must not change with a change made for the Lab (the
@@ -110,6 +109,29 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.
+
+## Facts the code doesn't say
+
+- The car faces +z, y up, its left is +x, in cm (the FBX: Skin_01, Details_01, Wheels_01,
+  Glass_01). The wheels' axles are fitted (`shapes.WHEEL_Y/Z`); the viewer lifts the car 1.2 cm.
+- A shared texel's baked position may be another part's (the bake keeps the last triangle): zone a
+  shared Details part with `parts.load().local_bake(...)`.
+- `_R` maps: R roughness, G metalness (three.js reads G and B: swizzle). Dirt: 255 is full dust,
+  the stock averages 53. Glass is tint only. A zip needs no spaces in its name and an `Icon.tga`;
+  the running game finds a new skin without a restart.
+- A glow's edge takes the nearest texel's code (the game blends colour, not code):
+  `paintbox.dark_take_codes`. `glow()` also tints the paint.
+- The game maps light to the screen straight, clipping each channel at white (the viewer's
+  `LinearToneMapping` at 1.44). Fit its cameras' lens from screenshots, never by eye.
+- Codes the user copies never reorder (`finishes.CATALOGUE`, the tyres' TY and TR): a new one goes
+  at the end of its family, a retired one leaves None.
+- Don't merge look-alike code that rounds differently (float32 against float64 conversions differ
+  by a level on about 4 % of values). A check keeps its own copies of what it checks.
+- Windows: long heredocs through Git Bash get cut off (write a script to the scratchpad); GNU sed
+  reads backslash-backtick as text's start; the Edit tool reads `$'` as a replace pattern; a file
+  another program has open can't be replaced (`paths.write` retries).
+- Agents load when a session starts: a new or changed `.claude/agents/*.md` reaches the next one.
+  `car/parts.json` shows up changed: delete the work folder's `parts_stats.json`, run `tool.parts`.
 
 ## Source assets (`official/`)
 

@@ -9,8 +9,7 @@ encoded once and copied wherever it repeats: a car is mostly flat paint, and onl
 body's 4x4 blocks differ from all the others (TSC_Solstice, 2026-10-01), so this is the same
 file, many times faster. The header is written here, copying the layout of
 Nadeo's reference files (flags 0xA1007, caps 0x401008, "A2XY" in the ATI2 bit-count field).
-Nadeo's ATI2 files store the first block = channel 0 (normal X, roughness): LEARNED.md, "Compression
-and building".
+Nadeo's ATI2 files store the first block = channel 0 (normal X, roughness), confirmed in the game.
 
 Arrays are images: row 0 is the top of the texture (image row = 1 - v).
 """

@@ -32,7 +32,7 @@ doesn't, so the two can disagree.
             against the distance asked (a straight line is a touch short of the way over the skin).
 
 --falsify moves every curve 5 mm along the surface and requires every band to fail. A check that
-cannot fail measures nothing (LEARNED.md, "Drawing lines on the car's skin").
+cannot fail measures nothing.
 """
 
 import argparse

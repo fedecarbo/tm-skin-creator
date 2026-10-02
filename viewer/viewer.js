@@ -80,7 +80,7 @@ function throughOurLens(v) {
 }
 if (params.get('lens') !== 'game') for (const k of ['cam1', 'cam1alt', 'cam2', 'cam2alt']) VIEWS[k] = throughOurLens(VIEWS[k]);
 // The four moods, each a Poly Haven sky (CC0) lighting the car, matched to the user's screenshots of
-// the calibration car in the game (LEARNED.md, "The game's cameras, lens and moods"). The game maps light to the screen straight, clipping each channel at white
+// the calibration car in the game. The game maps light to the screen straight, clipping each channel at white
 // (LinearToneMapping). Since 2026-09-27 every mood is a sky whose sun (or moon) is the key, the one
 // light that casts a shadow, with the sky only a fill (the user: "the car itself looks a little hazy",
 // "day time but not realistic, something like in trackmania", "apply that approach to the other
@@ -1395,7 +1395,7 @@ function makeMaterials(tex) {
   });
   // Body: a glossy varnish (clear coat) over the paint. In the game, Skin_CoatR at 0 is a glossy
   // varnish over anything, 255 adds no gloss, and a skin without the file is glossy all over
-  // (checked with the lab skins, 2026-09-24: LEARNED.md, "The game's files"). Skin_Coat holds 255 - CoatR in R,
+  // (checked with the lab skins, 2026-09-24). Skin_Coat holds 255 - CoatR in R,
   // which three.js reads as the coat's amount.
   const skin = new THREE.MeshPhysicalMaterial(std('Skin', {
     clearcoat: TUNE.coat, clearcoatRoughness: 0, clearcoatMap: tex.Skin_Coat || null, specularIntensity: SHEEN * TUNE.spec,

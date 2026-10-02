@@ -1,6 +1,6 @@
 # The car map
 
-Written by `python -m tool.carmap --describe` from the car's own mesh (2026-09-30); `tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), before the first design in a session. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
+Written by `python -m tool.carmap --describe` from the car's own mesh (2026-09-30); `tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), when a design places shapes by the body's areas or needs exact positions. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
 
 ## The pictures
 

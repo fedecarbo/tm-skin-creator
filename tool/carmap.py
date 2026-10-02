@@ -1706,8 +1706,8 @@ def describe(m=None):
     Z = m.sec["Z"]
     L = ["# The car map", "",
          f"Written by `python -m tool.carmap --describe` from the car's own mesh ({datetime.date.today()}); "
-         "`tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), before the first design "
-         "in a session. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, "
+         "`tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), when a design places "
+         "shapes by the body's areas or needs exact positions. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, "
          "z forward (the nose's tip at 215, the tail at -162).", "",
          "## The pictures", "",
          "The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):", "",

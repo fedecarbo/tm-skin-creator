@@ -15,7 +15,7 @@ The Lab (viewer/lab.html, tool/swatches.py) shows every finish here on a ball, g
 like "ME-07 Gold (matte 28%, metal 100%, varnish 0%)" and paste it in the chat: the code is the
 finish, exactly (`get(code)`, or the code inside a phrase: "ME-07 matte").
 
-What the lab skins showed in the game (2026-09-24, LEARNED.md, "The game's files"):
+What the lab skins showed in the game (2026-09-24):
   - roughness (0 mirror .. 1 matte) and metalness (0 paint .. 1 metal) work as in any PBR
     renderer, on the body, the details and the tyres alike;
   - `Skin_CoatR` is the varnish: 0 lays a glossy clear varnish over anything, 255 none. A skin
