@@ -16,6 +16,8 @@ goes into the code.
 - **The car map** (`tool/carmap.py`, `car/map.md`): waiting for the user's look at
   `car/map/lines.jpg` and `areas.jpg`. The Mac and the PC trace slightly different ridges (numpy
   and BLAS differences); idea: tolerant seeds, or build on one computer and check the other's hash.
+  Its "sides" leave two hairline gaps on the sidepod's outer face (z ≈ -32 and -18, x ≈ ±85):
+  anything painted on the sides there shows a thin line (TSC_Snow works round it). Close them.
 
 ## The tool
 
