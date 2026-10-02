@@ -20,8 +20,20 @@ The user's standing calls on how the tool works. Technical choices stay Claude's
 - **How the user works** (2026-09-28): by reacting to the car, not through steps ("I don't really
   work that way"); "Two main things I like. It's having the car and me being able to iterate. and I
   also like a place where you can provide options before building." So: the car and their notes, and
-  a set of options whenever they ask or there's a real choice (`tool/sets.py`). A new car: a short
-  talk, three concepts, the guides, the critic before the game (`new-car.md`).
+  a set of options whenever they ask or there's a real choice (`tool/sets.py`). A new car is made
+  the same way as a change: Claude paints it and shows it.
+- **No studio, no fixed steps; choices in the chat** (2026-10-02, after asking why everything got
+  slow: "I also don't like the studio linear approach. I would definitely get rid of it"; "keep the
+  interactivity in the chat, whenever the user gets to pick something. Similar to A2UI"). The design
+  studio (a brief card, three concept designers, field-by-field passes with six expert guides, a
+  critic, a design book) was deleted; its lessons are under their topics here and in the skill.
+  Whenever the user gets to pick or confirm something, it comes to the Lab's chat as a widget.
+- **Why it got slow, and the guard** (2026-10-02): the paint got faster (10 s on the Mac; an install
+  170 s to 52 s), but every problem added a step and none was taken away. The skill grew from ~1,700
+  words (2026-09-25, a change every 5 to 15 minutes) to ~10,500, and a new car's first concepts took
+  over 20 minutes, three designers each reading ~18,000 words. Sept 24-25 made 29 skins; Sept 28 to
+  Oct 1, one finished car. So: a step added to the routine says what it costs in time, and one that
+  slows every skin doesn't go in it.
 - **A pick deletes the other options** (2026-09-28: "I dont think we can keep on maintaining options
   that I don't like, hence maybe creating so much noise"). Git keeps them; one in the game stays.
 - **The user decides only between real directions** (2026-09-28); with one sensible answer Claude
@@ -51,9 +63,7 @@ The user's standing calls on how the tool works. Technical choices stay Claude's
 - **Don't take the game's own files apart** (2026-09-24, asked twice): encrypted packs and compiled
   shaders, the licence forbids it, and it wouldn't replace tests. Fair game: Nadeo's published
   files, the stock textures, the user's screenshots and videos, a file the game's skin editor saves.
-- **Models and machines**: Opus 5.5 everyday, Fable 5.1 when a design stalls. The critic is Opus 5.5
-  (2026-09-28): of TSC_CriticTest's seven known faults it found six and part of one, Fable 5.1
-  six. The PC: RTX 5070 Ti (16 GB), 16 GB of RAM; the Mac: M5, 16 GB. Club access, which skins need.
+- **Models and machines**: Opus 5.5 everyday, Fable 5.1 when a design stalls. The PC: RTX 5070 Ti (16 GB), 16 GB of RAM; the Mac: M5, 16 GB. Club access, which skins need.
 
 ## The game's files
 
@@ -117,8 +127,8 @@ unless said). `GLOWS` in `tool/finishes.py` and the viewer's `GLOW` follow it.
 - **The stock inner car is full of lights** (2026-09-25): teal lamps in the cockpit tub, bulkhead
   and nose; a strip under the floor; an always-on cyan ring inside each wheel; faint night glows on
   the airboxes, sidepod frames and steering; the turbo code on the hubs, most of the suspension and
-  the tail. Recolour what the design doesn't want (the critic caught the front hubs' orange on
-  TSC_Ladybird).
+  the tail. Recolour what the design doesn't want (TSC_Ladybird's front hubs stayed stock orange at
+  night, a colour in no part of the car).
 - **A glow's edge takes the nearest texel's code**: the game blends colour between texels, not the
   code, so an unlit neighbour lit a dashed line round the tail's openings.
   `paintbox.dark_take_codes` gives the unlit texels near a glow its code.
@@ -251,13 +261,23 @@ unless said). `GLOWS` in `tool/finishes.py` and the viewer's `GLOW` follow it.
   specks; domain warping folds stripes into marbled swirls.
 - **Gloss catches the sky**: small glossy shapes on dark matte read as white dots from behind
   (TSC_ChaosElegance_Thrown; satin fixed it); a glossy dot on a tight curve reads as a row of dashes
-  (leave out dots whose normals spread over about 14°); satin black under matte black shows pale.
+  (leave out dots whose normals spread over about 14°); satin black under matte black shows pale; a
+  wet-look or gloss deck washes out from behind.
 - **Paint can't fake big 3D shapes** (TSC_CMYK_Peel): a wrap folded back and shaded as a curl looked
   flat. Small crisp cues work: a hard-edged band, not a fade (any fade reads as a soft edge), even
   all round, since a shadow for one light looks wrong from the other side.
 - **Things that read wrong**: crimson drops on black read as blood; pale marks on a dark nose read
-  as eyes (TSC_Ladybird); a flag draped round a line along the car fans into a sunburst near the
-  line; graphics below the flank's lower crease, where the body turns under, become slashes.
+  as eyes (TSC_Ladybird), and a pair of dark shapes either side of it as brows from straight on; a 7
+  on a black nose read as an L from the front; spots over the deck's outer edge dip into the hollow
+  above the rear wheels and come out kidney-shaped from the chase cameras (keep them on the deck's
+  top); a flag draped round a line along the car fans into a sunburst near the line; graphics
+  projected from the side become slashes below the flank's lower crease, where the body turns under
+  (a solid band there, `facing("down", ...)`, or stop the shape at the crease).
+- **The livery's ground reaches the car's edge** (TSC_Ladybird, the user: the floor and front wing
+  "probably this needs to be green", like the grass, not carbon). The diffuser's fins under the tail
+  caught the grass as slivers: paint such fins whole.
+- **Lettering**: on the body a texel is about 1 mm, so 4 cm letters are crisp. The front flank's
+  small black fin covers what runs under it (TSC_Ladybird's Latin name moved 4 cm down).
 - **Low ledges catch what's meant for the sides** (TSC_Ladybird): the side skirt ahead of the
   sidepods faces up, so "whatever is low" or "faces up" takes it; spots placed without knowing where
   the top ends were cut at the shell's edge. `car/map.md` says where it ends.
@@ -291,6 +311,10 @@ Since 2026-09-30: curves on the surface itself (`tool/skinmesh.py`, `skindraw.py
   apart), each texel taking its offset from the nearest: the same width on the flat and round a
   flank. It keeps to its own piece (`NEAR` under the model's gaps), stops at the curve's ends, picks
   its face by the texel's normal, and allows a 100° turn (the nose panel's groove turns 89°).
+- **What reads as crafted** (TSC_Solstice): a sweep of colours as parallels of one curve with a thin
+  gap of the base between them (16 mm bands, 4 mm gaps); a stripe edged in a second colour is a
+  wide band with a narrower one on it; twin stripes framing the cockpit, outside the number and name
+  panels, read well from the chase camera.
 - **Other shapes**: `circle` walks a geodesic out every degree (a 220 mm ring measured 1381 mm round
   for 1382); `parallel` keeps gaps over every fold; `edge` draws in from the car's edge (14.7 mm for
   15; the heat method's contour was −18 to +22 mm out); `meet` makes a clean T.
@@ -321,7 +345,8 @@ areas, what's open, the air and the chase cameras are still used.
 - **The air**: `hit` is the Newtonian rule (facing forward, squared) times how open a spot is from
   ahead; the flow is a potential solved over the welded body, walls only where the air runs into an
   opening. Turning the air locally made lines jog like circuit traces; a solved flow bends early and
-  never merges two lines. Smoke lines want a rake across the whole width (`front_rake`).
+  never merges two lines. Smoke lines want a rake across the whole width (`front_rake`). Lines
+  waved for a wake cross where the body narrows: keep the wave under 2 cm (TSC_WindTunnel).
 - **What failed, one line each**: a threshold on each slice's facing puts a line wherever it falls,
   not on the crease; a girth summed round each slice moved bands 17 cm between neighbours; values
   per vertex make staircases; a 35° dihedral finds nothing on rounded edges; cm limits per 1 cm

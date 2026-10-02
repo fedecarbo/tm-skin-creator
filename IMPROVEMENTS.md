@@ -57,13 +57,11 @@ the design as asked), then speed.
   between the two computers (TSC_Map_Areas, TSC_WindTunnel's rakes). Idea: make the tracing's
   decisions tolerant (a seed a clear maximum by a margin, ties broken by position), or build the
   map on one computer and commit its cache's hash so the other checks it matches.
-- **The design studio, now one way of working** (the user, 2026-09-28: "What's important is to
-  actually have this as an incredible workflow that builds cars (not the typical amateur skins) but
-  actually work on every single detail from start to finish"; then "I don't really work that
-  way" to a studio of steps). Now: the car and the user's notes, sets of options in the Lab's
-  timeline whenever they ask, and for a new car a short talk, three concepts, every detail with the
-  guides and the critic before the game (`new-car.md`). Left: the user's word on it as they use it
-  ("ill probably explore ways to make the workflow better for designing").
+- **Choices in the Lab's chat, as widgets** (the user, 2026-10-02: "keep the interactivity in the
+  chat, whenever the user gets to pick something. Similar to A2UI"). Claude describes a widget from
+  a small fixed catalog (a set's painted options, with "None of these"; a choice of labels, swatches
+  or pictures; yes or no), the Lab draws it in the timeline with a words box, and the answer comes
+  back as a note (`tool.notes ask`). In progress on the Mac.
 - **The Lab's timeline with Claude** (the user, 2026-09-28: "having the sidebar on the right as the
   ai helper ... a scrollable timeline ... the latest would be at the bottom"; they picked A of the
   mockups, a chat with two voices). Built 2026-09-28: waiting for the user's try.
@@ -147,19 +145,11 @@ the design as asked), then speed.
 - **The UV map, in a new way** (the same words). Today it's in the car's menu (the game's four flat
   maps, a surface picked and lit on the car, a line to copy). As above: the user's words first.
 
-- **A new car's first concepts take far too long** (2026-10-01, TSC_Water, the user: "what is taking
-  so long? Thing's used to be quicker? Why are there so many checks and corrections?"). Three
-  concept designers took about 22 minutes each for a simple idea (layers of cyan); a paint itself
-  takes 10 s on the Mac. The time went to each designer reading the car map, the guides and the
-  tool's docs from scratch, then three paints each with all four picture sheets, then the
-  director's own look and repaints. Idea: the director paints the concepts itself, one after the
-  other, reading once; one paint and the views per concept, the close looks only on the picked
-  one; the designers and the full checks only when the user asks for a studio round.
 - **The Lab is empty before a new car's first paint** (2026-10-01, TSC_Water: "why is there no car
-  or previews?"). Opened on a new car whose concepts are still being designed, the Lab shows only the
-  floor and "Being painted..." until the first paint starts (`lab-studio.js`: the embedded viewer
+  or previews?"). Opened on a new car whose first takes are still being painted, the Lab shows only
+  the floor and "Being painted..." until the first paint starts (`lab-studio.js`: the embedded viewer
   dresses nothing when the skin has no paint yet). Idea: dress the car in the Lab's clay while the
-  skin has nothing painted, with a line on the stage ("Claude is designing the concepts: the car
+  skin has nothing painted, with a line on the stage ("Claude is painting the first takes: the car
   appears as the first is painted").
 - **Real scanned materials** (the user's pick, 2026-09-29, from a search for useful tools). Poly
   Haven and ambientCG give measured scans for free (CC0): carbon, brushed metal, scratches, chipped

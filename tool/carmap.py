@@ -1,8 +1,8 @@
 """The car map: the body's shape worked out once from its mesh, so every design knows the car.
 
 Before it, each design learned the car on its own (TSC_WindTunnel's smoke lines cut the body
-into sections to find where its top ends; the guides' "Learned" kept repeating the same folds,
-inlets and creases). The map is built from the body's mesh (Skin_01, welded into one surface), is
+into sections to find where its top ends; the same folds, inlets and creases were learned over
+and over). The map is built from the body's mesh (Skin_01, welded into one surface), is
 cached in the work folder (`python -m tool.carmap` rebuilds it, about a minute), and answers for any
 point on the car. In a design, through `tool.shapes`:
 
@@ -1698,8 +1698,7 @@ def _opening_groups(m):
 
 
 def describe(m=None):
-    """car/map.md: the car map in words, for Claude and the concept designers to read before
-    designing (the numbers all come from the map, so they're redone with it)."""
+    """car/map.md: the car map in words, for Claude to read before designing (the numbers all come from the map, so they're redone with it)."""
     import datetime
     m = m or load()
     P = parts.load()

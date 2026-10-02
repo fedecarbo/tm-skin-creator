@@ -79,11 +79,6 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   note with `answer` (the set, the option), the box's words a note with no point: the car's tags
   leave both out.
 - `PY -m tool.snap --page "<page>"` photographs any page of the viewer's whole, e.g. a Lab room.
-- The studio's critic: an agent, `.claude/agents/critic.md`, given only a car's brief and pictures
-  (never the design). `tool/critic.py` (its docstring is the key) cuts `tool.snap`'s four sheets
-  into its pictures (`--review`: the angles the others miss) and keeps its findings in
-  `skins/<car>/review.json` (keep, mark: standard library only). Its test car, TSC_CriticTest,
-  carries seven known faults (its design's docstring, never given to the critic).
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn

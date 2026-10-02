@@ -1,6 +1,6 @@
 """A car's sets of options (the user's pick, 2026-09-28: LEARNED.md, Decisions): whenever the user
 asks for a few ideas on anything, in any order ("can we try 3 different materials for X", "a few
-concepts for the wheels", or a new car's first concepts), Claude paints each option as a whole car
+concepts for the wheels", or a loose idea's first takes), Claude paints each option as a whole car
 and they wait in the Lab's list, "For you to pick", until the user picks one there or in the chat.
 skins/<car>/sets.json, written only by these commands, so the Lab shows it and keeps no list of its
 own.
@@ -15,11 +15,11 @@ own.
     python -m tool.sets drop <car> <n> "<why>"               not wanted any more
 
 A set is painting (Claude on it), open (the user's turn), picked, or dropped. Its title says what
-it's about ("Wheels · 3 ideas", "3 concepts"); its words are the user's, when they asked.
+it's about ("Wheels · 3 ideas", "3 takes"); its words are the user's, when they asked.
 
 Options. An option is a skin beside the car, skins/<car>_<Title>/: `option` makes it as a copy of the
 car's design.py and art/ to change, or an empty folder while the car has no design yet (a new car's
-concepts); --skin takes one that exists. `open` wants two or more, each with a design. A pick is final
+first takes); --skin takes one that exists. `open` wants two or more, each with a design. A pick is final
 (the user, 2026-09-28: "I dont think we can keep on maintaining options that I don't like"): the
 picked option's design.py, art/ and thumb.png become the car's, each option's picture is kept for the
 Lab's "Earlier picks" (skins/<car>/sets/<n>/<letter>.png), and every option's folder goes (git's
@@ -28,7 +28,7 @@ it). An option's design must stand on its own: one that loads the car's or anoth
 break once they're gone, so the pick refuses it. An option that's in the game (skins/installed.json)
 is kept, and the pick says so. `drop` deletes the options the same way, keeping their pictures.
 
-Any car can have sets: a new one starts with its concepts as its first set (`new` makes its folder),
+Any car can have sets: a new one can start with its first takes as a set (`new` makes its folder),
 and one made before can have them too.
 
 Standard library only, and runnable with the Mac's own python3 (3.9), like tool/notes.py.

@@ -10,8 +10,6 @@
     python -m tool.snap <name> --stretches -> build/<name>_stretches.png: the car map's close looks, each
                                              stretch of the body from the nose's tip to the tail, no
                                              wheels, both sides (STRETCHES), to check its lines close up
-    python -m tool.snap <name> --review -> build/<name>_review.png: the angles the other sheets miss
-                                             (REVIEW), for the studio's critic (tool/critic.py)
     python -m tool.snap --page "lab.html?room=uv" [--size 1600x1000]
                                           -> build/lab_room_uv.png: any page of the viewer's, whole
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
@@ -58,16 +56,6 @@ CLOSE = (("1 bonnet", {"dir": [0.35, 0.85, 0.4], "dist": 1.4, "target": [0, 0.66
 CAMS = tuple((f"{title} {'night' if night else 'day'}", view, night, []) for night in (False, True)
              for title, view in (("Cam 1", "cam1"), ("Cam 1 alt", "cam1alt"), ("Cam 2", "cam2"), ("Cam 2 alt", "cam2alt")))
 CAM_SIZE = "1280x720"
-# What the views and close looks leave out, for the studio's critic (tool/critic.py): the car straight
-# on (does it make a face?), its tail low from behind (where the car behind sees it), the underside
-# (from below the floor, which isn't drawn from there), and the right-hand flanks the close looks
-# see only on the left (graphics and words on the other side).
-REVIEW = (("front straight on", {"dir": [0, 0.18, 1], "dist": 5.0, "target": [0, 0.45, 0.2]}, False, []),
-          ("rear low", {"dir": [0, 0.12, -1], "dist": 4.2, "target": [0, 0.4, -0.3]}, False, []),
-          ("under the tail", {"dir": [0.3, -0.35, -1], "dist": 2.2, "target": [0, 0.2, -1.3]}, False, []),
-          ("underside", {"dir": [0.3, -1, 0.2], "dist": 7.0, "target": [0, 0.2, 0.2]}, False, []),
-          ("right front flank", {"dir": [-0.9, 0.35, 0.25], "dist": 1.5, "target": [-0.45, 0.5, 0.75]}, False, []),
-          ("right rear flank", {"dir": [-0.95, 0.25, -0.2], "dist": 1.4, "target": [-0.7, 0.41, -0.66]}, False, []))
 # The body alone, the wheels taken off (the car map's pictures, tool/carmap.py: the user, 2026-09-29,
 # "you might need to hide the wheels so you see the body"): nine views, the flanks behind the wheels
 # and the underside's edges included.
@@ -228,7 +216,6 @@ def main():
     ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
     ap.add_argument("--cams", action="store_true", help="the game's Cam 1 and 2 and their alts, day and night, at 16:9")
-    ap.add_argument("--review", action="store_true", help="the angles the other sheets miss, for the critic")
     ap.add_argument("--body", action="store_true", help="the body alone, no wheels, nine views (the car map's pictures)")
     ap.add_argument("--stretches", action="store_true", help="the car map's close looks: each stretch of the body, no wheels, both sides")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
@@ -243,14 +230,14 @@ def main():
         return
     if not args.name:
         ap.error("the skin's name")
-    shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams else (REVIEW, "review") if args.review
+    shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams
                    else (BODY, "body") if args.body else (STRETCHES, "stretches") if args.stretches else (SHOTS, "views"))
     if args.picture:
         close = [(row[0], row[1:]) for row in args.close_row or []]
         picture([args.name] + args.more, args.titles, args.views, close)
         return
     w, h = (int(v) for v in (args.size or (CAM_SIZE if args.cams else "960x720")).split("x"))
-    if args.close or args.cams or args.review or args.body or args.stretches:
+    if args.close or args.cams or args.body or args.stretches:
         snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
              query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
     else:
