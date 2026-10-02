@@ -6,27 +6,30 @@
    "title": "3 takes",
    "words": "I want to build a car but im not quite sure the direction. I want a car that will be used for snow maps.",
    "made": "2026-10-02T09:33:11",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Rescue",
-     "skin": "TSC_Snow_Rescue"
+     "skin": "TSC_Snow_Rescue",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Glacier",
-     "skin": "TSC_Snow_Glacier"
+     "skin": "TSC_Snow_Glacier",
+     "picture": "sets/1/B.png"
     },
     {
      "key": "C",
      "title": "Whiteout",
-     "skin": "TSC_Snow_Whiteout"
+     "skin": "TSC_Snow_Whiteout",
+     "picture": "sets/1/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "A",
+   "decision": "Rescue: signal orange that stands out on snow",
+   "done": "2026-10-02T09:38:34"
   }
  ]
 }

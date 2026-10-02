@@ -13,8 +13,9 @@ def design(s):
     s.paint("body", "gloss black", zone=shapes.below(22))
 
     s.step("Reflective band", "A silver reflective band along each side, RESCUE on the rear flanks.", words=WORDS)
-    s.paint("body", "reflective tape", zone=shapes.area("sides") & shapes.above(27) & shapes.below(36)
-            & shapes.behind(40))
+    # the map's sides miss two thin strips on the sidepod's outer face: the sideways-facing skin fills them
+    flank = shapes.area("sides") | (shapes.sides(0.3) & shapes.band(z0=-50, z1=0))
+    s.paint("body", "reflective tape", zone=flank & shapes.above(27) & shapes.below(36) & shapes.behind(40))
     for spot in ("left side", "right side"):
         s.text("RESCUE", spot, colour="black", font="russo", height=9, italic=0.15)
 
