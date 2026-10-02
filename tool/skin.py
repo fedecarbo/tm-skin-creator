@@ -22,8 +22,6 @@ import os
 import sys
 import time
 
-from PIL import Image
-
 from tool import build, gallery, install, paintbox, paths, snap, view
 
 
@@ -135,15 +133,9 @@ def do_install(name):
     since (and a skin shown on the other computer has none here)."""
     install.game_folder()  # before painting: only the PC has the game
     t0 = time.time()
-    icon = None
-    thumb = paths.SKINS / name / "thumb.png"
-    if thumb.exists():
-        im = Image.open(thumb).convert("RGB")
-        side = min(im.size)
-        icon = im.crop(((im.width - side) // 2, (im.height - side) // 2, (im.width + side) // 2, (im.height + side) // 2)).resize((256, 256), Image.LANCZOS)
     with paint_slot():
         build.save_painted(paint(name))
-        zip_path = build.build_zip(name, icon)
+        zip_path = build.build_zip(name)
     print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
     target = install.install(zip_path)
     print(f"installed {target.name}")

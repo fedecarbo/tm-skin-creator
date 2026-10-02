@@ -66,3 +66,5 @@ blotches, like dirt.
 - Change 8 (user, note 10, the ring round a sidepod inlet): "im ok with matte but it needs to be
   slightly less matte". The rings are matte 70 % instead of 90 (they read chalky beside the
   grained wrap). Installed again 2026-09-27 (7.65 MB) and on the page online.
+- Installed again 2026-10-02 on the PC (7.65 MB, the same paint): the tyres' sheen map at full
+  size, the Details relief and the body's sheen map at 2048² to fit.

@@ -12,6 +12,7 @@ import argparse
 import json
 
 import numpy as np
+from PIL import Image
 
 from tool import dds, pack, paths
 
@@ -46,19 +47,26 @@ def save_painted(skin):
     return out
 
 
-def build_zip(name, icon_image=None):
-    """DDS files and the zip from build/<name>/painted.npz. A zip over ZIP_BUDGET gets its
-    normal map, then its roughness maps, at half size (the stock's own 2048²), largest first,
-    until it fits: the relief is drawn to read at 2048² (tool/relief.py); where a design kept
-    the stock look the roughness maps hold nothing finer, and a finish on a whole part keeps
-    its edges (the island's). Colour and glow always ship at full size. Which maps to halve is
+def build_zip(name):
+    """DDS files and the zip from build/<name>/painted.npz, its icon the skin's thumb (squared) or,
+    without one, its colours and name. A zip over ZIP_BUDGET gets its normal map, then its
+    roughness maps, at half size (the stock's own 2048²), the tyres' first, then the largest,
+    until it fits: the relief is drawn to read at 2048² (tool/relief.py); where a design kept the
+    stock look the roughness maps hold nothing finer, and a finish on a whole part keeps its edges
+    (the island's). A map halved on the way that fits at full size beside the ones halved after
+    it ships at full size. Colour and glow always ship at full size. Which maps to halve is
     decided from each file's size in the first zip, so the zip is written again only once."""
     out = paths.BUILD / name
     meta = json.loads((out / "painted.json").read_text())
     data = np.load(out / "painted.npz")
     for old in out.glob("*.dds"):
         old.unlink()
-    if icon_image is None:
+    thumb = paths.SKINS / name / "thumb.png"
+    if thumb.exists():
+        im = Image.open(thumb).convert("RGB")
+        side = min(im.size)
+        icon_image = im.crop(((im.width - side) // 2, (im.height - side) // 2, (im.width + side) // 2, (im.height + side) // 2)).resize((256, 256), Image.LANCZOS)
+    else:
         cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
         icon_image = pack.icon(name[:8], cols[0], cols[-1])
     specs = {}
@@ -68,10 +76,11 @@ def build_zip(name, icon_image=None):
         specs[tex_name] = (fourcc, spec)
         (out / f"{tex_name}.dds").write_bytes(dds.texture(data[tex_name].astype(np.float32) / 255, fourcc, **spec))
     zip_path = pack.pack(name, out, icon_image)
-    packed = pack.sizes(zip_path)  # each file's size in the zip, compressed
+    whole = pack.sizes(zip_path)  # each file's size in the zip, compressed
+    packed = dict(whole)
     normals = [t for t in specs if t.endswith("_N") and data[t].shape[0] > 2048]
     rough = [t for t in specs if t.endswith("_R")]
-    halved = False
+    halves = {}  # the maps at half size: their DDS file and its shape
     while pack.size(packed) > ZIP_BUDGET and (normals or rough):
         group = normals or rough
         # the tyres' roughness first: it carries only the lettering's shine, where the body's
@@ -80,12 +89,19 @@ def build_zip(name, icon_image=None):
         group.remove(t)
         fourcc, spec = specs[t]
         half = dds.halve(data[t].astype(np.float32) / 255)
-        blob = dds.texture(half, fourcc, **spec)
+        halves[t] = dds.texture(half, fourcc, **spec), half.shape
+        packed[f"{t}.dds"] = pack.deflated(halves[t][0])
+    # the last map halved made it fit; an earlier one may fit at full size beside it (the tyres'
+    # roughness on TSC_CMYK_EndsInK, whose body's had to be halved too), the later ones tried first
+    for t in list(halves)[-2::-1]:
+        full = {**packed, f"{t}.dds": whole[f"{t}.dds"]}
+        if pack.size(full) <= ZIP_BUDGET:
+            packed = full
+            del halves[t]
+    for t, (blob, shape) in halves.items():
         (out / f"{t}.dds").write_bytes(blob)
-        packed[f"{t}.dds"] = pack.deflated(blob)
-        halved = True
-        print(f"{t} at {half.shape[1]}x{half.shape[0]}, to keep the zip under {ZIP_BUDGET / 1e6} MB")
-    if halved:
+        print(f"{t} at {shape[1]}x{shape[0]}, to keep the zip under {ZIP_BUDGET / 1e6} MB")
+    if halves:
         zip_path = pack.pack(name, out, icon_image)
     if zip_path.stat().st_size > ZIP_BUDGET:
         print(f"warning: the zip is still over {ZIP_BUDGET / 1e6} MB; the upload may fail")

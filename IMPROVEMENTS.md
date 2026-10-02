@@ -6,11 +6,6 @@ goes into the code.
 
 ## Under way
 
-- **The PC's self-test** (waits for the user to ask, on the Windows PC). Then: install
-  the requirements if they changed; `PY -m tool.selftest --against 83683e6` (every texture and DDS
-  file identical: the PC's processor must agree with the Mac's); one timed `PY -m tool.skin install
-  TSC_CMYK_EndsInK` (the PC's baseline: 196 to 258 s). If anything differs, don't install: fix it
-  and tell the user in a line. Then delete this item.
 - **Drawing on the skin** (`tool/skindraw.py`): paused by the user ("lets stop. None of the cars
   make me think it's working"). Before building more, ask what they'd need to see.
 - **The car map** (`tool/carmap.py`, `car/map.md`): waiting for the user's look at
