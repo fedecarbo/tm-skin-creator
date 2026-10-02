@@ -1,8 +1,8 @@
 """The tool's self-test: does this code still paint every skin exactly as an earlier commit did?
 
     python -m tool.selftest --against <ref>             the representative set (SET), old and new
-    python -m tool.selftest --against <ref> TSC_Tiger   only the skins named
-    python -m tool.selftest --against <ref> --all       every design (about an hour a side)
+    python -m tool.selftest --against <ref> SelfTest_Tour   only the skins named
+    python -m tool.selftest --against <ref> --all       every design, and the tour
     python -m tool.selftest --against <ref> --snap      the viewer's sheets of SNAP too, pixel for pixel
     python -m tool.selftest --against <ref> --at <ref2> <ref2>'s code instead of the working tree's
     python -m tool.selftest                             this code alone: paint, encode, time
@@ -34,17 +34,74 @@ from pathlib import Path
 
 from tool import paths
 
-# Together they use every part of the paint box (2026-10-01): borrowing (5 deep), clay, steps,
-# peel, relief, emboss, glows, relit lights, noise, library textures, print, scatter, a picture
-# decal, lettering, tyre markings, lines drawn on the skin, glass, dirt, the car map's areas and
-# its air; TOUR adds the two calls no design makes.
-SET = ("TSC_CMYK_BlackTail", "TSC_ChaosElegance_Unravelled_CMYKRise", "TSC_CMYK_Carbon", "TSC_Bananas_Print",
-       "TSC_Ladybird", "TSC_Donuts", "TSC_Tiger", "TSC_Solstice", "TSC_Nebula", "TSC_Camo", "TSC_Map_Areas",
-       "TSC_WindTunnel", "SelfTest_Tour")
+# Together they use every part of the paint box: the user's car (peel, relief, emboss, glows, relit
+# lights, a library finish, the canvas by hand) and TOUR, a test car of the self-test's own that
+# makes every other call once (2026-10-02: the skins were cleaned up to the user's car alone).
+SET = ("TSC_CMYK_EndsInK", "SelfTest_Tour")
 TOUR = "SelfTest_Tour"
-SNAP = ("TSC_CMYK_EndsInK", "TSC_Solstice")
+SNAP = ("TSC_CMYK_EndsInK",)
 HOME = paths.WORK / "selftest"
 OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none rebuilds for them
+
+# The tour: clay, steps, a fade, zones by facing and height, a noise pattern, wear, the car map's
+# areas, air, lines and edges, grass, a blob, lines drawn on the skin, a decal, a scatter, a print,
+# lettering, a camo pattern, fabric, glows, a relit light, glass, dirt, a wheel ring, tyre markings
+# and a tread. Its pictures are drawn here, so it needs no stored art.
+TOUR_CODE = r'''
+def tour(s):
+    from pathlib import Path
+    from PIL import Image, ImageDraw
+    from tool import shapes, skindraw, textures
+    pic = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+    d = ImageDraw.Draw(pic)
+    d.ellipse((16, 16, 240, 240), fill=(250, 200, 30, 255), outline=(20, 20, 20, 255), width=14)
+    d.polygon([(128, 50), (200, 200), (56, 200)], fill=(200, 30, 60, 255))
+    tile = Path(out).with_suffix(".tile.png")
+    t = Image.new("RGB", (256, 256), (30, 110, 160))
+    ImageDraw.Draw(t).ellipse((64, 64, 192, 192), fill=(240, 240, 230))
+    t.save(tile)
+    s.clay()
+    s.step("Base", "A base, a fade, a split by facing and height, a stripe, splashes and wear.")
+    s.paint("body", "gloss red")
+    under = s.keep()
+    s.paint("body", "candy teal", zone=shapes.fade("z", 120, -150, curve=0.8))
+    s.paint("body", "matte black", zone=shapes.facing("up", 0.4, soft=0.006) & shapes.above(30))
+    s.paint("body", "splatter", palette=["keep", "hot pink", "lemon"], scale=9, zone=shapes.along(0.6, 0.8))
+    s.paint("nose fin", "satin", colour="#e02020", zone=shapes.stripe(4))
+    s.wear(under, fade=0.3, chips=0.08, scrapes=0.05, clearcoat=0.2)
+    s.step("The map", "The car map's areas, its air, its lines, grass and a blob.")
+    s.paint("body", "satin", colour="#f4f2ec", zone=shapes.area("top") & shapes.outside(0.4) & shapes.along(0.2, 0.4))
+    s.paint("body", "satin", colour="#9fc3e6", zone=shapes.streamlines(shapes.front_rake(np.arange(3, 84, 12)), 1.2))
+    s.paint("body", "satin", colour="#d0208e", zone=shapes.streamlines(shapes.rake(150, [1.35]), 1.2))
+    s.paint("body", "satin", colour="#1f8f3a", zone=shapes.line("shoulder", 1.6))
+    s.paint("body", "satin", colour="#2e7d32", zone=shapes.grass(base=6, height=(18, 30), every=3.0, seed=7))
+    s.paint("body", "gloss", colour="#111111", zone=shapes.blob((30, 0, 60), 9, seed=1))
+    s.step("Lines", "A sweep of three colours drawn on the skin, on both sides.")
+    sweep = skindraw.through([(20.5, 43.7, 172.2, "side"), (32.1, 50.9, 99.6, "side"), (52.8, 61.4, 12.9, "side"),
+                              (59.4, 54.4, -94.1, "side")], name="the sweep", smooth=40)
+    for mm, colour in ((20, "#e0a82e"), (0, "#e8601c"), (-20, "#c8102e")):
+        line = skindraw.parallel(sweep, mm, name=f"the sweep at {mm} mm")
+        for curve in (line, skindraw.mirror(line)):
+            s.paint("body", "satin", colour=colour, zone=skindraw.band(curve, 16))
+    s.step("Pictures", "A decal, a scatter, a print and lettering.")
+    s.decal(pic, "bonnet", width=30)
+    s.scatter(pic, "engine cover", size=6, seed=3)
+    textures.add_file("selftest tile", tile, 20, about="the self-test's tile")
+    s.paint("rear flank", "selftest tile")
+    s.text("TOUR 7", "left side", colour="black", font="russo", height=10, outline="white")
+    s.step("Details", "The inner car, glass, dirt, glows, a light and the tyres.")
+    s.paint("inner", "camo matte", palette=["charcoal", "slate", "light grey", "jet black"], scale=26)
+    s.paint("seat", "cloth", colour="charcoal")
+    s.glow("rear strake", "ice blue")
+    s.relight("wheel ring", "#e0a82e", keep_level=True)
+    s.glass("plum", 0.5)
+    s.dirt(1.3)
+    s.paint("sidewall", "satin", colour="#e0a82e", zone=shapes.wheel_ring(31.8, 32.6))
+    s.tyre_marks("TY-26", colour="#e0a82e")
+    s.tyre_tread("TR-04")
+'''
+# A kept result of the tour is the tour's as it was then: its file is named by the tour's code.
+TOUR_KEY = hashlib.sha256(TOUR_CODE.encode()).hexdigest()[:10]
 
 # What runs in each fresh process, from the code tree it's started in. Only calls both sides have.
 CHILD = r'''
@@ -55,14 +112,7 @@ from tool import dds, paintbox, skin
 name, out = sys.argv[1], sys.argv[2]
 dump = sys.argv[3] if len(sys.argv) > 3 else None
 sha = lambda b: hashlib.sha256(b).hexdigest()[:20]
-
-def tour(s):
-    s.paint("body", "gloss red")
-    under = s.keep()
-    s.paint("body", "matte black")
-    s.wear(under, fade=0.3, chips=0.08, scrapes=0.05, clearcoat=0.2)
-    s.tyre_tread("TR-04")
-
+''' + TOUR_CODE + r'''
 t0 = time.time()
 with skin.paint_slot():
     t = time.time()
@@ -146,7 +196,7 @@ def child(script, cwd, log, *args):
 
 def paint(name, cwd, folder, keep):
     """One skin's results from the code at cwd, from folder if kept there already."""
-    out = folder / f"{name}.json"
+    out = folder / (f"{name}-{TOUR_KEY}.json" if name == TOUR else f"{name}.json")
     if keep and out.exists():
         return json.loads(out.read_text())
     folder.mkdir(parents=True, exist_ok=True)

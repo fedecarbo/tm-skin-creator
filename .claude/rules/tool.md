@@ -104,8 +104,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   rough picture).
 - The car map (`tool/carmap.py`, `car/map.md` and its pictures in `car/map/`) rebuilds itself when
   the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its code: rebuild, repaint the
-  TSC_Map_ cars, take their `--body` pictures into `car/map/` and `--describe` again (on the
-  computer whose map is in `car/map.md`: the two trace different ridges, `IMPROVEMENTS.md`).
+  map's test cars (`TSC_Map_*`, in git at 2f79800), take their `--body` pictures into `car/map/`
+  and `--describe` again (on the computer whose map is in `car/map.md`: the two trace different
+  ridges, `IMPROVEMENTS.md`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

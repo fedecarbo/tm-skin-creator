@@ -19,8 +19,9 @@ the design as asked), then speed.
   when I can"); until then the PC works as usual. When they ask:
   1. The session's pull brings it; install the requirements if they changed
      (`PY -m pip install -r requirements.txt`).
-  2. `PY -m tool.selftest --against b0ca0e8` (about 25 minutes the first time: it paints the old
-     code's side once). Every texture and every DDS file must come out identical: the PC's
+  2. `PY -m tool.selftest --against 83683e6` (a few minutes the first time: it paints the old
+     code's side once; 83683e6 rather than the tidy-up's b0ca0e8, whose smoke lines were corrected
+     on purpose after it). Every texture and every DDS file must come out identical: the PC's
      processor has to agree with the Mac's, the texture encoder above all.
   3. One real `PY -m tool.skin install` of a skin already in the game (it replaces itself, e.g.
      TSC_CMYK_EndsInK), timed. Before the tidy-up its zip took 196 to 258 s to build on the PC.
@@ -44,7 +45,7 @@ the design as asked), then speed.
   positions along the car, the air over it, what the chase cameras see. Its own lines are no longer
   drawn with (drawing on the skin, above). Waiting for the user's look at the lines and areas
   (`car/map/lines.jpg`, `car/map/areas.jpg`) before anything built on them is called done.
-  TSC_WindTunnel waits for the user too. Left: what each game camera shows (only the chase
+  Left: what each game camera shows (only the chase
   cameras' view so far), the flat spots for pictures measured rather than typed (`SPOTS`), a check
   on every paint for graphics crossing a fold or an opening, and streaks combed along the flow.
   Working notes: `LEARNED.md`.
@@ -78,7 +79,7 @@ the design as asked), then speed.
   wheels (2026-09-25): "brake caliper" is the split ring at each wheel's centre (5 to 7 cm from
   the axle, on the outer face, under the cover's hub), and "hub" the fixed fairing inside the
   wheel, with the brake light in its slot. Renaming them means updating
-  `tool/naming.py`, `skins/TSC_Stealth_CMYK/design.py` and `AIRBRAKES` in
+  `tool/naming.py`, `skins/TSC_CMYK_EndsInK/design.py` and `AIRBRAKES` in
   the viewer.
 
 - **Worn paint that reads as worn** (2026-09-26, TSC_FlagPeel_CostaRica's worn takes: "none gets
@@ -106,7 +107,7 @@ the design as asked), then speed.
   strip of the Details map (texels 2248-2251, 2566-2607 at 4096), which the parts list counts as
   the front wing's, so they take the front wing's paint wherever they sit, and "paint also lands
   on" never says so (they're a handful of texels). The skin paints the strip by hand
-  (`fasteners()` in TSC_CMYK_BlackTail's design). Idea: name them ("fasteners") in
+  (`fasteners()` in TSC_CMYK_EndsInK's design). Idea: name them ("fasteners") in
   `tool/naming.py` so any design can paint them.
 - **A finer, evenly shaped grain** (2026-09-27, TSC_CMYK_EndsInK, the user after driving it:
   "Maybe I couldve wanted a bit more finer evenly shaped grain, but looks fine to me, maybe for
@@ -203,8 +204,8 @@ or shows what they saw; never ask them to test (`CLAUDE.md`).
   skin with a pattern on the covers, driven slowly past the camera, would show it.
 - **How see-through the glass is** (2026-09-24, checkpoint 4): the glass file's alpha made no
   visible difference, so the tool treats glass as tint only.
-- **The Lab's finishes in the game** (2026-09-27): TSC_Lab_Materials, made for this, isn't
-  installed yet. Its finishes by day and at night would check the viewer's matte, satin, gloss
+- **The Lab's finishes in the game** (2026-09-27): TSC_Lab_Materials, made for this (in git at
+  2f79800), was never installed. Its finishes by day and at night would check the viewer's matte, satin, gloss
   and chrome against the game (the calibration car matched only the light and the glows).
 - **Tyre markings** (2026-09-27, the library, `tool/tyres.py`): never in the game yet. The first
   skin with one shows whether the game takes the tyres' own relief (`Wheels_N` from a skin: raised

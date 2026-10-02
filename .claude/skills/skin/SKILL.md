@@ -148,7 +148,7 @@ card) and no game: install from the Windows PC after a push.
 - Names: `TSC_<Idea>` in CamelCase, no spaces. Name takes `TSC_<Idea>_<Twist>`. A change to a
   skin edits that skin, unless the user wants to keep both.
 - For a skin that builds on an earlier one, borrow that design rather than copy it:
-  `_base = borrow("TSC_CMYK_Peel")` (`from tool.skin import borrow`), then `_base.design(s)` and its
+  `_base = borrow("TSC_CMYK_EndsInK")` (`from tool.skin import borrow`), then `_base.design(s)` and its
   colours. Read what a borrowed helper paints before reusing it.
 - When something isn't in the box, write it. A reusable pattern or placement goes in `tool/`. A
   new finish goes in `finishes.LIBRARY` and at the end of its family in `finishes.CATALOGUE`
@@ -217,11 +217,10 @@ card) and no game: install from the Windows PC after a push.
   - The top has no skin down its middle from z +70 to -45 (the cockpit): a middle stripe passes
     beside it or splits round it.
   - A split along a height is a 3D zone: `shapes.below(y)`, or `shapes.field(lambda p, n:
-    f(p[:, 2]) - p[:, 1])` for a height that follows the car (TSC_Split_Level, TSC_Split_Follow). A
+    f(p[:, 2]) - p[:, 1])` for a height that follows the car. A
     fill bounded by a drawn curve isn't built yet.
   - After painting, `PY -m tool.skincheck <name>` measures every band on the car (width, middle,
-    holes, stray paint, ends): a FAIL is yours to fix. The worked example is TSC_Solstice; the test
-    cars are TSC_Skin, TSC_SkinMore and TSC_SkinExam.
+    holes, stray paint, ends): a FAIL is yours to fix.
   - The user's "side crease" runs past the cut-out by the rear wheel: between its two rearmost pins
     a curve has to go round that opening; its middle pins (`skindraw.pinned("side crease")[2:5]`)
     are clean.
@@ -236,7 +235,7 @@ card) and no game: install from the Windows PC after a push.
   shoulders; never the ledges and lips low down), `shapes.outside(0.4)` (never inside an inlet or
   under a panel), `shapes.along(a0, a1)` for a stretch of the car from the nose (0) to the tail (1),
   `~shapes.near("opening", 3)` or `near("fold", 2)` to keep clear, `shapes.hit` and
-  `shapes.streamlines` for the air (TSC_WindTunnel). A round spot seen from above:
+  `shapes.streamlines` for the air. A round spot seen from above:
   `shapes.cylinder((x, -50, z), (x, 250, z), r) & shapes.area("top") & shapes.outside(0.4)`. Its
   own lines (`shapes.line`) only show the map on its test cars: never draw with them.
 - **Keep clear** of the places the map can't know are special: the number panel (x ±19, z -78 to

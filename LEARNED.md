@@ -34,6 +34,9 @@ The user's standing calls on how the tool works. Technical choices stay Claude's
   over 20 minutes, three designers each reading ~18,000 words. Sept 24-25 made 29 skins; Sept 28 to
   Oct 1, one finished car. So: a step added to the routine says what it costs in time, and one that
   slows every skin doesn't go in it.
+- **The skins: the user's car alone** (2026-10-02: "in all honesty ive only used the cmyk"). The rest,
+  test cars included, are in git at 2f79800; TSC_CMYK_EndsInK's chain of borrowed designs was folded
+  into one (identical), and the self-test's own tour car makes every other paint call.
 - **A pick deletes the other options** (2026-09-28: "I dont think we can keep on maintaining options
   that I don't like, hence maybe creating so much noise"). Git keeps them; one in the game stays.
 - **The user decides only between real directions** (2026-09-28); with one sensible answer Claude

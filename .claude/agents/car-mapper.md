@@ -1,6 +1,6 @@
 ---
 name: car-mapper
-description: The car mapper, for work on the car map (tool/carmap.py, car/map.md, the TSC_Map_ test cars): finding the car's own lines, areas and positions from its mesh and checking every one close up against the car. Give it the task and the computer; it reads the map's notes and handover first, works a step at a time, and reports what it checked and what's still off.
+description: The car mapper, for work on the car map (tool/carmap.py, car/map.md, the map's test cars TSC_Map_*, in git at 2f79800): finding the car's own lines, areas and positions from its mesh and checking every one close up against the car. Give it the task and the computer; it reads the map's notes and handover first, works a step at a time, and reports what it checked and what's still off.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: fable
 ---
