@@ -1,0 +1,32 @@
+{
+ "car": "TSC_Snow",
+ "sets": [
+  {
+   "n": 1,
+   "title": "3 takes",
+   "words": "I want to build a car but im not quite sure the direction. I want a car that will be used for snow maps.",
+   "made": "2026-10-02T09:33:11",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Rescue",
+     "skin": "TSC_Snow_Rescue"
+    },
+    {
+     "key": "B",
+     "title": "Glacier",
+     "skin": "TSC_Snow_Glacier"
+    },
+    {
+     "key": "C",
+     "title": "Whiteout",
+     "skin": "TSC_Snow_Whiteout"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
+  }
+ ]
+}
