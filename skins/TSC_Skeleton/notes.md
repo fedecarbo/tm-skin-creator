@@ -301,3 +301,12 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   two bends as before; C, down the seam, then level at the crease's height (22.0 to 22.1) from z -108,
   leaving the seam 1.5 cm above its end, like Red Bull's strip. Each fitted to its shape (within 0.1
   cm), ahead of z -22 unchanged. Checked close up from the side and low from both quarters: smooth.
+- The user: "between b and c which do you recommend? considering the rest of the lines above might
+  need to be readjusted". Measured: the levels between follow on their own (the three highest move
+  under 0.2 cm with B, 0.3 with C; the lowest 1.5 and 2.3); the rear wing's and the side skirt's seams
+  keep their nearest lines as before; the spacing is more even than A's in both (C a touch more).
+  B keeps the bottom on the diffuser strake's seam (drift 0.19 cm, A 0.40), C parts from it (1.63).
+  Recommended B. The user: "b then lets see". Picked B (straight from the seam): the bottom's points
+  at z -110, -88 and -50 replaced by -116, -104 and -32 in the guides; TSC_Skeleton's design is the
+  plain guides again. The room draws the paint's lines exactly (0.0 cm). Checked close up from the
+  side and low from both quarters. Self-test: every car identical.

@@ -78,27 +78,30 @@
    "title": "The bottom line along the back · 3 ways",
    "words": "looking at the redbull one, the bottom red strip, maybe I have the bottom line in the back wrong?",
    "made": "2026-10-04T22:52:44",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "As it is",
-     "skin": "TSC_Skeleton_AsItIs"
+     "skin": "TSC_Skeleton_AsItIs",
+     "picture": "sets/4/A.png"
     },
     {
      "key": "B",
      "title": "Straight from the seam",
-     "skin": "TSC_Skeleton_StraightFromTheSeam"
+     "skin": "TSC_Skeleton_StraightFromTheSeam",
+     "picture": "sets/4/B.png"
     },
     {
      "key": "C",
      "title": "Level like the strip",
-     "skin": "TSC_Skeleton_LevelLikeTheStrip"
+     "skin": "TSC_Skeleton_LevelLikeTheStrip",
+     "picture": "sets/4/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "B",
+   "decision": "Straight from the seam",
+   "done": "2026-10-04T23:02:29"
   }
  ]
 }
