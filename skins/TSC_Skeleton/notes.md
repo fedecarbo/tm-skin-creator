@@ -366,3 +366,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   bend along the nose. Tried and not kept: easing in from z 100 (a 0.7 cm bulge at z 120 where the
   panel's side carried back runs wider). Checked close up: the panel from above and the front quarter,
   the side, along the nose, the flare, the tail. Shown in the viewer.
+- The user: "But you are for some reason making it more round. Consider as in the corner just have a
+  bigger or smaller corner radius, not a full circle at the front, same when you go around the car.
+  The red line should have an offset inside with a consistant distance from the black if that makes
+  sense". (The roundness came from smoothing the distance over 6 cm.) Trial 6 (Look_TopLines): the
+  black line seen from above set in by exactly 6.3 cm all round (6.33 to 6.44 over 90% of it), a
+  corner that would come out sharper than 3 cm radius given 3 cm: flat across the nose's front (z
+  204) and across the tail (z -155) with rounded corners, the sidepods' corners rounded. Where the
+  nose meets the sidepods (z 0 to 40) the black line swings twice seen from above, and the exact
+  set-in waved with it: smoothed over 12 cm there into one S (5.1 to 7.5 cm in there, the only place
+  it strays). Tried and not kept: bridging the dip (no change: it is a swing, not a notch). Checked
+  close up: the nose tip from above and the front quarter, the nose root from above and the side,
+  the sidepod's corner, the tail. Shown in the viewer.
