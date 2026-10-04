@@ -38,3 +38,12 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   not shown: levels between the profile's top and bottom taken as each slice's highest and lowest
   points (the cockpit's hoop, the inlets and the nose's underside make them jump, and every level
   waves). Asked the user to pin the top line and the rocker line in the lines room.
+- The user (screenshot of the sidepod's front): "You're asking me and you just don't notice how the
+  line is distorted in plain site." The top's edge traced from the shape rippled (the 70° line
+  follows every bump: an S at each sidepod's front, waves along the side), and Claude had explained
+  the S away as the car's form. Redone the designer's way: the edge's height along the car smoothed
+  into one gentle curve (nothing shorter than about a metre left: 61 cm at the tail, 56 along the
+  sidepods, 59 by the cockpit, 43 at the nose tip), then the line wherever the outer body is at that
+  height, all round. Checked close up at the user's framing: one smooth stroke along the sidepod,
+  across its front, over the rear wheel, round the nose tip; at the back it runs along the rim
+  where the body's skin ends. Shown in the viewer (Look_TopEdge, Look_TopCovered).
