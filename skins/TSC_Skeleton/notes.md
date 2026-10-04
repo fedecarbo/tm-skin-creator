@@ -250,3 +250,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   traced within 0.05 cm of the mesh's edge, the nearest line within 0.33 of parallel). Of the car
   looking lopsided, asked for a screenshot: "I think it's fine". Closed. Still without lines: the
   nose's own side above the top line (from the cockpit to the tip).
+- The user, asked whether to define the nose's lines next: "Sure". Read as the side's way: the nose's
+  own top line where its top folds down into its side (the middle of the roll, 45 degrees, as the top
+  line along the sidepods), the top line (the nose's lower edge) its bottom, lines shared evenly
+  between, closing at the tip. Measured: the fold runs 68.6 cm at z 36 (where the sidepods begin), 63
+  at the cockpit's front, 48 by the front wheels, and meets the top line at the tip (z 206); the
+  wedge is 13 cm tall by the cockpit. Fitted with four points and the tip: within 0.34 cm (0.08 on
+  average), bending one way only (five points bent one way then the other by the nose fin). Two lines
+  between. They start in line with the intake opening's front edge (z 28, where the body's skin at the
+  top line's height begins; behind it the area above the top line is the sidepod's broad top). Checked
+  close up: the tip from both sides and above, the start, the nose fin. Shown in the viewer as a trial
+  (Look_Nose, in pink), before it goes into the levels room.
