@@ -47,3 +47,11 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   height, all round. Checked close up at the user's framing: one smooth stroke along the sidepod,
   across its front, over the rear wheel, round the nose tip; at the back it runs along the rim
   where the body's skin ends. Shown in the viewer (Look_TopEdge, Look_TopCovered).
+- The user: "a bit more smooth but there has to be a way where the top surface is somewhat less S
+  curve in the back. following the surface corner of the curve". The line held a set height and slid
+  1.5 to 2.5 cm down the side where the corner rises (the rear widening into the sidepods). Now its
+  height comes from the corner itself on every slice (the middle of the roll from top to side, 60°
+  steep), smoothed the same way: 61 cm at the tail, 57 along the sidepods, 60 across the sidepod's
+  front and the cockpit's sides, 41 round the nose tip (the slices from 13 to 35 cm forward read the
+  floor and are left out; the tip's last cm come from the outline seen from above). Checked close up
+  from high behind, at the sidepod's front and round the nose tip. Shown in the viewer.
