@@ -29,3 +29,12 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   painted 0.8 cm wide in texture space): smooth, unbroken across the joins. Shown in the viewer
   (Look_PeachLine, a look in the work folder; Peach's texture stays local). Waiting for the user's
   verdict before anything is built on it.
+- The user: the lines must go all the way round and connect at the nose; "cover only the top" must
+  follow the shape, not split it flat. Then: "if you look at the car body side (no wheels), the car
+  top is curved, and same with the bottom. That for me is the car's 'line'. so that for me is the
+  guide to having the levels." Shown in the viewer: the top's edge all round (where the surface,
+  judged over 5 cm, is 70° steep, traced from above and smoothed into one closed curve; it dips at
+  each sidepod's front, where the body rolls over more gently) and the top covered by it. Tried and
+  not shown: levels between the profile's top and bottom taken as each slice's highest and lowest
+  points (the cockpit's hoop, the inlets and the nose's underside make them jump, and every level
+  waves). Asked the user to pin the top line and the rocker line in the lines room.
