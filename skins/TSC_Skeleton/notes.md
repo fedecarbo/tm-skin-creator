@@ -82,3 +82,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   paint since it was built (the viewer raises the car to put the tyres on the floor); now on it, and
   shown only for the level picked and what changed since the last paint. Checked close up on both
   sides, every stretch, and from low down. Shown in the levels room.
+- The user (screenshot of the right side between the rear wheel and the inlet, from a little above):
+  "with the help of the shadows, you can actually see that the line is not fully defined properly,
+  the line falls below the curved surface and in another part if falls above the curved surface".
+  Measured from the shading (the smooth normals): the shoulder's curve, from 65 to 25 degrees, is only
+  3.3 to 3.7 cm tall there; the user's top line ran from 0.5 cm under its middle by the wheel to 0.9
+  over it by the inlet, and the line of the session before 0.5 to 1.8 cm under it all along. Left and
+  right measure identical. The top line's points from the tail to the inlet refitted to the middle of
+  the curve (45 degrees): six points, within 0.18 cm of it all along (0.05 on average), bending one way
+  then the other only where the shoulder does (behind the wheel); the user's points from the inlet
+  forward kept. Checked close up straight into the shoulder every 20 cm, old beside new: the new line
+  keeps the middle of the turn all along; the inlets and the tail unchanged. Shown in the levels room.
