@@ -22,7 +22,7 @@ import os
 import sys
 import time
 
-from tool import build, gallery, install, paintbox, paths, snap, view
+from tool import build, gallery, install, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -75,6 +75,7 @@ def paint_slot():
             f.close()
         if not said:
             print("waiting for another paint to finish (paints take turns on this computer)", flush=True)
+            progress.stage("Waiting for another paint to finish")
             said = True
         time.sleep(1)
 
@@ -82,6 +83,7 @@ def paint_slot():
 def paint(name, frames=False):
     """frames: also draw the car at the end of each step, for the Lab (show does)."""
     t0 = time.time()
+    progress.stage("Painting")
     s = paintbox.Skin(name)
     if frames:
         view.start_steps(name)
@@ -94,19 +96,22 @@ def paint(name, frames=False):
 
 
 def show(name, open_browser=False, snapshot=True):
-    with paint_slot():
-        s = paint(name, frames=True)
-        t0 = time.time()
-        build.export_to_viewer(s)
-        build.save_painted(s)
-        print(f"exported in {time.time() - t0:.0f} s")
-    if snapshot:
-        # the front three-quarter view becomes the skin's picture in the gallery, and a numbered
-        # copy in versions/ keeps every round the user has seen (checkpoint 7)
-        thumb = paths.SKINS / name / "thumb.png"
-        snap.snap(name, prepare=False, thumb=thumb)
-        keep_version(name, thumb)
-    gallery.refresh()
+    with progress.job(f"Painting {progress.title_of(name)}", skin=name,
+                      done="Painted and photographed" if snapshot else "Painted"):
+        with paint_slot():
+            s = paint(name, frames=True)
+            t0 = time.time()
+            progress.stage("Putting it on the car")
+            build.export_to_viewer(s)
+            build.save_painted(s)
+            print(f"exported in {time.time() - t0:.0f} s")
+        if snapshot:
+            # the front three-quarter view becomes the skin's picture in the gallery, and a numbered
+            # copy in versions/ keeps every round the user has seen (checkpoint 7)
+            thumb = paths.SKINS / name / "thumb.png"
+            snap.snap(name, prepare=False, thumb=thumb)
+            keep_version(name, thumb)
+        gallery.refresh()
     if open_browser:
         import urllib.parse
         from tool import server
@@ -133,13 +138,15 @@ def do_install(name):
     since (and a skin shown on the other computer has none here)."""
     install.game_folder()  # before painting: only the PC has the game
     t0 = time.time()
-    with paint_slot():
-        build.save_painted(paint(name))
-        zip_path = build.build_zip(name)
-    print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
-    target = install.install(zip_path)
-    print(f"installed {target.name}")
-    gallery.refresh()
+    with progress.job(f"Putting {progress.title_of(name)} in the game", skin=name, done="In the game"):
+        with paint_slot():
+            build.save_painted(paint(name))
+            zip_path = build.build_zip(name)
+        print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
+        progress.stage("Copying it into the game")
+        target = install.install(zip_path)
+        print(f"installed {target.name}")
+        gallery.refresh()
     return target
 
 
@@ -161,7 +168,7 @@ def main():
     if args.command == "show":
         show(name, args.open, snapshot=not args.no_snap)
     elif args.command == "paint":
-        with paint_slot():
+        with progress.job(f"Painting {progress.title_of(name)}", skin=name, done="Painted"), paint_slot():
             paint(name)
     else:
         do_install(name)

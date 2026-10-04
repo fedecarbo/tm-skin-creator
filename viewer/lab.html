@@ -280,6 +280,25 @@
            padding: 5px 12px 4px; background: rgba(255, 255, 255, 0.04); }
   .event i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
   .stream .live { align-self: flex-start; }
+  /* what the tool is doing (tool/progress.py): a widget per job at the timeline's foot, then a line */
+  .jobs { display: flex; flex-direction: column; gap: 8px; align-self: stretch; }
+  .jobs:empty { display: none; }
+  .job i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
+  .job.on { padding: 9px 12px 11px; background: rgba(255, 255, 255, 0.05); box-shadow: inset 2px 0 var(--acc); font-size: 13px; }
+  .job.on i { box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.2); animation: pulse 0.9s ease-in-out infinite alternate; }
+  .jobHead { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .jobHead .teko { flex: 1; min-width: 0; font-size: 18px; font-weight: 600; transform: skewX(-9deg); padding-top: 3px;
+                   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .jobHead time { font-variant-numeric: tabular-nums; }
+  .job.on p { color: rgba(242, 244, 247, 0.9); }
+  .job.on .jobDetail { margin-top: 2px; font-size: 12px; color: rgba(242, 244, 247, 0.55); }
+  .bar { position: relative; height: 3px; margin-top: 9px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+  .bar b { display: block; height: 100%; background: var(--acc); transition: width 0.4s; }
+  .bar.pulse b { width: 30%; animation: slide 1.6s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+  .job:not(.on) { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 5px 12px 4px; font-size: 12.5px;
+                  color: rgba(242, 244, 247, 0.7); background: rgba(255, 255, 255, 0.04); }
+  .job.failed i, .job.stopped i { background: #ff7a66; }
   /* a set of options */
   .set { display: flex; flex-direction: column; gap: 8px; }
   .setHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }

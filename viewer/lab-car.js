@@ -10,8 +10,10 @@
 // unless the user has scrolled up; the top fades while there's more above. The box under it sends the
 // user's words to Claude, about the option on the car when one is. Picks and words go through the notes
 // channel (/api/notes, tool/notes.py) and reach Claude at once while it waits (tool.notes wait), else
-// with the user's next message. Over the page: the car's name (a menu of the cars, the materials, the
-// UV map), whether it's in the game, and what Claude is doing. Everything comes from the tool:
+// with the user's next message. At its foot, what the tool is doing: a widget per job, its stage and
+// count, settling into a line when it ends (/api/progress, tool/progress.py; the user, 2026-10-04: "it
+// would be nice to have progress indicators when it's doing something"). Over the page: the car's name
+// (a menu of the cars, the materials, the UV map), whether it's in the game, and what Claude is doing. Everything comes from the tool:
 // /api/sets?skin=<name> (tool/view.py): the car the skin is, or is an option of, its sets
 // (skins/<car>/sets.json, tool/sets.py its only writer) and everything said about it (`said`:
 // tool/notes.py's timeline(), Claude's lines by `tool.notes say` and `done --say`); an option's picture
@@ -31,6 +33,8 @@ let car = null;           // /api/sets: { car, title, skin, sets (newest first),
 let carSig = '';
 let onCar = null;         // the skin on the car ('lab:stand')
 let status = null;        // what Claude is doing ('lab:status')
+let jobs = { now: 0, jobs: [] };  // /api/progress: the tool's jobs, running and just ended
+let jobsAt = 0;           // when that came, by this page's clock
 let gallery = new Map();  // gallery.json by name: titles, thumbs, in the game
 let stick = true;         // the timeline follows what comes: the user is at the bottom
 const drafts = new Map(); // a widget's words being typed, by widget, kept across the timeline's redraws
@@ -50,6 +54,10 @@ const thumbOf = (name) => { const e = gallery.get(name); return e && e.thumb ? `
 const mine = () => car ? car.said.filter((x) => x.by !== 'claude') : [];
 const answerTo = (q) => mine().filter((a) => a.answer && a.answer.ask === q.ask.n && a.skin === q.skin).pop();
 const asking = () => car ? car.said.filter((x) => x.ask && !x.ask.settled && !answerTo(x)) : [];
+const ours = (j) => !j.skin || (car && (j.skin === car.car || !!optionOf(j.skin)));  // this car's jobs, and the tool's own
+const working = () => jobs.jobs.some((j) => j.state === 'running' && ours(j));
+const took = (s) => { s = Math.max(0, Math.round(s)); return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`; };
+const running = (s) => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
 // ---- over the page: the car, in the game, Claude ----
 
@@ -392,7 +400,11 @@ function timeline() {
   live.id = 'streamLive';
   live.append(el('i'), el('span'));
   box.append(live);
+  const work = el('div', 'jobs');
+  work.id = 'streamJobs';
+  box.append(work);
   painting();
+  progress();
   box.scrollTop = keep;
   follow();
   const back = typing && box.querySelector(`[data-draft="${CSS.escape(typing[0])}"]`);
@@ -402,9 +414,49 @@ function timeline() {
 function painting() {  // Claude at work, the last line of the timeline
   const live = $('streamLive');
   if (!live) return;
-  live.hidden = !(status && status.painting);
+  live.hidden = !(status && status.painting) || working();  // a job's widget says it, with its stage
   live.lastChild.textContent = status && status.painting ? status.text : '';
   follow();
+}
+
+function job(j, now) {  // one of the tool's jobs: its stage, a bar (a count, or a pulse), its time
+  if (j.state === 'running') {
+    const b = el('div', 'job on');
+    const head = el('div', 'jobHead');
+    head.append(el('i'), el('span', 'teko', j.title), el('time', null, running(now - j.started)));
+    b.append(head, el('p', null, (j.stage || 'Starting') + (j.count ? ` · ${j.count[0]} of ${j.count[1]}` : '')));
+    if (j.detail) b.append(el('p', 'jobDetail', j.detail));
+    const bar = el('div', j.count ? 'bar' : 'bar pulse');
+    const fill = el('b');
+    if (j.count) fill.style.width = `${(100 * j.count[0] / j.count[1]).toFixed(1)}%`;
+    bar.append(fill);
+    b.append(bar);
+    return b;
+  }
+  const of = j.skin && car && j.skin !== car.car ? `${optionName(j.skin) || j.skin}: ` : '';
+  const said = j.state === 'done' ? j.result : j.state === 'failed' ? `${j.title}: ${j.failed}` : `${j.title}: stopped before the end`;
+  const b = el('div', `job ${j.state}`);
+  b.append(el('i'), el('span', null, `${of}${said} · ${took((j.ended || j.beat) - j.started)}`));
+  return b;
+}
+
+function progress() {  // the tool's jobs at the timeline's foot, redrawn at each answer
+  const box = $('streamJobs');
+  if (!box) return;
+  const now = jobs.now + (Date.now() / 1000 - jobsAt);
+  box.replaceChildren(...jobs.jobs.filter(ours).map((j) => job(j, now)));
+  painting();
+}
+
+async function watch() {
+  if ($('roomStudio').hidden) return;
+  try {
+    const r = await fetch('api/progress', { cache: 'no-store' });
+    if (!r.ok) return;
+    jobs = await r.json();
+    jobsAt = Date.now() / 1000;
+  } catch { return; }  // the server busy: the next ask
+  progress();
 }
 
 function follow() {
@@ -505,6 +557,8 @@ export async function open(from) {
   await stand.open();
   await refresh();
   every(POLL, refresh);
+  await watch();
+  every(1000, watch);
   // ready once the timeline's pictures are in (Claude's snapshots of the page wait for it), 8 s at most
   const pics = [...$('stream').querySelectorAll('img')];
   await Promise.race([Promise.all(pics.map((i) => i.decode().catch(() => {}))), new Promise((r) => setTimeout(r, 8000))]);

@@ -32,7 +32,7 @@ import tarfile
 import time
 from pathlib import Path
 
-from tool import paths
+from tool import paths, progress
 
 # Together they use every part of the paint box: the user's car (peel, relief, emboss, glows, relit
 # lights, a library finish, the canvas by hand) and TOUR, a test car of the self-test's own that
@@ -168,6 +168,7 @@ def tree(ref):
     folder = HOME / commit[:12] / "tree"
     if not (folder / "tool").exists():
         print(f"extracting {ref} ({commit[:12]})...", flush=True)
+        progress.stage("Getting the old code")
         tmp = folder.with_name("tree.tmp")
         shutil.rmtree(tmp, ignore_errors=True)
         blob = git("archive", commit, "--", "tool", "car", "viewer", "skins",
@@ -286,6 +287,11 @@ def main():
     ap.add_argument("--snap", action="store_true", help="the viewer's sheets too, pixel for pixel")
     args = ap.parse_args()
     names = args.skins or (designs() + [TOUR] if args.all else list(SET))
+    with progress.job("Checking the tool", done="Every car painted exactly as before" if args.against else "Painted and timed"):
+        run(args, names)
+
+
+def run(args, names):
     old_cwd = commit = None
     if args.against:
         commit, old_cwd = tree(args.against)
@@ -296,17 +302,22 @@ def main():
     print(f"{len(names)} skins" + (f" at {args.at}" if args.at else "")
           + (f", against {args.against} ({commit[:12]})" if commit else ""), flush=True)
     differing = []
+    progress.stage("Cars checked", total=len(names))
     for name in names:
+        progress.detail(f"{progress.title_of(name)}: painted with the new code")
         new = paint(name, new_cwd, live, keep=not fresh)
         if "error" in new:
             print(f"{name:<40} new: FAILED {new['error']}", flush=True)
             differing.append(name)
+            progress.tick()
             continue
         line = f"{name:<40} paint {new['seconds']['paint']:>5.1f} s  encode {new['seconds']['encode']:>5.1f} s"
         if commit:
             if not (old_cwd / "skins" / name / "design.py").exists() and name != TOUR:
                 print(f"{line}  (new since {args.against})", flush=True)
+                progress.tick()
                 continue
+            progress.detail(f"{progress.title_of(name)}: painted with the old code")
             old = paint(name, old_cwd, HOME / commit[:12], keep=True)
             textures, other = same(old, new)
             if "seconds" in old:
@@ -317,15 +328,20 @@ def main():
             if textures or other:
                 differing.append(name)
             if textures:
+                progress.detail(f"{progress.title_of(name)}: finding the differences")
                 detail(name, old_cwd, new_cwd)
         else:
             print(line, flush=True)
+        progress.tick()
     if args.snap and commit:
         print("snapshots:", flush=True)
+        progress.stage("Comparing the pictures")
         if not snapshots(SNAP, old_cwd, new_cwd, commit):
             differing.append("snapshots")
     if commit:
         print("\nall identical" if not differing else f"\ndifferent: {', '.join(differing)}")
+    if differing:
+        progress.result(f"Different: {', '.join(progress.title_of(n) for n in differing)}", failed=True)
     sys.exit(1 if differing else 0)
 
 

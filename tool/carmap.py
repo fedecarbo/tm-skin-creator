@@ -61,7 +61,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 from scipy.spatial import cKDTree
 
-from tool import fbx, parts, paths
+from tool import fbx, parts, paths, progress
 
 CACHE = paths.CACHE / "carmap.npz"
 VERSION = 16
@@ -1181,6 +1181,7 @@ def _flow_field(V, F, walls, weight=1e4):
 # ---- building and loading ----
 
 def build():
+    progress.detail("Rebuilding the car map")
     V, F, fn, part, names = _weld()
     vn, area = _vertex_normals(V, F, fn)
     dirs = directions()
@@ -1946,7 +1947,8 @@ if __name__ == "__main__":
         mapcheck.curves()  # the lines as the eye sees them
         raise SystemExit
     t = time.time()
-    m = build()
+    with progress.job("Rebuilding the car map", done="The car map rebuilt"):
+        m = build()
     print(f"built in {time.time() - t:.0f} s: {len(m.V)} vertices, {len(m.F)} triangles, {len(m.dirs)} directions")
     o = m.layers["open"]
     print("open: " + ", ".join(f"{q:.0%} {np.quantile(o, q):.2f}" for q in (0.05, 0.25, 0.5, 0.75, 0.95)))

@@ -36,7 +36,7 @@ import time
 import numpy as np
 from PIL import Image, PngImagePlugin
 
-from tool import paths
+from tool import paths, progress
 
 MODELS = paths.WORK / "models"
 os.environ.setdefault("HF_HOME", str(MODELS))
@@ -196,6 +196,7 @@ def make(kind, words, style=None, n=4, seed=None, size=(1024, 1024)):
     embeds = encode([prompt])[0]
     paths_out = []
     t0 = time.time()
+    progress.stage("Pictures made", total=n)
     for k in range(n):
         s = seed + k
         if kind == "tile":
@@ -212,6 +213,7 @@ def make(kind, words, style=None, n=4, seed=None, size=(1024, 1024)):
         img.save(p, pnginfo=info)
         paths_out.append(p)
         print(f"pictures: {kind} {k + 1}/{n} (seed {s}) in {time.time() - t0:.0f} s", flush=True)
+        progress.tick()
         t0 = time.time()
     sheet = OUT / f"{name}.png"
     make_sheet(paths_out, sheet, kind)
@@ -295,7 +297,9 @@ def main():
     if args.cmd == "setup":
         setup()
     elif args.cmd in ("decal", "tile"):
-        sheet, files = make(args.cmd, args.words, args.style, args.n, args.seed, (args.size, args.size))
+        with progress.job(f"Making pictures: {args.words}", done="Pictures made"):
+            progress.stage("Loading the picture maker")
+            sheet, files = make(args.cmd, args.words, args.style, args.n, args.seed, (args.size, args.size))
         print(f"sheet: {sheet}")
     else:
         keep(args.slug, args.k, args.skin, args.name)

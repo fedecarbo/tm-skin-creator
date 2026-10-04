@@ -5,6 +5,7 @@
   /api/notes   the Lab's notes on the car (tool/notes.py)
   /api/sets    each car's sets of options and what was said about them (tool/sets.py)
   /api/lines   the car's lines as the user pins them (tool/lines.py)
+  /api/progress   what the tool is doing, a job at a time (tool/progress.py)
   /sets/<car>/<n>/<letter>.png, /notes/<skin>-<n>.jpg   the pictures those keep
 
 serve() is how the tool opens a page for the user: it serves on PORT unless a server of ours
@@ -18,7 +19,7 @@ import threading
 import urllib.parse
 import webbrowser
 
-from tool import lines, notes, paths, sets, view
+from tool import lines, notes, paths, progress, sets, view
 
 PORT = 8765
 
@@ -89,7 +90,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if url.path not in ("/api/notes", "/api/sets", "/api/lines"):
+        if url.path not in ("/api/notes", "/api/sets", "/api/lines", "/api/progress"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
@@ -97,6 +98,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             if url.path == "/api/lines":  # the car's lines as pinned in the Lab's lines room (tool/lines.py)
                 return self._json(200, lines.load())
+            if url.path == "/api/progress":  # the chat's progress widgets (viewer/lab-car.js)
+                return self._json(200, progress.jobs())
             if url.path == "/api/sets":
                 doc = sets.lab(skin)
                 if not doc:

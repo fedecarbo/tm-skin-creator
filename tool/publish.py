@@ -32,7 +32,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from tool import gallery, install, paths, server, view
+from tool import gallery, install, paths, progress, server, view
 
 SITE = paths.WORK / "site"
 BRANCH = "gh-pages"
@@ -218,9 +218,15 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--here", action="store_true", help="build it and open it on this computer, without putting it online")
     a = ap.parse_args()
-    entries = build()
-    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file() and ".git" not in f.relative_to(SITE).parts)
-    print(f"page: {len(entries)} skins ({', '.join(e['title'] for e in entries)}), {size / 1e6:.0f} MB", flush=True)
+    with progress.job("Building the page" if a.here else "Putting the page online",
+                      done="Built" if a.here else "Sent online (GitHub takes a minute or two to show it)"):
+        progress.stage("Building the page")
+        entries = build()
+        size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file() and ".git" not in f.relative_to(SITE).parts)
+        print(f"page: {len(entries)} skins ({', '.join(e['title'] for e in entries)}), {size / 1e6:.0f} MB", flush=True)
+        if not a.here:
+            progress.stage("Sending it to GitHub")
+            push(entries)
     if a.here:
         server = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
         threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -228,7 +234,6 @@ def main():
         print(f"here: {url}", flush=True)
         webbrowser.open(url)
         threading.Event().wait()
-    push(entries)
     print(f"online: {address()} (GitHub takes a minute or two to update it)")
 
 

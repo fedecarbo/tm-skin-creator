@@ -31,7 +31,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
-from tool import fonts, paths, server, view
+from tool import fonts, paths, progress, server, view
 
 # (label, view, night, hidden meshes[, parts]). A view is a name from viewer.js's VIEWS, or
 # {"dir": [x, y, z], "dist": metres, "target": [x, y, z]} for a close look. parts is an optional
@@ -109,10 +109,12 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
             if page.evaluate("window.viewer.error"):
                 raise RuntimeError(page.evaluate("window.viewer.error"))
             print(f"GPU: {page.evaluate('viewer.gpu()')}; loaded in {time.time() - start:.1f} s")
+            progress.stage("Taking pictures", total=len(shots))
             for label, view_spec, night, hidden, *rest in shots:
                 page.evaluate("([v, n, h]) => viewer.show(v, n, h)", [view_spec, night, hidden])
                 page.evaluate("(o) => viewer.showParts(o)", rest[0] if rest else {})
                 tiles.append((label, Image.open(io.BytesIO(page.screenshot()))))
+                progress.tick()
             browser.close()
     finally:
         httpd.shutdown()
@@ -237,11 +239,14 @@ def main():
         picture([args.name] + args.more, args.titles, args.views, close)
         return
     w, h = (int(v) for v in (args.size or (CAM_SIZE if args.cams else "960x720")).split("x"))
-    if args.close or args.cams or args.body or args.stretches:
-        snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
-             query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
-    else:
-        snap(args.name, size=(w, h))
+    what = {"close": "close looks", "cams": "the game's cameras", "body": "the body", "stretches": "the body close up"}
+    with progress.job(f"Photographing {progress.title_of(args.name)}" + (f": {what[kind]}" if kind in what else ""),
+                      skin=args.name, done="Photographed"):
+        if args.close or args.cams or args.body or args.stretches:
+            snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
+                 query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
+        else:
+            snap(args.name, size=(w, h))
 
 
 if __name__ == "__main__":

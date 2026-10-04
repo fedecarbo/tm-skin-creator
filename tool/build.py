@@ -14,7 +14,7 @@ import json
 import numpy as np
 from PIL import Image
 
-from tool import dds, pack, paths
+from tool import dds, pack, paths, progress
 
 # uploads may fail near 9 MB (a Nadeo developer, 2022); 8.45 and 8.65 MB zips have worked
 ZIP_BUDGET = 8.5e6
@@ -70,11 +70,13 @@ def build_zip(name):
         cols = meta.get("icon") or [(0.5, 0.5, 0.5)]
         icon_image = pack.icon(name[:8], cols[0], cols[-1])
     specs = {}
+    progress.stage("Game files", total=len(meta["textures"]))
     for tex_name, spec in meta["textures"].items():
         spec = dict(spec)
         fourcc = spec.pop("fourcc")
         specs[tex_name] = (fourcc, spec)
         (out / f"{tex_name}.dds").write_bytes(dds.texture(data[tex_name].astype(np.float32) / 255, fourcc, **spec))
+        progress.tick()
     zip_path = pack.pack(name, out, icon_image)
     whole = pack.sizes(zip_path)  # each file's size in the zip, compressed
     packed = dict(whole)
@@ -87,6 +89,7 @@ def build_zip(name):
         # carries a grain that needs its full size (TSC_CMYK_EndsInK, 2026-09-27)
         t = max(group, key=lambda t: (t.startswith("Wheels"), packed[f"{t}.dds"]))
         group.remove(t)
+        progress.detail("Making the zip small enough")
         fourcc, spec = specs[t]
         half = dds.halve(data[t].astype(np.float32) / 255)
         halves[t] = dds.texture(half, fourcc, **spec), half.shape

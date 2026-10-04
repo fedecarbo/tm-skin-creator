@@ -62,7 +62,7 @@ import re
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import bake, colours, coverage, finishes, fonts, looks, paint, parts, paths, raster, shapes
+from tool import bake, colours, coverage, finishes, fonts, looks, paint, parts, paths, progress, raster, shapes
 from tool.dds import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
@@ -245,6 +245,7 @@ class Skin:
         Studio shows it when the day's front view can't: "rear", "night", "rear night"."""
         self._end_step()
         self.steps.append({"name": name, "does": does, "words": words or "", "look": look or "", "paints": []})
+        progress.detail(f"Step {len(self.steps)}: {name}")
         if self.frames:  # the Studio shows it as being painted
             from tool import view
             view.export_steps(self.name, self.steps, painting=True)
