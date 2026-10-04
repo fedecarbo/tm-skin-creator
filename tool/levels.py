@@ -27,6 +27,12 @@ neighbours stay with the top, the spacing between narrows evenly. The lean grows
 ahead of which it holds; behind it the levels are the top's and the bottom's alone. Their direction,
 not their height, so the step between the two seams at the intake's front corner bends nothing.
 
+The nose's lines: `nose` more above the top line, from the intake opening's front edge to the tip
+(NOSE_FROM): each keeps its height above the top line, the nose's side where it begins (NOSE_SIDE,
+from the top line up to where the nose's top folds down) shared out evenly, and near the tip goes
+round over the nose in a U, joining the other side, where the nose's top comes down to it (the
+user's pick, 2026-10-04: "the lines shouldnt meet at the nose").
+
 The bottom runs only between its first and last points: from the tail's end along the turn under,
 then on along the side skirt's edge under the nose and round the nose's tip (the user, 2026-10-04:
 "it should keep on following the sholder of the surface (when it starts folding)"). The levels
@@ -36,14 +42,15 @@ on the opening's upright edge; those that pass over it, onto the nose's undersid
 it (OPENING; the user's pick, 2026-10-04).
 
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
-    {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 5}
+    {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 6, "nose": 3}
 
     python -m tool.levels            paint every level on the clay car, for the viewer and the room (LOOK)
     python -m tool.levels --side     the side view the room draws on, into the work folder (also made
                                      by the first paint, and again when the mesh changes)
 
     levels.line("top edge", 0.8)     a zone (tool/shapes.py): the level's line, 0.8 cm wide on the surface
-                                     ("between 1" is the highest of the levels between, and so on down)
+                                     ("between 1" is the highest of the levels between, and so on down;
+                                     "nose 1" the highest of the nose's)
     levels.above("top edge")         a zone: the body above it
     levels.below("bottom edge")      a zone: the body below it, as far as it runs
     levels.band("between 1", "between 2")   a zone: the body between two levels, as far as both run
@@ -72,6 +79,11 @@ OPENING = (70.0, 41.0)
 STEER = ("side skirt", "side skirt ahead")  # the seams the levels between lean to (lab-levels.js STEER)
 STEER_FADE = (-45.0, -25.0)  # z, cm: the lean grows in from the first to the second, the seams' start
 STEER_AT = 16.0  # z, cm: where a level's nearness to the seams is measured, their stretch's middle
+# the nose's lines: where they begin (z, cm: in line with the intake opening's front edge, where the
+# body at the top line's height begins), where they end (past the tip), and how tall the nose's side
+# is where it begins (cm above the top line, up to where its top folds down: the middle of the roll,
+# 45 degrees, measured at z 36) (lab-levels.js NOSE)
+NOSE_FROM, NOSE_TO, NOSE_SIDE = 28.0, 220.0, 12.9
 # where to start, for the user to move: the top's edge as Claude found it (the middle of the roll from
 # top to side, smoothed) and the bottom along the body's lower edge (where the side turns under), from
 # the tail's end to the sidepods' front (2026-10-04)
@@ -108,7 +120,8 @@ def save(doc):
         out.append(level)
     if len({L["name"].lower() for L in out}) != len(out):
         raise ValueError("two levels share a name")
-    kept = {"levels": out, "between": min(max(int(doc.get("between", 0)), 0), MOST)}
+    kept = {"levels": out, "between": min(max(int(doc.get("between", 0)), 0), MOST),
+            "nose": min(max(int(doc.get("nose", 0)), 0), MOST)}
     paths.write(FILE, json.dumps(kept, indent=1) + "\n")
     return kept
 
@@ -163,6 +176,12 @@ def curves(doc=None):
             dY = lambda z, dY0=dY0, lean=lean: dY0(z) + np.interp(z, zg, lean)
             end = OPENING[0] if Y(OPENING[0]) > OPENING[1] else span[1]
             out.append((f"between {k}", Y, dY, (span[0], end)))
+    m = int(doc.get("nose", 0))
+    if "top" in role and m:
+        T, dT = spline(role["top"]["points"])
+        for k in range(1, m + 1):
+            d = NOSE_SIDE * (m + 1 - k) / m  # highest first
+            out.append((f"nose {k}", lambda z, d=d: T(z) + d, dT, (NOSE_FROM, NOSE_TO)))
     return out
 
 
@@ -321,7 +340,7 @@ def sections():
 
 def paint():
     """Every level as a line on the clay car (LOOK), for the viewer and the room: the levels drawn in
-    black, the levels between in blue."""
+    black, the levels between and the nose's in blue."""
     from tool import build, paintbox, view
     doc = load()
     with progress.job("Drawing your levels on the car"):
@@ -341,7 +360,8 @@ def paint():
         progress.stage("Putting it on the car")
         build.export_to_viewer(s)
         (view.DATA / "levels").mkdir(parents=True, exist_ok=True)
-        paths.write(view.DATA / "levels" / "painted.json", json.dumps({"stamp": time.time(), "levels": doc["levels"], "between": doc.get("between", 0)}))
+        paths.write(view.DATA / "levels" / "painted.json", json.dumps({"stamp": time.time(), "levels": doc["levels"], "between": doc.get("between", 0),
+                                                                     "nose": doc.get("nose", 0)}))
 
 
 def main():
@@ -356,8 +376,8 @@ def main():
     t = time.time()
     paint()
     doc = load()
-    print(f"painted {', '.join(L['name'] for L in doc['levels'])} and {len(curves(doc)) - len(doc['levels'])} levels between"
-          f" on {LOOK} in {time.time() - t:.0f} s")
+    print(f"painted {', '.join(L['name'] for L in doc['levels'])}, {doc.get('between', 0)} levels between and"
+          f" {doc.get('nose', 0)} on the nose on {LOOK} in {time.time() - t:.0f} s")
 
 
 if __name__ == "__main__":

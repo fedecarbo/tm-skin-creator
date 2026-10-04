@@ -1,1 +1,0 @@
-Option A of TSC_Skeleton's set 3 (The nose's lines · 2 ways), 2026-10-04: Round the nose. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).

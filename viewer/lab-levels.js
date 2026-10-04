@@ -10,7 +10,9 @@
 // seams' direction by how near them they run. The bottom runs only between its first and last points
 // (to the nose's tip along the side skirt's edge), the levels between from its first point to the
 // sidepods' front, or to the front wheel opening's upright edge if they pass over it. The car's seams
-// along the side are drawn in orange (tool/seams.py), to shape the top and the bottom by.
+// along the side are drawn in orange (tool/seams.py), to shape the top and the bottom by. The nose's
+// lines run above the top from the intake to the tip, each keeping its height above it and going
+// round over the nose in a U (blue too, their number from the room's second − and +).
 // Above it, the car itself with the line drawn on it as it moves (through the car map's outline every
 // cm: a close picture, the paint is exact), turned with a drag; "Show it on the car" paints it (about
 // 20 s) and dresses the car in it. The live line shows for the level picked and for whatever has
@@ -27,9 +29,10 @@ const SIDE_FRONT = 82;  // where the levels between end, the sidepods' front (to
 const OPENING = [70, 41];  // the front wheel opening's upright edge and its height (tool/levels.py OPENING)
 const STEER = ['side skirt', 'side skirt ahead'];  // the seams the levels between lean to (tool/levels.py STEER)
 const STEER_FADE = [-45, -25], STEER_AT = 16;  // tool/levels.py STEER_FADE, STEER_AT
+const NOSE = [28, 220, 12.9];  // the nose's lines: from, to, and the nose's side where they begin (tool/levels.py NOSE_*)
 const WHEEL = (p) => p.mesh === 'Wheels' || p.parent === 'rims and brakes' || p.parent === 'wheel cover';
 
-let doc = { levels: [] };  // as car/levels.json: { levels: [{ name, role?, points: [[z, y] cm] }], between }
+let doc = { levels: [] };  // as car/levels.json: { levels: [{ name, role?, points: [[z, y] cm] }], between, nose }
 let cur = 0;               // the level open
 let sel = -1;              // its picked point
 let car = null;            // the viewer's window.viewer
@@ -122,6 +125,16 @@ function between() {  // the levels between the top and the bottom, highest firs
   });
 }
 
+function nose() {  // the nose's lines above the top, highest first: [{ Y, z0, z1 }]
+  const top = doc.levels.find((L) => L.role === 'top'), n = doc.nose || 0;
+  if (!top || top.points.length < 2) return [];
+  const T = spline(top.points);
+  return Array.from({ length: n }, (_, k) => {
+    const d = (NOSE[2] * (n - k)) / n;
+    return { Y: (z) => T(z) + d, z0: NOSE[0], z1: NOSE[1] };
+  });
+}
+
 // ---- the line on the 3D car: on each cm's outline, the outermost place at the level's height ----
 
 function lineOnCar(Y, z0, z1) {  // runs of [x, y, z] cm along the left side
@@ -157,7 +170,7 @@ function lineOnCar(Y, z0, z1) {  // runs of [x, y, z] cm along the left side
 
 // what the paint shows already: a level painted as it is now, and the levels between unchanged
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const ends = (d) => d && JSON.stringify(['top', 'bottom'].map((r) => (d.levels.find((l) => l.role === r) || {}).points).concat(d.between || 0));
+const ends = (d) => d && JSON.stringify(['top', 'bottom'].map((r) => (d.levels.find((l) => l.role === r) || {}).points).concat(d.between || 0, d.nose || 0));
 
 function drawCar() {
   liveFrame = 0;
@@ -175,7 +188,7 @@ function drawCar() {
     if (i !== cur && old && same(old.points, L.points) && old.role === L.role) return;
     add(`l${i}`, spline(L.points), span(L), i === cur ? { colour: '#e8ff47', radius: 0.007 } : { colour: '#3a3d45', radius: 0.004, dim: true });
   });
-  if (ends(doc) !== ends(painted)) between().forEach((b, k) => add(`b${k}`, b.Y, [b.z0, b.z1], { colour: '#3d7bff', radius: 0.004 }));
+  if (ends(doc) !== ends(painted)) between().concat(nose()).forEach((b, k) => add(`b${k}`, b.Y, [b.z0, b.z1], { colour: '#3d7bff', radius: 0.004 }));
   car.curves(list);
 }
 
@@ -203,6 +216,17 @@ function drawSide() {
   };
   for (const pts of Object.values(seamLines)) g.appendChild(el('path', { d: path(spline(pts), pts[0][0], pts[pts.length - 1][0]), class: 'lvSeam' }));
   between().forEach((b) => g.appendChild(el('path', { d: path(b.Y, b.z0, b.z1), class: 'lvCurve between' })));
+  nose().forEach((b) => {  // seen from the side, each stops where it goes round over the nose's top
+    let z1 = b.z0;
+    for (const [z, q] of outlines) {
+      if (z < b.z0) continue;
+      let top = -Infinity;
+      for (let k = 1; k < q.length; k += 2) top = Math.max(top, q[k]);
+      if (b.Y(z) >= top) break;
+      z1 = z;
+    }
+    g.appendChild(el('path', { d: path(b.Y, b.z0, z1), class: 'lvCurve between' }));
+  });
   doc.levels.forEach((L, i) => {
     if (L.points.length < 2) return;
     g.appendChild(el('path', { d: path(spline(L.points), ...span(L)), class: i === cur ? 'lvCurve on' : 'lvCurve' }));
@@ -333,11 +357,11 @@ function rename(value) {
   changed();
 }
 
-function more(by) {  // levels between the top and the bottom: none to MOST
-  const n = Math.min(Math.max((doc.between || 0) + by, 0), MOST);
-  if (n === (doc.between || 0)) return;
+function more(key, by) {  // how many levels between the top and the bottom, or on the nose: none to MOST
+  const n = Math.min(Math.max((doc[key] || 0) + by, 0), MOST);
+  if (n === (doc[key] || 0)) return;
   remember();
-  doc.between = n;
+  doc[key] = n;
   changed();
 }
 
@@ -369,6 +393,8 @@ function panel() {
   const both = doc.levels.some((l) => l.role === 'top') && doc.levels.some((l) => l.role === 'bottom');
   $('lvBetweenRow').hidden = !both;
   $('lvBetween').textContent = String(doc.between || 0);
+  $('lvNoseRow').hidden = !doc.levels.some((l) => l.role === 'top');
+  $('lvNose').textContent = String(doc.nose || 0);
   $('lvDelPt').hidden = sel < 0;
   const hint = $('lvHint');
   if (sel >= 0 && L) hint.textContent = `Point ${sel + 1}: ${L.points[sel][1].toFixed(1)} cm up, ${Math.abs(L.points[sel][0]).toFixed(0)} cm ${L.points[sel][0] < 0 ? 'behind' : 'in front of'} the middle. Drag it, or press Delete to take it off.`;
@@ -388,12 +414,12 @@ function say(text) {
 
 // ---- keeping and painting (tool/server.py /api/levels -> car/levels.json, tool/levels.py) ----
 
-const kept = () => JSON.stringify({ levels: doc.levels, between: doc.between || 0 });
+const kept = () => JSON.stringify({ levels: doc.levels, between: doc.between || 0, nose: doc.nose || 0 });
 
 async function save(paint) {
   try {
     const sent = kept();
-    const r = await fetch('api/levels', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ levels: doc.levels, between: doc.between || 0, paint }) });
+    const r = await fetch('api/levels', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ levels: doc.levels, between: doc.between || 0, nose: doc.nose || 0, paint }) });
     const out = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(out.error || String(r.status));
     if (kept() === sent) unsaved = false;
@@ -412,7 +438,7 @@ async function sync() {  // coming back to the page: the levels and the paint as
     const r = await fetch('api/levels', { cache: 'no-store' });
     if (!r.ok) return;
     const d = await r.json();
-    const there = { levels: d.levels || [], between: d.between || 0 };
+    const there = { levels: d.levels || [], between: d.between || 0, nose: d.nose || 0 };
     if (!drag && !unsaved && JSON.stringify(there) !== kept()) {
       doc = there;
       undo.length = 0;  // undo would bring back what was changed elsewhere
@@ -509,8 +535,10 @@ export async function open() {
   $('lvUndo').addEventListener('click', takeBack);
   $('lvDelPt').addEventListener('click', removePoint);
   $('lvNew').addEventListener('click', newLevel);
-  $('lvFewer').addEventListener('click', () => more(-1));
-  $('lvMore').addEventListener('click', () => more(1));
+  $('lvFewer').addEventListener('click', () => more('between', -1));
+  $('lvMore').addEventListener('click', () => more('between', 1));
+  $('lvNoseFewer').addEventListener('click', () => more('nose', -1));
+  $('lvNoseMore').addEventListener('click', () => more('nose', 1));
   $('lvDelete').addEventListener('click', deleteLevel);
   $('lvPaint').addEventListener('click', () => { if (!$('lvPaint').hasAttribute('aria-disabled')) paint(); });
   $('lvName').addEventListener('change', (e) => rename(e.target.value));

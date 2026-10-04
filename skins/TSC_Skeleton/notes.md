@@ -267,3 +267,10 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   12.9 cm, going round over the nose in a U at z 146, 175 and 196); B, the nose's top line and two
   shared out under it, stopping in line with the front wheels' axle (z 178). Checked close up: the
   tip, the start, both sides, from ahead and from the driving camera.
+- Picked A, round the nose (user, in the Lab, 2026-10-04). Built into the guides: `nose` lines above
+  the top line (3; the room's second − and +, "On the nose, above the top"), each a share of the
+  nose's side where it begins (12.9 cm at z 36, from the top line to where the nose's top folds down)
+  above the top line, from z 28 (in line with the intake opening's front edge) to the tip, going
+  round over the nose in a U at z 146, 175 and 196. In blue with the other lines; the room's side view
+  stops each where it goes over the nose's top. The room draws the paint's lines exactly (0.0000 cm).
+  TSC_Skeleton's design is the guides again. Self-test: every car identical.

@@ -54,22 +54,24 @@
    "title": "The nose's lines · 2 ways",
    "words": "I personally think that the lines shouldnt meet at the nose. As in the top ones",
    "made": "2026-10-04T22:08:14",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Round the nose",
-     "skin": "TSC_Skeleton_RoundTheNose"
+     "skin": "TSC_Skeleton_RoundTheNose",
+     "picture": "sets/3/A.png"
     },
     {
      "key": "B",
      "title": "Stopping at the front wheels",
-     "skin": "TSC_Skeleton_StoppingAtTheFrontWheels"
+     "skin": "TSC_Skeleton_StoppingAtTheFrontWheels",
+     "picture": "sets/3/B.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "A",
+   "decision": "Round the nose",
+   "done": "2026-10-04T22:10:59"
   }
  ]
 }

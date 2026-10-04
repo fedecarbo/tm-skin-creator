@@ -1,5 +1,5 @@
 """The skeleton car: the painter's guides on the clay car (tool/levels.py), as the levels room draws
-them: the top line and the bottom line in black, the levels between in blue."""
+them: the top line and the bottom line in black, the levels between and the nose's lines in blue."""
 from tool import levels
 
 WORDS = ("the purpose of these guides is that you as the painter can guide yourself to painting ... "
@@ -16,8 +16,7 @@ def design(s):
     for name, *_ in levels.curves():
         if name in drawn:
             s.paint(outer, "matte", colour=BLACK, zone=levels.line(name))
-    s.step("The levels between", "The levels between in blue, ending on the front wheel opening's edge or in line with it.",
-           words=WORDS)
+    s.step("The lines between", "The levels between and the nose's lines in blue.", words=WORDS)
     for name, *_ in levels.curves():
         if name not in drawn:
             s.paint(outer, "matte", colour=BLUE, zone=levels.line(name))
