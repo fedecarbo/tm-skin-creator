@@ -9,14 +9,22 @@ round the nose tip and across the tail. Seen from the side, the line on the car 
 itself. The room draws the same curve (lab-levels.js's spline is this one), so what is dragged
 there is what is painted.
 
+The side's levels: the user draws two, the top (role "top") and the bottom (role "bottom"), and
+`between` more are shared out evenly between them at every length (a third of the way down is a
+third of the way down all along), so each follows both and is smooth because they are. The bottom
+and the levels between run only between the bottom's first and last points: ahead of the sidepods
+the body has no side below the top (the nose's own lower edge is the top there), and held level
+they would run on along the floor's blade and round the front wing.
+
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
-    {"levels": [{"name": "top edge", "points": [[z, y], ...]}]}
+    {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 5}
 
     python -m tool.levels            paint every level on the clay car, for the viewer and the room (LOOK)
     python -m tool.levels --side     the side view the room draws on, into the work folder (also made
                                      by the first paint, and again when the mesh changes)
 
     levels.line("top edge", 0.8)     a zone (tool/shapes.py): the level's line, 0.8 cm wide on the surface
+                                     ("between 1" is the highest of the levels between, and so on down)
     levels.above("top edge")         a zone: the body above it
 """
 
@@ -32,10 +40,20 @@ FILE = paths.REPO / "car" / "levels.json"
 LOOK = "Look_Levels"  # the clay car with the levels on it, in the viewer's data (never a skin of the user's)
 SIDE = 0.25  # cm per pixel of the side view
 WHEELS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
-# where to start: the top's edge as Claude found it (the middle of the roll from top to side, smoothed,
-# 2026-10-04), for the user to move
-START = {"levels": [{"name": "top edge", "points": [[-158, 61.0], [-120, 60.6], [-80, 58.6], [-40, 57.0], [0, 57.6],
-                                                    [40, 59.8], [90, 56.0], [140, 50.6], [180, 45.7], [210, 41.0]]}]}
+# the outer body's parts a level isn't painted on: the struts under the nose and the inlets' insides
+# (a level at their height ran along an inlet's roof)
+OFF = ("wing pylon", "sidepod inlet")
+# where to start, for the user to move: the top's edge as Claude found it (the middle of the roll from
+# top to side, smoothed) and the bottom along the body's lower edge (where the side turns under), from
+# the tail's end to the sidepods' front (2026-10-04)
+START = {"levels": [{"name": "top edge", "role": "top",
+                     "points": [[-158, 61.0], [-120, 60.6], [-80, 58.6], [-40, 57.0], [0, 57.6],
+                                [40, 59.8], [90, 56.0], [140, 50.6], [180, 45.7], [210, 41.0]]},
+                    {"name": "bottom edge", "role": "bottom",
+                     "points": [[-162, 38], [-145, 29], [-128, 23], [-105, 19.5], [-60, 20.5], [-10, 22],
+                                [40, 20.5], [82, 18.5]]}],
+         "between": 5}
+MOST = 12  # levels between, at most
 
 
 def load():
@@ -46,7 +64,7 @@ def load():
 
 def save(doc):
     """Check a document from the room and keep it."""
-    out = []
+    out, roles = [], set()
     for L in doc.get("levels", []):
         name = str(L.get("name", "")).strip()[:40]
         pts = sorted(([round(float(z), 2), round(float(y), 2)] for z, y in L.get("points", [])), key=lambda p: p[0])
@@ -54,11 +72,16 @@ def save(doc):
             raise ValueError("a level needs a name and two points or more")
         if any(b[0] - a[0] < 0.5 for a, b in zip(pts, pts[1:])):
             raise ValueError(f"{name}: two points at the same place along the car")
-        out.append({"name": name, "points": pts})
+        level = {"name": name, "points": pts}
+        if L.get("role") in ("top", "bottom") and L["role"] not in roles:
+            level = {"name": name, "role": L["role"], "points": pts}
+            roles.add(L["role"])
+        out.append(level)
     if len({L["name"].lower() for L in out}) != len(out):
         raise ValueError("two levels share a name")
-    paths.write(FILE, json.dumps({"levels": out}, indent=1) + "\n")
-    return {"levels": out}
+    kept = {"levels": out, "between": min(max(int(doc.get("between", 0)), 0), MOST)}
+    paths.write(FILE, json.dumps(kept, indent=1) + "\n")
+    return kept
 
 
 def spline(points):
@@ -80,17 +103,36 @@ def spline(points):
     return Y, dY
 
 
+def curves(doc=None):
+    """Every line the levels make: (name, Y, dY, span), span the stretch (z0, z1) it runs along, or None
+    all along the car. The levels drawn, then the levels between the top and the bottom, highest first."""
+    doc = doc or load()
+    out = []
+    for L in doc["levels"]:
+        Y, dY = spline(L["points"])
+        span = (L["points"][0][0], L["points"][-1][0]) if L.get("role") == "bottom" else None
+        out.append((L["name"], Y, dY, span))
+    role = {L["role"]: L for L in doc["levels"] if L.get("role")}
+    n = int(doc.get("between", 0))
+    if "top" in role and "bottom" in role and n:
+        (T, dT), (B, dB) = spline(role["top"]["points"]), spline(role["bottom"]["points"])
+        span = (role["bottom"]["points"][0][0], role["bottom"]["points"][-1][0])
+        for k in range(1, n + 1):
+            t = 1 - k / (n + 1)  # 0 at the bottom, 1 at the top
+            out.append((f"between {k}", lambda z, t=t: B(z) + t * (T(z) - B(z)),
+                        lambda z, t=t: dB(z) + t * (dT(z) - dB(z)), span))
+    return out
+
+
 def _find(name):
-    for L in load()["levels"]:
-        if L["name"].lower() == name.lower():
-            return L
+    for c in curves():
+        if c[0].lower() == name.lower():
+            return c
     raise ValueError(f"no level called {name!r} in {FILE.name}: the levels room draws them")
 
 
-def _above_cm(points):
+def _above_cm(Y, dY):
     """(pos, nrm) -> how far above the level each point is, in cm along the surface."""
-    Y, dY = spline(points)
-
     def f(p, n):
         z = p[:, 2].astype(np.float64)
         h = p[:, 1] - Y(z)
@@ -105,17 +147,21 @@ def line(name, width=0.8):
     """The level's line on the outer body, `width` cm wide on the surface."""
     from tool import shapes
     from tool.noise import smoothstep
-    f = _above_cm(_find(name)["points"])
+    _, Y, dY, span = _find(name)
+    f = _above_cm(Y, dY)
     z = shapes.Zone(lambda p, n: smoothstep(-0.1, 0.1, width / 2 - np.abs(f(p, n))).astype(np.float32))
-    # the outer body (the flanks behind the wheels see little of the open air), and not its undersides
-    return z & shapes.outside(0.1) & shapes.Zone(lambda p, n: smoothstep(-0.4, -0.2, n[:, 1]).astype(np.float32))
+    # the outer body (the flanks behind the wheels see little of the open air), and not its undersides;
+    # the side tucks under along the sidepods, facing 15 to 40 degrees down from 34 cm to its foot, and
+    # is still the side the room draws on: only what faces more than 50 degrees down is under the car
+    z = z & shapes.outside(0.1) & shapes.Zone(lambda p, n: smoothstep(-0.85, -0.75, n[:, 1]).astype(np.float32))
+    return z & shapes.band(*span) if span else z
 
 
 def above(name):
     """The body above the level."""
     from tool import shapes
     from tool.noise import smoothstep
-    f = _above_cm(_find(name)["points"])
+    f = _above_cm(*_find(name)[1:3])
     return shapes.Zone(lambda p, n: smoothstep(-0.05, 0.05, f(p, n)).astype(np.float32))
 
 
@@ -188,23 +234,27 @@ def sections():
 # ---- the levels on the clay car ----
 
 def paint():
-    """Every level as a line on the clay car (LOOK), for the viewer and the room."""
+    """Every level as a line on the clay car (LOOK), for the viewer and the room: the levels drawn in
+    black, the levels between in blue."""
     from tool import build, paintbox, view
     doc = load()
     with progress.job("Drawing your levels on the car"):
         side_view()
         sections()
-        progress.stage("Painting", total=len(doc["levels"]))
+        lines = curves(doc)
+        progress.stage("Painting", total=len(lines))
         s = paintbox.Skin(LOOK)
         s.clay()
-        for L in doc["levels"]:
-            s.paint("body", "matte", colour="#0a0a0a", zone=line(L["name"]))
+        body = sorted({i["name"] for i in s.parts.instances if i["mesh"] == "Skin"} - set(WHEELS) - set(OFF))
+        drawn = {L["name"] for L in doc["levels"]}
+        for name, *_ in lines:
+            s.paint([f"{b}|part" for b in body], "matte", colour="#0a0a0a" if name in drawn else "#1d4ed8", zone=line(name))
             progress.tick()
         s.end_steps()
         progress.stage("Putting it on the car")
         build.export_to_viewer(s)
         (view.DATA / "levels").mkdir(parents=True, exist_ok=True)
-        paths.write(view.DATA / "levels" / "painted.json", json.dumps({"stamp": time.time(), "levels": doc["levels"]}))
+        paths.write(view.DATA / "levels" / "painted.json", json.dumps({"stamp": time.time(), "levels": doc["levels"], "between": doc.get("between", 0)}))
 
 
 def main():
@@ -217,7 +267,9 @@ def main():
         return
     t = time.time()
     paint()
-    print(f"painted {', '.join(L['name'] for L in load()['levels'])} on {LOOK} in {time.time() - t:.0f} s")
+    doc = load()
+    print(f"painted {', '.join(L['name'] for L in doc['levels'])} and {len(curves(doc)) - len(doc['levels'])} levels between"
+          f" on {LOOK} in {time.time() - t:.0f} s")
 
 
 if __name__ == "__main__":

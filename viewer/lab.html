@@ -162,6 +162,11 @@
   #lvSvg { display: block; width: 100%; height: auto; aspect-ratio: 388 / 94; cursor: crosshair; touch-action: none; user-select: none; }
   .lvCurve { fill: none; stroke: rgba(242, 244, 247, 0.35); stroke-width: 2px; vector-effect: non-scaling-stroke; }
   .lvCurve.on { stroke: var(--acc); stroke-width: 2.5px; }
+  .lvCurve.between { stroke: #3d7bff; stroke-width: 1.5px; pointer-events: none; }
+  .lvBetween { align-items: center; margin-bottom: 10px; }
+  .lvBetween[hidden] { display: none; }
+  .lvBetween .lab { width: auto; flex: 1; padding-top: 0; }
+  .lvBetween b { min-width: 2ch; text-align: center; font-size: 22px; }
   .lvPt { fill: var(--acc); stroke: rgba(13, 15, 18, 0.85); stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: grab; }
   .lvPt.picked { fill: var(--text); stroke: var(--acc); stroke-width: 3px; }
   #lvSay { position: absolute; left: 14px; top: 12px; z-index: 3; background: rgba(12, 14, 18, 0.85); backdrop-filter: blur(6px); }
@@ -616,6 +621,9 @@
       <h2 class="specName teko" style="margin-top: 14px">The levels</h2>
       <p id="lvHint" class="lnHint"></p>
       <div id="lvList" class="lnList"></div>
+      <div id="lvBetweenRow" class="row lvBetween" hidden><span class="lab">Between the top and the bottom</span>
+        <button id="lvFewer" class="sk" aria-label="fewer levels between"><span>−</span></button><b id="lvBetween" class="teko"></b>
+        <button id="lvMore" class="sk" aria-label="more levels between"><span>+</span></button></div>
       <div class="lnOpen">
         <div class="row"><span class="lab">Name</span><input id="lvName" maxlength="40" autocomplete="off" spellcheck="false"></div>
         <div class="tagButtons teko">

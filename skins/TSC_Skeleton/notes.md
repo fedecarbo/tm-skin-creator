@@ -68,3 +68,17 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   measured exactly; what failed is lines traced off the model's facets. Proposed: the user draws
   only the top and bottom lines, and the levels between blend from one to the other (smooth by
   construction). Asked what they'd need to see before building it.
+- The user: "I would need to see, because sometimes you suggest a 'better' approach, and then you
+  fail", and "the purpose of the skeleton is to help you at the end of the day, if it doesn't then
+  it's no point doing them". Built and checked before showing: the levels room takes a top (the top
+  edge) and a bottom (new: the body's lower edge, from the tail's end to the sidepods' front, 38 cm at
+  the tail, 19.5 to 22 along the side, 18.5 at the front), and shares levels out evenly between them
+  (5 to start, the room's − and +). The bottom and the levels between run only as far as the bottom:
+  held level they ran on along the floor's blade and round the front wing. Found on the way: the side
+  tucks under along the sidepods (15 to 40 degrees down from 34 cm to its foot) and the paint had
+  skipped anything over 15 degrees down, so the lower levels faded and the bottom didn't show; now only
+  the real undersides (over 50 degrees down) are skipped, the top edge unchanged. The levels stay off
+  the inlets' roofs and the struts under the nose. The room's live lines had sat 1.2 cm under the
+  paint since it was built (the viewer raises the car to put the tyres on the floor); now on it, and
+  shown only for the level picked and what changed since the last paint. Checked close up on both
+  sides, every stretch, and from low down. Shown in the levels room.
