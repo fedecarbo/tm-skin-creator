@@ -311,3 +311,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   plain guides again. The room draws the paint's lines exactly (0.0 cm). Checked close up from the
   side and low from both quarters. Self-test: every car identical.
 - The user, of the bottom along the back: "looks good". The Red Bull overlay is gone from the work folder.
+- The user: "How about defining the top ones" (the lines above the top line, which only the nose
+  has). Measured on the cross-sections: down the middle runs a raised spine (the nose, the cockpit
+  surround, the engine cover) with a sloping side 14 to 15 cm tall from z 20 to -60 (its foot 7 to 8
+  cm above the top line, 64 to 66 cm), shrinking to 4 cm by z -100 as the engine cover falls to the
+  tail's deck; either side of it the sidepods' tops, flat shelves between its foot and the top line.
+  Trial (Look_TopLines, in the work folder, in pink): the nose's three lines carried back along the
+  spine's sides at the same heights above its foot (4.3, 8.6, 12.9 cm), rising onto it over z 50 to
+  20 (above the sidepods' front, where the foot climbs 7 cm), and going round the engine cover's back
+  in U's (z about -62, -83, -100), as they go round the nose: three rings round the spine. The
+  sidepods' tops and the tail's deck are flat (no height to follow) and stay without lines for now.
+  Checked close up: the U's from above and the side, the sweep from the side and high, the cockpit's
+  side, the mirror mount (untouched). Shown in the viewer.
