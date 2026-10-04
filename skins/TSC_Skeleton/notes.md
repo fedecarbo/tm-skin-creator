@@ -96,3 +96,13 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
 - The user: "Can you remove the ones I added because it's hard to see." Removed "level 2" (the only
   one saved; "side level" never was). The room now re-reads the levels when the user comes back to the
   page, so an open or old copy never saves over a change made from here.
+- The user: "Feels more accurate, yes. Would be nice if the bottom one would follow seamlessly the
+  crease of the diffuser strake when you look at it on the side", then "if you look at the tail corner
+  as well, that could help with the other blue lines". The crease (the rear flank's lower edge over
+  the strake, z -141.5 to -110.5, 28.2 to 20.6 cm) ran 0.4 to 0.8 cm above the bottom line; the tail
+  corner's edge from the side climbs from (-142, 28.5) to (-154.5, 58.5). The bottom refitted through
+  both, the angle between them rounded: within 0.24 cm of the crease and 0.19 of the corner, one way of
+  bending from the tail to -68, unchanged ahead (within 0.15). The levels between now sweep up the tail
+  corner and gather into the top of it, a fan. Tried and not kept: the crease alone (the levels between
+  wrapped round the corner as before). Checked close up at the gathering, the turn and the crease, both
+  sides. Shown in the levels room.
