@@ -22,3 +22,10 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   was computed face by face, so it bends at each edge. Open: one line traced as a single smooth
   stroke (Peach's seam, the edge between two pieces of the skin, carried over the nose in its flow),
   shown in the viewer, before anything more is built on the skeleton.
+- The user: "cant you just trace peach's from the uv map?" Measured: Peach's line is painted inside
+  one piece of the texture and follows no face edges (22%): the artist drew one smooth curve in the
+  flat texture, which stays smooth on the car. Traced the same way (its edge texels, one smoothing
+  spline per piece of the texture it crosses, three a side, within 0.3 texels of Peach's edge;
+  painted 0.8 cm wide in texture space): smooth, unbroken across the joins. Shown in the viewer
+  (Look_PeachLine, a look in the work folder; Peach's texture stays local). Waiting for the user's
+  verdict before anything is built on it.
