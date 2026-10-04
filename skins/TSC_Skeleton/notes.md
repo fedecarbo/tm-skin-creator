@@ -323,3 +323,11 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   sidepods' tops and the tail's deck are flat (no height to follow) and stay without lines for now.
   Checked close up: the U's from above and the side, the sweep from the side and high, the cockpit's
   side, the mirror mount (untouched). Shown in the viewer.
+- The user, of the trial: "The back ones should follow the top shape of the car, if that makes sense".
+  Read as: not turning across the engine cover, but on to the tail, riding its top down. Trial 2
+  (Look_TopLines again): from the cockpit's back (z -30 to -55, a smooth hand-over) each line keeps
+  where it is seen from above (30.6, 34.8, 38.9 cm from the middle, clear of the number and name
+  panels), so it rides down the engine cover's back with the top and runs along the tail's deck to
+  the tail's end; ahead of the hand-over unchanged (heights above the spine's foot, round the nose).
+  Checked close up: the hand-over from the side and above, the engine cover's back from the side and
+  high behind, the tail's end from behind and above. Shown in the viewer.
