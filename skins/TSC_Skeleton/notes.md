@@ -378,3 +378,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   it strays). Tried and not kept: bridging the dip (no change: it is a swing, not a notch). Checked
   close up: the nose tip from above and the front quarter, the nose root from above and the side,
   the sidepod's corner, the tail. Shown in the viewer.
+- The user: "Front is better but it needs to be closer to the black line. The back is fine, it's just
+  the front sides are too separated from the black if that makes sense". Measured along the surface
+  (not from above): the 6.3 cm set-in from above was 6.3 to 6.8 cm along the surface at the back but
+  10 to 14 along the nose's sides, which are steep where the black line runs. Trial 7
+  (Look_TopLines): the set-in from above that keeps the back's distance along the surface (6.7 cm),
+  evened out along the car over 25 cm (an exact one followed every step and edge of the nose's skin
+  and notched at the sidepod's front corner: not shown), placed as before with 3 cm corners and the
+  nose root's S. From above: 6.2 to 6.6 at the back, 5.7 at the sidepods' front, 1.7 to 4.2 along
+  the nose, 3.0 across its front; along the surface 6.1 to 6.6 at the back and along the nose's
+  front half, 8 by the nose root and 7.4 at the tip's corners (the evening out). Checked close up:
+  the nose from the side and high, the nose root, the tip, the sidepod's front corner, from above.
+  Shown in the viewer.
