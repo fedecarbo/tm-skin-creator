@@ -218,3 +218,10 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
 - The user, of the bottom under the intake: "Seems accurate". Open: the levels between at the front
   (they end in a straight cut at z 82, where the nose begins); the side skirt's seam drift (2.43 cm);
   the car looking lopsided somewhere (the user to show where).
+- The user, asked how the six lines between should end where the nose begins: "I guess you could
+  give it a try". Measured: the lower four end on the front wheel opening's upright edge (z 69.6 to
+  72.2 from 30 to 40 cm up, curving forward at its foot into the skirt and at its top into the
+  nose's underside); only the top two run past it onto the nose's underside and were cut at z 82.
+  Shown as set 2 in the Lab: A, the top two end in line with the opening's edge (z 70); B, they sweep
+  up (a smooth S from z 30 to 100) and stop where they touch the top line (z 82 and 88). Tried and
+  not kept: B running on along the top line (it tinted it blue). Checked close up, both sides.

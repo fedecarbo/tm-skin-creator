@@ -24,6 +24,28 @@
    "pick": "B",
    "decision": "Every 5 cm",
    "done": "2026-10-04T11:55:05"
+  },
+  {
+   "n": 2,
+   "title": "The top two lines at the front · 2 ways",
+   "words": "We havent defined the lines in the front part of the car btw. I guess you could give it a try",
+   "made": "2026-10-04T20:13:50",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Lined up with the opening",
+     "skin": "TSC_Skeleton_LinedUpWithTheOpening"
+    },
+    {
+     "key": "B",
+     "title": "Swept into the top line",
+     "skin": "TSC_Skeleton_SweptIntoTheTopLine"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
   }
  ]
 }
