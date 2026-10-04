@@ -246,3 +246,7 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   with the seam while the bottom falls with the skirt's fold (the skirt is 4 cm from its top seam to
   its fold under the intake, 11 ahead of it), so the gap opens from 4.6 cm under the intake to 8.1
   where the lines end. Kept.
+- The user, of the seam: "Considering the seam we are following. So Im assuming it's accurate" (yes:
+  traced within 0.05 cm of the mesh's edge, the nearest line within 0.33 of parallel). Of the car
+  looking lopsided, asked for a screenshot: "I think it's fine". Closed. Still without lines: the
+  nose's own side above the top line (from the cockpit to the tip).
