@@ -411,3 +411,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   z 198: from the front flat with corners, from above a shallow point in the middle (the nose's top
   is 2 mm higher there). Checked: the nose from the side and high, the tip from the front quarter,
   above and the front, the whole side. Question 8 settled in the chat.
+- The user: "Yes but I think you could stretch it a bit further so that the red line on the nose it's
+  not so above. Also there the intake is, that red line when doing the curve, looka bit wobbly".
+  Measured on the paint: by the intake the line rose across the sidepods' front, overshot to 7.9 cm
+  above the black line at z 32 and settled to 7 at z 47 (the hand-over between the set-in from above,
+  climbing the nose's side there, and the nose's level). Trial 9 (Look_TopLines_High): from the
+  sidepods' sides forward one level above the black line whose height is a single monotone curve: 2.5
+  cm along the sidepods (the back's own, handing over at z -30 to -16), rising across the sidepods'
+  front to 5.6 by z 16, 5.6 along the nose, easing to 3.0 at z 203 so it turns there (stretched from
+  198). Tried and not kept: 4.5 along the nose (between 4 and 5 cm above it crosses a lip on the
+  sidepod top's front edge twice, by the intake: a split line). Checked: by the intake from the side,
+  high side, high front, above, high rear and low front; the nose from the side and high; the tip.
