@@ -331,3 +331,17 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   the tail's end; ahead of the hand-over unchanged (heights above the spine's foot, round the nose).
   Checked close up: the hand-over from the side and above, the engine cover's back from the side and
   high behind, the tail's end from behind and above. Shown in the viewer.
+- The user: "I was actually thinking on looking the the black line, the next line would offset from
+  that. and so on. So it basically forms the shape of the top car. You sse the rear flank seam from
+  the top, that might help you with how the first red guide would go, but of course following the
+  offset from the tail and so on." Measured from above: the seam inside the black line at the back
+  (the body shell's and the engine cover's outer edge against the rear flank, z -52 to -124) runs a
+  steady 6.2 cm in from it (5.8 to 6.7). Trial 3 (Look_TopLines): three rings, the black line seen
+  from above set in by 6.3, 12.6 and 18.9 cm, all round: along the sidepods, round their front corner
+  and across their front, along the nose and round its tip in U's (the third a long one, back by the
+  nose fin), across the tail. Made from the top seen from above (where the body stands above the
+  black line, the cockpit filled in), its distance from the black line smoothed over 6 cm so the
+  rings bend smoothly at the corners and close round at the nose. The first runs on the seam (within
+  a cm at its ends). The nose's lines give way to them in the trial. Checked close up: the seam
+  (with and without the rings), the tail corner, the sidepod's front corner, the nose root, the
+  cockpit's front, the nose tip from above and the side. Shown in the viewer.
