@@ -48,6 +48,28 @@
    "pick": "A",
    "decision": "Lined up with the opening",
    "done": "2026-10-04T20:20:20"
+  },
+  {
+   "n": 3,
+   "title": "The nose's lines · 2 ways",
+   "words": "I personally think that the lines shouldnt meet at the nose. As in the top ones",
+   "made": "2026-10-04T22:08:14",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Round the nose",
+     "skin": "TSC_Skeleton_RoundTheNose"
+    },
+    {
+     "key": "B",
+     "title": "Stopping at the front wheels",
+     "skin": "TSC_Skeleton_StoppingAtTheFrontWheels"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
   }
  ]
 }

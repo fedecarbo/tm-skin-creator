@@ -261,3 +261,9 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   top line's height begins; behind it the area above the top line is the sidepod's broad top). Checked
   close up: the tip from both sides and above, the start, the nose fin. Shown in the viewer as a trial
   (Look_Nose, in pink), before it goes into the levels room.
+- The user, of the trial: "I don;t know, I personally think that the lines shouldnt meet at the nose",
+  then "As in the top ones" (the nose's lines). Shown as set 3 in the Lab: A, round the nose (three
+  lines each keeping its height above the top line, a third of the nose's side apart where it begins,
+  12.9 cm, going round over the nose in a U at z 146, 175 and 196); B, the nose's top line and two
+  shared out under it, stopping in line with the front wheels' axle (z 178). Checked close up: the
+  tip, the start, both sides, from ahead and from the driving camera.
