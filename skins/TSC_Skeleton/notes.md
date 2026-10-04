@@ -203,3 +203,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   and not kept: the levels between carried on to the tip (only the lowest found any body there, a U
   on the skirt's top round the tip). Checked close up in red: the blend at the sidepods' front, the
   skirt both sides, round the tip. Shown in the levels room.
+- The user: "Yes, front is perfect. I wonder if we move a little up the part where the intake is, you
+  see the fold is a bit above?"
+  Measured: under the intake (the side skirt, z -26 to 30) a flat face just under the seam, facing
+  15 to 25 degrees down, bends into the turn under at a crease (between 30 and 35 degrees, the
+  sharpest bend) at 22 to 22.4 cm; the bottom ran about 1 cm under it. Behind the intake the crease
+  spreads into the broad roll, ahead it becomes the blade's crest. Refitted the whole bottom at once
+  from z -50 forward (kept as it was behind, the crease from z -26 to 30, the crest from z 40):
+  within 0.23 cm of the crease (0.07 on average), the crest now within 0.14 (was 0.39), behind z -50
+  moved 0.08 at most, no new bend. The cost: the lowest levels follow it up under the intake and
+  drift more against the side skirt's seam (2.43 cm over its length, was 1.98; ahead of it 1.32, was
+  1.20); the rear wing's unchanged (0.62). Checked close up in red, both sides, a little above and
+  below and along. Shown in the levels room.
