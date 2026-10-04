@@ -63,3 +63,8 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   its points sit on their mirror image, 0.00 cm); only a small one-sided feature on top, z -80 to -40,
   y 63 to 65 (probably the fuel cap). So what looks lopsided comes from the tool or the viewer: next
   session, ask where they saw it (a screenshot), then find it.
+- The user (2026-10-04, next session): "im really struggling to get this skeleton right, and if I cant
+  get it right. I think AI wont be able to map the car properly". Where each spot of paint sits is
+  measured exactly; what failed is lines traced off the model's facets. Proposed: the user draws
+  only the top and bottom lines, and the levels between blend from one to the other (smooth by
+  construction). Asked what they'd need to see before building it.
