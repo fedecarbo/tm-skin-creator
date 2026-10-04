@@ -106,3 +106,11 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   corner and gather into the top of it, a fan. Tried and not kept: the crease alone (the levels between
   wrapped round the corner as before). Checked close up at the gathering, the turn and the crease, both
   sides. Shown in the levels room.
+- The user: "No, you ruined it. I meant to say is that the bottom line, should seamlessly meet the
+  seem of the bottom piece. ignore the other lines. they where fine initially how you had it. Ill
+  explain the other line, but for now it was the bottom one". The tail corner climb undone: the bottom
+  line is the first one again, moved onto the seam over the diffuser strake (within 0.24 cm of it from
+  the side) and within 0.54 cm of itself behind it and 0.2 ahead; the levels between as they were (the
+  lowest moves at most 0.76 cm, by the strake). Measured on the paint, both sides: the line had run
+  0.4 to 1.1 cm under the seam, now within 0.27 of it. The user will explain what they meant about
+  the tail corner and the other lines.
