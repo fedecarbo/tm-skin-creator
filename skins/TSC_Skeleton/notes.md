@@ -164,3 +164,10 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   where the side rolls under all the way and ends on that edge by the front wheel opening. The cost:
   the side skirt's top seam under the inlet runs level while the turn under falls, so the lines near
   it drift 2.3 cm over its length (1.5 before); the rear wing's unchanged.
+- Where the session stopped (2026-10-04): the test of the guides, TSC_GuideTest, is in the Lab with
+  the question "does the paint land the way a designer would draw it?" (its question 1), unanswered.
+  Open: the user's verdict on it (then delete TSC_GuideTest, git keeps it); the side skirt's seam
+  under the inlet runs level while the bottom (on the turn under) falls, so the levels near it drift
+  2.3 cm over its length; the car looking lopsided somewhere (the user was to show where: never seen
+  yet); "side level" not saving (likely the stray clicks or an old copy of the room, both fixed: ask
+  if it happens again).
