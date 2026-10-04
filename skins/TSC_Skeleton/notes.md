@@ -274,3 +274,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   round over the nose in a U at z 146, 175 and 196. In blue with the other lines; the room's side view
   stops each where it goes over the nose's top. The room draws the paint's lines exactly (0.0000 cm).
   TSC_Skeleton's design is the guides again. Self-test: every car identical.
+- The user: "they look ok. its hard to know if im heading the right direction. Not sure if the example
+  skins help with some guidance". Measured on the eleven example skins in the work folder (local, never
+  pushed; overlays Look_Guides_*, the guides in thin magenta), per 4 cm slice the strongest colour change
+  near each line: on the nose every one runs parallel to the top line at a height of its own (spread
+  within 1 to 2 cm along the nose): F2002 and the two RBS3 on it, Peach and Melon 1.8 under, Red Bull
+  4.8 above (the lowest nose line, 4.3), Envision 6.2, Citroen 8.2 (the middle one, 8.6), Jaguar and
+  Nissan 7.8: the nose's lines as picked (round the nose) follow them, converging ones would cross
+  them. Along the sidepods each splits the top from the side on the shoulder at a height of its own:
+  Red Bull on the top line (0.2 cm, 70% within 1), Envision and Jaguar 3 to 5 above, Peach and Melon 2
+  to 3 under. The bottom under the nose: Red Bull and RBS3 pinstripes on it (within 1 cm along 70 to
+  100%), the others 1 to 2 cm above. None paints along the levels between: their sides are one colour
+  with logos and diagonals. Shown: Red Bull and Peach with the guides, in the viewer.
