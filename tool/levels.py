@@ -10,8 +10,12 @@ itself. The room draws the same curve (lab-levels.js's spline is this one), so w
 there is what is painted.
 
 The side's levels: the user draws two, the top (role "top") and the bottom (role "bottom"), and
-`between` more are shared out evenly between them at every length (a third of the way down is a
-third of the way down all along), so each follows both and is smooth because they are. The bottom
+`between` more are shared out between them, smooth because they are. The bottom's shape fades out
+towards the top: the level s of the way down (s = k / (between + 1)) sits s times the typical gap
+(the median along the bottom's stretch) below the top, plus s² times how much the gap at that length
+differs from it. So the levels near the top run parallel to it, as the rear wing's seam does (the
+user, 2026-10-04: "I do expect that the lines follow the same curvature"), and those near the
+bottom follow the bottom (shared evenly, the bottom's climb at the tail tilted every level). The bottom
 and the levels between run only between the bottom's first and last points: ahead of the sidepods
 the body has no side below the top (the nose's own lower edge is the top there), and held level
 they would run on along the floor's blade and round the front wing.
@@ -117,10 +121,12 @@ def curves(doc=None):
     if "top" in role and "bottom" in role and n:
         (T, dT), (B, dB) = spline(role["top"]["points"]), spline(role["bottom"]["points"])
         span = (role["bottom"]["points"][0][0], role["bottom"]["points"][-1][0])
+        zs = np.arange(span[0], span[1] + 1e-9, 1.0)
+        gap = float(np.median(T(zs) - B(zs)))  # the typical gap between the top and the bottom
         for k in range(1, n + 1):
-            t = 1 - k / (n + 1)  # 0 at the bottom, 1 at the top
-            out.append((f"between {k}", lambda z, t=t: B(z) + t * (T(z) - B(z)),
-                        lambda z, t=t: dB(z) + t * (dT(z) - dB(z)), span))
+            s = k / (n + 1)  # how far down: 0 at the top, 1 at the bottom
+            out.append((f"between {k}", lambda z, s=s: T(z) - s * gap - s * s * (T(z) - B(z) - gap),
+                        lambda z, s=s: dT(z) - s * s * (dT(z) - dB(z)), span))
     return out
 
 

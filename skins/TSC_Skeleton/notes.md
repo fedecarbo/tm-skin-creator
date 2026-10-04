@@ -114,3 +114,13 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   lowest moves at most 0.76 cm, by the strake). Measured on the paint, both sides: the line had run
   0.4 to 1.1 cm under the seam, now within 0.27 of it. The user will explain what they meant about
   the tail corner and the other lines.
+- The user: "Yes perfct." Then: "you see the rear wing seam from the side, it lies close to the
+  second and third. While Im not expecting either to be exact because these are guides, I do expect
+  that the lines follow the same curvature". Measured: the rear wing's lower seam from the side runs
+  parallel to the top line, 8.5 cm under it (52.8 to 53.3 cm, z -152 to -126); shared evenly, every
+  level took its share of the bottom's climb at the tail, and the second and third lines (the top
+  first) tilted 1.6 and 3.2 cm against the seam over its length. The bottom's shape now fades out
+  towards the top (s of the way down: s times the typical gap below the top, plus s² times how much
+  the gap there differs): 0.2 and 1.0 cm; the lower levels still follow the bottom, the tightest gap
+  2.2 cm at the tail's end. Checked at the tail side-on and from behind; the room's lines match the
+  paint's within 0.005 cm. Shown in the levels room.

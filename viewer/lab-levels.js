@@ -5,8 +5,9 @@
 // Delete to take it off. The curve through them is a natural cubic spline held level past the ends,
 // the one tool/levels.py paints, so the side view shows exactly where the line runs on the car.
 // The side's levels: the top and the bottom are drawn like any level, and the levels between are
-// shared out evenly between them all along (blue, not dragged: they follow the two). The bottom and
-// the levels between run only between the bottom's first and last points.
+// shared out between them (blue, not dragged: they follow the two), the bottom's shape fading out
+// towards the top as tool/levels.py's do. The bottom and the levels between run only between the
+// bottom's first and last points.
 // Above it, the car itself with the line drawn on it as it moves (through the car map's outline every
 // cm: a close picture, the paint is exact), turned with a drag; "Show it on the car" paints it (about
 // 20 s) and dresses the car in it. The live line shows for the level picked and for whatever has
@@ -69,9 +70,13 @@ function between() {  // the levels between the top and the bottom, highest firs
   const n = doc.between || 0;
   if (!top || !bottom || top.points.length < 2 || bottom.points.length < 2) return [];
   const T = spline(top.points), B = spline(bottom.points), [z0, z1] = span(bottom);
+  const gaps = [];
+  for (let z = z0; z <= z1 + 1e-9; z += 1) gaps.push(T(z) - B(z));
+  gaps.sort((a, b) => a - b);
+  const m = gaps.length, gap = m % 2 ? gaps[(m - 1) / 2] : (gaps[m / 2 - 1] + gaps[m / 2]) / 2;  // the typical gap
   return Array.from({ length: n }, (_, k) => {
-    const t = 1 - (k + 1) / (n + 1);  // 0 at the bottom, 1 at the top
-    return { Y: (z) => B(z) + t * (T(z) - B(z)), z0, z1 };
+    const s = (k + 1) / (n + 1);  // how far down: 0 at the top, 1 at the bottom
+    return { Y: (z) => T(z) - s * gap - s * s * (T(z) - B(z) - gap), z0, z1 };
   });
 }
 
