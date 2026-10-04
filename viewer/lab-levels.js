@@ -6,9 +6,10 @@
 // the one tool/levels.py paints, so the side view shows exactly where the line runs on the car.
 // The side's levels: the top and the bottom are drawn like any level, and the levels between are
 // shared out between them (blue, not dragged: they follow the two), the bottom's shape fading out
-// towards the top as tool/levels.py's do. The bottom and the levels between run only between the
-// bottom's first and last points. The car's seams along the side are drawn in orange (tool/seams.py),
-// to shape the top and the bottom by.
+// towards the top as tool/levels.py's do. The bottom runs only between its first and last points (to
+// the nose's tip along the side skirt's edge), the levels between from its first point to the
+// sidepods' front. The car's seams along the side are drawn in orange (tool/seams.py), to shape the
+// top and the bottom by.
 // Above it, the car itself with the line drawn on it as it moves (through the car map's outline every
 // cm: a close picture, the paint is exact), turned with a drag; "Show it on the car" paints it (about
 // 20 s) and dresses the car in it. The live line shows for the level picked and for whatever has
@@ -21,6 +22,7 @@ import { $, embedViewer } from './lab-common.js';
 
 const CM = 100;  // the viewer works in metres, the levels in cm
 const MOST = 12;  // levels between the top and the bottom, at most (tool/levels.py MOST)
+const SIDE_FRONT = 82;  // where the levels between end, the sidepods' front (tool/levels.py SIDE_FRONT)
 const WHEEL = (p) => p.mesh === 'Wheels' || p.parent === 'rims and brakes' || p.parent === 'wheel cover';
 
 let doc = { levels: [] };  // as car/levels.json: { levels: [{ name, role?, points: [[z, y] cm] }], between }
@@ -71,7 +73,7 @@ function between() {  // the levels between the top and the bottom, highest firs
   const top = doc.levels.find((L) => L.role === 'top'), bottom = doc.levels.find((L) => L.role === 'bottom');
   const n = doc.between || 0;
   if (!top || !bottom || top.points.length < 2 || bottom.points.length < 2) return [];
-  const T = spline(top.points), B = spline(bottom.points), [z0, z1] = span(bottom);
+  const T = spline(top.points), B = spline(bottom.points), z0 = span(bottom)[0], z1 = Math.min(span(bottom)[1], SIDE_FRONT);
   const gaps = [];
   for (let z = z0; z <= z1 + 1e-9; z += 1) gaps.push(T(z) - B(z));
   gaps.sort((a, b) => a - b);
@@ -333,7 +335,7 @@ function panel() {
   const hint = $('lvHint');
   if (sel >= 0 && L) hint.textContent = `Point ${sel + 1}: ${L.points[sel][1].toFixed(1)} cm up, ${Math.abs(L.points[sel][0]).toFixed(0)} cm ${L.points[sel][0] < 0 ? 'behind' : 'in front of'} the middle. Drag it, or press Delete to take it off.`;
   else if (L && L.role === 'top') hint.textContent = 'The top: the levels between follow it. Drag its points up, down and along; double-click on the side view to add one.';
-  else if (L && L.role === 'bottom') hint.textContent = 'The bottom: the levels between follow it, and run as far as it does. Drag its points, or its end points along to make it longer or shorter.';
+  else if (L && L.role === 'bottom') hint.textContent = 'The bottom: the levels between follow it, as far as the sidepods\' front. Drag its points, or its end points along to make it longer or shorter.';
   else hint.textContent = 'Drag the points up, down and along. Double-click on the side view to add a point there. The line on the car above follows as you drag.';
 }
 

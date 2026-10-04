@@ -177,3 +177,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   and the test car's band stops dead there. Open, after the verdict on TSC_GuideTest.
 - The user, of TSC_GuideTest: "I think it's looking accurate". The guides hold for painting; the test
   car goes (git keeps it). Next: the front's lines.
+- The user: "My theory for the bottom is that considering the back part is fine, it should keep on
+  following the sholder of the surface (when it starts folding). I think it's quite clear to follow
+  that for the front for the bottom level it seems". Measured: the side skirt runs on from the
+  sidepods under the nose to the tip and round its front, its edge a bevel about 1.6 cm tall; its
+  45-degree point jumps 0.85 cm where the mesh's corners change (z 120), so the bottom follows the
+  middle of the turn under (halfway from facing out to facing 60 degrees down): 20.3 cm by the
+  sidepods, 16.9 at z 87, then 16.85 to 16.7 to the tip. The bottom's points behind z 50 kept
+  (moved 0.01 cm at most), four new ones ahead (z 82 to 216): within 0.21 cm of the edge (0.04 on
+  average), no bend changing direction, round the tip joining both sides. The levels between end
+  where they did (the sidepods' front), so their spacing holds; the lowest moved 0.23 cm at most
+  (z 50 to 82, where the bottom had run 0.3 under the edge). Checked close up in red, both sides,
+  low and from above (no stray line on the skirt's top), and round the tip. Shown in the levels room.

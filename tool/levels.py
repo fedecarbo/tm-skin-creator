@@ -12,15 +12,18 @@ there is what is painted.
 The side's levels: the user draws two, the top (role "top") and the bottom (role "bottom"), and
 `between` more are shared out between them, smooth because they are. The bottom's shape fades out
 towards the top: the level s of the way down (s = k / (between + 1)) sits s times the typical gap
-(the median along the bottom's stretch) below the top, plus s² times how much the gap at that length
+(the median along their stretch) below the top, plus s² times how much the gap at that length
 differs from it. So the levels near the top run parallel to it, as the rear wing's seam does (the
 user, 2026-10-04: "I do expect that the lines follow the same curvature"), and those near the
 bottom follow the bottom (shared evenly, the bottom's climb at the tail tilted every level). So the
 levels share a seam's curve (tool/seams.py, drawn in the room) when the top or the bottom near it
-does: the bottom runs level along the side skirt's seams, as they do. The bottom
-and the levels between run only between the bottom's first and last points: ahead of the sidepods
-the body has no side below the top (the nose's own lower edge is the top there), and held level
-they would run on along the floor's blade and round the front wing.
+does: the bottom runs level along the side skirt's seams, as they do.
+
+The bottom runs only between its first and last points: from the tail's end along the turn under,
+then on along the side skirt's edge under the nose and round the nose's tip (the user, 2026-10-04:
+"it should keep on following the sholder of the surface (when it starts folding)"). The levels
+between run from its first point to the sidepods' front (SIDE_FRONT): ahead of it there is no side
+below the top (the nose's own lower edge is the top there), only the front wheel's opening.
 
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 5}
@@ -51,6 +54,7 @@ WHEELS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 # the outer body's parts a level isn't painted on: the struts under the nose and the inlets' insides
 # (a level at their height ran along an inlet's roof)
 OFF = ("wing pylon", "sidepod inlet")
+SIDE_FRONT = 82.0  # where the levels between end, the sidepods' front (z, cm; lab-levels.js SIDE_FRONT)
 # where to start, for the user to move: the top's edge as Claude found it (the middle of the roll from
 # top to side, smoothed) and the bottom along the body's lower edge (where the side turns under), from
 # the tail's end to the sidepods' front (2026-10-04)
@@ -124,7 +128,7 @@ def curves(doc=None):
     n = int(doc.get("between", 0))
     if "top" in role and "bottom" in role and n:
         (T, dT), (B, dB) = spline(role["top"]["points"]), spline(role["bottom"]["points"])
-        span = (role["bottom"]["points"][0][0], role["bottom"]["points"][-1][0])
+        span = (role["bottom"]["points"][0][0], min(role["bottom"]["points"][-1][0], SIDE_FRONT))
         zs = np.arange(span[0], span[1] + 1e-9, 1.0)
         gap = float(np.median(T(zs) - B(zs)))  # the typical gap between the top and the bottom
         for k in range(1, n + 1):
