@@ -20,3 +20,7 @@ __pycache__/
 # Substance Painter templates from the community: not ours to publish
 *.spp
 *.spp.zip
+
+# Skins by other players, for checking the car map only: not ours to publish
+*.rar
+/community/

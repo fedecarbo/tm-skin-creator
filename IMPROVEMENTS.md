@@ -71,10 +71,12 @@ deleted here; `PLAN.md` keeps the why.
 - **Real scanned materials** (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
 - **The materials and the UV map, in a new way**: the user's to describe, after step 2 (the user,
   2026-10-02); start from their words.
-- **The car map against well-made skins** (the user's idea): a folder of official CarSport skins (the
-  user checks which they may download), kept out of the repo and away from the game's skin folder. Lay
-  their body textures' sharp colour edges on the car and compare them with the map's lines; fix the
-  map where they agree it's off, in pictures. For checking the map only: they never shape a design.
+- **The car map against well-made skins** (the user's idea): 11 skins the user downloaded (2026-10-04,
+  `tm.rar`, unpacked into `community/`; the Mac only, git-ignored). Lay their body textures' sharp
+  colour edges on the car (pinstripes from nose to tail, two-colour splits along the shoulder) and
+  compare them with the map's lines and step 2's cuts; fix the map where they agree it's off, in
+  pictures. For checking the map only: they never shape a design. Some use `BC5U`/`BC4U` headers,
+  which `dds.read` doesn't take yet.
 
 ## The viewer
 
