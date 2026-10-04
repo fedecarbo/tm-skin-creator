@@ -390,3 +390,16 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   front half, 8 by the nose root and 7.4 at the tip's corners (the evening out). Checked close up:
   the nose from the side and high, the nose root, the tip, the sidepod's front corner, from above.
   Shown in the viewer.
+- The user: "Now it looks distorted, expecialy front half. So in essence when you look at it from the
+  side, the front half should be lower, closer to the black", then "If there are example skins that
+  might help you, go ahead and check". Measured from the side: the line 6.3 cm in from above sits 2.3
+  to 2.9 cm above the black line at the back, 11 to 12 along the nose. Trial 8 (Look_TopLines): at the
+  back as before (6.3 in from above, on the rear flank's seam), from the nose root on a level 2.6 cm
+  above the black line (as the blue ones follow it below), handing over at z 15 to 45 (handing over
+  at the sidepods' sides instead took it down the sidepods' front face with the black line, broken by
+  the inlet: not shown). The example skins (local, never pushed), the first strong colour change in
+  from the black line: at the back 1.1 to 2.7 cm above it (about 2.3), 1.2 to 8.2 in from above
+  (about 5.5), as the line; on the nose 5.2 to 10.7 above (about 7), 1.8 to 9.2 in, parallel to the
+  black line from the side (Peach: none found). Also painted: Look_TopLines_High, the nose's part 7 cm
+  above (over the nose's top in a U short of the tip). Both checked from the side, high side and front
+  quarter. Asked in the Lab (question 8) which height, both open in the viewer.
