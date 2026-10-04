@@ -55,3 +55,11 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   front and the cockpit's sides, 41 round the nose tip (the slices from 13 to 35 cm forward read the
   floor and are left out; the tip's last cm come from the outline seen from above). Checked close up
   from high behind, at the sidepod's front and round the nose tip. Shown in the viewer.
+- The user asked for a tool to place the line themselves from the side: built, the Lab's levels room
+  (lab.html?room=levels, tool/levels.py, car/levels.json): drag points on a side view, the line on the
+  3D car follows live, "Show it on the car" paints it (14 s). Starts from the top's edge above.
+- Open (user, 2026-10-04, end of session): "I realised the car is not simmetrical. Is that a car issue
+  or actually the tool is not making things simmetrial." Measured: the body model is symmetric (98% of
+  its points sit on their mirror image, 0.00 cm); only a small one-sided feature on top, z -80 to -40,
+  y 63 to 65 (probably the fuel cap). So what looks lopsided comes from the tool or the viewer: next
+  session, ask where they saw it (a screenshot), then find it.
