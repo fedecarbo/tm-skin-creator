@@ -15,15 +15,25 @@ towards the top: the level s of the way down (s = k / (between + 1)) sits s time
 (the median along their stretch) below the top, plus s² times how much the gap at that length
 differs from it. So the levels near the top run parallel to it, as the rear wing's seam does (the
 user, 2026-10-04: "I do expect that the lines follow the same curvature"), and those near the
-bottom follow the bottom (shared evenly, the bottom's climb at the tail tilted every level). So the
-levels share a seam's curve (tool/seams.py, drawn in the room) when the top or the bottom near it
-does: the bottom runs level along the side skirt's seams, as they do.
+bottom follow the bottom (shared evenly, the bottom's climb at the tail tilted every level).
+
+From the intake forward they lean to the side skirt's seams (tool/seams.py, drawn in the room), which
+run level while the top and the bottom fall towards the nose (the user, 2026-10-04: "there's a
+marking seam between the body shell and the side skirt. I think the lines should follow that
+curvature no?"). A level takes the seams' direction (one straight line through each, their slopes
+averaged) by how near it runs to them, the square of how far down from the top to the seams it sits
+(STEER_AT), and keeps its own shape by the rest: the nearest runs alongside them, the top's
+neighbours stay with the top, the spacing between narrows evenly. The lean grows in over STEER_FADE,
+ahead of which it holds; behind it the levels are the top's and the bottom's alone. Their direction,
+not their height, so the step between the two seams at the intake's front corner bends nothing.
 
 The bottom runs only between its first and last points: from the tail's end along the turn under,
 then on along the side skirt's edge under the nose and round the nose's tip (the user, 2026-10-04:
 "it should keep on following the sholder of the surface (when it starts folding)"). The levels
 between run from its first point to the sidepods' front (SIDE_FRONT): ahead of it there is no side
-below the top (the nose's own lower edge is the top there), only the front wheel's opening.
+below the top (the nose's own lower edge is the top there), only the front wheel's opening. Most end
+on the opening's upright edge; those that pass over it, onto the nose's underside, end in line with
+it (OPENING; the user's pick, 2026-10-04).
 
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 5}
@@ -55,6 +65,13 @@ WHEELS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 # (a level at their height ran along an inlet's roof)
 OFF = ("wing pylon", "sidepod inlet")
 SIDE_FRONT = 82.0  # where the levels between end, the sidepods' front (z, cm; lab-levels.js SIDE_FRONT)
+# the front wheel opening's upright edge (z, cm) and the height it rises to before turning forward
+# into the nose's underside: a level between that passes over it there ends in line with it
+# (lab-levels.js OPENING)
+OPENING = (70.0, 41.0)
+STEER = ("side skirt", "side skirt ahead")  # the seams the levels between lean to (lab-levels.js STEER)
+STEER_FADE = (-45.0, -25.0)  # z, cm: the lean grows in from the first to the second, the seams' start
+STEER_AT = 16.0  # z, cm: where a level's nearness to the seams is measured, their stretch's middle
 # where to start, for the user to move: the top's edge as Claude found it (the middle of the roll from
 # top to side, smoothed) and the bottom along the body's lower edge (where the side turns under), from
 # the tail's end to the sidepods' front (2026-10-04)
@@ -131,11 +148,36 @@ def curves(doc=None):
         span = (role["bottom"]["points"][0][0], min(role["bottom"]["points"][-1][0], SIDE_FRONT))
         zs = np.arange(span[0], span[1] + 1e-9, 1.0)
         gap = float(np.median(T(zs) - B(zs)))  # the typical gap between the top and the bottom
+        slope, height = _seams_direction()
+        zg = np.arange(span[0], span[1] + 0.25, 0.25)
+        t = np.clip((zg - STEER_FADE[0]) / (STEER_FADE[1] - STEER_FADE[0]), 0, 1)
+        grow = t * t * (3 - 2 * t)
         for k in range(1, n + 1):
             s = k / (n + 1)  # how far down: 0 at the top, 1 at the bottom
-            out.append((f"between {k}", lambda z, s=s: T(z) - s * gap - s * s * (T(z) - B(z) - gap),
-                        lambda z, s=s: dT(z) - s * s * (dT(z) - dB(z)), span))
+            Y0 = lambda z, s=s: T(z) - s * gap - s * s * (T(z) - B(z) - gap)
+            dY0 = lambda z, s=s: dT(z) - s * s * (dT(z) - dB(z))
+            near = float(np.clip((T(STEER_AT) - Y0(STEER_AT)) / (T(STEER_AT) - height), 0, 1)) ** 2
+            lean = near * grow * (slope - dY0(zg))  # how much the slope turns to the seams'
+            rise = np.concatenate([[0], np.cumsum((lean[1:] + lean[:-1]) / 2 * 0.25)])
+            Y = lambda z, Y0=Y0, rise=rise: Y0(z) + np.interp(z, zg, rise)
+            dY = lambda z, dY0=dY0, lean=lean: dY0(z) + np.interp(z, zg, lean)
+            end = OPENING[0] if Y(OPENING[0]) > OPENING[1] else span[1]
+            out.append((f"between {k}", Y, dY, (span[0], end)))
     return out
+
+
+def _seams_direction():
+    """The STEER seams' direction (cm per cm: a straight line through each one's points, their slopes
+    averaged by length) and the first's height on its line at STEER_AT (lab-levels.js seamsDirection)."""
+    from tool import seams
+    traced = seams.traced()
+    fits = []
+    for name in STEER:
+        p = np.array(traced[name]["points"], np.float64)
+        a, b = np.polyfit(p[:, 0], p[:, 1], 1)
+        fits.append((a, b, p[-1, 0] - p[0, 0]))
+    slope = float(np.average([a for a, _, _ in fits], weights=[w for _, _, w in fits]))
+    return slope, float(fits[0][0] * STEER_AT + fits[0][1])
 
 
 def _find(name):

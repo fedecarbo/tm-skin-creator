@@ -225,3 +225,19 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   Shown as set 2 in the Lab: A, the top two end in line with the opening's edge (z 70); B, they sweep
   up (a smooth S from z 30 to 100) and stop where they touch the top line (z 82 and 88). Tried and
   not kept: B running on along the top line (it tinted it blue). Checked close up, both sides.
+- Picked A (user, in the Lab, 2026-10-04), with a screenshot of the right side ahead of the intake:
+  "A. But also, you see there's a marking seam between the body shell and the side skirt. I think
+  the lines should follow that curvature no?" A built into the guides (OPENING: a level between
+  that passes over the opening's upright edge ends in line with it, z 70), and TSC_Skeleton's design
+  is now the guides on the clay car. Measured: both side skirt seams run level (25.8 cm under the
+  intake, 29.5 ahead, a 3.7 cm step between at the intake's front corner) while the top and the
+  bottom fall about 4 cm towards the nose, so every line between fell across them (2.4 cm against
+  the seam under the intake, 1.3 ahead). Now from the intake forward each line takes the seams'
+  direction (one straight line through each, -0.44 cm per metre) by the square of how far down
+  towards them it sits, growing in from z -45 to -25: the nearest runs within 0.33 cm of parallel
+  to the seam under the intake and 0.35 ahead, the spacing narrows evenly (5.0 to about 4.3 cm at the
+  front), no new bend, nothing moves behind z -45. Tried and not kept: following each seam's own
+  traced shape (the lines copied its 1 to 2 mm ripples). The six lines now end in a near column on
+  the opening's edge (z 70 to 74). Checked close up from the screenshot's angle, both sides, under
+  the intake and where the lean grows in; the room draws the paint's lines exactly. Shown in the
+  levels room and on the skeleton car.

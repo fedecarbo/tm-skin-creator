@@ -30,22 +30,24 @@
    "title": "The top two lines at the front · 2 ways",
    "words": "We havent defined the lines in the front part of the car btw. I guess you could give it a try",
    "made": "2026-10-04T20:13:50",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Lined up with the opening",
-     "skin": "TSC_Skeleton_LinedUpWithTheOpening"
+     "skin": "TSC_Skeleton_LinedUpWithTheOpening",
+     "picture": "sets/2/A.png"
     },
     {
      "key": "B",
      "title": "Swept into the top line",
-     "skin": "TSC_Skeleton_SweptIntoTheTopLine"
+     "skin": "TSC_Skeleton_SweptIntoTheTopLine",
+     "picture": "sets/2/B.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "A",
+   "decision": "Lined up with the opening",
+   "done": "2026-10-04T20:20:20"
   }
  ]
 }

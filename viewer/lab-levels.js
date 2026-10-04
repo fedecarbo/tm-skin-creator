@@ -6,10 +6,11 @@
 // the one tool/levels.py paints, so the side view shows exactly where the line runs on the car.
 // The side's levels: the top and the bottom are drawn like any level, and the levels between are
 // shared out between them (blue, not dragged: they follow the two), the bottom's shape fading out
-// towards the top as tool/levels.py's do. The bottom runs only between its first and last points (to
-// the nose's tip along the side skirt's edge), the levels between from its first point to the
-// sidepods' front. The car's seams along the side are drawn in orange (tool/seams.py), to shape the
-// top and the bottom by.
+// towards the top as tool/levels.py's do, and from the intake forward leaning to the side skirt's
+// seams' direction by how near them they run. The bottom runs only between its first and last points
+// (to the nose's tip along the side skirt's edge), the levels between from its first point to the
+// sidepods' front, or to the front wheel opening's upright edge if they pass over it. The car's seams
+// along the side are drawn in orange (tool/seams.py), to shape the top and the bottom by.
 // Above it, the car itself with the line drawn on it as it moves (through the car map's outline every
 // cm: a close picture, the paint is exact), turned with a drag; "Show it on the car" paints it (about
 // 20 s) and dresses the car in it. The live line shows for the level picked and for whatever has
@@ -23,6 +24,9 @@ import { $, embedViewer } from './lab-common.js';
 const CM = 100;  // the viewer works in metres, the levels in cm
 const MOST = 12;  // levels between the top and the bottom, at most (tool/levels.py MOST)
 const SIDE_FRONT = 82;  // where the levels between end, the sidepods' front (tool/levels.py SIDE_FRONT)
+const OPENING = [70, 41];  // the front wheel opening's upright edge and its height (tool/levels.py OPENING)
+const STEER = ['side skirt', 'side skirt ahead'];  // the seams the levels between lean to (tool/levels.py STEER)
+const STEER_FADE = [-45, -25], STEER_AT = 16;  // tool/levels.py STEER_FADE, STEER_AT
 const WHEEL = (p) => p.mesh === 'Wheels' || p.parent === 'rims and brakes' || p.parent === 'wheel cover';
 
 let doc = { levels: [] };  // as car/levels.json: { levels: [{ name, role?, points: [[z, y] cm] }], between }
@@ -69,6 +73,21 @@ export function spline(P) {
 // the stretch a level runs along: the bottom only between its ends, any other all along the car
 const span = (L) => (L.role === 'bottom' ? [L.points[0][0], L.points[L.points.length - 1][0]] : [side.z0, side.z1]);
 
+function seamsDirection() {  // tool/levels.py _seams_direction: [slope, the first's height at STEER_AT], or null
+  const fits = [];
+  for (const name of STEER) {
+    const p = seamLines[name];
+    if (!p || p.length < 2) return null;
+    const mz = p.reduce((a, q) => a + q[0], 0) / p.length, my = p.reduce((a, q) => a + q[1], 0) / p.length;
+    let sxy = 0, sxx = 0;
+    for (const [z, y] of p) { sxy += (z - mz) * (y - my); sxx += (z - mz) ** 2; }
+    const a = sxy / sxx;
+    fits.push([a, my - a * mz, p[p.length - 1][0] - p[0][0]]);
+  }
+  const len = fits.reduce((t, f) => t + f[2], 0);
+  return [fits.reduce((t, f) => t + f[0] * f[2], 0) / len, fits[0][0] * STEER_AT + fits[0][1]];
+}
+
 function between() {  // the levels between the top and the bottom, highest first: [{ Y, z0, z1 }]
   const top = doc.levels.find((L) => L.role === 'top'), bottom = doc.levels.find((L) => L.role === 'bottom');
   const n = doc.between || 0;
@@ -78,9 +97,28 @@ function between() {  // the levels between the top and the bottom, highest firs
   for (let z = z0; z <= z1 + 1e-9; z += 1) gaps.push(T(z) - B(z));
   gaps.sort((a, b) => a - b);
   const m = gaps.length, gap = m % 2 ? gaps[(m - 1) / 2] : (gaps[m / 2 - 1] + gaps[m / 2]) / 2;  // the typical gap
+  // from the intake forward each leans to the side skirt's seams' direction by how near it runs to them
+  const dir = seamsDirection(), steps = Math.floor((z1 - z0) / 0.25 + 1e-9) + 1;
+  const grow = Float64Array.from({ length: steps }, (_, i) => {
+    const t = Math.min(Math.max((z0 + i * 0.25 - STEER_FADE[0]) / (STEER_FADE[1] - STEER_FADE[0]), 0), 1);
+    return t * t * (3 - 2 * t);
+  });
   return Array.from({ length: n }, (_, k) => {
     const s = (k + 1) / (n + 1);  // how far down: 0 at the top, 1 at the bottom
-    return { Y: (z) => T(z) - s * gap - s * s * (T(z) - B(z) - gap), z0, z1 };
+    const Y0 = (z) => T(z) - s * gap - s * s * (T(z) - B(z) - gap);
+    let Y = Y0;
+    if (dir) {
+      const near = Math.min(Math.max((T(STEER_AT) - Y0(STEER_AT)) / (T(STEER_AT) - dir[1]), 0), 1) ** 2;
+      const lean = (i) => near * grow[i] * (dir[0] - (Y0(z0 + i * 0.25 + 0.05) - Y0(z0 + i * 0.25 - 0.05)) / 0.1);
+      const rise = new Float64Array(steps);
+      let prev = lean(0);
+      for (let i = 1; i < steps; i++) { const cur = lean(i); rise[i] = rise[i - 1] + ((prev + cur) / 2) * 0.25; prev = cur; }
+      Y = (z) => {
+        const f = Math.min(Math.max((z - z0) / 0.25, 0), steps - 1), i = Math.min(Math.floor(f), steps - 2);
+        return Y0(z) + rise[i] + (rise[i + 1] - rise[i]) * (f - i);
+      };
+    }
+    return { Y, z0, z1: Y(OPENING[0]) > OPENING[1] ? OPENING[0] : z1 };
   });
 }
 

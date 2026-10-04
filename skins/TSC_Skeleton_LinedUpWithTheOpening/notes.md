@@ -1,1 +1,0 @@
-Option A of TSC_Skeleton's set 2 (The top two lines at the front · 2 ways), 2026-10-04: Lined up with the opening. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).
