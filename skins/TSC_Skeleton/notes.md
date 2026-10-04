@@ -442,3 +442,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   nose's lines (set to 0 in the room: the top's lines take their place). The skeleton's line lies
   within 0.03 cm of the approved one (0.24 for 99% of it). The trials are gone from the work folder.
   Self-test: every car identical.
+- Next (the user will pick it up in a new session): the second top line, set in from the first the same
+  way. What the user asked of the first, to keep for the next: the same distance from the black line
+  all round, judged from the side on the steep nose (there in height above it, not from above);
+  corners just get a radius, never a full round; every line pen-tool smooth (no tight bends where
+  the car has them: draw over them); at the front between the nose panel's seam and the black line;
+  at the back on the rear flank's seam. How the first was made (the scripts were scratch): set in
+  from above at the back (the top's outline from above, its distance field, the level at 6.3 cm,
+  sharp corners given 3 cm), a level above the top line with a smooth monotone height from the
+  sidepods forward (2.5, 5.6 along the nose, 3.0 at z 203 for the turn), the stretch from z -45 to 95
+  smoothed as one curve in space (8 cm at the corner, 12 on), then its painted path saved as
+  "top 1". Example skins: their first change in from the black line sits about 2.3 cm above it at
+  the back, about 7 on the nose.
