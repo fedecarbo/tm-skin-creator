@@ -241,3 +241,8 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   the opening's edge (z 70 to 74). Checked close up from the screenshot's angle, both sides, under
   the intake and where the lean grows in; the room draws the paint's lines exactly. Shown in the
   levels room and on the skeleton car.
+- The user: "I guess that looks good. Obviously there's more of a gap in the front for the bottom and
+  the next blue line, but I guess it's supposed to be like that?" Yes: the lowest line runs level
+  with the seam while the bottom falls with the skirt's fold (the skirt is 4 cm from its top seam to
+  its fold under the intake, 11 ahead of it), so the gap opens from 4.6 cm under the intake to 8.1
+  where the lines end. Kept.
