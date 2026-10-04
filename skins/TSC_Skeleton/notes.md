@@ -171,3 +171,9 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   2.3 cm over its length; the car looking lopsided somewhere (the user was to show where: never seen
   yet); "side level" not saving (likely the stray clicks or an old copy of the room, both fixed: ask
   if it happens again).
+- The user (next session, 2026-10-04): "We havent defined the lines in the front part of the car btw".
+  Seen: the top line runs along the nose's lip (its widest point, where it tucks under), so the whole
+  nose sits above it with no levels; the six between and the bottom end in a straight cut at z 82,
+  and the test car's band stops dead there. Open, after the verdict on TSC_GuideTest.
+- The user, of TSC_GuideTest: "I think it's looking accurate". The guides hold for painting; the test
+  car goes (git keeps it). Next: the front's lines.
