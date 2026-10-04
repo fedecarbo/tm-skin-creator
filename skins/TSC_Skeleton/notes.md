@@ -215,3 +215,6 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   drift more against the side skirt's seam (2.43 cm over its length, was 1.98; ahead of it 1.32, was
   1.20); the rear wing's unchanged (0.62). Checked close up in red, both sides, a little above and
   below and along. Shown in the levels room.
+- The user, of the bottom under the intake: "Seems accurate". Open: the levels between at the front
+  (they end in a straight cut at z 82, where the nose begins); the side skirt's seam drift (2.43 cm);
+  the car looking lopsided somewhere (the user to show where).
