@@ -33,10 +33,14 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
   Lines, stripes, bands and rings are drawn on the car's own skin: tool/skindraw.py, whose band()
   gives a zone like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
+Each zone keeps how the design wrote it (`label`, "behind(40)") and the zones an & joined
+(`parts()`), so tool/measure.py can say which of them ends a paint where it ends.
 Lengths: the car runs from z = -162 (tail) to 215 (nose tip); the wheels sit at z = 179 and
 -120, the cockpit opening at about z = -50 .. 90, the deck behind it to z = -133. Its width is
 about 175 cm over the wheels, 110 at the sidepods. Top of the body: y = 84.
 """
+
+import functools
 
 import numpy as np
 
@@ -48,23 +52,36 @@ SOFT = 0.2
 
 
 class Zone:
-    def __init__(self, fn):
+    def __init__(self, fn, label=None, factors=None):
         self.fn = fn
+        self.label = label  # as a design writes it: "behind(40)"
+        self.factors = factors  # the zones an & joined
 
     def __call__(self, pos, nrm):
         return np.clip(self.fn(pos, nrm), 0, 1).astype(np.float32)
 
+    def parts(self):
+        """The zones an & joined, each with its label; the zone itself when it isn't an &."""
+        return self.factors or [self]
+
+    def __repr__(self):
+        if self.label:
+            return self.label
+        if self.factors:
+            return " & ".join(map(repr, self.factors))
+        return f"a {self.kind} drawn on the skin" if getattr(self, "kind", None) else "a zone"
+
     def __and__(self, other):
-        return Zone(lambda p, n: self(p, n) * other(p, n))
+        return Zone(lambda p, n: self(p, n) * other(p, n), factors=self.parts() + other.parts())
 
     def __or__(self, other):
-        return Zone(lambda p, n: 1 - (1 - self(p, n)) * (1 - other(p, n)))
+        return Zone(lambda p, n: 1 - (1 - self(p, n)) * (1 - other(p, n)), label=f"({self!r} | {other!r})")
 
     def __invert__(self):
-        return Zone(lambda p, n: 1 - self(p, n))
+        return Zone(lambda p, n: 1 - self(p, n), label=f"~{self!r}")
 
     def __mul__(self, k):
-        return Zone(lambda p, n: self(p, n) * k)
+        return Zone(lambda p, n: self(p, n) * k, label=f"{self!r} * {k:g}")
 
 
 def field(fn, soft=SOFT):
@@ -498,3 +515,30 @@ def front_rake(xs, top=True):
     left side; streamlines mirrors them): a wind tunnel's smoke rake in front of the car.
     shapes.streamlines(shapes.front_rake(np.linspace(3, 80, 10)), 1.5)."""
     return _map().front_rake(xs, top)
+
+
+def _word(v):
+    if isinstance(v, (bool, np.bool_)) or v is None:
+        return repr(v)
+    if isinstance(v, (int, float, np.integer, np.floating)):
+        return f"{float(v):g}"
+    if isinstance(v, (list, tuple, np.ndarray)):
+        return f"[{', '.join(map(_word, v))}]" if len(v) <= 4 else "[...]"
+    return repr(v)
+
+
+def _named(fn):
+    """A zone's maker that labels what it makes the way the design wrote it: behind(40)."""
+    @functools.wraps(fn)
+    def make(*args, **kw):
+        z = fn(*args, **kw)
+        if isinstance(z, Zone) and z.label is None:
+            z.label = f"{fn.__name__}({', '.join([*map(_word, args), *(f'{k}={_word(v)}' for k, v in kw.items())])})"
+        return z
+    return make
+
+
+for _maker in ("stripe", "band", "front_of", "behind", "above", "below", "left", "right", "plane", "sphere", "box",
+               "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy", "region",
+               "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "streamlines"):
+    globals()[_maker] = _named(globals()[_maker])

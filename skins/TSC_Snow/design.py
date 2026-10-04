@@ -13,8 +13,10 @@ def design(s):
     s.paint("body", "gloss black", zone=shapes.below(22))
 
     s.step("Reflective band", "A silver reflective band along each side, RESCUE on the rear flanks.", words=WORDS)
-    s.paint("body", "reflective tape", zone=shapes.area("sides") & shapes.above(27) & shapes.below(36)
-            & shapes.behind(40))
+    # the map's sides stop short of the tail's corner, where the side turns onto the back: the band
+    # runs on round it wherever the body still faces sideways
+    s.paint("body", "reflective tape", zone=(shapes.area("sides") | shapes.sides(0.15) & shapes.behind(-125))
+            & shapes.above(27) & shapes.below(36) & shapes.behind(40))
     for spot in ("left side", "right side"):
         s.text("RESCUE", spot, colour="black", font="russo", height=9, italic=0.15)
 

@@ -21,8 +21,8 @@ game: install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints. |
-| `PY -m tool.snap <name> --close` | Nine close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera). |
+| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints, and its measures: where each zoned paint on the body stops short of the car or leaves a gap, in cm, and why. |
+| `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
 | `PY -m tool.swatches` (background) | Serves the Lab, http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. |
@@ -102,7 +102,7 @@ game: install from the Windows PC after a push.
 
 ## Before showing
 
-1. Look at the six views. For a set's takes, that's enough.
+1. Fix what show's measures say STOPS SHORT or GAP, then look at the six views. For a set's takes, that's enough.
 2. A design shown alone, or a pick: `tool.snap <name> --close`, and look where graphics meet a
    join, fold, hole or edge: nothing cut, sunk, stretched or soft.
 3. The whole car: every visible part serves the idea, the lights at night, no paint left from an

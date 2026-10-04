@@ -3,6 +3,10 @@
     python -m tool.snap <name>          -> build/<name>_views.png
     python -m tool.snap <name> --size 1280x960
     python -m tool.snap <name> --close  -> build/<name>_close.png: the close looks (CLOSE)
+    python -m tool.snap <name> --before [close|views|...]  -> build/<name>_<kind>_compare.png, opened:
+                                             each tile that changed since the sheet before, before
+                                             beside after, the change outlined (a sheet's last one is
+                                             kept as <name>_<kind>_before.png)
     python -m tool.snap <name> --cams   -> build/<name>_cams.png: the game's Cam 1 and 2 and their alts,
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
@@ -50,7 +54,10 @@ CLOSE = (("1 bonnet", {"dir": [0.35, 0.85, 0.4], "dist": 1.4, "target": [0, 0.66
          ("6 deck and tail", {"dir": [0.35, 0.75, -0.6], "dist": 1.8, "target": [0, 0.65, -1.15]}, False, []),
          ("7 right side", {"dir": [-0.85, 0.4, 0.2], "dist": 2.4, "target": [-0.55, 0.45, -0.1]}, False, []),
          ("8 front wheel", {"dir": [1, 0.2, 0.25], "dist": 1.3, "target": [0.9, 0.35, 1.79]}, False, []),
-         ("9 driving camera", {"dir": [0, 0.42, -1], "dist": 4.5, "target": [0, 0.55, 0.2]}, False, []))
+         ("9 driving camera", {"dir": [0, 0.42, -1], "dist": 4.5, "target": [0, 0.55, 0.2]}, False, []),
+         # the farthest back of the side, behind the rear wheel, where the side turns onto the back (the
+         # user, 2026-10-02: a line that "didn't cover the rear, as in the farthest back of the side")
+         ("10 left tail corner", {"dir": [0.6, 0.25, -0.9], "dist": 1.2, "target": [0.48, 0.33, -1.45]}, False, []))
 # The game's chase cameras standing still (viewer.js's VIEWS, fitted to the user's screenshots),
 # by day and at night, at the screenshots' 16:9: what the calibration car is read through.
 CAMS = tuple((f"{title} {'night' if night else 'day'}", view, night, []) for night in (False, True)
@@ -162,9 +169,61 @@ def sheet(name, tiles, out=None, size=(960, 720), thumb=None):
         d.text((14, 10), label, fill=(255, 255, 255), font=font, stroke_width=3, stroke_fill=(0, 0, 0))
         sheet.paste(tile.convert("RGB"), ((k % cols) * size[0], (k // cols) * size[1]))
     out.parent.mkdir(parents=True, exist_ok=True)
+    if out.exists():  # the sheet before, for before and after at the same cameras (compare)
+        out.replace(out.with_name(f"{out.stem}_before{out.suffix}"))
     sheet.save(out)
     print(f"sheet: {out}")
     return out
+
+
+KINDS = {"views": SHOTS, "close": CLOSE, "cams": CAMS, "body": BODY, "stretches": STRETCHES}
+
+
+def compare(name, kind="close", open_it=True):
+    """Each tile of a sheet that changed since the sheet before it: before beside after, the change
+    outlined in both. Noise of a few levels, and specks, don't count."""
+    from PIL import ImageChops, ImageFilter
+    new, old = paths.BUILD / f"{name}_{kind}.png", paths.BUILD / f"{name}_{kind}_before.png"
+    if not old.exists():
+        raise SystemExit(f"no earlier {kind} sheet of {name}: take one, change the design, take another")
+    a, b = Image.open(old).convert("RGB"), Image.open(new).convert("RGB")
+    if a.size != b.size:
+        raise SystemExit(f"{old.name} and {new.name} differ in size: the cameras changed in between")
+    shots = KINDS[kind]
+    w, h = a.width // 3, a.height // ((len(shots) + 2) // 3)
+    rows = []
+    for k, shot in enumerate(shots):
+        box = ((k % 3) * w, (k // 3) * h, (k % 3 + 1) * w, (k // 3 + 1) * h)
+        ta, tb = a.crop(box), b.crop(box)
+        changed = ImageChops.difference(ta, tb).convert("L").point(lambda v: 255 if v > 12 else 0)
+        where = changed.filter(ImageFilter.MinFilter(5)).getbbox()  # specks go
+        if where is None:
+            continue
+        x0, y0, x1, y1 = where
+        for t in (ta, tb):
+            ImageDraw.Draw(t).rectangle((x0 - 12, y0 - 12, x1 + 12, y1 + 12), outline=(232, 255, 71), width=4)
+        rows.append((shot[0], ta, tb))
+    if not rows:
+        print(f"{name}: no {kind} tile changed")
+        return None
+    band = 60
+    out = Image.new("RGB", (2 * w, len(rows) * (h + band)), (24, 24, 26))
+    font = _font(34)
+    for i, (label, ta, tb) in enumerate(rows):
+        y = i * (h + band)
+        d = ImageDraw.Draw(out)
+        d.text((16, y + 12), f"{label}: before", fill=(235, 235, 235), font=font)
+        d.text((w + 16, y + 12), "after", fill=(235, 235, 235), font=font)
+        out.paste(ta, (0, y + band))
+        out.paste(tb, (w, y + band))
+    path = paths.BUILD / f"{name}_{kind}_compare.png"
+    png = io.BytesIO()
+    out.save(png, "PNG")
+    paths.write(path, png.getvalue())
+    print(f"changed: {', '.join(r[0] for r in rows)}\ncompare: {path}")
+    if open_it:
+        paths.open_file(path)
+    return path
 
 
 def _tile(sheet, k):
@@ -226,12 +285,17 @@ def main():
     ap.add_argument("--close-row", nargs="+", action="append", metavar="NAME N",
                     help="a skin, then numbers from its close sheet (again for another skin)")
     ap.add_argument("--page", metavar="PAGE", help='any page of the viewer\'s, whole, e.g. "lab.html" (no name)')
+    ap.add_argument("--before", nargs="?", const="close", choices=list(KINDS),
+                    help="the tiles that changed since the sheet before, before beside after")
     args = ap.parse_args()
     if args.page:
         page(args.page, tuple(int(v) for v in (args.size or "1600x1000").split("x")))
         return
     if not args.name:
         ap.error("the skin's name")
+    if args.before:
+        compare(args.name, args.before)
+        return
     shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams
                    else (BODY, "body") if args.body else (STRETCHES, "stretches") if args.stretches else (SHOTS, "views"))
     if args.picture:

@@ -44,7 +44,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in the
   background. `tool/server.py` is the server: the pages, the work folder's data, and the Lab's
-  `/api/notes`, `/api/sets`, `/api/lines` and `/api/progress` (what the tool is doing, `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this computer's pages only.
+  `/api/notes`, `/api/sets`, `/api/lines` and `/api/progress` (what the tool is doing,
+  `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
+  computer's pages only.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and serves it. After a change to `tool/server.py`,
   `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own `tool.swatches` or

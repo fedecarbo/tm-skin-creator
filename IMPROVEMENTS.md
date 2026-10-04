@@ -9,18 +9,11 @@ goes into the code.
 The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
 deleted here; `PLAN.md` keeps the why.
 
-- **1. Shortfalls measured, not seen**: after each `show`, where every step's paint runs and where
-  it stops short, per side, in cm, against the car's own geometry ("the band stops 9 cm short of
-  the rear flank's end"). First case: TSC_Snow's rear gap. With it, `tool.snap --before`: the last
-  close sheet kept per version, the tiles that changed marked.
-- **1b. Progress in the chat** (the user, 2026-10-04): one widget at the foot of the Lab's chat, per
-  job, with the stage and the count ("Taking pictures · 4 of 6", "Installing", "Putting it online"),
-  settling into a line when the job ends. Every command reports its stages through `tool/progress.py`
-  (standard library) to a file the Lab polls; built with step 1.
 - **2. The topographic skeleton**: plane cuts through the body every x cm (sections along the
   length, the map's 1 cm cuts; contours at fixed heights; profiles from the middle), saved once in
   the repo so both computers hold the same car, painted on a skeleton car (TSC_Skeleton) for the
-  Lab and the game, and checked against the user's F12 screenshots in px.
+  Lab and the game, and checked against the user's F12 screenshots in px. Show's measures
+  (`tool/measure.py`) already find the map's sides stopping 2 to 3 cm short of the tail's corner.
 - **3. Fresh eyes on a finished car**: a second Claude with only the user's words, the pictures and
   step 1's measures names what's cut, sunk, forgotten or off-brief, and in which picture; only
   where the close looks already run, never on takes; about a minute.

@@ -5,6 +5,10 @@
     python -m tool.skin install <name>         paint it, write the DDS files and the zip, install it (the PC)
     python -m tool.skin list                   every skin, newest first
 
+show also measures how far each zoned paint reaches on the body, and where it stops short of the
+car's own surface (tool/measure.py), printed after the paint's notes and kept in
+build/<name>/measured.json.
+
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
 that finds another painting waits for it, and says so.
@@ -22,7 +26,7 @@ import os
 import sys
 import time
 
-from tool import build, gallery, install, paintbox, paths, progress, snap, view
+from tool import build, gallery, install, measure, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -87,7 +91,7 @@ def paint(name, frames=False):
     s = paintbox.Skin(name)
     if frames:
         view.start_steps(name)
-        s.frames = True
+        s.frames = s.measure = True
     load_design(name)(s)
     s.end_steps()
     print(f"painted in {time.time() - t0:.0f} s")
@@ -100,6 +104,13 @@ def show(name, open_browser=False, snapshot=True):
                       done="Painted and photographed" if snapshot else "Painted"):
         with paint_slot():
             s = paint(name, frames=True)
+            t0 = time.time()
+            progress.stage("Measuring where the paint reaches")
+            found = measure.measure(s)
+            measure.save(name, found)
+            lines = measure.words(found)
+            print(f"measured in {time.time() - t0:.1f} s" + (":" if lines else ": nothing zoned on the body"))
+            print("\n".join(f"  {line}" for line in lines))
             t0 = time.time()
             progress.stage("Putting it on the car")
             build.export_to_viewer(s)

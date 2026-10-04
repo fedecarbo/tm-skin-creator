@@ -55,6 +55,7 @@ the viewer and builds the game's DDS files and the zip. Sets the design never to
 shipped, so they keep the stock look.
 """
 
+import functools
 import hashlib
 import os
 import re
@@ -128,6 +129,8 @@ class Canvas:
             self.coat = np.zeros(n, np.float32) if tset == "Skin" else None  # CoatR 0: glossy varnish all over, as with no file
         self.touched = np.zeros(n, bool)
         self.clay = None  # texels still in the Studio's clay (Skin.clay), None when it wasn't used
+        self.owner = None  # the call that covered each texel last (Skin.ops; -1 the stock), while Skin.measure
+        self.op = -1  # the call painting now
         self.glow_rgb = self.glow_code = None
         self.glow_touched = False
         if tset == "Details":
@@ -162,6 +165,8 @@ class Canvas:
         self.touched[idx] |= m > 0.001
         if self.clay is not None:
             self.clay[idx[m > 0.5]] = False
+        if self.owner is not None:
+            self.owner[idx[m > 0.5]] = self.op
 
     def textures(self):
         """The game's textures for this set, or {} when the design never touched it."""
@@ -213,6 +218,29 @@ def dark_take_codes(rgb, code, w, h, reach=3):
     return out
 
 
+def _op(describe):
+    """A call that lays paint on the body, named for tool/measure.py: while Skin.measure is on,
+    each body texel keeps the call that covered it last (Canvas.owner), so a paint cut short by a
+    later one can say which. A call inside another (text, through decal) takes the outer one's name."""
+    def wrap(method):
+        @functools.wraps(method)
+        def run(self, *args, **kw):
+            if self._op_open:
+                return method(self, *args, **kw)
+            self.ops.append({"what": describe(*args, **kw), "step": self.steps[-1]["name"] if self.steps else "The design"})
+            self._op, self._op_open = len(self.ops) - 1, True
+            try:
+                return method(self, *args, **kw)
+            finally:
+                self._op_open = False
+        return run
+    return wrap
+
+
+def _where(where):
+    return where if isinstance(where, str) else ", ".join(where)
+
+
 class Skin:
     def __init__(self, name, seed=0, size=None):
         if not re.fullmatch(r"[A-Za-z0-9_\-]+", name):
@@ -236,6 +264,10 @@ class Skin:
         self._touched = set()  # the texture sets reached (Skin.canvas) since the last frame
         self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
         self._final = None  # the finished textures, built once when the design is done (end_steps)
+        self.measure = False  # skin.show sets it: keep what tool/measure.py reads (the calls, who covered what)
+        self.ops = []  # every call that laid paint: {what, step}
+        self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, idx (the texels it covers)}
+        self._op, self._op_open = -1, False
 
     # ---- steps: the Lab draws the car at the end of each ----
 
@@ -251,6 +283,7 @@ class Skin:
             view.export_steps(self.name, self.steps, painting=True)
         return self
 
+    @_op(lambda: "the clay")
     def clay(self):
         """The first step of a design made in the Studio: the body, wheel covers and inner car in
         the Studio's clay, a neutral white (the user's pick, 2026-09-26). What no later step
@@ -343,7 +376,11 @@ class Skin:
         if tset not in self.canvases:
             w, h = self.sizes[tset]
             self.canvases[tset] = Canvas(tset, w, h)
-        return self.canvases[tset]
+            if self.measure and tset == "Skin":
+                self.canvases[tset].owner = np.full(w * h, -1, np.int16)
+        c = self.canvases[tset]
+        c.op = self._op
+        return c
 
     def _ids(self, where):
         """(texture set, instance ids) pairs for a `where`."""
@@ -482,6 +519,7 @@ class Skin:
                 raise ValueError(f"{what!r}: no colour given and the finish {fin.name!r} has none of its own")
         return np.asarray(col, np.float32), fin, leftover
 
+    @_op(lambda where, what=None, colour=None, finish=None, *a, **k: f"{what or finish or colour} on {_where(where)}")
     def paint(self, where, what=None, colour=None, finish=None, zone=None, blend=1.0, **params):
         """Paint parts with a colour and a finish. `what` is a phrase; `colour` and `finish`
         override it. `zone` limits it (tool/shapes.py); leftover words that name a region
@@ -513,6 +551,9 @@ class Skin:
             if not len(idx):
                 continue
             m = m * blend
+            if self.measure and tset == "Skin" and zone is not None:
+                self.zoned.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
+                                   "where": where, "zone": zone, "ids": ids, "idx": idx[m > 0.5]})
             extra = {}
             if fin.look:
                 # flat patterns on the body are drawn in the car's own unfolding (tool/uvmap.py),
@@ -824,6 +865,7 @@ class Skin:
             spec["centre"] = at
         return spec
 
+    @_op(lambda image, where, *a, **k: f"a picture at {_where(where) if not isinstance(where, dict) else 'a spot'}")
     def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None):
         """Lay a picture (PIL RGBA, or a path) on the body at a spot (SPOTS, or a dict with
         centre, right, up, facing). width in cm. rgb: paint every opaque pixel this colour
@@ -862,6 +904,7 @@ class Skin:
                 np.full(len(idx), fin.varnish, np.float32))
         return self
 
+    @_op(lambda image, where="body", *a, **k: f"copies of a picture on {_where(where)}")
     def scatter(self, image, where="body", size=8, spacing=None, turn="random", finish="gloss", zone=None, seed=None,
                 min_facing=0.35, step_cm=2.5, min_landed=0.98):
         """Sprinkle copies of a picture (a cut-out, RGBA, or a path; or a list of them, mixed) over parts, each laid flat
@@ -877,6 +920,7 @@ class Skin:
         scatter.scatter(self, image, where, size, spacing, turn, finish, zone, seed, min_facing, step_cm, min_landed)
         return self
 
+    @_op(lambda text, where, *a, **k: f"the text {text!r}")
     def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,
              outline_width=0.08, weight=None, italic=0.0, spacing=0, zone=None):
         """Write on the body. height in cm; outline: a colour for a border, outline_width as a

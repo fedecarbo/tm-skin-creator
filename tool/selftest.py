@@ -268,7 +268,12 @@ def snapshots(names, old_cwd, new_cwd, commit):
             a, b = (folders[s] / f"{name}_{kind}.png" for s in ("old", "new"))
             if not (a.exists() and b.exists()):
                 continue
-            box = ImageChops.difference(Image.open(a).convert("RGB"), Image.open(b).convert("RGB")).getbbox()
+            ia, ib = Image.open(a).convert("RGB"), Image.open(b).convert("RGB")
+            if ia.size != ib.size:  # a difference compares only the part the two share
+                print(f"  {name} {kind}: the sizes differ, {ia.width}x{ia.height} / {ib.width}x{ib.height}")
+                ok = False
+                continue
+            box = ImageChops.difference(ia, ib).getbbox()
             print(f"  {name} {kind}: {'identical' if box is None else f'differs within {box}'}")
             ok &= box is None
     return ok
