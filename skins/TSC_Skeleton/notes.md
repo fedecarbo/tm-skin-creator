@@ -357,3 +357,12 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   nose to the panel (an 80 cm diagonal tied to nothing on the car). Checked close up: the panel from
   above and the front quarter, onto the panel from the side, along the nose from above, the flare,
   the tail. Shown in the viewer.
+- The user: "Sorry, I should have been more clear, the first red line, should be between the nose
+  panel seam and the black line if that makes sense". Trial 5 (Look_TopLines): the line 6.3 cm in
+  from the black line all round (on the rear flank's seam), and from the nose panel's back on (z 135
+  to 165, easing in) halfway between the black line and the panel's seam, its sides and its front:
+  6.3 to 4.7 cm in along the panel's sides (it narrows less than the nose), round the front in a U at
+  z 196 (the panel's front 186.5, the tip 210), a corner of 12.9 cm radius at the tightest, one gentle
+  bend along the nose. Tried and not kept: easing in from z 100 (a 0.7 cm bulge at z 120 where the
+  panel's side carried back runs wider). Checked close up: the panel from above and the front quarter,
+  the side, along the nose, the flare, the tail. Shown in the viewer.
