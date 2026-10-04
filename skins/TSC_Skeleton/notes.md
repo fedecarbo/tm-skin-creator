@@ -403,3 +403,11 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   black line from the side (Peach: none found). Also painted: Look_TopLines_High, the nose's part 7 cm
   above (over the nose's top in a U short of the tip). Both checked from the side, high side and front
   quarter. Asked in the Lab (question 8) which height, both open in the viewer.
+- The user: "A lot better, but I feel you can stretch the nose a bit more so that it's between the seam
+  of the front of the nose panel and the black line" (read as the higher one, 7 cm above, whose turn
+  at the tip was at the panel's front). The nose's top stands 7 cm above the black line at z 184 and
+  4 at z 198 (halfway from the panel's front, 186.5, to the black line's tip, 210). Look_TopLines_High
+  now comes down from 7 to 4 cm above over z 150 to 198 (eased), so it turns over the nose's top at
+  z 198: from the front flat with corners, from above a shallow point in the middle (the nose's top
+  is 2 mm higher there). Checked: the nose from the side and high, the tip from the front quarter,
+  above and the front, the whole side. Question 8 settled in the chat.
