@@ -5,6 +5,7 @@
   /api/notes   the Lab's notes on the car (tool/notes.py)
   /api/sets    each car's sets of options and what was said about them (tool/sets.py)
   /api/lines   the car's lines as the user pins them (tool/lines.py)
+  /api/levels  the levels the user draws from the side (tool/levels.py), and painting them on the car
   /api/progress   what the tool is doing, a job at a time (tool/progress.py)
   /sets/<car>/<n>/<letter>.png, /notes/<skin>-<n>.jpg   the pictures those keep
 
@@ -15,11 +16,13 @@ already does (it reads the same folders), and opens the page.
 import http.server
 import json
 import re
+import subprocess
+import sys
 import threading
 import urllib.parse
 import webbrowser
 
-from tool import lines, notes, paths, progress, sets, view
+from tool import levels, lines, notes, paths, progress, sets, view
 
 PORT = 8765
 
@@ -90,7 +93,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if url.path not in ("/api/notes", "/api/sets", "/api/lines", "/api/progress"):
+        if url.path not in ("/api/notes", "/api/sets", "/api/lines", "/api/levels", "/api/progress"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
@@ -98,6 +101,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             if url.path == "/api/lines":  # the car's lines as pinned in the Lab's lines room (tool/lines.py)
                 return self._json(200, lines.load())
+            if url.path == "/api/levels":  # the levels as drawn in the Lab's levels room (tool/levels.py)
+                return self._json(200, {**levels.load(), "painting": _painting()})
             if url.path == "/api/progress":  # the chat's progress widgets (viewer/lab-car.js)
                 return self._json(200, progress.jobs())
             if url.path == "/api/sets":
@@ -117,10 +122,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     }
 
     # The lines room (viewer/lab-lines.js): POST /api/lines with {"lines": [...]} keeps them all
-    # (tool/lines.py, car/lines.json), and GET /api/lines reads them back.
+    # (tool/lines.py, car/lines.json), and GET /api/lines reads them back. The levels room
+    # (viewer/lab-levels.js): POST /api/levels with {"levels": [...]} keeps them (car/levels.json),
+    # and with "paint": true also paints them on the clay car (tool/levels.py, a process of its own,
+    # one at a time; the room watches data/levels/painted.json).
     def do_POST(self):
         path = urllib.parse.urlsplit(self.path).path
-        if path not in ("/api/notes", "/api/lines"):
+        if path not in ("/api/notes", "/api/lines", "/api/levels"):
             return self._json(404, {"error": "nothing here"})
         if not self._local() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
             return self._json(403, {"error": "not from this computer"})
@@ -130,6 +138,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 raise ValueError("expected a JSON object")
             if path == "/api/lines":
                 return self._json(200, lines.save(body))
+            if path == "/api/levels":
+                doc = levels.save(body)
+                return self._json(200, {**doc, "painting": _paint_levels() if body.get("paint") else _painting()})
             action = next((self.ACTIONS[k] for k in self.ACTIONS if k in body), None)
             self._json(200, action(body) if action else notes.add(**{k: body.get(k) for k in self.NOTE_KEYS}))
         except (ValueError, TypeError, KeyError) as e:
@@ -139,6 +150,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def log_message(self, *args):
         pass
+
+
+_painter = None  # the levels' paint, while it runs
+
+
+def _painting():
+    return _painter is not None and _painter.poll() is None
+
+
+def _paint_levels():
+    """Start painting the levels (python -m tool.levels) unless it's painting already."""
+    global _painter
+    if not _painting():
+        _painter = subprocess.Popen([sys.executable, "-m", "tool.levels"], cwd=paths.REPO,
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return True
 
 
 def start(port=PORT):
