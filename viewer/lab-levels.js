@@ -1,7 +1,7 @@
 // The Lab's levels room: the user draws the car's levels from the side (2026-10-04: "a tool I can
 // define from the side how the line goes"; the car's line is its curved top and bottom seen from the
 // side, and the levels follow it). A level is a height along the car through a handful of points:
-// drag them up, down and along; click anywhere on the side view to add one there; pick one and press
+// drag them up, down and along; double-click on the side view to add one there; pick one and press
 // Delete to take it off. The curve through them is a natural cubic spline held level past the ends,
 // the one tool/levels.py paints, so the side view shows exactly where the line runs on the car.
 // The side's levels: the top and the bottom are drawn like any level, and the levels between are
@@ -178,25 +178,34 @@ function draw() {
   panel();
 }
 
+// A click off the points only lets go of the one picked, and a point moves only once the pointer has
+// moved a few pixels: a stray click changes nothing (the user, 2026-10-04, after edits they didn't want).
 function down(e) {
   const L = doc.levels[cur];
   if (!L || e.button !== 0) return;
   const k = e.target.dataset && e.target.dataset.k !== undefined ? Number(e.target.dataset.k) : -1;
+  if (k < 0) { if (sel >= 0) { sel = -1; draw(); } return; }
   remember();
-  if (k < 0) {  // a new point where the click is
-    const [z, y] = svgPoint(e);
-    if (L.points.some((p) => Math.abs(p[0] - z) < 1)) { undo.pop(); return; }
-    L.points.push([round(z), round(y)]);
-    L.points.sort((a, b) => a[0] - b[0]);
-    sel = L.points.findIndex((p) => p[0] === round(z));
-  } else sel = k;
-  drag = { i: sel, moved: false };
+  sel = k;
+  drag = { i: sel, moved: false, x: e.clientX, y: e.clientY };
   $('lvSvg').setPointerCapture(e.pointerId);
   draw();
 }
 
+function add(e) {  // a double-click on the side view: a new point there
+  const L = doc.levels[cur];
+  if (!L || (e.target.dataset && e.target.dataset.k !== undefined)) return;
+  const [z, y] = svgPoint(e);
+  if (L.points.some((p) => Math.abs(p[0] - z) < 1)) return;
+  remember();
+  L.points.push([round(z), round(y)]);
+  L.points.sort((a, b) => a[0] - b[0]);
+  sel = L.points.findIndex((p) => p[0] === round(z));
+  changed();
+}
+
 function move(e) {
-  if (!drag) return;
+  if (!drag || (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4)) return;
   const L = doc.levels[cur], P = L.points, i = drag.i;
   let [z, y] = svgPoint(e);
   const lo = i > 0 ? P[i - 1][0] + 1 : side.z0, hi = i < P.length - 1 ? P[i + 1][0] - 1 : side.z1;
@@ -208,8 +217,18 @@ function move(e) {
 
 function up() {
   if (!drag) return;
+  const moved = drag.moved;
   drag = null;
-  changed();
+  if (moved) return changed();
+  undo.pop();  // only picked
+  if (!undo.length) $('lvUndo').setAttribute('aria-disabled', 'true');
+}
+
+function keys(e) {  // the room's keys, from the page or from the car above it
+  if ($('roomLevels').hidden || (e.target.matches && e.target.matches('input, textarea'))) return;
+  if ((e.key === 'Delete' || e.key === 'Backspace') && sel >= 0) { e.preventDefault(); removePoint(); }
+  if (e.key === 'Escape') { sel = -1; draw(); }
+  if ((e.key === 'z' || e.key === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); takeBack(); }
 }
 
 const round = (v) => Math.round(v * 10) / 10;
@@ -310,9 +329,9 @@ function panel() {
   $('lvDelPt').hidden = sel < 0;
   const hint = $('lvHint');
   if (sel >= 0 && L) hint.textContent = `Point ${sel + 1}: ${L.points[sel][1].toFixed(1)} cm up, ${Math.abs(L.points[sel][0]).toFixed(0)} cm ${L.points[sel][0] < 0 ? 'behind' : 'in front of'} the middle. Drag it, or press Delete to take it off.`;
-  else if (L && L.role === 'top') hint.textContent = 'The top: the levels between follow it. Drag its points up, down and along; click on the side view to add one.';
+  else if (L && L.role === 'top') hint.textContent = 'The top: the levels between follow it. Drag its points up, down and along; double-click on the side view to add one.';
   else if (L && L.role === 'bottom') hint.textContent = 'The bottom: the levels between follow it, and run as far as it does. Drag its points, or its end points along to make it longer or shorter.';
-  else hint.textContent = 'Drag the points up, down and along. Click anywhere on the side view to add a point there. The line on the car above follows as you drag.';
+  else hint.textContent = 'Drag the points up, down and along. Double-click on the side view to add a point there. The line on the car above follows as you drag.';
 }
 
 let sayTimer = null;
@@ -439,6 +458,7 @@ export async function open() {
   for (const [k, v] of Object.entries({ x: side.z0, y: -side.y1, width: side.z1 - side.z0, height: side.y1 - side.y0 })) img.setAttribute(k, v);
   img.setAttribute('href', `data/levels/side.png?t=${side.mesh}`);
   svg.addEventListener('pointerdown', down);
+  svg.addEventListener('dblclick', add);
   svg.addEventListener('pointermove', move);
   svg.addEventListener('pointerup', up);
   svg.addEventListener('pointercancel', up);
@@ -454,15 +474,11 @@ export async function open() {
   for (const b of $('lvViews').querySelectorAll('[data-view]')) b.addEventListener('click', () => car && car.go(b.dataset.view));
   addEventListener('focus', sync);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
-  addEventListener('keydown', (e) => {
-    if ($('roomLevels').hidden || e.target.matches('input, textarea')) return;
-    if ((e.key === 'Delete' || e.key === 'Backspace') && sel >= 0) { e.preventDefault(); removePoint(); }
-    if (e.key === 'Escape') { sel = -1; draw(); }
-    if ((e.key === 'z' || e.key === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); takeBack(); }
-  });
+  addEventListener('keydown', keys);
   draw();
   try {
     car = await embedViewer($('lvCar'), $('lvCredit'));
+    try { $('lvCar').contentWindow.addEventListener('keydown', keys); } catch { /* not ours to listen to */ }
     if (car) {
       paintedStamp = await paintStamp();
       if (paintedStamp) await showPainted(); else await clay();

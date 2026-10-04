@@ -134,3 +134,8 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   top at z 6.6, the bottom's front end at 81.5, 18.8); the fifth now runs on the front seam (29.3 at
   z 60), the second and third either side of the rear wing's (56.4 and 51.5 against 53). Checked
   every stretch, both sides. The seams as guides still open.
+- The user: "I didnt want to edit by the way, I just couldnt undo". Both edits taken back (the top
+  and the bottom as before them; six between kept). Found: a single click on the side view added a
+  point, a click on a point with the slightest wobble moved it, and after turning the car the
+  keyboard's undo went to the car, not the room. Now a point is added with a double-click, a point
+  moves only once the pointer has moved a few pixels, and the room's keys work from the car too.
