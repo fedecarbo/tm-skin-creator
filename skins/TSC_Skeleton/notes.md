@@ -422,3 +422,16 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   198). Tried and not kept: 4.5 along the nose (between 4 and 5 cm above it crosses a lip on the
   sidepod top's front edge twice, by the intake: a split line). Checked: by the intake from the side,
   high side, high front, above, high rear and low front; the nose from the side and high; the tip.
+- The user: "It's better. But a little sharp curves where the intake is. All lines should feel like you
+  are using the pen tool in illustrator to make things smooth". Measured on the paint: the tightest
+  bends 7.5 cm radius at the sidepods' outer front corner (z -17), 6 to 8 halfway across their front
+  (z 2), 17 to 20 at the nose root. Trial 10 (Look_TopLines_High): from z -45 to 95 the line is one
+  curve in space (the painted path smoothed over 8 cm of its length at the corner, 12 cm from the
+  intake on, easing out over 15 cm behind and 30 cm ahead, where the line is nearly straight), painted
+  onto the skin beneath it (each point measured across the curve within the skin); the back and the
+  nose beyond as before. From above the curve bends no tighter than 22 cm at the corner and 39 cm
+  from the intake on; it leaves the old path by 2.2 cm at most (the corner, now rounder). Tried and
+  not kept: smoothing seen from above only (the nose root's steep side turned it into height
+  wobbles); smoothing from z -75 (the line drifted off the rear flank's seam); rejoining the nose's
+  line by z 50 (a step). Checked: the corner, by the intake from the side and high front, from above,
+  the front quarter, the whole side.
