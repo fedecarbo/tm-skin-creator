@@ -140,6 +140,29 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
   says so); on TSC_Snow as committed the report names the rear shortfall before any fix; a band
   painted deliberately 10 cm short is reported as 10 cm short.
 
+### Step 1b. Progress in the chat
+
+- **For:** the user has no terminal and can't read one; the Lab's chat is their window. Today it
+  shows a live line only while a paint runs ("Claude is painting · Reflective band") and nothing
+  during the rest of the waiting: the pictures, building the game files, installing (about 100 s on
+  the PC), publishing (plus GitHub's minute or two), the self-test, the picture maker, the map's
+  rebuild, later the fresh eyes. The user (2026-10-04): "the chat shows options to choose, but it
+  would be nice to have progress indicators when it's doing something." So: one progress widget at
+  the foot of the chat, one per job. While a command runs it shows the job, the stage, a bar where
+  the count is known ("Taking pictures · 4 of 6", "Game files · 7 of 9", "Checking the tool · car
+  2 of 3") or a quiet pulse where it isn't ("Installing", "Putting it online"), and the time
+  elapsed; when the job ends it settles into one short line ("Painted and photographed · 1 min
+  12 s"). Every command reports its stages through one small module that writes a file the Lab
+  already polls for; the paint's own steps keep arriving as they do now.
+- **You'll see:** under the last message in the chat, a line that always says what the tool is
+  doing and how far along, for every job; nothing left looking stuck.
+- **Costs:** milliseconds per stage. No new instructions: it lives inside the commands.
+- **Model:** a small one (Sonnet 5.5): plumbing. Built in the same Mac session as Step 1, so the
+  user watches Step 1's own work through it.
+- **Checked by:** during a paint, an install, a publish and a self-test the widget names each
+  stage as it happens and the count where there is one; a job killed midway leaves nothing stuck (a
+  report older than a minute reads as "stopped"); the game files identical.
+
 ### Step 2. The topographic skeleton: cut from the mesh, painted on the car, proven in the game
 
 - **For:** the guide for the blind. Three families of plane cuts through the body every x cm:
@@ -248,8 +271,8 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
 
 ### Where the work runs
 
-Steps 1, 2, 3 and 7 need the tool and the self-test: a session on the Mac (the PC for installs and
-the game). Steps 4, 5 and 6 are plain Python and hook settings: drafted anywhere, passed through
+Steps 1, 1b, 2, 3 and 7 need the tool and the self-test: a session on the Mac (the PC for installs
+and the game). Steps 4, 5 and 6 are plain Python and hook settings: drafted anywhere, passed through
 the self-test on the Mac before they count as done.
 
 ## Sources

@@ -13,6 +13,10 @@ deleted here; `PLAN.md` keeps the why.
   it stops short, per side, in cm, against the car's own geometry ("the band stops 9 cm short of
   the rear flank's end"). First case: TSC_Snow's rear gap. With it, `tool.snap --before`: the last
   close sheet kept per version, the tiles that changed marked.
+- **1b. Progress in the chat** (the user, 2026-10-04): one widget at the foot of the Lab's chat, per
+  job, with the stage and the count ("Taking pictures · 4 of 6", "Installing", "Putting it online"),
+  settling into a line when the job ends. Every command reports its stages through `tool/progress.py`
+  (standard library) to a file the Lab polls; built with step 1.
 - **2. The topographic skeleton**: plane cuts through the body every x cm (sections along the
   length, the map's 1 cm cuts; contours at fixed heights; profiles from the middle), saved once in
   the repo so both computers hold the same car, painted on a skeleton car (TSC_Skeleton) for the
