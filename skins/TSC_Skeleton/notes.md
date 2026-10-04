@@ -139,3 +139,7 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   point, a click on a point with the slightest wobble moved it, and after turning the car the
   keyboard's undo went to the car, not the room. Now a point is added with a double-click, a point
   moves only once the pointer has moved a few pixels, and the room's keys work from the car too.
+- The user, on what the guides are for: "the purpose of these guides is that you as the painter can
+  guide yourself to painting. ... Im not expecting that paint should only be in the guides
+  themselves, but for you to have a bit better "eyes" to paininting. I guess my goal is that the uv
+  map is a uv map +, something digitally perfect for you."
