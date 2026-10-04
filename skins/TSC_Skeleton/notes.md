@@ -124,3 +124,13 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   the gap there differs): 0.2 and 1.0 cm; the lower levels still follow the bottom, the tightest gap
   2.2 cm at the tail's end. Checked at the tail side-on and from behind; the room's lines match the
   paint's within 0.005 cm. Shown in the levels room.
+- The user: "BTW ... more looking front there are seams between pieces, like the one between body
+  shell and side skirt." Measured: that seam runs level at 29.5 cm from the inlet's frame to the front
+  wheel opening (the side skirt's top edge runs level at 26 cm under the inlet); the two lowest
+  levels either side of it fell about 1 cm towards the front over its length, following the bottom.
+  Proposed: the car's seams as guides for the levels near them; asked whether the lines should share
+  a seam's curve or one sit on it. The user: "Actually, let's first do 6 lines as guides instead of 5,
+  I think that helps a little." Six between (the user's own edits in the room kept: a point on the
+  top at z 6.6, the bottom's front end at 81.5, 18.8); the fifth now runs on the front seam (29.3 at
+  z 60), the second and third either side of the rear wing's (56.4 and 51.5 against 53). Checked
+  every stretch, both sides. The seams as guides still open.
