@@ -274,6 +274,7 @@ async function save(paint) {
     return true;
   } catch (e) {
     $('lvSaved').textContent = `Not saved: ${e.message}`;
+    say(`Not saved, so not painted: ${e.message}`);
     return false;
   }
 }
