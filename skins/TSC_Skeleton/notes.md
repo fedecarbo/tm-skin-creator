@@ -310,3 +310,4 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   at z -110, -88 and -50 replaced by -116, -104 and -32 in the guides; TSC_Skeleton's design is the
   plain guides again. The room draws the paint's lines exactly (0.0 cm). Checked close up from the
   side and low from both quarters. Self-test: every car identical.
+- The user, of the bottom along the back: "looks good". The Red Bull overlay is gone from the work folder.
