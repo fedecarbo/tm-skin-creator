@@ -32,6 +32,8 @@ car/levels.json (committed, written by the room through the viewer's server, /ap
     levels.line("top edge", 0.8)     a zone (tool/shapes.py): the level's line, 0.8 cm wide on the surface
                                      ("between 1" is the highest of the levels between, and so on down)
     levels.above("top edge")         a zone: the body above it
+    levels.below("bottom edge")      a zone: the body below it, as far as it runs
+    levels.band("between 1", "between 2")   a zone: the body between two levels, as far as both run
 """
 
 import argparse
@@ -171,6 +173,27 @@ def above(name):
     from tool.noise import smoothstep
     f = _above_cm(*_find(name)[1:3])
     return shapes.Zone(lambda p, n: smoothstep(-0.05, 0.05, f(p, n)).astype(np.float32))
+
+
+def _run(*names):
+    """A zone: the stretch along the car every one of these levels runs (all of it, if none ends)."""
+    from tool import shapes
+    spans = [sp for sp in (_find(n)[3] for n in names) if sp]
+    if not spans:
+        return None
+    return shapes.band(max(a for a, _ in spans), min(b for _, b in spans))
+
+
+def below(name):
+    """The body below the level, as far along the car as it runs."""
+    z, run = ~above(name), _run(name)
+    return z & run if run is not None else z
+
+
+def band(upper, lower):
+    """The body between two levels, as far along the car as both run."""
+    z, run = above(lower) & ~above(upper), _run(upper, lower)
+    return z & run if run is not None else z
 
 
 # ---- the side view the room draws on ----
