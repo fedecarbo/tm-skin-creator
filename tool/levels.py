@@ -41,8 +41,17 @@ below the top (the nose's own lower edge is the top there), only the front wheel
 on the opening's upright edge; those that pass over it, onto the nose's underside, end in line with
 it (OPENING; the user's pick, 2026-10-04).
 
+The top's lines run over the top, inside the top line all round, each set in from it (the user,
+2026-10-05: "the next line would offset from that ... So it basically forms the shape of the top
+car"), and drawn like the pen tool: one smooth curve. Each is a path in space (car/top_lines.json, the
+left half, from the tail's middle to the nose's middle; the right mirrors it), painted on the skin
+beneath it. The first: on the rear flank's seam at the back (6.3 cm in from the top line seen from
+above), 2.5 cm above the top line along the sidepods, rising across their front to 5.6 along the
+nose, and turning over the nose's top between the nose panel's front and the tip.
+
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 6, "nose": 3}
+car/top_lines.json (committed): {"lines": [{"name": "top 1", "path": [[x, y, z], ...]}, ...]}
 
     python -m tool.levels            paint every level on the clay car, for the viewer and the room (LOOK)
     python -m tool.levels --side     the side view the room draws on, into the work folder (also made
@@ -54,6 +63,7 @@ car/levels.json (committed, written by the room through the viewer's server, /ap
     levels.above("top edge")         a zone: the body above it
     levels.below("bottom edge")      a zone: the body below it, as far as it runs
     levels.band("between 1", "between 2")   a zone: the body between two levels, as far as both run
+    levels.top_line("top 1", 0.8)    a zone: a top line, 0.8 cm wide on the surface
 """
 
 import argparse
@@ -65,6 +75,7 @@ import numpy as np
 from tool import paths, progress
 
 FILE = paths.REPO / "car" / "levels.json"
+TOP_FILE = paths.REPO / "car" / "top_lines.json"
 LOOK = "Look_Levels"  # the clay car with the levels on it, in the viewer's data (never a skin of the user's)
 SIDE = 0.25  # cm per pixel of the side view
 WHEELS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
@@ -259,6 +270,42 @@ def band(upper, lower):
     """The body between two levels, as far along the car as both run."""
     z, run = above(lower) & ~above(upper), _run(upper, lower)
     return z & run if run is not None else z
+
+
+def top_lines():
+    """The top's lines: [{"name", "path": [[x, y, z], ...]}], the left half each."""
+    return json.loads(TOP_FILE.read_text())["lines"] if TOP_FILE.exists() else []
+
+
+def top_line(name, width=0.8):
+    """A top line on the skin, `width` cm wide: each point near its path (both halves) measured across
+    the path within the skin (the skin's normal crossed with the path's direction), the path within
+    1.5 cm of the skin there."""
+    from scipy.spatial import cKDTree
+    from tool import shapes
+    from tool.noise import smoothstep
+    path = next((L["path"] for L in top_lines() if L["name"].lower() == name.lower()), None)
+    if path is None:
+        raise ValueError(f"no top line called {name!r} in {TOP_FILE.name}")
+    P = np.asarray(path, np.float64)
+    s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
+    u = np.arange(0, s[-1], 0.25)
+    P = np.stack([np.interp(u, s, P[:, k]) for k in range(3)], 1)
+    tan = np.gradient(P, axis=0)
+    tan /= np.linalg.norm(tan, axis=1, keepdims=True)
+    Q, TQ = np.concatenate([P, P * [-1, 1, 1]]), np.concatenate([tan, tan * [-1, 1, 1]])
+    tree = cKDTree(Q)
+
+    def f(p, n):
+        p, nn = p.astype(np.float64), n.astype(np.float64)
+        dist, i = tree.query(p)
+        d = p - Q[i]
+        e = np.cross(nn, TQ[i])
+        e /= np.maximum(np.linalg.norm(e, axis=1, keepdims=True), 1e-9)
+        line = smoothstep(-0.1, 0.1, width / 2 - np.abs((d * e).sum(1)))
+        near = (np.abs((d * nn).sum(1)) < 1.5) & (dist < 4)
+        return (line * near * smoothstep(-0.85, -0.75, nn[:, 1])).astype(np.float32)
+    return shapes.Zone(f, label=f"top_line({name!r})") & shapes.outside(0.1)
 
 
 # ---- the side view the room draws on ----

@@ -1,10 +1,11 @@
 """The skeleton car: the painter's guides on the clay car (tool/levels.py), as the levels room draws
-them: the top line and the bottom line in black, the levels between and the nose's lines in blue."""
+them: the top line and the bottom line in black, the levels between in blue, and the top's lines
+(set in from the top line over the top) in pink."""
 from tool import levels
 
 WORDS = ("the purpose of these guides is that you as the painter can guide yourself to painting ... "
          "for you to have a bit better eyes to painting")
-BLACK, BLUE = "#0a0a0a", "#1d4ed8"
+BLACK, BLUE, PINK = "#0a0a0a", "#1d4ed8", "#e0115f"
 
 
 def design(s):
@@ -16,7 +17,10 @@ def design(s):
     for name, *_ in levels.curves():
         if name in drawn:
             s.paint(outer, "matte", colour=BLACK, zone=levels.line(name))
-    s.step("The lines between", "The levels between and the nose's lines in blue.", words=WORDS)
+    s.step("The lines between", "The levels between in blue.", words=WORDS)
     for name, *_ in levels.curves():
         if name not in drawn:
             s.paint(outer, "matte", colour=BLUE, zone=levels.line(name))
+    s.step("The lines over the top", "The top's lines in pink, set in from the top line.", words=WORDS)
+    for L in levels.top_lines():
+        s.paint(outer, "matte", colour=PINK, zone=levels.top_line(L["name"]))

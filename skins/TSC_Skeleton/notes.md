@@ -435,3 +435,10 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   wobbles); smoothing from z -75 (the line drifted off the rear flank's seam); rejoining the nose's
   line by z 50 (a step). Checked: the corner, by the intake from the side and high front, from above,
   the front quarter, the whole side.
+- The user, of the smoothed line: "Works for now". Built into the guides: car/top_lines.json holds the
+  top's lines, each a path in space (the left half, tail's middle to nose's middle, a point every cm,
+  taken from the approved paint), and levels.top_line(name) paints one on the skin beneath it (across
+  the path within the skin). "top 1" is this line; the skeleton paints it in pink, in place of the
+  nose's lines (set to 0 in the room: the top's lines take their place). The skeleton's line lies
+  within 0.03 cm of the approved one (0.24 for 99% of it). The trials are gone from the work folder.
+  Self-test: every car identical.
