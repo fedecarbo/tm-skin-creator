@@ -143,3 +143,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   guide yourself to painting. ... Im not expecting that paint should only be in the guides
   themselves, but for you to have a bit better "eyes" to paininting. I guess my goal is that the uv
   map is a uv map +, something digitally perfect for you."
+- The user: "Sure" (the seams, then a quick test paint with the guides). The seams along the side
+  traced from the mesh as named lines (tool/seams.py: the rear wing's lower seam, the strake's, the
+  side skirt's top edge under the inlet and ahead of it, each within 0.05 cm of its edge), drawn in
+  the levels room in orange, paintable along. Tried and not kept: pulling the levels near a seam to
+  keep their distance from it (a pull per seam faded past its ends, then one smooth correction per
+  level): both bent the levels into S-shapes round the inlet's front corner, where two level seams
+  sit 3.5 cm apart in height while the top and the bottom fall towards the nose. Kept instead: the
+  bottom runs level at the front (21.9 to 21.6 cm from z 40 to 82, it fell to 18.5), so the levels
+  near the side skirt's seams run alongside them (they drift 0.5 to 0.9 cm over a seam's length,
+  1.4 to 1.6 before; at the rear wing 0.07 and 0.6), shaped by the top and the bottom alone. Checked:
+  every stretch, the low looks, the bottom's front end; the room's lines match the paint's.

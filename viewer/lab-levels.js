@@ -7,7 +7,8 @@
 // The side's levels: the top and the bottom are drawn like any level, and the levels between are
 // shared out between them (blue, not dragged: they follow the two), the bottom's shape fading out
 // towards the top as tool/levels.py's do. The bottom and the levels between run only between the
-// bottom's first and last points.
+// bottom's first and last points. The car's seams along the side are drawn in orange (tool/seams.py),
+// to shape the top and the bottom by.
 // Above it, the car itself with the line drawn on it as it moves (through the car map's outline every
 // cm: a close picture, the paint is exact), turned with a drag; "Show it on the car" paints it (about
 // 20 s) and dresses the car in it. The live line shows for the level picked and for whatever has
@@ -28,6 +29,7 @@ let sel = -1;              // its picked point
 let car = null;            // the viewer's window.viewer
 let side = null;           // the side view's place in cm (tool/levels.py side.json)
 let outlines = [];         // the body's outline every cm: [[z, Float32Array x, y, ...]]
+let seamLines = {};        // the seams along the side, as the paint traced them: { name: [[z, y] cm] }
 let lift = 0;              // cm the viewer raises the car by, tyres on the floor (data/car.json)
 let painted = null;        // the levels as last painted: { stamp, levels, between } (data/levels/painted.json)
 let partInfo = new Map();
@@ -159,6 +161,7 @@ function drawSide() {
     for (let z = z0; z < z1 + 1; z += 1) { const zz = Math.min(z, z1); d += `${d ? 'L' : 'M'}${zz.toFixed(1)},${(-Y(zz)).toFixed(2)}`; }
     return d;
   };
+  for (const pts of Object.values(seamLines)) g.appendChild(el('path', { d: path(spline(pts), pts[0][0], pts[pts.length - 1][0]), class: 'lvSeam' }));
   between().forEach((b) => g.appendChild(el('path', { d: path(b.Y, b.z0, b.z1), class: 'lvCurve between' })));
   doc.levels.forEach((L, i) => {
     if (L.points.length < 2) return;
@@ -436,6 +439,7 @@ async function load() {
   side = await fetch('data/levels/side.json', { cache: 'no-store' }).then((r) => r.json());
   const rows = await fetch('data/levels/sections.json').then((r) => r.json());
   lift = (await fetch('data/car.json').then((r) => r.json()).catch(() => ({}))).lift_cm || 0;
+  seamLines = await fetch('data/levels/seams.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
   outlines = rows.map(([z, q]) => [z, Float32Array.from(q)]);
 }
 

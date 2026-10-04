@@ -64,6 +64,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   - the lines room (the user's pins, below) and the materials (`lab.js`; the balls by `balls.js`).
   - the levels room (`lab.html?room=levels`, `lab-levels.js`; `tool/levels.py`'s docstring is the key):
     the user draws a level from the side, `car/levels.json`; its spline is the paint's, keep the two alike.
+    The car's seams along the side (`tool/seams.py`, traced from the mesh) are drawn on it in orange.
   - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
     writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)
     or at once through `tool.notes wait` in the background. The hook runs `notes.py` as a script,

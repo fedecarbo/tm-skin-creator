@@ -15,7 +15,9 @@ towards the top: the level s of the way down (s = k / (between + 1)) sits s time
 (the median along the bottom's stretch) below the top, plus s² times how much the gap at that length
 differs from it. So the levels near the top run parallel to it, as the rear wing's seam does (the
 user, 2026-10-04: "I do expect that the lines follow the same curvature"), and those near the
-bottom follow the bottom (shared evenly, the bottom's climb at the tail tilted every level). The bottom
+bottom follow the bottom (shared evenly, the bottom's climb at the tail tilted every level). So the
+levels share a seam's curve (tool/seams.py, drawn in the room) when the top or the bottom near it
+does: the bottom runs level along the side skirt's seams, as they do. The bottom
 and the levels between run only between the bottom's first and last points: ahead of the sidepods
 the body has no side below the top (the nose's own lower edge is the top there), and held level
 they would run on along the floor's blade and round the front wing.
@@ -219,6 +221,15 @@ def side_view():
     return stamp
 
 
+def seam_lines():
+    """The seams along the side as the room draws them: levels/seams.json, {name: [[z, y], ...]}."""
+    from tool import seams, view
+    out = view.DATA / "levels" / "seams.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    paths.write(out, json.dumps({name: sm["points"] for name, sm in seams.traced().items()}))
+    return out
+
+
 def sections():
     """The body's outline every cm along the car (the car map's, the left half, its open surface), for
     the room's live line on the 3D car: levels/sections.json, [[z, [x, y, x, y, ...]], ...] in cm."""
@@ -247,6 +258,7 @@ def paint():
     with progress.job("Drawing your levels on the car"):
         side_view()
         sections()
+        seam_lines()
         lines = curves(doc)
         progress.stage("Painting", total=len(lines))
         s = paintbox.Skin(LOOK)
@@ -270,6 +282,7 @@ def main():
     if args.side:
         print(side_view())
         print(sections())
+        print(seam_lines())
         return
     t = time.time()
     paint()
