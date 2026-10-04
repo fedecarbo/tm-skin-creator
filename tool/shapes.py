@@ -30,6 +30,9 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
+  The car's skeleton (tool/skeleton.py: the body cut by flat planes every cm, nothing read into it):
+    shapes.skeleton("contour", 30)         the line level all round at 30 cm up; "section" across the
+                                           car at a length, "profile" along it at a distance from the middle
   Lines, stripes, bands and rings are drawn on the car's own skin: tool/skindraw.py, whose band()
   gives a zone like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
@@ -469,13 +472,14 @@ def hit(lo, hi=1.01, soft=SOFT):
     return field(dist, soft)
 
 
-def polyline(lines, width=1.5, soft=SOFT):
+def polyline(lines, width=1.5, soft=SOFT, spacing=0.25):
     """Lines `width` cm wide along polylines on the body: one (n, 3) array of points in cm, or a
-    list of them (the car map's ridges, say: shapes.polyline(carmap.load().ridges[3]))."""
+    list of them (the car map's ridges, say: shapes.polyline(carmap.load().ridges[3])). spacing:
+    cm between the points the distance is taken to (a quarter of the width or less: no beads)."""
     from scipy.spatial import cKDTree
     from tool import carmap
     lines = [np.asarray(l, np.float64) for l in lines] if isinstance(lines, (list, tuple)) else [np.asarray(lines, np.float64)]
-    pts = carmap._resample([l for l in lines if len(l) > 1])  # a point every 0.25 cm: no beads
+    pts = carmap._resample([l for l in lines if len(l) > 1], spacing)
     tree = cKDTree(pts) if len(pts) else None
 
     def dist(p, n):
@@ -484,6 +488,18 @@ def polyline(lines, width=1.5, soft=SOFT):
         d, _ = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
         return (width / 2 - np.minimum(d, width * 2)).astype(np.float32)
     return field(dist, soft)
+
+
+def skeleton(family, at, width=0.4, parts=None, soft=SOFT):
+    """Lines `width` cm wide along the car's skeleton (tool/skeleton.py): the body cut by flat
+    planes, from its mesh alone. family: "section" (across the car at a length z), "contour" (level
+    at a height y) or "profile" (along the car at a distance x from the middle, + the left); at: a
+    whole number of cm, or several. parts="body" leaves out the wheel covers and the blades."""
+    from tool import skeleton as sk
+    at = list(at) if isinstance(at, (list, tuple, range, np.ndarray)) else at
+    z = polyline(sk.load().lines(family, at, parts), width, soft, spacing=min(0.25, width / 4))
+    z.label = None  # named as the design wrote it (_named), not as the polyline under it
+    return z
 
 
 def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
@@ -540,5 +556,5 @@ def _named(fn):
 
 for _maker in ("stripe", "band", "front_of", "behind", "above", "below", "left", "right", "plane", "sphere", "box",
                "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy", "region",
-               "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "streamlines"):
+               "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "skeleton", "streamlines"):
     globals()[_maker] = _named(globals()[_maker])

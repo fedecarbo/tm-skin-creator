@@ -1,0 +1,29 @@
+{
+ "car": "TSC_Skeleton",
+ "sets": [
+  {
+   "n": 1,
+   "title": "The skeleton · 2 spacings",
+   "words": "Layer by layer, accurate throughout, like a topographic skeleton every x cm. Literally painting lines, as in a skeleton.",
+   "made": "2026-10-04T11:50:23",
+   "state": "picked",
+   "options": [
+    {
+     "key": "A",
+     "title": "Every 10 cm",
+     "skin": "TSC_Skeleton_Every10Cm",
+     "picture": "sets/1/A.png"
+    },
+    {
+     "key": "B",
+     "title": "Every 5 cm",
+     "skin": "TSC_Skeleton_Every5Cm",
+     "picture": "sets/1/B.png"
+    }
+   ],
+   "pick": "B",
+   "decision": "Every 5 cm",
+   "done": "2026-10-04T11:55:05"
+  }
+ ]
+}
