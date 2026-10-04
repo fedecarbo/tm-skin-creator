@@ -286,3 +286,6 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   to 3 under. The bottom under the nose: Red Bull and RBS3 pinstripes on it (within 1 cm along 70 to
   100%), the others 1 to 2 cm above. None paints along the levels between: their sides are one colour
   with logos and diagonals. Shown: Red Bull and Peach with the guides, in the viewer.
+- The user, of the example skins against the guides: "Seems ok to me": the direction holds (the
+  guides as they are: the top and the bottom where designers split and pinstripe, the nose's lines
+  round the nose, the levels between for measuring). The overlays are gone from the work folder.
