@@ -154,3 +154,13 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   near the side skirt's seams run alongside them (they drift 0.5 to 0.9 cm over a seam's length,
   1.4 to 1.6 before; at the rear wing 0.07 and 0.6), shaped by the top and the bottom alone. Checked:
   every stretch, the low looks, the bottom's front end; the room's lines match the paint's.
+- The user: "I think the bottom line need to follow the shoulder (surface curvature) going to the
+  front. Maybe that helps." (And of a point that moved: "I keep moving without wanting, just ignore
+  it": the bottom's front end had been dragged to z 41, 77 cm and went into c820c67; replaced.)
+  Measured from the shading: the middle of the turn under (45 degrees from straight down) runs at
+  about 20.7 cm along the sidepod and falls to 17 by the front wheel; the level bottom ran 1 to 5 cm
+  above it there. The bottom from the strake forward refitted to it (within 0.28 cm on average,
+  stray slices at the inlet's frame set aside), bending only where it did before. Seen low it runs
+  where the side rolls under all the way and ends on that edge by the front wheel opening. The cost:
+  the side skirt's top seam under the inlet runs level while the turn under falls, so the lines near
+  it drift 2.3 cm over its length (1.5 before); the rear wing's unchanged.
