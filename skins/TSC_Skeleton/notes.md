@@ -189,3 +189,17 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   where they did (the sidepods' front), so their spacing holds; the lowest moved 0.23 cm at most
   (z 50 to 82, where the bottom had run 0.3 under the edge). Checked close up in red, both sides,
   low and from above (no stray line on the skirt's top), and round the tip. Shown in the levels room.
+- The user, of the bottom to the tip: "Seems alright to me". Next: the levels between at the front.
+- The user: "I maybe think it's a little under the fold? Maybe we need it right at the fold? Im
+  assuming it doesn't matter if it follows the shape either way correct?" (Yes: the crest and the
+  middle of its turn run parallel within 0.4 cm.) Measured: along the sidepods the body turns under
+  in a broad roll (6 cm tall) and the bottom keeps to its middle (unchanged); from z 40 forward the
+  lower edge is a blade (the skirt, its top facing up) and the line had run on its bevel, 1.1 cm
+  under the crest. The bottom from z 10 forward now runs on the crest (where the edge faces straight
+  out): three points (z 50, 110, 216), within 0.39 cm of it from z 40 (0.03 on average), round the
+  tip at 17.5; behind z 10 it moved 0.12 cm at most (at z -12). The levels between moved with it at
+  the front flank (the lowest up to 0.93 cm, z 10 to 82; under 0.1 behind z 10), and drift less
+  against the side skirt's seams: 2.46 to 1.98 cm under the inlet, 1.44 to 1.20 ahead of it. Tried
+  and not kept: the levels between carried on to the tip (only the lowest found any body there, a U
+  on the skirt's top round the tip). Checked close up in red: the blend at the sidepods' front, the
+  skirt both sides, round the tip. Shown in the levels room.
