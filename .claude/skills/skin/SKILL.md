@@ -110,7 +110,7 @@ game: install from the Windows PC after a push.
 
 ## Showing and installing
 
-- The picture (`tool.snap … --picture`) and the Lab. Reply in a few sentences: what the car looks
+- The car in the Lab, to turn round; no pictures on their screen. Reply in a few sentences: what the car looks
   like and what you checked close up, then one bold question.
 - On their yes: `tool.skin install <name>` on the PC, then `tool.publish`. In the game: Garage → My
   Skins → pick `<name>`, no restart needed.

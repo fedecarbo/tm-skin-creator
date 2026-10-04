@@ -8,7 +8,9 @@ game or the code goes into the code (a warning, a check, a docstring).
 
 - **Don't ask about anything but taste and real choices.** The user hands every technical decision
   to Claude. Decide, do it, show it.
-- **Don't describe a car.** Words make the user imagine it. Show it: a picture, or the car in the Lab.
+- **Don't describe a car, or show it in screenshots.** Words make the user imagine it, and a still
+  can't be turned (the user, 2026-10-04: "stop with the screenshots"). Put it in the Lab or the viewer,
+  where they move round it; pictures only as a widget's choices.
 - **Don't put a choice in plain text only.** The user picks by looking. Bring it to the Lab's chat as
   a widget, and ask it in one bold line in the reply.
 - **Don't run the user through a fixed sequence of steps.** They work by reacting to the car. Make
