@@ -72,6 +72,33 @@
    "pick": "A",
    "decision": "Round the nose",
    "done": "2026-10-04T22:10:59"
+  },
+  {
+   "n": 4,
+   "title": "The bottom line along the back · 3 ways",
+   "words": "looking at the redbull one, the bottom red strip, maybe I have the bottom line in the back wrong?",
+   "made": "2026-10-04T22:52:44",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "As it is",
+     "skin": "TSC_Skeleton_AsItIs"
+    },
+    {
+     "key": "B",
+     "title": "Straight from the seam",
+     "skin": "TSC_Skeleton_StraightFromTheSeam"
+    },
+    {
+     "key": "C",
+     "title": "Level like the strip",
+     "skin": "TSC_Skeleton_LevelLikeTheStrip"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
   }
  ]
 }

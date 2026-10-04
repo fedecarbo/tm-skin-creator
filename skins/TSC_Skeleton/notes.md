@@ -289,3 +289,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
 - The user, of the example skins against the guides: "Seems ok to me": the direction holds (the
   guides as they are: the top and the bottom where designers split and pinstripe, the nose's lines
   round the nose, the levels between for measuring). The overlays are gone from the work folder.
+- The user: "I am wondering looking at the redbull one, the bottom red strip, maybe I have the bottom
+  line in the back wrong?" Measured on Red Bull's Skin_B: the red strip runs level at 21.7 to 22.3 cm
+  (its middle) from z -102 (where the rear's lower piece begins) to the intake, then on the bottom
+  line to the tip; the bottom (the middle of the sidepod's roll under, 45 degrees) dips under it,
+  2.8 cm at z -90, joining it by z -30. The two RBS3 (the same painter) put theirs 2 to 3 cm above
+  too; Nissan splits its colours 4 to 5 above; the others paint nothing there. The body has no fold
+  there: the side rolls under over 6 to 10 cm, the strip crosses its upper part. Shown as set 4 in
+  the Lab, the bottom in pink: A, as it is; B, on the diffuser strake's seam to its end (20.6 cm at
+  z -110.5), then straight to the crease under the intake (22.06 at z -22): within 0.1 of the seam,
+  two bends as before; C, down the seam, then level at the crease's height (22.0 to 22.1) from z -108,
+  leaving the seam 1.5 cm above its end, like Red Bull's strip. Each fitted to its shape (within 0.1
+  cm), ahead of z -22 unchanged. Checked close up from the side and low from both quarters: smooth.

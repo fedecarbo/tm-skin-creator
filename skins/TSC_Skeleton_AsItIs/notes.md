@@ -1,0 +1,1 @@
+Option A of TSC_Skeleton's set 4 (The bottom line along the back · 3 ways), 2026-10-04: As it is. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).
