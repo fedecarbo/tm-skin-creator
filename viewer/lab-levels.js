@@ -11,7 +11,8 @@
 // cm: a close picture, the paint is exact), turned with a drag; "Show it on the car" paints it (about
 // 20 s) and dresses the car in it. The live line shows for the level picked and for whatever has
 // changed since the paint, the rest is the paint itself. Everything saves as you go (/api/levels,
-// car/levels.json).
+// car/levels.json), and coming back to the page takes the levels as they are there (changed by Claude,
+// or by another copy of the room), so an old page never saves over them.
 //   /lab.html?room=levels
 
 import { $, embedViewer } from './lab-common.js';
@@ -31,6 +32,7 @@ let painted = null;        // the levels as last painted: { stamp, levels, betwe
 let partInfo = new Map();
 let drag = null;           // the point being dragged: { i, moved }
 let saveTimer = null, liveFrame = 0, paintWatch = null, paintedStamp = 0;
+let unsaved = false;       // a change here not saved yet
 let opened = false;
 const undo = [];
 
@@ -274,6 +276,7 @@ function more(by) {  // levels between the top and the bottom: none to MOST
 
 function changed() {
   draw();
+  unsaved = true;
   clearTimeout(saveTimer);
   $('lvSaved').textContent = 'Saving…';
   saveTimer = setTimeout(() => save(false), 400);
@@ -318,11 +321,15 @@ function say(text) {
 
 // ---- keeping and painting (tool/server.py /api/levels -> car/levels.json, tool/levels.py) ----
 
+const kept = () => JSON.stringify({ levels: doc.levels, between: doc.between || 0 });
+
 async function save(paint) {
   try {
+    const sent = kept();
     const r = await fetch('api/levels', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ levels: doc.levels, between: doc.between || 0, paint }) });
     const out = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(out.error || String(r.status));
+    if (kept() === sent) unsaved = false;
     $('lvSaved').textContent = 'Saved';
     return true;
   } catch (e) {
@@ -330,6 +337,26 @@ async function save(paint) {
     say(`Not saved, so not painted: ${e.message}`);
     return false;
   }
+}
+
+async function sync() {  // coming back to the page: the levels and the paint as they are now
+  if (drag || unsaved) return;
+  try {
+    const r = await fetch('api/levels', { cache: 'no-store' });
+    if (!r.ok) return;
+    const d = await r.json();
+    const there = { levels: d.levels || [], between: d.between || 0 };
+    if (!drag && !unsaved && JSON.stringify(there) !== kept()) {
+      doc = there;
+      undo.length = 0;  // undo would bring back what was changed elsewhere
+      $('lvUndo').setAttribute('aria-disabled', 'true');
+      cur = Math.max(0, Math.min(cur, doc.levels.length - 1));
+      sel = -1;
+      draw();
+    }
+    const stamp = await paintStamp();
+    if (car && stamp && stamp !== paintedStamp) { paintedStamp = stamp; await showPainted(); drawCar(); }
+  } catch { /* the server is away */ }
 }
 
 async function paintStamp() {  // the last paint's stamp, and what it painted into `painted`
@@ -420,6 +447,8 @@ export async function open() {
   $('lvName').addEventListener('change', (e) => rename(e.target.value));
   $('lvName').addEventListener('keydown', (e) => { if (e.key === 'Enter') e.target.blur(); });
   for (const b of $('lvViews').querySelectorAll('[data-view]')) b.addEventListener('click', () => car && car.go(b.dataset.view));
+  addEventListener('focus', sync);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
   addEventListener('keydown', (e) => {
     if ($('roomLevels').hidden || e.target.matches('input, textarea')) return;
     if ((e.key === 'Delete' || e.key === 'Backspace') && sel >= 0) { e.preventDefault(); removePoint(); }

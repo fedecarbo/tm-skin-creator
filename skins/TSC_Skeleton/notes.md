@@ -93,3 +93,6 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   then the other only where the shoulder does (behind the wheel); the user's points from the inlet
   forward kept. Checked close up straight into the shoulder every 20 cm, old beside new: the new line
   keeps the middle of the turn all along; the inlets and the tail unchanged. Shown in the levels room.
+- The user: "Can you remove the ones I added because it's hard to see." Removed "level 2" (the only
+  one saved; "side level" never was). The room now re-reads the levels when the user comes back to the
+  page, so an open or old copy never saves over a change made from here.
