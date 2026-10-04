@@ -345,3 +345,15 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   a cm at its ends). The nose's lines give way to them in the trial. Checked close up: the seam
   (with and without the rings), the tail corner, the sidepod's front corner, the nose root, the
   cockpit's front, the nose tip from above and the side. Shown in the viewer.
+- The user: "So the back is getting better but the front not at all. you know the nose pannel has a
+  seam on the front. I think that should follow that curve. If you want you can just have one red
+  line so we can define that one first". The nose panel (on the nose's top, z 142 to 186.5, x within
+  12.4) has its seam round its front and along its sides, 9 to 13 cm in from the black line seen from
+  above (the rear flank's seam 6.3). Trial 4 (Look_TopLines): one line, its own curve seen from above:
+  6.3 cm in from the black line across the tail, on the rear flank's seam and along the sidepods;
+  flaring in over the sidepods' front (z -12 to 30, where the black line flares) to 12.3 cm in,
+  parallel to the black line along the nose; easing onto the panel's sides (z 118 to 146) and round
+  its front on its seam. Tried first and not shown: 6.3 in up to z 60 and then drifting across the
+  nose to the panel (an 80 cm diagonal tied to nothing on the car). Checked close up: the panel from
+  above and the front quarter, onto the panel from the side, along the nose from above, the flare,
+  the tail. Shown in the viewer.
