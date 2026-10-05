@@ -90,3 +90,7 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   every part in the list and filled by a rule (evenly round every edge, then every corner), tuned three
   times instead of placing a few where they mean something, in the car's own language, and showing them
   first. RULES.md says so.
+- Change 11 (user, note 10, an arrow drawn on the right deck, 2026-10-05): "Move the no step to here
+  maybe". The arrow ran from the deck's placard forward to beside the panel seam, past the car's own
+  fastener; the deck's placard moved there on both sides (along the course at z -70, 2 cm from the
+  arrow's tip), clear of the fuel cap on the left. The side box's placards stay.

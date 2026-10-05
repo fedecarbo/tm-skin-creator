@@ -17,7 +17,8 @@ STEP_FROM, STEP_TO = -128.0, 10.5  # z: the marking's ends, where the user drew 
 LINE = 1.0  # cm: the line the user drew, as wide as the words keep clear of it
 CORNER = 1.5  # cm: the turns where the marking leaves one seam for the next, rounded over this
 SIGN, SIGN_H = "NO STEP", 2.6  # the words and their capitals' height (cm)
-SIGN_AT = (-95.0, -22.0)  # z: where they go along the course, the deck and the side box's top
+SIGN_AT = (-70.0, -22.0)  # z: where they go along the course: the deck by the side box (the user's arrow,
+# note 10, from where it was at -95 to beside the fuel cap), and the side box's top
 PAD, FRAME = 0.5, 0.2  # cm: the placard's box round the words (the user's yes, note 9), and its line
 
 
