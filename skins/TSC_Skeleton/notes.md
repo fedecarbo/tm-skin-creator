@@ -454,3 +454,17 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   smoothed as one curve in space (8 cm at the corner, 12 on), then its painted path saved as
   "top 1". Example skins: their first change in from the black line sits about 2.3 cm above it at
   the back, about 7 on the nose.
+- The user (2026-10-05, a screenshot from above of the cockpit and both sidepods' front corners, the
+  first top line's turns circled): "Is there a way to make these corners (circled in black) a bit
+  sharper, rather than too round.", then "In a way each line should somehow feel paralell to the black
+  line if that makes sense". Measured from above: the top's outline (the skin above the black line, the
+  cockpit filled in) turns in a crisp corner at the sidepod's front (x 84.4, z -11) and runs straight
+  across the sidepod's front to the nose root; the black line itself has no stretch there (the inlet
+  takes the front face). The first top line keeps 6.2 to 6.9 cm in from that outline along the side and
+  across the front, but its turn (21 cm radius at the tightest, z -30 to -5) cut the corner, up to 9.0
+  cm in. Trial (Look_TopCorner, in the work folder): from z -36 to -3.4, straight along the side, a turn
+  of 8 cm radius at the tightest (the bend eased in and out over 13.5 cm), straight across the
+  sidepod's front to where the line already ran straight, heights from the skin: 6.3 to 7.2 cm in from
+  the outline all through the turn; it moves 2.0 cm at most (at the corner), the rest unchanged. Checked
+  from above on both sides, high front, high side and high behind, beside the line as it was. Shown in
+  the viewer.
