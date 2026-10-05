@@ -14,9 +14,10 @@ deleted here; `PLAN.md` keeps the why.
   the repo so both computers hold the same car, painted on a skeleton car (TSC_Skeleton) for the
   Lab and the game, and checked against the user's F12 screenshots in px. Show's measures
   (`tool/measure.py`) already find the map's sides stopping 2 to 3 cm short of the tail's corner.
-  Done (2026-10-04): the cuts (`tool/skeleton.py`, `car/skeleton.npz`), `shapes.skeleton`, the
-  skeleton car every 5 cm (the user's pick). Left: `tool.skeleton --check` on the PC,
-  the install, the viewer's and the game's check by number.
+  Done: the cuts (`tool/skeleton.py`, `car/skeleton.npz`), `shapes.skeleton`; the painter's guides
+  drawn with the user (`tool/levels.py`: the side's levels, the seams, the top's two lines), shown on
+  the skeleton car (TSC_Skeleton). Left: `tool.skeleton --check` on the PC, the skeleton car
+  installed, the viewer's and the game's check by number.
 - **3. Fresh eyes on a finished car**: a second Claude with only the user's words, the pictures and
   step 1's measures names what's cut, sunk, forgotten or off-brief, and in which picture; only
   where the close looks already run, never on takes; about a minute.
