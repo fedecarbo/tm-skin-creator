@@ -13,11 +13,13 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
 
 ## Checking a change
 
-- `PY -m tool.selftest --against <commit>` paints the user's car and the self-test's own tour car
-  (every other paint call) with this code and with that commit's, and compares every texture,
-  every DDS file, the notes and the record; `--snap` compares the viewer's sheets pixel for pixel,
-  `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in the work
-  folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
+- `PY -m tool.selftest --against <commit>` checks that every command, file and name the
+  instructions give still exists (`tool/instructions.py`), then paints the user's car and the
+  self-test's own tour car (every other paint call) with this code and with that commit's, and
+  compares every texture, every DDS file, the notes and the record; `--snap` compares the
+  viewer's sheets pixel for pixel, `--at <commit>` tests a commit instead of the working tree. A
+  commit's side is kept in the work folder, so it's paid for once per computer. Run it before
+  committing a change to `tool/`.
 - A cache whose contents change must change its name or version (`coverage._key`,
   `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
 - The page online and Claude's snapshots must not change with a change made for the Lab (the
@@ -106,7 +108,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
 - The car map (`tool/carmap.py`, `car/map.md` and its pictures in `car/map/`) rebuilds itself when
   the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its code: rebuild, retake the
   pictures in `car/map/` (`tool.snap <name> --body` of a car painted by the map's zones) and
-  `--describe` again (on the computer whose map is in `car/map.md`: the two trace different
+  `tool.carmap --describe` again (on the computer whose map is in `car/map.md`: the two trace different
   ridges, `IMPROVEMENTS.md`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",

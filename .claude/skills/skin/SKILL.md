@@ -90,7 +90,7 @@ game: install from the Windows PC after a push.
 - **Sets of options** (painted takes): `tool.sets new <car> "<what>" --words "<their words>"`,
   `tool.sets option <car> <n> "<Title>"` for each (a copy of the design to change), paint each and
   look at its views, then `tool.sets open <car> <n>` with a line (`tool.notes say`). The pick:
-  `tool.sets pick <car> <n> <letter> "<what>"` (the others go), then `show <car>` and its close
+  `tool.sets pick <car> <n> <letter> "<what>"` (the others go), then `tool.skin show <car>` and its close
   looks. "None of these" or a mix in their words: change an option, then pick it, or `tool.sets drop`.
 - **Questions** (anything else to pick or confirm): `PY -m tool.notes ask <car> "<question>"
   --choice "<label>" [--colour "#rrggbb"] [--picture <png>] --choice … [--several]`, or `--yes` for

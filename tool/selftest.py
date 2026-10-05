@@ -7,12 +7,13 @@
     python -m tool.selftest --against <ref> --at <ref2> <ref2>'s code instead of the working tree's
     python -m tool.selftest                             this code alone: paint, encode, time
 
-Run it before and after any change to the tool. Each skin is painted in a fresh process, from the
-code in the working tree and from <ref>'s code, extracted by `git archive` into the work folder
-(never the repo: the PC's is in OneDrive). Per texture it compares the painted floats, the uint8
-image the viewer and install take, and the whole DDS file the game reads; per skin, the notes, the
-lines drawn, the palette, the steps and the parts left in clay. A difference is shown texel by
-texel, by painting that skin again on both sides.
+Run it before and after any change to the tool. It first checks that every command, file and name
+the instructions give still exists (tool/instructions.py, the working tree's). Each skin is painted
+in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
+`git archive` into the work folder (never the repo: the PC's is in OneDrive). Per texture it compares
+the painted floats, the uint8 image the viewer and install take, and the whole DDS file the game
+reads; per skin, the notes, the lines drawn, the palette, the steps and the parts left in clay. A
+difference is shown texel by texel, by painting that skin again on both sides.
 
 A commit's results are kept in the work folder (selftest/<commit>/), so each side is paid for once
 per computer: a minute or two a skin. The working tree's are painted afresh
@@ -32,7 +33,7 @@ import tarfile
 import time
 from pathlib import Path
 
-from tool import paths, progress
+from tool import instructions, paths, progress
 
 # Together they use every part of the paint box: the user's car (peel, relief, emboss, glows, relit
 # lights, a library finish, the canvas by hand) and TOUR, a test car of the self-test's own that
@@ -297,6 +298,12 @@ def main():
 
 
 def run(args, names):
+    differing = []
+    if not args.at:
+        counts, missing = instructions.check()
+        print(instructions.line(counts, missing), flush=True)
+        if missing:
+            differing.append("instructions")
     old_cwd = commit = None
     if args.against:
         commit, old_cwd = tree(args.against)
@@ -306,7 +313,6 @@ def run(args, names):
         live, fresh = HOME / at[:12], False
     print(f"{len(names)} skins" + (f" at {args.at}" if args.at else "")
           + (f", against {args.against} ({commit[:12]})" if commit else ""), flush=True)
-    differing = []
     progress.stage("Cars checked", total=len(names))
     for name in names:
         progress.detail(f"{progress.title_of(name)}: painted with the new code")

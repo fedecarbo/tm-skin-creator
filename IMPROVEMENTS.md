@@ -9,11 +9,9 @@ goes into the code.
 The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
 deleted here; `PLAN.md` keeps the why.
 
-- **4. Rules that are checks** (built 2026-10-05, waiting for the user's OK): a hook refuses a
-  shell command naming the game's skin folder; a hook sends Claude back to commit and push before a
-  turn ends; `skin install` puts the page online itself (seen on the PC at the next install).
-- **5. Instructions that can't rot**: the self-test checks that every command and path the
-  guidance names exists.
+- **5. Instructions that can't rot** (built 2026-10-05, waiting for the user's OK): the self-test
+  first checks that every command, flag, file and name in the code the instructions give still
+  exists (`tool/instructions.py`, a third of a second).
 - **6. Where we are at a cold start**: `tool.notes open` lists every skin's open items; the
   SessionStart hook prints it after the pull.
 - **7. The tool measured against the record**: every change the user ever asked for, with the
