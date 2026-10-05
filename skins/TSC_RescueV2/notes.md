@@ -22,3 +22,5 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   checks across the sidepod and the rear flank, the chevrons on the panel, the tail corner.
 - Change 1 (Claude, 2026-10-05): the top's first line in the guides redrawn with the user (sharper turns
   at the sidepods' front, the nose following its curve); the pinstripe on it follows. Repainted.
+- Change 2 (Claude, 2026-10-05): the top's first line now runs into the top line at the nose's tip; the
+  pinstripe on it follows. Repainted.

@@ -41,18 +41,22 @@ below the top (the nose's own lower edge is the top there), only the front wheel
 on the opening's upright edge; those that pass over it, onto the nose's underside, end in line with
 it (OPENING; the user's pick, 2026-10-04).
 
-The top's lines run over the top, inside the top line all round, each set in from it (the user,
-2026-10-05: "the next line would offset from that ... So it basically forms the shape of the top
-car"), and drawn like the pen tool: one smooth curve. Each is a path in space (car/top_lines.json, the
-left half, from the tail's middle to the nose's middle; the right mirrors it), painted on the skin
-beneath it. Seen from above each runs parallel to the top's outline, its corners given a radius
-(the user, 2026-10-05: "each line should somehow feel paralell to the black line"); along the nose
-it keeps to one tilt of the skin (the same shading), so it follows the nose's curve from the side.
-The first: on the rear flank's seam at the back (6.3 cm in from the top line seen from above), 2.5 cm
+The top's lines run over the top, inside the top line, following the top's own shape, and drawn like
+the pen tool: one smooth curve, its corners given a radius. Each is a path in space (car/top_lines.json,
+the left half, from the tail's middle to the nose's middle or to where it joins another line; the right
+mirrors it), painted on the skin beneath it. All of them run along the nose as one line, on its
+shoulder, and into the top line at the tip (the user, 2026-10-05: "they all run through the shoulder
+of the cars nose").
+The first: parallel to the top line seen from above (the user: "each line should somehow feel
+paralell to the black line"): on the rear flank's seam at the back (6.3 cm in from the top line), 2.5 cm
 above the top line along the sidepods, an 8 cm turn at their front corners, straight across their
-fronts, an 8 cm turn onto the nose, then where the nose's skin is tilted 31 degrees (5.6 cm above the
-top line at the cockpit's front, 2.5 by the front wheels), never nearer the top line than 2 cm, and
-over the nose's top just short of the tip.
+fronts, an 8 cm turn onto the nose; along the nose where its skin is tilted 31 degrees (the same
+shading: 5.6 cm above the top line at the cockpit's front, 2.5 by the front wheels), and over the last
+25 cm a third of the nose's own height above the top line, which brings it into the top line at the tip.
+The second: on the crease where the raised middle (the engine cover, the cockpit's surround) rises off
+the flat top (the user: "the in between curvature of the car"): across the back where the engine
+cover's back slope meets the tail deck, 12 cm corners, straight along the cockpit, and one gentle bend
+into the first at the nose root, where it ends.
 
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 6, "nose": 3}
@@ -285,7 +289,7 @@ def top_lines():
 def top_line(name, width=0.8):
     """A top line on the skin, `width` cm wide: each point near its path (both halves) measured across
     the path within the skin (the skin's normal crossed with the path's direction), the path within
-    1.5 cm of the skin there."""
+    1.5 cm of the skin there. A line that ends away from the middle (on another line) stops at its end."""
     from scipy.spatial import cKDTree
     from tool import shapes
     from tool.noise import smoothstep
@@ -293,6 +297,7 @@ def top_line(name, width=0.8):
     if path is None:
         raise ValueError(f"no top line called {name!r} in {TOP_FILE.name}")
     P = np.asarray(path, np.float64)
+    end = (P[-1], (P[-1] - P[-4]) / np.linalg.norm(P[-1] - P[-4])) if abs(P[-1, 0]) > 0.5 else None
     s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
     u = np.arange(0, s[-1], 0.25)
     P = np.stack([np.interp(u, s, P[:, k]) for k in range(3)], 1)
@@ -309,6 +314,10 @@ def top_line(name, width=0.8):
         e /= np.maximum(np.linalg.norm(e, axis=1, keepdims=True), 1e-9)
         line = smoothstep(-0.1, 0.1, width / 2 - np.abs((d * e).sum(1)))
         near = (np.abs((d * nn).sum(1)) < 1.5) & (dist < 4)
+        if end is not None:  # not past its end (the right half mirrors the left)
+            q = p.copy()
+            q[:, 0] = np.abs(q[:, 0])
+            line = line * smoothstep(-0.1, 0.1, -((q - end[0]) @ end[1]))
         return (line * near * smoothstep(-0.85, -0.75, nn[:, 1])).astype(np.float32)
     return shapes.Zone(f, label=f"top_line({name!r})") & shapes.outside(0.1)
 

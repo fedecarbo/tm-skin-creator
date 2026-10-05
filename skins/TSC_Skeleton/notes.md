@@ -588,3 +588,9 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   easing into the first over z 8 to 35 (side by side for 15 cm, a taper); the first line's turn redrawn
   onto the crease (an S after it); a bend ending at z 18 (it bulged out first). Checked from above on both
   sides, high front, high behind, the back corners. Shown in the Lab.
+- The user, of the sixth trial: "feels about right". Built into the guides: car/top_lines.json holds
+  "top 1" (the first line meeting the top line at the tip) and "top 2" (the second, on the crease,
+  ending on the first at the nose root); levels.top_line stops a line that ends away from the middle at
+  its end. TSC_Skeleton repainted (its join the trial's exactly), TSC_RescueV2's pinstripe follows the
+  first line into the tip. Self-test: the self-test's cars identical. The trials are gone from the work
+  folder.
