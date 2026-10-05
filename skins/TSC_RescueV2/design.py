@@ -257,7 +257,6 @@ def design(s):
     upper = _rows(s)
     s.paint("body", "gloss", colour=ORANGE, zone=band)
     s.paint("body", "reflective tape", zone=band & (upper & _checks() | ~upper & _checks(lower=True)))
-    s.paint("side skirt", "gloss black", zone=band)  # ahead of the sidepods it rises into the band
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=_chevrons())

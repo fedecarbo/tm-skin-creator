@@ -10,19 +10,22 @@ and checked by the self-test; ideas are named in plain words.
 ## Next: intent to result
 
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
-by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 8 of 8 today).
+by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 7 of 7 today; an
+eighth it no longer makes).
 
 - **A. Graphics that fit by themselves** (2026-10-05, the user: "it shouldn't do mistakes in the first
-  place"): a spot, a badge or any shape laid on a named panel instead of drawn through the car: whole
-  inside the panel's edges, moved or shrunk to its free room; or across them when the design says so,
-  which the checks then leave alone (the user: "what if AI wants to create shapes that overlap parts
-  deliberatively, would a check ruin the creative approach?"). The panels' outlines from the mesh, cached
-  in `car/`; a part painted by name kept from a later paint on a group unless that paint says so. Shown
-  on a new skin from the user's words, or on a test car first: theirs to say.
-- **B. Words and placards that fit** (2026-10-05): the body's flat rooms measured once into a file in
-  `car/`; `s.text` sized to the room and refusing with a note; a placard call that finds the flattest
-  patch near a point or a pen stroke and faces the words outward; upside-down and fold findings. Shown
-  on TSC_RescueV2's placards.
+  place"): **built, waiting for the user's OK**, to be shown on the next skin from their words (a test car
+  only if they ask). `s.mark` lays a shape (`tool/marks.py`: a disc, a ring, a blob, a box, a star, any
+  outline) flat on a named panel, whole inside its edges, off its folds and clear of the game's panels,
+  moved then shrunk to its free room and each move said; `across=True` on a mark or a paint says a
+  shape crosses parts on purpose, which the checks then leave alone (the user: "what if AI wants to
+  create shapes that overlap parts deliberatively, would a check ruin the creative approach?"); a zoned
+  paint on "body" leaves a part painted by its name. A mark's room is read off the body's flat texture,
+  where each panel is one piece.
+- **B. Words and placards that fit** (2026-10-05): `s.text` and a picture laid as a mark is (the room,
+  the fit, a note when it's refused); a placard call that finds the flattest patch near a point or a
+  pen stroke and faces the words outward; upside-down and fold findings. Shown on TSC_RescueV2's
+  placards.
 - **C. The geometry hoisted** (2026-10-05): a course along a guide, a level, a seam, a panel's edge or a
   pen stroke, with strips, dashes and spots along it; stripes and checks as zones in `tool/shapes.py`; a level's offset, split and
   "where" in `tool/levels.py`; a zone's edge feathered along the surface, so a height or a shape drawn
@@ -45,7 +48,8 @@ by `PY -m tool.record` (how many of the user's recorded flaws the tool names fir
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/map.md`). The checks
-  (`tool/checks.py`) read the map too and haven't run on the PC yet.
+  (`tool/checks.py`) and a mark's room (`tool/marks.py`, the open air) read the map too and haven't run
+  on the PC yet: a mark could land a texel or two apart on the two computers.
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.

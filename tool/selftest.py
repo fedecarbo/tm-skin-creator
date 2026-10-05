@@ -16,8 +16,9 @@ reads; per skin, the notes and the paint's own findings (in any order), the line
 palette, the steps and the parts left in clay. A difference is shown texel by texel, by painting
 that skin again on both sides.
 
-A commit's results are kept in the work folder (selftest/<commit>/), so each side is paid for once
-per computer: a minute or two a skin. The working tree's are painted afresh
+The tour is compared only with commits whose paint box has every call it makes. A commit's results
+are kept in the work folder (selftest/<commit>/), so each side is paid for once per computer: a
+minute or two a skin. The working tree's are painted afresh
 every run. Both sides share the work folder's caches, so a change to what a cache
 holds must change the cache's name or version, or the old side reads the new cache and agrees.
 """
@@ -47,13 +48,14 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, wear, the car map's
 # areas, air, lines and edges, grass, a blob, lines drawn on the skin, a decal, a scatter, a print,
-# lettering, a camo pattern, fabric, glows, a relit light, glass, dirt, a wheel ring, tyre markings
-# and a tread. Its pictures are drawn here, so it needs no stored art.
+# lettering, marks laid on a panel and across them, a band kept off a part painted by name, a camo
+# pattern, fabric, glows, a relit light, glass, dirt, a wheel ring, tyre markings and a tread. Its
+# pictures are drawn here, so it needs no stored art.
 TOUR_CODE = r'''
 def tour(s):
     from pathlib import Path
     from PIL import Image, ImageDraw
-    from tool import shapes, skindraw, textures
+    from tool import marks, shapes, skindraw, textures
     pic = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     d = ImageDraw.Draw(pic)
     d.ellipse((16, 16, 240, 240), fill=(250, 200, 30, 255), outline=(20, 20, 20, 255), width=14)
@@ -85,12 +87,17 @@ def tour(s):
         line = skindraw.parallel(sweep, mm, name=f"the sweep at {mm} mm")
         for curve in (line, skindraw.mirror(line)):
             s.paint("body", "satin", colour=colour, zone=skindraw.band(curve, 16))
-    s.step("Pictures", "A decal, a scatter, a print and lettering.")
+    s.step("Pictures", "A decal, a scatter, a print, lettering and marks.")
     s.decal(pic, "bonnet", width=30)
     s.scatter(pic, "engine cover", size=6, seed=3)
     textures.add_file("selftest tile", tile, 20, about="the self-test's tile")
     s.paint("rear flank", "selftest tile")
     s.text("TOUR 7", "left side", colour="black", font="russo", height=10, outline="white")
+    s.paint("body", "gloss", colour="#111111", zone=shapes.band(-70, -66))
+    spot = s.mark("sidepod top", "gloss", marks.star(5), size=14, colour="#f4f2ec")
+    s.mark("sidepod top", "gloss", marks.disc(), size=0.3 * spot.size, colour="#111111")
+    s.mark("rear quarter panel", "satin", marks.box(0.5, corner=0.1), size=40, at=(30, None, -60), colour="#e0a82e", turn=20)
+    s.mark("body", "satin", marks.ring(0.7), size=22, at=(0, None, 150), colour="#e8601c", across=True)
     s.step("Details", "The inner car, glass, dirt, glows, a light and the tyres.")
     s.paint("inner", "camo matte", palette=["charcoal", "slate", "light grey", "jet black"], scale=26)
     s.paint("seat", "cloth", colour="charcoal")
@@ -332,6 +339,10 @@ def run(args, names):
                 continue
             progress.detail(f"{progress.title_of(name)}: painted with the old code")
             old = paint(name, old_cwd, HOME / commit[:12], keep=True)
+            if name == TOUR and "error" in old:  # the tour makes a call that commit's paint box doesn't have
+                print(f"{line}  (no tour at {args.against}: {old['error']})", flush=True)
+                progress.tick()
+                continue
             textures, other = same(old, new)
             if "seconds" in old:
                 line += f"   was {old['seconds']['paint']:>5.1f} s / {old['seconds']['encode']:>5.1f} s"

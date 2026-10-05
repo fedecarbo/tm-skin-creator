@@ -36,7 +36,8 @@ game: install from the Windows PC after a push.
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls. Before the
   first design in a session, read the docstrings of `tool/paintbox.py` (the key), `tool/shapes.py`
-  (zones) and `tool/finishes.py`. Part names are in `car/parts.json`.
+  (zones), `tool/marks.py` (shapes on a panel) and `tool/finishes.py`. Part names are in
+  `car/parts.json`.
 - Start with `s.clay()` (any part no step paints stays clay, in the game too) and open each step
   with `s.step(name, does, words=<the user's words>)`; the Lab shows the car at the end of each.
   A change edits its step.
@@ -57,6 +58,10 @@ game: install from the Windows PC after a push.
   `s.tyre_tread("TR-..")`.
 - **Shared paint.** Most inner parts share their paint with their twin on the other side, and some
   with other parts. `show` names every part a colour also lands on: read it.
+- **Shapes** (a spot, a badge, a roundel, a star) go on a named panel with `s.mark`: laid flat on it,
+  whole inside its edges, off its folds and clear of the game's panels, moved or shrunk until they
+  are. Read its notes: moved, shrunk, nothing laid. A shape or a stripe meant to cross parts says
+  `across=True`; without it a zoned paint on "body" leaves a part painted by its name.
 - **Keep clear** of the number panel and the engine cover panel on the deck, where the game letters
   the player's number and name, and of the nose fin's plate: they aren't pieces. `show` names
   anything on them or round them.

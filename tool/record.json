@@ -1,7 +1,7 @@
 {
  "flaws": [
   {"skin": "TSC_Snow", "said": "Just a tiny gap in the rear taht I don't think the silver line did it's job", "kind": "short", "where": [-128, -150], "what": "the silver band stops short of the tail's corner", "before": "ee60fac965"},
-  {"skin": "TSC_RescueV2", "said": "This is terrible design.  it doesn't cover the body, and also it's ontop of the black paint from the bottom piece.  Also, the approach to the RESCUE, is just terrible, the text is big for the curvature of the surface and the first R is clipped", "kind": "over", "where": [75, 35], "what": "ahead of the sidepods the check band is painted over the bottom piece's black", "before": "cb5c39c944"},
+  {"skin": "TSC_RescueV2", "said": "This is terrible design.  it doesn't cover the body, and also it's ontop of the black paint from the bottom piece.  Also, the approach to the RESCUE, is just terrible, the text is big for the curvature of the surface and the first R is clipped", "kind": "over", "where": [75, 35], "what": "ahead of the sidepods the check band is painted over the bottom piece's black", "why": "the tool made it, and the tool was fixed"},
   {"skin": "TSC_RescueV2", "said": "This is terrible design.  it doesn't cover the body, and also it's ontop of the black paint from the bottom piece.  Also, the approach to the RESCUE, is just terrible, the text is big for the curvature of the surface and the first R is clipped", "kind": "fold", "where": [95, 25], "what": "RESCUE too big for the front flank's curve, its first R clipped", "before": "cb5c39c944"},
   {"skin": "TSC_RescueV2", "said": "The bolts are just terrible.  And also they are so uniformed.  Also, why are you considering the number and initials bounday as a piece.  Also they should just blend in with the orange as it's part of it.  They all just look like they are all over the place", "kind": "clear", "where": [-55, -125], "what": "bolts round the game's number and name panels, as if they were pieces", "before": "6412e7719e"},
   {"skin": "TSC_Ladybird", "said": "I like B but I cant see the vehicle so Im commenting on the one you provided.  The spot in b also transfers to the next object in the car, making it look weird and not properly applying pain.", "kind": "spill", "where": null, "what": "the spots run off their panel onto the next piece", "before": "6d7e12751d", "paint": "TSC_Ladybird_Silks"},
@@ -225,6 +225,8 @@
   "TSC_WindTunnel: But obviously not that one exactly",
   "TSC_WindTunnel: sure lets try",
   "TSC_WindTunnel: 3 concepts",
-  "TSC_WindTunnel: I don't care about a car anymore, because I actually care th"
+  "TSC_WindTunnel: I don't care about a car anymore, because I actually care th",
+  "TSC_Kintsugi: maybe send an agent to design a car concept and see if it is timid or not?",
+  "TSC_Kintsugi: delete it, it's a concept I would never drive"
  ]
 }

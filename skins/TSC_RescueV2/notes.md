@@ -102,3 +102,6 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
 - Picked (user, set 1, 2026-10-05): C, the silver hazard stripes on the rear quarter panels; the others
   went. Repainted under the car's name; close looks: whole on both panels, the stripes seen from the
   driving camera with the tail's chevrons.
+- Tool (Claude, 2026-10-05, Claude Fable 5.1): the paint box keeps a part painted by its name out of a
+  later stripe or band on the whole body, so the bottom piece's second coat of black under the check
+  band left the design. No picture of the car changed; 2,926 colour values along that edge did.

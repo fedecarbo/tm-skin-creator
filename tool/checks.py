@@ -16,14 +16,15 @@ measure.READINGS), the parts it was aimed at, a later paint, or the surface itse
 A graphic is a mark no longer than COMPACT cm, not a line, whose own shape ends it (`_marks`: from
 its middle the zone's written factors run out in every direction, or all but one line's, a shape
 drawn through the car from above or from the side): a spot, a badge, a word, a picture. A band, an
-area or a pattern doesn't end by itself, and the measures follow it instead.
+area or a pattern doesn't end by itself, and the measures follow it instead. A check names an
+accident, never a design: a paint the design says crosses the car's parts (`across=True`) keeps
+its cuts and spills unsaid.
   cut      a graphic's outline ended for CUT cm or more by a fold, the edge of its parts, an
-           opening or a panel's edge.
+           opening or a panel's edge; a mark laid on a panel (tool/marks.py) with less than WHOLE
+           of its shape on the car.
   spill    a graphic lying on two of the model's pieces (tool/pieces.py), SPILL cm² or more on the
            second.
-  over     a graphic lying across the edge of another, or a later paint covering part of one; and
-           paint on a group of parts ("body") covering OVER cm² or more of a part an earlier call
-           painted whole by its name.
+  over     a graphic lying across the edge of another, or a later paint covering part of one.
   clear    a second paint on the panels the game letters or the nose fin's plate (PANELS), or a
            graphic with NEAR of itself within CLEAR cm of one.
   edge     a zone's edge feathered wider than SOFT cm (wider than BLEND it's a blend, which is
@@ -49,7 +50,7 @@ VOXEL = 2.5     # cm: marks nearer than this are one
 CUT = 3.0       # cm of a graphic's outline
 SPILL = 5.0     # cm² of a graphic on a second piece
 ACROSS = 0.03   # the share of a graphic over another's paint from which it lies across its edge
-OVER = 20.0     # cm² of a part painted by name under a later paint on a group
+WHOLE = 0.95    # the share of a laid mark's shape that must be on the car
 CLEAR = 3.0     # cm round the panels
 NEAR = 0.10     # the share of a graphic within CLEAR cm of a panel from which it's said
 SPECK = 0.3     # cm² of a graphic by a panel, or three times that of a second paint on one: less is a texel's rounding
@@ -334,6 +335,8 @@ def _zoned(car, call, found, seen):
         if not len(S):
             continue
         car.graphics.append((call["op"], S))
+        if call["across"]:  # the design's own crossing: nothing to say
+            continue
         mine = at == k
         # cut: by a fold, by the edge of its parts, by the surface's end
         hard = {}
@@ -422,7 +425,7 @@ def _say_across(car, name, step, across, found):
 
 def _sits_on(car, later, op):
     """A later call's paint lies wholly on a call's: a mark painted on a badge, not across its edge."""
-    for call in car.skin.zoned + car.skin.pictures:
+    for call in car.skin.zoned + car.skin.pictures + car.skin.marks:
         if call["op"] == later and len(call["under"]):
             return float((call["under"] == op).mean()) >= 1 - ACROSS
     return False
@@ -458,24 +461,45 @@ def _pictures(car, found, seen):
         _say_across(car, name, step, across, found)
 
 
-def _named(car, found):
-    """Paint on a group of parts, with a zone, over a part an earlier call painted whole by its name."""
+def _area(c, texels):
+    """The area of texels on the car, in cm²: each one's from the texels either side of it, along its
+    row and its column."""
+    pos, cover = c.bake["position"].reshape(-1, 3), c.cov.reshape(-1)
+    area = np.zeros(len(texels))
+    ok = np.ones(len(texels), bool)
+    steps = []
+    for d in (1, c.w):
+        a, b = np.clip(texels - d, 0, len(cover) - 1), np.clip(texels + d, 0, len(cover) - 1)
+        ok &= cover[a] & cover[b]
+        steps.append((pos[b].astype(np.float64) - pos[a]) / 2)
+    area[ok] = np.linalg.norm(np.cross(steps[0][ok], steps[1][ok]), axis=1)
+    ok &= area <= 4 * np.median(area[ok]) if ok.any() else ok  # not a step across a seam to another flat piece
+    return float(area[ok].sum() * len(texels) / max(int(ok.sum()), 1))
+
+
+def _laid(car, found, seen):
+    """Each mark laid on a panel: whole, on one piece, clear of another graphic's edge. Its area is
+    measured on the car's own surface, texel by texel."""
     c = car.c
-    groups = {call["op"] for call in car.skin.zoned if call["group"]} - car.blends
-    t = np.flatnonzero((c.named >= 0) & (c.owner > c.named) & np.isin(c.owner, list(groups)) & (car.part >= 0))
-    if not len(t):
-        return
-    key = (c.owner[t].astype(np.int64) << 32) | (c.named[t].astype(np.int64) << 16) | car.part[t]
-    for k in np.unique(key):
-        sel = t[key == k]
-        area = float(car.cm2[sel].sum())
-        if area < OVER:
+    for mark in car.skin.marks:
+        name, step = car.op(mark["op"]), mark["step"]
+        still = c.owner[mark["idx"]] == mark["op"]
+        S, under = mark["idx"][still], mark["under"][still]
+        if len(mark["idx"]) < 20:
             continue
-        later, first, part = int(k >> 32), int((k >> 16) & 0xffff), int(k & 0xffff)
-        where, z, side = car.place(sel)
-        found.append({"check": "over", "kind": "over", "z": z, "side": side, "step": car.skin.ops[later]["step"],
-                      "text": f"{car.op(later)} covers {area:.0f} cm² of the {car.names[part]}, which {car.op(first)} "
-                              f"painted by name, {where}"})
+        on = _area(c, mark["idx"])
+        if on < WHOLE * mark["whole"]:
+            where, z, side = car.place(mark["idx"])
+            found.append({"check": "cut", "kind": "cut", "z": z, "side": side, "step": step,
+                          "text": f"{name}: {on / mark['whole']:.0%} of its shape is on the car ({on:.0f} of {mark['whole']:.0f} cm²), {where}"})
+        if len(S) < 20:
+            continue
+        seen.append((name, S))
+        car.graphics.append((mark["op"], S))
+        _spill(car, name, step, S, found)
+        across = {}
+        _across(car, mark["op"], S, under, across)
+        _say_across(car, name, step, across, found)
 
 
 def _panels(car):
@@ -559,7 +583,7 @@ def run(skin, measures=None):
     measures = measure.measure(skin) if measures is None else measures
     if "Skin" in skin.canvases and skin.canvases["Skin"].owner is not None:
         car = _Car(skin)
-        car.zoned_ops = {call["op"] for call in skin.zoned} | {p["op"] for p in skin.pictures}
+        car.zoned_ops = {call["op"] for call in skin.zoned} | {p["op"] for p in skin.pictures + skin.marks}
         shapes.PAINTING = "Skin"
         try:  # the measures' own order: every zoned paint but a line drawn on the skin (tool/skincheck.py)
             graphics = [_zoned(car, call, found, seen) for call in skin.zoned if getattr(call["zone"], "curve", None) is None]
@@ -568,7 +592,7 @@ def run(skin, measures=None):
         # a graphic's cuts and spills say what its run along the car would
         found += measure.findings([m for m, g in zip(measures, graphics) if not g])
         _pictures(car, found, seen)
-        _named(car, found)
+        _laid(car, found, seen)
         _clear(car, found)
         _scattered(car, found)
         seen = _seen(car, seen)

@@ -1,7 +1,7 @@
 """The paint box: a skin is a short script of plain paint calls on named parts of the car.
 
     from tool.paintbox import Skin
-    from tool import shapes
+    from tool import marks, shapes
 
     def design(s):
         s.paint("body", "gloss white")                       # every body part
@@ -9,6 +9,7 @@
         s.paint(["nose tip", "wing pylon"], "matte black")
         s.paint("inner", "dark grey satin")                   # the whole inner car
         s.paint("rim", "gunmetal")
+        s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)  # a shape laid on a panel, whole
         s.text("27", "left side", colour="black", font="russo", height=28)
         s.glow("sidepod frame", "electric blue")              # always on (inner car only)
         s.glow("brake caliper")                               # glow in the colour painted on it
@@ -25,7 +26,9 @@ Words: `what` is a phrase the tool sorts into a colour, a finish and (optionally
 "dark red carbon, glossy", "brushed steel", "olive camo" (see tool/colours.py, tool/finishes.py,
 tool/shapes.REGIONS). Every painted area is a colour plus a finish; a finish may bring its own
 colour (carbon black, chrome silver), which a stated colour overrides. Later calls paint over
-earlier ones. Edges between parts and zones are anti-aliased; patterns are drawn in 3D.
+earlier ones, but for a part of the body painted by its name: a later paint with a zone on a group
+("body") leaves it as it is, unless that paint says `across=True`. Edges between parts and zones are
+anti-aliased; patterns are drawn in 3D.
 
 `where`: a part, assembly or group name from car/parts.json, a list of them, or one of the words
 "body" (the paint set without the wheel covers), "wheels" (the covers, rims, hubs and wheel
@@ -86,6 +89,8 @@ LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display"
 REAR_BANDS = (0.4747, 0.4903, 0.5030, 0.5157)
 # a part the paint also lands on (shared texels) is named when it takes this share of its paint
 SHARED_NOTE = 0.05
+# a part painted by name that a zoned paint on a group leaves is named when the zone reaches this many of its texels
+KEPT = 100
 
 # Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
 # seen from, the largest sensible width (cm). Measured on the model (2026-09-24).
@@ -133,7 +138,6 @@ class Canvas:
         self.touched = np.zeros(n, bool)
         self.clay = None  # texels still in the Studio's clay (Skin.clay), None when it wasn't used
         self.owner = None  # the call that covered each texel last (Skin.ops; -1 the stock), while Skin.measure
-        self.named = None  # the last call that painted each texel's part whole, by its name (-1 none), while Skin.measure
         self.op = -1  # the call painting now
         self.glow_rgb = self.glow_code = None
         self.glow_touched = False
@@ -245,6 +249,11 @@ def _where(where):
     return where if isinstance(where, str) else ", ".join(where)
 
 
+def _blends(zone):
+    """A zone that blends (a fade, a radial): it has no edge to keep off a part."""
+    return any(repr(f).lstrip("~(").split("(")[0] in ("fade", "radial") for f in (zone.parts() if hasattr(zone, "parts") else [zone]))
+
+
 class Skin:
     def __init__(self, name, seed=0, size=None):
         if not re.fullmatch(r"[A-Za-z0-9_\-]+", name):
@@ -270,9 +279,12 @@ class Skin:
         self._final = None  # the finished textures, built once when the design is done (end_steps)
         self.measure = False  # skin.show sets it: keep what tool/measure.py reads (the calls, who covered what)
         self.ops = []  # every call that laid paint: {what, step}
-        self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, group (where names a group
-        # of parts), idx (the texels it covers), under (the call each of them showed before)}
+        self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, across (it crosses
+        # edges on purpose), idx (the texels it covers), under (the call each of them showed before)}
         self.pictures = []  # each picture laid on the body, while measuring: {op, step, what, idx, under, pixels (per cm)}
+        self.by_name = {}  # the body's parts painted whole by their name -> the call that did: a later zoned
+        # paint on a group leaves them (paint's `across`)
+        self.marks = []  # each mark laid on a panel, while measuring (tool/marks.py): {op, step, what, idx, under, whole (cm²)}
         self.scattered = []  # each scatter on the body, while measuring (tool/scatter.py)
         self.findings = []  # what's wrong on the car, as the paint itself knows it (tool/checks.py adds the rest)
         self._op, self._op_open = -1, False
@@ -386,7 +398,6 @@ class Skin:
             self.canvases[tset] = Canvas(tset, w, h)
             if self.measure and tset == "Skin":
                 self.canvases[tset].owner = np.full(w * h, -1, np.int16)
-                self.canvases[tset].named = np.full(w * h, -1, np.int16)
         c = self.canvases[tset]
         c.op = self._op
         return c
@@ -417,19 +428,23 @@ class Skin:
                     for i in self.parts.select(name):
                         out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
                 continue
-            bits = [b.strip() for b in key.split("|")]
-            bits[0] = LIGHT_WORDS.get(bits[0], bits[0])
-            side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
-            end = next((b for b in bits[1:] if b in ("front", "rear")), None)
-            ids = self.parts.select(bits[0], side=side, end=end, exact="part" in bits[1:])
-            # an assembly or group tints its glass only when the glass is named: painting the tail
-            # must not darken the rear lights' lenses (the glass joined the assemblies, 2026-09-26)
-            ids = [i for i in ids if self.parts.instances[i]["mesh"] != "Glass" or self.parts.instances[i]["name"] == bits[0]]
+            name, ids = self._select(key)
             for i in ids:
                 out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
-            self._warn_shared(bits[0], ids)
-            self._warn_reach(bits[0], ids)
+            self._warn_shared(name, ids)
+            self._warn_reach(name, ids)
         return {tset: sorted(ids) for tset, ids in out.items()}
+
+    def _select(self, key):
+        """A part, assembly or light by its phrase ("brake caliper|left|front"): (its name, the instance ids)."""
+        bits = [b.strip() for b in key.split("|")]
+        bits[0] = LIGHT_WORDS.get(bits[0], bits[0])
+        side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
+        end = next((b for b in bits[1:] if b in ("front", "rear")), None)
+        ids = self.parts.select(bits[0], side=side, end=end, exact="part" in bits[1:])
+        # an assembly or group tints its glass only when the glass is named: painting the tail
+        # must not darken the rear lights' lenses (the glass joined the assemblies, 2026-09-26)
+        return bits[0], [i for i in ids if self.parts.instances[i]["mesh"] != "Glass" or self.parts.instances[i]["name"] == bits[0]]
 
     def _warn_shared(self, name, ids):
         """Note the parts the paint also lands on, because they use the same texels: a mirror
@@ -530,11 +545,15 @@ class Skin:
 
     @_op(lambda where, what=None, colour=None, finish=None, *a, **k:
          f"{' '.join(x for x in (what or finish, colour) if isinstance(x, str)) or 'paint'} on {_where(where)}")
-    def paint(self, where, what=None, colour=None, finish=None, zone=None, blend=1.0, **params):
+    def paint(self, where, what=None, colour=None, finish=None, zone=None, blend=1.0, across=False, **params):
         """Paint parts with a colour and a finish. `what` is a phrase; `colour` and `finish`
         override it. `zone` limits it (tool/shapes.py); leftover words that name a region
         ("nose", "sides") do too. `blend` < 1 paints it thinly. params reach the pattern:
-        scale, seed, palette, line, amount, direction, texture."""
+        scale, seed, palette, line, amount, direction, texture.
+        A zoned paint on a group ("body") leaves the body's parts an earlier call painted whole by
+        their name, and says so. across=True: its shape crosses the car's parts on purpose, so it
+        paints those too and the checks leave its cuts alone. A line drawn on the skin and a fade
+        cross everything as they are."""
         targets = self._ids(where)
         default_finish = "rubber" if list(targets) == ["Wheels"] else "gloss"
         params = {"seed": self.seed, **params}
@@ -555,44 +574,85 @@ class Skin:
                                "order": len(self.palette) - 1,   # colours laid after it may cover it
                                "where": where if isinstance(where, str) else list(where),
                                **getattr(curve, "extra", {})})
+        # the parts this call names itself, apart from the groups' words
+        keys = [n.strip().lower() for n in ([where] if isinstance(where, str) else where)]
+        own = {i for key in keys if key not in GROUP_WORDS for i in self._select(key)[1]}
+        runs_on = across or zone is None or getattr(zone, "curve", None) is not None or _blends(zone)
         for tset, ids in targets.items():
             c = self.canvas(tset)
+            if tset == "Skin" and not runs_on:
+                kept = [i for i in ids if i in self.by_name and i not in own]
+                if kept:
+                    ids = [i for i in ids if i not in self.by_name or i in own]
+                    reached = [i for i in kept if (self._mask(tset, [i], zone, c)[1] > 0.5).sum() >= KEPT]
+                    who = list(dict.fromkeys(self.parts.instances[i]["name"] for i in reached))
+                    if who:
+                        self.notes.append(f"{self.ops[self._op]['what']}: leaves the {', '.join(who)} as painted by name; "
+                                          f"across=True paints over {'it' if len(who) == 1 else 'them'}")
             idx, m = self._mask(tset, ids, zone, c)
             if not len(idx):
                 continue
             m = m * blend
-            if self.measure and tset == "Skin":
+            if tset == "Skin" and zone is None and blend > 0.5:
+                for i in ids:  # a part by its name is kept from later zoned paints on a group; a group's fresh coat isn't
+                    if i in own:
+                        self.by_name[i] = self._op
+                    else:
+                        self.by_name.pop(i, None)
+            if self.measure and tset == "Skin" and zone is not None:
                 on = idx[m > 0.5]
-                group = all(n.strip().lower() in GROUP_WORDS for n in ([where] if isinstance(where, str) else where))
-                if zone is not None:
-                    self.zoned.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
-                                       "where": where, "zone": zone, "ids": ids, "group": group, "idx": on,
-                                       "under": c.owner[on].copy()})
-                elif not group:
-                    c.named[on] = self._op
-            extra = {}
-            if fin.look:
-                # flat patterns on the body are drawn in the car's own unfolding (tool/uvmap.py),
-                # which has almost no stretch (user, 2026-09-24: projections distorted the dots);
-                # the inner car's unfolding is in many small pieces, so it uses the three planes
-                extra = {"wrap": "uv" if tset == "Skin" else "planes"}
-                if extra["wrap"] == "uv":
-                    extra["uv"] = c.uv_cm[idx]
-            colour_v, rough, metal, varnish, weight = looks.lay(fin, col, c.pos[idx], c.nrm[idx], {**extra, **params})
-            if weight is not None:
-                m = m * weight
-            if tset == "Glass":
-                c.colour[idx] = c.colour[idx] * (1 - m[:, None]) + colour_v * m[:, None]
-                c.touched[idx] = True
-            else:
-                c.blend(idx, m, colour_v, rough, metal, varnish)
-            if fin.glow and tset == "Details":
-                self._glow(c, idx, m, col, fin.glow)
-            elif fin.glow:
-                self.notes.append(f"{fin.name} on {where}: only the inner car can glow; painted it bright instead")
+                self.zoned.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
+                                   "where": where, "zone": zone, "ids": ids, "across": across, "idx": on,
+                                   "under": c.owner[on].copy()})
+            self._lay(c, tset, idx, m, fin, col, params, where)
         if len(self.icon_colours) < 2 and "Skin" in targets:
             self.icon_colours.append(tuple(float(v) for v in col))
         return self
+
+    def _lay(self, c, tset, idx, m, fin, col, params, where):
+        """A finish in a colour onto a canvas's texels idx, by weight m."""
+        extra = {}
+        if fin.look:
+            # flat patterns on the body are drawn in the car's own unfolding (tool/uvmap.py),
+            # which has almost no stretch (user, 2026-09-24: projections distorted the dots);
+            # the inner car's unfolding is in many small pieces, so it uses the three planes
+            extra = {"wrap": "uv" if tset == "Skin" else "planes"}
+            if extra["wrap"] == "uv":
+                extra["uv"] = c.uv_cm[idx]
+        colour_v, rough, metal, varnish, weight = looks.lay(fin, col, c.pos[idx], c.nrm[idx], {**extra, **params})
+        if weight is not None:
+            m = m * weight
+        if tset == "Glass":
+            c.colour[idx] = c.colour[idx] * (1 - m[:, None]) + colour_v * m[:, None]
+            c.touched[idx] = True
+        else:
+            c.blend(idx, m, colour_v, rough, metal, varnish)
+        if fin.glow and tset == "Details":
+            self._glow(c, idx, m, col, fin.glow)
+        elif fin.glow:
+            self.notes.append(f"{fin.name} on {where}: only the inner car can glow; painted it bright instead")
+
+    @_op(lambda where, what=None, shape=None, *a, **k:
+         f"{' '.join(x for x in (what or k.get('finish'), k.get('colour')) if isinstance(x, str)) or 'paint'} {shape!r} on {_where(where)}")
+    def mark(self, where, what=None, shape=None, size=None, at=None, colour=None, finish=None, up=None, turn=0.0,
+             margin=1.0, reach=None, fold=None, within=None, mirror=True, across=False, soft=shapes.SOFT, **params):
+        """Lay a shape (tool/marks.py: disc, ring, blob, box, polygon, star) on a named panel of the
+        body, flat on its surface like a cut sticker and whole inside its edges: moved, then shrunk,
+        until it is, and every move said in a note. where: the panel (a part, or several whose
+        shared edges it may then lie over). size: its width in cm (None: the biggest that fits).
+        at: (x, y, z) in cm, about where its middle goes, None for a coordinate to look along
+        ((30, None, 60): seen from above); at=None: the panel's roomiest spot. up: where its top
+        points on the car (the car's up on a side, forward on the top), then `turn` degrees
+        anticlockwise. margin: cm kept clear of the panel's edges. reach: how far it may move, in cm
+        (half its width). fold: degrees; a crease or a roll sharper ends its room (marks.FOLD).
+        within: a zone the mark must also stay in. mirror: its mirror image on the car's other side
+        too, when it's off the middle and the panel is there. across=True: laid at `at` as it is,
+        over every edge in its footprint, which the checks then leave alone.
+        Returns where it landed (marks.Laid: centre, size, twin, spot() for text or a picture on
+        it); two marks with at=None on a panel share their middle."""
+        from tool import marks
+        return marks.lay(self, where, what, shape, size, at, colour, finish, up, turn, margin, reach, fold, within,
+                         mirror, across, soft, params)
 
     def keep(self, tset="Skin"):
         """A copy of a texture set's paint so far: the layer a peel reveals (tool/peel.py)."""
