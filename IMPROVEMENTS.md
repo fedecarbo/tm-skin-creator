@@ -9,9 +9,9 @@ goes into the code.
 The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
 deleted here; `PLAN.md` keeps the why.
 
-- **3. Fresh eyes on a finished car**: a second Claude with only the user's words, the pictures and
-  step 1's measures names what's cut, sunk, forgotten or off-brief, and in which picture; only
-  where the close looks already run, never on takes; about a minute.
+- **3. Fresh eyes on a finished car**: built 2026-10-05 (`tool/eyes.py`, the `fresh-eyes` agent),
+  run on Rescue v2 (its line is in the Lab); waiting for the user's OK, and their word on the
+  time (2 to 4½ minutes, not one: `PLAN.md`).
 - **4. Rules that are checks**: a hook refuses a shell command naming the game's skin folder (the
   install command excepted); a hook won't end a session with unpushed work; `skin install`
   publishes the page online itself.

@@ -1,4 +1,7 @@
-# TSC_RescueV2
+# Look_EyesTest
+
+
+Not a user's skin: the fresh eyes' test car (tool/eyes.py), TSC_RescueV2 with four faults planted (its design's docstring, never given to the eyes).
 
 The user's words (2026-10-05, Claude Opus 5.5): "but before that. based on what you know can you design a
 skin or use the Rescue as a v2, to add more details", then "remember the levels are just guides".
@@ -30,9 +33,3 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   reason to be there, unless its part of the concept." The two pinstripes (round the top, along the check
   band's top) had no reason in the rescue idea: removed. The band and the black lower edge keep the
   side's curve. Repainted; nothing else moved.
-- Change 4 (Claude, 2026-10-05, Claude Opus 5.5): the first fresh eyes (tool/eyes.py) found three
-  flaws the close looks had missed, fixed: the wheels' rim light glowed the stock cyan (now orange);
-  the body's orange ran inside the sidepod inlets (now dark grey, like the inner car); the check band
-  began on a cut 4 cm sliver of a check (it now opens on a whole one at the front wheel opening). Left:
-  an orange edge on the front wing's tips, in neither its paint nor its lights. The eyes looked again
-  at the changed pictures: fixed. The line is in the Lab.

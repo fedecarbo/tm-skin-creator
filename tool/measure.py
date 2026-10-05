@@ -14,7 +14,10 @@ For a paint that runs along the car (RUN times longer than it's high: a band, a 
     short names what ends it: one of the zone's parts (shapes.Zone.parts) leaving the rest out, or
     a later call covering it (Canvas.owner). Only a reading of the car (READINGS: the map's areas,
     its open air, its lines) makes a shortfall: a length, a height, a box or a pattern ends a paint
-    where the design wrote it;
+    where the design wrote it. Past an opening the body at the paint's height can resume (behind
+    the rear wheel, the farthest back of the side): the first stretch of it within FAR cm, bare, is
+    said, and to the fresh eyes (tool/eyes.py) even where the design ends the paint: a picture shows
+    the bare stretch but not that the paint was meant to reach it;
   - the gaps: stretches of GAP cm or more inside the run where the body is there at the paint's
     height and less than half of it shows the paint, with what left them out or covered them.
 A line both sides share is said once; the two sides' own lines show where they differ.
@@ -42,6 +45,9 @@ OUTER = 0.1  # the open air a spot sees to count as the outside: an opening's in
 # flanks behind the wheels (the wheel covers shade them) 0.2 to 0.35, the sidepods nearly all of it
 THIN = 0.2  # cm: the cells the joins are worked out on
 EDGE = 1.5  # cm past a paint's end: the bare body whose zone parts say what ended it
+FAR = 60.0  # cm past an end that the body is looked for past an opening (the rear wheel's is about 30)
+OPENING = 3.0  # cm along the car with no body at a paint's height: an opening it can't follow across
+ACROSS = 3.0  # cm along the car: body past an opening at a paint's height, long enough to count
 RUN = 3  # a paint runs along the car when it's at least this many times longer than it's high
 FACING = 0.25  # the bare body followed past an end faces within 75 degrees of the paint's end: a band
 # along the side runs on round the rounded corner to where the surface faces the back
@@ -173,10 +179,33 @@ def _side(skin, call, body, shown, showing, aimed, sign):
                 gap, _ = cKDTree(p[tip]).query(body.pos[k[joined]], distance_upper_bound=EDGE * 2, workers=-1)
                 edge = joined[gap <= EDGE] if (gap <= EDGE).any() else joined
                 worst = {"short": float(along.max()), "body": zend + d * float(along.max()), "height": [a, b],
-                         "edge": k[edge]}
+                         "edge": k[edge], "across": worst.get("across")}
+            # the body at the paint's height resuming past an opening (the rear wheel's), bare: past
+            # the end, OPENING cm or more with none of it, then ACROSS cm or more of it
+            far = body.near(sign, zend - FAR, zend + FAR, a, b)
+            far = far[~showing[body.texels[far]]]
+            far = far[c.nrm[body.texels[far]] @ facing >= FACING]
+            on = (body.pos[far, 2] - zend) * d
+            far, on = far[on > 0], on[on > 0]
+            has = np.bincount(np.floor(on / BIN).astype(int)) >= 4 if len(on) else np.zeros(0, bool)
+            runs = np.flatnonzero(np.diff(np.concatenate([[0], has.astype(int), [0]])))  # starts, ends of runs
+            for r0, r1 in zip(runs[::2], runs[1::2]):
+                if r0 * BIN < OPENING or r0 > 0 and has[:r0].any() and (r0 - np.flatnonzero(has[:r0])[-1] - 1) * BIN < OPENING:
+                    continue  # no opening before it: joined to the end, or a speck
+                long = (r1 - r0) * BIN
+                if long >= ACROSS and long > (worst.get("across") or {}).get("long", 0):
+                    inside = (on >= r0 * BIN) & (on < r1 * BIN)
+                    worst["across"] = {"from": zend + d * r0 * BIN, "to": zend + d * r1 * BIN, "long": long,
+                                       "height": [a, b], "texels": far[inside]}
+                break
         if worst["short"] >= SHORT:
             worst["why"], worst["as_written"] = _why(skin, call, body.texels[worst["edge"]], aimed)
         worst.pop("edge", None)
+        if worst.get("across"):
+            x = worst["across"]
+            x["why"], x["as_written"] = _why(skin, call, body.texels[x.pop("texels")], aimed)
+        else:
+            worst.pop("across", None)
         out["ends"][end] = worst
     # the gaps
     every = np.arange(b0, b1 + 1)
@@ -231,9 +260,11 @@ def measure(skin):
     return out
 
 
-def words(measures):
+def words(measures, written=False):
     """The measures as lines for Claude, a paint at a time: its run per side, then what stops short.
-    A line both sides share is said once."""
+    A line both sides share is said once. written: also the body bare past an opening beyond an end
+    the design wrote (a length, a box), for the fresh eyes to set beside the step's words
+    (tool/eyes.py): the designer may have meant it (TSC_Snow's band ends at the sidepods)."""
     lines = []
     for m in measures:
         sides = {k: v for k, v in m["sides"].items() if v}
@@ -243,11 +274,14 @@ def words(measures):
         for side, s in sides.items():
             said[side] = [f"from {_place(s['front'])} to {_place(s['rear'])}"]
             for end, e in s["ends"].items():
-                if e["short"] < SHORT:
+                x = e.get("across")
+                if x and (written or not x["as_written"]):
+                    up = f"{x['height'][0]:.0f} to {x['height'][1]:.0f} cm up"
+                    said[side].append(f"{end} end STOPS SHORT past an opening: at {up} the body goes on, BARE, from "
+                                      f"{_place(x['from'])} to {_place(x['to'])}; {x['why']}")
+                if e["short"] < SHORT or e["as_written"]:
                     continue
                 at = f"{e['height'][0]:.0f} to {e['height'][1]:.0f} cm up"
-                if e["as_written"]:
-                    continue
                 much = f"{e['short']:.0f} cm" if e["short"] < REACH - BIN else f"{REACH:.0f} cm or more"
                 said[side].append(f"{end} end STOPS {much} SHORT: at {at} the bare body goes on to "
                                   f"{_place(e['body'])}; {e['why']}")

@@ -179,10 +179,22 @@ def sheet(name, tiles, out=None, size=(960, 720), thumb=None):
 KINDS = {"views": SHOTS, "close": CLOSE, "cams": CAMS, "body": BODY, "stretches": STRETCHES}
 
 
+def changed(ta, tb):
+    """Where tile tb differs from ta, as a box, the change outlined in both; None if it doesn't.
+    Noise of a few levels, and specks, don't count."""
+    from PIL import ImageChops, ImageFilter
+    diff = ImageChops.difference(ta, tb).convert("L").point(lambda v: 255 if v > 12 else 0)
+    where = diff.filter(ImageFilter.MinFilter(5)).getbbox()  # specks go
+    if where is not None:
+        x0, y0, x1, y1 = where
+        for t in (ta, tb):
+            ImageDraw.Draw(t).rectangle((x0 - 12, y0 - 12, x1 + 12, y1 + 12), outline=(232, 255, 71), width=4)
+    return where
+
+
 def compare(name, kind="close", open_it=True):
     """Each tile of a sheet that changed since the sheet before it: before beside after, the change
-    outlined in both. Noise of a few levels, and specks, don't count."""
-    from PIL import ImageChops, ImageFilter
+    outlined in both (changed)."""
     new, old = paths.BUILD / f"{name}_{kind}.png", paths.BUILD / f"{name}_{kind}_before.png"
     if not old.exists():
         raise SystemExit(f"no earlier {kind} sheet of {name}: take one, change the design, take another")
@@ -195,14 +207,8 @@ def compare(name, kind="close", open_it=True):
     for k, shot in enumerate(shots):
         box = ((k % 3) * w, (k // 3) * h, (k % 3 + 1) * w, (k // 3 + 1) * h)
         ta, tb = a.crop(box), b.crop(box)
-        changed = ImageChops.difference(ta, tb).convert("L").point(lambda v: 255 if v > 12 else 0)
-        where = changed.filter(ImageFilter.MinFilter(5)).getbbox()  # specks go
-        if where is None:
-            continue
-        x0, y0, x1, y1 = where
-        for t in (ta, tb):
-            ImageDraw.Draw(t).rectangle((x0 - 12, y0 - 12, x1 + 12, y1 + 12), outline=(232, 255, 71), width=4)
-        rows.append((shot[0], ta, tb))
+        if changed(ta, tb):
+            rows.append((shot[0], ta, tb))
     if not rows:
         print(f"{name}: no {kind} tile changed")
         return None

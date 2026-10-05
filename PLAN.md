@@ -195,11 +195,23 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
 - **You'll see:** one line in the Lab's timeline before a finished car is shown: "Fresh eyes
   checked it: two things fixed (the band's end at the rear; a clay strip under the left sidepod)."
   A clean car gets "Fresh eyes: nothing to fix."
-- **Costs:** about a minute per finished car; nothing per take.
+- **Costs:** about a minute per finished car; nothing per take. Measured (2026-10-05): the
+  pictures 10 s; the eyes' first look 1 min 40 s to 4 min 36 s over six runs (45k to 85k tokens);
+  a second look at the changed pictures 44 s.
 - **Model:** a big one with vision (Fable 5.1 or Opus 5.5): judging a car from pictures is the hard
-  thinking.
+  thinking. Opus 5.5, as the studio's critic trial chose (2026-09-28).
 - **Checked by:** on a car with a known flaw the eyes name it with the right picture; on a clean
   car, nothing; the time stays near a minute.
+- **Built (2026-10-05):** `tool/eyes.py` and the `fresh-eyes` agent. A test car, Rescue v2 with four
+  faults planted (a leftover pinstripe, cyan wheel rings, a snowflake cut at a fold, the check band
+  stopping at the rear wheel instead of the tail), in four rounds: the rings and the snowflake every
+  time, the pinstripe three times, the band only in the last. The measure couldn't see the body
+  resume behind the rear wheel, so the band's end read as the body's: it now says "STOPS SHORT
+  past an opening" (to the eyes even where the design ends the paint), and the eyes set each
+  paint's run beside its step's words. Rescue v2 as it was, the "clean" car, wasn't: three real
+  flaws the close looks had missed (the wheels' stock cyan light, orange inside the inlets, the
+  band opening on a cut sliver), fixed and looked at again. Each round also names one or two
+  things marked unsure that aren't there: the designer checks each in its picture.
 
 ### Step 4. Rules that are checks, not requests
 

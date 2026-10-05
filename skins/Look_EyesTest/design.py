@@ -1,7 +1,11 @@
-"""Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
-Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
-curve, rising with the tail; silver chevrons on the tail's deck; a snowflake badge on the bonnet; RESCUE along the front flanks, a snowflake on the rear flanks; studded snow
-tyres; amber rear lights."""
+"""The fresh eyes' test car (tool/eyes.py): TSC_RescueV2 as it stood on 2026-10-05 with four
+faults planted. The answer key, never given to the eyes:
+1. the check band stops 30 cm short of the tail on both sides (a length ends it: the measures say
+   nothing, the band's own line says "from the tail");
+2. a black pinstripe round the top: a leftover from an earlier version, against the user's words
+   (lines need a reason in the idea);
+3. the rear flanks' snowflakes raised so they run over the top of the flank, cut where it turns;
+4. the wheel cover rings in a cyan nothing else on the car uses."""
 import numpy as np
 
 from tool import levels, shapes
@@ -98,12 +102,13 @@ def design(s):
 
     s.step("The check band", "Two rows of silver and orange checks along each side between the levels, from the tail "
            "to the front wheel opening.", words=WORDS)
-    band = levels.band("between 3", "between 6") & shapes.behind(CHECK_FROM)  # it opens on a whole check
+    band = levels.band("between 3", "between 6") & shapes.front_of(-125)  # planted 1
     upper = _midway("between 4", "between 5")
     s.paint("body", "gloss", colour=ORANGE, zone=band)
     s.paint("body", "reflective tape", zone=band & (upper & _checks() | ~upper & _checks(lower=True)))
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
+    s.paint("body", "gloss black", zone=levels.top_line("top 1", 0.6))  # planted 2
     s.paint("tail panel", "reflective tape", zone=_chevrons())
 
     s.step("Badges", "A black badge on the bonnet with a silver snowflake; RESCUE along the front flanks, a black "
@@ -113,19 +118,16 @@ def design(s):
     for spot, x in (("left flank", 35), ("right flank", -35)):  # clear of the sidepod's front fold
         s.text("RESCUE", spot, colour="black", font="russo", height=8, italic=0.15, at=(x, 53, 58))
     for seen, x in (("left", 1), ("right", -1)):
-        s.paint("body", "gloss black", zone=_snowflake((-66, 50), stroke=1.6, size=0.9, seen=seen) & shapes.plane((0, 0, 0), (x, 0, 0)))
+        s.paint("body", "gloss black", zone=_snowflake((-66, 61), stroke=1.6, size=0.9, seen=seen) & shapes.plane((0, 0, 0), (x, 0, 0)))
 
-    s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car and the inlets' "
-           "insides dark grey, black frames round the inlets.", words=WORDS)
+    s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car dark grey, black "
+           "frames round the inlets.", words=WORDS)
     s.paint("wheels", "satin black")
-    s.paint("wheel cover ring", "gloss", colour=ORANGE)
+    s.paint("wheel cover ring", "gloss", colour="#00c8ff")  # planted 4
     s.tyre_tread("TR-08")
     s.paint("inner", "dark grey satin")
-    s.paint("sidepod inlet", "dark grey satin")
     s.paint("sidepod frame", "gloss black")
 
-    s.step("Lights", "Orange speed numbers and wheel lights; amber rear lights (red when braking).", words=WORDS,
-           look="rear night")
+    s.step("Lights", "Orange speed numbers; amber rear lights (red when braking).", words=WORDS, look="rear night")
     s.relight("speed numbers", ORANGE)
     s.relight("rear lights", AMBER)
-    s.relight("wheel ring", ORANGE, keep_level=True)
