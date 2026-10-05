@@ -57,13 +57,15 @@ by `PY -m tool.record` (how many of the user's recorded flaws the tool names fir
   up. Idea: a regular switch on `Skin.scatter`.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
   nose sensor, airbox: check them the first time a design paints them), and the fasteners have none
-  (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand).
+  (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand). The body's own bolt heads are four tiny parts with one paint for
+  the whole car, which no zoned paint reaches: gold dots on every shard of TSC_Kintsugi, unasked.
   Renaming touches `tool/naming.py` and the viewer.
 - **Worn paint doesn't read as worn** (2026-10-05): `s.wear` scatters by noise, like a pattern. Idea:
   wear driven by the car's shape (edges, recesses, contact points), layered paint, primer, metal, with
   real scanned materials (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
-- **The comparison picture's labels** (2026-10-05): the number takes 1, 2, 3 on top of A, B, C, and
-  drop a fourth view. Idea: letters, and a second row.
+- **The pictures Claude looks at** (2026-10-05): the comparison picture's number takes 1, 2, 3 on top
+  of A, B, C, and drops a fourth view (idea: letters, and a second row); the close looks give the right
+  side one tile in ten, so a car that isn't the same on both sides goes half unseen (TSC_Kintsugi).
 - **A finer, evenly shaped grain** (2026-10-05, the user, on TSC_CMYK_EndsInK): 2 mm noise specks are
   the smallest that survive the zip budget. Idea: specks per 4x4 block from a few variants, so they
   compress.
