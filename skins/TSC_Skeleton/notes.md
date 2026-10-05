@@ -490,3 +490,17 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   steep side by moving across, not down), so from the side it is one gentle rise and fall. Checked from
   the user's angle, above, the side, the front quarter, high behind, along the nose, beside the second
   trial. Shown in the viewer.
+- The user (a low view of the nose's side, a magenta line sketched under the line, nearer the black line
+  towards the tip): "In the front you could ease a little with the climbing, see the magenta I sketched.
+  If you look from the side (from the shadow), the line could keep following the surface curvature if
+  that makes sense". Measured on the model's smooth normals: along the nose the line (5.6 cm above the
+  black line) sat where the skin is tilted 29 to 31 degrees as far as the cockpit's front, and climbed
+  onto the top towards the tip (35 degrees at z 110, 40 at z 150, 52 at z 190): the nose's side shrinks
+  under a fixed height. The magenta matches the line where the skin keeps 31 degrees (within about 0.3
+  cm at z 170), which comes down to 0.5 cm above the black line round the tip (the two lines would
+  merge). Trial (Look_TopCorner4, on top of the third): from z 60 on, the line's height above the black
+  line follows the 31-degree line (smoothed: 5.6 at z 60, 5.1 at 100, 4.1 at 140, 2.5 at 180), never
+  closer than 2.0 cm, so round the tip it runs 2 cm from the black line and turns over the nose's top at
+  z 205.6 (was 201); eased in over z 55 to 70 (within 0.003 cm of the line at the join). Checked from the
+  user's angle, the side, the tip from above, the front quarter and straight on, high along the nose,
+  beside the third trial. Shown in the viewer.
