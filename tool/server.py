@@ -7,24 +7,33 @@
   /api/lines   the car's lines as the user pins them (tool/lines.py)
   /api/levels  the levels the user draws from the side (tool/levels.py), and painting them on the car
   /api/progress   what the tool is doing, a job at a time (tool/progress.py)
+  /api/health     alive: its pid and the age of the code it runs (tool/doctor.py restarts an old one)
   /sets/<car>/<n>/<letter>.png, /notes/<skin>-<n>.jpg   the pictures those keep
 
 serve() is how the tool opens a page for the user: it serves on PORT unless a server of ours
-already does (it reads the same folders), and opens the page.
+already answers there (/api/health; it reads the same folders), and opens the page. The Lab's
+server is started detached, and restarted after a change to the tool, by `PY -m tool.doctor server`
+(tool/doctor.py), its output in the work folder's server.log.
 """
 
 import http.server
 import json
+import os
 import re
 import subprocess
 import sys
 import threading
+import time
 import urllib.parse
+import urllib.request
 import webbrowser
 
 from tool import levels, lines, notes, paths, progress, sets, view
 
 PORT = 8765
+STARTED = time.time()
+# the tool's code as this server loaded it: tool/doctor.py restarts a server older than the code on disk
+CODE = max((p.stat().st_mtime for p in (paths.REPO / "tool").glob("*.py")), default=0.0)
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -93,12 +102,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if url.path not in ("/api/notes", "/api/sets", "/api/lines", "/api/levels", "/api/progress"):
+        if url.path not in ("/api/notes", "/api/sets", "/api/lines", "/api/levels", "/api/progress", "/api/health"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
         skin = urllib.parse.parse_qs(url.query).get("skin", [""])[0]
         try:
+            if url.path == "/api/health":  # alive, and how old its code is (tool/doctor.py)
+                return self._json(200, {"ok": True, "pid": os.getpid(), "started": STARTED, "code": CODE})
             if url.path == "/api/lines":  # the car's lines as pinned in the Lab's lines room (tool/lines.py)
                 return self._json(200, lines.load())
             if url.path == "/api/levels":  # the levels as drawn in the Lab's levels room (tool/levels.py)
@@ -148,8 +159,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         except OSError as e:  # the notes' lock or file busy past its tries (TimeoutError is one)
             self._json(503, {"error": str(e)})
 
-    def log_message(self, *args):
-        pass
+    def log_request(self, code="-", size="-"):
+        if str(code).isdigit() and int(code) >= 400:  # only what failed goes in the server's log
+            self.log_message('"%s" %s', self.requestline, code)
+
+    def log_message(self, fmt, *args):
+        sys.stderr.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {fmt % args}\n")
 
 
 _painter = None  # the levels' paint, while it runs
@@ -168,23 +183,43 @@ def _paint_levels():
     return True
 
 
+class Server(http.server.ThreadingHTTPServer):
+    # Windows lets a second server bind a port in use when the address is reused, so there the bind
+    # must fail: two servers never run different code on PORT. The Mac keeps its fast restarts.
+    allow_reuse_address = os.name != "nt"
+
+
 def start(port=PORT):
     """Serve in a background thread. port 0 picks a free one. Returns the server."""
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server = Server(("127.0.0.1", port), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server
 
 
+def ours():
+    """Whether a server of ours already answers on PORT (its /api/health)."""
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{PORT}/api/health", timeout=1) as r:
+            return r.status == 200
+    except OSError:
+        return False
+
+
 def serve(page, label, open_tab=True):
     """http://localhost:PORT/<page>, served from here until stopped (unless one of ours already
-    serves the port), and opened in the browser."""
+    answers on the port), and opened in the browser."""
     url = f"http://localhost:{PORT}/{page}"
+    if ours():
+        print(f"{label}: {url} (a server of ours is up already)", flush=True)
+        if open_tab:
+            webbrowser.open(url)
+        return
     try:
-        server = start(PORT)
-    except OSError:
-        server = None  # a viewer is already serving on this port; it reads the same folders
-    print(f"{label}: {url}", flush=True)
+        start(PORT)
+    except OSError as e:
+        raise SystemExit(f"port {PORT} is held by something that isn't the tool's server ({e}): "
+                         "`PY -m tool.doctor server` sorts it out")
+    print(f"{label}: {url} (pid {os.getpid()})", flush=True)
     if open_tab:
         webbrowser.open(url)
-    if server:
-        threading.Event().wait()
+    threading.Event().wait()

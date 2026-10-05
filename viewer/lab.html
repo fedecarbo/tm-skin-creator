@@ -36,6 +36,9 @@
   #page { display: grid; grid-template-columns: var(--rail) 1fr var(--spec); grid-template-rows: 72px 1fr; height: 100%; column-gap: 8px; }
   .room { display: contents; }
   .room[hidden] { display: none; }
+  #offline { position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 9px 16px; text-align: center;
+             background: #c8322b; color: #fff; font-size: 14px; }
+  #offline[hidden] { display: none; }
 
   /* The Lab's name and its rooms */
   #labTop { grid-column: 1 / -1; display: flex; align-items: center; gap: 26px; padding: 0 40px 0 34px; }
@@ -443,6 +446,7 @@
   <symbol id="i-back" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 </svg>
+<div id="offline" hidden>Claude's server is off: the Lab can't follow the car or keep a note until it's back. Ask Claude; it also comes back on its own at the next session.</div>
 <div id="page">
   <header id="labTop">
     <h1 id="labName" class="teko">The Lab</h1>

@@ -15,11 +15,10 @@ goes by its design.py's time. Without git, file times it is.
 
 import datetime
 import json
-import re
 import shutil
 import subprocess
 
-from tool import install, paths, view
+from tool import install, paths, progress, view
 
 DATA = view.DATA
 
@@ -33,13 +32,6 @@ def words_of(folder):
         if line and not line.startswith("#"):
             return line.lstrip("-* ").strip('"“”')
     return ""
-
-
-def title_of(name):
-    """The name as the pages show it: "TSC_CMYK_EndsInK" -> "CMYK Ends In K"."""
-    name = name.removeprefix("TSC_").replace("_", " ")
-    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", name)
-
 
 
 def first_commits():
@@ -75,7 +67,7 @@ def refresh():
             shutil.copyfile(thumb, target / "thumb.png")
         entries.append({
             "name": folder.name,
-            "title": title_of(folder.name),
+            "title": progress.title_of(folder.name),
             "words": words_of(folder),
             "thumb": f"skins/{folder.name}/thumb.png" if thumb.exists() else None,
             "installed": f"{folder.name}.zip" in manifest,

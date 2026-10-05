@@ -189,7 +189,7 @@ try {
 
 async function start() {
   const res = await fetch('data/materials/materials.json', { cache: 'no-store' });
-  if (!res.ok) throw new Error('The materials aren\'t painted on this computer yet: run python -m tool.swatches.');
+  if (!res.ok) throw new Error('The materials aren\'t painted on this computer yet: ask Claude to start the Lab\'s server (PY -m tool.doctor server paints them first).');
   items = await res.json();
   families = familiesOf(items);
   $('count').textContent = items.length;

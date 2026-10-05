@@ -1,73 +1,92 @@
 # Improvements to the tool
 
-The queue of what the tool should do better: each item in two or three lines, what's wrong and an
-idea for the fix. The user says when to work on it. A finished item is deleted; what it taught
-goes into the code.
+The one queue of what the tool should do better: each item dated, in two or three lines, what's wrong
+and an idea for the fix. The user says when to work on it. A finished item is deleted; what it taught
+goes into the code. It mustn't pile up or go stale: the session-start check (`tool/doctor.py`) says
+"prune it" past 20 items or when one is older than 30 days; at a pruning each item is kept (re-dated,
+still in the user's words), done, or deleted (git keeps it). Things that exist are named in backticks
+and checked by the self-test; ideas are named in plain words.
 
-## Under way
+## Next: intent to result
 
-- **Drawing on the skin** (`tool/skindraw.py`): paused by the user ("lets stop. None of the cars
-  make me think it's working"); its foundation, the guides (step 2), is in place: it resumes when
-  the user asks, for lines an idea calls for.
-- **The car map** (`tool/carmap.py`, `car/map.md`): its readings (the shoulder, the lower edge,
-  the ridges, the areas) differ slightly between the Mac and the PC (numpy and BLAS). Step 2 puts
-  committed cuts under them; the readings are then checked against the cuts.
+The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
+by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 2 of 8 today).
+
+- **A. The checks name the flaws before the user does** (2026-10-05): over (paint landing on a part an
+  earlier step painted by name), spill (a graphic on two pieces), cut (a graphic stopped by an edge, an
+  opening or a fold), clear (the game's number and name panels), touching, soft or pixelated edges,
+  uneven scatter: findings in `show`'s notes and in the Lab, read by `tool/record.py` in place of its
+  note patterns. Expected: 7 or 8 of 8. Shown on a test car with planted faults, deleted after.
+- **B. Words and placards that fit** (2026-10-05): the body's flat rooms measured once into a file in
+  `car/`; `s.text` sized to the room and refusing with a note; a placard call that finds the flattest
+  patch near a point or a pen stroke and faces the words outward; upside-down and fold findings. Shown
+  on TSC_RescueV2's placards.
+- **C. The geometry hoisted** (2026-10-05): a course along a guide, a level, a seam, a panel's edge or a
+  pen stroke, with strips, dashes and spots along it; panel outlines from the mesh, cached in `car/`;
+  stripes, checks, a part and an inset as zones in `tool/shapes.py`; a level's offset, split and
+  "where" in `tool/levels.py`. TSC_RescueV2 rewritten in about 45 lines as the proof (290 today). Shown:
+  a marking along the user's stroke in one show.
+- **D. Lines drawn in the flat texture** (2026-10-05): a course mapped to the texture, one smooth
+  spline per UV island, mirrored (how Peach's artist drew). TSC_Skeleton repainted beside today's for
+  the user's eye; if it passes, `tool/skindraw.py`, `tool/skinmesh.py` and `tool/skincheck.py` retire.
+- **E. Structure for taste** (2026-10-05): a one-page anatomy written by `PY -m tool.carmap --describe`
+  (the flat rooms, the chase camera's share of each part, the levels at each station, which panels are
+  pieces and which are sewn, the game's panels) in place of `car/map.md`; `SPOTS` in
+  `tool/paintbox.py` generated from it; `tool/sets.py` says when two takes differ only in colour.
+- **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
+  into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
+  never the artwork), confirmed as a question in the Lab before any paint.
 
 ## The tool
 
-- **Repaint only the map that changed**: every `show` paints the whole car (about a minute) even
-  when a note touched only the tyres. Idea: repaint that map alone, if the game files stay identical.
-- **The Lab is empty before a new car's first paint**: idea: the car in clay with a line on the
-  stage until the first paint.
-- **Words on the inner car** read backwards on one side (mirror twins share texels). Idea: name the
-  inner parts' unshared areas big enough for a word as spots.
-- **Motifs lined up across panels**: scatter spreads evenly but can't do rows that line up. Idea: a
-  `regular` switch on `Skin.scatter`.
-- **Some inner part names are guesses** (side vent, side vane, nose sensor, airbox): check them the
-  first time a design paints them; renaming touches `tool/naming.py` and `AIRBRAKES` in the viewer.
-- **The fasteners have no name**: they wear one tiny strip the parts list gives to the front wing
-  (TSC_CMYK_EndsInK paints it by hand). Idea: name them in `tool/naming.py`.
-- **Worn paint doesn't read as worn**: `s.wear` scatters by noise, like a pattern. Idea: wear driven
-  by the car's shape (edges, recesses, contact points), layered paint, primer, metal.
-- **A step that covers an earlier step's paint says nothing.** Idea: a note at the step's end.
-- **The comparison picture's labels** number takes 1, 2, 3 on top of A, B, C, and drop a fourth
-  view. Idea: letters, and a second row.
-- **A finer, evenly shaped grain** (the user, on TSC_CMYK_EndsInK): 2 mm noise specks are the
-  smallest that survive the zip budget. Idea: specks per 4x4 block from a few variants, so they
+- **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
+  lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
+  now; the readings are to be checked against them (`tool/carmap.py`, `car/map.md`).
+- **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
+  minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
+  identical.
+- **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
+  on the stage until the first paint.
+- **Words on the inner car** read backwards on one side (2026-10-05): mirror twins share texels. Idea:
+  name the inner parts' unshared areas big enough for a word as spots.
+- **Motifs lined up across panels** (2026-10-05): scatter spreads evenly but can't do rows that line
+  up. Idea: a regular switch on `Skin.scatter`.
+- **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
+  nose sensor, airbox: check them the first time a design paints them), and the fasteners have none
+  (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand).
+  Renaming touches `tool/naming.py` and the viewer.
+- **Worn paint doesn't read as worn** (2026-10-05): `s.wear` scatters by noise, like a pattern. Idea:
+  wear driven by the car's shape (edges, recesses, contact points), layered paint, primer, metal, with
+  real scanned materials (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
+- **The comparison picture's labels** (2026-10-05): the number takes 1, 2, 3 on top of A, B, C, and
+  drop a fourth view. Idea: letters, and a second row.
+- **A finer, evenly shaped grain** (2026-10-05, the user, on TSC_CMYK_EndsInK): 2 mm noise specks are
+  the smallest that survive the zip budget. Idea: specks per 4x4 block from a few variants, so they
   compress.
-- **The picture maker on the Mac**: it needs the PC's card. Idea: FLUX.2 [klein] on Metal,
-  quantised; look up the latest release first.
-- **Two tyre fonts don't paint on the Mac** (Bahnschrift, Consolas). Idea: open look-alikes.
-- **Real scanned materials** (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
-- **The materials and the UV map, in a new way**: the user's to describe, after step 2 (the user,
-  2026-10-02); start from their words.
-- **The car map against well-made skins** (the user's idea): 11 skins the user downloaded (2026-10-04,
-  `tm.rar`, unpacked into `community/`; the Mac only, git-ignored). Lay their body textures' sharp
-  colour edges on the car (pinstripes from nose to tail, two-colour splits along the shoulder) and
-  compare them with the map's lines and step 2's cuts; fix the map where they agree it's off, in
-  pictures. For checking the map only: they never shape a design. Some use `BC5U`/`BC4U` headers,
-  which `dds.read` doesn't take yet.
+- **What the Mac lacks** (2026-10-05): the picture maker (it needs the PC's card; idea: FLUX.2 [klein]
+  on Metal, quantised, the latest release looked up first) and two tyre fonts (Bahnschrift, Consolas;
+  idea: open look-alikes).
+- **The materials and the UV map, in a new way** (2026-10-05): the user's to describe (2026-10-02);
+  start from their words.
+- **The car map against well-made skins** (2026-10-05, the user's idea): 11 skins the user downloaded
+  (2026-10-04; the Mac only, git-ignored). Lay their body textures' sharp colour edges on the car and
+  compare them with the guides; fix the map where they agree it's off, in pictures. For checking only:
+  they never shape a design. Some use BC5U and BC4U headers, which `dds.read` doesn't take yet.
 
 ## The viewer
 
-- **The game's cameras at speed**: fitted standing still; in the game they pull back with speed.
-  Idea: fit Cam 1 at a few speeds from the user's videos.
-- **The car number's lettering is a guess** until a close-up of the engine cover.
-- **The rear wings and air brakes** move at the video's pace, their angles set by eye. A short side
-  video would pin them.
-- **The page online**: softer than here on big screens (2048² paint), about 20 MB before the car
-  shows. Ideas: 4096² colour maps on large screens; a compressed mesh and a smaller sky on phones.
-- **Phones**: on its side the car gets a third of the height; Cam 1 and 2 are small on a tall
-  screen. Ideas: a one-line name under 500 px high; frame the game's picture by its height.
+- **The viewer against the game** (2026-10-05): the game's cameras pull back with speed (fitted
+  standing still; fit Cam 1 at a few speeds from the user's videos); the car number's lettering is a
+  guess until a close-up of the engine cover; the rear wings and air brakes move at the video's pace,
+  their angles set by eye (a short side video would pin them).
 
 ## To check in the game
 
 Settled when the user drives a skin that uses it and says or shows what they saw; never ask them.
 
-- Finishes never seen there: candy, chrome rims, rust, leather, metallic flake; the viewer's matte,
-  satin, gloss and chrome against the game's.
-- Glows never seen: exhaust heat (TSC_CMYK_EndsInK carries it: a turbo pad settles it) and boost.
-- Whether the wheel covers turn; how see-through the glass is (tint only, so far).
-- Tyre markings: never in the game yet (their relief, legibility, the band clearing the covers).
-- A glow on the body: never tried (`Skin_I` in `Details_I`'s format on a test skin).
-- The upload size limit: zips stay under 8.5 MB until one shows up.
+- **Never seen in the game yet** (2026-10-05): the finishes candy, chrome rims, rust, leather,
+  metallic flake, and the viewer's matte, satin, gloss and chrome against the game's; the exhaust heat
+  and boost glows (TSC_CMYK_EndsInK carries exhaust heat); whether the wheel covers turn; how
+  see-through the glass is (tint only, so far); tyre markings (their relief, legibility, the band
+  clearing the covers); a glow on the body (Skin_I in Details_I's format, on a test skin); the upload
+  size limit (zips stay under 8.5 MB until one shows up).

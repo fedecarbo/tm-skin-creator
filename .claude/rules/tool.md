@@ -26,8 +26,8 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   after. `tool.record new` lists what the records say that the test set hasn't sorted yet.
 - A cache whose contents change must change its name or version (`coverage._key`,
   `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
-- The page online and Claude's snapshots must not change with a change made for the Lab (the
-  embedded viewer's features are `embed`-only). Every page draws only when something changed
+- Claude's snapshots must not change with a change made for the Lab (the embedded viewer's
+  features are `embed`-only). Every page draws only when something changed
   (`rouse` in `viewer/viewer.js`): anything new that changes the picture on its own must call it.
   Snapshots (`?snap=1`) draw every frame and load every mood first.
 
@@ -54,11 +54,12 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
   computer's pages only.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
-  for every finish in `finishes.CATALOGUE` and serves it. After a change to `tool/server.py`,
-  `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own `tool.swatches` or
-  `tool.view`) and start `nohup PY -m tool.swatches --no-tab > /dev/null 2>&1 &`, detached: a
-  background task is stopped at its time limit, and the Lab with it (`--no-open` only paints). A gap in the Lab is a gap in the tool, to fix in the tool. Its rooms share
-  `viewer/lab-common.js`:
+  for every finish in `finishes.CATALOGUE` and serves it; `PY -m tool.doctor server` starts it
+  detached (a background task is stopped at its time limit, and the Lab with it) and restarts it
+  after a change to the tool; the session-start hook (`PY -m tool.doctor session`) does the same when
+  the server's code is older than the tool's (`/api/health`), prunes the work folder of skins that
+  no longer exist, and keeps the server's output in the work folder's server.log. A gap in the Lab
+  is a gap in the tool, to fix in the tool. Its rooms share `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
     (`lab-car.js`). The car follows the frames `tool.skin show` writes at each `Skin.step`
     (`view.export_steps`, `studio.json`; `install` paints without them), and drives the embedded
@@ -96,8 +97,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres`
-  photographs the library (`tool/tyresheet.py`); `tyresheet.page(folder)` fills
-  `viewer/tyres.html` for the user's page.
+  photographs the library (`tool/tyresheet.py`).
 - Drawing on the skin, the one way lines are drawn: `tool/skinmesh.py` is the whole car's paintable
   surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
   subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on

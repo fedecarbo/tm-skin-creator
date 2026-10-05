@@ -29,8 +29,6 @@ it's handled: its pin leaves the car, and the note stays in the timeline, pictur
                                                             question K answered elsewhere (in the chat)
     python -m tool.notes wait [minutes]                     end as soon as a note comes, printing it
                                                             (default 120)
-    python -m tool.notes open                               where every skin stands (the session-start
-                                                            hook prints it after the pull)
 
 Whenever the user gets to pick something, it comes to the timeline as a widget (the user, 2026-10-02:
 "keep the interactivity in the chat, whenever the user gets to pick something. Similar to A2UI"):
@@ -578,7 +576,7 @@ def _changed(skins, name):
 
 
 def standing():
-    """Where every skin stands, for a session's start on either computer, newest first: the last event
+    """Where every skin stands, for a session's start on either computer (tool/doctor.py prints it), newest first: the last event
     in its record, whether it's in the game, and what's open. Open is a record's events that start with
     `Open` (written when something is left to do, turned to `Closed` once it's done), a set waiting for
     the user or being painted, and on this computer the Lab's notes not done and questions unanswered.
@@ -631,13 +629,6 @@ def standing():
 
 
 def main(args):
-    if args[:1] == ["open"] and len(args) == 1:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # the PC's pipes aren't UTF-8 otherwise
-        try:
-            standing()
-        except Exception as e:  # the session starts anyway
-            print(f"(Where the skins stand couldn't be read: {e})")
-        return
     if args[:1] == ["--hook"]:
         try:
             hook()

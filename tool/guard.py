@@ -86,8 +86,9 @@ def pushed(event):
         what.append(f"{unpushed} commit{'s' * (unpushed > 1)} not pushed")
     return {"decision": "block", "reason": (
         f"Not on GitHub yet: {', '.join(what)}. The other computer only has what's on GitHub: commit "
-        "what's finished, with a message that says what changed and why, and push. If the push fails, "
-        "tell the user why.")}
+        "what's finished, with a message that says what changed and why, and push. A push refused because "
+        "the other computer pushed first: `git pull --rebase`, then push again (a conflict in "
+        "skins/installed.json keeps both sides' entries). If it still fails, tell the user why.")}
 
 
 def main(args):

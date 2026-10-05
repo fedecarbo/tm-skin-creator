@@ -26,15 +26,15 @@ first.
   self-test), the machinery's commands, the game's texture format.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
   picture maker) and the Mac (designing, the viewer, snapshots). A hook pulls at the start of each
-  session (if it failed, sort that out first), then prints where each skin stands and what's open.
+  session (if it failed, sort that out first), then checks the tool (`tool/doctor.py`: GitHub, the
+  tool's Python, the Lab's server, the work folder, the game's list, the queue) and prints where each
+  skin stands and what's open.
 - `tool/`: the Python machinery. `viewer/`: the 3D page and the Lab. `car/parts.json`: every part's
   name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool put in the game.
 - `PY` is the tool's Python, run from the repo root: on the PC
   `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac
   `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`. Its parent folder
-  is the work folder (caches, builds, the viewer's data, the page online): all rebuildable.
-- **The page online** (the user's phone and friends): https://fedecarbo.github.io/tm-skin-creator/.
-  `PY -m tool.publish` rebuilds it on the `gh-pages` branch, never on `main`.
+  is the work folder (caches, builds, the viewer's data): all rebuildable.
 - GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. Never push files that aren't ours to
   publish. Credit the car model's author, amogusstrikesback2 (CC-BY-4.0), wherever it's reused.
 

@@ -11,8 +11,38 @@ export const ago = (t) => {
   return s < 60 ? 'just now' : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
 };
 
-// A new note, or a change to one, for the viewer's server (tool/server.py, /api/notes).
-export const post = (body) => fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+// A new note, or a change to one, for the viewer's server (tool/server.py, /api/notes). With the
+// server off, the answer is a failed one that says so, never an error the page swallows.
+export async function post(body) {
+  try {
+    return await fetch('api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch {
+    offline(true);
+    return { ok: false, status: 0, json: async () => ({ error: OFF }) };
+  }
+}
+
+// The banner when Claude's server is off (lab.html, #offline): a heartbeat asks the server every
+// 2 s (its /api/health); three misses in a row show it, one answer hides it. The rooms' own polls
+// handle their errors as they like. Claude starts the server back (tool/doctor.py).
+export const OFF = "Claude's server is off";
+let misses = 0;
+export function offline(down) {
+  const el = document.getElementById('offline');
+  if (el) el.hidden = !down;
+}
+async function heartbeat() {
+  if (document.hidden) return;
+  try {
+    const r = await fetch('api/health', { cache: 'no-store' });
+    if (!r.ok) throw new Error(String(r.status));
+    misses = 0;
+    offline(false);
+  } catch {
+    if (++misses >= 3) offline(true);
+  }
+}
+setInterval(heartbeat, 2000);
 
 // The skin the address names.
 export const wanted = () => new URLSearchParams(location.search).get('skin');
@@ -27,14 +57,20 @@ export function note(name) {
 }
 
 // The viewer in an iframe (index.html?embed=1, no skin: no car until its first dress), once it
-// says it's ready: its window.viewer, or null if it failed. Its credit line goes into `credit`:
-// the car model's licence asks for it.
+// says it's ready: its window.viewer, or null if it failed or said nothing within 20 s. Its credit
+// line goes into `credit`: the car model's licence asks for it.
 export function embedViewer(frame, credit) {
   return new Promise((resolve) => {
     frame.addEventListener('load', () => {
+      const since = Date.now();
       const wait = setInterval(() => {
         const v = frame.contentWindow && frame.contentWindow.viewer;
-        if (!v || !(v.ready || v.error)) return;
+        if (!(v && (v.ready || v.error))) {
+          if (Date.now() - since < 20000) return;
+          clearInterval(wait);
+          resolve(null);
+          return;
+        }
         clearInterval(wait);
         const line = !v.error && frame.contentDocument.getElementById('credit');
         if (line && credit) { credit.innerHTML = line.innerHTML; credit.hidden = false; }

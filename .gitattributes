@@ -1,0 +1,12 @@
+# One line ending for both computers: text files stay LF in the repo whatever the PC's core.autocrlf.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.npz binary
+*.zip binary
+*.ttf binary
+*.hdr binary
+*.bin binary
+*.tga binary
+*.webp binary

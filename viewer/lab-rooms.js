@@ -445,7 +445,7 @@ async function begin(helpers) {
   copyLine = helpers.copy;
   $('status').textContent = 'Loading…';
   const res = await fetch('data/uvmap.json', { cache: 'no-store' });
-  if (!res.ok) throw new Error('The rooms aren\'t ready on this computer yet: run python -m tool.swatches.');
+  if (!res.ok) throw new Error('The rooms aren\'t ready on this computer yet: ask Claude to start the Lab\'s server (PY -m tool.doctor server).');
   doc = await res.json();
   for (const p of doc.parts) byId[p.id] = p;
   const now = await followed();

@@ -97,22 +97,6 @@ def sheet(codes, cols=8, tile=(400, 300), strip=34):
     return path
 
 
-def page(folder, codes=None):
-    """The library's page (viewer/tyres.html) in `folder`, ready to publish: index.html with the
-    library's words in it, and img/<code>.jpg, each marking's three views side by side."""
-    lib = tyres.library()
-    codes = codes or list(lib)
-    (folder / "img").mkdir(parents=True, exist_ok=True)
-    for code in codes:
-        strip = Image.new("RGB", (1440, 360))
-        for k, side in enumerate(VIEWS):
-            strip.paste(Image.open(OUT / f"{code}_{side}.jpg").resize((480, 360), Image.LANCZOS), (k * 480, 0))
-        strip.save(folder / "img" / f"{code}.jpg", quality=82)
-    data = [{"code": c, "name": lib[c]["name"], "family": lib[c]["family"], "about": lib[c]["about"]} for c in codes]
-    html = (paths.REPO / "viewer" / "tyres.html").read_text(encoding="utf-8").replace("__DATA__", json.dumps(data))
-    (folder / "index.html").write_text(html, encoding="utf-8")
-    return folder / "index.html"
-
 
 def make(codes, open_it=True):
     OUT.mkdir(parents=True, exist_ok=True)

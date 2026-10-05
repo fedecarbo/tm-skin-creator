@@ -45,6 +45,10 @@ import tempfile
 import time
 from pathlib import Path
 
+if str(Path(__file__).resolve().parents[1]) not in sys.path:  # runnable as a file too
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tool import progress  # noqa: E402  (standard library only, as this file)
+
 REPO = Path(__file__).resolve().parents[1]
 SKINS = Path(os.environ.get("TSC_SKINS_HOME") or REPO / "skins")
 NAME = re.compile(r"[A-Za-z0-9_\-]+")
@@ -59,10 +63,7 @@ def now():
     return datetime.datetime.now().replace(microsecond=0).isoformat()
 
 
-def title_of(name):
-    """"TSC_PressRun" -> "Press Run", as the gallery says it."""
-    name = name[4:] if name.startswith("TSC_") else name
-    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", name.replace("_", " "))
+title_of = progress.title_of  # "TSC_PressRun" -> "Press Run", as the Lab and the gallery say it
 
 
 def camel(title):

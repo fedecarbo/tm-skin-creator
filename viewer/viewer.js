@@ -161,7 +161,17 @@ const glowUniforms = {
 // ---- Renderer, camera, controls ----
 
 const canvas = document.getElementById('view');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+// What tool/snap.py and the Lab drive: filled in below, once the car is up. Made first, so that a
+// failure here (no WebGL) reaches them as `error` instead of a page that loads forever.
+window.viewer = { ready: false, error: null };
+window.addEventListener('error', (e) => fail(e.error || e.message));
+window.addEventListener('unhandledrejection', (e) => fail(e.reason));
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (err) {
+  throw new Error(`3D isn't available in this browser: ${err && err.message || err}`);  // reaches fail() as the window's error
+}
 renderer.setPixelRatio(snap ? 1 : Math.min(window.devicePixelRatio, 2));
 const TONES = { aces: THREE.ACESFilmicToneMapping, neutral: THREE.NeutralToneMapping, agx: THREE.AgXToneMapping,
   linear: THREE.LinearToneMapping, reinhard: THREE.ReinhardToneMapping, cineon: THREE.CineonToneMapping };
@@ -1804,9 +1814,7 @@ const frames = (n) => new Promise((done) => {
 });
 
 // What tool/snap.py drives.
-window.viewer = {
-  ready: false,
-  error: null,
+Object.assign(window.viewer, {
   async load(name) {  // another skin in the same page: the tyre library's sheet (tool/tyresheet.py)
     await loadSkin(name);
     await frames(3);
@@ -1975,7 +1983,7 @@ window.viewer = {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
   },
-};
+});
 if (embed) {  // whatever the Lab asks for is drawn, when it's asked and when it's done
   const reads = new Set(['project', 'camera', 'views', 'gpu', 'snap']);
   for (const [k, f] of Object.entries(window.viewer)) {
@@ -2040,8 +2048,6 @@ function fail(err) {
   window.viewer.error = err instanceof Event ? said : String(err && err.stack || err);
   statusBox.textContent = `Couldn't show the skin: ${said}`;
 }
-window.addEventListener('error', (e) => fail(e.error || e.message));
-window.addEventListener('unhandledrejection', (e) => fail(e.reason));
 
 async function start() {
   if (!skinName && !embed) {  // none named: the one this browser showed last, else the newest painted

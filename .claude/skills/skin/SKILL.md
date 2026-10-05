@@ -25,8 +25,8 @@ game: install from the Windows PC after a push.
 | `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
-| `nohup PY -m tool.swatches > /dev/null 2>&1 &` | Serves the Lab, http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. |
-| `PY -m tool.skin install <name>` | Paints it, builds the game files, installs them and puts the page online (the PC). |
+| `PY -m tool.doctor server` | Starts the Lab's server (or restarts it after a change to the tool), http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. The session-start hook does the same. |
+| `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
 | `PY -m tool.skin list` / `PY -m tool.sets <car>` | Every skin / a car's sets of options. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]`, `tile "<words>"`, `keep <slug> <k> <skin> <name>` | The picture maker (the PC): cut-outs or seamless tiles, kept as `skins/<skin>/art/<name>.png` for `s.art("<name>")`. Ask for a few large objects; give each run its own words. |
 | `PY -m tool.textures search "<surface>"`, then `add "<surface>" <Id> --scale <cm>` | A photographed surface (ambientCG, CC0) as a finish. |
@@ -113,7 +113,7 @@ game: install from the Windows PC after a push.
 
 - The car in the Lab, to turn round; no pictures on their screen. Reply in a few sentences: what the car looks
   like and what you checked close up, then one bold question.
-- On their yes: `tool.skin install <name>` on the PC (the page online follows). In the game: Garage →
+- On their yes: `tool.skin install <name>` on the PC. In the game: Garage →
   My Skins → pick `<name>`, no restart needed.
 - Screenshots (F12) are in
   `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`; look only at
@@ -125,7 +125,7 @@ game: install from the Windows PC after a push.
   then a line per event (`Shown`, `Change <n> (user): "…"`, `Installed`, and `Open (…): …` for
   anything left to do, its first word turned to `Closed` once it's done). A cold session must be
   able to pick up the skin from it and `design.py`: each session starts with every record's last
-  line and its open items (`PY -m tool.notes open`).
+  line and its open items (`PY -m tool.doctor session`).
 - `IMPROVEMENTS.md` is the queue of what the tool should do better. During a skin fix only what
   the skin needs; put anything else on the list in two or three lines and tell the user in one.
   Work on the list when they ask; a finished item is deleted.

@@ -2,7 +2,7 @@
 
     python -m tool.skin show <name>            paint it, put it in the viewer, snapshot it
     python -m tool.skin show <name> --open     ... and open the viewer in the browser
-    python -m tool.skin install <name>         paint it, build the zip, install it (the PC), put the page online
+    python -m tool.skin install <name>         paint it, build the zip, install it (the PC)
     python -m tool.skin list                   every skin, newest first
 
 show also measures how far each zoned paint reaches on the body, and where it stops short of the
@@ -26,7 +26,7 @@ import os
 import sys
 import time
 
-from tool import build, gallery, install, measure, paintbox, paths, progress, publish, snap, view
+from tool import build, gallery, install, measure, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -144,24 +144,23 @@ def keep_version(name, thumb):
 
 
 def do_install(name):
-    """Paint the skin, build its zip, put it in the game, then the page online with the same paint.
+    """Paint the skin, build its zip, put it in the game.
     Always painted afresh: a paint kept from an earlier show can't know whether a design it
     borrows, its pictures or the tool changed since (and a skin shown on the other computer has
     none here)."""
     install.game_folder()  # before painting: only the PC has the game
     t0 = time.time()
-    with progress.job(f"Putting {progress.title_of(name)} in the game", skin=name, done="In the game and online"):
+    with progress.job(f"Putting {progress.title_of(name)} in the game", skin=name, done="In the game"):
         with paint_slot():
             s = paint(name)
             build.save_painted(s)
-            build.export_to_viewer(s)  # the page online takes the skin from the viewer's data
+            build.export_to_viewer(s)  # this computer's viewer shows the car as installed
             zip_path = build.build_zip(name)
         print(f"{zip_path.name}: {zip_path.stat().st_size / 1e6:.2f} MB, built in {time.time() - t0:.0f} s")
         progress.stage("Copying it into the game")
         target = install.install(zip_path)
         print(f"installed {target.name}")
         gallery.refresh()
-        publish.online()
     return target
 
 
