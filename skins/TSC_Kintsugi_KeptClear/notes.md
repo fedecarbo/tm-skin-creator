@@ -1,0 +1,1 @@
+Option A of TSC_Kintsugi's set 1 (The breaks by the game's panels · 2 takes), 2026-10-05: Kept Clear. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).
