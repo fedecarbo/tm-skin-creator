@@ -24,3 +24,9 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   at the sidepods' front, the nose following its curve); the pinstripe on it follows. Repainted.
 - Change 2 (Claude, 2026-10-05): the top's first line now runs into the top line at the nose's tip; the
   pinstripe on it follows. Repainted.
+- Change 3 (user, 2026-10-05): "Its important to note that these are guides, so the skins im not
+  expecting for the AI to use the guides, these are to give it eyes to get a feeling on the curvature of
+  things ... For example, the rescue v2 you added a black line. Lines are not needed if it doesnt have a
+  reason to be there, unless its part of the concept." The two pinstripes (round the top, along the check
+  band's top) had no reason in the rescue idea: removed. The band and the black lower edge keep the
+  side's curve. Repainted; nothing else moved.

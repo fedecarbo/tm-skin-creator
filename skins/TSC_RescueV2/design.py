@@ -1,7 +1,6 @@
-"""Rescue v2: the snow rescue car (TSC_Snow) redrawn on the car's own lines, with more detail.
+"""Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
-levels, rising with the tail; a pinstripe round the top; silver chevrons on the tail's deck; a
-snowflake badge on the bonnet; RESCUE along the front flanks, a snowflake on the rear flanks; studded snow
+curve, rising with the tail; silver chevrons on the tail's deck; a snowflake badge on the bonnet; RESCUE along the front flanks, a snowflake on the rear flanks; studded snow
 tyres; amber rear lights."""
 import numpy as np
 
@@ -40,8 +39,8 @@ def _midway(upper, lower):
 
 def _chevrons(width=4.0, slope=0.75, z0=-152.0, z1=-132.0):
     """Chevrons across the tail panel, pointing forward: stripes `width` cm wide (square to them),
-    as many gaps between, their arms falling back `slope` cm per cm out from the middle; inside the
-    top's pinstripe, the panel's seams their ends."""
+    as many gaps between, their arms falling back `slope` cm per cm out from the middle; the panel's
+    seams their ends."""
     k = np.sqrt(1 + slope * slope)
     period = 2 * width * k
 
@@ -98,23 +97,20 @@ def design(s):
     s.paint("side skirt", "gloss black")  # on round the nose, under the front flank and the nose
 
     s.step("The check band", "Two rows of silver and orange checks along each side between the levels, from the tail "
-           "to the front wheel opening, a black pinstripe along their top.", words=WORDS)
+           "to the front wheel opening.", words=WORDS)
     band = levels.band("between 3", "between 6")
     upper = _midway("between 4", "between 5")
     s.paint("body", "gloss", colour=ORANGE, zone=band)
     s.paint("body", "reflective tape", zone=band & (upper & _checks() | ~upper & _checks(lower=True)))
-    s.paint("body", "gloss black", zone=levels.line("between 3", 0.6))
 
-    s.step("The top and the tail", "A black pinstripe round the top, set in from its edge; silver chevrons on the "
-           "tail's deck, pointing forward.", words=WORDS)
-    s.paint("body", "gloss black", zone=levels.top_line("top 1", 0.6))
+    s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=_chevrons())
 
     s.step("Badges", "A black badge on the bonnet with a silver snowflake; RESCUE along the front flanks, a black "
            "snowflake on the rear flanks.", words=WORDS)
     s.paint("body", "gloss black", zone=_disc((0, 105), 11))
     s.paint("body", "reflective tape", zone=_snowflake((0, 105)))
-    for spot, x in (("left flank", 35), ("right flank", -35)):  # clear of the sidepod's front and the top's pinstripe
+    for spot, x in (("left flank", 35), ("right flank", -35)):  # clear of the sidepod's front fold
         s.text("RESCUE", spot, colour="black", font="russo", height=8, italic=0.15, at=(x, 53, 58))
     for seen, x in (("left", 1), ("right", -1)):
         s.paint("body", "gloss black", zone=_snowflake((-66, 50), stroke=1.6, size=0.9, seen=seen) & shapes.plane((0, 0, 0), (x, 0, 0)))

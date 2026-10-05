@@ -25,6 +25,9 @@ game or the code goes into the code (a warning, a check, a docstring).
 
 - **Don't load a design with taste rules, past cars or examples.** They make every car look the same.
   Start each car blank, from the user's words; borrow an earlier car only when the user names it.
+- **Don't paint the guides.** The levels, the top's lines and the seams are the painter's eyes on the
+  car's curvature: they shape and place graphics. A line on a skin needs a reason in the idea (some
+  liveries use lines for mood; most have none).
 - **Don't trade quality for speed, and don't confuse checks with quality.** A better game file is
   worth a slower build. But one paint and a look per take is enough; the close looks are for what's
   shown alone or picked.

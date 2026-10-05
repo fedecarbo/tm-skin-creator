@@ -7,7 +7,7 @@ A seam is one piece's edge, where it meets the piece beside it (or stands a step
 height along the car seen from the side, one smooth curve through points every 8 cm or so (the
 levels' own spline, tool/levels.py), and its path on the car (the left side; the right mirrors it).
 The levels room draws them on its side view, to shape the top and the bottom by (the levels between
-share a seam's curve when the top or the bottom near it does); a design paints along them.
+share a seam's curve when the top or the bottom near it does); a design shapes its graphics by them.
 
     seams.traced()                   {name: {"points": [[z, y], ...], "path": [[x, y, z], ...]}}
     seams.line("side skirt", 0.6)    a zone (tool/shapes.py): a line along the seam, 0.6 cm wide, both sides
