@@ -9,15 +9,6 @@ goes into the code.
 The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
 deleted here; `PLAN.md` keeps the why.
 
-- **2. The topographic skeleton**: plane cuts through the body every x cm (sections along the
-  length, the map's 1 cm cuts; contours at fixed heights; profiles from the middle), saved once in
-  the repo so both computers hold the same car, painted on a skeleton car (TSC_Skeleton) for the
-  Lab and the game, and checked against the user's F12 screenshots in px. Show's measures
-  (`tool/measure.py`) already find the map's sides stopping 2 to 3 cm short of the tail's corner.
-  Done: the cuts (`tool/skeleton.py`, `car/skeleton.npz`), `shapes.skeleton`; the painter's guides
-  drawn with the user (`tool/levels.py`: the side's levels, the seams, the top's two lines), shown on
-  the skeleton car (TSC_Skeleton). Left: `tool.skeleton --check` on the PC, the skeleton car
-  installed, the viewer's and the game's check by number.
 - **3. Fresh eyes on a finished car**: a second Claude with only the user's words, the pictures and
   step 1's measures names what's cut, sunk, forgotten or off-brief, and in which picture; only
   where the close looks already run, never on takes; about a minute.
@@ -34,8 +25,8 @@ deleted here; `PLAN.md` keeps the why.
 ## Under way
 
 - **Drawing on the skin** (`tool/skindraw.py`): paused by the user ("lets stop. None of the cars
-  make me think it's working") until the skeleton (step 2) is proven: lines follow the car's
-  edges, so the foundation comes first.
+  make me think it's working"); its foundation, the guides (step 2), is in place: it resumes when
+  the user asks, for lines an idea calls for.
 - **The car map** (`tool/carmap.py`, `car/map.md`): its readings (the shoulder, the lower edge,
   the ridges, the areas) differ slightly between the Mac and the PC (numpy and BLAS). Step 2 puts
   committed cuts under them; the readings are then checked against the cuts.

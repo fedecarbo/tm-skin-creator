@@ -163,7 +163,7 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
   stage as it happens and the count where there is one; a job killed midway leaves nothing stuck (a
   report older than a minute reads as "stopped"); the game files identical.
 
-### Step 2. The topographic skeleton: cut from the mesh, painted on the car, proven in the game
+### Step 2. The topographic skeleton: cut from the mesh, painted on the car
 
 - **For:** the guide for the blind. Three families of plane cuts through the body every x cm:
   sections across the car along its length (the map's one-centimetre cuts, already computed),
@@ -172,27 +172,17 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
   30 cm", "the section at minus 120"). Saved once as data in the repo, so both computers hold the
   same car. Then literally painted on a car: TSC_Skeleton, the clay car with the contours every
   5 cm and the sections every 10 cm as thin dark lines, painted into a real skin texture exactly
-  as any design's paint is, visible in the Lab from every angle and in the game after one install
-  on the PC. It is both the guide the tool works from and the test of the mapping from the car to
-  its texture. Finally the game as the judge, the way the lighting was calibrated: when the user
-  drives it and shares F12 screenshots (standing still, the game's first two cameras), a command
-  lays the game's picture beside the viewer's shot of the same camera and measures, in pixels,
-  whether each painted contour sits where the geometry says: a contour at 30 cm must look level
-  all round the car from a low side view, and the sections evenly spaced. Any wobble, break at a
-  panel join or stretch is a fault in the mesh or in the mapping, found by number and visible to
-  the eye. Step 1's measures are then stated in cuts ("stops at section minus 142, 9 cm short of
-  the last section the side reaches").
+  as any design's paint is, visible in the Lab from every angle. It is both the guide the tool
+  works from and the test of the mapping from the car to its texture. Step 1's measures are then
+  stated in cuts ("stops at section minus 142, 9 cm short of the last section the side reaches").
 - **You'll see:** the skeleton car in the Lab, turnable, with its grid of cuts (two spacings
-  offered as a widget, the user picks); the same car in the game; one side-by-side picture, game
-  and viewer, with the offsets written on it.
-- **Costs:** a session or two of tool work, once; a minute of the user's driving whenever they
-  like, never asked for. Per skin: nothing.
+  offered as a widget, the user picks).
+- **Costs:** a session or two of tool work, once. Per skin: nothing.
 - **Model:** a big one for the cuts and the check (the car mapper, whose brief becomes "cut it and
-  prove it"); a small one (Sonnet 5.5) for the side-by-side picture and the data loading.
+  prove it"); a small one (Sonnet 5.5) for the data loading.
 - **Checked by:** the cuts identical on the Mac and the PC; every contour level and every section
-  evenly spaced in the viewer's low side views, by number; the game's screenshot agreeing with the
-  viewer's shot within a few pixels; the user's own look at the skeleton car in the Lab and in the
-  game. Drawing on the skin waits for this.
+  evenly spaced in the viewer's low side views, by number; the user's own look at the skeleton car in
+  the Lab. Drawing on the skin waits for this.
 
 ### Step 3. Fresh eyes on a finished car
 
