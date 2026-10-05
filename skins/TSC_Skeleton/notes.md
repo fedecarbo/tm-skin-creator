@@ -556,3 +556,20 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   2 cm off it. Eased in from z 144 (within 0.01 cm of the lines as they were). Checked from the low
   side, the tip close from the front quarter, from above and straight on, the nose high, the front
   three-quarter. Question 10 settled; shown in the Lab.
+- The user, of both lines meeting the black line at the tip: "Yes, that's it." Then (a view from above,
+  a magenta line from the tail's middle across, turning forward and running straight along the
+  cockpit's side to the second line at the nose root): "for the second red line, im actually thinking
+  if we actually make it follow the in between curvature of the car. So it still ends in the nose like
+  you have it ... similar to the first one when it comes to the front half, but it's more on the cockpit
+  starting curvature". Measured: the raised middle (the engine cover, the cockpit's surround) rises off
+  the flat top at about 45 degrees; the crease at its foot (the most concave point across, slice by slice)
+  runs 36 cm from the middle at z -120, 40 at -85, 43.5 along the cockpit, 41 at z 20, fading into the
+  nose's side by z 30; across the back it runs where the engine cover's back slope meets the tail deck
+  (z -129.5 in the middle, -127 at 28 cm out), rounding into the side. Fifth trial (Look_TopLineCrease):
+  the second line on that crease (smoothed over 3 cm, heights from the skin, the corner about 12 cm),
+  handing over at z 15 to 40 to the nose stretch (twice the first line's shading line, two thirds of the
+  nose's height at the tip); with the first line meeting the tip. Within 2.2 mm of the skin; 3 cm from
+  the first line at the nose root, where both turn. From the side the hand-over climbs 3.5 cm (the
+  crease 7 to 8 cm above the black line, the shoulder on the nose 11 to 12). Checked from above, the back
+  high behind, along the cockpit, onto the nose, the back corner, the rear three-quarter, the nose root
+  from above (both sides), the side and high behind. Shown in the Lab.
