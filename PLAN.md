@@ -208,7 +208,7 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
   flagged next (the band over the bottom piece's black, RESCUE across a fold the paint box had
   warned of, an icon "too deliberate"), its next top finding was wrong, and each look took 2 to 5
   minutes. The user: "probably I can flag things more accurately". In its place, at their
-  suggestion, drawing on the car in the Lab (`IMPROVEMENTS.md`). What stayed: the measure sees the
+  suggestion, the Lab's pen: drawing on the car what a note means (built and used, 2026-10-05). What stayed: the measure sees the
   body resume bare past an opening, behind the rear wheel ("STOPS SHORT past an opening").
 
 ### Step 4. Rules that are checks, not requests

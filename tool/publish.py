@@ -3,6 +3,8 @@
     python -m tool.publish          build the page and put it online (the address it prints)
     python -m tool.publish --here   build it and open it on this computer only
 
+`tool.skin install` puts it online after every install, so the page matches the game.
+
 What's on it: the 3D viewer (viewer/) with the skins in the game (skins/installed.json) that have
 a design in skins/, test cars left out. It opens on the newest one. viewer/public.css hides the
 workbench: the parts list, part names on click, the Lab.
@@ -214,27 +216,39 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def built():
+    """Build the page and say what's on it: the gallery entries."""
+    progress.stage("Building the page")
+    entries = build()
+    size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file() and ".git" not in f.relative_to(SITE).parts)
+    print(f"page: {len(entries)} skins ({', '.join(e['title'] for e in entries)}), {size / 1e6:.0f} MB", flush=True)
+    return entries
+
+
+def online():
+    """Build the page and put it online. `tool.skin install` runs it after every install."""
+    with progress.job("Putting the page online", done="Sent online (GitHub takes a minute or two to show it)"):
+        entries = built()
+        progress.stage("Sending it to GitHub")
+        push(entries)
+    print(f"online: {address()} (GitHub takes a minute or two to update it)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--here", action="store_true", help="build it and open it on this computer, without putting it online")
     a = ap.parse_args()
-    with progress.job("Building the page" if a.here else "Putting the page online",
-                      done="Built" if a.here else "Sent online (GitHub takes a minute or two to show it)"):
-        progress.stage("Building the page")
-        entries = build()
-        size = sum(f.stat().st_size for f in SITE.rglob("*") if f.is_file() and ".git" not in f.relative_to(SITE).parts)
-        print(f"page: {len(entries)} skins ({', '.join(e['title'] for e in entries)}), {size / 1e6:.0f} MB", flush=True)
-        if not a.here:
-            progress.stage("Sending it to GitHub")
-            push(entries)
-    if a.here:
-        server = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
-        url = f"http://localhost:{PORT}/"
-        print(f"here: {url}", flush=True)
-        webbrowser.open(url)
-        threading.Event().wait()
-    print(f"online: {address()} (GitHub takes a minute or two to update it)")
+    if not a.here:
+        online()
+        return
+    with progress.job("Building the page", done="Built"):
+        built()
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    url = f"http://localhost:{PORT}/"
+    print(f"here: {url}", flush=True)
+    webbrowser.open(url)
+    threading.Event().wait()
 
 
 if __name__ == "__main__":

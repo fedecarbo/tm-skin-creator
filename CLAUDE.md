@@ -44,8 +44,8 @@ first.
 
 - It holds skins the user made outside this project. Never list, open, read, copy or unzip anything
   there, by any means (tools, shell or scripts), and never let them shape a choice.
-  `.claude/settings.json` denies the file tools there; shell commands aren't covered, so this rule
-  is what stops them. Don't work around the deny.
+  `.claude/settings.json` denies the file tools there, and a hook (`tool/guard.py`) refuses any
+  shell command that names it. Don't work around either.
 - Only `tool/install.py` writes there. It checks only its exact target file name, and never
   overwrites or deletes a file this project didn't create (`skins/installed.json` and sha256).
 

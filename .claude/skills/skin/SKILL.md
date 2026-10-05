@@ -26,8 +26,7 @@ game: install from the Windows PC after a push.
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
 | `nohup PY -m tool.swatches > /dev/null 2>&1 &` | Serves the Lab, http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. |
-| `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
-| `PY -m tool.publish` | The skins in the game on the page online (the PC, after an install). |
+| `PY -m tool.skin install <name>` | Paints it, builds the game files, installs them and puts the page online (the PC). |
 | `PY -m tool.skin list` / `PY -m tool.sets <car>` | Every skin / a car's sets of options. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]`, `tile "<words>"`, `keep <slug> <k> <skin> <name>` | The picture maker (the PC): cut-outs or seamless tiles, kept as `skins/<skin>/art/<name>.png` for `s.art("<name>")`. Ask for a few large objects; give each run its own words. |
 | `PY -m tool.textures search "<surface>"`, then `add "<surface>" <Id> --scale <cm>` | A photographed surface (ambientCG, CC0) as a finish. |
@@ -114,8 +113,8 @@ game: install from the Windows PC after a push.
 
 - The car in the Lab, to turn round; no pictures on their screen. Reply in a few sentences: what the car looks
   like and what you checked close up, then one bold question.
-- On their yes: `tool.skin install <name>` on the PC, then `tool.publish`. In the game: Garage → My
-  Skins → pick `<name>`, no restart needed.
+- On their yes: `tool.skin install <name>` on the PC (the page online follows). In the game: Garage →
+  My Skins → pick `<name>`, no restart needed.
 - Screenshots (F12) are in
   `C:\Program Files (x86)\Steam\userdata\53610290\760\remote\2225070\screenshots\`; look only at
   ones taken after the install.

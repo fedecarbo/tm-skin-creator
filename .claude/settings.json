@@ -29,6 +29,29 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Monitor",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" folder 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" folder 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" folder 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" pushed 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" pushed 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" pushed 2>/dev/null || true",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

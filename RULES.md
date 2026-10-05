@@ -63,5 +63,3 @@ game or the code goes into the code (a warning, a check, a docstring).
   published files, the stock textures and the user's screenshots and videos are fair.
 - **Don't pick a tool or library from memory.** Look up its latest release first. Offer a
   one-time-payment option when it's far better; discuss any subscription first.
-- **Don't leave work unpushed.** Commit and push after each finished piece: the other computer only
-  has what's on GitHub.

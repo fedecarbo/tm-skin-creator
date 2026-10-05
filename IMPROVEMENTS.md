@@ -9,14 +9,9 @@ goes into the code.
 The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
 deleted here; `PLAN.md` keeps the why.
 
-- **3. Drawing on the car to say what you mean** (the user, 2026-10-05, after fresh eyes were
-  dropped): "draw on the body to communicate something. Let's say I want a strip of something, maybe
-  I can just draw on the surface where I would it and then the ai just gets the idea. Or maybe I
-  want to circle something". Idea: a pen in the Lab that draws on the car's surface, kept as points
-  on the body (in the measure's cm) and sent with the note; a drawn strip becomes a zone.
-- **4. Rules that are checks**: a hook refuses a shell command naming the game's skin folder (the
-  install command excepted); a hook won't end a session with unpushed work; `skin install`
-  publishes the page online itself.
+- **4. Rules that are checks** (built 2026-10-05, waiting for the user's OK): a hook refuses a
+  shell command naming the game's skin folder; a hook sends Claude back to commit and push before a
+  turn ends; `skin install` puts the page online itself (seen on the PC at the next install).
 - **5. Instructions that can't rot**: the self-test checks that every command and path the
   guidance names exists.
 - **6. Where we are at a cold start**: `tool.notes open` lists every skin's open items; the
