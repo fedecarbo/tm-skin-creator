@@ -29,6 +29,8 @@ it's handled: its pin leaves the car, and the note stays in the timeline, pictur
                                                             question K answered elsewhere (in the chat)
     python -m tool.notes wait [minutes]                     end as soon as a note comes, printing it
                                                             (default 120)
+    python -m tool.notes open                               where every skin stands (the session-start
+                                                            hook prints it after the pull)
 
 Whenever the user gets to pick something, it comes to the timeline as a widget (the user, 2026-10-02:
 "keep the interactivity in the chat, whenever the user gets to pick something. Similar to A2UI"):
@@ -56,6 +58,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import time
@@ -545,7 +548,96 @@ def show_drawn(skin, n):
     print("# shapes.polyline([line, ...], width=<cm>): a strip along them; (-x, y, z): the same on the other side.")
 
 
+def events(record):
+    """A skin's record (notes.md) as its events: each bullet and the lines indented under it, one line each."""
+    out, inside = [], False
+    for raw in record.splitlines():
+        if raw.startswith("- "):
+            out.append(raw[2:].strip())
+            inside = True
+        elif inside and raw.startswith("  "):
+            out[-1] += " " + raw.strip()
+        elif raw.strip():
+            inside = False
+    return out
+
+
+def short(text, most=220):
+    text = " ".join(text.split())
+    return text if len(text) <= most else text[:most].rsplit(" ", 1)[0] + " …"
+
+
+def _changed(skins, name):
+    """The day of the last commit that touched the skin's folder ("" without git)."""
+    try:
+        r = subprocess.run(["git", "-C", str(skins), "log", "-1", "--format=%cs", "--", name],
+                           capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() if r.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def standing():
+    """Where every skin stands, for a session's start on either computer, newest first: the last event
+    in its record, whether it's in the game, and what's open. Open is a record's events that start with
+    `Open` (written when something is left to do, turned to `Closed` once it's done), a set waiting for
+    the user or being painted, and on this computer the Lab's notes not done and questions unanswered.
+    A note not read yet is marked read, as it's printed here in full."""
+    skins = Path(os.environ.get("TSC_SKINS_HOME") or REPO / "skins")
+    sets = [json.loads(p.read_text("utf-8")) for p in sorted(skins.glob("*/sets.json"))]
+    waiting = {d["car"]: [s for s in d["sets"] if s["state"] in ("painting", "open")] for d in sets}
+    options = {o["skin"] for ss in waiting.values() for s in ss for o in s["options"]}
+    installed = json.loads((skins / "installed.json").read_text("utf-8")) if (skins / "installed.json").exists() else {}
+    notes = load()
+    answered = {(x["skin"], x["answer"]["ask"]) for x in notes if (x.get("answer") or {}).get("ask")}
+    lab = {}
+    for x in notes:
+        if x["state"] != "done":
+            lab.setdefault(x["skin"], []).append(line(x)[2:])
+        elif x.get("ask") and not x["ask"]["settled"] and (x["skin"], x["ask"]["n"]) not in answered:
+            lab.setdefault(x["skin"], []).append(f"question {x['ask']['n']} in the Lab, unanswered: \"{short(x['text'], 160)}\"")
+    rows = []
+    for record in skins.glob("*/notes.md"):
+        name = record.parent.name
+        if name in options:
+            continue
+        said = events(record.read_text("utf-8"))
+        day = _changed(skins, name)
+        zip_ = installed.get(f"{name}.zip")
+        head = (f"{name}, {day or 'new'}, " + (f"in the game since {zip_['installed'][:10]}" if zip_ else "not in the game")
+                + (f". Last: {short(said[-1])}" if said else ". No events yet"))
+        todo = ([short(e, 400) for e in said if re.match(r"Open\b", e)]
+                + [f"set {s['n']}, {s['title']}: " + ("for the user to pick" if s["state"] == "open" else "being painted")
+                   + " (" + ", ".join(f"{o['key']} {o['skin']}" for o in s["options"]) + ")" for s in waiting.get(name, [])]
+                + lab.pop(name, []))
+        rows.append((day or "~", head, todo))  # a skin never committed sorts first
+    rows.sort(key=lambda r: r[0], reverse=True)
+    rows += [("", f"{name}, no record", todo) for name, todo in sorted(lab.items())]
+    print("Where each skin stands, newest first (its record's last event; what's open):")
+    for _, head, todo in rows:
+        print(f"- {head}")
+        for t in todo:
+            print(f"  - {t}")
+    if not any(todo for *_, todo in rows):
+        print("Nothing open.")
+    new = {(x["skin"], x["n"]) for x in notes if x["state"] == "new"}
+    if new:
+        with contextlib.suppress(TimeoutError), _locked():
+            fresh = load()
+            for x in fresh:
+                if (x["skin"], x.get("n")) in new and x["state"] == "new":
+                    x["state"] = "sent"
+            save(fresh)
+
+
 def main(args):
+    if args[:1] == ["open"] and len(args) == 1:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # the PC's pipes aren't UTF-8 otherwise
+        try:
+            standing()
+        except Exception as e:  # the session starts anyway
+            print(f"(Where the skins stand couldn't be read: {e})")
+        return
     if args[:1] == ["--hook"]:
         try:
             hook()

@@ -122,8 +122,10 @@ game: install from the Windows PC after a push.
 ## The record and the improvement list
 
 - `skins/<name>/notes.md`: the user's words verbatim, the date and the model, how you read them,
-  then a line per event (`Shown`, `Change <n> (user): "…"`, `Installed`). A cold session must be able
-  to pick up the skin from it and `design.py`.
+  then a line per event (`Shown`, `Change <n> (user): "…"`, `Installed`, and `Open (…): …` for
+  anything left to do, its first word turned to `Closed` once it's done). A cold session must be
+  able to pick up the skin from it and `design.py`: each session starts with every record's last
+  line and its open items (`PY -m tool.notes open`).
 - `IMPROVEMENTS.md` is the queue of what the tool should do better. During a skin fix only what
   the skin needs; put anything else on the list in two or three lines and tell the user in one.
   Work on the list when they ask; a finished item is deleted.

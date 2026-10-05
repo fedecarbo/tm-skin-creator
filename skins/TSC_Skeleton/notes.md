@@ -58,7 +58,7 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
 - The user asked for a tool to place the line themselves from the side: built, the Lab's levels room
   (lab.html?room=levels, tool/levels.py, car/levels.json): drag points on a side view, the line on the
   3D car follows live, "Show it on the car" paints it (14 s). Starts from the top's edge above.
-- Open (user, 2026-10-04, end of session): "I realised the car is not simmetrical. Is that a car issue
+- Closed further down, "I think it's fine" (user, 2026-10-04, end of session): "I realised the car is not simmetrical. Is that a car issue
   or actually the tool is not making things simmetrial." Measured: the body model is symmetric (98% of
   its points sit on their mirror image, 0.00 cm); only a small one-sided feature on top, z -80 to -40,
   y 63 to 65 (probably the fuel cap). So what looks lopsided comes from the tool or the viewer: next

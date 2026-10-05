@@ -26,7 +26,7 @@ first.
   self-test), the machinery's commands, the game's texture format.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
   picture maker) and the Mac (designing, the viewer, snapshots). A hook pulls at the start of each
-  session: if it failed, sort that out first.
+  session (if it failed, sort that out first), then prints where each skin stands and what's open.
 - `tool/`: the Python machinery. `viewer/`: the 3D page and the Lab. `car/parts.json`: every part's
   name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool put in the game.
 - `PY` is the tool's Python, run from the repo root: on the PC
