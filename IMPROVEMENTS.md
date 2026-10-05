@@ -12,10 +12,6 @@ and checked by the self-test; ideas are named in plain words.
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 8 of 8 today).
 
-- **A. The checks name the flaws before the user does** (2026-10-05): built, waiting for the user's
-  OK. `tool/checks.py`, run by `show`: 8 of the record's 8 (2 before). Shown on the test car
-  Look_Checks, four faults planted and named in the Lab's chat: on the OK, delete `skins/Look_Checks`.
-  Not seen yet: the checks on the PC (its car map reads a little differently).
 - **B. Words and placards that fit** (2026-10-05): the body's flat rooms measured once into a file in
   `car/`; `s.text` sized to the room and refusing with a note; a placard call that finds the flattest
   patch near a point or a pen stroke and faces the words outward; upside-down and fold findings. Shown
@@ -42,7 +38,8 @@ by `PY -m tool.record` (how many of the user's recorded flaws the tool names fir
 
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
-  now; the readings are to be checked against them (`tool/carmap.py`, `car/map.md`).
+  now; the readings are to be checked against them (`tool/carmap.py`, `car/map.md`). The checks
+  (`tool/checks.py`) read the map too and haven't run on the PC yet.
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.
