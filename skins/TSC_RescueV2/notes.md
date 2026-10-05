@@ -72,3 +72,14 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   panels meet, none on an opening's edge, the game's number and name panels or the nose fin's plate:
   104 in all. Tried first: bolts round every edge loop (266, clumped at corners, some cut by a seam,
   some on lines inside a panel), then only along seams but set down the side box top's lip.
+- Change 9 (user, 2026-10-05): "The bolts are just terrible.  And also they are so uniformed.  Also, why
+  are you considering the number and initials bounday as a piece.  Also they should just blend in with
+  the orange as it's part of it.  They all just look like they are all over the place"; and yes to
+  Claude's idea (note 9): NO STEP as a small placard. The bolts now go only at each panel's corners
+  (where its outline turns 35 degrees or more) and along a run between corners longer than 45 cm, about
+  every 35 cm: 46 in all. None by the number panel or the engine cover panels (the game letters them:
+  not pieces), none within 3 cm of the car's own fasteners (the inner car's small pieces on the paint:
+  the rings round the cockpit, by the nose fin, by the fuel cap). Each head is the paint it sits on: a
+  fine ring (1 cm across, 1.4 mm wide) and a hex socket in that paint at 45 % of its light, satin, like
+  the car's own fasteners. NO STEP has a thin black box round it (2 mm, 5 mm out), the placard set on
+  the paint where the deck curves away.
