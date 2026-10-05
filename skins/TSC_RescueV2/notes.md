@@ -94,3 +94,8 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   maybe". The arrow ran from the deck's placard forward to beside the panel seam, past the car's own
   fastener; the deck's placard moved there on both sides (along the course at z -70, 2 cm from the
   arrow's tip), clear of the fuel cap on the left. The side box's placards stay.
+- The user, 2026-10-05: "looks good" (the deck's placard where the arrow pointed, facing outwards).
+- Set 1 (user, note 11 on the right rear quarter panel, 2026-10-05): "What can we do here in this piece?"
+  Three takes on both rear quarter panels: A gloss black (like the lower edge), B silver reflective
+  tape (like the checks and chevrons), C silver hazard stripes at the tail chevrons' slant. Open in the
+  Lab.

@@ -1,0 +1,32 @@
+{
+ "car": "TSC_RescueV2",
+ "sets": [
+  {
+   "n": 1,
+   "title": "Rear quarter panel · 3 ideas",
+   "words": "What can we do here in this piece?",
+   "made": "2026-10-05T16:28:56",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Black",
+     "skin": "TSC_RescueV2_Black"
+    },
+    {
+     "key": "B",
+     "title": "Silver",
+     "skin": "TSC_RescueV2_Silver"
+    },
+    {
+     "key": "C",
+     "title": "Hazard",
+     "skin": "TSC_RescueV2_Hazard"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
+  }
+ ]
+}
