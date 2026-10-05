@@ -546,3 +546,13 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   (Look_TopLine2c): the second line follows the shoulder down and runs into the first line by z 203
   (its gap closing from 1.5 cm at z 190), so the two go round the tip as one; its paint stops at its end.
   Question 9 settled; asked B or C in the Lab (question 10).
+- The user: "I meanti as in both lines meeting the black line so they all meet at the nose". Measured:
+  the nose's middle stands 7.7 cm above the black line at z 180, 3.4 at z 200, 0.7 at its front (z
+  210.8); the first line's shading line already runs at about a third of that near the tip, the
+  shoulder (the second line) at about two thirds. Fourth trial (Look_TopLinesMeet), both lines: along
+  the nose the first line's shading line (31 degrees) and twice it, as before; from z 185 to 200 handing
+  over to a third and two thirds of the nose's own height above the black line, which brings both down
+  into the black line at the front of the tip (z 210.7, the middle); the first line no longer keeps
+  2 cm off it. Eased in from z 144 (within 0.01 cm of the lines as they were). Checked from the low
+  side, the tip close from the front quarter, from above and straight on, the nose high, the front
+  three-quarter. Question 10 settled; shown in the Lab.
