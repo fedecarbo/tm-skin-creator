@@ -168,5 +168,28 @@ def scatter(skin, image, where="body", size=8, spacing=None, turn="random", fini
                     centres.append(cen)
                     centre_kinds.append(kind)
                     filled += 1
+        if skin.measure and tset == "Skin" and centres:
+            skin.scattered.append({"op": skin._op, "spacing": spacing, **_spread(pos, covered, np.asarray(centres), spacing)})
     skin.notes.append(f"scatter on {where}: {placed} copies placed ({filled} of them smaller ones filling bare patches), "
                       f"{skipped} spots left bare for crossing a fold or an edge ({time.time() - t0:.0f} s)")
+
+
+def _spread(pos, covered, centres, spacing):
+    """How evenly the copies lie, for tool/checks.py: `uneven`, the spread of each copy's distance to
+    its nearest neighbour over their mean; `bare`, the share of the surface further than 0.75
+    spacings from every copy (the middle of a gap 1.5 spacings wide), and where along the car (z).
+    With its own dice: the scatter's stay as they were."""
+    out = {"uneven": 0.0, "bare": 0.0, "z": None}
+    if len(centres) >= 8:
+        d = cKDTree(centres).query(centres, k=2)[0][:, 1]
+        out["uneven"] = float(d.std() / d.mean())
+    on = np.flatnonzero(covered)
+    if len(on):
+        dice = np.random.default_rng(0)
+        sample = pos[dice.choice(len(pos), min(len(pos), 60_000), replace=False)]
+        d, _ = cKDTree(pos[dice.choice(on, min(len(on), 120_000), replace=False)]).query(sample, workers=-1)
+        bare = sample[d > 0.75 * spacing]
+        out["bare"] = len(bare) / len(sample)
+        if len(bare):
+            out["z"] = [round(float(bare[:, 2].max()), 1), round(float(bare[:, 2].min()), 1)]
+    return out

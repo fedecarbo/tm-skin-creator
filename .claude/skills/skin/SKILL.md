@@ -21,7 +21,7 @@ game: install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints, and its measures: where each zoned paint on the body stops short of the car or leaves a gap, in cm, and why. |
+| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints, its measures (how far each zoned paint on the body reaches) and what its checks name: a paint that stops short or leaves a gap, a graphic cut by an edge, on two pieces or over another, anything by the game's panels, a soft edge; and how much of each graphic the driving camera sees. |
 | `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
@@ -57,9 +57,9 @@ game: install from the Windows PC after a push.
   `s.tyre_tread("TR-..")`.
 - **Shared paint.** Most inner parts share their paint with their twin on the other side, and some
   with other parts. `show` names every part a colour also lands on: read it.
-- **Keep clear** of the number panel (x ±19, z -78 to -62) and the engine cover panel (x ±19,
-  z -120 to -82), where the game letters the player's number and name, and the nose fin's plate
-  (x ±8, z 118 to 142).
+- **Keep clear** of the number panel and the engine cover panel on the deck, where the game letters
+  the player's number and name, and of the nose fin's plate: they aren't pieces. `show` names
+  anything on them or round them.
 - **Pictures** go on the flat spots (`SPOTS` in `tool/paintbox.py`): the rear flanks and the bonnet;
   the front flank's top strip takes lettering only. `show` reports a decal that crosses a fold.
   Objects: `s.scatter` (whole copies). A continuous texture: a tile through `s.print`.
@@ -101,8 +101,8 @@ game: install from the Windows PC after a push.
 
 ## Before showing
 
-1. Fix what show's measures say STOPS SHORT or GAP, and what its notes say will look cut, then look
-   at the six views. For a set's takes, that's enough.
+1. Fix what show's checks name, or know why it's meant, then look at the six views. For a set's
+   takes, that's enough.
 2. A design shown alone, or a pick: `tool.snap <name> --close`, and look where graphics meet a
    join, fold, hole or edge: nothing cut, sunk, stretched or soft.
 3. The whole car: every visible part serves the idea, the lights at night (none left in a stock

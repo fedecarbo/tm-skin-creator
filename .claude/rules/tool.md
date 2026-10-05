@@ -43,7 +43,8 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks
   them; the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
   (the picture maker's 16 GB of weights).
-- A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/build.py` puts it in the
+- A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/checks.py` names what's
+  wrong on it (`PY -m tool.checks <name>`; its docstring is the key), `tool/build.py` puts it in the
   viewer and builds the zip (`PY -m tool.build <name>`: a trial build of the last show's zip, to
   see its size), `tool/install.py` puts it in the game (`PY -m tool.install <name> ...` installs
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in

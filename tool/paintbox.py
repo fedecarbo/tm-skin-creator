@@ -74,6 +74,9 @@ SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside":
 # a wheel but the tyre: the covers (Skin) and the rims, hubs and wheel rings (Details).
 WHEEL_COVER_PARTS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "brake light", "wheel ring")
+# the words that name a group of parts, not a part: paint on one that runs over a part painted by
+# name is said (tool/checks.py)
+GROUP_WORDS = frozenset(("everything", "body", "wheels", "wheel", "wheel covers", "wheel cover", *SET_WORDS))
 # the lights a skin can recolour, in plain words (the lights test, 2026-09-25), for relight()
 LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display", "speedometer": "digit display",
                "digits": "digit display", "brake lights": "brake light", "rear lights": "rear light",
@@ -130,6 +133,7 @@ class Canvas:
         self.touched = np.zeros(n, bool)
         self.clay = None  # texels still in the Studio's clay (Skin.clay), None when it wasn't used
         self.owner = None  # the call that covered each texel last (Skin.ops; -1 the stock), while Skin.measure
+        self.named = None  # the last call that painted each texel's part whole, by its name (-1 none), while Skin.measure
         self.op = -1  # the call painting now
         self.glow_rgb = self.glow_code = None
         self.glow_touched = False
@@ -266,7 +270,11 @@ class Skin:
         self._final = None  # the finished textures, built once when the design is done (end_steps)
         self.measure = False  # skin.show sets it: keep what tool/measure.py reads (the calls, who covered what)
         self.ops = []  # every call that laid paint: {what, step}
-        self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, idx (the texels it covers)}
+        self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, group (where names a group
+        # of parts), idx (the texels it covers), under (the call each of them showed before)}
+        self.pictures = []  # each picture laid on the body, while measuring: {op, step, what, idx, under, pixels (per cm)}
+        self.scattered = []  # each scatter on the body, while measuring (tool/scatter.py)
+        self.findings = []  # what's wrong on the car, as the paint itself knows it (tool/checks.py adds the rest)
         self._op, self._op_open = -1, False
 
     # ---- steps: the Lab draws the car at the end of each ----
@@ -378,6 +386,7 @@ class Skin:
             self.canvases[tset] = Canvas(tset, w, h)
             if self.measure and tset == "Skin":
                 self.canvases[tset].owner = np.full(w * h, -1, np.int16)
+                self.canvases[tset].named = np.full(w * h, -1, np.int16)
         c = self.canvases[tset]
         c.op = self._op
         return c
@@ -519,7 +528,8 @@ class Skin:
                 raise ValueError(f"{what!r}: no colour given and the finish {fin.name!r} has none of its own")
         return np.asarray(col, np.float32), fin, leftover
 
-    @_op(lambda where, what=None, colour=None, finish=None, *a, **k: f"{what or finish or colour} on {_where(where)}")
+    @_op(lambda where, what=None, colour=None, finish=None, *a, **k:
+         f"{' '.join(x for x in (what or finish, colour) if isinstance(x, str)) or 'paint'} on {_where(where)}")
     def paint(self, where, what=None, colour=None, finish=None, zone=None, blend=1.0, **params):
         """Paint parts with a colour and a finish. `what` is a phrase; `colour` and `finish`
         override it. `zone` limits it (tool/shapes.py); leftover words that name a region
@@ -551,9 +561,15 @@ class Skin:
             if not len(idx):
                 continue
             m = m * blend
-            if self.measure and tset == "Skin" and zone is not None:
-                self.zoned.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
-                                   "where": where, "zone": zone, "ids": ids, "idx": idx[m > 0.5]})
+            if self.measure and tset == "Skin":
+                on = idx[m > 0.5]
+                group = all(n.strip().lower() in GROUP_WORDS for n in ([where] if isinstance(where, str) else where))
+                if zone is not None:
+                    self.zoned.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
+                                       "where": where, "zone": zone, "ids": ids, "group": group, "idx": on,
+                                       "under": c.owner[on].copy()})
+                elif not group:
+                    c.named[on] = self._op
             extra = {}
             if fin.look:
                 # flat patterns on the body are drawn in the car's own unfolding (tool/uvmap.py),
@@ -856,6 +872,14 @@ class Skin:
         textures.add_file(name, self.art(picture or name), scale, about=f"{self.name}'s print {name}", wrap=wrap)
         return self
 
+    def _found(self, kind, text, c=None, texels=None, check="picture"):
+        """Something wrong on the car (tool/checks.py; kind is one of tool/record.py's KINDS): what, and
+        the stretch along the car it's on, front to back in cm, from the texels it's about."""
+        z = c.pos[texels, 2] if c is not None and texels is not None and len(texels) else None
+        self.findings.append({"check": check, "kind": kind, "text": text,
+                              "z": None if z is None else [round(float(z.max()), 1), round(float(z.min()), 1)],
+                              "step": self.steps[-1]["name"] if self.steps else None})
+
     def _spot(self, where, at=None):
         if isinstance(where, dict):
             spec = dict(where)
@@ -881,19 +905,23 @@ class Skin:
         # onto the nearest surface only: the decal crosses every panel in its footprint (a
         # sticker over a panel gap, as on a real car) and never reaches the far side
         alpha, info = paint.project_near(b, arr[..., 3], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)
-        if info["landed"] < 0.97:
-            self.notes.append(f"decal at {where}: {info['landed']:.0%} of the picture landed on the car; the rest falls in a gap or off an edge")
-        if info["step_cm"] > 4:
-            self.notes.append(f"decal at {where}: the surface under the picture has a fold or step of {info['step_cm']:.0f} cm; "
-                              "it will look cut there. Try a smaller picture or another spot")
         flat = alpha.reshape(-1)
         idx = np.flatnonzero(flat > 0.002)
+        if info["landed"] < 0.97:
+            self._found("cut", f"decal at {where}: {info['landed']:.0%} of the picture landed on the car; the rest falls in a gap or off an edge", c, idx)
+        if info["step_cm"] > 4:
+            self._found("fold", f"decal at {where}: the surface under the picture has a fold or step of {info['step_cm']:.0f} cm; "
+                        "it will look cut there. Try a smaller picture or another spot", c, idx)
         if not len(idx):
             self.notes.append(f"decal at {where}: nothing landed on the car")
             return self
         m = flat[idx]
         if zone is not None:
             m = m * zone(c.pos[idx], c.nrm[idx])
+        if self.measure:
+            on = idx[m > 0.5]
+            self.pictures.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
+                                  "idx": on, "under": c.owner[on].copy(), "pixels": image.width / width})
         fin = finishes.get(finish) if isinstance(finish, str) else finish
         if rgb is not None:
             col = np.broadcast_to(np.asarray(colours.get(rgb), np.float32), (len(idx), 3))
@@ -948,12 +976,13 @@ class Skin:
             out |= c.textures()
         return out
 
-    def summary(self):
+    def summary(self, found=True):
         """What was painted and the notes, for Claude: the parts whose paint lands on the same others
-        (a small patch serves many inner parts) named together, once."""
+        (a small patch serves many inner parts) named together, once. found: the paint's own findings
+        too (a picture over a fold), where no check follows to say them."""
         lines = [f"{self.name}: {', '.join(sorted(self.textures()))}"]
         shared, said = {}, []
-        for n in dict.fromkeys(self.notes):
+        for n in dict.fromkeys(self.notes + [f["text"] for f in self.findings if found]):
             name, sep, tail = n.partition(": its paint also lands on ")
             if sep:
                 if tail not in shared:

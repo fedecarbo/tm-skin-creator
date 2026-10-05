@@ -2,6 +2,8 @@
 
     python -m tool.pieces          the table (and car/pieces.json)
 
+`labels` gives each triangle's piece, for the checks (tool/checks.py: a graphic on two pieces).
+
 A piece is a run of the welded body's triangles joined across shared edges (carmap._weld, the
 wheel covers left out). For each: its parts, area, boundary length, the nearest other piece and
 the gap to it (the smallest distance between its boundary vertices and the other's boundary
@@ -20,6 +22,21 @@ from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
 from tool import carmap, paths
+
+
+def labels():
+    """The piece each of the welded body's triangles is in (Skin_01's order, the wheel covers too)."""
+    m = carmap.load()
+    F, n = m.F, len(m.V)
+    e = np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
+    e.sort(1)
+    _, inv, cnt = np.unique(e[:, 0].astype(np.int64) * n + e[:, 1], return_inverse=True, return_counts=True)
+    tid = np.tile(np.arange(len(F)), 3)
+    order = np.argsort(inv, kind="stable")
+    two = np.flatnonzero(cnt == 2)
+    starts = np.r_[0, np.cumsum(cnt)][two]
+    A = coo_matrix((np.ones(len(two)), (tid[order[starts]], tid[order[starts + 1]])), shape=(len(F), len(F)))
+    return connected_components(A, directed=False)[1]
 
 
 def survey():

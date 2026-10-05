@@ -5,9 +5,10 @@
     python -m tool.skin install <name>         paint it, build the zip, install it (the PC)
     python -m tool.skin list                   every skin, newest first
 
-show also measures how far each zoned paint reaches on the body, and where it stops short of the
-car's own surface (tool/measure.py), printed after the paint's notes and kept in
-build/<name>/measured.json.
+show also measures how far each zoned paint reaches on the body (tool/measure.py, kept in
+build/<name>/measured.json) and names what's wrong on the car before anyone looks (tool/checks.py:
+a paint that stops short, a graphic cut, spilled or over another, paint by the game's panels, a soft
+edge), printed after the paint's notes and kept in build/<name>/found.json.
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
@@ -26,7 +27,7 @@ import os
 import sys
 import time
 
-from tool import build, gallery, install, measure, paintbox, paths, progress, snap, view
+from tool import build, checks, gallery, install, measure, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -95,7 +96,7 @@ def paint(name, frames=False):
     load_design(name)(s)
     s.end_steps()
     print(f"painted in {time.time() - t0:.0f} s")
-    print(s.summary())
+    print(s.summary(found=not frames))  # show's checks say the paint's own findings with the rest
     return s
 
 
@@ -111,6 +112,16 @@ def show(name, open_browser=False, snapshot=True):
             lines = measure.words(found)
             print(f"measured in {time.time() - t0:.1f} s" + (":" if lines else ": nothing zoned on the body"))
             print("\n".join(f"  {line}" for line in lines))
+            t0 = time.time()
+            progress.stage("Checking the car")
+            found, seen = checks.run(s, found)
+            checks.save(name, found, seen)
+            lines = checks.words(found, seen)
+            print(f"checked in {time.time() - t0:.1f} s: " + (f"the checks name {len(found)}" if found else "the checks name nothing"))
+            print("\n".join(f"  {line}" for line in lines))
+            if found:  # the Lab's chat says it under the job
+                progress.result(f"{'Painted and photographed' if snapshot else 'Painted'}; the checks name {len(found)} "
+                                f"thing{'s' if len(found) > 1 else ''} to look at")
             t0 = time.time()
             progress.stage("Putting it on the car")
             build.export_to_viewer(s)

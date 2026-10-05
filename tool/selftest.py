@@ -12,8 +12,9 @@ the instructions give still exists (tool/instructions.py, the working tree's). E
 in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
 `git archive` into the work folder (never the repo: the PC's is in OneDrive). Per texture it compares
 the painted floats, the uint8 image the viewer and install take, and the whole DDS file the game
-reads; per skin, the notes, the lines drawn, the palette, the steps and the parts left in clay. A
-difference is shown texel by texel, by painting that skin again on both sides.
+reads; per skin, the notes and the paint's own findings (in any order), the lines drawn, the
+palette, the steps and the parts left in clay. A difference is shown texel by texel, by painting
+that skin again on both sides.
 
 A commit's results are kept in the work folder (selftest/<commit>/), so each side is paid for once
 per computer: a minute or two a skin. The working tree's are painted afresh
@@ -142,6 +143,7 @@ record = {"drawn": s.drawn, "palette": s.palette, "icon": s.icon_colours,
           "steps": [{"name": st["name"], "paints": st.get("paints", [])} for st in s.steps],
           "clay": s.clay_left}
 notes = [re.sub(r"\(\d+ s\)", "(… s)", n) for n in s.notes]  # how long a step took isn't the paint
+notes += [f["text"] for f in getattr(s, "findings", ())]  # what the paint itself knows is wrong
 json.dump({"textures": textures, "record": sha(json.dumps(record, sort_keys=True, default=str).encode()),
            "notes": notes, "seconds": {"paint": round(painted, 1), "encode": round(time.time() - t, 1),
                                        "total": round(time.time() - t0, 1)}}, open(out, "w"), indent=1)
@@ -220,7 +222,7 @@ def same(a, b):
         if bad:
             textures.append(f"{t}: {', '.join(bad)} differ")
     other = []
-    if a["notes"] != b["notes"]:
+    if sorted(a["notes"]) != sorted(b["notes"]):
         gone = [f"- {n}" for n in a["notes"] if n not in b["notes"]]
         new = [f"+ {n}" for n in b["notes"] if n not in a["notes"]]
         other.append("notes differ:\n      " + "\n      ".join(gone + new))

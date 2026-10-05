@@ -1,4 +1,4 @@
-"""The tool measured against the record (the plan's step 7, PLAN.md): of the flaws the user pointed
+"""The tool measured against the record: of the flaws the user pointed
 out on a car they were shown, how many do the tool's own checks name on that car before they would?
 For a change to a check: the score before and after it says whether cars get better before the user
 sees them. On demand only.
@@ -15,10 +15,10 @@ its skin, when it isn't the record's), or `why` it can't be painted again (the t
 itself, the car was never committed).
 
 Each flaw with a `before` is painted again: that commit's skins with this code (the working tree's
-tool, car and viewer, copied into the work folder), in a fresh process, and its checks run: the
-measures (tool/measure.py: STOPS SHORT, GAP) and the paint box's notes on pictures (FOLD, CUT). A
-check catches a flaw when it names the same kind where the flaw was (their stretches along the car
-within SLACK cm), or anywhere on the car for a flaw with no place. What else the checks name on those
+tool, car and viewer, copied into the work folder), in a fresh process, and its checks run
+(tool/checks.py: the paint's own findings, the measures' and the checks'). A check catches a flaw
+when it names the same kind where the flaw was (their stretches along the car within SLACK cm), or
+anywhere on the car for a flaw with no place. What else the checks name on those
 cars is said too: warnings the user never raised. The last run's score is kept in the work folder,
 so the next says what it was.
 """
@@ -53,44 +53,17 @@ KINDS = {
     "edge": "an edge soft, pixelated or outlined",
     "spread": "a pattern spread unevenly",
 }
-CHECKS = {"measure": "the measure", "picture": "the pictures' check"}
-
-# What runs in the fresh process, from the copied tree: the car painted, its checks as findings.
+# What runs in the fresh process, from the copied tree: the car painted, what its checks name.
 CHILD = r'''
-import json, re, sys
-from tool import measure, paintbox, skin
+import json, sys
+from tool import checks, paintbox, skin
 name, out = sys.argv[1], sys.argv[2]
 with skin.paint_slot():
     s = paintbox.Skin(name)
     s.measure = True
     skin.load_design(name)(s)
     s.end_steps()
-found = []
-for m in measure.measure(s):
-    for side, r in m["sides"].items():
-        if not r:
-            continue
-        for end, e in r["ends"].items():
-            x = e.get("across")
-            if x and not x["as_written"]:
-                found.append({"check": "measure", "kind": "short", "z": [x["from"], x["to"]], "side": side,
-                              "text": f"{m['step']}: {m['what']}, {end} end, bare past an opening"})
-            if e["short"] >= measure.SHORT and not e["as_written"]:
-                found.append({"check": "measure", "kind": "short", "z": [r[end], e["body"]], "side": side,
-                              "text": f"{m['step']}: {m['what']}, {end} end {e['short']:.0f} cm short"})
-        for g in r["gaps"]:
-            if not g["as_written"]:
-                found.append({"check": "measure", "kind": "gap", "z": [g["from"], g["to"]], "side": side,
-                              "text": f"{m['step']}: {m['what']}, a gap of {g['from'] - g['to']:.0f} cm"})
-for note in s.notes:
-    for pattern, kind in ((r"decal at (.+?): the surface under the picture has a fold", "fold"),
-                          (r"decal at (.+?): \d+% of the picture landed", "cut")):
-        hit = re.match(pattern, note)
-        spot = paintbox.SPOTS.get(hit.group(1).strip().lower()) if hit else None
-        if hit:
-            z = [spot["centre"][2] + spot["width"] / 2, spot["centre"][2] - spot["width"] / 2] if spot else None
-            found.append({"check": "picture", "kind": kind, "z": z, "text": note})
-json.dump(found, open(out, "w"))
+json.dump(checks.run(s)[0], open(out, "w"))
 '''
 
 
@@ -164,7 +137,7 @@ def paint(flaw, tree):
         r = subprocess.run([sys.executable, "-B", "-c", CHILD, skin, str(out)], cwd=tree, stdout=f, stderr=subprocess.STDOUT)
     if r.returncode:
         return {"error": (log.read_text(errors="replace").strip().splitlines() or ["(no output)"])[-1]}
-    return list({(x["check"], x["text"]): x for x in json.loads(out.read_text())}.values())  # a side's twin once
+    return json.loads(out.read_text())
 
 
 def meets(flaw, finding):
@@ -213,7 +186,7 @@ def score():
         if isinstance(found, dict):
             lines.append(f"  NOT PAINTED  {seen}: {found['error']}")
             continue
-        by = ", ".join(sorted({CHECKS[h['check']] for h in hits}))
+        by = ", ".join(sorted({h['check'] for h in hits}))
         lines.append(f"  {'caught' if hits else 'missed'} {f['kind']:<6} {seen}: {f['what']}" + (f" ({by})" if hits else ""))
         for h in hits:
             lines.append(f"      {h['text']}")
@@ -224,12 +197,13 @@ def score():
     head = git("rev-parse", "--short=10", "HEAD").strip() + ("+changes" if git("status", "--porcelain", "--", "tool", "car").strip() else "")
     print(f"\nThis code ({head}) names {len(caught)} of the {len(paintable)} before the user did"
           + (f" (was {len(was['caught'])} of {was['of']}, {was['when']}, at {was['at']})." if was else "."))
-    by_check = {c: sum(1 for _, _, _, hits in rows if any(h["check"] == c for h in hits)) for c in CHECKS}
-    print("  by check: " + ", ".join(f"{CHECKS[c]} {n}" for c, n in by_check.items()))
+    by_check = {c: sum(1 for _, _, _, hits in rows if any(h["check"] == c for h in hits))
+                for c in sorted({h["check"] for _, _, _, hits in rows for h in hits})}
+    print("  by check: " + ", ".join(f"{c} {n}" for c, n in by_check.items()))
     print("\n".join(lines))
     print(f"\n{len(others)} other warnings on those cars, which the user never raised:")
     for car, x in others:
-        print(f"  {car[1]} ({car[0][:7]}): {x['text']}")
+        print(f"  {car[1]} ({car[0][:7]}): {x['kind']}: {x['text']}")
     rest = [f for f in flaws if not f.get("before")]
     whys = {}
     for f in rest:

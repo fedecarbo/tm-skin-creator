@@ -10,13 +10,12 @@ and checked by the self-test; ideas are named in plain words.
 ## Next: intent to result
 
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
-by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 2 of 8 today).
+by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 8 of 8 today).
 
-- **A. The checks name the flaws before the user does** (2026-10-05): over (paint landing on a part an
-  earlier step painted by name), spill (a graphic on two pieces), cut (a graphic stopped by an edge, an
-  opening or a fold), clear (the game's number and name panels), touching, soft or pixelated edges,
-  uneven scatter: findings in `show`'s notes and in the Lab, read by `tool/record.py` in place of its
-  note patterns. Expected: 7 or 8 of 8. Shown on a test car with planted faults, deleted after.
+- **A. The checks name the flaws before the user does** (2026-10-05): built, waiting for the user's
+  OK. `tool/checks.py`, run by `show`: 8 of the record's 8 (2 before). Shown on the test car
+  Look_Checks, four faults planted and named in the Lab's chat: on the OK, delete `skins/Look_Checks`.
+  Not seen yet: the checks on the PC (its car map reads a little differently).
 - **B. Words and placards that fit** (2026-10-05): the body's flat rooms measured once into a file in
   `car/`; `s.text` sized to the room and refusing with a note; a placard call that finds the flattest
   patch near a point or a pen stroke and faces the words outward; upside-down and fold findings. Shown
@@ -24,7 +23,9 @@ by `PY -m tool.record` (how many of the user's recorded flaws the tool names fir
 - **C. The geometry hoisted** (2026-10-05): a course along a guide, a level, a seam, a panel's edge or a
   pen stroke, with strips, dashes and spots along it; panel outlines from the mesh, cached in `car/`;
   stripes, checks, a part and an inset as zones in `tool/shapes.py`; a level's offset, split and
-  "where" in `tool/levels.py`. TSC_RescueV2 rewritten in about 45 lines as the proof (290 today). Shown:
+  "where" in `tool/levels.py`; a zone's edge feathered along the surface, so a height or a shape drawn
+  from above stays crisp where the body slopes (the checks name TSC_Snow's lower edge, 0.7 cm soft, and
+  TSC_RescueV2's hazard stripes, 0.5). TSC_RescueV2 rewritten in about 45 lines as the proof (290 today). Shown:
   a marking along the user's stroke in one show.
 - **D. Lines drawn in the flat texture** (2026-10-05): a course mapped to the texture, one smooth
   spline per UV island, mirrored (how Peach's artist drew). TSC_Skeleton repainted beside today's for

@@ -1,5 +1,5 @@
-"""How far each zoned paint on the body really reaches, measured on the car before anyone looks
-(the plan's step 1, PLAN.md: shortfalls measured, not seen). The user, 2026-10-02: "if the
+"""How far each zoned paint on the body really reaches, measured on the car before anyone looks.
+The user, 2026-10-02: "if the
 intention is to do X, then you receive X"; a line meant to run to the back "didn't cover the rear,
 as in the farthest back of the side of the car".
 
@@ -292,6 +292,28 @@ def words(measures):
         for side in sides:
             lines += [f"  {side}: {x}" for x in said[side] if x not in both]
     return lines
+
+
+def findings(measures):
+    """What the measures say is wrong, as tool/checks.py's findings: an end that stops short, a gap."""
+    found = []
+    for m in measures:
+        for side, r in m["sides"].items():
+            if not r:
+                continue
+            said = {"check": "measure", "side": side, "step": m["step"]}
+            for end, e in r["ends"].items():
+                x = e.get("across")
+                if x and not x["as_written"]:
+                    found.append({**said, "kind": "short", "z": [x["from"], x["to"]],
+                                  "text": f"{m['step']}: {m['what']}, {end} end, bare past an opening"})
+                if e["short"] >= SHORT and not e["as_written"]:
+                    found.append({**said, "kind": "short", "z": [r[end], e["body"]],
+                                  "text": f"{m['step']}: {m['what']}, {end} end {e['short']:.0f} cm short"})
+            found += [{**said, "kind": "gap", "z": [g["from"], g["to"]],
+                       "text": f"{m['step']}: {m['what']}, a gap of {g['from'] - g['to']:.0f} cm"}
+                      for g in r["gaps"] if not g["as_written"]]
+    return found
 
 
 def save(name, measures):
