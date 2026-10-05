@@ -46,3 +46,11 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   start at the body's front edge (z 72) with no sliver. RESCUE is off (it crossed a fold the paint box
   had warned of, 6 cm off flat), and so are the bonnet's badge and the rear flanks' snowflakes, the
   same kind of icon. No words on a car unless the user asks (RULES.md).
+- Change 6 (user, notes 3 and 4, drawn on the car with the Lab's new pen, 2026-10-05, Claude Opus 5.5):
+  "paint this dark" (a ring round the fuel cap) and "Do an interval lines with DO NOT STEP text." (a line
+  along the deck's left edge, from z -128 to -50). The fuel cap is satin black. The drawn line ran along
+  the top's first guide line (on the rear flank's seam) to within about a centimetre, so the marking
+  follows that guide between the user's two ends: black dashes 1 cm wide, about 5 cm long with 3 cm
+  gaps, a whole dash at each end, and DO NOT STEP (Teko, 2.6 cm capitals, black) twice on the deck side
+  of it, the fuel cap between the two, reading along it and upright to someone standing at that side.
+  Both sides, the right mirroring the left. Close looks: whole on both sides, clear of the cap.

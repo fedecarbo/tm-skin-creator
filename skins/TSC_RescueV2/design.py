@@ -1,6 +1,7 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
-curve, rising with the tail; silver chevrons on the tail's deck; studded snow tyres; amber rear lights."""
+curve, rising with the tail; silver chevrons on the tail's deck; a black fuel cap and a dashed
+DO NOT STEP line along each side of the deck; studded snow tyres; amber rear lights."""
 import numpy as np
 
 from tool import levels, shapes
@@ -9,6 +10,11 @@ WORDS = "based on what you know can you design a skin or use the Rescue as a v2,
 ORANGE, AMBER = "#ff5a0f", "#ffb000"
 CHECK = 15.0      # cm: a check's length along the car, twice a row's height
 CHECK_FROM = 72.0  # z: a check's edge at the band's front, the body's edge there (z 69.8 to 72.2)
+NOTES = ("paint this dark (note 3, a ring round the fuel cap); Do an interval lines with DO NOT STEP text. "
+         "(note 4, a line along the deck's left edge)")
+STEP_ENDS = (-128.0, -50.0)  # z: the walkway line's ends, where the user drew it (note 4)
+DASH, GAP, LINE = 5.0, 3.0, 1.0  # cm: a dash, the gap after it, the line's width
+WORDS_H = 2.6  # cm: DO NOT STEP's capitals
 
 
 def _checks(lower=False):
@@ -67,6 +73,64 @@ def _chevrons(width=4.0, slope=0.75, z0=-152.0, z1=-132.0):
     return shapes.field(d) & shapes.band(z0, z1)
 
 
+def _walkway():
+    """The top's first guide line (tool/levels.py: on the rear flank's seam at the back), the left half,
+    between STEP_ENDS, every 0.25 cm: its points, the length along it from the back end, and its
+    direction (forward). It's the line the user drew along, to within a centimetre."""
+    P = np.asarray(next(L["path"] for L in levels.top_lines() if L["name"] == "top 1"), np.float64)
+    s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
+    P = np.stack([np.interp(np.arange(0, s[-1], 0.25), s, P[:, k]) for k in range(3)], 1)
+    P = P[(P[:, 2] >= STEP_ENDS[0]) & (P[:, 2] <= STEP_ENDS[1])]  # forward from the back's corner, z only rises
+    along = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
+    tan = np.gradient(P, axis=0)
+    return P, along, tan / np.linalg.norm(tan, axis=1, keepdims=True)
+
+
+def _dashes():
+    """The walkway line on both sides: dashes LINE cm wide, as near DASH long with GAP between as
+    makes a whole dash at each end, measured across the line within the skin, as levels.top_line does."""
+    from scipy.spatial import cKDTree
+    P, along, tan = _walkway()
+    n = max(1, round((along[-1] + GAP) / (DASH + GAP)))
+    period = (along[-1] + GAP) / n
+    Q, TQ, S = np.concatenate([P, P * [-1, 1, 1]]), np.concatenate([tan, tan * [-1, 1, 1]]), np.r_[along, along]
+    tree = cKDTree(Q)
+
+    def f(p, nrm):
+        p, nn = p.astype(np.float64), nrm.astype(np.float64)
+        dist, i = tree.query(p)
+        d = p - Q[i]
+        e = np.cross(nn, TQ[i])
+        e /= np.maximum(np.linalg.norm(e, axis=1, keepdims=True), 1e-9)
+        u = S[i] + (d * TQ[i]).sum(1)  # how far along, past the ends too
+        ph = np.mod(u, period)
+        inside = np.minimum(LINE / 2 - np.abs((d * e).sum(1)), np.minimum(ph, period - GAP - ph))
+        inside = np.minimum(inside, np.minimum(u, along[-1] - u))
+        near = (np.abs((d * nn).sum(1)) < 1.5) & (dist < 4)
+        return np.where(near, inside, -1.0).astype(np.float32)
+    return shapes.field(f) & shapes.outside(0.1)
+
+
+def _no_step_spots(s, shares=(0.24, 0.84)):
+    """Where DO NOT STEP goes: beside the walkway line on the deck's side of it, at these shares of its
+    length (the fuel cap between them), reading along it and upright to someone at that side."""
+    c = s.canvas("Skin")
+    P, along, tan = _walkway()
+    spots = []
+    for k in np.searchsorted(along, np.asarray(shares) * along[-1]):
+        i = np.argmin(np.linalg.norm(c.pos - P[k], axis=1))
+        nrm = c.nrm[i] / np.linalg.norm(c.nrm[i])
+        for m in (1, -1):  # the left side, then the right as its mirror
+            f = np.array([m, 1, 1])
+            N, T = nrm * f, tan[k] * f
+            right = -T if m > 0 else T  # towards the tail on the left, the nose on the right
+            up = np.cross(N, right)
+            up /= np.linalg.norm(up)  # in the surface, towards the middle
+            centre = P[k] * f + up * (LINE / 2 + 1.2 + WORDS_H / 2)
+            spots.append(dict(centre=tuple(centre), right=tuple(right), up=tuple(up), facing=tuple(N), width=30))
+    return spots
+
+
 def design(s):
     s.clay()
     s.step("Signal orange", "The body in gloss signal orange; below the lowest side level, rising with the tail, "
@@ -85,6 +149,13 @@ def design(s):
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=_chevrons())
+
+    s.step("The deck", "A black fuel cap; a dashed black line along each side of the deck where the user drew "
+           "it, on the top's first guide line, DO NOT STEP beside it twice, the fuel cap between.", words=NOTES)
+    s.paint("fuel cap", "satin black")
+    s.paint("body", "gloss black", zone=_dashes())
+    for spot in _no_step_spots(s):
+        s.text("DO NOT STEP", spot, colour="black", font="teko", weight=600, height=WORDS_H)
 
     s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car and the inlets' "
            "insides dark grey, black frames round the inlets.", words=WORDS)
