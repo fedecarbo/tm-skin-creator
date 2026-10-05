@@ -479,3 +479,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   heights within 0.35 cm of the line's; it moves 1.6 cm at most from above; the nose root's own gentle
   turn beyond (z 22 to 40) kept. Checked from the user's angle on both sides, from above, the side, high
   front and high behind, beside the first trial. Shown in the viewer.
+- The user (a view from above of the right side's nose root, the line they want drawn in black: on
+  straight across the sidepod's front, a sharp turn, then straight along the nose): "Cant you make it
+  like this: Obviously my hands are not precise but hopefulyl you get the point". Trial
+  (Look_TopCorner3, on top of the first trial): from z -3, straight across the sidepod's front (parallel
+  to its edge) to z 11, a turn of 8 cm radius at the tightest (43 degrees, at x 44, z 14), straight along
+  the nose to z 50 (in line with the line's run there), then the line as it was. Turning in further
+  takes it up the nose's root: from the side it rises 1.1 cm above the line as it was (to 62.95 cm at
+  z 15) and comes back down by z 40; the heights smoothed over 10 cm and settled onto the skin (on the
+  steep side by moving across, not down), so from the side it is one gentle rise and fall. Checked from
+  the user's angle, above, the side, the front quarter, high behind, along the nose, beside the second
+  trial. Shown in the viewer.
