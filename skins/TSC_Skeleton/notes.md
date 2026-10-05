@@ -531,3 +531,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   the skin. Checked from above, the deck and tail high behind, the sidepod's corner, the nose root high
   front, the nose from the side, the tip from the front quarter and above, the cockpit's side, the rear
   three-quarter. Shown in the viewer.
+- The user, of the second line: "it somehow feels like every line should end it the tip of the nose
+  following the should (the shadow line we talked a while back)? ... maybe all lead to following the
+  curved edge (shoulder or whatever its called) ending going around the tip of the nose? Any thoughts,
+  would that be more reasonable?" Measured: along the nose the second line already keeps one tilt of
+  the skin (42 to 44 degrees from z 40 to 180: the nose's shoulder); only past z 185 it held 4 cm
+  above the black line, climbed off the shoulder and crossed the top at z 196.5. Every tilt runs down
+  into the black line at the tip, so the lines can follow it there only as loops nested closer than
+  along the nose. Recommended: follow the shoulder down, the lines bunching at the tip. Second trial
+  (Look_TopLine2b): from z 150 the second line hands over to the shoulder's line (twice the first's own
+  shading line, before its floor), never nearer the first than 1.5 cm; it crosses the top at z 199.2.
+  Asked in the Lab (question on TSC_Skeleton), both trials open.
