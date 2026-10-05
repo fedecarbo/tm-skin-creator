@@ -1,8 +1,7 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
 curve, rising with the tail; silver chevrons on the tail's deck; NO STEP on the deck and the side
-box's top, each side, as small boxed placards; bolt heads at the panels' corners, in their own paint;
-studded snow tyres; amber rear lights."""
+box's top, each side, as small boxed placards; studded snow tyres; amber rear lights."""
 import numpy as np
 
 from tool import levels, shapes
@@ -20,18 +19,6 @@ CORNER = 1.5  # cm: the turns where the marking leaves one seam for the next, ro
 SIGN, SIGN_H = "NO STEP", 2.6  # the words and their capitals' height (cm)
 SIGN_AT = (-95.0, -22.0)  # z: where they go along the course, the deck and the side box's top
 PAD, FRAME = 0.5, 0.2  # cm: the placard's box round the words (the user's yes, note 9), and its line
-BOLT_WORDS = ("Include bolts so each piece looks like it's mechanically screwed (note 8, a dot at the deck's back "
-              "corner); The bolts are just terrible. And also they are so uniformed. Also, why are you considering the "
-              "number and initials bounday as a piece. Also they should just blend in with the orange as it's part of it")
-BOLTED = ("rear flank", "sidepod top", "engine cover", "rear quarter panel", "tail corner", "tail panel",
-          "nose panel")  # the panels laid on the body shell
-BOLT, RING, SOCKET = 1.0, 0.14, 0.32  # cm: a bolt head across, its ring, its hex socket across the flats (the
-# car's own fasteners by the cockpit: a fine ring, the body's paint inside, about a centimetre across)
-BOLT_IN = 1.6  # cm: how far in from the seam
-TURN = 35.0  # degrees: where a panel's outline turns this much over 3 cm either side, a corner, and a bolt
-LONG, EVERY = 45.0, 35.0  # cm: a run between corners longer than LONG has bolts along it too, about EVERY apart
-BOLT_APART = 6.0  # cm: the least distance between two bolts (where panels meet, one bolt a corner)
-SHADE = 0.45  # the ring and the socket: the paint under them, this much as light
 
 
 def _checks(lower=False):
@@ -241,125 +228,7 @@ def _frame(spot):
     return shapes.field(f, soft=0.08)
 
 
-def _corners(loop):
-    """Where bolts go on one outline: its corners (where it turns TURN degrees or more over 3 cm either
-    side), and along a run between two corners longer than LONG, about every EVERY cm."""
-    R = _resample(np.vstack([loop, loop[:1]]), 0.5)
-    n, w = len(R), 6
-    if n < 4 * w:
-        return R[:0]
-    a, b = R - np.roll(R, w, 0), np.roll(R, -w, 0) - R
-    turn = np.degrees(np.arccos(np.clip((a * b).sum(1) / np.maximum(np.linalg.norm(a, axis=1) * np.linalg.norm(b, axis=1), 1e-9), -1, 1)))
-    peak = np.array([turn[k] >= TURN and turn[k] >= turn[np.arange(k - w, k + w + 1) % n].max() for k in range(n)])
-    at = list(np.flatnonzero(peak))
-    picks = list(at)
-    for k0, k1 in zip(at, at[1:] + at[:1]):
-        run = ((k1 - k0) % n or n) * 0.5
-        if run > LONG:
-            count = int(run // EVERY)
-            picks += [int(k0 + (k1 - k0) % n * j / (count + 1)) % n for j in range(1, count + 1)]
-    return R[picks]
-
-
-def _fasteners(s):
-    """The car's own fasteners: the inner car's small pieces (under 2.5 cm across) lying on the body's
-    paint (within 0.8 cm), their centres."""
-    from scipy.sparse import coo_matrix
-    from scipy.sparse.csgraph import connected_components
-    from scipy.spatial import cKDTree
-    from tool import fbx
-    m = fbx.meshes()[fbx.MESH_OF["Details"]]
-    V = m["positions"].astype(np.float64)
-    _, weld = np.unique(np.round(V * 100).astype(np.int64), axis=0, return_inverse=True)
-    F = weld.reshape(-1)[m["tri_vertex"]]
-    n = F.max() + 1
-    e = np.concatenate([F[:, [0, 1]], F[:, [1, 2]]])
-    lab = connected_components(coo_matrix((np.ones(len(e)), (e[:, 0], e[:, 1])), shape=(n, n)), directed=False)[1]
-    at = np.zeros((n, 3))
-    at[weld.reshape(-1)] = V
-    texels = cKDTree(s.canvas("Skin").pos)
-    out = []
-    for piece in np.unique(lab[F[:, 0]]):
-        pts = at[np.unique(F[lab[F[:, 0]] == piece])]
-        if np.linalg.norm(pts.max(0) - pts.min(0)) < 2.5 and texels.query(pts.mean(0))[0] < 0.8:
-            out.append(pts.mean(0))
-    return np.array(out)
-
-
-def _bolts(s, spots):
-    """Bolt heads at each bolted panel's corners (and along its long runs), each moved to the nearest spot
-    of the panel's own paint that lies BOLT_IN cm (+-0.5) from the panel beside it: so only where it
-    meets another panel (not on an opening's edge), never down a lip at its edge, the head whole on its
-    own panel. None where the panel beside is one the game letters (the number panel, the engine cover
-    panels: not pieces), facing the floor, within a centimetre of the placards,
-    within 3 cm of the car's own fasteners, on the nose fin's plate, or BOLT_APART from another. Their centres, the
-    surface's facing there and a direction across each (the car's length, laid flat)."""
-    from scipy.spatial import cKDTree
-    from tool import fbx
-    c = s.canvas("Skin")
-    m = fbx.meshes()[fbx.MESH_OF["Skin"]]
-    tp = s.parts.tri_part[s.parts.mesh_offset["Skin"]:s.parts.mesh_offset["Skin"] + len(m["tri_vertex"])]
-    texels = cKDTree(c.pos)
-    tri = c.bake["tri"].reshape(-1)[c.near]
-    part = np.where(tri >= 0, tp[np.maximum(tri, 0)], -1)
-    lettered = list(set(s.parts.select("number panel") + s.parts.select("engine cover panel")))
-    own = cKDTree(_fasteners(s))
-    width, high = _placard()
-    words = cKDTree(np.concatenate([
-        (np.asarray(w["centre"]) + np.outer(np.linspace(-0.5, 0.5, 13), np.asarray(w["right"]) * width)[:, None]
-         + np.outer(np.linspace(-0.5, 0.5, 5), np.asarray(w["up"]) * high)[None]).reshape(-1, 3) for w in spots]))
-    kept = []
-    for name in BOLTED:
-        for i in s.parts.select(name, exact=True):
-            for q in (q for loop in _outlines(name, s.parts.instances[i]["side"]) for q in _corners(loop)):
-                near = np.array(texels.query_ball_point(q, 4.0 + BOLT_IN))
-                mine, other = near[part[near] == i], near[(part[near] != i) & (part[near] >= 0)]
-                if not len(mine) or not len(other) or np.isin(part[other], lettered).any():
-                    continue
-                d = cKDTree(c.pos[other]).query(c.pos[mine])[0]
-                ok = mine[(np.abs(d - BOLT_IN) < 0.5) & (np.linalg.norm(c.pos[mine] - q, axis=1) < 4.0)]
-                if not len(ok):
-                    continue
-                k = ok[np.argmin(np.linalg.norm(c.pos[ok] - q, axis=1))]
-                b, n = c.pos[k].astype(np.float64), c.nrm[k].astype(np.float64)
-                if (n[1] > -0.3 and words.query(b)[0] > BOLT / 2 + 1.0 and own.query(b)[0] > 3.0
-                        and not (abs(b[0]) < 8 + BOLT and 118 - BOLT < b[2] < 142 + BOLT)
-                        and all(np.linalg.norm(b - r) >= BOLT_APART for r in kept)):
-                    kept.append(b)
-    pts = np.array(kept)
-    N = np.array([c.nrm[k].astype(np.float64).sum(0) for k in texels.query_ball_point(pts, 0.6)])
-    N /= np.linalg.norm(N, axis=1, keepdims=True)
-    U = np.array([0.0, 0.0, 1.0]) - N[:, 2:3] * N
-    U = np.where(np.linalg.norm(U, axis=1, keepdims=True) > 0.3, U, np.array([1.0, 0.0, 0.0]) - N[:, 0:1] * N)
-    U /= np.linalg.norm(U, axis=1, keepdims=True)
-    return pts, N, U
-
-
-def _heads(bolts):
-    """The bolt heads as a zone: a fine ring RING wide round a head BOLT across, and a hex socket SOCKET
-    across the flats in its middle; the head itself keeps the panel's paint. Only the surface the head
-    sits on, facing as it does, takes it."""
-    from scipy.spatial import cKDTree
-    pts, N, U = bolts
-    V = np.cross(N, U)
-    tree = cKDTree(pts)
-
-    def f(p, nrm):
-        p = p.astype(np.float64)
-        _, i = tree.query(p, workers=-1)
-        rel = p - pts[i]
-        h = (rel * N[i]).sum(1)
-        q = rel - h[:, None] * N[i]
-        a, b = (q * U[i]).sum(1), (q * V[i]).sum(1)
-        socket = SOCKET / 2 - np.maximum(np.abs(a), np.maximum(np.abs(a / 2 + b * 0.866), np.abs(a / 2 - b * 0.866)))
-        ring = RING / 2 - np.abs(np.linalg.norm(q, axis=1) - (BOLT - RING) / 2)
-        on = (np.abs(h) < 0.5) & ((nrm * N[i]).sum(1) > 0.7)
-        return np.where(on, np.maximum(ring, socket), -1.0).astype(np.float32)
-    return shapes.field(f, soft=0.06)
-
-
 def design(s):
-    from scipy.spatial import cKDTree
     s.clay()
     s.step("Signal orange", "The body in gloss signal orange; below the lowest side level, rising with the tail, "
            "gloss black.", words=WORDS)
@@ -385,17 +254,6 @@ def design(s):
     for spot in spots:
         s.text(SIGN, spot, colour="black", font="teko", weight=600, height=SIGN_H)
         s.paint("body", "gloss black", zone=_frame(spot))
-
-    s.step("Bolts", "Bolt heads at the corners of each panel laid on the body (and along its long edges), in the "
-           "panel's own paint: a fine darker ring and a hex socket, like the car's own fasteners by the cockpit.",
-           words=BOLT_WORDS, look="rear")
-    bolts = _bolts(s, spots)
-    c = s.canvas("Skin")
-    under = c.colour[cKDTree(c.pos).query(bolts[0])[1]]  # the paint each bolt sits on, darkened
-    panels = [f"{n}|part" if n == "engine cover" else n for n in BOLTED]
-    for shade in np.unique(np.round(under * SHADE, 3), axis=0):
-        mine = np.all(np.round(under * SHADE, 3) == shade, axis=1)
-        s.paint(panels, "satin", colour=tuple(shade), zone=_heads(tuple(a[mine] for a in bolts)))
 
     s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car and the inlets' "
            "insides dark grey, black frames round the inlets.", words=WORDS)

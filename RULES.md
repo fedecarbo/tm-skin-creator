@@ -28,9 +28,12 @@ game or the code goes into the code (a warning, a check, a docstring).
 - **Don't put words on a car the user didn't ask for.** Lettering has never come out well on this
   car's curves (the user, 2026-10-05: "The approach is always terrible"); write only words they ask
   for.
-- **Don't paint the guides.** The levels, the top's lines and the seams are the painter's eyes on the
-  car's curvature: they shape and place graphics. A line on a skin needs a reason in the idea (some
-  liveries use lines for mood; most have none).
+- **Don't paint the guides, or spread a detail over the car by a rule.** The levels, the top's lines
+  and the seams are the painter's eyes on the car's curvature: they shape and place graphics. A line on
+  a skin needs a reason in the idea (some liveries use lines for mood; most have none). A detail goes a
+  few at a time where it means something, in the car's own language (its own fasteners and seams), shown
+  close up before there are more: bolts round every panel by a rule were "one of the biggest failures"
+  (the user, 2026-10-05).
 - **Don't trade quality for speed, and don't confuse checks with quality.** A better game file is
   worth a slower build. But one paint and a look per take is enough; the close looks are for what's
   shown alone or picked.

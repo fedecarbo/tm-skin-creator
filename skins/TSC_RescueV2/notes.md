@@ -83,3 +83,10 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   fine ring (1 cm across, 1.4 mm wide) and a hex socket in that paint at 45 % of its light, satin, like
   the car's own fasteners. NO STEP has a thin black box round it (2 mm, 5 mm out), the placard set on
   the paint where the deck curves away.
+- Change 10 (user, 2026-10-05): "Would the no step be facing outwards or the other way around?  Second.
+  Remove the bolts, that's probably one of the biggest failures on how you approached it". The bolts are
+  off. NO STEP faces outwards: the letters' feet towards the panel's outer edge, upright to someone
+  standing beside the car (checked from the side). Why the bolts failed (Claude): "each piece" read as
+  every part in the list and filled by a rule (evenly round every edge, then every corner), tuned three
+  times instead of placing a few where they mean something, in the car's own language, and showing them
+  first. RULES.md says so.
