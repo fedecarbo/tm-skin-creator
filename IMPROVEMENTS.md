@@ -9,12 +9,10 @@ goes into the code.
 The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
 deleted here; `PLAN.md` keeps the why.
 
-- **6. Where we are at a cold start** (built 2026-10-05, waiting for the user's OK): `tool.notes
-  open` lists every skin, newest first, with its record's last event, whether it's in the game, and
-  what's open (the records' `Open` lines, sets waiting, the Lab's notes and questions); the
-  SessionStart hook prints it after the pull (0.13 s).
-- **7. The tool measured against the record**: every change the user ever asked for, with the
-  picture shown before it, as a test set; the eyes and the measures scored on it, on demand.
+- **7. The tool measured against the record** (built 2026-10-05, waiting for the user's OK):
+  `tool.record` paints again the car the user saw before each flaw they pointed out (8 of the 26
+  can be: the rest the tool fixed in itself, or were never committed) and scores the checks: 2 of
+  8 named before the user did (the measure, the pictures' check), 2¼ minutes.
 
 ## Under way
 

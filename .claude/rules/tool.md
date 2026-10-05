@@ -20,6 +20,10 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   viewer's sheets pixel for pixel, `--at <commit>` tests a commit instead of the working tree. A
   commit's side is kept in the work folder, so it's paid for once per computer. Run it before
   committing a change to `tool/`.
+- `PY -m tool.record` scores the checks against the user's record (the test set `tool/record.json`;
+  `tool/record.py`'s docstring is the key): each car they were shown before a flaw they pointed out, painted again with this
+  code; how many flaws the checks name first (a few minutes). For a change to a check, before and
+  after. `tool.record new` lists what the records say that the test set hasn't sorted yet.
 - A cache whose contents change must change its name or version (`coverage._key`,
   `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
 - The page online and Claude's snapshots must not change with a change made for the Lab (the

@@ -247,14 +247,18 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
 ### Step 7. The tool measured against the record
 
 - **For:** knowing whether a change to the tool makes cars better before the user sees them. Every
-  change the user ever asked for is a real failure case, and the notes hold them with the picture
-  shown before each (the deleted skins' notes are still in git). A command gathers them; the eyes
-  and Step 1's measures run on each "before"; the score is how many they catch. On demand only.
-- **You'll see:** one line: "your record: 14 past change requests; the tool now catches 9 before
-  you would (was 6)."
-- **Costs:** on demand, about a minute per case.
-- **Model:** a big one for the eyes, a small one for the gathering.
-- **Checked by:** the score printed, and up after Steps 1 and 3 on the same cases.
+  flaw the user ever pointed out is a real failure case, and the records hold them with the picture
+  shown before each (the deleted skins' records are still in git). A command gathers what the user
+  said, Claude sorts it once (a flaw, with its kind and place, or a wish), and each flaw's car is
+  painted again as the user saw it, with this code; Step 1's measures and the paint box's own
+  checks run on it; the score is how many flaws they name. On demand only.
+- **You'll see:** one line: "your record: 26 flaws you pointed out, 8 on cars that can be painted
+  again; the tool now names 2 of them before you would".
+- **Costs:** on demand, about 20 to 40 seconds per car (2¼ minutes for the 8, 2026-10-05).
+- **Model:** a big one to sort the record (each flaw's kind and place is a reading); then no model
+  in the loop, it is code.
+- **Checked by:** the score printed, and up after Step 1 on the same cases (the checks are named per
+  flaw, so a check's own share shows).
 
 ### Not building, and why
 
