@@ -468,3 +468,14 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   the outline all through the turn; it moves 2.0 cm at most (at the corner), the rest unchanged. Checked
   from above on both sides, high front, high side and high behind, beside the line as it was. Shown in
   the viewer.
+- The user (a screenshot of the right side's front quarter at the inlet, the turn where the line comes
+  across the sidepod's front onto the nose circled): "I would say this one also needs to have a tighter
+  radius no?" Measured: from above that turn spread over z -3 to 40 (43 degrees); on the sidepod's top
+  the line holds its height (61.6 to 61.9 cm) and so follows the top at that height, which curves gently
+  into the nose's root. Tried and not shown: a corner further in (x 41, z 15, radius 10 to 20, as at the
+  first turn), which climbed the nose's root (up to 63.8 cm: a 2 to 3 cm rise and fall from the side).
+  Trial (Look_TopCorner2, on top of the first): straight across the sidepod's front to z 9, a turn of
+  8 cm radius at the tightest (28 degrees), back on the line at z 22, where it runs onto the nose;
+  heights within 0.35 cm of the line's; it moves 1.6 cm at most from above; the nose root's own gentle
+  turn beyond (z 22 to 40) kept. Checked from the user's angle on both sides, from above, the side, high
+  front and high behind, beside the first trial. Shown in the viewer.
