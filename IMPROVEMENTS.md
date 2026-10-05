@@ -12,13 +12,19 @@ and checked by the self-test; ideas are named in plain words.
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 8 of 8 today).
 
+- **A. Graphics that fit by themselves** (2026-10-05, the user: "it shouldn't do mistakes in the first
+  place"): a spot, a badge or any shape laid on a named panel instead of drawn through the car: whole
+  inside the panel's edges, moved or shrunk to its free room; or across them when the design says so,
+  which the checks then leave alone (the user: "what if AI wants to create shapes that overlap parts
+  deliberatively, would a check ruin the creative approach?"). The panels' outlines from the mesh, cached
+  in `car/`; a part painted by name kept from a later paint on a group unless that paint says so. Shown
+  on a new skin from the user's words, or on a test car first: theirs to say.
 - **B. Words and placards that fit** (2026-10-05): the body's flat rooms measured once into a file in
   `car/`; `s.text` sized to the room and refusing with a note; a placard call that finds the flattest
   patch near a point or a pen stroke and faces the words outward; upside-down and fold findings. Shown
   on TSC_RescueV2's placards.
 - **C. The geometry hoisted** (2026-10-05): a course along a guide, a level, a seam, a panel's edge or a
-  pen stroke, with strips, dashes and spots along it; panel outlines from the mesh, cached in `car/`;
-  stripes, checks, a part and an inset as zones in `tool/shapes.py`; a level's offset, split and
+  pen stroke, with strips, dashes and spots along it; stripes and checks as zones in `tool/shapes.py`; a level's offset, split and
   "where" in `tool/levels.py`; a zone's edge feathered along the surface, so a height or a shape drawn
   from above stays crisp where the body slopes (the checks name TSC_Snow's lower edge, 0.7 cm soft, and
   TSC_RescueV2's hazard stripes, 0.5). TSC_RescueV2 rewritten in about 45 lines as the proof (290 today). Shown:
