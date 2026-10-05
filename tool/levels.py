@@ -45,9 +45,14 @@ The top's lines run over the top, inside the top line all round, each set in fro
 2026-10-05: "the next line would offset from that ... So it basically forms the shape of the top
 car"), and drawn like the pen tool: one smooth curve. Each is a path in space (car/top_lines.json, the
 left half, from the tail's middle to the nose's middle; the right mirrors it), painted on the skin
-beneath it. The first: on the rear flank's seam at the back (6.3 cm in from the top line seen from
-above), 2.5 cm above the top line along the sidepods, rising across their front to 5.6 along the
-nose, and turning over the nose's top between the nose panel's front and the tip.
+beneath it. Seen from above each runs parallel to the top's outline, its corners given a radius
+(the user, 2026-10-05: "each line should somehow feel paralell to the black line"); along the nose
+it keeps to one tilt of the skin (the same shading), so it follows the nose's curve from the side.
+The first: on the rear flank's seam at the back (6.3 cm in from the top line seen from above), 2.5 cm
+above the top line along the sidepods, an 8 cm turn at their front corners, straight across their
+fronts, an 8 cm turn onto the nose, then where the nose's skin is tilted 31 degrees (5.6 cm above the
+top line at the cockpit's front, 2.5 by the front wheels), never nearer the top line than 2 cm, and
+over the nose's top just short of the tip.
 
 car/levels.json (committed, written by the room through the viewer's server, /api/levels):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 6, "nose": 3}

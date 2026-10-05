@@ -20,3 +20,5 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   end (a straight cut ahead of the band).
 - Shown (2026-10-05): in the Lab. Close looks checked: the badge, the lettering whole on the flank, the
   checks across the sidepod and the rear flank, the chevrons on the panel, the tail corner.
+- Change 1 (Claude, 2026-10-05): the top's first line in the guides redrawn with the user (sharper turns
+  at the sidepods' front, the nose following its curve); the pinstripe on it follows. Repainted.

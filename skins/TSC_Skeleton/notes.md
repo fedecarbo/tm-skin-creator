@@ -504,3 +504,17 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   z 205.6 (was 201); eased in over z 55 to 70 (within 0.003 cm of the line at the join). Checked from the
   user's angle, the side, the tip from above, the front quarter and straight on, high along the nose,
   beside the third trial. Shown in the viewer.
+- The user, of the fourth trial: "Yes, perfect. and make sure this part has a smooth transition. It's a
+  bit jagged" (a view from above of the right side's turn onto the nose). Measured: the turn came in
+  two jerks (5 degrees per cm, a pause, again) and the run along the nose's root swayed 2 to 5 degrees
+  either way: laid point by point onto the model's big flat faces there (each 8 to 14 degrees steeper
+  than the last, z 17 to 37). Redrawn (Look_TopCorner5): from above the straight diagonal, one even
+  8 cm turn, a straight run fitted to the line just after it (-13 degrees), easing into the nose by
+  z 66; the run smoothed as a curve in space (over 4 cm) instead of laid on face by face, so it floats
+  at most 4.3 mm off the skin (1.1 on average) and the paint lands beneath it; its heading eases from
+  -13 to -7 degrees and its height falls evenly. Checked from the user's angle, the left from above, high
+  front, high side, high behind and low along, beside the fourth trial.
+- Built into the guides: "top 1" in car/top_lines.json is the fifth trial's line (both corners, the
+  turn onto the nose, the nose at one tilt of the skin, 2 cm from the black line round the tip, ending
+  on the nose's middle). TSC_Skeleton repainted; TSC_RescueV2's pinstripe follows it. Self-test: the
+  self-test's cars identical. The trials are gone from the work folder.
