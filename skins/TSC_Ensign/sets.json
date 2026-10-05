@@ -1,0 +1,28 @@
+{
+ "car": "TSC_Ensign",
+ "sets": [
+  {
+   "n": 1,
+   "title": "The marks: laid on the panels, or as placed",
+   "words": "sure test car, send an agent?",
+   "made": "2026-10-05T23:44:47",
+   "state": "dropped",
+   "options": [
+    {
+     "key": "A",
+     "title": "Laid on the panels",
+     "skin": "TSC_Ensign_LaidOnThePanels"
+    },
+    {
+     "key": "B",
+     "title": "As placed",
+     "skin": "TSC_Ensign_AsPlaced",
+     "picture": "sets/1/B.png"
+    }
+   ],
+   "pick": null,
+   "decision": "the user's verdict on the car: a terrible design",
+   "done": "2026-10-05T23:46:17"
+  }
+ ]
+}
