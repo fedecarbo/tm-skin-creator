@@ -57,7 +57,8 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
     (`lab-car.js`). The car follows the frames `tool.skin show` writes at each `Skin.step`
     (`view.export_steps`, `studio.json`; `install` paints without them), and drives the embedded
     viewer (`index.html?embed=1`, no car until its first `dress` or `stock()`) through
-    `window.viewer`: `inset`, `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`.
+    `window.viewer`: `inset`, `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`, and the
+    pen: `pen`, `onStroke`, `drawings`.
   - the UV map room (`lab.html?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
     in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
     their code change.

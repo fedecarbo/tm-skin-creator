@@ -47,7 +47,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     # The Lab's notes (tool/notes.py): GET /api/notes?skin=<name> (the ones not done, for the car's tags),
-    # and POST a new one ({"skin", "text", "part", "at", "normal", "picture", "view", "answer"}) or
+    # and POST a new one ({"skin", "text", "part", "at", "normal", "drawn", "picture", "view", "answer"}) or
     # {"skin", "remove": n}.
     # They reach Claude's context, so only this computer's own pages may write them: the Host must
     # be localhost (no DNS rebinding), an Origin must match it, and the body must be JSON, which a
@@ -116,7 +116,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._json(503, {"error": str(e)})
 
     # What a POST to /api/notes can do: the first of these keys in the body picks it, else a new note.
-    NOTE_KEYS = ("skin", "text", "part", "at", "normal", "picture", "view", "answer")
+    NOTE_KEYS = ("skin", "text", "part", "at", "normal", "picture", "view", "answer", "drawn")
     ACTIONS = {
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }

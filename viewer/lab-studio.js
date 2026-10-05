@@ -1,7 +1,9 @@
 // The Lab's car (the user's pick of the fresh layouts, A, 2026-09-28): the car being built fills the
 // page, turned by a drag, by day or night or from the game's own camera, with the user's notes hanging on it as tags (lab-tags.js). Click the car where you mean and
-// write what you want there: the note keeps the point, the part under it, the view (a click on its tag
-// turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
+// write what you want there, or draw on it with the pen (Draw: a strip where you'd want one, a ring
+// round something; the user's idea, 2026-10-05), a line or several: the note keeps the point, the
+// part under it, the lines drawn (in the paint box's cm, the car's own: tool/notes.py), the view (a
+// click on its tag turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
 // viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message (or at
 // once, while Claude waits: tool.notes wait). Done, a note leaves the car and stays in the timeline
 // beside it (lab-car.js), which also puts an option on the car to look at: its notes are that option's.
@@ -18,6 +20,7 @@ import { $, ago, embedViewer, every, followed, note, post, titleOf } from './lab
 import { createTags } from './lab-tags.js';
 
 const POLL = 1500;
+let HINT = '';  // the hint over the car without the pen (lab.html's)
 
 let skin = null;          // { name, title, entry: gallery.json's }: on the car
 let carName = null;       // the car (lab-car.js), when the car shows one of its options
@@ -27,9 +30,16 @@ let stage = null;         // the viewer's window.viewer
 let stageLook = '';       // while Claude paints, the look of the step on the stage
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
-let writing = null;       // the note being written: { part, at, normal, view, picture }
+let writing = null;       // the note being written: { part, at, normal, view, picture, drawn }
 let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a click
 let tags = null;          // lab-tags.js
+let pen = false;          // Draw: a drag on the car draws on it
+let lift = 0;             // cm the viewer raises the car by, tyres on the floor (data/car.json)
+const SIMPLER = 0.1;      // cm: a drawn line's points kept where it bends more than this
+
+// The viewer's metres and the paint box's cm (tool/shapes.py: the car's own, as the notes keep it).
+const toCm = ([x, y, z]) => [x * 100, y * 100 - lift, z * 100].map((v) => Math.round(v * 10) / 10);
+const toMetres = ([x, y, z]) => [x / 100, (y + lift) / 100, z / 100];
 
 const lookOf = (step) => {
   const words = (step.look || '').split(/\s+/);
@@ -123,6 +133,8 @@ function drawNotes() {
   tags.set(list);
   $('stHint').hidden = list.length > 0;
   if (!stage) return;
+  stage.drawings([...notes, ...(writing ? [writing] : [])].flatMap((x) => (x.drawn ? x.drawn.strokes : [])
+    .map((points) => ({ points: points.map(toMetres) }))));
   stage.track([...notes.filter((x) => x.at).map((x) => ({ key: `n${x.n}`, at: x.at, normal: x.normal })),
     ...(writing ? [{ key: 'new', at: writing.at, normal: writing.normal }] : [])], tags.place);
 }
@@ -141,13 +153,69 @@ export function look(x) {
   stage.go(view);
 }
 
-function startNote(id, hit) {  // a click on the car: the part under it, and the point for its dot
+const partOf = (id) => {
   const p = partInfo.get(id);
-  writing = { part: { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' }, at: hit.at, normal: hit.normal,
-              view: stage.camera() };
+  return { id, label: p ? p.label : '', token: p ? p.line.split(' (')[0] : '' };
+};
+
+function startNote(id, hit) {  // a click on the car: the part under it, and the point for its dot (the lines drawn stay)
+  writing = { part: partOf(id), at: hit.at, normal: hit.normal, drawn: writing ? writing.drawn : null };
   if (tags.openKey && tags.openKey !== 'new') tags.close();
+  seen();
+}
+
+function seen() {  // the note on the car, and a picture of it as the user sees it now (at the click, or the last line drawn)
   drawNotes();
-  writing.picture = notePicture(hit.at, nextN).catch((err) => { console.error(err); return null; });  // as seen at the click
+  writing.view = stage.camera();
+  writing.picture = notePicture(writing.at, nextN).catch((err) => { console.error(err); return null; });
+}
+
+// A line drawn with the pen, in pieces (the viewer's onStroke): a new note, its dot halfway along the
+// longest piece, or more lines for the note being written. Kept in cm, only where it bends.
+function drew(pieces) {
+  const lines = pieces.map((p) => ({ points: simplify(p.points.map(toCm), SIMPLER), parts: p.parts }));
+  if (!writing) {
+    const p = pieces.reduce((a, b) => (b.points.length > a.points.length ? b : a)), k = Math.floor(p.points.length / 2);
+    writing = { part: partOf(p.parts[k]), at: p.points[k], normal: p.normals[k], drawn: { strokes: [], parts: [] } };
+    if (tags.openKey && tags.openKey !== 'new') tags.close();
+  }
+  writing.drawn ||= { strokes: [], parts: [] };
+  for (const l of lines) {
+    writing.drawn.strokes.push(l.points);
+    for (const id of l.parts) if (!writing.drawn.parts.some((q) => q.id === id)) writing.drawn.parts.push(partOf(id));
+  }
+  seen();
+}
+
+// Ramer-Douglas-Peucker in 3D: the points a line keeps so that none it drops is more than `tol` off it.
+function simplify(pts, tol) {
+  if (pts.length < 3) return pts;
+  const keep = new Uint8Array(pts.length);
+  keep[0] = keep[pts.length - 1] = 1;
+  const todo = [[0, pts.length - 1]];
+  while (todo.length) {
+    const [a, b] = todo.pop();
+    const A = pts[a], B = pts[b], ab = [B[0] - A[0], B[1] - A[1], B[2] - A[2]];
+    const len2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2;
+    let far = -1, worst = tol;
+    for (let k = a + 1; k < b; k++) {
+      const ap = [pts[k][0] - A[0], pts[k][1] - A[1], pts[k][2] - A[2]];
+      const t = len2 ? Math.max(0, Math.min(1, (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / len2)) : 0;
+      const d = Math.hypot(ap[0] - t * ab[0], ap[1] - t * ab[1], ap[2] - t * ab[2]);
+      if (d > worst) { worst = d; far = k; }
+    }
+    if (far >= 0) { keep[far] = 1; todo.push([a, far], [far, b]); }
+  }
+  return pts.filter((_, k) => keep[k]);
+}
+
+function setPen(on) {
+  pen = on;
+  if (stage) stage.pen(on);
+  $('stPen').setAttribute('aria-pressed', String(on));
+  $('stHint').textContent = on
+    ? 'Draw on the car where you mean: a line where you want a strip, a ring round something. Drag off the car to turn it; a click still pins a note.'
+    : HINT;
 }
 
 // What the user sees in the car's box, the note's dot drawn on, for Claude (a JPEG data: URL).
@@ -189,8 +257,9 @@ async function notePicture(at, n) {
 async function addNote(value, say) {
   const text = value.trim();
   if (!text || !writing || !skin) return;
-  const { picture, ...note } = writing;
-  const r = await post({ skin: skin.name, text, ...note, picture: await picture });
+  const { picture, drawn, ...note } = writing;
+  const lines = drawn && { strokes: drawn.strokes, parts: drawn.parts.map(({ token, label }) => ({ token, label })) };
+  const r = await post({ skin: skin.name, text, ...note, drawn: lines, picture: await picture });
   if (!r.ok) {
     say.textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
     return;
@@ -255,7 +324,11 @@ async function openSkin(name) {
   notes = []; nextN = 1; writing = null;
   if (!stage) {
     stage = await embedViewer($('stCar'), $('stCredit'));
-    if (stage) stage.onPick = startNote;
+    if (stage) {
+      stage.onPick = startNote;
+      stage.onStroke = drew;
+      stage.pen(pen);
+    }
     framed();
   }
   moodShown('day');
@@ -316,14 +389,18 @@ export async function open() {
     const cam = stage && stage.views()[0];
     if (cam) stage.go(cam.view);
   });
+  HINT = $('stHint').textContent;
+  $('stPen').addEventListener('click', () => setPen(!pen));
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || $('roomStudio').hidden) return;
     if (writing) cancelNote();
     else if (tags.openKey) tags.close();
+    else if (pen) setPen(false);
   });
   new ResizeObserver(framed).observe($('stStage'));
   const uv = await fetch('data/uvmap.json').then((r) => r.json()).catch(() => ({}));
   partInfo = new Map((uv.parts || []).map((p) => [p.id, p]));
+  lift = (await fetch('data/car.json').then((r) => r.json()).catch(() => ({}))).lift_cm || 0;
   const now = await followed();
   following = now.stamp;
   let name = new URLSearchParams(location.search).get('skin') || now.skin;

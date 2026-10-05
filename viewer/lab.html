@@ -181,8 +181,8 @@
 
   /* The car (lab-studio.js), filling the room, framed between two gutters where its notes hang as tags
      (lab-tags.js), each joined by a line to a dot on its point (the user's pick, B, 2026-09-27, kept in
-     the fresh layouts: "apart from the comment thing, which I think was quite good"). Day, Night and the
-     game's camera over it on the right; on the left, the option on show and the hint. */
+     the fresh layouts: "apart from the comment thing, which I think was quite good"). The pen (Draw), Day, Night and
+     the game's camera over it on the right; on the left, the option on show and the hint. */
   .stand { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
   .live { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 12px 5px; background: rgba(255, 255, 255, 0.06); min-width: 0; }
   .live span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -244,6 +244,8 @@
   #stMood .sk { font-size: 17px; padding: 6px 12px 3px; background: rgba(12, 14, 18, 0.72); }
   #stMood .sk:hover { background: rgba(12, 14, 18, 0.9); }
   #stMood .sk[aria-pressed="true"] { background: var(--text); color: var(--ground); }
+  #stMood #stPen { margin-right: 10px; }
+  #stMood #stPen[aria-pressed="true"] { background: var(--acc); }
   .tagList { display: none; }
   .tagList .tag { transform: none !important; width: auto !important; }
   .credit { color: #16181b; }
@@ -472,7 +474,7 @@
     <div id="carRoom" class="carRoom">
       <div id="stand" class="stand">
         <div id="stStage">
-          <iframe id="stCar" title="the car: click where you mean to leave a note there"></iframe>
+          <iframe id="stCar" title="the car: click where you mean to leave a note there, or draw on it"></iframe>
           <div id="stCover"></div>
           <div id="stOverlay"><svg id="stLines" aria-hidden="true"></svg><div id="stDots"></div><div id="stTags"></div></div>
           <div class="stTop">
@@ -481,6 +483,7 @@
               <div id="stHint">Click the car where you mean, and write what you want there. Claude gets it with your next message, or at once when it's waiting.</div>
             </div>
             <div id="stMood" class="show teko">
+              <button class="sk" id="stPen" aria-pressed="false" title="draw on the car where you mean: a strip, a ring round something"><span>Draw</span></button>
               <button class="sk" data-mood="day" aria-pressed="true"><span>Day</span></button>
               <button class="sk" data-mood="night" aria-pressed="false"><span>Night</span></button>
               <button class="sk" id="stGame" title="the car as you see it in the game, from its chase camera"><span>Game view</span></button>

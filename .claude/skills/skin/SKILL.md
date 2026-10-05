@@ -80,10 +80,10 @@ game: install from the Windows PC after a push.
 
 ## The Lab: notes, sets and questions
 
-- **Notes on the car**: the user clicks the car and writes, or writes in the box under the chat.
-  Notes arrive with their next message (a hook prints them) or at once while you wait (`PY -m
-  tool.notes wait` in the background). Each has the skin, its number, the part clicked as a `where`
-  phrase, their words and a picture of what they saw: look at it. Act on it in that skin, then
+- **Notes on the car**: the user clicks or draws on the car and writes, or writes in the box under
+  the chat. Notes arrive with their next message (a hook prints them) or at once while you wait (`PY
+  -m tool.notes wait` in the background). Each has the skin, its number, the part clicked or the
+  lines drawn, their words and a picture of what they saw: look at it. Act on it in that skin, then
   `PY -m tool.notes done <skin> <n> --say "<what changed, a sentence>"`. `tool.notes say <car> "…"`
   for anything else.
 - **Lines copied from the Lab** (`ME-07 Gold (…)`, `floor|left|part (…)`): the code is that finish,

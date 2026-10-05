@@ -5,6 +5,7 @@
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and hangs notes on (the Lab's stand,
 //                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
+//                          and lets the user draw on (pen, onStroke, drawings)
 //                          or pins the car's lines on (the Lab's lines room, viewer/lab-lines.js:
 //                          snap, curves)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
@@ -1362,28 +1363,159 @@ function highlight(ids, row) {
 const raycaster = new THREE.Raycaster();
 const tip = document.getElementById('tip');
 const partOfHit = (hit) => hit.object.geometry.getAttribute('part').getX(hit.face.a);
+// The car under a point of the page: { at, normal, part, distance } (metres; the surface's facing),
+// or null. Only the parts shown count.
+function carAt(x, y) {
+  raycaster.setFromCamera(new THREE.Vector2((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1), camera);
+  const hit = raycaster.intersectObjects(Object.values(parts).filter((m) => m.visible))
+    .find((h) => partsState.data[partOfHit(h) * 4] > 0);
+  return hit ? { at: hit.point.toArray(), normal: hit.face.normal.clone().transformDirection(hit.object.matrixWorld).toArray(),
+    part: partOfHit(hit), distance: hit.distance } : null;
+}
 let pressAt = null;
 canvas.addEventListener('pointerdown', (e) => { pressAt = [e.clientX, e.clientY]; });
 canvas.addEventListener('pointerup', (e) => {
   if (!pressAt || Math.hypot(e.clientX - pressAt[0], e.clientY - pressAt[1]) > 4 || !partsState.doc) return;
-  const ndc = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
-  raycaster.setFromCamera(ndc, camera);
-  const hit = raycaster.intersectObjects(Object.values(parts).filter((m) => m.visible))
-    .find((h) => partsState.data[partOfHit(h) * 4] > 0);
+  const hit = carAt(e.clientX, e.clientY);
   if (embed) {  // the page around it picks the part; the Studio pins a note to the point
-    const normal = hit && hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    if (hit && window.viewer.onPick) window.viewer.onPick(partOfHit(hit), { at: hit.point.toArray(), normal: normal.toArray() });
+    if (hit && window.viewer.onPick) window.viewer.onPick(hit.part, { at: hit.at, normal: hit.normal });
     return;
   }
   tip.textContent = '';
   if (!hit) { highlight([]); return; }
-  const id = partOfHit(hit);
+  const id = hit.part;
   const p = partsState.doc.parts[id];
   highlight([id]);
   tip.textContent = `${partLabel(p)} · ${p.mesh}${p.shared > 0.5 ? ' · shared with its twin' : ''}`;
   tip.style.left = `${Math.min(e.clientX + 14, innerWidth - 260)}px`;
   tip.style.top = `${e.clientY + 14}px`;
 });
+
+// The Lab's pen (viewer.pen, the stand's Draw): a drag that starts on the car draws on it, one that
+// starts off it turns the car, and a tap still picks (onPick). The line shows as it's drawn, and at
+// its end onStroke([{ points, normals, parts }]) gets it on the body in metres, in pieces: where the
+// pointer leaves the car, or the line jumps across an opening or off an edge, a new piece starts.
+// The moves are read once a frame, a ray every PEN_PX pixels along each, so a fast one still hugs
+// the surface round a corner.
+const PEN_PX = 5;          // px between the rays along a move
+const PEN_STEP = 0.003;    // m between kept points
+const PEN_JUMP = 6;        // a jump this many times the ray step's own length on the car is a gap
+const PEN_WIDTH = 5;        // px, however near the car is
+const PEN_COLOUR = '#e8ff47';
+let penOn = false, stroke = null;
+const penGroup = new THREE.Group(), drawnGroup = new THREE.Group();  // the line being drawn; the notes' (viewer.drawings)
+scene.add(penGroup, drawnGroup);
+const penHeight = { value: 1 };  // the page's height in px, for the lines' width
+
+// A drawn line: a tube PEN_WIDTH pixels thick wherever the camera is, brought towards the camera by
+// a little more than its own thickness, so it lies on the paint instead of sinking into it, and
+// still goes behind whatever of the car is in front of it.
+function penMaterial(colour, dim) {
+  const m = new THREE.MeshBasicMaterial({ color: colour, transparent: dim, opacity: dim ? 0.5 : 1, toneMapped: false });
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.penHeight = penHeight;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec3 centre;\nuniform float penHeight;')
+      .replace('#include <project_vertex>', `
+        vec4 mid = modelViewMatrix * vec4(centre, 1.0);
+        float r = ${(PEN_WIDTH / 2).toFixed(1)} * 2.0 * -mid.z / (projectionMatrix[1][1] * penHeight);  // m
+        vec4 mvPosition = vec4(mid.xyz + mat3(modelViewMatrix) * (transformed - centre) * r
+          - normalize(mid.xyz) * (r + 0.004), 1.0);
+        gl_Position = projectionMatrix * mvPosition;`);
+  };
+  return m;
+}
+
+function penLine(list, group) {  // [{ points, colour, dim }] as lines on the body
+  for (const c of group.children) { c.geometry.dispose(); c.material.dispose(); }
+  group.clear();
+  for (const c of list) {
+    if (!c.points || c.points.length < 2) continue;
+    const path = new THREE.CatmullRomCurve3(c.points.map((p) => new THREE.Vector3(...p)), false, 'centripetal');
+    const n = Math.min(2000, Math.max(2, c.points.length * 3)), round = 6;
+    const geo = new THREE.TubeGeometry(path, n, 1, round, false);  // a unit radius: the shader sizes it
+    const centre = new Float32Array(geo.getAttribute('position').count * 3), at = new THREE.Vector3();
+    for (let i = 0; i <= n; i++) {
+      path.getPointAt(i / n, at);
+      for (let j = 0; j <= round; j++) at.toArray(centre, (i * (round + 1) + j) * 3);
+    }
+    geo.setAttribute('centre', new THREE.BufferAttribute(centre, 3));
+    const mesh = new THREE.Mesh(geo, penMaterial(c.colour || PEN_COLOUR, !!c.dim));
+    mesh.frustumCulled = false;  // the shader moves it off its bounds
+    mesh.onBeforeRender = () => { penHeight.value = canvas.clientHeight || 1; };
+    group.add(mesh);
+  }
+}
+
+function penAdd(hit, px) {  // a ray's hit into the stroke: kept, skipped (too near), or a new piece
+  const piece = stroke.pieces[stroke.pieces.length - 1];
+  const last = piece && piece.points[piece.points.length - 1];
+  if (last) {
+    const d = Math.hypot(hit.at[0] - last[0], hit.at[1] - last[1], hit.at[2] - last[2]);
+    if (d < PEN_STEP && !stroke.missed) return;
+    // the length one pixel covers on the car, there: a jump far past it left the surface
+    const perPx = 2 * hit.distance * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / (innerHeight * camera.zoom);
+    if (stroke.missed || d > Math.max(0.03, PEN_JUMP * px * perPx)) stroke.pieces.push({ points: [], normals: [], parts: [] });
+  } else if (!piece) stroke.pieces.push({ points: [], normals: [], parts: [] });
+  const p = stroke.pieces[stroke.pieces.length - 1];
+  p.points.push(hit.at);
+  p.normals.push(hit.normal);
+  p.parts.push(hit.part);
+  stroke.missed = false;
+}
+
+function penMove() {  // the moves since the last frame, a ray every PEN_PX pixels
+  stroke.frame = 0;
+  const [x1, y1] = stroke.to, [x0, y0] = stroke.from;
+  const n = Math.min(24, Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / PEN_PX)));
+  for (let k = 1; k <= n; k++) {
+    const x = x0 + (x1 - x0) * k / n, y = y0 + (y1 - y0) * k / n;
+    const hit = carAt(x, y);
+    if (hit) penAdd(hit, Math.hypot(x1 - x0, y1 - y0) / n);
+    else stroke.missed = true;
+  }
+  stroke.from = stroke.to;
+  penLine(stroke.pieces.map((p) => ({ points: p.points })), penGroup);
+  rouse();
+}
+
+if (embed) {  // on the window, ahead of the controls: a drag that starts on the car isn't theirs
+  addEventListener('pointerdown', (e) => {
+    if (!penOn || stroke || e.button !== 0 || e.target !== canvas || !partsState.doc) return;
+    const hit = carAt(e.clientX, e.clientY);
+    if (!hit) return;  // off the car: it turns
+    e.stopPropagation();
+    canvas.setPointerCapture(e.pointerId);
+    stroke = { id: e.pointerId, start: [e.clientX, e.clientY], from: [e.clientX, e.clientY], to: null, first: hit,
+      moved: false, missed: false, frame: 0, pieces: [] };
+    penAdd(hit, 1);
+  }, { capture: true });
+  addEventListener('pointermove', (e) => {
+    if (!stroke || e.pointerId !== stroke.id) return;
+    e.stopPropagation();
+    if (Math.hypot(e.clientX - stroke.start[0], e.clientY - stroke.start[1]) > 4) stroke.moved = true;
+    if (!stroke.moved) return;
+    stroke.to = [e.clientX, e.clientY];
+    if (!stroke.frame) stroke.frame = requestAnimationFrame(penMove);
+  }, { capture: true });
+  const penUp = (e) => {
+    if (!stroke || e.pointerId !== stroke.id) return;
+    e.stopPropagation();
+    if (stroke.frame) { cancelAnimationFrame(stroke.frame); penMove(); }
+    const s = stroke;
+    stroke = null;
+    pressAt = null;
+    if (!s.moved) {  // a tap: a pin, as without the pen
+      if (window.viewer.onPick) window.viewer.onPick(s.first.part, { at: s.first.at, normal: s.first.normal });
+      return;
+    }
+    const pieces = s.pieces.filter((p) => p.points.length >= 2);
+    if (pieces.length && window.viewer.onStroke) window.viewer.onStroke(pieces);
+    else penLine([], penGroup);
+  };
+  addEventListener('pointerup', penUp, { capture: true });
+  addEventListener('pointercancel', penUp, { capture: true });
+}
 
 // The four materials for one skin's textures.
 function makeMaterials(tex) {
@@ -1739,6 +1871,18 @@ window.viewer = {
     trackSig = '';
     stillFor = 0;
     if (onTrack) trackAnchors();
+  },
+  // the pen (above): while it's on, a drag that starts on the car draws, and onStroke gets the line
+  pen(on) {
+    penOn = !!on;
+    canvas.style.cursor = penOn ? 'crosshair' : '';
+  },
+  onStroke: null,
+  // lines drawn on the car, the notes' drawings ([{ points: [[x, y, z]] metres, colour, dim }]): the
+  // list replaces what was drawn, and the line just drawn with the pen
+  drawings(list) {
+    penLine([], penGroup);
+    penLine(list, drawnGroup);
   },
   project(points) {  // [[x, y, z]] -> [{ x, y, shown }] in this page's pixels, now
     return points.map((p) => {

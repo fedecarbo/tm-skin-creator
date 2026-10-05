@@ -1,9 +1,11 @@
 """Notes on the car, and the Lab's timeline with Claude. In the Lab the user clicks the car where they
-mean and writes what they want there (their pick of the mockups, 2026-09-27), or says something in
-the box under the timeline (the Lab's timeline, A, the user's pick, 2026-09-28). Each note keeps the skin (the one on
-the car: the car, or one of its options), the part under the click, the point (for its pin), the
-view and the user's words, in .notes/notes.json, and a picture of what the user was looking at with
-the pin drawn on, beside it. The page saves them through the viewer's server (tool/view.py,
+mean and writes what they want there (their pick of the mockups, 2026-09-27), draws on it with the
+pen (a strip where they'd want one, a ring round something: their idea, 2026-10-05), or says
+something in the box under the timeline (the Lab's timeline, A, the user's pick, 2026-09-28). Each
+note keeps the skin (the one on the car: the car, or one of its options), the part under the click,
+the point (for its pin), the lines drawn (`drawn`: in the paint box's cm, and the parts they cross),
+the view and the user's words, in .notes/notes.json, and a picture of what the user was looking at
+with the pin and the lines on it, beside it. The page saves them through the viewer's server (tool/view.py,
 /api/notes). Claude answers in the Lab with lines of its own (`say`, or `done ... --say`): the
 timeline shows the user's notes and words on one side, Claude's lines on the other.
 
@@ -16,6 +18,7 @@ this file with --hook, which prints the new ones and marks them sent. Claude mar
 it's handled: its pin leaves the car, and the note stays in the timeline, picture and all:
 
     python -m tool.notes                                    the notes not done yet, every skin
+    python -m tool.notes drawn <skin> <N>                   the lines a note drew, in cm, for a zone
     python -m tool.notes done <skin> [N ...] [--say "..."]  mark notes done (all of the skin's, without
                                                             numbers), and say in the Lab what changed
     python -m tool.notes say <skin> "..."                   a line from Claude in the Lab's timeline
@@ -203,6 +206,57 @@ def _view(v):
         return None
 
 
+STROKES = 24  # lines in a note
+POINTS = 2000  # points in a line
+
+
+def _drawn(v):
+    """The lines the user drew on the car with the Lab's pen, checked: {"strokes": [[[x, y, z] cm]],
+    "parts": [{"token", "label"}]}, the parts they cross in the order they cross them; None when
+    there are none."""
+    if not isinstance(v, dict) or not isinstance(v.get("strokes"), list):
+        return None
+    strokes = []
+    for line in v["strokes"][:STROKES]:
+        if not isinstance(line, list):
+            raise ValueError("a drawn line is a list of points")
+        pts = []
+        for q in line[:POINTS]:
+            if not isinstance(q, list) or len(q) != 3:
+                raise ValueError("a drawn point is [x, y, z]")
+            q = [round(float(c), 1) for c in q]
+            if not all(math.isfinite(c) and abs(c) < 1000 for c in q):
+                raise ValueError("a drawn point off the car")
+            pts.append(q)
+        if len(pts) >= 2:
+            strokes.append(pts)
+    if not strokes:
+        return None
+    parts = [{"token": str(p.get("token") or "")[:80], "label": str(p.get("label") or "")[:80]}
+             for p in (v.get("parts") if isinstance(v.get("parts"), list) else []) if isinstance(p, dict)][:40]
+    return {"strokes": strokes, "parts": parts}
+
+
+def _side(xs):
+    return "the left" if min(xs) > 2 else "the right" if max(xs) < -2 else "both sides of the middle"
+
+
+def drawn_words(d):
+    """Each drawn line in a few words, in the paint box's cm (x the car's left, y up, z forward): a
+    line from one end to the other, or a ring (its ends meet) and what it goes round."""
+    out = []
+    for k, pts in enumerate(d["strokes"], 1):
+        length = sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
+        xs, ys, zs = zip(*pts)
+        at = lambda q: f"(x {q[0]:+.0f}, y {q[1]:.0f}, z {q[2]:+.0f})"
+        if length > 8 and math.dist(pts[0], pts[-1]) < max(4.0, 0.15 * length):
+            out.append(f"line {k}: a ring {length:.0f} cm round on {_side(xs)}, round x {min(xs):+.0f} to "
+                       f"{max(xs):+.0f}, y {min(ys):.0f} to {max(ys):.0f}, z {min(zs):+.0f} to {max(zs):+.0f}")
+        else:
+            out.append(f"line {k}: {length:.0f} cm long on {_side(xs)}, from {at(pts[0])} to {at(pts[-1])}")
+    return out
+
+
 def _number(v):
     return v if isinstance(v, int) and not isinstance(v, bool) and 0 < v < 10000 else None
 
@@ -259,10 +313,11 @@ def _drop_picture(note):
     note.pop("picture", None)
 
 
-def add(skin, text, part=None, at=None, normal=None, picture=None, view=None, answer=None):
+def add(skin, text, part=None, at=None, normal=None, picture=None, view=None, answer=None, drawn=None):
     """A new note from the Lab. part: {"id", "label", "token"}; at and normal: the clicked point and
-    the surface's facing, in the viewer's metres; picture: the car as the user saw it, its dot drawn
-    on (a JPEG data: URL); view: where the camera was (the Lab turns the car back to it); answer: the
+    the surface's facing, in the viewer's metres; drawn: the lines drawn with the pen (_drawn);
+    picture: the car as the user saw it, its dot and lines drawn on (a JPEG data: URL); view: where
+    the camera was (the Lab turns the car back to it); answer: the
     user's answer to a set of options or a question of Claude's (a pick needs no words). No point and
     no answer: words in the timeline's box. Returns the note."""
     text = str(text or "").strip()[:LONGEST]
@@ -283,6 +338,7 @@ def add(skin, text, part=None, at=None, normal=None, picture=None, view=None, an
                      "label": str(part.get("label") or "")[:80], "token": str(part.get("token") or "")[:80]},
             "at": vec(at),
             "normal": vec(normal),
+            "drawn": _drawn(drawn),
             "view": _view(view),
             "answer": answer,
             "made": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -420,8 +476,15 @@ def line(x):
         return f"- {x['skin']}, note {x['n']}, in the Lab's timeline, {answer_words(a)}{words}"
     if not x.get("at"):  # words in the timeline's box
         return f"- {x['skin']}, note {x['n']}, in the Lab's box: \"{x['text']}\""
-    where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
     pic = picture_path(x)
+    d = x.get("drawn")
+    if d:
+        names = [p["token"] or p["label"] for p in d["parts"]]
+        over = ", ".join(names[:12]) + (f" and {len(names) - 12} more" if len(names) > 12 else "") if names else "the car"
+        seen = f" (what they saw, the lines on it: {pic})" if pic and pic.exists() else ""
+        return (f"- {x['skin']}, note {x['n']}, drawn on the car over {over}: \"{x['text']}\"{seen}; "
+                + "; ".join(drawn_words(d)) + f" (its points: `python -m tool.notes drawn {x['skin']} {x['n']}`)")
+    where = f"on {x['part']['token']} ({x['part']['label']})" if x["part"]["token"] else "on the car"
     seen = f" (what they saw, the pin drawn on: {pic})" if pic and pic.exists() else ""
     return f"- {x['skin']}, note {x['n']}, {where}: \"{x['text']}\"{seen}"
 
@@ -436,7 +499,7 @@ def deliver(since):
         if not new:
             return False
         print(f"Notes the user left in the Lab {since} (their words: on the car, each pinned to the part they "
-              "clicked, so look at its picture; in the box under the timeline; or an answer to a set of options "
+              "clicked or drawn on it, so look at its picture; in the box under the timeline; or an answer to a set of options "
               "or a question. "
               "Once one is handled, `python -m tool.notes done <skin> <n> --say \"<what changed, a line>\"`):")
         for x in new:
@@ -470,6 +533,18 @@ def wait(minutes=120.0):
     return False
 
 
+def show_drawn(skin, n):
+    """A note's drawn lines, as a design takes them: each line's points in cm, ready for a zone."""
+    x = next((x for x in load() if x["skin"] == skin and x.get("n") == int(n)), None)
+    if not x or not x.get("drawn"):
+        sys.exit(f"{skin} has no note {n} drawn on the car")
+    print(f"{skin}, note {x['n']}: \"{x['text']}\"")
+    for words, pts in zip(drawn_words(x["drawn"]), x["drawn"]["strokes"]):
+        print(f"# {words}")
+        print("[" + ", ".join(f"({a:g}, {b:g}, {c:g})" for a, b, c in pts) + "]")
+    print("# shapes.polyline([line, ...], width=<cm>): a strip along them; (-x, y, z): the same on the other side.")
+
+
 def main(args):
     if args[:1] == ["--hook"]:
         try:
@@ -489,6 +564,9 @@ def main(args):
             said, rest = rest[k + 1], rest[:k] + rest[k + 2:]
         hit = done(args[1], rest, said)
         print((f"{len(hit)} note(s) done" if hit else "no open notes matched") + (", and said in the Lab" if said else ""))
+        return
+    if args[:1] == ["drawn"] and len(args) == 3:
+        show_drawn(args[1], args[2])
         return
     if args[:1] == ["say"] and len(args) == 3:
         say(args[1], args[2])
