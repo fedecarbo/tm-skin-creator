@@ -1,7 +1,7 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
-curve, rising with the tail; silver chevrons on the tail's deck; a black fuel cap and a dashed
-DO NOT STEP line along each side of the deck; studded snow tyres; amber rear lights."""
+curve, rising with the tail; silver chevrons on the tail's deck; NO STEP on the deck and the side
+box's top, each side; gunmetal bolt heads round every panel; studded snow tyres; amber rear lights."""
 import numpy as np
 
 from tool import levels, shapes
@@ -10,11 +10,20 @@ WORDS = "based on what you know can you design a skin or use the Rescue as a v2,
 ORANGE, AMBER = "#ff5a0f", "#ffb000"
 CHECK = 15.0      # cm: a check's length along the car, twice a row's height
 CHECK_FROM = 72.0  # z: a check's edge at the band's front, the body's edge there (z 69.8 to 72.2)
-NOTES = ("paint this dark (note 3, a ring round the fuel cap); Do an interval lines with DO NOT STEP text. "
-         "(note 4, a line along the deck's left edge)")
-STEP_ENDS = (-128.0, -50.0)  # z: the walkway line's ends, where the user drew it (note 4)
-DASH, GAP, LINE = 5.0, 3.0, 1.0  # cm: a dash, the gap after it, the line's width
-WORDS_H = 2.6  # cm: DO NOT STEP's capitals
+NOTES = ("Do an interval lines with DO NOT STEP text. (note 4, a line along the deck's left edge); right side "
+         "too ... added more continueous do not step; Continue the do not step (note 5, round the side box's top); "
+         "it should actually be NO STEP; Remove the dashes, only include certain spots for no step. (note 7)")
+STEP_FROM, STEP_TO = -128.0, 10.5  # z: the marking's ends, where the user drew them (notes 4 and 5)
+LINE = 1.0  # cm: the line the user drew, as wide as the words keep clear of it
+CORNER = 1.5  # cm: the turns where the marking leaves one seam for the next, rounded over this
+SIGN, SIGN_H = "NO STEP", 2.6  # the words and their capitals' height (cm)
+SIGN_AT = (-95.0, -22.0)  # z: where they go along the course, the deck and the side box's top
+BOLT_WORDS = "Include bolts so each piece looks like it's mechanically screwed (note 8, a dot at the deck's back corner)"
+BOLTED = ("rear flank", "sidepod top", "engine cover", "rear quarter panel", "tail corner", "tail panel",
+          "side skirt", "nose panel", "nose tip")  # the panels laid on the body shell
+BOLT, SOCKET = 1.2, 0.45  # cm: a bolt head across, and its hex socket across the flats
+BOLT_EVERY, BOLT_IN = 16.0, 1.6  # cm: how far apart round a panel's edge, and how far in from it
+BOLT_APART = 7.0  # cm: the least distance between two bolts (where panels meet, one row, one bolt a corner)
 
 
 def _checks(lower=False):
@@ -73,62 +82,208 @@ def _chevrons(width=4.0, slope=0.75, z0=-152.0, z1=-132.0):
     return shapes.field(d) & shapes.band(z0, z1)
 
 
-def _walkway():
-    """The top's first guide line (tool/levels.py: on the rear flank's seam at the back), the left half,
-    between STEP_ENDS, every 0.25 cm: its points, the length along it from the back end, and its
-    direction (forward). It's the line the user drew along, to within a centimetre."""
-    P = np.asarray(next(L["path"] for L in levels.top_lines() if L["name"] == "top 1"), np.float64)
+def _panel_edge(name, side):
+    """A body panel's outline, from the mesh: its open edges (the pieces are welded where the FBX splits
+    them), in order round the loop."""
+    from tool import fbx, parts
+    p = parts.load()
+    m = fbx.meshes()[fbx.MESH_OF["Skin"]]
+    tp = p.tri_part[p.mesh_offset["Skin"]:p.mesh_offset["Skin"] + len(m["tri_vertex"])]
+    V = m["positions"].astype(np.float64)
+    _, weld = np.unique(np.round(V * 1000).astype(np.int64), axis=0, return_inverse=True)
+    F = weld.reshape(-1)[m["tri_vertex"][np.isin(tp, list(p.select(name, side, None)))]]
+    e, k = np.unique(np.sort(np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]]), 1), axis=0, return_counts=True)
+    nxt = {}
+    for a, b in e[k == 1]:
+        nxt.setdefault(a, []).append(b)
+        nxt.setdefault(b, []).append(a)
+    at = np.zeros((weld.max() + 1, 3))
+    at[weld.reshape(-1)] = V
+    loop, prev = [e[k == 1][0][0]], None
+    while True:
+        step = next(v for v in nxt[loop[-1]] if v != prev)
+        if step == loop[0]:
+            return at[loop]
+        prev = loop[-1]
+        loop.append(step)
+
+
+def _resample(P, every=0.25):
     s = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
-    P = np.stack([np.interp(np.arange(0, s[-1], 0.25), s, P[:, k]) for k in range(3)], 1)
-    P = P[(P[:, 2] >= STEP_ENDS[0]) & (P[:, 2] <= STEP_ENDS[1])]  # forward from the back's corner, z only rises
+    return np.stack([np.interp(np.arange(0, s[-1], every), s, P[:, k]) for k in range(3)], 1)
+
+
+def _course():
+    """The marking on the left (the right mirrors it), every 0.25 cm from its back end: the top's first
+    guide line (tool/levels.py, on the rear flank's seam) forward from STEP_FROM to the side box top's
+    back edge, then that panel's outline: in along its back edge, round its inner corner and forward
+    along its inner edge to STEP_TO. Both are where the user drew (notes 4 and 5, within a centimetre
+    or two). Its points, the length along it, and its direction."""
+    top = _resample(np.asarray(next(L["path"] for L in levels.top_lines() if L["name"] == "top 1"), np.float64))
+    top = top[top[:, 2] >= STEP_FROM]
+    edge = _panel_edge("sidepod top", "left")
+    from scipy.spatial import cKDTree
+    d, near = cKDTree(edge).query(top)
+    j = int(np.argmin(np.where(np.abs(top[:, 2] + 50) < 15, d, np.inf)))  # where the guide reaches the panel
+    k = int(near[j])
+    way = 1 if edge[(k + 1) % len(edge), 0] < edge[k, 0] else -1  # inwards along the back edge
+    run = [edge[k]]
+    while not (run[-1][2] >= STEP_TO and run[-1][0] < 60):
+        k = (k + way) % len(edge)
+        run.append(edge[k])
+    run = np.array(run)
+    a, b = run[-2], run[-1]
+    run[-1] = a + (b - a) * (STEP_TO - a[2]) / (b[2] - a[2])  # ends at STEP_TO
+    P = _resample(np.vstack([top[:j + 1], run]))
+    w = np.exp(-0.5 * (np.arange(-24, 25) * 0.25 / CORNER) ** 2)  # the turns rounded, the ends kept
+    pad = np.vstack([np.repeat(P[:1], 24, 0), P, np.repeat(P[-1:], 24, 0)])
+    P = np.stack([np.convolve(pad[:, c], w / w.sum(), mode="valid") for c in range(3)], 1)
     along = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
     tan = np.gradient(P, axis=0)
     return P, along, tan / np.linalg.norm(tan, axis=1, keepdims=True)
 
 
-def _dashes():
-    """The walkway line on both sides: dashes LINE cm wide, as near DASH long with GAP between as
-    makes a whole dash at each end, measured across the line within the skin, as levels.top_line does."""
+def _signs(s):
+    """Where NO STEP goes, on both sides: beside the course where it reaches SIGN_AT (or up to 10 cm off,
+    where it runs straight for the words' length, clear of the course's other stretches, of the fuel
+    cap's seam and of what sits on the body: the fasteners, the inner car's pieces within a centimetre),
+    on its inner side (towards the cockpit and the tail), reading along it, upright to someone at that
+    side."""
     from scipy.spatial import cKDTree
-    P, along, tan = _walkway()
-    n = max(1, round((along[-1] + GAP) / (DASH + GAP)))
-    period = (along[-1] + GAP) / n
-    Q, TQ, S = np.concatenate([P, P * [-1, 1, 1]]), np.concatenate([tan, tan * [-1, 1, 1]]), np.r_[along, along]
-    tree = cKDTree(Q)
+    from tool.paintbox import render_text
+    c = s.canvas("Skin")
+    P, along, tan = _course()
+    width = render_text(SIGN, "teko", SIGN_H, weight=600)[1]
+    cap = cKDTree(c.pos[s.parts.mask(c.bake, "Skin", "fuel cap").reshape(-1)])
+    texels = cKDTree(c.pos)
+    from tool import fbx
+    inner = fbx.meshes()[fbx.MESH_OF["Details"]]
+    inner = cKDTree(inner["positions"][inner["tri_vertex"]].mean(1))
+
+    def facing(at):  # the surface the words lie on there: the texels within 2.5 cm that face up, averaged
+        k = texels.query_ball_point(at, 2.5)
+        n = c.nrm[k][c.nrm[k][:, 1] > 0.3].astype(np.float64)
+        return n.sum(0) / np.linalg.norm(n.sum(0)) if len(n) else None
+
+    lift = LINE / 2 + 1.0 + SIGN_H / 2
+
+    def fits(u):  # the words centred u cm along: (centre, up, facing), or None where they don't fit
+        i = int(np.searchsorted(along, u))
+        if (tan[np.abs(along - u) <= width / 2 + 1.5] @ tan[i]).min() < np.cos(np.radians(10)):
+            return None  # a turn under the words
+        N = facing(P[i])  # not the nearest texel's: the side box top's edge is a little step
+        if N is None:
+            return None
+        up = np.cross(tan[i], N)
+        centre = P[i] + up / np.linalg.norm(up) * lift
+        N = facing(centre)
+        if N is None:
+            return None
+        up = np.cross(tan[i], N)
+        up /= np.linalg.norm(up)  # in the surface, on the inner side
+        box = (centre + np.outer(np.linspace(-0.5, 0.5, 9), np.cross(up, N) * width)[:, None]
+               + np.outer(np.linspace(-0.5, 0.5, 5), up * SIGN_H)[None]).reshape(-1, 3)
+        box = c.pos[texels.query(box)[1]]  # on the paint: the flat box rises off a curve
+        rest = P[np.abs(along - u) > width / 2 + 4]
+        if (cap.query(box)[0].min() < 1.5 or min(inner.query(box * f)[0].min() for f in ([1, 1, 1], [-1, 1, 1])) < 1.0
+                or cKDTree(rest).query(box)[0].min() < 1.5):
+            return None
+        return centre, up, N
+
+    spots = []
+    for z in SIGN_AT:
+        u0 = along[np.argmin(np.abs(P[:, 2] - z))]
+        u, got = next(((u, g) for u in u0 + np.array([0, 2, -2, 4, -4, 6, -6, 8, -8, 10, -10]) if (g := fits(u))), (u0, None))
+        if not got:
+            continue
+        centre, up, N = got
+        for m in (1, -1):  # the left, then the right: its mirror, the words still reading forwards
+            f = np.array([m, 1, 1])
+            Nm, upm = N * f, up * f
+            spots.append(dict(centre=tuple(centre * f), right=tuple(np.cross(upm, Nm)), up=tuple(upm),
+                              facing=tuple(Nm), width=30))
+    return spots
+
+
+def _bolts(s, spots):
+    """Bolt heads round each bolted panel's edges, evenly about BOLT_EVERY apart round each loop
+    (tool/relief.py's edge_points, the inner car's rivets), each moved to the nearest spot of the
+    panel's own paint that lies BOLT_IN cm (+-0.5) from the panel beside it: so only along a seam (not
+    an opening's edge, nor a line inside the panel), never down a lip at the panel's edge, the head
+    whole on its own panel. Facing out of the floor's way, BOLT_APART from the others, and none within
+    a centimetre of the words at `spots`, on the panels the game letters (the number panel, the
+    engine cover panels) or on the nose fin's plate. Their centres, the surface's facing there and a
+    direction across each (the car's length, laid flat)."""
+    from scipy.spatial import cKDTree
+    from tool import fbx, relief
+    c = s.canvas("Skin")
+    m = fbx.meshes()[fbx.MESH_OF["Skin"]]
+    off = s.parts.mesh_offset["Skin"]
+    tp = s.parts.tri_part[off:off + len(m["tri_vertex"])]
+    tris = m["positions"][m["tri_vertex"]]
+    ids = [i for name in BOLTED for i in s.parts.select(name, exact=True)]
+    each = [relief.edge_points(tris[tp == i], BOLT_EVERY, BOLT_IN) for i in ids]
+    pts, own = np.concatenate(each), np.repeat(ids, [len(e) for e in each])
+    texels = cKDTree(c.pos)
+    tri = c.bake["tri"].reshape(-1)[c.near]
+    part = np.where(tri >= 0, tp[np.maximum(tri, 0)], -1)
+    pts = c.pos[texels.query(pts)[1]].astype(np.float64)
+    lettered = list(set(s.parts.select("number panel") + s.parts.select("engine cover panel")))
+    moved = []
+    for q, i in zip(pts, own):
+        near = np.array(texels.query_ball_point(q, 4.0 + BOLT_IN))
+        mine, other = near[part[near] == i], near[(part[near] != i) & (part[near] >= 0)]
+        if not len(mine) or not len(other):
+            continue
+        d = cKDTree(c.pos[other]).query(c.pos[mine])[0]
+        ok = mine[(np.abs(d - BOLT_IN) < 0.5) & (np.linalg.norm(c.pos[mine] - q, axis=1) < 4.0)]
+        if not len(ok):
+            continue
+        k = ok[np.argmin(np.linalg.norm(c.pos[ok] - q, axis=1))]
+        if c.nrm[k][1] > -0.3 and not np.isin(part[np.array(texels.query_ball_point(c.pos[k], BOLT / 2 + 1.0))], lettered).any():
+            moved.append(c.pos[k])
+    pts = np.array(moved, np.float64)
+    width = __import__("tool.paintbox", fromlist=["render_text"]).render_text(SIGN, "teko", SIGN_H, weight=600)[1]
+    words = np.concatenate([np.asarray(w["centre"]) + np.outer(np.linspace(-0.5, 0.5, 13), np.asarray(w["right"]) * width)[:, None]
+                            + np.outer(np.linspace(-0.5, 0.5, 5), np.asarray(w["up"]) * SIGN_H)[None] for w in spots]).reshape(-1, 3)
+    clear = cKDTree(words).query(pts)[0] > BOLT / 2 + 1.0
+    plate = (np.abs(pts[:, 0]) < 8 + BOLT) & (pts[:, 2] > 118 - BOLT) & (pts[:, 2] < 142 + BOLT)
+    pts = pts[clear & ~plate]
+    kept = []  # greedily, in the order the panels came: one row where two meet
+    for q in pts:
+        if all(np.linalg.norm(q - r) >= BOLT_APART for r in kept):
+            kept.append(q)
+    pts = np.array(kept)
+    N = np.array([c.nrm[k].astype(np.float64).sum(0) for k in texels.query_ball_point(pts, 0.6)])
+    N /= np.linalg.norm(N, axis=1, keepdims=True)
+    U = np.array([0.0, 0.0, 1.0]) - N[:, 2:3] * N
+    U = np.where(np.linalg.norm(U, axis=1, keepdims=True) > 0.3, U, np.array([1.0, 0.0, 0.0]) - N[:, 0:1] * N)
+    U /= np.linalg.norm(U, axis=1, keepdims=True)
+    return pts, N, U
+
+
+def _heads(bolts, socket=False):
+    """The bolt heads as a zone: round, BOLT across; or their hex sockets, SOCKET across the flats.
+    Only the surface the head sits on, facing as it does, takes it."""
+    from scipy.spatial import cKDTree
+    pts, N, U = bolts
+    V = np.cross(N, U)
+    tree = cKDTree(pts)
 
     def f(p, nrm):
-        p, nn = p.astype(np.float64), nrm.astype(np.float64)
-        dist, i = tree.query(p)
-        d = p - Q[i]
-        e = np.cross(nn, TQ[i])
-        e /= np.maximum(np.linalg.norm(e, axis=1, keepdims=True), 1e-9)
-        u = S[i] + (d * TQ[i]).sum(1)  # how far along, past the ends too
-        ph = np.mod(u, period)
-        inside = np.minimum(LINE / 2 - np.abs((d * e).sum(1)), np.minimum(ph, period - GAP - ph))
-        inside = np.minimum(inside, np.minimum(u, along[-1] - u))
-        near = (np.abs((d * nn).sum(1)) < 1.5) & (dist < 4)
-        return np.where(near, inside, -1.0).astype(np.float32)
-    return shapes.field(f) & shapes.outside(0.1)
-
-
-def _no_step_spots(s, shares=(0.24, 0.84)):
-    """Where DO NOT STEP goes: beside the walkway line on the deck's side of it, at these shares of its
-    length (the fuel cap between them), reading along it and upright to someone at that side."""
-    c = s.canvas("Skin")
-    P, along, tan = _walkway()
-    spots = []
-    for k in np.searchsorted(along, np.asarray(shares) * along[-1]):
-        i = np.argmin(np.linalg.norm(c.pos - P[k], axis=1))
-        nrm = c.nrm[i] / np.linalg.norm(c.nrm[i])
-        for m in (1, -1):  # the left side, then the right as its mirror
-            f = np.array([m, 1, 1])
-            N, T = nrm * f, tan[k] * f
-            right = -T if m > 0 else T  # towards the tail on the left, the nose on the right
-            up = np.cross(N, right)
-            up /= np.linalg.norm(up)  # in the surface, towards the middle
-            centre = P[k] * f + up * (LINE / 2 + 1.2 + WORDS_H / 2)
-            spots.append(dict(centre=tuple(centre), right=tuple(right), up=tuple(up), facing=tuple(N), width=30))
-    return spots
+        p = p.astype(np.float64)
+        _, i = tree.query(p, workers=-1)
+        rel = p - pts[i]
+        h = (rel * N[i]).sum(1)
+        q = rel - h[:, None] * N[i]
+        if socket:
+            a, b = (q * U[i]).sum(1), (q * V[i]).sum(1)
+            inside = SOCKET / 2 - np.maximum(np.abs(a), np.maximum(np.abs(a / 2 + b * 0.866), np.abs(a / 2 - b * 0.866)))
+        else:
+            inside = BOLT / 2 - np.linalg.norm(q, axis=1)
+        on = (np.abs(h) < 0.5) & ((nrm * N[i]).sum(1) > 0.7)
+        return np.where(on, inside, -1.0).astype(np.float32)
+    return shapes.field(f, soft=0.1)
 
 
 def design(s):
@@ -150,12 +305,18 @@ def design(s):
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=_chevrons())
 
-    s.step("The deck", "A black fuel cap; a dashed black line along each side of the deck where the user drew "
-           "it, on the top's first guide line, DO NOT STEP beside it twice, the fuel cap between.", words=NOTES)
-    s.paint("fuel cap", "satin black")
-    s.paint("body", "gloss black", zone=_dashes())
-    for spot in _no_step_spots(s):
-        s.text("DO NOT STEP", spot, colour="black", font="teko", weight=600, height=WORDS_H)
+    s.step("No step", "NO STEP in black on each side: on the deck beside its edge, and on the side box's top "
+           "beside its inner edge, where the user drew the line along them.", words=NOTES)
+    spots = _signs(s)
+    for spot in spots:
+        s.text(SIGN, spot, colour="black", font="teko", weight=600, height=SIGN_H)
+
+    s.step("Bolts", "Gunmetal bolt heads with hex sockets round every panel laid on the body, about every "
+           f"{BOLT_EVERY:g} cm, {BOLT_IN:g} cm in from its edge.", words=BOLT_WORDS, look="rear")
+    bolts = _bolts(s, spots)
+    panels = [f"{n}|part" if n == "engine cover" else n for n in BOLTED]
+    s.paint(panels, "gunmetal", zone=_heads(bolts))
+    s.paint(panels, "satin black", zone=_heads(bolts, socket=True))
 
     s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car and the inlets' "
            "insides dark grey, black frames round the inlets.", words=WORDS)

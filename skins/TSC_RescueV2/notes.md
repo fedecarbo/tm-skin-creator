@@ -54,3 +54,21 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   gaps, a whole dash at each end, and DO NOT STEP (Teko, 2.6 cm capitals, black) twice on the deck side
   of it, the fuel cap between the two, reading along it and upright to someone standing at that side.
   Both sides, the right mirroring the left. Close looks: whole on both sides, clear of the cap.
+- Change 7 (user, 2026-10-05): "right side too.  Revert the fuel cap, keep it orange, added more
+  continueous do not step, if you have a better marking idea let me know", note 5 drawn round the side
+  box's top: "Continue the do not step", then "Oh, it should actually be NO STEP". The fuel cap is
+  orange again; the marking ran on from the deck's edge in along the side box top's back edge and
+  forward along its inner edge to the air intake (that panel's outline from the mesh, where the user
+  drew), NO STEP every 20 cm or so beside it. Fixed before showing: on the side box's inner edge the
+  words took a lip's sideways face as the surface and lay upside down (version 15, which the user saw:
+  note 6, "why is this upside down"); one sat over a fastener by the fuel cap.
+- Change 8 (user, notes 7 and 8, 2026-10-05): "Remove the dashes, only include certain spots for no
+  step." and, a dot drawn at the deck's back corner, "Include bolts so each piece looks like it's
+  mechanically screwed". No line now: NO STEP (Teko, 2.6 cm, black) at two spots a side, on the deck
+  beside its edge and on the side box's top beside its inner edge. Bolt heads round every panel laid on
+  the body shell (rear flanks, side box tops, engine cover, rear quarter panels, tail corners, tail
+  panel, side skirts, nose panel, nose tip): gunmetal, 1.2 cm across with a black hex socket, about
+  every 16 cm along each seam with another panel, 1.6 cm in on the panel's own paint, one row where two
+  panels meet, none on an opening's edge, the game's number and name panels or the nose fin's plate:
+  104 in all. Tried first: bolts round every edge loop (266, clumped at corners, some cut by a seam,
+  some on lines inside a panel), then only along seams but set down the side box top's lip.

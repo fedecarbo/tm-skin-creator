@@ -25,7 +25,7 @@ game: install from the Windows PC after a push.
 | `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
-| `PY -m tool.swatches` (background) | Serves the Lab, http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. |
+| `nohup PY -m tool.swatches > /dev/null 2>&1 &` | Serves the Lab, http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. |
 | `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
 | `PY -m tool.publish` | The skins in the game on the page online (the PC, after an install). |
 | `PY -m tool.skin list` / `PY -m tool.sets <car>` | Every skin / a car's sets of options. |

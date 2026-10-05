@@ -50,8 +50,8 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
   for every finish in `finishes.CATALOGUE` and serves it. After a change to `tool/server.py`,
   `tool/view.py` or `tool/notes.py`, stop whatever serves 8765 (our own `tool.swatches` or
-  `tool.view`) and start `PY -m tool.swatches --no-tab` in the background (`--no-open` only
-  paints). A gap in the Lab is a gap in the tool, to fix in the tool. Its rooms share
+  `tool.view`) and start `nohup PY -m tool.swatches --no-tab > /dev/null 2>&1 &`, detached: a
+  background task is stopped at its time limit, and the Lab with it (`--no-open` only paints). A gap in the Lab is a gap in the tool, to fix in the tool. Its rooms share
   `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
     (`lab-car.js`). The car follows the frames `tool.skin show` writes at each `Skin.step`
