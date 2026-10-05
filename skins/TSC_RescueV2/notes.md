@@ -99,3 +99,6 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   Three takes on both rear quarter panels: A gloss black (like the lower edge), B silver reflective
   tape (like the checks and chevrons), C silver hazard stripes at the tail chevrons' slant. Open in the
   Lab.
+- Picked (user, set 1, 2026-10-05): C, the silver hazard stripes on the rear quarter panels; the others
+  went. Repainted under the car's name; close looks: whole on both panels, the stripes seen from the
+  driving camera with the tail's chevrons.

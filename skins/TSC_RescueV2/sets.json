@@ -6,27 +6,30 @@
    "title": "Rear quarter panel · 3 ideas",
    "words": "What can we do here in this piece?",
    "made": "2026-10-05T16:28:56",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Black",
-     "skin": "TSC_RescueV2_Black"
+     "skin": "TSC_RescueV2_Black",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Silver",
-     "skin": "TSC_RescueV2_Silver"
+     "skin": "TSC_RescueV2_Silver",
+     "picture": "sets/1/B.png"
     },
     {
      "key": "C",
      "title": "Hazard",
-     "skin": "TSC_RescueV2_Hazard"
+     "skin": "TSC_RescueV2_Hazard",
+     "picture": "sets/1/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "C",
+   "decision": "Hazard stripes on the rear quarter panels",
+   "done": "2026-10-05T16:32:19"
   }
  ]
 }

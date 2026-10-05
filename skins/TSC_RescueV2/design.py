@@ -1,7 +1,8 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
 curve, rising with the tail; silver chevrons on the tail's deck; NO STEP on the deck and the side
-box's top, each side, as small boxed placards; studded snow tyres; amber rear lights."""
+box's top, each side, as small boxed placards; silver hazard stripes across the rear quarter panels; studded snow tyres; amber rear
+lights."""
 import numpy as np
 
 from tool import levels, shapes
@@ -19,6 +20,7 @@ CORNER = 1.5  # cm: the turns where the marking leaves one seam for the next, ro
 SIGN, SIGN_H = "NO STEP", 2.6  # the words and their capitals' height (cm)
 SIGN_AT = (-70.0, -22.0)  # z: where they go along the course: the deck by the side box (the user's arrow,
 # note 10, from where it was at -95 to beside the fuel cap), and the side box's top
+QUARTER = "What can we do here in this piece? (note 11, on the right rear quarter panel)"
 PAD, FRAME = 0.5, 0.2  # cm: the placard's box round the words (the user's yes, note 9), and its line
 
 
@@ -76,6 +78,18 @@ def _chevrons(width=4.0, slope=0.75, z0=-152.0, z1=-132.0):
         ph = np.mod(u - z1 + period / 4, period) - period / 2
         return (period / 4 - np.abs(ph)) / k
     return shapes.field(d) & shapes.band(z0, z1)
+
+
+def _stripes(width=4.0, slope=0.75):
+    """Hazard stripes `width` cm wide (square to them), as many gaps between, at the tail chevrons' slant
+    (falling back `slope` cm per cm out from the middle), mirrored side to side."""
+    k = np.sqrt(1 + slope * slope)
+    period = 2 * width * k
+
+    def d(p, n):
+        ph = np.mod(p[:, 2] + slope * np.abs(p[:, 0]), period) - period / 2
+        return (period / 4 - np.abs(ph)) / k
+    return shapes.field(d)
 
 
 def _outlines(name, side=None):
@@ -247,6 +261,10 @@ def design(s):
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=_chevrons())
+
+    s.step("The rear quarter panels", "Silver and orange hazard stripes across the angled panels behind the "
+           "cockpit, at the tail chevrons' slant.", words=QUARTER)
+    s.paint("rear quarter panel", "reflective tape", zone=_stripes())
 
     s.step("No step", "NO STEP in black on each side, a small placard with a thin black box round the words: on the "
            "deck beside its edge, and on the side box's top beside its inner edge, where the user drew the line "
