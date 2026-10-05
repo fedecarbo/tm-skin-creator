@@ -518,3 +518,16 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   turn onto the nose, the nose at one tilt of the skin, 2 cm from the black line round the tip, ending
   on the nose's middle). TSC_Skeleton repainted; TSC_RescueV2's pinstripe follows it. Self-test: the
   self-test's cars identical. The trials are gone from the work folder.
+- The second top line (the user: "Sure", 2026-10-05). Measured first: along the nose the nose panel's
+  side seam stands three times the first line's height above the black line (12.4 cm at z 143 against
+  3 x 4.1; 9.9 at z 164 against 9.6; 7.0 at z 180 against 7.5), so lines at twice and three times are
+  evenly spaced up to the panel's seam. Trial (Look_TopLine2, in the work folder): behind the nose the
+  first line set in by 6.3 cm seen from above (the tail, the deck, the sidepods, round their front
+  corners, across their fronts; its bends no tighter than 3 cm: 3.1 at the tail's corner, where the
+  first's 5.7 would have folded); from z 25 to 45 handing over to twice the first line's height above
+  the black line (12 at the cockpit's front, 11.2 at z 60, 8.3 at z 140, 5.0 at z 180), which keeps
+  it 4 cm from the black line round the tip and turns it over the nose's top at z 196.5 (the panel's
+  front 186.5, the first line's turn 205.6); smoothed in space over the hand-over; within 2.8 mm of
+  the skin. Checked from above, the deck and tail high behind, the sidepod's corner, the nose root high
+  front, the nose from the side, the tip from the front quarter and above, the cockpit's side, the rear
+  three-quarter. Shown in the viewer.
