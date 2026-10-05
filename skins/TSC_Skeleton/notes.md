@@ -542,3 +542,7 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   (Look_TopLine2b): from z 150 the second line hands over to the shoulder's line (twice the first's own
   shading line, before its floor), never nearer the first than 1.5 cm; it crosses the top at z 199.2.
   Asked in the Lab (question on TSC_Skeleton), both trials open.
+- The user: "Dont see the changes" (B against A: under 1% of the picture differs). Third trial
+  (Look_TopLine2c): the second line follows the shoulder down and runs into the first line by z 203
+  (its gap closing from 1.5 cm at z 190), so the two go round the tip as one; its paint stops at its end.
+  Question 9 settled; asked B or C in the Lab (question 10).
