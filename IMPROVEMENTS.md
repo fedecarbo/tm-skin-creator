@@ -50,6 +50,11 @@ eighth it no longer makes).
   now; the readings are to be checked against them (`tool/carmap.py`, `car/map.md`). The checks
   (`tool/checks.py`) and a mark's room (`tool/marks.py`, the open air) read the map too and haven't run
   on the PC yet: a mark could land a texel or two apart on the two computers.
+- **A mark's `at` seen along an axis** (2026-10-05, the agent's test car): `(x, None, z)` takes the panel's
+  nearest texel in x and z, which can be its underside, with no note that it faces away; a shrunk mark
+  that fills its room hugs the panel's edges, which no note says; placing a tight mark takes a paint per
+  try. Ideas: among the texels in line, the one facing the free axis, and a note when none does; a note
+  when a mark takes over 80 % of its room; `tool.marks --probe`.
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.
