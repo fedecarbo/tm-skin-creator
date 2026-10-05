@@ -4,16 +4,6 @@ The queue of what the tool should do better: each item in two or three lines, wh
 idea for the fix. The user says when to work on it. A finished item is deleted; what it taught
 goes into the code.
 
-## The harness (the plan: `PLAN.md`)
-
-The next steps, in order, each shown and OK'd before the next (2026-10-02). A finished step is
-deleted here; `PLAN.md` keeps the why.
-
-- **7. The tool measured against the record** (built 2026-10-05, waiting for the user's OK):
-  `tool.record` paints again the car the user saw before each flaw they pointed out (8 of the 26
-  can be: the rest the tool fixed in itself, or were never committed) and scores the checks: 2 of
-  8 named before the user did (the measure, the pictures' check), 2¼ minutes.
-
 ## Under way
 
 - **Drawing on the skin** (`tool/skindraw.py`): paused by the user ("lets stop. None of the cars
