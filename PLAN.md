@@ -202,16 +202,14 @@ and the reading is where the doubt lives. The skeleton is the cuts, shown and ch
   thinking. Opus 5.5, as the studio's critic trial chose (2026-09-28).
 - **Checked by:** on a car with a known flaw the eyes name it with the right picture; on a clean
   car, nothing; the time stays near a minute.
-- **Built (2026-10-05):** `tool/eyes.py` and the `fresh-eyes` agent. A test car, Rescue v2 with four
-  faults planted (a leftover pinstripe, cyan wheel rings, a snowflake cut at a fold, the check band
-  stopping at the rear wheel instead of the tail), in four rounds: the rings and the snowflake every
-  time, the pinstripe three times, the band only in the last. The measure couldn't see the body
-  resume behind the rear wheel, so the band's end read as the body's: it now says "STOPS SHORT
-  past an opening" (to the eyes even where the design ends the paint), and the eyes set each
-  paint's run beside its step's words. Rescue v2 as it was, the "clean" car, wasn't: three real
-  flaws the close looks had missed (the wheels' stock cyan light, orange inside the inlets, the
-  band opening on a cut sliver), fixed and looked at again. Each round also names one or two
-  things marked unsure that aren't there: the designer checks each in its picture.
+- **Dropped (2026-10-05).** Built and tried (a Read-only agent on Opus 5.5 given the user's words,
+  the steps, the measures and 20 pictures; a test car with four planted faults over four rounds):
+  on Rescue v2 it found three real flaws the close looks had missed, but none of the three the user
+  flagged next (the band over the bottom piece's black, RESCUE across a fold the paint box had
+  warned of, an icon "too deliberate"), its next top finding was wrong, and each look took 2 to 5
+  minutes. The user: "probably I can flag things more accurately". In its place, at their
+  suggestion, drawing on the car in the Lab (`IMPROVEMENTS.md`). What stayed: the measure sees the
+  body resume bare past an opening, behind the rear wheel ("STOPS SHORT past an opening").
 
 ### Step 4. Rules that are checks, not requests
 

@@ -25,6 +25,9 @@ game or the code goes into the code (a warning, a check, a docstring).
 
 - **Don't load a design with taste rules, past cars or examples.** They make every car look the same.
   Start each car blank, from the user's words; borrow an earlier car only when the user names it.
+- **Don't put words on a car the user didn't ask for.** Lettering has never come out well on this
+  car's curves (the user, 2026-10-05: "The approach is always terrible"); write only words they ask
+  for.
 - **Don't paint the guides.** The levels, the top's lines and the seams are the painter's eyes on the
   car's curvature: they shape and place graphics. A line on a skin needs a reason in the idea (some
   liveries use lines for mood; most have none).

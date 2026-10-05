@@ -102,12 +102,13 @@ game: install from the Windows PC after a push.
 
 ## Before showing
 
-1. Fix what show's measures say STOPS SHORT or GAP, then look at the six views. For a set's takes, that's enough.
-2. A design shown alone, or a pick: fresh eyes. `PY -m tool.eyes <name>` takes the close looks and
-   the game's cameras and prints a brief's path: give the `fresh-eyes` agent only that path. Check
-   each thing it names in its picture and fix what's real; then `show`, `tool.eyes <name> --again`,
-   and send the same agent the path that prints. Last, `tool.eyes <name> --done [--fixed "<what>"]
-   [--left "<what>: <why>"]` puts its line in the Lab; the Shown line in `notes.md` says it too.
+1. Fix what show's measures say STOPS SHORT or GAP, and what its notes say will look cut, then look
+   at the six views. For a set's takes, that's enough.
+2. A design shown alone, or a pick: `tool.snap <name> --close`, and look where graphics meet a
+   join, fold, hole or edge: nothing cut, sunk, stretched or soft.
+3. The whole car: every visible part serves the idea, the lights at night (none left in a stock
+   colour), no paint left from an earlier version, no part left in clay by accident (`show` names
+   them). Fix and look again.
 
 ## Showing and installing
 

@@ -16,8 +16,7 @@ For a paint that runs along the car (RUN times longer than it's high: a band, a 
     its open air, its lines) makes a shortfall: a length, a height, a box or a pattern ends a paint
     where the design wrote it. Past an opening the body at the paint's height can resume (behind
     the rear wheel, the farthest back of the side): the first stretch of it within FAR cm, bare, is
-    said, and to the fresh eyes (tool/eyes.py) even where the design ends the paint: a picture shows
-    the bare stretch but not that the paint was meant to reach it;
+    said too, unless the design ends the paint there (TSC_Snow's band ends at the sidepods);
   - the gaps: stretches of GAP cm or more inside the run where the body is there at the paint's
     height and less than half of it shows the paint, with what left them out or covered them.
 A line both sides share is said once; the two sides' own lines show where they differ.
@@ -260,11 +259,9 @@ def measure(skin):
     return out
 
 
-def words(measures, written=False):
+def words(measures):
     """The measures as lines for Claude, a paint at a time: its run per side, then what stops short.
-    A line both sides share is said once. written: also the body bare past an opening beyond an end
-    the design wrote (a length, a box), for the fresh eyes to set beside the step's words
-    (tool/eyes.py): the designer may have meant it (TSC_Snow's band ends at the sidepods)."""
+    A line both sides share is said once."""
     lines = []
     for m in measures:
         sides = {k: v for k, v in m["sides"].items() if v}
@@ -275,7 +272,7 @@ def words(measures, written=False):
             said[side] = [f"from {_place(s['front'])} to {_place(s['rear'])}"]
             for end, e in s["ends"].items():
                 x = e.get("across")
-                if x and (written or not x["as_written"]):
+                if x and not x["as_written"]:
                     up = f"{x['height'][0]:.0f} to {x['height'][1]:.0f} cm up"
                     said[side].append(f"{end} end STOPS SHORT past an opening: at {up} the body goes on, BARE, from "
                                       f"{_place(x['from'])} to {_place(x['to'])}; {x['why']}")

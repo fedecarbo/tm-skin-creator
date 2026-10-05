@@ -1,7 +1,6 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
-curve, rising with the tail; silver chevrons on the tail's deck; a snowflake badge on the bonnet; RESCUE along the front flanks, a snowflake on the rear flanks; studded snow
-tyres; amber rear lights."""
+curve, rising with the tail; silver chevrons on the tail's deck; studded snow tyres; amber rear lights."""
 import numpy as np
 
 from tool import levels, shapes
@@ -9,7 +8,7 @@ from tool import levels, shapes
 WORDS = "based on what you know can you design a skin or use the Rescue as a v2, to add more details"
 ORANGE, AMBER = "#ff5a0f", "#ffb000"
 CHECK = 15.0      # cm: a check's length along the car, twice a row's height
-CHECK_FROM = 70.0  # z: a check's edge at the front wheel opening, where the band ends
+CHECK_FROM = 72.0  # z: a check's edge at the band's front, the body's edge there (z 69.8 to 72.2)
 
 
 def _checks(lower=False):
@@ -22,19 +21,36 @@ def _checks(lower=False):
     return shapes.field(d)
 
 
-def _midway(upper, lower):
-    """The body above the line midway between two levels (the side's levels, tool/levels.py)."""
+def _skirt_top(s):
+    """The bottom piece's (the side skirt's) top edge along the side, as z and y in cm, smoothed over
+    12 cm. Ahead of the sidepods it rises 3 cm above the sixth level, into the band."""
+    c = s.canvas("Skin")
+    on = s.parts.mask(c.bake, "Skin", "side skirt").reshape(-1) & (np.abs(c.pos[:, 0]) > 5) & (np.abs(c.nrm[:, 0]) > 0.3)
+    z, y = c.pos[on, 2], c.pos[on, 1]
+    zs = np.arange(-160.0, 220.0, 2.0)
+    top = np.array([y[(z >= a) & (z < a + 2)].max(initial=0.0) for a in zs])
+    return zs + 1, np.convolve(top, np.ones(6) / 6, mode="same")
+
+
+def _rows(s):
+    """The body above the line between the band's two rows: midway between the fourth and fifth
+    levels between, raised by half the bottom piece's rise above the band's foot (the sixth level)
+    where it rises into the band, so the two rows stay even there."""
     from tool.noise import smoothstep
-    (Ya, dYa), (Yb, dYb) = [next(c[1:3] for c in levels.curves() if c[0] == n) for n in (upper, lower)]
+    Y4, Y5, Y6 = [next(c[1] for c in levels.curves() if c[0] == n) for n in ("between 4", "between 5", "between 6")]
+    zs, top = _skirt_top(s)
+
+    def mid(z):
+        return (Y4(z) + Y5(z)) / 2 + np.maximum(0, np.interp(z, zs, top) - Y6(z)) / 2
 
     def f(p, n):
         z = p[:, 2].astype(np.float64)
-        h = p[:, 1] - (Ya(z) + Yb(z)) / 2
-        g = np.stack([np.zeros(len(h)), np.ones(len(h)), -(dYa(z) + dYb(z)) / 2], 1)
+        h = p[:, 1] - mid(z)
+        g = np.stack([np.zeros(len(h)), np.ones(len(h)), -(mid(z + 0.5) - mid(z - 0.5))], 1)
         nn = n.astype(np.float64)
         gs = np.linalg.norm(g - (g * nn).sum(1, keepdims=True) * nn, axis=1)
         return smoothstep(-0.05, 0.05, h / np.maximum(gs, 0.05)).astype(np.float32)
-    return shapes.Zone(f, label=f"midway({upper!r}, {lower!r})")
+    return shapes.Zone(f, label="rows")
 
 
 def _chevrons(width=4.0, slope=0.75, z0=-152.0, z1=-132.0):
@@ -51,43 +67,6 @@ def _chevrons(width=4.0, slope=0.75, z0=-152.0, z1=-132.0):
     return shapes.field(d) & shapes.band(z0, z1)
 
 
-def _segments():
-    """The snowflake's strokes, (x, z) pairs about its centre: six arms, a V on each."""
-    out = []
-    for i in range(6):
-        a = np.pi / 2 + i * np.pi / 3
-        u = np.array([np.cos(a), np.sin(a)])
-        out.append((np.zeros(2), 8.0 * u))
-        for at, length in ((4.0, 2.8), (6.2, 1.8)):
-            for turn in (-np.pi / 4, np.pi / 4):
-                b = a + turn
-                out.append((at * u, at * u + length * np.array([np.cos(b), np.sin(b)])))
-    return out
-
-
-def _snowflake(centre, stroke=1.3, size=1.0, seen="above"):
-    """A snowflake `size` times 16 cm across, its strokes `stroke` cm wide: seen from above at (x, z),
-    or from the side ("left", "right") at (z, y), one arm up."""
-    A = np.array([s[0] for s in _segments()], np.float32) * size
-    B = np.array([s[1] for s in _segments()], np.float32) * size
-    i, j = {"above": (0, 2), "left": (2, 1), "right": (2, 1)}[seen]
-
-    def d(p, n):
-        q = np.stack([p[:, i] - centre[0], p[:, j] - centre[1]], 1)
-        best = np.full(len(q), np.inf, np.float32)
-        for a, b in zip(A, B):
-            ab = b - a
-            t = np.clip(((q - a) @ ab) / (ab @ ab), 0, 1)
-            best = np.minimum(best, np.linalg.norm(q - a - t[:, None] * ab, axis=1))
-        return stroke / 2 - best
-    return shapes.field(d) & shapes.facing({"above": "up", "left": (1, 0, 0), "right": (-1, 0, 0)}[seen], 0.5)
-
-
-def _disc(centre, radius):
-    """A disc seen from above at (x, z)."""
-    return shapes.field(lambda p, n: radius - np.hypot(p[:, 0] - centre[0], p[:, 2] - centre[1])) & shapes.facing("up", 0.5)
-
-
 def design(s):
     s.clay()
     s.step("Signal orange", "The body in gloss signal orange; below the lowest side level, rising with the tail, "
@@ -97,23 +76,15 @@ def design(s):
     s.paint("side skirt", "gloss black")  # on round the nose, under the front flank and the nose
 
     s.step("The check band", "Two rows of silver and orange checks along each side between the levels, from the tail "
-           "to the front wheel opening.", words=WORDS)
-    band = levels.band("between 3", "between 6") & shapes.behind(CHECK_FROM)  # it opens on a whole check
-    upper = _midway("between 4", "between 5")
+           "to the front wheel opening, on the body only: the bottom piece keeps its black.", words=WORDS)
+    band = levels.band("between 3", "between 6")
+    upper = _rows(s)
     s.paint("body", "gloss", colour=ORANGE, zone=band)
     s.paint("body", "reflective tape", zone=band & (upper & _checks() | ~upper & _checks(lower=True)))
+    s.paint("side skirt", "gloss black", zone=band)  # ahead of the sidepods it rises into the band
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=_chevrons())
-
-    s.step("Badges", "A black badge on the bonnet with a silver snowflake; RESCUE along the front flanks, a black "
-           "snowflake on the rear flanks.", words=WORDS)
-    s.paint("body", "gloss black", zone=_disc((0, 105), 11))
-    s.paint("body", "reflective tape", zone=_snowflake((0, 105)))
-    for spot, x in (("left flank", 35), ("right flank", -35)):  # clear of the sidepod's front fold
-        s.text("RESCUE", spot, colour="black", font="russo", height=8, italic=0.15, at=(x, 53, 58))
-    for seen, x in (("left", 1), ("right", -1)):
-        s.paint("body", "gloss black", zone=_snowflake((-66, 50), stroke=1.6, size=0.9, seen=seen) & shapes.plane((0, 0, 0), (x, 0, 0)))
 
     s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car and the inlets' "
            "insides dark grey, black frames round the inlets.", words=WORDS)

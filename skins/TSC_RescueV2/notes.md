@@ -36,3 +36,13 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   began on a cut 4 cm sliver of a check (it now opens on a whole one at the front wheel opening). Left:
   an orange edge on the front wing's tips, in neither its paint nor its lights. The eyes looked again
   at the changed pictures: fixed. The line is in the Lab.
+- Change 5 (user, notes 1 and 2, 2026-10-05): "This is terrible design.  it doesn't cover the body, and
+  also it's ontop of the black paint from the bottom piece.  Also, the approach to the RESCUE, is just
+  terrible, the text is big for the curvature of the surface and the first R is clipped"; "I think im
+  about to ban text only if I request it.  The approach is always terrible"; "Even this icon, like what
+  is that? it's ugly, it's too deliberate" (the bonnet's badge). Ahead of the sidepods the bottom piece
+  (the side skirt) rises 3 cm above the band's lower guide, and the band was painted over its black:
+  the skirt keeps its black now, the row split rises with it so the two rows stay even, and the checks
+  start at the body's front edge (z 72) with no sliver. RESCUE is off (it crossed a fold the paint box
+  had warned of, 6 cm off flat), and so are the bonnet's badge and the rear flanks' snowflakes, the
+  same kind of icon. No words on a car unless the user asks (RULES.md).

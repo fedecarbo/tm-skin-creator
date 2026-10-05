@@ -15,10 +15,6 @@ stays KEEP seconds as a single line, then its file goes. A job opened inside ano
 process (a snapshot inside a show) adds no widget: its stages are the outer job's. Without a job
 the calls do nothing, so the code under them runs the same from anywhere (the self-test's children).
 
-A job can outlive its process (`hand_over`): the fresh eyes (tool/eyes.py) look at a car in Claude's
-own session, after the command that took their pictures has ended. It runs on, unbeaten, until
-`finish` or the car's next job ends it, or reads as stopped after PATIENCE seconds.
-
 Standard library only (and tool.paths, which is too)."""
 
 import contextlib
@@ -33,7 +29,6 @@ from tool import paths
 FOLDER = paths.WORK / "progress"
 BEAT = 5  # seconds between a running job's beats
 STALE = 30  # seconds without a beat: the job stopped without finishing
-PATIENCE = 600  # seconds a job handed over runs on without a beat
 KEEP = 600  # seconds a finished job stays in the chat
 
 _current = None
@@ -52,7 +47,6 @@ class Job:
         self.doc = {"title": title, "skin": skin, "started": now, "beat": now, "stage": "", "count": None,
                     "detail": "", "ended": None, "result": done or "Done", "failed": None}
         self.stop = threading.Event()
-        self.handed = False
 
     def write(self, **changes):
         with self.lock:
@@ -76,8 +70,6 @@ def job(title, skin=None, done=None):
     if _current is not None:
         yield _current
         return
-    if skin:
-        finish(skin)  # the car's job handed over ends where its next one starts
     j = _current = Job(title, skin, done)
     j.write()
     threading.Thread(target=j.beat, daemon=True).start()
@@ -95,30 +87,8 @@ def job(title, skin=None, done=None):
         raise
     finally:
         j.stop.set()
-        if not j.handed or j.doc["failed"]:
-            j.write(ended=time.time())
+        j.write(ended=time.time())
         _current = None
-
-
-def hand_over(text):
-    """Leave the job running when this process ends, at the stage `text` (a pulse), for `finish`."""
-    if _current:
-        _current.handed = True
-        _current.write(stage=text, count=None, detail="", handed=True)
-
-
-def finish(skin, result=None):
-    """End the car's job handed over, if one runs, settling it into `result` (else its own)."""
-    for f in sorted(FOLDER.glob("*.json")) if FOLDER.is_dir() else ():
-        try:
-            doc = json.loads(f.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        if doc.get("handed") and doc.get("skin") == skin and not doc.get("ended"):
-            now = time.time()
-            doc.update(ended=now, beat=now, result=result or doc["result"])
-            with contextlib.suppress(OSError):
-                paths.write(f, json.dumps(doc))
 
 
 def stage(text, total=None):
@@ -155,7 +125,7 @@ def jobs():
             doc = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue  # being replaced: the next ask
-        end = doc.get("ended") or (doc["beat"] if now - doc["beat"] > (PATIENCE if doc.get("handed") else STALE) else None)
+        end = doc.get("ended") or (doc["beat"] if now - doc["beat"] > STALE else None)
         if end and now - end > KEEP:
             with contextlib.suppress(OSError):
                 f.unlink()
