@@ -573,3 +573,18 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   crease 7 to 8 cm above the black line, the shoulder on the nose 11 to 12). Checked from above, the back
   high behind, along the cockpit, onto the nose, the back corner, the rear three-quarter, the nose root
   from above (both sides), the side and high behind. Shown in the Lab.
+- The user, of the crease trial (a view from above, the back corners circled in blue, the nose root in
+  green): "the blue circles I drew, those corners should be smooth corner radius. And the drawn green
+  cricles, that's where I said the second line should meet with the first line. So that they all run
+  through the shoulder of the cars nose", then "if you need to slightly make the first line a bit further
+  to reach the cockpit curvature, feel free. So both lines meet perfectly". Measured: the crease along
+  the cockpit is nearly straight (43.65 cm out at z 0, drifting in 0.027 cm per cm), and the first line's
+  turn onto the nose already lands on it (43.35 against 43.16 at z 18), crossing it at a 9.5 degree
+  angle; so the first line stays as it is. Sixth trial (Look_TopLines8): the second line on the crease,
+  its back corners one eased turn of 12 cm radius (from the back crease at 8 cm out to the side crease
+  at z -75); along the cockpit on the crease's straight line; from z 8 to 24 one bend (no tighter than
+  45 cm) into the first line's course, ending on it (0.07 mm) in its direction; its paint stops at its
+  end. Ahead of the join only the first line runs on, to the tip. Tried and not kept: the second line
+  easing into the first over z 8 to 35 (side by side for 15 cm, a taper); the first line's turn redrawn
+  onto the crease (an S after it); a bend ending at z 18 (it bulged out first). Checked from above on both
+  sides, high front, high behind, the back corners. Shown in the Lab.
