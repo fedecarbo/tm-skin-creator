@@ -24,7 +24,8 @@ that line in one go: a strip, dashes, ticks, spots or words.
     c.mirrored()                             the same on both sides; c.reversed() the other way
     c.panels(3)                              cut at each seam between the body's panels it crosses, a piece per
                                              panel stopping 1.5 cm short of each edge it ends at (a seam, an
-                                             opening's frame): a marking applied panel by panel, as tape is
+                                             opening's frame): a marking applied panel by panel, as tape is;
+                                             .without("nose tip") leaves those panels' pieces off
     c.length, c.start, c.middle, c.end, c.at(z=-70), c.at(s=20)   points on it (cm)
     c.places(every=20)                       points every 20 cm along it, a whole gap at each end, for marks
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
@@ -234,7 +235,9 @@ class Course:
             s1 = self.s[b - 1] - (0.0 if k == len(panels) - 1 and middle[1] else gap / 2)
             idx = np.flatnonzero((self.s >= s0) & (self.s <= s1))
             if len(idx) > 1 and s1 - s0 >= max(gap, SPECK):
-                out.append(Course(self.pts[idx], f"{self.name}, on the {m.part_names[p]}", self.nrm[idx], False, self.mirror))
+                piece = Course(self.pts[idx], f"{self.name}, on the {m.part_names[p]}", self.nrm[idx], False, self.mirror)
+                piece.part = str(m.part_names[p])
+                out.append(piece)
         return Courses(out, f"{self.name}, panel by panel")
 
     # ---- markings ----
@@ -567,6 +570,13 @@ class Courses:
 
     def panels(self, gap=3.0):
         return Courses([p for c in self.courses for p in c.panels(gap)], f"{self.name}, panel by panel")
+
+    def without(self, *parts):
+        """The pieces on any panel but these (by part name: Course.panels gives each piece its panel)."""
+        keep = [c for c in self.courses if getattr(c, "part", None) not in parts]
+        if len(keep) == len(self.courses):
+            raise ValueError(f"{self.name}: no piece on {', '.join(parts)} (Course.panels names each piece's panel)")
+        return Courses(keep, f"{self.name}, not on the {', '.join(parts)}")
 
     def _all(self, method, *a, **k):
         zones = [getattr(c, method)(*a, **k) for c in self.courses]

@@ -153,3 +153,6 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   paint before Change 14 (their pictures show the tape at the frame and round the corner). Each piece
   now stops 3 cm short of every edge, 6 cm of orange across each seam, twice what it was. Close looks
   at all four places and at the intake's frame: each gap reads, both sides.
+- Change 16 (user, note 22 on the nose's tip, 2026-10-06, Claude Opus 5.5): "In this part remove the
+  tape." The nose's tip has no tape now, both sides; the nose's piece runs from behind the tip's seam
+  back to the air intake. Close looks: the tip clean, the tape starting behind its seam.
