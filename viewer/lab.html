@@ -187,7 +187,12 @@
   .stLeft { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; min-width: 0; }
   #stHint { max-width: 250px; padding: 9px 12px; font-size: 13px; line-height: 1.4; background: rgba(12, 14, 18, 0.72);
             color: rgba(242, 244, 247, 0.75); pointer-events: none; }
-  #stHint[hidden], #stOn[hidden] { display: none; }
+  #stHint[hidden], #stOn[hidden], #stPick[hidden] { display: none; }
+  /* Draw with Mesh on: the line being picked on the mesh, how it goes and its buttons (lab-studio.js) */
+  #stPick { max-width: 300px; padding: 9px 12px; font-size: 13px; line-height: 1.4; background: rgba(12, 14, 18, 0.85);
+            color: rgba(242, 244, 247, 0.85); }
+  #stPick .teko { display: flex; gap: 6px; margin-top: 8px; }
+  #stPick .sk { font-size: 16px; padding: 5px 11px 2px; }
   /* the option on the car, and the way back to the car itself */
   .onCar { display: flex; align-items: center; gap: 10px; padding: 7px 8px 6px 14px; background: rgba(12, 14, 18, 0.88);
            box-shadow: inset 3px 0 var(--acc); min-width: 0; max-width: 100%; }
@@ -431,6 +436,7 @@
           <div class="stTop">
             <div class="stLeft">
               <div id="stOn" class="onCar" hidden><span class="k">On the car</span><b class="teko"></b><span class="s"></span><button id="stBack" class="sk teko"><span>Back to your car</span></button></div>
+              <div id="stPick" hidden><span></span><div class="teko"><button class="sk acc" id="stPickDone"><span>Done</span></button><button class="sk" id="stPickUndo"><span>Undo</span></button><button class="sk" id="stPickDrop"><span>Drop</span></button></div></div>
               <div id="stHint">Click the car where you mean, and write what you want there. Claude gets it with your next message, or at once when it's waiting.</div>
             </div>
             <div id="stMood" class="show teko">

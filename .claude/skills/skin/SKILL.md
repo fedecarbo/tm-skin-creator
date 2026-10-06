@@ -76,7 +76,8 @@ game: install from the Windows PC after a push.
 - **A marking along one of the car's lines** (a level, a seam, a panel's edge, a top line) or along
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
   places, words reading along it (`at=` a stretch of it), in one paint. The user's line: `PY -m
-  tool.notes drawn <skin> <n>` prints its points for `course.stroke`. 3 mm or more to be seen
+  tool.notes drawn <skin> <n>` prints its points for `course.stroke`, or for a line picked on the mesh (Mesh and
+  Draw on) its `meshlines.picked(...)` call: exact, use it as it is. 3 mm or more to be seen
   while driving (2 mm is the thinnest that holds). A line through points of your own is
   `course.points(...)`, `.rounded(cm)` for its corners. The cockpit leaves no skin down the top's
   middle from z +70 to -45. The model's own crisp lines and panels (the Lab's UV map template, `PY

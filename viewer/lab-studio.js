@@ -6,7 +6,10 @@
 // click on its tag turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
 // viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message (or at
 // once, while Claude waits: tool.notes wait). Mesh lays the model's mesh over the paint (the viewer's mesh, from the
-// UV room's template), on or off. Done, a note leaves the car and stays in the timeline
+// UV room's template), on or off; with Mesh on, Draw picks a line on it instead (the user's idea, 2026-10-06: "click on
+// certain multiple points similar to the draw tool"): each click lands on the nearest line of the mesh and the tool
+// runs the line between clicks (/api/meshpath, tool/meshlines.py path: along one of the model's lines when both are on
+// it, else straight across), and the note keeps the clicks, so Claude paints that very line. Done, a note leaves the car and stays in the timeline
 // beside it (lab-car.js), which also puts an option on the car to look at: its notes are that option's.
 //   show(name)    a skin on the car: the car itself, or one of its options
 //   look(note)    the car as the user saw it when they wrote the note
@@ -36,6 +39,13 @@ let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a 
 let tags = null;          // lab-tags.js
 let pen = false;          // Draw: a drag on the car draws on it
 let meshOn = false;       // Mesh: the model's mesh over the paint
+let picking = null;       // Draw with Mesh on, the line being picked: { set, clicks, hits, parts, line, ticks, closed } (cm)
+let routing = 0;          // the latest ask for the picked line's way (a slower answer to an older one is dropped)
+const PICK_SAME = 0.8;    // cm: a click this near the last ends the line (a double click)
+const PICK_RING = 1.5;    // cm: one this near the first, after two more, closes it round
+const PICK_COLOUR = '#ff3dd8';  // the line being picked, apart from the lines drawn
+const picks = () => pen && meshOn;
+const apart = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 let lift = 0;             // cm the viewer raises the car by, tyres on the floor (data/car.json)
 const SIMPLER = 0.1;      // cm: a drawn line's points kept where it bends more than this
 
@@ -133,10 +143,11 @@ function drawNotes() {
   }));
   if (writing) list.push({ key: 'new', dot: String(nextN), dotClass: 'writing', sig: `new ${nextN}`, render: renderNew, open: true });
   tags.set(list);
-  $('stHint').hidden = list.length > 0;
+  $('stHint').hidden = list.length > 0 || picks();
   if (!stage) return;
   stage.drawings([...notes, ...(writing ? [writing] : [])].flatMap((x) => (x.drawn ? x.drawn.strokes : [])
-    .map((points) => ({ points: points.map(toMetres) }))));
+    .map((points, k) => ({ points: points.map(toMetres), colour: x.drawn.mesh && x.drawn.mesh[k] ? PICK_COLOUR : undefined })))
+    .concat(picking ? [picking.line, ...picking.ticks].map((points) => ({ points: points.map(toMetres), colour: PICK_COLOUR })) : []));
   stage.track([...notes.filter((x) => x.at).map((x) => ({ key: `n${x.n}`, at: x.at, normal: x.normal })),
     ...(writing ? [{ key: 'new', at: writing.at, normal: writing.normal }] : [])], tags.place);
 }
@@ -213,11 +224,8 @@ function simplify(pts, tol) {
 
 function setPen(on) {
   pen = on;
-  if (stage) stage.pen(on);
   $('stPen').setAttribute('aria-pressed', String(on));
-  $('stHint').textContent = on
-    ? 'Draw on the car where you mean: a line where you want a strip, a ring round something. Drag off the car to turn it; a click still pins a note.'
-    : HINT;
+  drawMode();
 }
 
 async function setMesh(on) {
@@ -227,6 +235,110 @@ async function setMesh(on) {
     meshOn = false;
     $('stMesh').setAttribute('aria-pressed', 'false');
   }
+  if (meshOn) fetch('api/meshpath?set=Skin').catch(() => {});  // the model's lines made ready for the first click
+  drawMode();
+}
+
+// Draw: by hand without the mesh (the viewer's pen), clicks on the mesh with it.
+function drawMode() {
+  if (stage) stage.pen(pen && !meshOn);
+  if (!picks()) picking = null;
+  $('stHint').textContent = pen && !meshOn
+    ? 'Draw on the car where you mean: a line where you want a strip, a ring round something. Drag off the car to turn it; a click still pins a note.'
+    : HINT;
+  pickSays();
+  drawNotes();
+}
+
+// ---- Draw with Mesh on: a line picked on the model's mesh ----
+
+function pickSays(trouble) {
+  $('stPick').hidden = !picks();
+  if (!picks()) return;
+  const p = picking, n = p ? p.clicks.length : 0;
+  const length = p && p.line.length > 1 ? p.line.slice(1).reduce((t, q, k) => t + apart(q, p.line[k]), 0) : 0;
+  $('stPick').querySelector('span').textContent = trouble
+    || (!n ? 'Click the mesh where your line goes: each click lands on the nearest line of the mesh. Between two clicks on '
+      + 'one line, your line follows it; otherwise it runs straight across. Click the last point again, or Done, to finish; '
+      + 'the first point to close a ring. Drag to turn the car.'
+      : `${n} click${n > 1 ? 's' : ''}${length ? ` · ${Math.round(length)} cm` : ''}${p.closed ? ' · a ring' : ''}. `
+      + 'Click the last point again, or Done, to finish.');
+  for (const id of ['stPickDone', 'stPickUndo']) $(id).disabled = !n;
+}
+
+async function pick(id, hit) {  // a click on the car while picking
+  const set = (partInfo.get(id) || {}).mesh || 'Skin', at = toCm(hit.at);
+  if (set === 'Glass') return pickSays('The glass has no mesh to pick on: click the body.');
+  if (picking && picking.set !== set) return pickSays('Keep the line on one map: the body, or the inner car, or the wheels.');
+  picking ||= { set, clicks: [], hits: [], parts: [], line: [], ticks: [], closed: false };
+  const p = picking, last = p.clicks[p.clicks.length - 1];
+  if (last && apart(at, last) < PICK_SAME) return endPick();
+  if (p.clicks.length > 2 && apart(at, p.clicks[0]) < PICK_RING) {
+    p.closed = true;
+    await route();
+    return endPick();
+  }
+  p.clicks.push(at);
+  p.hits.push(hit);
+  if (!p.parts.includes(id)) p.parts.push(id);
+  await route();
+}
+
+async function route() {  // the picked line's way through its clicks, from the tool
+  const p = picking, n = ++routing;
+  if (!p) return;
+  if (!p.clicks.length) { p.line = []; p.ticks = []; pickSays(); drawNotes(); return; }
+  const q = new URLSearchParams({ set: p.set, at: p.clicks.map((c) => c.join(',')).join(';'), closed: p.closed ? '1' : '0' });
+  let trouble = '';
+  try {
+    const r = await fetch(`api/meshpath?${q}`, { cache: 'no-store' });
+    const got = await r.json();
+    if (n !== routing || picking !== p) return;
+    if (r.ok) { p.line = got.points; p.ticks = got.ticks; } else {
+      trouble = `That click can't be joined: ${got.error || r.status}`;
+      p.clicks.pop();
+      p.hits.pop();
+      p.closed = false;
+    }
+  } catch (e) { trouble = `Couldn't reach the tool: ${e.message}`; }
+  pickSays(trouble);
+  drawNotes();
+}
+
+// The picked line into the note being written (a new one, its dot at the middle click), as a line drawn by hand is,
+// with its clicks, so Claude paints that very line (tool/notes.py, drawn's mesh).
+function endPick() {
+  const p = picking;
+  picking = null;
+  if (p && p.line.length > 1) {
+    const mid = p.hits[Math.floor(p.hits.length / 2)];
+    if (!writing) {
+      writing = { part: partOf(p.parts[0]), at: mid.at, normal: mid.normal, drawn: null };
+      if (tags.openKey && tags.openKey !== 'new') tags.close();
+    }
+    const d = (writing.drawn ||= { strokes: [], parts: [] });
+    d.mesh ||= [];
+    while (d.mesh.length < d.strokes.length) d.mesh.push(null);
+    d.strokes.push(p.line);
+    d.mesh.push({ set: p.set, clicks: p.clicks, closed: p.closed });
+    for (const id of p.parts) if (!d.parts.some((q) => q.id === id)) d.parts.push(partOf(id));
+    seen();
+  } else drawNotes();
+  pickSays();
+}
+
+function undoPick() {
+  if (!picking) return;
+  picking.clicks.pop();
+  picking.hits.pop();
+  picking.closed = false;
+  route();
+}
+
+function dropPick() {
+  picking = null;
+  pickSays();
+  drawNotes();
 }
 
 // What the user sees in the car's box, the note's dot drawn on, for Claude (a JPEG data: URL).
@@ -269,7 +381,7 @@ async function addNote(value, say) {
   const text = value.trim();
   if (!text || !writing || !skin) return;
   const { picture, drawn, ...note } = writing;
-  const lines = drawn && { strokes: drawn.strokes, parts: drawn.parts.map(({ token, label }) => ({ token, label })) };
+  const lines = drawn && { strokes: drawn.strokes, parts: drawn.parts.map(({ token, label }) => ({ token, label })), mesh: drawn.mesh };
   const r = await post({ skin: skin.name, text, ...note, drawn: lines, picture: await picture });
   if (!r.ok) {
     say.textContent = `Couldn't keep it: ${(await r.json().catch(() => ({}))).error || r.status}`;
@@ -336,10 +448,11 @@ async function openSkin(name) {
   if (!stage) {
     stage = await embedViewer($('stCar'), $('stCredit'));
     if (stage) {
-      stage.onPick = startNote;
+      stage.onPick = (id, hit) => (picks() ? pick(id, hit) : startNote(id, hit));
       stage.onStroke = drew;
-      stage.pen(pen);
+      stage.pen(pen && !meshOn);
       if (meshOn) stage.mesh(true);
+      $('stCar').contentWindow.addEventListener('keydown', keys);  // a click on the car gives it the keys
     }
     framed();
   }
@@ -389,6 +502,17 @@ export function car(name, nameOf) {
   if (nameOf) optionName = nameOf;
 }
 
+function keys(e) {
+  if ($('roomStudio').hidden || /^(INPUT|TEXTAREA)$/.test(e.target.tagName || '')) return;
+  if (picking && e.key === 'Enter') { e.preventDefault(); endPick(); return; }
+  if (picking && e.key === 'Backspace') { e.preventDefault(); undoPick(); return; }
+  if (e.key !== 'Escape') return;
+  if (picking) dropPick();
+  else if (writing) cancelNote();
+  else if (tags.openKey) tags.close();
+  else if (pen) setPen(false);
+}
+
 let opened = false;
 export async function open() {
   if (opened) return;
@@ -404,12 +528,10 @@ export async function open() {
   HINT = $('stHint').textContent;
   $('stPen').addEventListener('click', () => setPen(!pen));
   $('stMesh').addEventListener('click', () => setMesh(!meshOn));
-  addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || $('roomStudio').hidden) return;
-    if (writing) cancelNote();
-    else if (tags.openKey) tags.close();
-    else if (pen) setPen(false);
-  });
+  $('stPickDone').addEventListener('click', endPick);
+  $('stPickUndo').addEventListener('click', undoPick);
+  $('stPickDrop').addEventListener('click', dropPick);
+  addEventListener('keydown', keys);
   new ResizeObserver(framed).observe($('stStage'));
   const uv = await fetch('data/uvmap.json').then((r) => r.json()).catch(() => ({}));
   partInfo = new Map((uv.parts || []).map((p) => [p.id, p]));

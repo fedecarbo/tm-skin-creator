@@ -6,6 +6,7 @@
   /api/sets    each car's sets of options and what was said about them (tool/sets.py)
   /api/progress   what the tool is doing, a job at a time (tool/progress.py)
   /api/health     alive: its pid and the age of the code it runs (tool/doctor.py restarts an old one)
+  /api/meshpath   a line picked on the model's mesh, through the points clicked (tool/meshlines.py, path)
   /sets/<car>/<n>/<letter>.png, /notes/<skin>-<n>.jpg   the pictures those keep
 
 serve() is how the tool opens a page for the user: it serves on PORT unless a server of ours
@@ -31,6 +32,39 @@ PORT = 8765
 STARTED = time.time()
 # the tool's code as this server loaded it: tool/doctor.py restarts a server older than the code on disk
 CODE = max((p.stat().st_mtime for p in (paths.REPO / "tool").glob("*.py")), default=0.0)
+
+
+MESH_STEP = 0.5  # cm between the points of a picked line sent to the Lab, so the line it draws hugs the model's
+
+
+def mesh_path(q):
+    """A line picked on the model's mesh: q, the query's set (Skin, Details or Wheels), at (the points clicked,
+    "x,y,z;x,y,z", the car's own cm) and closed ("1": round back to the first). Where each click landed and a short
+    mark along its edge there (ticks), the line every MESH_STEP cm and how each stretch went (meshlines.path); with no
+    points, the model's lines made ready, so the first click is quick."""
+    import numpy as np
+    from tool import meshlines
+    tset = q.get("set", ["Skin"])[0]
+    if tset not in ("Skin", "Details", "Wheels"):
+        raise ValueError(f"not a map with a mesh to pick on: {tset!r}")
+    clicks = [[float(c) for c in pt.split(",")] for pt in q.get("at", [""])[0].split(";") if pt][:200]
+    if any(len(c) != 3 or not all(np.isfinite(c)) for c in clicks):
+        raise ValueError("a click is x,y,z")
+    if not clicks:
+        meshlines._clickable(tset)
+        return {}
+    pts, _, spots, how = meshlines.path(clicks, tset, closed=q.get("closed", ["0"])[0] == "1")
+    P = meshlines._edges(tset)["P"]
+    ticks = []
+    for at, u, v, _ in spots:
+        d = (P[v] - P[u]) / max(float(np.linalg.norm(P[v] - P[u])), 1e-9)
+        ticks.append([(at - 0.6 * d).round(2).tolist(), (at + 0.6 * d).round(2).tolist()])
+    dense = [pts[0]]
+    for a, b in zip(pts, pts[1:]):
+        n = max(1, int(np.ceil(np.linalg.norm(b - a) / MESH_STEP)))
+        dense += [a + (b - a) * t for t in np.linspace(0, 1, n + 1)[1:]]
+    return {"points": np.round(dense, 2).tolist(), "clicks": [np.round(at, 2).tolist() for at, *_ in spots],
+            "ticks": ticks, "how": how}
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -99,7 +133,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if url.path not in ("/api/notes", "/api/sets", "/api/progress", "/api/health"):
+        if url.path not in ("/api/notes", "/api/sets", "/api/progress", "/api/health", "/api/meshpath"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
@@ -107,6 +141,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             if url.path == "/api/health":  # alive, and how old its code is (tool/doctor.py)
                 return self._json(200, {"ok": True, "pid": os.getpid(), "started": STARTED, "code": CODE})
+            if url.path == "/api/meshpath":  # the Lab's Draw with Mesh on (viewer/lab-studio.js)
+                return self._json(200, mesh_path(urllib.parse.parse_qs(url.query)))
             if url.path == "/api/progress":  # the chat's progress widgets (viewer/lab-car.js)
                 return self._json(200, progress.jobs())
             if url.path == "/api/sets":

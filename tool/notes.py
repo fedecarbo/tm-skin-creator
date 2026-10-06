@@ -213,12 +213,14 @@ POINTS = 2000  # points in a line
 
 def _drawn(v):
     """The lines the user drew on the car with the Lab's pen, checked: {"strokes": [[[x, y, z] cm]],
-    "parts": [{"token", "label"}]}, the parts they cross in the order they cross them; None when
-    there are none."""
+    "parts": [{"token", "label"}], "mesh": [...]}, the parts they cross in the order they cross them, and
+    for each line picked on the model's mesh (Draw with Mesh on) {"set", "clicks": [[x, y, z] cm],
+    "closed"}, None for one drawn by hand (no "mesh" when none was picked); None when there are none."""
     if not isinstance(v, dict) or not isinstance(v.get("strokes"), list):
         return None
-    strokes = []
-    for line in v["strokes"][:STROKES]:
+    given = v.get("mesh") if isinstance(v.get("mesh"), list) else []
+    strokes, mesh = [], []
+    for k, line in enumerate(v["strokes"][:STROKES]):
         if not isinstance(line, list):
             raise ValueError("a drawn line is a list of points")
         pts = []
@@ -231,11 +233,21 @@ def _drawn(v):
             pts.append(q)
         if len(pts) >= 2:
             strokes.append(pts)
+            m = given[k] if k < len(given) else None
+            if isinstance(m, dict) and m.get("set") in ("Skin", "Details", "Wheels") and isinstance(m.get("clicks"), list):
+                clicks = [[round(float(c), 2) for c in q] for q in m["clicks"][:200] if isinstance(q, list) and len(q) == 3]
+                ok = all(math.isfinite(c) and abs(c) < 1000 for q in clicks for c in q)
+                mesh.append({"set": m["set"], "clicks": clicks, "closed": bool(m.get("closed"))} if ok and clicks else None)
+            else:
+                mesh.append(None)
     if not strokes:
         return None
     parts = [{"token": str(p.get("token") or "")[:80], "label": str(p.get("label") or "")[:80]}
              for p in (v.get("parts") if isinstance(v.get("parts"), list) else []) if isinstance(p, dict)][:40]
-    return {"strokes": strokes, "parts": parts}
+    out = {"strokes": strokes, "parts": parts}
+    if any(mesh):
+        out["mesh"] = mesh
+    return out
 
 
 def _side(xs):
@@ -245,16 +257,18 @@ def _side(xs):
 def drawn_words(d):
     """Each drawn line in a few words, in the paint box's cm (x the car's left, y up, z forward): a
     line from one end to the other, or a ring (its ends meet) and what it goes round."""
-    out = []
+    out, mesh = [], d.get("mesh") or []
     for k, pts in enumerate(d["strokes"], 1):
+        picked = mesh[k - 1] if k <= len(mesh) else None
+        how = f"picked on the model's mesh ({picked['set']}, {len(picked['clicks'])} clicks), " if picked else ""
         length = sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
         xs, ys, zs = zip(*pts)
         at = lambda q: f"(x {q[0]:+.0f}, y {q[1]:.0f}, z {q[2]:+.0f})"
         if length > 8 and math.dist(pts[0], pts[-1]) < max(4.0, 0.15 * length):
-            out.append(f"line {k}: a ring {length:.0f} cm round on {_side(xs)}, round x {min(xs):+.0f} to "
+            out.append(f"line {k}: {how}a ring {length:.0f} cm round on {_side(xs)}, round x {min(xs):+.0f} to "
                        f"{max(xs):+.0f}, y {min(ys):.0f} to {max(ys):.0f}, z {min(zs):+.0f} to {max(zs):+.0f}")
         else:
-            out.append(f"line {k}: {length:.0f} cm long on {_side(xs)}, from {at(pts[0])} to {at(pts[-1])}")
+            out.append(f"line {k}: {how}{length:.0f} cm long on {_side(xs)}, from {at(pts[0])} to {at(pts[-1])}")
     return out
 
 
@@ -540,10 +554,17 @@ def show_drawn(skin, n):
     if not x or not x.get("drawn"):
         sys.exit(f"{skin} has no note {n} drawn on the car")
     print(f"{skin}, note {x['n']}: \"{x['text']}\"")
-    for words, pts in zip(drawn_words(x["drawn"]), x["drawn"]["strokes"]):
+    mesh = x["drawn"].get("mesh") or []
+    for k, (words, pts) in enumerate(zip(drawn_words(x["drawn"]), x["drawn"]["strokes"])):
         print(f"# {words}")
-        print("[" + ", ".join(f"({a:g}, {b:g}, {c:g})" for a, b, c in pts) + "]")
-    print("# shapes.polyline([line, ...], width=<cm>): a strip along them; (-x, y, z): the same on the other side.")
+        m = mesh[k] if k < len(mesh) else None
+        if m:  # exact: the same line again from the clicks, on the model
+            clicks = ", ".join(f"({a:g}, {b:g}, {c:g})" for a, b, c in m["clicks"])
+            print(f"meshlines.picked([{clicks}], tset={m['set']!r}" + (", closed=True)" if m["closed"] else ")"))
+        else:
+            print("[" + ", ".join(f"({a:g}, {b:g}, {c:g})" for a, b, c in pts) + "]")
+    print("# shapes.polyline([line, ...], width=<cm>): a strip along the points; meshlines.picked(...) is a Course on "
+          "the model (.strip(cm)); (-x, y, z): the same on the other side.")
 
 
 def events(record):

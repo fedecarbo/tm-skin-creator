@@ -15,6 +15,10 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
     meshlines.panel((25, 80, 11))        the model's own panel under a point (bounded by its creases and the body's
                                     edges), a zone filled right up to its lines; both=True the mirror image's too;
                                     border=1.5 only a trim that far inside its edge
+    meshlines.picked([(70, 60, -70), (55, 63, -100)])   the line through points clicked on the car (the Lab: Mesh
+                                    and Draw on), a Course on the model: each click lands on the nearest of the model's
+                                    edges; between two clicks on one of its lines the line follows it, edge by edge,
+                                    and between two on different lines it runs straight across the surface
     PY -m tool.meshlines            the body's panels and its longest lines, each with a point on it and its parts
 """
 
@@ -238,11 +242,16 @@ def _panels(tset):
 
 def _triangle_at(point, tset="Skin"):
     """The model's triangle nearest a point."""
+    return _closest(point, tset)[0]
+
+
+def _closest(point, tset="Skin"):
+    """The model's triangle nearest a point, and the point on it nearest."""
     e = _edges(tset)
     X = e["P"][e["T"]]
     tree = _centres(tset)
     _, cand = tree.query(point, k=min(24, len(X)))
-    best, bd = None, np.inf
+    best, bd, on = None, np.inf, None
     for t in np.atleast_1d(cand):
         a, b, c = X[t]
         n = np.cross(b - a, c - a)
@@ -252,10 +261,11 @@ def _triangle_at(point, tset="Skin"):
         u, v = np.clip(bary, 0, 1)
         if u + v > 1:
             u, v = u / (u + v), v / (u + v)
-        d = np.linalg.norm(point - (a + u * (b - a) + v * (c - a)))
+        q = a + u * (b - a) + v * (c - a)
+        d = np.linalg.norm(point - q)
         if d < bd:
-            best, bd = t, d
-    return best
+            best, bd, on = t, d, q
+    return best, on
 
 
 @functools.lru_cache(maxsize=4)
@@ -299,6 +309,273 @@ def panel(near, both=False, border=None, soft=None, size=4096):
     words = "panel" if border is None else f"{border:g} cm border inside the panel"
     return course.Course._matched(pos[idx[keep]].astype(np.float64), w[keep].astype(np.float32),
                                   label=f"the model's {words} at {course._said(np.asarray(near, np.float64))}" + (", both sides" if both else ""))
+
+
+SNAP_POINT = 0.5  # cm: a click this near one of the model's points lands on it, else on the nearest of its edges
+FLAT = 6.0        # degrees: an edge the body bends across less than this counts as more or less flat: on a panel the
+# triangles' edges are only where the model was cut into triangles, and a rounded edge's own lines bend 5 to 20
+FLAT_COST = 3.0   # how much further a flat edge counts for a click landing on it (less as it bends, to FLAT)
+SEAM = 1.0        # cm: across a seam between the model's pieces, a point joins the nearest point of another piece
+TURN = 40.0       # degrees: one of the model's lines goes on through a point along its edge turning least, if under this
+STRAIGHT = 0.5    # cm between the points of a line straight across the surface
+
+
+@functools.lru_cache(maxsize=4)
+def _graph(tset):
+    """The model's points joined by its edges: M, a sparse matrix of each edge's cost (its length, up to FLAT_COST
+    times that the flatter it is), symmetric, with the pieces joined across their seams (SEAM); seam, each point's
+    partner across a seam (-1: none)."""
+    from scipy.sparse import csr_matrix
+    e = _edges(tset)
+    P = e["P"]
+    u = np.r_[e["a"][e["h1"]], e["a"][e["hb"]]]
+    v = np.r_[e["b"][e["h1"]], e["b"][e["hb"]]]
+    bend = np.r_[np.abs(e["bend"]), np.full(len(e["hb"]), FLAT)]  # where the body ends is a line of its own
+    rim = np.unique(np.r_[e["a"][e["hb"]], e["b"][e["hb"]]])
+    piece = np.zeros(len(P), int)
+    piece[e["T"].ravel()] = np.repeat(e["piece"], 3)
+    seam = np.full(len(P), -1)
+    for i, near in zip(rim, cKDTree(P[rim]).query_ball_point(P[rim], SEAM)):
+        other = [rim[j] for j in near if piece[rim[j]] != piece[i]]
+        if other:
+            seam[i] = min(other, key=lambda j: float(np.linalg.norm(P[j] - P[i])))
+    su = np.flatnonzero(seam >= 0)
+    u, v, bend = np.r_[u, su].astype(np.int64), np.r_[v, seam[su]].astype(np.int64), np.r_[bend, np.full(len(su), FLAT)]
+    w = np.maximum(np.linalg.norm(P[u] - P[v], axis=1) * (1 + (FLAT_COST - 1) * np.clip(1 - bend / FLAT, 0, 1)), 1e-6)
+    lo, hi = np.minimum(u, v), np.maximum(u, v)
+    key = lo * len(P) + hi
+    order = np.lexsort((w, key))
+    k = order[np.r_[True, np.diff(key[order]) != 0]]  # an edge given twice keeps its cheaper cost
+    M = csr_matrix((np.r_[w[k], w[k]], (np.r_[lo[k], hi[k]], np.r_[hi[k], lo[k]])), shape=(len(P), len(P)))
+    return dict(M=M, seam=seam)
+
+
+def snap(at, tset="Skin"):
+    """A click on the car, on the model: the nearest point of the model's edges round it (a flat edge counted as further
+    away), or one of its points within SNAP_POINT: (the point, u, v, t), t of the way along the edge from point u to
+    point v."""
+    e, M = _edges(tset), _graph(tset)["M"]
+    P, T = e["P"], e["T"]
+    at = np.asarray(at, np.float64)
+    best = None
+    for t in np.atleast_1d(_centres(tset).query(at, k=min(24, len(T)))[1]):
+        for i, j in ((0, 1), (1, 2), (2, 0)):
+            a, b = int(T[t, i]), int(T[t, j])
+            ab = P[b] - P[a]
+            n = float(np.linalg.norm(ab))
+            if n < 1e-9:
+                continue
+            f = float(np.clip((at - P[a]) @ ab / n ** 2, 0, 1))
+            cost = M[a, b]
+            score = np.linalg.norm(at - P[a] - f * ab) * (cost / n if cost else 1.0)
+            if best is None or score < best[0]:
+                best = (score, a, b, f, n)
+    _, a, b, f, n = best
+    f = 0.0 if f * n <= SNAP_POINT else 1.0 if (1 - f) * n <= SNAP_POINT else f
+    return P[a] + f * (P[b] - P[a]), a, b, f
+
+
+@functools.lru_cache(maxsize=4)
+def strips(tset="Skin"):
+    """The model's lines along its rounded edges: its edges the body bends across FLAT to SHARP degrees, joined end to
+    end where one goes on from another turning least (under TURN), on across the seams between its pieces: a list of
+    dicts like lines' (pts, closed, length), the longest first."""
+    e, g = _edges(tset), _graph(tset)
+    P, seam = e["P"], g["seam"]
+    k = (np.abs(e["bend"]) >= FLAT) & ~e["crease"]
+    ends = np.c_[e["a"][e["h1"]][k], e["b"][e["h1"]][k]]
+    root = np.arange(len(P))  # a point and its partner across a seam are one place
+    for i in np.flatnonzero(seam >= 0):
+        r1, r2 = root[i], root[seam[i]]
+        while root[r1] != r1:
+            r1 = root[r1]
+        while root[r2] != r2:
+            r2 = root[r2]
+        root[max(r1, r2)] = min(r1, r2)
+    for i in range(len(P)):
+        r = i
+        while root[r] != r:
+            r = root[r]
+        root[i] = r
+    at = {}
+    for j, (u, v) in enumerate(ends):
+        at.setdefault(root[u], []).append((j, 0))
+        at.setdefault(root[v], []).append((j, 1))
+    link = {}  # (edge, its end) -> (the edge it goes on into, that one's end there)
+    for here in at.values():
+        pairs = []
+        for x in range(len(here)):
+            for y in range(x + 1, len(here)):
+                (j1, s1), (j2, s2) = here[x], here[y]
+                d1 = P[ends[j1, 1 - s1]] - P[ends[j1, s1]]
+                d2 = P[ends[j2, 1 - s2]] - P[ends[j2, s2]]
+                turn = np.degrees(np.arccos(np.clip(-d1 @ d2 / max(np.linalg.norm(d1) * np.linalg.norm(d2), 1e-12), -1, 1)))
+                if turn < TURN:
+                    pairs.append((turn, here[x], here[y]))
+        for _, p1, p2 in sorted(pairs):
+            if p1 not in link and p2 not in link:
+                link[p1], link[p2] = p2, p1
+    out, done = [], np.zeros(len(ends), bool)
+
+    def walk(j, s):  # from edge j's end s across it and on: its points
+        pts = [P[ends[j, s]]]
+        while True:
+            done[j] = True
+            far = P[ends[j, 1 - s]]
+            if np.linalg.norm(far - pts[-1]) > 1e-9:
+                pts.append(far)
+            nxt = link.get((j, 1 - s))
+            if nxt is None or done[nxt[0]]:
+                return pts, nxt is not None
+            j, s = nxt
+            if np.linalg.norm(P[ends[j, s]] - pts[-1]) > 1e-9:
+                pts.append(P[ends[j, s]])
+
+    for j in range(len(ends)):  # from each loose end, then the loops left
+        for s0 in (0, 1):
+            if not done[j] and (j, s0) not in link:
+                pts, _ = walk(j, s0)
+                out.append((pts, False))
+    for j in range(len(ends)):
+        if not done[j]:
+            pts, _ = walk(j, 0)
+            out.append((pts, True))
+    lines = [dict(pts=np.array(q), closed=c, length=float(np.linalg.norm(np.diff(np.array(q), axis=0), axis=1).sum()))
+             for q, c in out if len(q) > 1]
+    return sorted(lines, key=lambda L: -L["length"])
+
+
+DENSE = 0.1  # cm between the points a click is matched to a line by
+
+
+@functools.lru_cache(maxsize=4)
+def _clickable(tset):
+    """Every line a stretch between two clicks may run along: the template's (lines: creases and openings, a groove's
+    walls folded into one, a click on any of them WALLS away) and the rounded edges' own (strips, a click on one of
+    their edges), each line's points every DENSE cm, its own and how far along, in a tree."""
+    every = [(L, WALLS) for L in lines(tset)] + [(L, 0.02) for L in strips(tset)]
+    pts, line, along = [], [], []
+    for k, (L, _) in enumerate(every):
+        q = L["pts"]
+        cum = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(q, axis=0), axis=1))]
+        t = np.linspace(0.0, cum[-1], max(2, int(np.ceil(cum[-1] / DENSE)) + 1))
+        pts.append(np.c_[[np.interp(t, cum, q[:, i]) for i in range(3)]].T)
+        line.append(np.full(len(t), k))
+        along.append(t)
+    return every, cKDTree(np.concatenate(pts)), np.concatenate(line), np.concatenate(along)
+
+
+def _along(pa, pb, tset):
+    """The stretch between two clicks along one of the model's lines (_clickable) if both are on it, the shorter way
+    round a loop: its points, from the line's own point nearest each click; else None."""
+    every, tree, line, along = _clickable(tset)
+    near = {}
+    for end, p in enumerate((pa, pb)):
+        for i in tree.query_ball_point(p, WALLS + DENSE):
+            k = int(line[i])
+            d = float(np.linalg.norm(tree.data[i] - p))
+            if d <= every[k][1] + DENSE and d < near.get((end, k), (np.inf,))[0]:
+                near[(end, k)] = (d, float(along[i]))
+    best = None
+    for k in {k for end, k in near if end == 0} & {k for end, k in near if end == 1}:
+        L = every[k][0]
+        s0, s1 = near[(0, k)][1], near[(1, k)][1]
+        q = L["pts"]
+        cum = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(q, axis=0), axis=1))]
+        ways = [(s0, s1)]
+        if L["closed"]:
+            ways.append((s0, s1 - cum[-1]) if s1 > s0 else (s0, s1 + cum[-1]))
+        for lo, hi in ways:
+            if best is None or abs(hi - lo) < best[0]:
+                best = (abs(hi - lo), q, cum, lo, hi)
+    if best is None:
+        return None
+    _, q, cum, lo, hi = best
+    total = cum[-1]
+    step = np.sign(hi - lo) or 1.0
+    marks = [lo] + [x + w * total for w in (-1, 0, 1) for x in cum if min(lo, hi) < x + w * total < max(lo, hi)]
+    marks = sorted(set(marks + [hi]), key=lambda x: step * x)
+    return [np.array([np.interp(x % total if total else x, cum, q[:, i]) for i in range(3)]) for x in marks]
+
+
+def _straight(A, B, tset):
+    """The way from one click (snap) to another straight across the surface: the straight line between them brought
+    onto the model every STRAIGHT cm; None where it would leave the surface (across an opening, round a corner)."""
+    pa, pb = A[0], B[0]
+    n = max(2, int(np.ceil(np.linalg.norm(pb - pa) / STRAIGHT)) + 1)
+    out = [pa]
+    for t in np.linspace(0, 1, n)[1:-1]:
+        q = pa + t * (pb - pa)
+        on = _closest(q, tset)[1]
+        if np.linalg.norm(on - q) > max(1.0, 0.1 * np.linalg.norm(pb - pa)):
+            return None
+        out.append(on)
+    out.append(pb)
+    if max(np.linalg.norm(np.diff(np.array(out), axis=0), axis=1)) > 4 * STRAIGHT:  # it jumped: an opening in between
+        return None
+    return out
+
+
+def _between(A, B, tset):
+    """The cheapest way along the model's edges from one click (snap) to another: its points."""
+    from scipy.sparse.csgraph import dijkstra
+    P, M = _edges(tset)["P"], _graph(tset)["M"]
+    (pa, a0, a1, f), (pb, b0, b1, g) = A, B
+    if {a0, a1} == {b0, b1}:
+        return [pa, pb]
+
+    def ends(u, v, t):  # the click's way to each end of its edge
+        n = float(np.linalg.norm(P[v] - P[u]))
+        per = M[u, v] / n if n > 1e-9 and M[u, v] else 1.0
+        return [(u, t * n * per), (v, (1 - t) * n * per)]
+
+    starts, stops = ends(a0, a1, f), ends(b0, b1, g)
+    D, pred = dijkstra(M, directed=False, indices=[s for s, _ in starts], return_predecessors=True)
+    cost, i, q = min((c0 + D[i, q] + c1, i, q) for i, (_, c0) in enumerate(starts) for q, c1 in stops)
+    if not np.isfinite(cost):
+        raise ValueError("no way along the model between two of the clicks: they're on pieces that don't meet")
+    chain = [q]
+    while chain[-1] != starts[i][0]:
+        chain.append(int(pred[i, chain[-1]]))
+    pts = [pa] + [P[k] for k in chain[::-1]] + [pb]
+    return [p for k, p in enumerate(pts) if k == 0 or np.linalg.norm(p - pts[k - 1]) > 1e-6]
+
+
+def path(clicks, tset="Skin", closed=False):
+    """The line through points clicked on the car: between two clicks on one of the model's lines, along it (_along);
+    else straight across the surface (_straight); where that leaves the surface, the cheapest way along the model's
+    edges (_between). Its points (n, 3) cm, the model's facing at each (n, 3), where each click landed (snap) and how
+    each stretch went ("line", "straight", "edges")."""
+    spots = [snap(c, tset) for c in clicks]
+    if closed and len(spots) > 2:
+        spots.append(spots[0])
+    pts, how = [], []
+    for A, B in zip(spots, spots[1:]):
+        if pts:
+            A = (pts[-1],) + tuple(A[1:])  # on from where the line got to
+        got, kind = _along(A[0], B[0], tset), "line"
+        if got is None:
+            got, kind = _straight(A, B, tset), "straight"
+        if got is None:
+            got, kind = _between(A, B, tset), "edges"
+        pts += got[1:] if pts and np.linalg.norm(got[0] - pts[-1]) < 1e-6 else got
+        how.append(kind)
+    if not pts:
+        pts = [spots[0][0]]
+    pts = np.array(pts)
+    e = _edges(tset)
+    nrm = e["N"][cKDTree(e["P"]).query(pts)[1]]
+    return pts, nrm, spots, how
+
+
+def picked(clicks, tset="Skin", closed=False):
+    """The line through points clicked on the car (the Lab, with Mesh and Draw on: `PY -m tool.notes drawn` prints the
+    call), a Course on the model (path): closed, round back to the first."""
+    from tool import course
+    pts, nrm, _, _ = path(clicks, tset, closed)
+    if closed:
+        pts, nrm = pts[:-1], nrm[:-1]
+    return course.Course(pts, f"the line picked on the model from {course._said(pts[0])}", nrm=nrm, closed=closed)
 
 
 def main():
