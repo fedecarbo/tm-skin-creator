@@ -98,3 +98,7 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   checks name nothing. Shown in the Lab.
 - The tape repainted smooth through the same points (the pick, B): along one of the flank's own lines its corners were
   a few degrees, so it moved under a millimetre; checked close up again, crisp and on the line.
+- Note 6 (user, 2026-10-06, a line picked from the hollow behind the left front wheel's opening up to the bonnet's edge
+  and forward along it, 6 points): "lets try this". Read as: the same red tape along it, both sides. Its turn at the
+  bonnet's edge is 40 degrees, kept as a corner (as the Lab drew it); the rest smooth through the points. Checked close
+  up from the note's camera, at the turn and on the right: even, a clean bend, on the line; the checks name nothing.
