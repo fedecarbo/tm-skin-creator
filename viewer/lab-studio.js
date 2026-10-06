@@ -7,7 +7,7 @@
 // viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message (or at
 // once, while Claude waits: tool.notes wait). Mesh lays the model's mesh over the paint (the viewer's mesh, from the
 // UV room's template), on or off; with Mesh on, Draw picks a line on it instead (the user's idea, 2026-10-06: "click on
-// certain multiple points similar to the draw tool"): each click lands on the nearest line of the mesh and the tool
+// certain multiple points similar to the draw tool"): each click lands on the nearest point where its lines cross, the tool
 // runs the line between clicks (/api/meshpath, tool/meshlines.py path: along one of the model's lines when both are on
 // it, else straight across), and the note keeps the clicks, so Claude paints that very line. Done, a note leaves the car and stays in the timeline
 // beside it (lab-car.js), which also puts an option on the car to look at: its notes are that option's.
@@ -258,9 +258,9 @@ function pickSays(trouble) {
   const p = picking, n = p ? p.clicks.length : 0;
   const length = p && p.line.length > 1 ? p.line.slice(1).reduce((t, q, k) => t + apart(q, p.line[k]), 0) : 0;
   $('stPick').querySelector('span').textContent = trouble
-    || (!n ? 'Click the mesh where your line goes: each click lands on the nearest line of the mesh. Between two clicks on '
-      + 'one line, your line follows it; otherwise it runs straight across. Click the last point again, or Done, to finish; '
-      + 'the first point to close a ring. Drag to turn the car.'
+    || (!n ? 'Click the points your line goes through: each click lands on the nearest point where the mesh\'s lines '
+      + 'cross. Between two points on one line, your line follows it; otherwise it runs straight across. Click the last '
+      + 'point again, or Done, to finish; the first point to close a ring. Drag to turn the car.'
       : `${n} click${n > 1 ? 's' : ''}${length ? ` · ${Math.round(length)} cm` : ''}${p.closed ? ' · a ring' : ''}. `
       + 'Click the last point again, or Done, to finish.');
   for (const id of ['stPickDone', 'stPickUndo']) $(id).disabled = !n;

@@ -39,9 +39,9 @@ MESH_STEP = 0.5  # cm between the points of a picked line sent to the Lab, so th
 
 def mesh_path(q):
     """A line picked on the model's mesh: q, the query's set (Skin, Details or Wheels), at (the points clicked,
-    "x,y,z;x,y,z", the car's own cm) and closed ("1": round back to the first). Where each click landed and a short
-    mark along its edge there (ticks), the line every MESH_STEP cm and how each stretch went (meshlines.path); with no
-    points, the model's lines made ready, so the first click is quick."""
+    "x,y,z;x,y,z", the car's own cm) and closed ("1": round back to the first). Where each click landed (one of the
+    model's points) and a small cross on the surface there (ticks), the line every MESH_STEP cm and how each stretch
+    went (meshlines.path); with no points, the model's lines made ready, so the first click is quick."""
     import numpy as np
     from tool import meshlines
     tset = q.get("set", ["Skin"])[0]
@@ -54,11 +54,14 @@ def mesh_path(q):
         meshlines._clickable(tset)
         return {}
     pts, _, spots, how = meshlines.path(clicks, tset, closed=q.get("closed", ["0"])[0] == "1")
-    P = meshlines._edges(tset)["P"]
+    N = meshlines._edges(tset)["N"]
     ticks = []
-    for at, u, v, _ in spots:
-        d = (P[v] - P[u]) / max(float(np.linalg.norm(P[v] - P[u])), 1e-9)
-        ticks.append([(at - 0.6 * d).round(2).tolist(), (at + 0.6 * d).round(2).tolist()])
+    for at, v, _, _ in spots:
+        n = N[v]
+        a = np.cross(n, [0.0, 1.0, 0.0] if abs(n[1]) < 0.9 else [1.0, 0.0, 0.0])
+        a /= max(float(np.linalg.norm(a)), 1e-9)
+        for d in (a, np.cross(n, a)):  # a cross lying on the surface
+            ticks.append([(at - 0.7 * d).round(2).tolist(), (at + 0.7 * d).round(2).tolist()])
     dense = [pts[0]]
     for a, b in zip(pts, pts[1:]):
         n = max(1, int(np.ceil(np.linalg.norm(b - a) / MESH_STEP)))
