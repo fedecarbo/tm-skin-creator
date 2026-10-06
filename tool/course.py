@@ -15,6 +15,7 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
     course.flow((44, 58, 30))                one of the body's own lines (car/anatomy.md), the one nearest a point
     course.shoulder()                        the shoulder, where the top turns down into the side: the line the car
                                              map's areas split on (shapes.area), nose to tail corner, the left side
+    course.shadow(course.shoulder())         the edge as the eye sees it, along a guide: where the shading divides
     course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half
     course.stroke(points)                    the line the user drew (tool.notes show_drawn prints its points):
                                              smoothed over SMOOTH cm and laid on the body
@@ -63,6 +64,13 @@ SMOOTH = 2.5   # cm: the surface's facing along a course, and a stroke's path, a
 FACING = 0.5   # a texel takes a marking when it faces within 60 degrees of the course's surface there
 OFF = 3.0      # cm: a stroke's point further than this from the body is dropped
 MIRROR = np.array([-1.0, 1.0, 1.0])
+SHADE = 60.0   # degrees from facing up: where the body's shading divides its top from its side, the edge the eye
+# sees (the user, 2026-10-06: "the shadow divides the edge properly"); their stroke of the rear flank's edge ran
+# within 0.3 cm of this line (median; 0.6 cm for 90 %), the shoulder's crest 1.4 cm off it
+SHADE_REACH = 7.0  # cm from the guide that the shadow's line is looked for
+SHADE_RUN = 4      # centimetres either side whose running median the line holds to
+SHADE_HOLD = 0.8   # cm from that running median a point may lie
+SHADE_PAIR = 0.6   # cm: two texels this close either side of the shadow's angle are neighbours (the bake's 2048² pitch is 0.2 to 0.3)
 
 
 def _resample(pts, step=STEP, closed=False):
@@ -663,6 +671,52 @@ def shoulder(side="left"):
                  for p, _ in carmap.load().design_lines(0)]
     stretches = stretches if side == "left" else [_flip(c) for c in stretches]
     return stretches[0] if len(stretches) == 1 else Courses(stretches, f"the shoulder on the {side}")
+
+
+def shadow(guide, angle=SHADE, reach=SHADE_REACH):
+    """The edge as the eye sees it, along a guide (course.shoulder(), a stretch of it, a line of the
+    body's): the line within `reach` cm of the guide where the surface, as the game shades it (the
+    bake's normals), turns past `angle` degrees from facing up, so the shadow divides there: midway
+    between neighbouring texels either side of it, which on a rounded edge straddle the line and on a
+    sharp one (the tail's edge) the crease. Followed a centimetre at a time along the guide, never past
+    its ends, smoothed over two centimetres and laid on the body; the side the guide is on."""
+    from tool import bake, carmap
+    right = float(np.mean(guide.pts[:, 0])) < 0
+    g = guide.pts * (MIRROR if right else 1)
+    b = bake.bake("Skin", 2048, 2048)
+    on = (b["tri"] >= 0) & (b["position"][..., 0] > -MIDDLE)
+    P = b["position"][on].astype(np.float64)
+    tilt = np.degrees(np.arccos(np.clip(b["normal"][on][:, 1].astype(np.float64), -1, 1)))
+    d, k = cKDTree(g).query(P, distance_upper_bound=reach, workers=-1)
+    near = np.isfinite(d)
+    near[near] &= (k[near] > 0) & (k[near] < len(g) - 1)  # nothing past the guide's ends (round the inlet's corner)
+    P, tilt, k = P[near], tilt[near], k[near]
+    up = tilt < angle
+    gap, j = cKDTree(P[~up]).query(P[up], workers=-1)
+    pair = gap < SHADE_PAIR
+    q = 0.5 * (P[up][pair] + P[~up][j[pair]])
+    s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(g, axis=0), axis=1))][k[up][pair]]
+    cm = np.floor(s).astype(int)
+    order = np.argsort(cm, kind="stable")
+    cm, q = cm[order], q[order]
+    parts = np.split(q, np.flatnonzero(np.diff(cm)) + 1)
+    mids = np.array([np.median(part, 0) for part in parts])
+    # the line holds its course: in each centimetre only the points within SHADE_HOLD cm of the running median
+    # of its neighbours' (SHADE_RUN cm either side), so it never jumps to another panel's rim where that turns
+    # past the angle too (the sidepod top's back edge, the tail corner's front edge)
+    run = np.array([np.median(mids[max(0, i - SHADE_RUN):i + SHADE_RUN + 1], 0) for i in range(len(mids))])
+    pts = []
+    for part, r in zip(parts, run):
+        held = part[np.linalg.norm(part - r, axis=1) < SHADE_HOLD]
+        if len(held):
+            pts.append(np.median(held, 0))
+    pts = np.array(pts)
+    if len(pts) < 2:
+        raise ValueError(f"no shadow line within {reach:g} cm of {guide.name}")
+    pts = _smooth(_resample(pts), 2.0)
+    pts = _smooth(carmap.load().project(pts)[0], 1.0)  # laid on a sharp edge, points fall either side of it
+    c = Course(pts, f"the shadow's edge along {guide.name}", None, False, guide.mirror)
+    return _flip(c) if right else c
 
 
 def points(pts, name="the points given"):
