@@ -1,11 +1,12 @@
-# The car map
+# The car map in numbers
 
-Written by `python -m tool.carmap --describe` from the car's own mesh (2026-10-02); `tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), when a design places shapes by the body's areas or needs exact positions. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
+Written by `python -m tool.carmap --describe` from the car's own mesh (2026-10-06), with `car/anatomy.md`; `tool/carmap.py` is the key. For exact positions. Lengths in cm, as in the anatomy.
 
 ## The pictures
 
 The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):
 
+- `car/map/flow.jpg`: the anatomy's lines on clay, each in its colour.
 - `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch; the shoulder absent where the body has no line, the lower edge along where the skin turns to face the ground where it has no crease: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
 - `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.
 - `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.
@@ -39,13 +40,13 @@ Where the top ends (the shoulder) and where the side turns under (the lower edge
 
 The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the lower edge's. At z 70 to 208 the lower edge is the nose's and the front flank's lip, with the nose's belly rolled under it: the skin ends there and the inner car carries on below (the skirt further down is another piece); paint on "body" stops at the lip.
 
-## Lines on the car
+## The front and the back
 
-Lines, stripes, dashes and tape along the car's own lines (a guide, a seam, a panel's edge, a top line) or along a line drawn with the Lab's pen are courses (`tool/course.py`). The map's own lines below are fitted off the mesh to cut its areas; they are not for drawing.
+The body's skin has no front or back face: only 411 cm² of it faces within 45 degrees of straight ahead and 872 cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the tail's number panel are inner parts). The map gives no such areas; what faces the oncoming air is `shapes.hit`.
 
 ## The model's pieces
 
-The body is 9 separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers left out), and 156 edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it. Where two pieces almost touch the skin is sewn and a line carries straight over; across a real gap (the tail's 2 cm slot) a line stops, as a real wrap would, and a decal must not straddle one (`tool/pieces.py`, `car/pieces.json`).
+The body is 9 separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers left out), and 156 edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it (`tool/pieces.py`, `car/pieces.json`).
 
 | parts | cm² | edge cm | gap cm | edge within 1 cm | hidden skin behind, cm² | z |
 |---|---|---|---|---|---|---|
@@ -58,10 +59,6 @@ The body is 9 separate pieces of 5 cm² or more (triangles joined across shared 
 | sidepod inlet | 1887 | 182 | 1.39 | 0% | 0 | -46 to 19 |
 | diffuser strake | 866 | 113 | 0.04 | 24% | 78 | -143 to -107 |
 | nose fin | 23 | 14 | 0.35 | 83% | 0 | 125 to 131 |
-
-## The front and the back
-
-The body's skin has no front or back face: only 411 cm² of it faces within 45 degrees of straight ahead and 872 cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the tail's number panel are inner parts). The map gives no such areas; what faces the oncoming air is `shapes.hit`.
 
 ## Openings
 
@@ -120,39 +117,6 @@ Each body part (a pair's two sides, or the four wheels', together): its area, wh
 | nose fin | 471 | 100% / 0% / 0% | 87% | 89 | 14 | 118 to 142 |
 | fuel cap | 79 | 100% / 0% / 0% | 95% | 33 | 0 | -77 to -67 |
 
-## What the player sees
-
-The player sees their own car from behind all race (the chase cameras). By how big each part looks from there:
-
-- body shell: 22%
-- engine cover: 17%
-- rear flank: 14%
-- sidepod top: 9%
-- engine cover panel: 8%
-- tail panel: 6%
-- cockpit surround: 6%
-- tail corner: 5%
-
-The top takes 79% of what the chase cameras see; the sides most of the rest. A graphic on the flanks is for the other players and the replays.
-
 ## Where the air hits
 
-By how much of the oncoming air each part takes (the Newtonian rule):
-
-- wheel cover ring: 26%
-- body shell: 22%
-- side skirt: 20%
-- nose tip: 10%
-- wheel cover hub: 5%
-- wing pylon: 5%
-
-## Words for designs (tool/shapes.py)
-
-- `shapes.area("top" | "sides" | "under")`: the body's areas, split along its own lines.
-- `shapes.outside(0.4)`: the outer body only (keeps paint out of the inlets, the wheel pockets, under panels).
-- `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).
-- `shapes.near(kind, reach)`: near a fold, an opening, a join, the shoulder, the lower edge; `~shapes.near(...)` keeps a graphic clear. (`shapes.line(kind, width)` shows the map's own lines on its test cars.)
-- Lines on the car: `tool/course.py`.
-- `shapes.hit(lo, hi)`: where the oncoming air hits, 0..1 (bands of it make a pressure map).
-- `shapes.streamlines(shapes.rake(z, [across ...]), width)`: smoke lines along the air's flow from a row of seeds.
-- Everything combines with `&`, `|`, `~` and the plain zones (`stripe`, `band`, `facing`, ...).
+By how much of the oncoming air each part takes (the Newtonian rule): wheel cover ring 26%, body shell 22%, side skirt 20%, nose tip 10%, wheel cover hub 5%, wing pylon 5%.

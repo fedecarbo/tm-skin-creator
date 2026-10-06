@@ -35,9 +35,11 @@ game: install from the Windows PC after a push.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls. Before the
-  first design in a session, read the docstrings of `tool/paintbox.py` (the key), `tool/shapes.py`
-  (zones), `tool/course.py` (markings along the car's lines), `tool/marks.py` (shapes on a panel) and
-  `tool/finishes.py`. Part names are in `car/parts.json`.
+  first design in a session, read `car/anatomy.md` (how the body flows, where it's calm, what the
+  player sees, where a graphic stops) with its picture `car/map/flow.jpg`, and the docstrings of
+  `tool/paintbox.py` (the key), `tool/shapes.py` (zones), `tool/course.py` (markings along the car's
+  lines), `tool/marks.py` (shapes on a panel) and `tool/finishes.py`. Part names are in
+  `car/parts.json`.
 - Start with `s.clay()` (any part no step paints stays clay, in the game too) and open each step
   with `s.step(name, does, words=<the user's words>)`; the Lab shows the car at the end of each.
   A change edits its step.
@@ -45,9 +47,9 @@ game: install from the Windows PC after a push.
   `borrow("TSC_X")` (`tool.skin`) builds on another skin's design, only when the user names it.
 - Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
   its family in `finishes.CATALOGUE`.
-- Read only when a design needs it: `car/map.md` and its pictures (the body's areas, openings and
-  panels, for `shapes.area`, `outside`, `along`, `near`, `streamlines`), and `tool/levels.py` (the
-  guides as heights, when one is the line a graphic needs: a band between two, a split, an offset).
+- Read only when a design needs it: `car/map/tables.md` and its pictures (the map in numbers, for
+  exact positions), and `tool/levels.py` (the guides as heights, when one is the line a graphic
+  needs: a band between two, a split, an offset).
 
 ## What the car allows
 

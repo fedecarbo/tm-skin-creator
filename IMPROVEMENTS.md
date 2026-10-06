@@ -13,12 +13,14 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **E. Structure for taste** (2026-10-06): a one-page anatomy written by `PY -m tool.carmap --describe`
-  from the car's own shape, not the guides (the user, 2026-10-06: "just follow the flow of the car.
-  Without needing guides"): how the body flows (where its lines run and turn), the flat rooms, the chase
-  camera's share of each part, which panels are pieces and which are sewn, the game's panels; in place of
-  `car/map.md`; `SPOTS` in `tool/paintbox.py` generated from it; `tool/sets.py` says when two takes differ
-  only in colour.
+- **E. Structure for taste** (2026-10-06): built, waiting for the user's OK. `car/anatomy.md`, written
+  by `PY -m tool.carmap --describe` from the car's own shape and read before every design: the body's
+  lines (its creases and rolled edges, each with the corners where it turns, drawn in `car/map/flow.jpg`;
+  `course.flow` lays a marking along one), its flat rooms, what the chase cameras see, where a graphic
+  stops. The map's numbers moved to `car/map/tables.md`. `tool.sets open` says when a take is another
+  repainted. `SPOTS` stay as set: measured, the side, sidepod and deck spots lie within 10 cm of their
+  panels' biggest flat room, and a word moves to room anyway; regenerating them would move TSC_Snow's
+  RESCUE for nothing. Its worth shows on the user's next car.
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.
@@ -27,7 +29,7 @@ more it no longer makes).
 
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
-  now; the readings are to be checked against them (`tool/carmap.py`, `car/map.md`). The checks
+  now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks
   (`tool/checks.py`) and a mark's room (`tool/marks.py`, the open air) read the map too and haven't run
   on the PC yet: a mark could land a texel or two apart on the two computers.
 - **A mark's `at` seen along an axis** (2026-10-05, the agent's test car): `(x, None, z)` takes the panel's

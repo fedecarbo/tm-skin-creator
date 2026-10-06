@@ -31,10 +31,15 @@ is kept, and the pick says so. `drop` deletes the options the same way, keeping 
 Any car can have sets: a new one can start with its first takes as a set (`new` makes its folder),
 and one made before can have them too.
 
+`open` says which options differ only in their paint ("B is A repainted"): the same calls, the same
+parts and zones, other colours or finishes (`layout`). Takes of a loose idea should be different
+readings; a set of colours asked for is fine.
+
 Standard library only, and runnable with the Mac's own python3 (3.9), like tool/notes.py.
 TSC_SKINS_HOME puts the skins elsewhere, for tests."""
 
 import argparse
+import ast
 import datetime
 import json
 import os
@@ -53,6 +58,8 @@ REPO = Path(__file__).resolve().parents[1]
 SKINS = Path(os.environ.get("TSC_SKINS_HOME") or REPO / "skins")
 NAME = re.compile(r"[A-Za-z0-9_\-]+")
 STATES = {"painting": "Claude is painting them", "open": "for you to pick", "picked": "picked", "dropped": "dropped"}
+HEX = re.compile(r"#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?")
+PAINT_WORDS = ("colour", "color", "rgb", "finish", "outline", "palette")  # a call's keywords that say paint
 
 
 class SetsError(Exception):
@@ -153,6 +160,51 @@ def option(car, n, title, skin=None):
     return doc, s["options"][-1]
 
 
+def layout(text):
+    """A design with its paint left out, to tell two takes that differ only in it: its code with every
+    hex colour blanked, and a paint's phrase (`s.paint(where, "gloss red")`), the PAINT_WORDS keywords,
+    a step's title and words, the docstrings and the module's string constants."""
+    tree = ast.parse(text)
+    blank = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            blank.update(id(k.value) for k in node.keywords if k.arg in PAINT_WORDS)
+            if isinstance(node.func, ast.Attribute) and node.func.attr == "step":
+                blank.update(id(a) for a in node.args + [k.value for k in node.keywords])
+            elif isinstance(node.func, ast.Attribute) and node.func.attr == "paint" and len(node.args) > 1:
+                blank.add(id(node.args[1]))
+        elif isinstance(node, ast.Assign) and all(isinstance(t, ast.Name) and t.id.isupper() for t in node.targets):
+            if all(isinstance(v, ast.Constant) and isinstance(v.value, str) for v in ast.walk(node.value)
+                   if isinstance(v, ast.Constant)):
+                blank.add(id(node.value))
+        if isinstance(node, (ast.Module, ast.FunctionDef)) and ast.get_docstring(node, clean=False) is not None:
+            blank.add(id(node.body[0].value))
+
+    class Blank(ast.NodeTransformer):
+        def visit(self, node):
+            if id(node) in blank or (isinstance(node, ast.Constant) and isinstance(node.value, str)
+                                     and HEX.fullmatch(node.value)):
+                return ast.copy_location(ast.Constant(""), node) if hasattr(node, "lineno") else ast.Constant("")
+            return self.generic_visit(node)
+
+    return ast.dump(Blank().visit(tree), include_attributes=False)
+
+
+def repainted(options):
+    """Lines for the options that differ from an earlier one only in their paint."""
+    seen, out = [], []
+    for o in options:
+        try:
+            mine = layout((SKINS / o["skin"] / "design.py").read_text("utf-8"))
+        except (OSError, SyntaxError):
+            continue
+        same = next((k for k, other in seen if other == mine), None)
+        if same:
+            out.append(f"{o['key']} is {same} repainted: the same calls, parts and zones in other colours or finishes")
+        seen.append((o["key"], mine))
+    return out
+
+
 def open_(car, n):
     doc = load(car)
     s = set_of(doc, n)
@@ -165,7 +217,7 @@ def open_(car, n):
             raise SetsError(f"option {o['key']} ({o['skin']}) has no design yet")
     s["state"] = "open"
     save(doc)
-    return doc
+    return doc, repainted(s["options"])
 
 
 def installed():
@@ -326,7 +378,7 @@ def main(argv=None):
         doc, o = option(a.car, a.rest[0], a.rest[1], a.skin)
         said.append(f"option {o['key']}: {o['skin']}")
     elif a.command == "open":
-        doc = open_(a.car, a.rest[0])
+        doc, said = open_(a.car, a.rest[0])
     elif a.command == "pick":
         doc, said = pick(a.car, *a.rest)
     else:

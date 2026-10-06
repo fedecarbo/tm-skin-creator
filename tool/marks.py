@@ -449,6 +449,48 @@ def _pole(panel, fold, within, margin):
     return None if best is None else (best[0], best[2])
 
 
+def rooms(names, least=12.0, most=2, size=1024):
+    """The named body parts' flat rooms, for car/anatomy.md: the biggest discs of free room on each part
+    (as a mark's: off its creases and rolls, in the open air, clear of the game's panels) whose skin faces
+    within WORD_BEND degrees of one way, `least` cm across or more, on the left side and the middle:
+    {part: [(across in cm, centre, facing), ...]}, the roomiest first, at most `most`, each clear of the
+    ones before. Measured on a `size`² texture."""
+    from tool import paintbox
+    skin = paintbox.Skin("TSC_Rooms", size=size)
+    c = skin.canvas("Skin")
+    ways = carmap.directions().astype(np.float32)
+    flat = np.cos(np.radians(WORD_BEND))
+    out = {}
+    for name in names:
+        panel = _Panel(skin, c, skin._ids(name, warn=False).get("Skin", []))
+        if not len(panel.texels):
+            continue
+        win, sel = panel.window(panel.rows.min() - 2, panel.rows.max() + 3, panel.cols.min() - 2, panel.cols.max() + 3)
+        room, island = panel.room(win, sel, FOLD, None)
+        r0, r1, c0, c1 = win
+        nrm, pos = c.bake["normal"][r0:r1, c0:c1], c.bake["position"][r0:r1, c0:c1]
+        room &= pos[..., 0] > -MIDDLE
+        found = []
+        for isl in np.unique(island[room]):
+            on = room & (island == isl)
+            for d in ways:
+                f = on & ((nrm @ d) >= flat)
+                if f.sum() < 4:
+                    continue
+                edt = ndimage.distance_transform_edt(np.pad(f, 1))[1:-1, 1:-1] * float(panel.pitch[isl])
+                k = np.unravel_index(int(edt.argmax()), edt.shape)
+                found.append((2 * float(edt[k]), pos[k].astype(np.float64), nrm[k].astype(np.float64)))
+        kept = []
+        for across, centre, facing in sorted(found, key=lambda f: -f[0]):
+            if across < least or len(kept) == most:
+                break
+            if all(np.linalg.norm(centre - k[1]) > k[0] / 2 + across / 2 for k in kept):
+                kept.append((across, centre, facing / np.linalg.norm(facing)))
+        if kept:
+            out[name] = kept
+    return out
+
+
 def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, centred, least, soft, goal=None,
          bend=BEND, facing=None):
     """Lay a shape as near a texel as it's whole: {texel (its middle), size, moved, idx, m, rgb, right, up,

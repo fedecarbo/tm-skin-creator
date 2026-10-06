@@ -5,7 +5,7 @@ cached in the work folder (`python -m tool.carmap` rebuilds it, about a minute),
 point on the car. In a design, through `tool.shapes`:
 
     shapes.area("top")            the top, between the shoulders ("sides", "under"; the body has no front or
-                                  back face: car/map.md)
+                                  back face: car/map/tables.md)
     shapes.outside(0.4)           the outer body: spots that see at least 40 % of the open air
     shapes.along(0.2, 0.4)        a band 20 % to 40 % of the way from the nose to the tail
     shapes.line("shoulder", 1.5)  a line 1.5 cm wide along one of the car's lines (LINES)
@@ -53,6 +53,8 @@ Lines (points along the welded body's edges, and the across layer's own edges):
 
     python -m tool.carmap            build it and print a summary
     python -m tool.carmap --check    measure its lines, stretch by stretch (tool/mapcheck.py)
+    python -m tool.carmap --describe the map in words: car/anatomy.md (read before a design: the body's
+                                     lines, flow_lines; its flat rooms, marks.rooms) and car/map/tables.md
 """
 
 import functools
@@ -669,6 +671,7 @@ SMOOTH = 2.5       # cm: the normals averaged over this radius before the curvat
 RIDGE_SEED = 0.09  # 1/cm: a ridge is traced from crests bent at least this much (the skirt's edge under the sidepods bends 0.10)
 RIDGE_END = 0.05   # 1/cm: a traced ridge ends where the bend fades below this
 RIDGE_STEP = 1.0   # cm along the ridge per step
+FOLD_CONTRAST = 1.5  # a ridge bending this many times more than the skin round it is a real design edge (_folds)
 RIDGE_REACH = 2.0  # cm either side of a step the crest is looked for
 RIDGE_MIN = 10.0   # cm: shorter pieces are dropped (a fastener's dimple, a facet)
 
@@ -1043,10 +1046,11 @@ def _ridge_contrast(m, ridge):
     return k0 / np.maximum(np.minimum(*sides), 1e-3)
 
 
-def _folds(m, ridges, least=1.5, length=20.0):
+def _folds(m, ridges, least=None, length=20.0):
     """The real design edges among the traced ridges: those whose contrast (median along them) is
     at least `least` and that run `length` cm or more, each fitted as one curve by its arc length
     (_fit) and put back on the body. Returns the curves' data (build)."""
+    least = FOLD_CONTRAST if least is None else least
     out = []
     for r in ridges:
         if len(r) * RIDGE_STEP < length:
@@ -1759,14 +1763,90 @@ def load():
     return Map(dict(data))
 
 
-# ---- the map in words, for the AI (car/map.md) ----
+# ---- the map in words, for the AI (car/anatomy.md, car/map/tables.md) ----
 
-MAP_MD = paths.REPO / "car" / "map.md"
+ANATOMY_MD = paths.REPO / "car" / "anatomy.md"
+TABLES_MD = paths.REPO / "car" / "map" / "tables.md"
 STATIONS = ((212, "the nose's tip"), (190, "the nose, over the front wing"), (178, "the front wheels' axle"),
             (150, "the nose"), (130, "the nose fin's plate"), (110, "the bonnet"), (85, "the cockpit opening's front"),
             (60, "the front flank"), (30, "the front flank, the sidepods begin"), (0, "the sidepods, their inlets"),
             (-30, "the sidepods"), (-60, "the sidepods' back, the number panel"), (-90, "the deck, the engine cover panel"),
             (-120, "the rear wheels' axle"), (-140, "the tail"), (-158, "the tail's end"))
+LINE_LEAST = 25.0  # cm: a crease or a rolled edge this long is one of the body's lines in the anatomy
+LINE_OPEN = 0.3    # the open air a line sees along most of it, to count as on the outside
+LINE_UNDER = 0.5   # a line with this share of it under the car (across past the lower edge) is left out
+CORNER = 3.0       # cm: a line is told by its corners, where it strays this far from running straight
+TURN = 15.0        # degrees: a corner that turns less isn't said
+ROOM_LEAST = 12.0  # cm across: a flat room this big is in the anatomy
+COLOURS = (("red", "#e0262b"), ("orange", "#f28c1c"), ("yellow", "#f2d21c"), ("green", "#2fae3a"),
+           ("teal", "#14a3a0"), ("blue", "#2457d6"), ("violet", "#7b3fd0"), ("magenta", "#d42aa8"),
+           ("brown", "#7a4a1e"), ("black", "#151515"), ("pink", "#f59ac2"), ("lime", "#a8e03a"),
+           ("navy", "#0d1f5c"), ("grey", "#8a8a8a"), ("cream", "#efe3c2"), ("olive", "#6b6b1e"))
+
+
+def _corners(p, tol):
+    """The indices of a polyline's corners: where it strays more than tol cm from a straight run
+    (Douglas and Peucker), its ends included."""
+    a, b = p[0], p[-1]
+    ab = b - a
+    d = (np.linalg.norm(np.cross(p - a, ab), axis=1) / np.linalg.norm(ab) if np.linalg.norm(ab) > 1e-9
+         else np.linalg.norm(p - a, axis=1))
+    k = int(d.argmax())
+    if len(p) < 3 or d[k] <= tol:
+        return [0, len(p) - 1]
+    return _corners(p[:k + 1], tol)[:-1] + [i + k for i in _corners(p[k:], tol)]
+
+
+@functools.cache
+def flow_lines():
+    """The body's lines, for the anatomy and course.flow: each traced ridge (Map.ridges) LINE_LEAST cm
+    or longer that stands out from the skin round it as a fold does (_folds) and that the open air sees
+    along most of it, on the left side, each from its front end, the longest first: {pts, length, kind
+    (which of the map's lines it lies on, or a crease), radius (cm it rolls over), parts (those it runs
+    over, most first), corners (indices into pts), turns (degrees at each inner corner)}. The underside's
+    are left out."""
+    m = load()
+    names = np.array([inst["name"] for inst in parts.load().instances])
+    trees = [(k, cKDTree(v)) for k, v in (
+        ("the shoulder", np.concatenate([p for p, _ in m.design_lines(0)])),
+        ("the lower edge", np.concatenate([p for p, _ in m.design_lines(1)])),
+        ("an opening's rim", m.lines["opening"]), ("a join between panels", m.lines["join"]))]
+    faces = cKDTree(m.V[m.F].mean(1))
+    out = []
+    for r in m.ridges:
+        r = r.astype(np.float64)
+        if len(r) * RIDGE_STEP < LINE_LEAST or r[:, 0].mean() < -0.5:
+            continue
+        if np.nanmedian(_ridge_contrast(m, r)) < FOLD_CONTRAST or np.median(m.value("open", r)) < LINE_OPEN:
+            continue
+        if np.mean(m.value("across", r) > 2.05) >= LINE_UNDER:
+            continue
+        r = r if r[0, 2] >= r[-1, 2] else r[::-1]
+        u, n = np.unique(names[m.part[faces.query(r)[1]]], return_counts=True)
+        corners = _corners(r, CORNER)
+        legs = np.diff(r[corners], axis=0)
+        cos = (legs[:-1] * legs[1:]).sum(1) / np.maximum(np.linalg.norm(legs[:-1], axis=1) * np.linalg.norm(legs[1:], axis=1), 1e-9)
+        out.append(dict(pts=r, length=len(r) * RIDGE_STEP,
+                        kind=next((k for k, t in trees if np.median(t.query(r)[0]) < 2.0), "a crease"),
+                        radius=1.0 / max(float(np.median(m.value("k1", r))), 1e-3), parts=list(u[np.argsort(-n)]),
+                        corners=corners, turns=np.degrees(np.arccos(np.clip(cos, -1, 1)))))
+    return sorted(out, key=lambda line: -line["length"])
+
+
+def _cm(p):
+    return "(" + ", ".join(str(round(float(v)) + 0) for v in p) + ")"
+
+
+def _listed(words):
+    words = list(words)
+    return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
+
+
+def _faces(n):
+    """Which way a surface faces, in words: its leading directions, the left side's."""
+    ways = (("out", n[0]), ("in", -n[0]), ("up", n[1]), ("down", -n[1]), ("forward", n[2]), ("back", -n[2]))
+    big = sorted((w for w in ways if w[1] >= 0.35), key=lambda w: -w[1])
+    return _listed([w for w, _ in big if w != "in" and not (w in ("forward", "back") and abs(n[2]) < 0.35)] or ["out"])
 
 
 def _opening_groups(m):
@@ -1800,71 +1880,155 @@ def _opening_groups(m):
     return out
 
 
+def _panels(m, names):
+    """Each body part (a pair's two sides, or the four wheels', together) of 50 cm² or more: (name, cm²,
+    its share on the top, the sides and under, how open it is, cm² the chase cameras see, cm² of the
+    oncoming air it takes, its z range)."""
+    lay = m.layers
+    vmean = lambda k: lay[k][m.F].mean(1)
+    across_f, open_f, chase_f = vmean("across"), vmean("open"), vmean("chase")
+    hit_f = np.clip(m.fn[:, 2], 0, 1) ** 2 * vmean("front_open")
+    pname = names[m.part]
+    rows = []
+    for name in np.unique(pname):
+        sel = pname == name
+        A = m.area[sel].sum()
+        if A < 50:
+            continue
+        w = m.area[sel] / A
+        a = across_f[sel]
+        share = [float((w * (a < 1)).sum()), float((w * ((a >= 1) & (a < 2))).sum()), float((w * (a >= 2)).sum())]
+        z = m.V[m.F[sel]][..., 2]
+        rows.append((str(name), A, share, float((w * open_f[sel]).sum()), float((m.area[sel] * chase_f[sel]).sum()),
+                     float((m.area[sel] * hit_f[sel]).sum()), (float(z.min()), float(z.max()))))
+    return rows
+
+
 def describe(m=None):
-    """car/map.md: the car map in words, for Claude to read before designing (the numbers all come from the map, so they're redone with it)."""
+    """car/anatomy.md, the car in one page for Claude to read before a design, and car/map/tables.md, the
+    map's numbers: every number comes from the map, so both are redone with it."""
     import datetime
+    from tool import checks, marks, pieces as pieces_mod
     m = m or load()
-    P = parts.load()
-    names = np.array([inst["name"] for inst in P.instances])
+    names = np.array([inst["name"] for inst in parts.load().instances])
+    rows = _panels(m, names)
+    plist, nm = pieces_mod.write()
+    chase = sum(r[4] for r in rows)
+    across_f, chase_f = m.layers["across"][m.F].mean(1), m.layers["chase"][m.F].mean(1)
+    top_seen = float((m.area * chase_f * (across_f < 1)).sum() / max((m.area * chase_f).sum(), 1e-9))
+    pname = names[m.part]
+    zr = lambda name: (lambda z: f"z {z.min():.0f} to {z.max():.0f}")(m.V[m.F[pname == name]][..., 2])
+
+    A = ["# The car's anatomy", "",
+         f"Written by `python -m tool.carmap --describe` from the car's own shape ({datetime.date.today()}): how the "
+         "body flows, where it's calm, what the player sees and where a graphic stops. Read it before a design, and "
+         "follow these lines and rooms where the idea needs them, never by rule. Lengths in cm: x out to the car's "
+         "left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162). The "
+         "map in numbers (each slice, piece, opening and panel): `car/map/tables.md`.", "",
+         "## How the body flows", "",
+         f"The body's own lines: every crease and rolled edge {LINE_LEAST:.0f} cm or longer that stands out from the "
+         "skin round it and is on the outside, the longest first, each from its front end through the corners where "
+         f"it turns. `car/map/flow.jpg` draws each in its colour on the bare body. A marking along one: "
+         "`course.flow(near)`, the line nearest a point (`tool/course.py`).", ""]
+    for i, line in enumerate(flow_lines()):
+        p, turns = line["pts"], line["turns"]
+        way = [_cm(p[line["corners"][0]])] + [
+            _cm(p[k]) + (f" turning {t:.0f}°" if t >= TURN else "") for k, t in zip(line["corners"][1:-1], turns)]
+        way.append(_cm(p[line["corners"][-1]]))
+        roll = "sharp" if line["radius"] < 1.5 else f"rolled over {line['radius']:.0f} cm"
+        colour = COLOURS[i][0] if i < len(COLOURS) else "not drawn"
+        A.append(f"{i + 1}. **{colour}**: {line['kind']}, {line['length']:.0f} cm, {roll}, along the "
+                 f"{_listed(line['parts'][:3])}: {' → '.join(way)}.")
+    A += ["", "## Where it's calm", "",
+          f"The flat rooms: on each panel the biggest discs of skin that face within {marks.WORD_BEND:.0f} degrees of "
+          f"one way, off its creases and clear of the game's panels, {ROOM_LEAST:.0f} cm across or more: where a "
+          "badge, words or a picture lie flat (the left side; the right mirrors it).", "",
+          "| panel | across, cm | centre | faces |", "|---|---|---|---|"]
+    order = [r[0] for r in sorted(rows, key=lambda r: -r[4])]
+    for name, found in sorted(marks.rooms([n for n in order if n not in checks.PANELS], ROOM_LEAST).items(),
+                              key=lambda kv: -kv[1][0][0]):
+        for across, centre, facing in found:
+            if facing[1] < -0.5:
+                continue  # under the car
+            A.append(f"| {name} | {across:.0f} | {_cm(centre)} | {_faces(facing)} |")
+    A += ["", "## What the player sees", "",
+          f"The chase cameras show the car from behind and above all race: the top takes {top_seen:.0%} of what "
+          "they see, the sides most of the rest; a graphic on the flanks is for the other players and the replays. "
+          "By part: " + ", ".join(f"{r[0]} {r[4] / chase:.0%}" for r in sorted(rows, key=lambda r: -r[4])[:8]) + ".",
+          "", "## Where a graphic stops", ""]
+    seen, own, sewn = set(), [], []
+    for q in plist[1:]:
+        key = tuple(q["parts"])
+        if key in seen:
+            continue
+        seen.add(key)
+        twin = sum(tuple(o["parts"]) == key for o in plist) > 1
+        what = f"the {_listed(q['parts'])}" + (" (each side)" if twin else "")
+        (sewn if q["gap_cm"] is not None and q["gap_cm"] <= checks.SEAM else own).append(f"{what}, {q['gap_cm']:.2g} cm")
+    cockpit = next((g for g in _opening_groups(m) if np.bincount(g["parts"]).argmax() in
+                    [i for i, n in enumerate(names) if n == "cockpit surround"]), None)
+    A += [f"- One skin, sewn, over most of the body: the {_listed(plist[0]['parts'])}. A band or a line runs on across "
+          "the seams between them.",
+          f"- Pieces of their own, a gap of more than {checks.SEAM:.0f} cm round them: {'; '.join(own)}. A line stops "
+          "there, as a wrap would.",
+          f"- Pieces sewn on, {checks.SEAM:.0f} cm or less from the skin: {'; '.join(sewn)}. A line may run on.",
+          "- A graphic laid whole (a badge, words, a picture) stays on one piece, and off a fold."]
+    if cockpit is not None:
+        c = cockpit["pts"]
+        A.append(f"- The cockpit leaves no skin down the top's middle from z {c[:, 2].max():.0f} to {c[:, 2].min():.0f}, "
+                 f"{c[:, 0].max():.0f} cm out each side.")
+    lettered = [p for p, words in checks.PANELS.items() if "letters" in words]
+    A += [f"- Keep clear: {_listed(f'the {p} ({zr(p)})' for p in lettered)}, which the game letters, and "
+          f"{_listed(f'{words} ({zr(p)})' for p, words in checks.PANELS.items() if p not in lettered)}: nothing on "
+          f"them or within {checks.CLEAR:.0f} cm (`show` names anything there).", ""]
+    ANATOMY_MD.write_text("\n".join(A))
+
     Z = m.sec["Z"]
-    L = ["# The car map", "",
-         f"Written by `python -m tool.carmap --describe` from the car's own mesh ({datetime.date.today()}); "
-         "`tool/carmap.py` is the key. Read it, and look at its pictures (`car/map/`), when a design places "
-         "shapes by the body's areas or needs exact positions. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, "
-         "z forward (the nose's tip at 215, the tail at -162).", "",
+    T = ["# The car map in numbers", "",
+         f"Written by `python -m tool.carmap --describe` from the car's own mesh ({datetime.date.today()}), with "
+         "`car/anatomy.md`; `tool/carmap.py` is the key. For exact positions. Lengths in cm, as in the anatomy.", "",
          "## The pictures", "",
          "The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):", "",
-         "- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, "
-         "the lower edge magenta (each one smooth curve per stretch; the shoulder absent where the body has no line, "
-         "the lower edge along where the skin turns to face the ground where it has no crease: `python -m "
-         "tool.carmap --check`), the real folds black, openings red, joins blue.",
+         "- `car/map/flow.jpg`: the anatomy's lines on clay, each in its colour.",
+         "- `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, the lower edge "
+         "magenta (each one smooth curve per stretch; the shoulder absent where the body has no line, the lower edge "
+         "along where the skin turns to face the ground where it has no crease: `python -m tool.carmap --check`), "
+         "the real folds black, openings red, joins blue.",
          "- `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.",
          "- `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.",
-         "- `car/map/open.jpg`: how much of the open air each spot sees, white (all) to violet "
-         "(hidden).",
-         "- `car/map/air.jpg`: where the oncoming air hits, a warm ramp over black, and smoke lines "
-         "traced along its flow from a rake at the nose.",
-         "",
-         "The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 "
-         "(https://sketchfab.com/amogusstrikesback2).", ""]
-    L += ["## The body along its length", "",
-          "Where the top ends (the shoulder) and where the side turns under (the lower edge), on each slice.", "",
-          "| z | what's there | shoulder x, y | lower edge x, y |", "|---|---|---|---|"]
+         "- `car/map/open.jpg`: how much of the open air each spot sees, white (all) to violet (hidden).",
+         "- `car/map/air.jpg`: where the oncoming air hits, a warm ramp over black, and smoke lines traced along its "
+         "flow from a rake at the nose.", "",
+         "The car's 3D model in the pictures: amogusstrikesback2, CC-BY-4.0 (https://sketchfab.com/amogusstrikesback2).", "",
+         "## The body along its length", "",
+         "Where the top ends (the shoulder) and where the side turns under (the lower edge), on each slice.", "",
+         "| z | what's there | shoulder x, y | lower edge x, y |", "|---|---|---|---|"]
     for z, what in STATIONS:
         k = int(np.argmin(np.abs(Z - z)))
         sx, sy, lx, ly = (float(m.sec[n][k]) for n in ("sh_x", "sh_y", "lo_x", "lo_y"))
-        L.append(f"| {z} | {what} | {sx:.0f}, {sy:.0f} | {lx:.0f}, {ly:.0f} |")
+        T.append(f"| {z} | {what} | {sx:.0f}, {sy:.0f} | {lx:.0f}, {ly:.0f} |")
     high = Z[(m.sec["kind"][:, 1] == 3) & (Z > 60)]
-    L += ["", "The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the "
+    T += ["", "The top's half-width is the shoulder's x; the sides run from the shoulder's height down to the "
           "lower edge's." + (f" At z {high.min():.0f} to {high.max():.0f} the lower edge is the nose's and the front "
           "flank's lip, with the nose's belly rolled under it: the skin ends there and the inner car carries on below "
           "(the skirt further down is another piece); paint on \"body\" stops at the lip." if len(high) else ""), ""]
-    fa_ = m.area
-    outer = ~np.isin(names[m.part], WHEEL_COVERS + BLADES)
-    fwd, bwd = fa_[(m.fn[:, 2] > 0.7) & outer].sum(), fa_[(m.fn[:, 2] < -0.7) & outer].sum()
-    L += ["## Lines on the car", "",
-          "Lines, stripes, dashes and tape along the car's own lines (a guide, a seam, a panel's edge, a top line) or "
-          "along a line drawn with the Lab's pen are courses (`tool/course.py`). The map's own lines below are fitted "
-          "off the mesh to cut its areas; they are not for drawing.", ""]
-    from tool import pieces as pieces_mod
-    plist, nm = pieces_mod.write()
-    L += ["## The model's pieces", "",
-          f"The body is {len(plist)} separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers "
-          f"left out), and {nm} edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, "
-          "the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge "
-          "lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it. Where two pieces "
-          "almost touch the skin is sewn and a line carries straight over; across a real gap (the tail's 2 cm slot) a line "
-          "stops, as a real wrap would, and a decal must not straddle one (`tool/pieces.py`, `car/pieces.json`).", "",
-          "| parts | cm² | edge cm | gap cm | edge within 1 cm | hidden skin behind, cm² | z |", "|---|---|---|---|---|---|---|"]
-    for q in plist:
-        L.append(f"| {', '.join(q['parts'])} | {q['cm2']} | {q['boundary_cm']} | {q['gap_cm'] if q['gap_cm'] is not None else '-'} | "
-                 f"{q['boundary_within_1cm']:.0%} | {q['hidden_skin_behind_cm2']} | {q['z'][0]} to {q['z'][1]} |")
-    L += [""]
-    L += ["## The front and the back", "",
+    outer = ~np.isin(pname, WHEEL_COVERS + BLADES)
+    fwd, bwd = m.area[(m.fn[:, 2] > 0.7) & outer].sum(), m.area[(m.fn[:, 2] < -0.7) & outer].sum()
+    T += ["## The front and the back", "",
           f"The body's skin has no front or back face: only {fwd:.0f} cm² of it faces within 45 degrees of straight "
           f"ahead and {bwd:.0f} cm² of straight back, in patches (the sidepods' inlet rims, the nose's wing and the "
           "tail's number panel are inner parts). The map gives no such areas; what faces the oncoming air is `shapes.hit`.", ""]
-    L += ["## Openings", "", "Loops of open edges 30 cm round or more (`shapes.near(\"opening\", r)` keeps clear of them); "
+    T += ["## The model's pieces", "",
+          f"The body is {len(plist)} separate pieces of 5 cm² or more (triangles joined across shared edges; the wheel covers "
+          f"left out), and {nm} edges are shared by three or more triangles. Each piece's parts, area, the length of its edge, "
+          "the gap to the nearest other piece (the smallest distance between its edge and the other's), how much of its edge "
+          "lies within 1 cm of another piece, and the skin of other pieces hidden within 1 cm behind it (`tool/pieces.py`, "
+          "`car/pieces.json`).", "",
+          "| parts | cm² | edge cm | gap cm | edge within 1 cm | hidden skin behind, cm² | z |", "|---|---|---|---|---|---|---|"]
+    for q in plist:
+        T.append(f"| {', '.join(q['parts'])} | {q['cm2']} | {q['boundary_cm']} | {q['gap_cm'] if q['gap_cm'] is not None else '-'} | "
+                 f"{q['boundary_within_1cm']:.0%} | {q['hidden_skin_behind_cm2']} | {q['z'][0]} to {q['z'][1]} |")
+    T += ["", "## Openings", "", "Loops of open edges 30 cm round or more (`shapes.near(\"opening\", r)` keeps clear of them); "
           "a wall is one the oncoming air runs into, which the air turns round.", "",
           "| round | parts | x | y | z | a wall |", "|---|---|---|---|---|---|"]
     for g in sorted(_opening_groups(m), key=lambda g: -g["length"]):
@@ -1872,65 +2036,22 @@ def describe(m=None):
         if pts[:, 0].max() < -0.5:
             continue  # the right side's mirror of a left opening
         u, c = np.unique(names[g["parts"]], return_counts=True)
-        top = ", ".join(u[np.argsort(-c)][:2])
-        L.append(f"| {g['length']:.0f} | {top} | {pts[:, 0].min():.0f} to {pts[:, 0].max():.0f} | "
+        T.append(f"| {g['length']:.0f} | {', '.join(u[np.argsort(-c)][:2])} | {pts[:, 0].min():.0f} to {pts[:, 0].max():.0f} | "
                  f"{pts[:, 1].min():.0f} to {pts[:, 1].max():.0f} | {pts[:, 2].min():.0f} to {pts[:, 2].max():.0f} | "
                  f"{'yes' if g['wall'] > 0.3 else 'partly' if g['wall'] > 0.05 else 'no'} |")
-    # per part: area, where it sits, what sees it
-    fa = m.area
-    lay = m.layers
-    vmean = lambda k: lay[k][m.F].mean(1)
-    across_f, open_f, chase_f = vmean("across"), vmean("open"), vmean("chase")
-    hit_f = np.clip(m.fn[:, 2], 0, 1) ** 2 * vmean("front_open")
-    rows = []
-    pname = names[m.part]
-    for name in np.unique(pname):
-        sel = pname == name
-        A = fa[sel].sum()
-        if A < 50:
-            continue
-        cen = m.V[m.F[sel]].reshape(-1, 3)
-        w = fa[sel] / A
-        share = [float((w * (across_f[sel] < 1)).sum()), float((w * ((across_f[sel] >= 1) & (across_f[sel] < 2))).sum()),
-                 float((w * (across_f[sel] >= 2)).sum())]
-        rows.append((name, "", A, share, float((w * open_f[sel]).sum()),
-                     float((fa[sel] * chase_f[sel]).sum()), float((fa[sel] * hit_f[sel]).sum()), cen))
-    L += ["", "## The panels", "",
+    T += ["", "## The panels", "",
           "Each body part (a pair's two sides, or the four wheels', together): its area, where it sits (its share on "
           "the top, the sides and under), how open it is, how big it looks from the chase cameras and how much of the "
           "oncoming air it takes.", "",
           "| part | cm² | top / sides / under | open | seen from behind, cm² | air, cm² | z |", "|---|---|---|---|---|---|---|"]
-    for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[2]):
-        L.append(f"| {name}{' (' + side + ')' if side and side != 'centre' else ''} | {A:.0f} | "
-                 f"{share[0]:.0%} / {share[1]:.0%} / {share[2]:.0%} | {op:.0%} | {ch:.0f} | {hit:.0f} | "
-                 f"{cen[:, 2].min():.0f} to {cen[:, 2].max():.0f} |")
-    tot = sum(r[5] for r in rows)
-    L += ["", "## What the player sees", "",
-          "The player sees their own car from behind all race (the chase cameras). By how big each part looks from "
-          "there:", ""]
-    for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[5])[:8]:
-        L.append(f"- {name}: {ch / tot:.0%}")
-    top_seen = float((fa * chase_f * (across_f < 1)).sum() / max((fa * chase_f).sum(), 1e-9))
-    L += ["", f"The top takes {top_seen:.0%} of what the chase cameras see; the sides most of the rest. A graphic "
-          "on the flanks is for the other players and the replays.", ""]
-    L += ["## Where the air hits", "", "By how much of the oncoming air each part takes (the Newtonian rule):", ""]
-    htot = sum(r[6] for r in rows)
-    for name, side, A, share, op, ch, hit, cen in sorted(rows, key=lambda r: -r[6])[:6]:
-        L.append(f"- {name}: {hit / htot:.0%}")
-    L += ["", "## Words for designs (tool/shapes.py)", "",
-          "- `shapes.area(\"top\" | \"sides\" | \"under\")`: the body's areas, split along "
-          "its own lines.",
-          "- `shapes.outside(0.4)`: the outer body only (keeps paint out of the inlets, the wheel pockets, under panels).",
-          "- `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).",
-          "- `shapes.near(kind, reach)`: near a fold, an opening, a join, the shoulder, the lower edge; `~shapes.near(...)` "
-          "keeps a graphic clear. (`shapes.line(kind, width)` shows the map's own lines on its test cars.)",
-          "- Lines on the car: `tool/course.py`.",
-          "- `shapes.hit(lo, hi)`: where the oncoming air hits, 0..1 (bands of it make a pressure map).",
-          "- `shapes.streamlines(shapes.rake(z, [across ...]), width)`: smoke lines along the air's flow from a "
-          "row of seeds.",
-          "- Everything combines with `&`, `|`, `~` and the plain zones (`stripe`, `band`, `facing`, ...).", ""]
-    MAP_MD.write_text("\n".join(L))
-    return MAP_MD
+    for name, A_, share, op, ch, hit, z in sorted(rows, key=lambda r: -r[1]):
+        T.append(f"| {name} | {A_:.0f} | {share[0]:.0%} / {share[1]:.0%} / {share[2]:.0%} | {op:.0%} | {ch:.0f} | {hit:.0f} | "
+                 f"{z[0]:.0f} to {z[1]:.0f} |")
+    htot = sum(r[5] for r in rows)
+    T += ["", "## Where the air hits", "", "By how much of the oncoming air each part takes (the Newtonian rule): "
+          + ", ".join(f"{r[0]} {r[5] / htot:.0%}" for r in sorted(rows, key=lambda r: -r[5])[:6]) + ".", ""]
+    TABLES_MD.write_text("\n".join(T))
+    return ANATOMY_MD
 
 
 if __name__ == "__main__":

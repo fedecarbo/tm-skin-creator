@@ -1,7 +1,7 @@
 """A course: a path along one of the car's own lines, and markings laid along it. The user, 2026-10-05,
 drawing with the Lab's pen: "Do an interval lines with DO NOT STEP text." A marking belongs to a line
-of the car (a guide, a seam, a panel's edge) or to the line the user drew, and the tool lays it along
-that line in one go: a strip, dashes, ticks, spots or words.
+of the car (one of its own creases or rolled edges, a guide, a seam, a panel's edge) or to the line
+the user drew, and the tool lays it along that line in one go: a strip, dashes, ticks, spots or words.
 
     course.level("between 3")                the level's line along the left side (side="right" the other), where
                                              it's painted: its longest stretch, or the one nearest `near` (a point,
@@ -12,6 +12,7 @@ that line in one go: a strip, dashes, ticks, spots or words.
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
+    course.flow((44, 58, 30))                one of the body's own lines (car/anatomy.md), the one nearest a point
     course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half
     course.stroke(points)                    the line the user drew (tool.notes show_drawn prints its points):
                                              smoothed over SMOOTH cm and laid on the body
@@ -636,6 +637,19 @@ def stroke(points):
     if len(on) < 2:
         raise ValueError("the drawn line isn't on the body")
     return Course(on, "the line drawn")
+
+
+def flow(near):
+    """One of the body's own lines (car/anatomy.md: a crease or a rolled edge read off its curvature),
+    the one nearest a point, from its front end, on the side the point is: smoothed over SMOOTH cm and
+    laid on the body, as a drawn line is."""
+    from tool import carmap
+    at = np.asarray(near, np.float64)
+    right = at[0] < -MIDDLE
+    line = min(carmap.flow_lines(), key=lambda L: np.linalg.norm(L["pts"] - at * (MIRROR if right else 1), axis=1).min())
+    c = stroke(line["pts"])
+    c.name = f"the body's line from {_said(line['pts'][0])} on the left"
+    return _flip(c) if right else c
 
 
 def points(pts, name="the points given"):

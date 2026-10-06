@@ -28,7 +28,7 @@ because it's drawn in 3D, not on the flat texture.
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
     shapes.noisy(zone, amount=6)           a zone's edge roughened: torn, ragged, hand-painted
-  The car map's (tool/carmap.py, car/map.md: they follow the body's own shape):
+  The car map's (tool/carmap.py, car/anatomy.md: they follow the body's own shape):
     shapes.area("top")                     the top between the shoulders; "sides", "under"
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
@@ -549,10 +549,10 @@ AREAS = ("top", "sides", "under")
 def area(name, soft=SOFT):
     """One of the body's areas, split along the car's own lines (the car map): "top" (between the
     shoulders), "sides" (from the shoulder down to where the side turns under), "under". Edges
-    crisp, on the fitted lines. The body has no front or back face (car/map.md): where the air
+    crisp, on the fitted lines. The body has no front or back face (car/map/tables.md): where the air
     hits is `hit`."""
     if name not in AREAS:
-        raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)} (the body has no front or back face: car/map.md)")
+        raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)} (the body has no front or back face: car/map/tables.md)")
 
     def dist(p, n):
         m = _map()

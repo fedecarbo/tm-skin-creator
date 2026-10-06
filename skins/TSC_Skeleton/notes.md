@@ -617,3 +617,12 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   the car. Without needing guides. Like if I ask the AI to build a car, it doesn't need to use one of the
   guides". The levels room retired; the guides (car/levels.json, car/top_lines.json) stay, optional; a
   design follows the car's own flow (RULES.md), and step E reads it from the car's shape.
+- Step E of the road (2026-10-06, Claude Opus 5.5; the user: "nexty", question 13 A): the car's anatomy,
+  car/anatomy.md, read before every design in place of the map's page: the body's own lines (18 creases
+  and rolled edges on the outside, 25 cm or longer, read off its curvature, not the guides, each with the
+  corners where it turns; car/map/flow.jpg draws them; course.flow lays a marking along one), its flat
+  rooms (the biggest discs facing one way, off creases, clear of the game's panels), what the chase
+  cameras see and where a graphic stops. The map's numbers moved to car/map/tables.md. tool.sets open
+  says when a take is another repainted. The lettering spots stay as set (measured: within 10 cm of
+  their panels' biggest flat room). Not shown on a car: its worth shows on the user's next one. Open: the
+  user's OK.

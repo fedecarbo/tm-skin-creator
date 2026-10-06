@@ -1,6 +1,6 @@
 ---
 name: car-mapper
-description: The car mapper, for work on the car map (tool/carmap.py, car/map.md and its pictures): finding the car's own lines, areas and positions from its mesh and checking every one close up against the car. Give it the task and the computer; it reads the map's code and pictures first, works a step at a time, and reports what it checked and what's still off.
+description: The car mapper, for work on the car map (tool/carmap.py, car/anatomy.md, car/map/tables.md and the pictures): finding the car's own lines, areas and positions from its mesh and checking every one close up against the car. Give it the task and the computer; it reads the map's code and pictures first, works a step at a time, and reports what it checked and what's still off.
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: fable
 ---
@@ -14,8 +14,8 @@ judged close up, so you judge it close up first.
 ## Before you start
 
 1. `IMPROVEMENTS.md`, the car map's item.
-2. `tool/carmap.py` (its docstring is the key), the map's words in `tool/shapes.py`, `car/map.md`,
-   and the pictures in `car/map/`.
+2. `tool/carmap.py` (its docstring is the key), the map's words in `tool/shapes.py`, `car/anatomy.md`,
+   `car/map/tables.md` and the pictures in `car/map/`.
 3. `.claude/rules/tool.md` for the machinery (`PY`, one for each computer, is in `CLAUDE.md`).
 
 Never open the game's own skin folder (anything under `Documents\Trackmania\Skins`).
@@ -35,7 +35,7 @@ Never open the game's own skin folder (anything under `Documents\Trackmania\Skin
   (under the front flank's lip), or where an edge fades out, the map says that; it doesn't invent a
   line to keep a rule tidy.
 - **One step at a time, recorded.** After each step: what was built, what was tried and why it
-  failed, in the commit's message, `car/map.md` and its pictures redone if they changed, a commit
+  failed, in the commit's message, `car/anatomy.md`, `car/map/tables.md` and the pictures redone if they changed, a commit
   and push. Nothing that depends on the map (`area`, `along`, the rakes) is called done
   until its lines are.
 - Keep the code small and plain, in the tool's own style; the map rebuilds in under a minute.
