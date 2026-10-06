@@ -88,10 +88,13 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   chat: "It just looks like sloppy work.  I just did a line and the outline is so wobbly a glitchy" and "I thought we
   were going to just have the points when two or more lines cross, that creates a point": each click lands on the
   nearest of the model's points now, marked with a small cross. Their clicks were already on its points: the wobble
-  was the model's own edges, a small corner at each point and a sharp bend over the sidepod's back edge. Open
-  (question 4 in the Lab): straight from point to point (A) or one smooth curve through the same points (B).
+  was the model's own edges, a small corner at each point and a sharp bend over the sidepod's back edge. Closed
+  (question 4 in the Lab, their line from above both ways): B, "Smooth through the points", over A, straight from
+  point to point. A picked line is one smooth curve through its points now, in the Lab and in paint.
 - Note 4 (user, 2026-10-06, a line picked on the left rear flank, 8 points along one of its rounded edge's lines): "Draw
   a red tape here". Read as: a red tape 2 cm wide, the cockpit surround's red, exactly along the picked line
   (`meshlines.picked`, straight from point to point, as they saw it), both sides like the rest of the car. Checked close
   up from the note's camera, along it and from above, mesh off and on: crisp, even, on the line they picked; the
   checks name nothing. Shown in the Lab.
+- The tape repainted smooth through the same points (the pick, B): along one of the flank's own lines its corners were
+  a few degrees, so it moved under a millimetre; checked close up again, crisp and on the line.

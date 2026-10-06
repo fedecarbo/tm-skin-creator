@@ -18,7 +18,8 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
     meshlines.picked([(70, 60, -70), (55, 63, -100)])   the line through points clicked on the car (the Lab: Mesh
                                     and Draw on), a Course on the model: each click lands on the nearest of the model's
                                     points, where its lines cross; between two joined by an edge, that edge; on one of
-                                    its lines, along it point by point; else straight across the surface
+                                    its lines, along it point by point; else straight across the surface; and all of
+                                    it one smooth curve through those points (smooth)
     PY -m tool.meshlines            the body's panels and its longest lines, each with a point on it and its parts
 """
 
@@ -603,7 +604,8 @@ SMOOTH_STEP = 0.25  # cm between the points of a smooth line
 def smooth(pts, tset="Skin", closed=False):
     """A line through the model's points made one smooth curve through the same points (between them a centripetal
     Catmull-Rom curve, which never loops or overshoots), its corners of CORNER degrees or more kept, laid back on the
-    surface: (n, 3) cm."""
+    surface: (n, 3) cm. A picked line is drawn so (the user's pick, 2026-10-06: B, "Smooth through the points", over
+    straight from point to point, which showed a small corner at each point)."""
     q = [np.asarray(pts[0], np.float64)]
     for p in pts[1:]:
         if np.linalg.norm(p - q[-1]) > 0.3 or p is pts[-1]:
@@ -640,11 +642,14 @@ def smooth(pts, tset="Skin", closed=False):
 
 def picked(clicks, tset="Skin", closed=False):
     """The line through points clicked on the car (the Lab, with Mesh and Draw on: `PY -m tool.notes drawn` prints the
-    call), a Course on the model (path): closed, round back to the first."""
+    call), a Course on the model: path's, made smooth through the same points (smooth); closed, round back to the
+    first."""
     from tool import course
-    pts, nrm, _, _ = path(clicks, tset, closed)
+    pts = smooth(path(clicks, tset, closed)[0], tset)
     if closed:
-        pts, nrm = pts[:-1], nrm[:-1]
+        pts = pts[:-1]
+    e = _edges(tset)
+    nrm = e["N"][cKDTree(e["P"]).query(pts)[1]]
     return course.Course(pts, f"the line picked on the model from {course._said(pts[0])}", nrm=nrm, closed=closed)
 
 

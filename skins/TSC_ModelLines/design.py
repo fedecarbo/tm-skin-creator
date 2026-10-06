@@ -2,7 +2,7 @@
 triangles; nothing traced, nothing from the car map, no light or shading). On an edge: the sidepod panel's crisp edge
 up its back and along its foot. Round shapes: the panel round the cockpit filled red up to its panel line with a black
 line on the line, the nose panel blue, a black trim inside each inlet's edge. A red tape along the line the user picked
-on the mesh (note 4), point by point on the rear flank."""
+on the mesh (note 4) on the rear flank, smooth through its points."""
 from tool import meshlines
 
 TEST = "You choose, because this tool is really for you to paint accurately.  If you need to run a test feel free"
@@ -22,5 +22,5 @@ def design(s):
     s.paint("body", "gloss black", zone=meshlines.line((35, 71.3, 8.5), kind="crease", least=100).strip(0.6), across=True)
     s.paint("body", "gloss blue", zone=meshlines.panel((1.5, 55.6, 162.3)), across=True)
     s.paint("body", "gloss black", zone=meshlines.panel((69.4, 52.4, -18.8), both=True, border=1.5), across=True)
-    s.step("A red tape", "A red tape 2 cm wide along the line picked on the mesh, on the rear flank, both sides.", words=TAPE)
+    s.step("A red tape", "A red tape 2 cm wide along the line picked on the mesh, smooth through its points, on the rear flank, both sides.", words=TAPE)
     s.paint("body", "gloss red", zone=meshlines.picked(PICKED).mirrored().strip(2.0), across=True)
