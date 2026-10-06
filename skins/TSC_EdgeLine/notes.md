@@ -31,3 +31,10 @@ tail's middle.
   shadow's edge is now fitted as one smooth curve (a knot every 6 cm), so it runs straight on where the
   shading steps across a seam; it starts at z -12 (just ahead the divide turns round the sidepod's front
   corner) and is carried on straight 3 cm under the frame (`Course.extended`). Checked at the three pins.
+- Note 4 (user, 2026-10-06, the left tail corner): "Firstly there's tiny wobbles in general.  But also,
+  just make it go around straight, not make it start to ascend". Seen with a narrow lens: along the sides
+  the line is smooth and even; the wobbles are at the back (a notch at the tail corner's slot, a 3 mm dip
+  where the fit overshoots the corner, the line ragged along the tail's sharp edge). Across the back there
+  is no bodywork at the side edge's height (60 cm up): only the deck's lip at 63 to 65 and the inner car's
+  tail frame below it. Asked (question 1): climb gently round the corner, level across the frame, or stop
+  at each corner.
