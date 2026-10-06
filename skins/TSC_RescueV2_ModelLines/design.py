@@ -25,15 +25,15 @@ BAND = "Remove this one (note 1 on the block tape's take, on the side's check ba
 WITHOUT = "not sure what guides you mean but show me a version without the guides and using the new approach tool"
 # The model's own lines (picked on the mesh, tool/meshlines.py), the left side: the tape's, along the nose's lower crease
 # from behind the nose tip's seam to where it meets the curve rising in front of the air intake, on straight across the
-# surface to the intake's crisp front edge, and along the shoulder
-# (the line facing 47 degrees from up across its rounded edge) from the sidepod's front to the tail corner's end; the
-# black's, the line along the top of the rear flank's lower curve, where the side turns under, then up round the front
-# of the rear wheel's arch
+# surface to the intake's crisp front edge, and along the shoulder (the line facing 47 degrees from up across its rounded
+# edge) from the sidepod's front to the tail corner's end; the black's, from the rear flank's front edge where the bottom
+# piece's top meets it (note 1: a step there), straight across the surface to the line along the top of the rear flank's
+# lower curve, where the side turns under, then along it and up round the front of the rear wheel's arch
 NOSE = [(25.5, 46.7, 142.3), (35.0, 53.4, 81.3), (36.4, 52.8, 67.5), (38.9, 54.7, 48.4), (41.5, 55.0, 35.7),
         (47.9, 54.3, 28.2)]
 SHOULDER = [(84.4, 57.0, -11.6), (83.7, 57.9, -48.3), (83.6, 57.9, -48.4), (49.6, 61.5, -126.1), (49.7, 61.6, -126.2),
             (47.6, 60.9, -155.1)]
-UNDER = [(83.0, 24.0, -38.0), (51.0, 19.0, -91.0), (52.0, 21.0, -94.0), (50.0, 26.0, -130.0)]
+UNDER = [(83.64, 25.97, -24.85), (83.0, 24.0, -38.0), (51.0, 19.0, -91.0), (52.0, 21.0, -94.0), (50.0, 26.0, -130.0)]
 SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box "
          "and the rear flank); Can't see gap here (note 17, at the intake's frame); Very little gap here; Same here very "
          "little gap (notes 19 and 20, at the side box's and the tail corner's seams); In this part remove the tape. "

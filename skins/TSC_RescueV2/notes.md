@@ -167,3 +167,10 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   model's line where the side turns under, then up the front of the rear wheel's arch (2 to 8 cm lower than the
   guide's level). On the nose B's tape sits on the crease itself, so it folds over it a little more than A's. Close
   looks of both at the same eight places; the checks name nothing on B. Open in the Lab.
+- Note 1 on B (user, 2026-10-06, behind the left sidepod's lower corner): "There's an obvious discrepancy here but Im
+  curious if you wouldn't have made the same mistake if you were to have built it from scratch I'm assuming.  Obviously
+  the guides one looks smoother, but in theory the mesh should be the new "guides"  Because in essence the mesh should
+  help you paint better, is that correct?" The model's line along the rear flank's lower curve starts 13 cm behind the
+  rear flank's front edge; before it the black stopped on a flat height, and the two made a step. B's black now starts
+  on the rear flank's front edge at the bottom piece's top (26 cm up), straight across the surface to that line: no
+  step, both sides; the checks name nothing.
