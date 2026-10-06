@@ -12,8 +12,7 @@ the instructions give still exists (tool/instructions.py, the working tree's). E
 in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
 `git archive` into the work folder (never the repo: the PC's is in OneDrive). Per texture it compares
 the painted floats, the uint8 image the viewer and install take, and the whole DDS file the game
-reads; per skin, the notes and the paint's own findings (in any order), the lines drawn, the
-palette, the steps and the parts left in clay. A difference is shown texel by texel, by painting
+reads; per skin, the notes and the paint's own findings (in any order), the palette, the steps and the parts left in clay. A difference is shown texel by texel, by painting
 that skin again on both sides.
 
 The tour is compared only with commits whose paint box has every call it makes. A commit's results
@@ -47,7 +46,7 @@ HOME = paths.WORK / "selftest"
 OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none rebuilds for them
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, wear, the car map's
-# areas, air, lines and edges, grass, a blob, lines drawn on the skin, a decal, a scatter, a print,
+# areas, air, lines and edges, grass, a blob, a decal, a scatter, a print,
 # lettering, marks laid on a panel and across them, a band kept off a part painted by name, the
 # guides as heights (a band between a level and a seam, an offset, a split), stripes, checks,
 # courses (a seam's dashes, a panel edge's strip, a level's ticks, a drawn line's placard), a camo
@@ -57,7 +56,7 @@ TOUR_CODE = r'''
 def tour(s):
     from pathlib import Path
     from PIL import Image, ImageDraw
-    from tool import course, levels, marks, seams, shapes, skindraw, textures
+    from tool import course, levels, marks, seams, shapes, textures
     pic = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     d = ImageDraw.Draw(pic)
     d.ellipse((16, 16, 240, 240), fill=(250, 200, 30, 255), outline=(20, 20, 20, 255), width=14)
@@ -82,13 +81,6 @@ def tour(s):
     s.paint("body", "satin", colour="#1f8f3a", zone=shapes.line("shoulder", 1.6))
     s.paint("body", "satin", colour="#2e7d32", zone=shapes.grass(base=6, height=(18, 30), every=3.0, seed=7))
     s.paint("body", "gloss", colour="#111111", zone=shapes.blob((30, 0, 60), 9, seed=1))
-    s.step("Lines", "A sweep of three colours drawn on the skin, on both sides.")
-    sweep = skindraw.through([(20.5, 43.7, 172.2, "side"), (32.1, 50.9, 99.6, "side"), (52.8, 61.4, 12.9, "side"),
-                              (59.4, 54.4, -94.1, "side")], name="the sweep", smooth=40)
-    for mm, colour in ((20, "#e0a82e"), (0, "#e8601c"), (-20, "#c8102e")):
-        line = skindraw.parallel(sweep, mm, name=f"the sweep at {mm} mm")
-        for curve in (line, skindraw.mirror(line)):
-            s.paint("body", "satin", colour=colour, zone=skindraw.band(curve, 16))
     s.step("Pictures", "A decal, a scatter, a print, lettering and marks.")
     s.decal(pic, "bonnet", width=30)
     s.scatter(pic, "engine cover", size=6, seed=3)
@@ -158,7 +150,7 @@ for tex, (arr, fourcc, opts) in sorted(s.textures().items()):
         arrays[tex + ".dds"] = np.frombuffer(blob, np.uint8)
 if dump:
     np.savez(dump, **arrays)
-record = {"drawn": s.drawn, "palette": s.palette, "icon": s.icon_colours,
+record = {"palette": s.palette, "icon": s.icon_colours,
           "steps": [{"name": st["name"], "paints": st.get("paints", [])} for st in s.steps],
           "clay": s.clay_left}
 notes = [re.sub(r"\(\d+ s\)", "(… s)", n) for n in s.notes]  # how long a step took isn't the paint
@@ -246,7 +238,7 @@ def same(a, b):
         new = [f"+ {n}" for n in b["notes"] if n not in a["notes"]]
         other.append("notes differ:\n      " + "\n      ".join(gone + new))
     if a["record"] != b["record"]:
-        other.append("the record differs (lines drawn, palette, steps, clay)")
+        other.append("the record differs (palette, steps, clay)")
     return textures, other
 
 

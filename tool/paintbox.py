@@ -95,8 +95,8 @@ SHARED_NOTE = 0.05
 KEPT = 100
 
 # Named places for words and pictures, one side each: the parts they're laid on (tool/marks.py), the
-# centre (cm), where their top points on the car and the side it's seen from (a line's route,
-# tool/skindraw.py). Measured on the model (2026-09-24).
+# centre (cm), where their top points on the car and the side it's seen from. Measured on the model
+# (2026-09-24).
 SPOTS = {
     "left side": dict(centre=(70, 41, -66), up=(0, 1, 0), facing=(1, 0, 0), parts=("rear flank", "sidepod inlet", "side skirt", "body shell")),
     "right side": dict(centre=(-70, 41, -66), up=(0, 1, 0), facing=(-1, 0, 0), parts=("rear flank", "sidepod inlet", "side skirt", "body shell")),
@@ -270,7 +270,6 @@ class Skin:
         self.canvases = {}
         self.notes = []  # what the tool decided, for the record
         self.icon_colours = []
-        self.drawn = []  # the lines drawn on the car's skin (tool/skindraw.py), for tool/skincheck.py
         self.palette = []  # every colour laid on the car, so a check can tell a band's paint from the rest
         self.steps = []  # the design's steps (step()), for the Studio
         self.clay_left = None  # the parts still in clay when the design is done (end_steps)
@@ -515,11 +514,7 @@ class Skin:
         idx = np.flatnonzero(cov > 0.002)
         m = cov[idx]
         if zone is not None:
-            shapes.PAINTING = tset
-            try:
-                m = m * zone(canvas.pos[idx], canvas.nrm[idx])
-            finally:
-                shapes.PAINTING = None
+            m = m * zone(canvas.pos[idx], canvas.nrm[idx])
             keep = m > 0.002
             idx, m = idx[keep], m[keep]
         return idx, m
@@ -559,8 +554,7 @@ class Skin:
         scale, seed, palette, line, amount, direction, texture.
         A zoned paint on a group ("body") leaves the body's parts an earlier call painted whole by
         their name, and says so. across=True: its shape crosses the car's parts on purpose, so it
-        paints those too and the checks leave its cuts alone. A line drawn on the skin and a fade
-        cross everything as they are."""
+        paints those too and the checks leave its cuts alone. A fade crosses everything as it is."""
         targets = self._ids(where)
         default_finish = "rubber" if list(targets) == ["Wheels"] else "gloss"
         params = {"seed": self.seed, **params}
@@ -572,19 +566,10 @@ class Skin:
         if leftover:
             self.notes.append(f"{what!r}: didn't understand {' '.join(leftover)!r}")
         self.palette.append([float(v) for v in col])   # every colour laid on the car, for the checks
-        if getattr(zone, "curve", None) is not None:  # drawn on the car's skin: kept for tool/skincheck.py
-            curve = zone.curve
-            self.drawn.append({"kind": zone.kind, "width": getattr(zone, "width", None), "name": curve.name,
-                               "points": [[round(float(v), 4) for v in p] for p in curve.pts],
-                               "colour": [float(v) for v in col], "closed": bool(curve.closed),
-                               "soft": getattr(zone, "soft", None),
-                               "order": len(self.palette) - 1,   # colours laid after it may cover it
-                               "where": where if isinstance(where, str) else list(where),
-                               **getattr(curve, "extra", {})})
         # the parts this call names itself, apart from the groups' words
         keys = [n.strip().lower() for n in ([where] if isinstance(where, str) else where)]
         own = {i for key in keys if key not in GROUP_WORDS for i in self._select(key)[1]}
-        runs_on = across or zone is None or getattr(zone, "curve", None) is not None or _blends(zone)
+        runs_on = across or zone is None or _blends(zone)
         for tset, ids in targets.items():
             c = self.canvas(tset)
             if tset == "Skin" and not runs_on:

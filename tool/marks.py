@@ -313,11 +313,7 @@ class _Panel:
         pos, nrm = c.pos[t], c.nrm[t]
         keep = carmap.load().value("open", pos, nrm) >= measure.OUTER
         if within is not None:
-            shapes.PAINTING = "Skin"
-            try:
-                keep &= within(pos, nrm) > 0.5
-            finally:
-                shapes.PAINTING = None
+            keep &= within(pos, nrm) > 0.5
         keep &= ~_by_panels(self.skin, c, t)
         room[rr[keep], cc[keep]] = True
         k = max(1, int(round(SPAN / 2 / float(np.median(self.pitch[self.island[sel]])))))

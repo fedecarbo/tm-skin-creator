@@ -605,5 +605,7 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   Not shown to the user; the take and its code are gone. Open: the user's OK to drop the step.
 - Asked in the Lab (question 11) whether to drop step D, retire the line-drawing tool and go on to E. The
   user, in the chat: "Oh wait. I do like the drawing tool, I actually find it very useful. I would
-  actually make refinments to the drawing tool rather than removing it". The drawing tool stays. Open:
-  the refinements, in the user's words; the user's OK to drop step D.
+  actually make refinments to the drawing tool rather than removing it". Asked which they meant (the
+  lines room's tool was meant): "Oh ok! Yes. That "The lines" tool didn't help at all. You can retire
+  that". The drawing tool they like is the Lab's pen; it stays. Step D dropped; the lines room, its pins
+  and the line tool behind it retired. Open: the pen's refinements, in the user's words.

@@ -6,8 +6,8 @@
 //                          or dresses step by step and hangs notes on (the Lab's stand,
 //                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
 //                          and lets the user draw on (pen, onStroke, drawings)
-//                          or pins the car's lines on (the Lab's lines room, viewer/lab-lines.js:
-//                          snap, curves)
+//                          or draws the levels on (the Lab's levels room, viewer/lab-levels.js:
+//                          curves)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -491,9 +491,8 @@ async function loadLighting() {
 // ---- The car ----
 
 const parts = {};  // Skin, Details, Wheels, Glass -> mesh
-const curveGroup = new THREE.Group();  // the Lab's lines room: curves drawn on the body (viewer.curves)
+const curveGroup = new THREE.Group();  // the Lab's levels room: curves drawn on the body (viewer.curves)
 scene.add(curveGroup);
-const snapRay = new THREE.Raycaster();
 
 async function loadMeshes() {
   const meta = await (await fetch('data/car.json')).json();
@@ -1914,29 +1913,7 @@ Object.assign(window.viewer, {
   views() {  // the game's cameras, as the viewer's own buttons name them
     return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
   },
-  // The Lab's lines room (viewer/lab-lines.js): the user's pins for the car's lines, and the curves
-  // through them drawn on the body.
-  // snap: points ([[x, y, z]] metres) put back on the body along their normals (either way, the
-  // nearer hit within `reach` metres, 5 cm unless said; a point with no body that near stays put).
-  // Only the parts shown count.
-  snap(points, normals, reach = 0.05) {
-    const meshes = Object.values(parts).filter((m) => m.visible);
-    const p = new THREE.Vector3(), n = new THREE.Vector3(), from = new THREE.Vector3(), dir = new THREE.Vector3();
-    return points.map((q, i) => {
-      p.set(...q);
-      n.set(...((normals && normals[i]) || [0, 1, 0])).normalize();
-      let best = null;
-      for (const sgn of [1, -1]) {
-        from.copy(p).addScaledVector(n, reach * sgn);
-        dir.copy(n).multiplyScalar(-sgn);
-        snapRay.set(from, dir);
-        snapRay.far = 2 * reach;
-        const hit = snapRay.intersectObjects(meshes, false).find((h) => partsState.data[partOfHit(h) * 4] > 0);
-        if (hit && (!best || Math.abs(hit.distance - reach) < Math.abs(best.distance - reach))) best = hit;
-      }
-      return best ? best.point.toArray() : q;
-    });
-  },
+  // The Lab's levels room (viewer/lab-levels.js): the levels drawn on the body as it moves them.
   // curves: [{ key, points: [[x, y, z]] metres, colour, radius (metres), dim }], each drawn on the
   // body as a thin tube through its points; the list replaces what was drawn (an empty one clears).
   curves(list) {
@@ -1985,7 +1962,7 @@ Object.assign(window.viewer, {
   },
 });
 if (embed) {  // whatever the Lab asks for is drawn, when it's asked and when it's done
-  const reads = new Set(['project', 'camera', 'views', 'gpu', 'snap']);
+  const reads = new Set(['project', 'camera', 'views', 'gpu']);
   for (const [k, f] of Object.entries(window.viewer)) {
     if (typeof f !== 'function' || reads.has(k)) continue;
     window.viewer[k] = (...args) => {

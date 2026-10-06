@@ -658,11 +658,7 @@ def run(skin, measures=None):
     if "Skin" in skin.canvases and skin.canvases["Skin"].owner is not None:
         car = _Car(skin)
         car.zoned_ops = {call["op"] for call in skin.zoned} | {p["op"] for p in skin.pictures + skin.marks}
-        shapes.PAINTING = "Skin"
-        try:  # the measures' own order: every zoned paint but a line drawn on the skin (tool/skincheck.py)
-            graphics = [_zoned(car, call, found, seen) for call in skin.zoned if getattr(call["zone"], "curve", None) is None]
-        finally:
-            shapes.PAINTING = None
+        graphics = [_zoned(car, call, found, seen) for call in skin.zoned]  # the measures' own order
         # a graphic's cuts and spills say what its run along the car would
         found += measure.findings([m for m, g in zip(measures, graphics) if not g])
         _pictures(car, found, seen)

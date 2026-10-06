@@ -4,7 +4,6 @@
   /data/   the work folder's viewer/ folder: the car, the lighting, the skins (tool/view.py)
   /api/notes   the Lab's notes on the car (tool/notes.py)
   /api/sets    each car's sets of options and what was said about them (tool/sets.py)
-  /api/lines   the car's lines as the user pins them (tool/lines.py)
   /api/levels  the levels the user draws from the side (tool/levels.py), and painting them on the car
   /api/progress   what the tool is doing, a job at a time (tool/progress.py)
   /api/health     alive: its pid and the age of the code it runs (tool/doctor.py restarts an old one)
@@ -28,7 +27,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
-from tool import levels, lines, notes, paths, progress, sets, view
+from tool import levels, notes, paths, progress, sets, view
 
 PORT = 8765
 STARTED = time.time()
@@ -102,7 +101,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(data)
             return
-        if url.path not in ("/api/notes", "/api/sets", "/api/lines", "/api/levels", "/api/progress", "/api/health"):
+        if url.path not in ("/api/notes", "/api/sets", "/api/levels", "/api/progress", "/api/health"):
             return super().do_GET()
         if not self._local():
             return self._json(403, {"error": "not from this computer"})
@@ -110,8 +109,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             if url.path == "/api/health":  # alive, and how old its code is (tool/doctor.py)
                 return self._json(200, {"ok": True, "pid": os.getpid(), "started": STARTED, "code": CODE})
-            if url.path == "/api/lines":  # the car's lines as pinned in the Lab's lines room (tool/lines.py)
-                return self._json(200, lines.load())
             if url.path == "/api/levels":  # the levels as drawn in the Lab's levels room (tool/levels.py)
                 return self._json(200, {**levels.load(), "painting": _painting()})
             if url.path == "/api/progress":  # the chat's progress widgets (viewer/lab-car.js)
@@ -132,14 +129,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         "remove": lambda body: notes.remove(body.get("skin"), body["remove"]) or {"ok": True},
     }
 
-    # The lines room (viewer/lab-lines.js): POST /api/lines with {"lines": [...]} keeps them all
-    # (tool/lines.py, car/lines.json), and GET /api/lines reads them back. The levels room
-    # (viewer/lab-levels.js): POST /api/levels with {"levels": [...]} keeps them (car/levels.json),
+    # The levels room (viewer/lab-levels.js): POST /api/levels with {"levels": [...]} keeps them (car/levels.json),
     # and with "paint": true also paints them on the clay car (tool/levels.py, a process of its own,
     # one at a time; the room watches data/levels/painted.json).
     def do_POST(self):
         path = urllib.parse.urlsplit(self.path).path
-        if path not in ("/api/notes", "/api/lines", "/api/levels"):
+        if path not in ("/api/notes", "/api/levels"):
             return self._json(404, {"error": "nothing here"})
         if not self._local() or self.headers.get("Content-Type", "").split(";")[0] != "application/json":
             return self._json(403, {"error": "not from this computer"})
@@ -147,8 +142,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(min(int(self.headers.get("Content-Length", 0)), 10 << 20)) or b"{}")
             if not isinstance(body, dict):
                 raise ValueError("expected a JSON object")
-            if path == "/api/lines":
-                return self._json(200, lines.save(body))
             if path == "/api/levels":
                 doc = levels.save(body)
                 return self._json(200, {**doc, "painting": _paint_levels() if body.get("paint") else _painting()})

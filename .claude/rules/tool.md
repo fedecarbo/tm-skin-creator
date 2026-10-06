@@ -51,7 +51,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in the
   background. `tool/server.py` is the server: the pages, the work folder's data, and the Lab's
-  `/api/notes`, `/api/sets`, `/api/lines` and `/api/progress` (what the tool is doing,
+  `/api/notes`, `/api/sets`, `/api/levels` and `/api/progress` (what the tool is doing,
   `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
   computer's pages only.
 - The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
@@ -70,7 +70,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   - the UV map room (`lab.html?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
     in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
     their code change.
-  - the lines room (the user's pins, below) and the materials (`lab.js`; the balls by `balls.js`).
+  - the materials (`lab.js`; the balls by `balls.js`).
   - the levels room (`lab.html?room=levels`, `lab-levels.js`; `tool/levels.py`'s docstring is the key):
     the user draws a level from the side, `car/levels.json`; its spline is the paint's, keep the two alike.
     The car's seams along the side (`tool/seams.py`, traced from the mesh) are drawn on it in orange.
@@ -100,18 +100,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres`
   photographs the library (`tool/tyresheet.py`).
 - A marking along the car's own lines or the user's stroke is a course (`tool/course.py`, its
-  docstring is the key: the line's points every 0.25 cm, zones measured square to it). Lines drawn
-  free-hand through places: `tool/skinmesh.py` is the whole car's paintable
-  surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
-  subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on
-  it (its docstring is the reference; `PY -m tool.skindraw --probe "place,place"`); `PY -m
-  tool.skincheck <name>` (`--falsify`, `--floor`) measures every band on the car, importing nothing
-  from the drawing code it checks.
-- The user's pins: the Lab's lines room (`lab.html?room=lines`, `viewer/lab-lines.js`; the car in
-  the viewer's grey clay, `view.ensure_clay`, wheels off) saves them through `/api/lines` to
-  `car/lines.json` (committed); `PY -m tool.lines` lists them. A pinned line's name is a place
-  list for `skindraw.through`, which runs a curve through its pins (the room's own curve is only a
-  rough picture).
+  docstring is the key: the line's points every 0.25 cm, zones measured square to it).
 - The car map (`tool/carmap.py`, `car/map.md` and its pictures in `car/map/`) rebuilds itself when
   the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its code: rebuild, retake the
   pictures in `car/map/` (`tool.snap <name> --body` of a car painted by the map's zones) and

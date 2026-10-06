@@ -47,8 +47,7 @@ game: install from the Windows PC after a push.
 - Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
   its family in `finishes.CATALOGUE`.
 - Read only when a design needs it: `car/map.md` and its pictures (the body's areas, openings and
-  panels, for `shapes.area`, `outside`, `along`, `near`, `streamlines`), and `tool/skindraw.py`'s
-  docstring (lines, stripes, bands and rings drawn on the skin).
+  panels, for `shapes.area`, `outside`, `along`, `near`, `streamlines`).
 
 ## What the car allows
 
@@ -76,10 +75,9 @@ game: install from the Windows PC after a push.
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
   places, words reading along it (`at=` a stretch of it), in one paint. The user's line: `PY -m
   tool.notes drawn <skin> <n>` prints its points for `course.stroke`. 3 mm or more to be seen
-  while driving (2 mm is the thinnest that holds). A line through places of your own is drawn on
-  the skin by `tool/skindraw.py` (probe it first, `PY -m tool.skindraw --probe "place, place"`;
-  `PY -m tool.skincheck <name>` after painting). The cockpit leaves no skin down the top's middle
-  from z +70 to -45.
+  while driving (2 mm is the thinnest that holds). A line through points of your own is
+  `course.points(...)`, `.rounded(cm)` for its corners. The cockpit leaves no skin down the top's
+  middle from z +70 to -45.
 - **Edges are crisp** (a zone's edge is 0.2 cm). Paint can't fake big 3D shapes; a painted shadow
   must be even all round. Fine grain goes in the sheen, not the colour (compression flattens it).
 - **Glows light the inner car only**: `s.glow(part, colour, kind)`: always on, night only, front

@@ -23,7 +23,7 @@ For a paint that runs along the car (RUN times longer than it's high: a band, a 
 A line both sides share is said once; the two sides' own lines show where they differ.
 Measured on the texels themselves, by their baked positions on the car, never on a picture. What
 it doesn't follow: a peel or wear over the paint (they don't cover it), a paint thinner than half
-(blend), and lines drawn on the skin, which follow their own course: tool/skincheck.py measures them.
+(blend).
 
     python -m tool.measure <name>      paint the skin and print its measures
 """
@@ -251,24 +251,18 @@ def measure(skin):
     c = skin.canvases["Skin"]
     cov = coverage.load(skin.parts, "Skin", c.w, c.h)
     bodies, out = {}, []
-    shapes.PAINTING = "Skin"
-    try:
-        for call in skin.zoned:
-            if getattr(call["zone"], "curve", None) is not None:
-                continue  # a line drawn on the skin: tool/skincheck.py
-            key = tuple(call["ids"])
-            if key not in bodies:
-                bodies[key] = _Body(c, np.flatnonzero(cov.share(call["ids"]).reshape(-1) > 0.5))
-            idx = call["idx"]
-            shown = idx[c.owner[idx] == call["op"]]
-            showing = np.zeros(c.w * c.h, bool)
-            showing[shown] = True
-            aimed = np.zeros(c.w * c.h, bool)
-            aimed[idx] = True
-            sides = {side: _side(skin, call, bodies[key], shown, showing, aimed, sign) for side, sign in (("left", 1), ("right", -1))}
-            out.append({"what": call["what"], "step": call["step"], "zone": repr(call["zone"]), "sides": sides})
-    finally:
-        shapes.PAINTING = None
+    for call in skin.zoned:
+        key = tuple(call["ids"])
+        if key not in bodies:
+            bodies[key] = _Body(c, np.flatnonzero(cov.share(call["ids"]).reshape(-1) > 0.5))
+        idx = call["idx"]
+        shown = idx[c.owner[idx] == call["op"]]
+        showing = np.zeros(c.w * c.h, bool)
+        showing[shown] = True
+        aimed = np.zeros(c.w * c.h, bool)
+        aimed[idx] = True
+        sides = {side: _side(skin, call, bodies[key], shown, showing, aimed, sign) for side, sign in (("left", 1), ("right", -1))}
+        out.append({"what": call["what"], "step": call["step"], "zone": repr(call["zone"]), "sides": sides})
     return out
 
 

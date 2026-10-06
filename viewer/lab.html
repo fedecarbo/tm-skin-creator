@@ -122,18 +122,7 @@
   #prStage { position: relative; margin-top: 8px; background: var(--ball); overflow: hidden; display: grid; place-items: center; }
   #prCar { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   #prCar[hidden], #prMap[hidden], #prCredit[hidden] { display: none; }
-  /* The lines room (lab-lines.js): the car with the pins on it, the lines and the open one in the panel */
-  #lnStage { position: relative; margin-top: 8px; background: var(--ball); overflow: hidden; }
-  #lnCar { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  #lnDots { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-  .lnDot { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; pointer-events: auto;
-           display: grid; place-items: center; padding-top: 2px; box-sizing: border-box; background: var(--acc); color: var(--ground);
-           font: 600 14px/1 Teko, sans-serif; box-shadow: 0 0 0 2px rgba(13, 15, 18, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5); transition: opacity 0.15s; }
-  .lnDot.away { opacity: 0.3; }
-  .lnDot.picked { background: var(--text); box-shadow: 0 0 0 3px var(--acc), 0 2px 8px rgba(0, 0, 0, 0.5); }
-  .lnDot[hidden] { display: none; }
-  #lnSay { position: absolute; left: 14px; top: 12px; z-index: 3; background: rgba(12, 14, 18, 0.85); backdrop-filter: blur(6px); }
-  #lnSay[hidden] { display: none; }
+  /* The levels room's panel (lab-levels.js): its hint, its list and the level open */
   .lnHint { font-size: 13px; line-height: 1.45; color: rgba(242, 244, 247, 0.7); margin: 0 0 12px; min-height: 3.6em; }
   .lnList { display: flex; flex-direction: column; margin-bottom: 8px; }
   .lnList .item { gap: 8px; }
@@ -148,15 +137,6 @@
   .lnOpen .tagButtons { flex-wrap: wrap; padding-left: 0; }
   .lnOpen .tagButtons .sk[hidden] { display: none; }
   .lnSaved { font-size: 12px; opacity: 0.55; margin: 10px 0 0; min-height: 1.4em; }
-  .lnWhere { font-size: 15px; padding: 5px 10px 2px; margin: 4px 0 6px 80px; }
-  .lnWhere[hidden] { display: none; }
-  .lnStart { margin: 18px 0 6px; font-size: 26px; font-weight: 600; transform: skewX(-9deg); }
-  .lnSuggest { display: flex; flex-direction: column; gap: 3px; }
-  .lnSug { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 7px 10px 6px; background: rgba(255, 255, 255, 0.05); }
-  .lnSug:hover { background: rgba(232, 255, 71, 0.13); box-shadow: inset 3px 0 var(--acc); }
-  .lnSug b { font-size: 20px; font-weight: 600; }
-  .lnSug span { font-size: 12.5px; line-height: 1.4; color: rgba(242, 244, 247, 0.7); margin-top: 2px; }
-  #lnWheels { margin-left: 10px; }
   /* The levels room (lab-levels.js): the car above, the side view to draw on below, the levels in the panel */
   #lvStage { position: relative; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
   #lvCarBox { position: relative; flex: 1 1 auto; min-height: 260px; background: var(--ball); overflow: hidden; }
@@ -458,7 +438,6 @@
         <hr>
         <button data-go="materials" role="menuitem">The materials</button>
         <button data-go="uv" role="menuitem">The UV map</button>
-        <button data-go="lines" role="menuitem">The lines</button>
         <button data-go="levels" role="menuitem">The levels</button>
         <a id="back" href="./index.html" role="menuitem">Back to the viewer</a>
       </div>
@@ -469,7 +448,6 @@
     <nav id="rooms" class="teko" hidden>
       <button class="sk" data-room="studio" aria-pressed="true"><svg class="ic"><use href="#i-back"/></svg><span>The car</span></button>
       <button class="sk" data-room="materials" aria-pressed="false"><span>Materials</span></button>
-      <button class="sk" data-room="lines" aria-pressed="false"><span>The lines</span></button>
       <button class="sk" data-room="levels" aria-pressed="false"><span>The levels</span></button>
     </nav>
   </header>
@@ -557,50 +535,6 @@
       <div class="row"><span class="lab">Size</span><span id="prSize"></span></div>
       <button id="prCopy" class="sk acc teko copyWide"><svg class="ic"><use href="#i-copy"/></svg><span>Copy for Claude</span></button>
       <div id="prLine" class="preview"></div>
-    </aside>
-  </section>
-  <section id="roomLines" class="room" hidden>
-    <div class="paintRoom">
-      <div class="paintHead"><h3 class="teko">The lines</h3><span class="about">Pin the car’s own lines on the body. Claude draws everything else from them.</span>
-        <div id="lnViews" class="show teko">
-          <button class="sk" data-view="left"><span>Left</span></button>
-          <button class="sk" data-view="right"><span>Right</span></button>
-          <button class="sk" data-view="front"><span>Front</span></button>
-          <button class="sk" data-view="rear"><span>Rear</span></button>
-          <button class="sk" data-view="top"><span>Top</span></button>
-          <button class="sk" id="lnWheels" aria-pressed="false" title="the wheels are off so the body shows whole; put them back to see the car as it drives"><span>Wheels</span></button>
-        </div>
-      </div>
-      <div id="lnStage">
-        <iframe id="lnCar" title="the car: click the body along a line to pin it"></iframe>
-        <div id="lnCover" class="cover"></div>
-        <div id="lnDots"></div>
-        <div id="lnSay" class="live" hidden><i></i><span></span></div>
-        <div id="lnCredit" class="credit" hidden></div>
-      </div>
-    </div>
-    <aside class="spec lnSpec">
-      <h2 class="specName teko" style="margin-top: 14px">The lines <small id="lnCount"></small></h2>
-      <p id="lnHint" class="lnHint"></p>
-      <div id="lnList" class="lnList"></div>
-      <div id="lnOpen" class="lnOpen" hidden>
-        <div class="row"><span class="lab">Name</span><input id="lnName" maxlength="40" autocomplete="off" spellcheck="false"></div>
-        <div class="row"><span class="lab">Means</span><span id="lnAbout"></span></div>
-        <button id="lnWhere" class="sk teko lnWhere" hidden><span>Show me where</span></button>
-        <div class="row"><span class="lab">Sides</span><div id="lnSides" class="show teko">
-          <button class="sk" data-mirror="both" aria-pressed="true"><span>Both, mirrored</span></button>
-          <button class="sk" data-mirror="one" aria-pressed="false"><span>This side only</span></button>
-        </div></div>
-        <div class="tagButtons teko">
-          <button id="lnDelPin" class="sk" hidden><span>Take this pin off</span></button>
-          <button id="lnUndo" class="sk" aria-disabled="true"><span>Undo</span></button>
-          <button id="lnDelete" class="sk"><span>Delete the line</span></button>
-        </div>
-      </div>
-      <p id="lnSaved" class="lnSaved"></p>
-      <h3 class="lnStart teko">Start a line</h3>
-      <div id="lnSuggest" class="lnSuggest"></div>
-      <button id="lnOwn" class="sk teko copyWide"><span>One of your own</span></button>
     </aside>
   </section>
   <section id="roomLevels" class="room" hidden>

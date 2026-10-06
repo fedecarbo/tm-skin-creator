@@ -33,7 +33,7 @@ because it's drawn in 3D, not on the flat texture.
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
     shapes.line("fold", 1.5)               a line along the map's own "fold", "opening", "join", "shoulder",
-                                           "lower" (it shows the map; draw lines with tool/skindraw.py)
+                                           "lower" (it shows the map; lines along the car's own are courses)
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
@@ -590,7 +590,7 @@ def near(kind, reach, soft=SOFT):
 def line(kind, width=1.0, soft=SOFT):
     """A line `width` cm wide along one of the car map's own lines (see near), to show the map's
     lines. "shoulder" and "lower" are fitted off the mesh; they cut the map's
-    areas and aren't for drawing a design: lines are drawn with tool/skindraw.py."""
+    areas and aren't for drawing a design: a line along the car's own lines is a course (tool/course.py)."""
     return near(kind, width / 2, soft)
 
 
@@ -658,11 +658,6 @@ def rake(z, across):
     """Seed points on the body at length z, at across positions (see across): the smoke rake's row
     for streamlines. shapes.streamlines(shapes.rake(198, np.linspace(0.1, 0.9, 5)), 1.5)."""
     return _map().rake(z, across)
-
-
-# the texture set the paint box is painting while it asks a zone about its texels: a line drawn on
-# the car's skin (tool/skindraw.py) lands on the body's texture only
-PAINTING = None
 
 
 def front_rake(xs, top=True):

@@ -1843,9 +1843,8 @@ def describe(m=None):
     outer = ~np.isin(names[m.part], WHEEL_COVERS + BLADES)
     fwd, bwd = fa_[(m.fn[:, 2] > 0.7) & outer].sum(), fa_[(m.fn[:, 2] < -0.7) & outer].sum()
     L += ["## Lines on the car", "",
-          "Lines, stripes, bands, pinstripes and rings are drawn on the car's own skin (`tool/skindraw.py`): each one a "
-          "curve on the surface through places you pick, its width measured over the body, exact over every fold and "
-          "seam, and checked on the painted car (`python -m tool.skincheck <car>`). The map's own lines below are fitted "
+          "Lines, stripes, dashes and tape along the car's own lines (a guide, a seam, a panel's edge, a top line) or "
+          "along a line drawn with the Lab's pen are courses (`tool/course.py`). The map's own lines below are fitted "
           "off the mesh to cut its areas; they are not for drawing.", ""]
     from tool import pieces as pieces_mod
     plist, nm = pieces_mod.write()
@@ -1925,7 +1924,7 @@ def describe(m=None):
           "- `shapes.along(a0, a1)`: a band from the nose's tip (0) to the tail (1).",
           "- `shapes.near(kind, reach)`: near a fold, an opening, a join, the shoulder, the lower edge; `~shapes.near(...)` "
           "keeps a graphic clear. (`shapes.line(kind, width)` shows the map's own lines on its test cars.)",
-          "- Lines on the car: `tool/skindraw.py`.",
+          "- Lines on the car: `tool/course.py`.",
           "- `shapes.hit(lo, hi)`: where the oncoming air hits, 0..1 (bands of it make a pressure map).",
           "- `shapes.streamlines(shapes.rake(z, [across ...]), width)`: smoke lines along the air's flow from a "
           "row of seeds.",

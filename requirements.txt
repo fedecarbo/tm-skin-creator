@@ -13,14 +13,9 @@ pyee==13.0.1
 typing_extensions==4.16.0
 # scipy: connected components and nearest-neighbour lookups for taking the car apart (2026-09-24).
 scipy==1.18.1
-# potpourri3d (geometry-central): every line on the car is a chain of its exact geodesics, and a
-# band's width and the check across it are walked with its tracer (tool/skindraw.py,
-# tool/skincheck.py, 2026-09-30). libigl: its principal curvatures are a second measure in the car
-# map's check (tool/mapcheck.py); it flattened the body sheet until the sheet was retired
-# (2026-09-30). Both have wheels for Python 3.14 on Windows x64 and macOS arm64 (libigl's is
-# cp312-abi3); the PC installs them from here at its next session.
+# libigl: its principal curvatures are a second measure in the car map's check (tool/mapcheck.py).
+# It has wheels for Python 3.14 on Windows x64 and macOS arm64 (cp312-abi3).
 libigl==2.6.3
-potpourri3d==1.4.0
 # The picture maker (checkpoint 6, 2026-09-24): FLUX.2 [klein] 4B through diffusers on the card.
 # torch comes from PyTorch's own index: the cu130 build (CUDA 13) is the one with wheels for
 # Python 3.14 and the RTX 5070 Ti (Blackwell, sm_120); the cu128 index stopped at 2.11.
