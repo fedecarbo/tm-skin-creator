@@ -37,3 +37,9 @@ underside dark; gunmetal wheels; amber as the one accent, in the lights.
   be a way to actually get the edge right". Set 2 dropped; the car back to A (on the crest). Asked them
   to trace the edge they mean with the pen along one side: paint to their line first, then teach the
   tool to find it. Open: their line.
+- Change (2026-10-06, after TSC_EdgeLine's line was approved, "It's better, yes"): from the inlets to the
+  tail corners the navy stops on the edge guide, where the shading divides top from side, drawn smooth on
+  the flat texture (`course.top_line("edge").mirrored().inked_edge(shapes.area("top"))`); elsewhere still
+  on the shoulder's crest. Painted, in the Lab; not yet looked at close up. Open (next session): close looks
+  along the edge, at the joins under the inlets' frames and at the tail corners (where the change goes
+  from the edge to the deck's edge, 3 to 4 cm higher), in the UV map too; then show the user.

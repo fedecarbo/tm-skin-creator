@@ -27,11 +27,13 @@ more it no longer makes).
 
 ## The tool
 
-- **The edge the tool reads wobbles** (2026-10-06, the user on TSC_EdgeLine: "those lines are so
-  wobbly"): the shoulder is the crest of where the surface bends most, which drifts about a centimetre
-  against where the shading turns. `course.shadow` follows the shading (60 degrees from up, measured
-  on the user's own stroke) and `Course.inked` draws a strip smooth on the flat texture; the user:
-  "better". Open: the areas (`shapes.area`) split along it, drawn the same way, for TSC_Endurance.
+- **The edge** (2026-10-06, the user on TSC_EdgeLine: "those lines are so wobbly"): `course.shadow` finds
+  it where the shading divides top from side (60 degrees from up, measured on the user's own stroke),
+  `Course.inked` and `inked_edge` draw a line or a colour's edge smooth on the flat texture, and it is a
+  guide, `course.top_line("edge")`, from the inlets to the tail corners ("It's better, yes"). Open: the
+  user's hypothesis, "a straighnt line from the uv will create the perfect line in the car" (TSC_EdgeLine's
+  record); TSC_Endurance's navy on it, painted, not yet looked at; the shoulder ahead of the inlets still
+  on its crest.
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks

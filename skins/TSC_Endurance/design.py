@@ -1,6 +1,7 @@
 """Endurance: dark over light. The top in gloss navy, the sides in silver metallic, the change on the
-shoulder's crest, halfway round its roll; amber in the lights."""
-from tool import shapes
+car's edge (from the inlets to the tail corners, the edge guide: where the shading divides top from
+side); amber in the lights."""
+from tool import course, shapes
 
 WORDS = "Endurance (the user's pick of: dark top, light sides, split on the crease)"
 NAVY = "#14213d"
@@ -14,7 +15,10 @@ def design(s):
            "crest; the underside dark.", words=WORDS)
     s.paint("body", "metallic", colour=SILVER)
     s.paint("sidepod inlet", "metallic", colour=SILVER)  # the inlets' ducts, one colour inside
-    s.paint("body", "gloss", colour=NAVY, zone=shapes.area("top") & shapes.outside(0.4))
+    # from the inlet to the tail corner the navy stops on the edge guide, where the shading divides top from
+    # side, drawn smooth on the flat texture; elsewhere on the shoulder
+    top = course.top_line("edge").mirrored().inked_edge(shapes.area("top"))
+    s.paint("body", "gloss", colour=NAVY, zone=top & shapes.outside(0.4))
     s.paint("body", "satin", colour="#1b1d22", zone=shapes.area("under"))
 
     s.step("Wheels and inner car", "Gunmetal wheels, the inner car dark grey.", words=WORDS)

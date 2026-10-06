@@ -47,3 +47,13 @@ tail's middle.
   flat layout stretches each of the model's small faces differently. Built `Course.inked`: the strip
   drawn on the flat texture, one smooth curve per piece of it, its width even there. Measured on the
   car's own texels: width 6 to 7 texels along the rear flank (was 1 to 7). The user: "better".
+- The user: "It's better, yes", then "That line should be a guide line". Stored as the guide "edge"
+  (car/top_lines.json, the left side every half centimetre; `levels.write_edge()` remakes it from the
+  car's shape); the test car paints it from the guide, `course.top_line("edge").mirrored().inked(0.6)`,
+  the same line as approved.
+- The user, 2026-10-06: "I want to continue with another agent.  I do have a hypothesis if a straighnt
+  line from the uv will create the perfect line in the car". Open (next session): test it. On the flat
+  texture the edge already runs nearly straight on its pieces (the rear flank's: column 1062 to 1054 over
+  700 rows; the sidepod's: 291 to 274 over 330 rows); a line drawn dead straight on each piece, between
+  where the edge enters and leaves it, set against the shadow's edge on the car, would show how far a
+  straight line strays from the edge the user sees.

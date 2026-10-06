@@ -16,7 +16,8 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
     course.shoulder()                        the shoulder, where the top turns down into the side: the line the car
                                              map's areas split on (shapes.area), nose to tail corner, the left side
     course.shadow(course.shoulder())         the edge as the eye sees it, along a guide: where the shading divides
-    course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half
+    course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half;
+                                             "edge": the edge as the eye sees it, inlet to tail corner (tool/levels.py)
     course.stroke(points)                    the line the user drew (tool.notes show_drawn prints its points):
                                              smoothed over SMOOTH cm and laid on the body
     course.points([(x, y, z), ...])          any points on the car, joined straight
@@ -36,6 +37,7 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
     c.strip(1.0)                             a strip 1 cm wide along it, its ends square
     c.inked(0.6)                             the same drawn on the flat texture, one smooth curve per piece of it
+    c.inked_edge(shapes.area("top"))         a zone whose edge is moved onto the course, drawn the same way
     c.dashes(5, gap=3, width=1)              dashes 5 cm long with 3 cm gaps, a whole dash at each end
     c.dashes(2.5, width=5, slant=45)         stripes across a 5 cm strip, slanted 45 degrees: hazard tape
     c.blocks(5, 2.5)                         two rows of blocks 5 cm long and 2.5 high, alternating: block tape
@@ -71,6 +73,7 @@ SHADE = 60.0   # degrees from facing up: where the body's shading divides its to
 # within 0.3 cm of this line (median; 0.6 cm for 90 %), the shoulder's crest 1.4 cm off it
 SHADE_REACH = 7.0  # cm from the guide that the shadow's line is looked for
 INK_KNOT = 8.0     # cm between the knots of the curve an inked strip follows on each piece of the flat texture
+INK_REACH = 4.0    # cm either side of a course an inked edge decides the zone's side
 INK_GAP = 4        # course points (a centimetre) a run on one piece may skip and still be one run
 SHADE_KNOT = 6.0   # cm between the knots of the smooth curve the shadow's edge is fitted as
 SHADE_RUN = 4      # centimetres either side whose running median the line holds to
@@ -319,29 +322,27 @@ class Course:
         """A strip `width` cm wide along the course, its ends square to it."""
         return self._zone(width / 2, self._ends(), f"a strip {width:g} cm wide along {self.name}", soft)
 
-    def inked(self, width, soft=shapes.SOFT, size=4096):
-        """A strip `width` cm wide along the course, drawn as a skin artist draws one: on the flat texture
-        (the Lab's UV map), one smooth curve on each piece of it the course crosses, so it runs smooth there
-        and on the car. (strip(), measured on the car, picks up a texel or two of bend wherever the flat
-        layout stretches one of the model's small flat faces differently from the next: the user, 2026-10-06,
-        "I look at the uv map and the lines are wobbly".) Its width is the piece's own texels per cm, even on
-        the texture; its ends square to it. The body's texture (Skin) only."""
+    def _inking(self, reach, size=4096):
+        """Where the course runs on the flat texture (the body's, Skin): for each piece of it the course
+        crosses (a run of its points whose nearest texel is on that piece), the texels of the piece within
+        `reach` cm of the course (facing its way, not the far side of a thin panel) and one smooth curve
+        (a knot every INK_KNOT cm) through where the course falls on it, in rows and columns: dicts of P and N
+        (the texels' places on the car and facings), tex (their rows and columns), line, tan, k (each texel's nearest
+        point of the line), dt (texels from it), pitch (cm per texel on the piece), first and last (whether
+        the run holds the course's own start or end). Both sides when the course is mirrored."""
         from tool import bake, carmap, uvmap
         b = bake.bake("Skin", size, size)
         tri, pos, nrm = b["tri"], b["position"], b["normal"]
         label, density, _ = uvmap.islands("Skin")
-        half, reach = width / 2, width / 2 + soft + 3.0
-        keep_p, keep_w = [], []
         for pts, N in [(self.pts, self.nrm)] + ([(self.pts * MIRROR, self.nrm * MIRROR)] if self.mirror else []):
             lo, hi = pts.min(0) - reach, pts.max(0) + reach
             rr, cc = np.nonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=-1))
             P = pos[rr, cc].astype(np.float64)
             d, i = cKDTree(pts).query(P, distance_upper_bound=reach, workers=-1)
             ok = np.isfinite(d)
-            ok[ok] &= (nrm[rr[ok], cc[ok]] * N[i[ok]]).sum(1) >= FACING  # not the far side of a thin panel
+            ok[ok] &= (nrm[rr[ok], cc[ok]] * N[i[ok]]).sum(1) >= FACING
             rr, cc, P = rr[ok], cc[ok], P[ok]
             isl = label[tri[rr, cc]]
-            # where the course runs on the texture: each of its points' nearest texel, its piece, row and column
             j = cKDTree(P).query(pts, workers=-1)[1]
             on, prow, pcol = isl[j], rr[j].astype(np.float64), cc[j].astype(np.float64)
             s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]
@@ -353,33 +354,25 @@ class Course:
                     t = s[run]
                     knots = list(np.arange(t[0] + INK_KNOT, t[-1] - INK_KNOT / 2, INK_KNOT))
                     fr, fc = (carmap._lsq(t, v[run], knots) for v in (prow, pcol))
-                    td = np.arange(t[0], t[-1] + 1e-9, 0.05)
-                    line = np.stack([fr(td), fc(td)], 1)
-                    pitch = 1.0 / max(float(density[piece]) * size, 1e-9)  # cm per texel on this piece
+                    line = np.stack([fr(np.arange(t[0], t[-1] + 1e-9, 0.05)), fc(np.arange(t[0], t[-1] + 1e-9, 0.05))], 1)
+                    tan = np.gradient(line, axis=0)
+                    tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-9)
                     mine = np.flatnonzero(isl == piece)
                     tex = np.stack([rr[mine], cc[mine]], 1).astype(np.float64)
                     dt, k = cKDTree(line).query(tex, workers=-1)
-                    across = dt * pitch
-                    # square ends only at the course's own ends; where a run ends at a seam the next piece goes on
-                    tan = np.gradient(line, axis=0)
-                    tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-9)
-                    past = ((tex - line[k]) * tan[k]).sum(1) * pitch
-                    inside = half - across
-                    if run[0] == 0:  # before the start: behind its first point
-                        inside = np.minimum(inside, np.where(k == 0, past, np.inf))
-                    if run[-1] == len(pts) - 1:  # after the end: beyond its last point
-                        inside = np.minimum(inside, np.where(k == len(line) - 1, -past, np.inf))
-                    w = smoothstep(-soft / 2, soft / 2, inside)
-                    live = w > 0
-                    keep_p.append(P[mine][live])
-                    keep_w.append(w[live].astype(np.float32))
-        Pk = np.concatenate(keep_p) if keep_p else np.zeros((0, 3))
-        Wk = np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32)
+                    yield dict(P=P[mine], N=nrm[rr[mine], cc[mine]].astype(np.float64), tex=tex, line=line, tan=tan, k=k, dt=dt,
+                               pitch=1.0 / max(float(density[piece]) * size, 1e-9),
+                               first=run[0] == 0, last=run[-1] == len(pts) - 1)
+
+    @staticmethod
+    def _matched(Pk, Wk, base=None, label=""):
+        """A zone that takes the values Wk at the texels at Pk (the bake's own places, matched exactly), and
+        `base`'s (or nothing) everywhere else."""
         tree = cKDTree(Pk) if len(Pk) else None
         lo, hi = (Pk.min(0) - 0.01, Pk.max(0) + 0.01) if len(Pk) else (np.zeros(3), np.zeros(3))
 
         def f(p, n):
-            w = np.zeros(len(p), np.float32)
+            w = base(p, n) if base is not None else np.zeros(len(p), np.float32)
             if tree is None:
                 return w
             box = np.flatnonzero(np.all((p >= lo) & (p <= hi), axis=1))
@@ -388,7 +381,65 @@ class Course:
                 hit = np.isfinite(d)
                 w[box[hit]] = Wk[i[hit]]
             return w
-        z = shapes.Zone(f, label=f"a strip {width:g} cm wide inked along {self.name}")
+        return shapes.Zone(f, label=label)
+
+    def inked(self, width, soft=shapes.SOFT, size=4096):
+        """A strip `width` cm wide along the course, drawn as a skin artist draws one: on the flat texture
+        (the Lab's UV map), one smooth curve on each piece of it the course crosses, so it runs smooth there
+        and on the car. (strip(), measured on the car, picks up a texel or two of bend wherever the flat
+        layout stretches one of the model's small flat faces differently from the next: the user, 2026-10-06,
+        "I look at the uv map and the lines are wobbly".) Its width is the piece's own texels per cm, even on
+        the texture; its ends square to it. The body's texture (Skin) only."""
+        half = width / 2
+        keep_p, keep_w = [], []
+        for r in self._inking(half + soft + 3.0, size):
+            past = ((r["tex"] - r["line"][r["k"]]) * r["tan"][r["k"]]).sum(1) * r["pitch"]
+            inside = half - r["dt"] * r["pitch"]
+            # square ends only at the course's own ends; where a run ends at a seam the next piece goes on
+            if r["first"]:
+                inside = np.minimum(inside, np.where(r["k"] == 0, past, np.inf))
+            if r["last"]:
+                inside = np.minimum(inside, np.where(r["k"] == len(r["line"]) - 1, -past, np.inf))
+            w = smoothstep(-soft / 2, soft / 2, inside)
+            keep_p.append(r["P"][w > 0])
+            keep_w.append(w[w > 0].astype(np.float32))
+        z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
+                          np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
+                          label=f"a strip {width:g} cm wide inked along {self.name}")
+        z.course = self
+        return z
+
+    def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096):
+        """`zone` with its edge moved onto the course where it runs within `reach` cm of it, drawn on the
+        flat texture as inked() is, so a colour stops on the course in one smooth curve: shapes.area("top")
+        cut along the edge guide (course.top_line("edge")). On each piece of the texture the side of the
+        course the zone mostly covers takes it, the other side not; past the course's own ends and
+        further than `reach` from it, the zone as it is."""
+        keep_p, keep_w = [], []
+        for r in self._inking(reach + soft, size):
+            d = r["tex"] - r["line"][r["k"]]
+            t = r["tan"][r["k"]]
+            signed = np.sign(d[:, 0] * t[:, 1] - d[:, 1] * t[:, 0]) * r["dt"] * r["pitch"]
+            near = r["dt"] * r["pitch"] <= reach
+            past = (d * t).sum(1) * r["pitch"]
+            if r["first"]:
+                near &= ~((r["k"] == 0) & (past < 0))
+            if r["last"]:
+                near &= ~((r["k"] == len(r["line"]) - 1) & (past > 0))
+            if not near.any():
+                continue
+            P, N, signed = r["P"][near], r["N"][near], signed[near]
+            # which side is the zone's: where it covers more of the texels within a centimetre and a half
+            close = np.abs(signed) <= 1.5
+            zv = zone(P[close], N[close])
+            share = [float(zv[signed[close] * sign > 0].mean()) if (signed[close] * sign > 0).any() else 0.0
+                     for sign in (1.0, -1.0)]
+            side = 1.0 if share[0] >= share[1] else -1.0
+            keep_p.append(P)
+            keep_w.append(smoothstep(-soft / 2, soft / 2, side * signed).astype(np.float32))
+        z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
+                          np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
+                          base=zone, label=f"{zone!r} with its edge inked along {self.name}")
         z.course = self
         return z
 
