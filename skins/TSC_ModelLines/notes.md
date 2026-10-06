@@ -38,3 +38,12 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   of blend between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
   accurately". Open (next session): every edge of the body's along the model's lines on this car (the queue's G),
   checked close up before it's shown; then the template.
+- The user, 2026-10-06 (the next session, Claude Opus 5.5): "By the way, I don't know where 18 lines come from.  But im
+  interested to know if with this new mesh to uv map method will help enhance the uv map so that ai can "see" the
+  geometry of the car.  I want to see it in the uv map template room as well, to check if it actually works". The
+  template first, in the Lab's UV map room (Show, Template): on all four maps the body's shape shaded, the model's
+  triangles, and its lines read off the triangles (creases and panel lines, where the body ends, where the map is cut
+  while the car carries on); the car dressed in the same. Checked on the car from the room's camera: the panel lines
+  round the cockpit, the nose plate, the engine cover and the number panel, the inlets, the fasteners' holes, all on
+  the car's own. The rolled edges aren't in it: found as a shading isoline over every roll at once they broke, wobbled
+  on gentle curves and looped where rolls meet. Open: the rolled edges, one at a time, as the shoulder was drawn.

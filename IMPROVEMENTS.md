@@ -27,12 +27,14 @@ more it no longer makes).
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
-  accurately"). `tool/meshlines.py` draws an edge along the model's own lines (the UV map's wireframe): the one where
-  the shading is halfway, one line end to end, smooth on the UV map; the shoulder and the sidepod's rear edge on
-  TSC_ModelLines ("they both seem accurate"). Next: every edge of the body's this way (the anatomy's 18: a sharp one
-  on its crease, a rounded one on its halfway line), checked close up, then shown; then the template: the model's
-  lines, panels and seams named and known in 3D and on the UV map at once, what a design picks from and the Lab's
-  UV room shows; TSC_Endurance's navy moved onto it.
+  accurately"; then: "im interested to know if with this new mesh to uv map method will help enhance the uv map so
+  that ai can "see" the geometry of the car. I want to see it in the uv map template room as well"). Built, waiting
+  for the user's look: `meshlines.template` (the model's creases and panel lines, where the body ends, where the map
+  is cut while the car carries on, read off its triangles), drawn by `view.export_template` on all four maps (the
+  body's shape shaded) and on the car, in the Lab's UV map room under Show, Template. Next: the rolled edges (the
+  shoulder and the like), each the model's line where the shading is halfway, one line end to end as `meshlines.along`
+  draws the shoulder (as a shading isoline over every roll at once they wobbled and looped where rolls meet); then
+  what a design picks from; TSC_Endurance's navy moved onto it.
 
 ## The tool
 

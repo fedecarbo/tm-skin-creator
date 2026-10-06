@@ -12,6 +12,10 @@
 // (studio.json), else the one the viewer showed last; as in the Studio, when Claude starts painting
 // another, the rooms follow it, and they show each step as it lands (steps.json).
 // The car is the viewer itself (?embed=1).
+// Show: the paint, or the template (tool/view.py, export_template): the model's own lines, on the maps and on the
+// car, from the mesh alone (tool/meshlines.py, template): its crisp lines and panel lines, where the body ends,
+// where the map is cut while the car carries on, its triangles, and on the maps the body's shape, shaded.
+//   [&show=template]
 
 import { $, ago, embedViewer, every, followed, note, titleOf, wanted } from './lab-common.js';
 
@@ -28,6 +32,8 @@ let copyLine = null;     // lab.js's copy
 let room = null;         // doc.rooms entry
 let inRoom = new Uint8Array(256);
 let tab = params.get('tab') === 'car' ? 'car' : 'map';  // the maps first: the room is its maps
+let show = params.get('show') === 'template' ? 'template' : 'paint';
+let template = null;     // template.json: the car's slots in the template, and its key's colours
 const mood = {};         // room key -> 'day' | 'night' (the picker's; day at first)
 let skin = null;         // { name, title, textures, stamp, painting, step }
 let map = null;          // the open map: { set, slot, info, w, h, ids, shared, surf, sbox, paint, box }
@@ -96,7 +102,7 @@ async function grid(set) {
 
 async function loadMap(set, slot) {
   const g = await grid(set);
-  const url = (skin && skin.textures[slot]) || `stock/${slot}.png`;
+  const url = show === 'template' ? `template/${set}_Map.png` : (skin && skin.textures[slot]) || `stock/${slot}.png`;
   if (!paints.has(url)) paints.set(url, await pixels(`data/${url}`, g.w, g.h));
   return { set, slot, ...g, paint: paints.get(url) };
 }
@@ -112,8 +118,8 @@ function compose() {
       let r = GROUND[0], g = GROUND[1], b = GROUND[2];
       if (id >= 0 && inRoom[id]) {  // only the room's parts: the rest of the map stays empty
         r = paint[j]; g = paint[j + 1]; b = paint[j + 2];
-        // the room's parts outlined, faint: a texel whose neighbour is another part or empty
-        if ((x > 0 && ids[k - 1] !== id) || (x < w - 1 && ids[k + 1] !== id) || (y > 0 && ids[k - w] !== id) || (y < h - 1 && ids[k + w] !== id)) {
+        // the room's parts outlined, faint: a texel whose neighbour is another part or empty (the template has its own)
+        if (show === 'paint' && ((x > 0 && ids[k - 1] !== id) || (x < w - 1 && ids[k + 1] !== id) || (y > 0 && ids[k - w] !== id) || (y < h - 1 && ids[k + w] !== id))) {
           r += (255 - r) * 0.3; g += (255 - g) * 0.3; b += (255 - b) * 0.3;
         }
       }
@@ -306,6 +312,8 @@ function buttons(box, items, current, onClick) {
 }
 
 function heads() {
+  buttons($('prShow'), [{ key: 'paint', label: 'Paint' }, { key: 'template', label: 'Template' }], show, (k) => showWhat(k));
+  $('prShow').insertAdjacentHTML('afterbegin', '<span class="say">Show</span>');
   const tabs = [{ key: 'map', label: 'Maps' }, { key: 'car', label: 'Car' }];
   buttons($('prTabs'), tabs, tab, (k) => showTab(k));
   $('prMaps').hidden = tab !== 'map' || room.maps.length < 2;
@@ -353,6 +361,45 @@ async function showTab(k) {
   } else heads();
 }
 
+// The paint or the template, on the maps and on the car.
+async function showWhat(k) {
+  show = k;
+  const u = new URL(location.href);
+  if (k === 'template') u.searchParams.set('show', 'template'); else u.searchParams.delete('show');
+  history.replaceState(null, '', u);
+  heads();
+  live();
+  await dressCar();
+  if (map) { map = await loadMap(map.set, map.slot); drawBase(); }
+}
+
+async function readTemplate() {
+  if (template) return template;
+  const res = await fetch('data/template/template.json', { cache: 'no-store' });
+  if (res.ok) template = await res.json();
+  if (template) {  // the key: each colour and what it is
+    const box = $('prKey');
+    box.textContent = '';
+    for (const [kind, words] of [['crease', 'crisp lines and panel lines'], ['opening', 'where the body ends'],
+      ['cut', 'where the map is cut, the car carries on']]) {
+      const s = document.createElement('span');
+      s.innerHTML = '<i></i>';
+      s.querySelector('i').style.background = template.colours[kind];
+      s.append(words);
+      box.append(s);
+    }
+    box.append(Object.assign(document.createElement('span'), { textContent: 'grey: its triangles · on the maps, shaded: its shape' }));
+  }
+  return template;
+}
+
+async function dressCar() {  // the car in the template, or in the skin (the stock car when there's none)
+  if (!car) return;
+  if (show === 'template' && await readTemplate()) await car.dress(template.textures);
+  else if (skin) await car.dress(skin.textures);
+  else await car.stock();
+}
+
 async function setRoom(key) {
   room = doc.rooms.find((r) => r.key === key) || doc.rooms[0];
   inRoom = new Uint8Array(256);
@@ -374,6 +421,8 @@ async function setRoom(key) {
 
 function live() {
   const box = $('prLive'), text = $('prLiveText');
+  $('prKey').hidden = show !== 'template';
+  if (show === 'template') { box.classList.remove('on'); text.textContent = 'The template: the model\'s own lines, nothing painted'; return; }
   box.classList.toggle('on', !!(skin && skin.painting));
   if (!skin) { text.textContent = 'No skin yet: ask Claude for one'; return; }
   if (skin.painting) text.textContent = `${skin.title} · Claude is painting${skin.step ? ` · ${skin.step}` : ''}`;
@@ -406,10 +455,10 @@ async function wear(next) {  // dress the car and the map in a skin's textures
   const before = skin;
   skin = next;
   live();
-  if (!skin) { if (car && !before) await car.stock(); return; }  // no skin anywhere yet: the stock car
-  if (car) await car.dress(skin.textures);
+  if (!skin) { if (car && (!before || show === 'template')) await dressCar(); return; }  // no skin anywhere yet: the stock car
+  if (show === 'paint' || !before) await dressCar();
   if (before && before.name !== skin.name) paints.clear();
-  if (map) {
+  if (map && show === 'paint') {
     const slot = map.slot;
     map = await loadMap(map.set, slot);
     drawBase();

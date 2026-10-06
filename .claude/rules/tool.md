@@ -69,7 +69,8 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
     pen: `pen`, `onStroke`, `drawings`.
   - the UV map room (`lab.html?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
     in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
-    their code change.
+    their code change; its Template (`view.export_template`, the model's own lines from
+    `meshlines.template`) on the maps and on the car, rebuilt when the mesh or `meshlines.py` change.
   - the materials (`lab.js`; the balls by `balls.js`).
   - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
     writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)

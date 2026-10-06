@@ -11,6 +11,8 @@ The work folder's viewer/ folder (served as /data/), all rebuildable:
   <Set>_Shared.png     the texels that several parts share (mirrored or repeated)
   <Set>_Parts.png,     the Lab's UV map: which part covers each texel, every part's
   uvmap.json           words and numbers, the room (export_uvmap)
+  template/            the Lab's UV map template: the model's own lines on the maps and on the car
+                       (export_template)
   <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
   floor/               the studio floor's grain (ambientCG, CC0), see FLOOR_SETS
   stock/*.png          Nadeo's stock textures, for anything a skin leaves out
@@ -117,8 +119,9 @@ def export_mesh():
     """car.bin: per mesh, one vertex per triangle corner (no index), with float32 positions,
     normals, UVs and the part id of its triangle (car/parts.json); on Details also its segment of
     the speed display (digit_segments). Also parts.json and, per texture set, <Set>_Shared.png:
-    the texels several parts share, for the viewer's overlay. And the Lab's rooms' data."""
+    the texels several parts share, for the viewer's overlay. And the Lab's rooms' data, and its template."""
     export_uvmap()
+    export_template()
     out_json, out_bin = DATA / "car.json", DATA / "car.bin"
     sources = (fbx.CACHE, paths.FBX, parts.PARTS_JSON, parts.CACHE, paths.REPO / "tool" / "naming.py")
     if not _stale(out_json, *sources):
@@ -208,6 +211,70 @@ def export_uvmap():
     out.write_text(json.dumps({"maps": maps, "assemblies": assemblies, "rooms": lab_rooms,
                                "parts": sorted(rows, key=lambda r: r["id"])}, indent=1))
     stamp.write_text(key)
+
+
+TEMPLATE = DATA / "template"
+TEMPLATE_VERSION = 1  # bump when export_template changes what it draws
+TEMPLATE_KEY = {"crease": (240, 190, 0), "opening": (225, 45, 45), "cut": (0, 160, 230)}  # the colours of
+# meshlines.template's kinds, as the Lab's key names them
+TEMPLATE_LIGHT = np.array([0.35, 0.85, 0.4]) / np.linalg.norm([0.35, 0.85, 0.4])  # the shape's light: high, front left
+
+
+def export_template():
+    """The Lab's UV map template (viewer/lab-rooms.js, Template), from the model alone (meshlines.template):
+      template/<Set>_Map.png  each map at the Lab's grid: the body's shape (clay lit from above, from the bake's
+                              normals), the model's triangles faint, its lines in their colours (TEMPLATE_KEY)
+      template/<slot>.png     the car dressed in it: each map mid-grey clay, matte, with the same triangles and lines
+      template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key"""
+    from tool import meshlines, paintbox
+    stamp = TEMPLATE / "template.json"
+    key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, meshlines.SHARP, meshlines.SEWN, paintbox.SIZES)).encode()).hexdigest()[:12]
+    if (not _stale(stamp, fbx.CACHE, paths.REPO / "tool" / "meshlines.py", this_file=False)
+            and json.loads(stamp.read_text()).get("key") == key):
+        return
+    ensure_stock()
+    TEMPLATE.mkdir(parents=True, exist_ok=True)
+    meshes = fbx.meshes()
+    car = {}
+    for tset, (gw, gh) in parts.BAKE_SIZE.items():
+        m = meshes[fbx.MESH_OF[tset]]
+        lines = meshlines.template(tset)
+        # the map: drawn at twice the grid and brought down, so its lines are smooth
+        b = bake.bake(tset, gw, gh)
+        lit = np.clip(b["normal"] @ TEMPLATE_LIGHT, 0, 1)
+        shade = 0.35 + 0.65 * (0.5 * lit + 0.5 * (0.5 + 0.5 * b["normal"][..., 1]))
+        rgb = np.where((b["tri"] >= 0)[..., None], shade[..., None] * [0.93, 0.92, 0.9], [0.05, 0.05, 0.06])
+        img = Image.fromarray((np.clip(rgb, 0, 1) * 255).astype(np.uint8), "RGB")
+        img = _template_lines(img.resize((2 * gw, 2 * gh), Image.BILINEAR), m, lines, (0, 0, 0, 34), 2 * gw / 4096)
+        img.resize((gw, gh), Image.LANCZOS).save(TEMPLATE / f"{tset}_Map.png", compress_level=1)
+        if tset != "Glass":  # the glass keeps its own tint on the car
+            pw, ph = paintbox.SIZES[tset]
+            clay = Image.new("RGB", (pw, ph), (140, 140, 138))  # mid grey: light clay washes out under the studio's light
+            car[f"{tset}_B"] = np.asarray(_template_lines(clay, m, lines, (112, 112, 110, 255), 1.6 * pw / 4096))
+            matte = np.zeros((8, 8, 2), np.uint8)
+            matte[..., 0] = 235
+            car[f"{tset}_R"] = matte
+    car["Skin_CoatR"] = np.full((8, 8, 1), 255, np.uint8)  # no varnish: the lines read under the studio's light
+    own = set(_write_slots(TEMPLATE, car))
+    stock = set(json.loads((STOCK / "stock.json").read_text()))
+    urls = {slot: f"template/{slot}.png" if slot in own else f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK
+            else None for slot in SLOTS}
+    _json(stamp, {"key": key, "textures": urls, "colours": {k: "#%02x%02x%02x" % c for k, c in TEMPLATE_KEY.items()}})
+
+
+def _template_lines(img, m, lines, wire, scale):
+    """The model's triangles (wire, RGBA) and its lines (meshlines.template) drawn on a map's picture; widths in
+    pixels of a 4096 map, times scale."""
+    from PIL import ImageDraw
+    w, h = img.size
+    dr = ImageDraw.Draw(img, "RGBA")
+    xy = m["tri_uv"].astype(np.float64) * [w, -h] + [0, h]
+    for tri in xy:
+        dr.polygon([tuple(p) for p in tri], outline=wire)
+    for kind, width in (("cut", 7), ("opening", 7), ("crease", 5)):
+        for p, q in lines[kind][1].astype(np.float64) * [w, -h] + [0, h]:
+            dr.line([tuple(p), tuple(q)], fill=TEMPLATE_KEY[kind], width=max(2, round(width * scale)))
+    return img
 
 
 SURFACE_LEAST = 16

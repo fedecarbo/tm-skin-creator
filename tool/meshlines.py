@@ -12,6 +12,10 @@ the next: straight on the UV map between the car's own points, unbroken across t
     meshlines.along(guide).strip(0.6)    a strip along it, straight from point to point (on a body shaded smooth it shows
                                     a small corner at each point: 4 to 7 degrees on the shoulder)
     meshlines.along(guide).inked(0.6)    one smooth stroke on each piece of the UV map through where the line falls
+    meshlines.template("Skin")           the model's own lines on one of the game's maps, each on the car and on the map
+                                    at once: its creases (crisp lines and panel lines), where the body ends, and where
+                                    the map is cut while the car carries on; the Lab's UV map room draws them
+                                    (view.export_template; the user, 2026-10-06: "the ultimate uv map template")
 """
 
 import functools
@@ -151,3 +155,76 @@ def _carried(chain, g, P, E, near):
             chain.append(best)
         chain = chain[::-1] if flip else chain
     return list(chain)
+
+
+SHARP = 30.0  # degrees: where the model's two triangles meet at this angle or more, one of its crisp lines (a panel
+# line's walls, a knife edge, an opening's lip); along a rolled edge each of its lines turns 5 to 10 degrees
+SEWN = 0.15   # cm: an edge of one of the model's pieces this near another piece's is sewn to it (they meet within 0.12 mm)
+CUT = 1e-4    # how far apart (the map's width is 1) an edge's two triangles may place it and still be one place
+
+
+@functools.lru_cache(maxsize=4)
+def template(tset="Skin"):
+    """The model's own lines on one of the game's maps (Skin, Details, Wheels, Glass), each known on the car and on the
+    map at once: {kind: (segments on the car (n, 2, 3) cm, the same on the map (n, 2, 2) uv, v up)}, read off the
+    model's triangles, nothing traced:
+      crease   an edge where its two triangles meet at SHARP degrees or more: the model's crisp lines (panel lines,
+               knife edges, the lips round its openings)
+      opening  an edge with one triangle and no other piece of the model sewn to it: where the body ends
+      cut      an edge whose two triangles lie apart on the map, or a piece's edge sewn to another piece's: where the
+               map is cut while the car carries on (on the map twice, once on each side)
+    A crease on a cut is on the map twice too."""
+    from scipy.sparse.csgraph import connected_components
+    from tool import fbx
+    m = fbx.meshes()[fbx.MESH_OF[tset]]
+    p0, tv = m["positions"].astype(np.float64), m["tri_vertex"]
+    X, UV, tn = p0[tv], m["tri_uv"].astype(np.float64), m["tri_normal"].astype(np.float64)
+    fn = np.cross(X[:, 1] - X[:, 0], X[:, 2] - X[:, 0])
+    fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
+    fn *= np.where((fn * tn.mean(1)).sum(1) < 0, -1.0, 1.0)[:, None]  # facing out, as the shading does
+    _, inv = np.unique(np.round(p0 / WELD).astype(np.int64), axis=0, return_inverse=True)
+    T = inv.ravel()[tv]
+    # every triangle's three edges: (triangle, its two corners), keyed by the welded points they join
+    tri = np.repeat(np.arange(len(T)), 3)
+    cor = np.tile(np.array([[0, 1], [1, 2], [2, 0]]), (len(T), 1))
+    a, b = T[tri, cor[:, 0]], T[tri, cor[:, 1]]
+    ok = a != b
+    tri, cor, a, b = tri[ok], cor[ok], a[ok], b[ok]
+    key = np.minimum(a, b) * (int(T.max()) + 1) + np.maximum(a, b)
+    order = np.argsort(key, kind="stable")
+    start = np.r_[0, np.flatnonzero(np.diff(key[order])) + 1]
+    count = np.diff(np.r_[start, len(order)])
+
+    def on(h, flip=None):
+        """Half-edges h on the car and on the map, from its first corner to its second (or the other way, flip)."""
+        c0, c1 = cor[h, 0], cor[h, 1]
+        if flip is not None:
+            c0, c1 = np.where(flip, c1, c0), np.where(flip, c0, c1)
+        return np.stack([X[tri[h], c0], X[tri[h], c1]], 1), np.stack([UV[tri[h], c0], UV[tri[h], c1]], 1)
+
+    h1, h2 = order[start[count == 2]], order[start[count == 2] + 1]
+    s1, u1 = on(h1)
+    s2, u2 = on(h2, flip=a[h2] != a[h1])
+    cut = np.abs(u1 - u2).reshape(len(h1), -1).max(1) > CUT
+    crease = np.degrees(np.arccos(np.clip((fn[tri[h1]] * fn[tri[h2]]).sum(1), -1, 1))) >= SHARP
+    # the model's pieces (triangles joined edge to edge), and their edges sewn to another piece's
+    n = len(T)
+    _, piece = connected_components(coo_matrix((np.ones(len(h1)), (tri[h1], tri[h2])), shape=(n, n)), directed=False)
+    hb = order[start[count == 1]]
+    sb, ub = on(hb)
+    t = np.linspace(0.0, 1.0, 5)
+    ln = np.linalg.norm(sb[:, 1] - sb[:, 0], axis=1)
+    k = np.maximum(2, np.ceil(ln / 0.05).astype(int))
+    dense = np.concatenate([sb[i, 0] + (sb[i, 1] - sb[i, 0]) * np.linspace(0, 1, k[i])[:, None] for i in range(len(hb))])
+    owner = np.repeat(piece[tri[hb]], k)
+    probe = (sb[:, :1] + (sb[:, 1:] - sb[:, :1]) * t[None, :, None]).reshape(-1, 3)
+    near = cKDTree(dense).query_ball_point(probe, SEWN)
+    mine = np.repeat(piece[tri[hb]], len(t))
+    other = np.array([any(owner[j] != p for j in js) for js, p in zip(near, mine)]).reshape(len(hb), len(t))
+    sewn = other.sum(1) >= len(t) - 1
+    out = {
+        "crease": (np.concatenate([s1[crease], s2[crease & cut]]), np.concatenate([u1[crease], u2[crease & cut]])),
+        "opening": (sb[~sewn], ub[~sewn]),
+        "cut": (np.concatenate([s1[cut], s2[cut], sb[sewn]]), np.concatenate([u1[cut], u2[cut], ub[sewn]])),
+    }
+    return {kind: (s.astype(np.float32), u.astype(np.float32)) for kind, (s, u) in out.items()}
