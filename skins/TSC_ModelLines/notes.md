@@ -23,3 +23,11 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   behind the sidepod), B one smooth stroke on each piece of the UV map through the model's line (bends smoothly).
   Checked close up at the inlet, behind the sidepod, the tail corner and the sidepod's rear edge from behind: both
   continuous on the edges; a small step at the tail corner's seam in both.
+- Notes 1 and 2 on B (user, 2026-10-06, the left rear flank): "Why is there a change in elevation of something here?"
+  (behind the sidepod) and "Same here.  Why now it starts to go down" (near the tail corner). The path slipped onto
+  the next model line up (facing up 0.45 to 0.68, through a diagonal of the curve's thin strips) at z -57 and back
+  down at z -109: the level read off the two surfaces is 0.565, about as far from the halfway line (0.44) as from the
+  one above (0.68), and a diagonal cost nothing extra. Now changing line costs as a sideways step (by the change of
+  shading along an edge, seams included): the shoulder is one model line from z -12 to -154, facing up 0.43 to
+  0.52, every step an edge of the model or a seam between coinciding points. Both takes repainted; checked from
+  the notes' cameras: no rise, no dip.

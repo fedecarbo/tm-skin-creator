@@ -25,7 +25,9 @@ WELD = 1e-3      # cm: the model's points this close are one point
 SEAM = 2.0       # cm: across a seam between two of the model's pieces, a line joins the next piece's point this near
 LEVEL = 0.06     # how far a point's shading may stray from the level before it costs as much again as its length
 SIDEWAYS = 10.0  # cm: what stepping sideways onto the next line costs, so a line keeps to one of the model's lines
-REACH = 4.0      # cm from the guide the model's lines are looked for
+SWITCH = 0.1     # a change of shading this big along one edge is a change of line (the lines across a curve differ by
+# 0.1 to 0.2 in facing up; along one line it changes by 0.01 or 0.02 an edge)
+REACH = 8.0      # cm from the guide the model's lines are looked for (a crest guide strays 4 cm and more from the shading line round the rear arch)
 STRAIGHT = 0.95  # a line carries on to the guide's ends along its own edges while they turn less than this (cosine)
 
 
@@ -67,6 +69,15 @@ def along(guide, level=None, reach=REACH):
     gives the shading outright."""
     from tool import course
     right = float(np.mean(guide.pts[:, 0])) < 0
+    chain = _chain(guide, level, reach)
+    out = course.points(_graph()[0][chain], f"the model's line along {guide.name}")
+    return course._flip(out) if right else out
+
+
+def _chain(guide, level=None, reach=REACH):
+    """The model's points along `guide` (its left side), in order: indices into _graph()'s points."""
+    from tool import course
+    right = float(np.mean(guide.pts[:, 0])) < 0
     g = course.Course(guide.pts * (course.MIRROR if right else 1), guide.name)
     level = _level(g) if level is None else float(level)
     P, N, E, L, seam = _graph()
@@ -80,7 +91,12 @@ def along(guide, level=None, reach=REACH):
     way = (P[Ek[:, 1]] - P[Ek[:, 0]]) / np.maximum(Lk[:, None], 1e-9)
     tan = g.tan[tree.query(0.5 * (P[Ek[:, 0]] + P[Ek[:, 1]]))[1]]
     sideways = np.abs((way * tan).sum(1)) < 0.5
-    w = np.where(Sk, 1.5 * Lk * off, Lk * off + SIDEWAYS * sideways)
+    # changing to the next line across the curve (an edge whose ends shade differently: a rung, or the diagonal of
+    # one of the long thin strips the curve is built of) costs as stepping sideways does, so the line is one line
+    # end to end (the user, 2026-10-06, of a line that slipped onto the next one and back: "Why is there a change in
+    # elevation of something here?")
+    change = (np.abs(N[Ek[:, 0], 1] - N[Ek[:, 1], 1]) / SWITCH) ** 2
+    w = np.where(Sk, 1.5 * Lk * off, Lk * off + SIDEWAYS * sideways) + SIDEWAYS * change
     # its ends: a start joined to the model's points near the guide's start, an end to those near its end, each at
     # the cost of how far it is from the guide's end and from the level there
     S, Z = n, n + 1
@@ -100,9 +116,7 @@ def along(guide, level=None, reach=REACH):
     chain = [pred[Z]]
     while pred[chain[-1]] != S:
         chain.append(pred[chain[-1]])
-    chain = _carried(chain[::-1], g, P, E, tree.query(P)[0] <= 2 * reach)
-    out = course.points(P[chain], f"the model's line along {guide.name}")
-    return course._flip(out) if right else out
+    return _carried(chain[::-1], g, P, E, tree.query(P)[0] <= 2 * reach)
 
 
 def _carried(chain, g, P, E, near):
