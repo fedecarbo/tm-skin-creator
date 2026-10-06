@@ -142,3 +142,8 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   (at its step, z -126). Close looks at each seam, both sides: the gap reads at the side box's and the
   tail corner's; on the nose's straight run it reads more quietly, both rows orange across the line.
 - The user, 2026-10-06, of the tape round the car: does it read as a hazard car? "yes".
+- Change 14 (user, note 17 at the side box's front, where the tape met the air intake's frame,
+  2026-10-06, Claude Opus 5.5): "Can't see gap here". Each piece of tape now stops 1.5 cm short of
+  every edge it ends at, not only at seams: the intake's frame (the side box's piece and the nose's),
+  and the tail corner's rear edge, which it no longer wraps round onto the lights. Only at the nose's
+  tip, where the two sides meet, does it run on. Close looks: orange shows at each end, both sides.

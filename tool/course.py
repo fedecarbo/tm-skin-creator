@@ -22,8 +22,9 @@ that line in one go: a strip, dashes, ticks, spots or words.
     c.then(other)                            on along another course (joined straight where they don't meet)
     c.rounded(8)                             its corners rounded over 8 cm
     c.mirrored()                             the same on both sides; c.reversed() the other way
-    c.panels(3)                              cut at each seam between the body's panels it crosses, 3 cm left
-                                             bare across each: a marking applied panel by panel, as tape is
+    c.panels(3)                              cut at each seam between the body's panels it crosses, a piece per
+                                             panel stopping 1.5 cm short of each edge it ends at (a seam, an
+                                             opening's frame): a marking applied panel by panel, as tape is
     c.length, c.start, c.middle, c.end, c.at(z=-70), c.at(s=20)   points on it (cm)
     c.places(every=20)                       points every 20 cm along it, a whole gap at each end, for marks
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
@@ -47,6 +48,8 @@ from tool.noise import smoothstep
 
 STEP = 0.25    # cm between a course's points
 SPECK = 1.0    # cm: a run of another part this short under a course is the mesh's noise, not a panel
+MIDDLE = 1.0   # cm from the car's middle: a course's end there meets its mirror image
+CORNER = 45.0  # degrees within 2 cm: a corner of the body a marking stops short of (the tail corner's end)
 SMOOTH = 2.5   # cm: the surface's facing along a course, and a stroke's path, are averaged over this
 FACING = 0.5   # a texel takes a marking when it faces within 60 degrees of the course's surface there
 OFF = 3.0      # cm: a stroke's point further than this from the body is dropped
@@ -196,13 +199,21 @@ class Course:
 
     def panels(self, gap=3.0):
         """The course cut at each seam between the body's panels it crosses (a change of part under it;
-        a run under SPECK cm is the next's), `gap` cm of the body left bare across each seam, half on
-        either side (where the course steps through the air from one panel to the next, that part of it
-        isn't counted): Courses, one per panel, each marked on its own (whole blocks, whole dashes)."""
+        a run under SPECK cm is the next's): Courses, a piece per panel, each marked on its own (whole
+        blocks, whole dashes) and stopping `gap` / 2 cm short of every edge it ends at: a seam, a corner of
+        the body it would wrap round (the course turning more than CORNER degrees within 2 cm), or the
+        course's own end (an opening, the inner car's frame round it, the lights), so `gap` cm of the body
+        is bare across a seam; never at the car's middle, where it meets its mirror image. Where the course
+        steps through the air from one panel to the next, that part of it isn't counted."""
         from tool import carmap
         m = carmap.load()
         f, _, off = m.at(self.pts, self.nrm)
         part = np.where(off > 0.3, -1, m.part[f])  # -1: off the body, across a step between two pieces
+        k = int(round(1.0 / STEP))  # the turn over 2 cm, either side of each point
+        t0, t1 = np.roll(self.tan, k, 0), np.roll(self.tan, -k, 0)
+        turn = np.degrees(np.arccos(np.clip((t0 * t1).sum(1), -1, 1)))
+        turn[:k], turn[-k:] = 0, 0
+        part = np.where(turn > CORNER, -1, part)  # a corner of the body: an edge
         starts = np.flatnonzero(np.r_[True, part[1:] != part[:-1]])
         runs = [[a, b, part[a]] for a, b in zip(starts, np.r_[starts[1:], len(part)])]
         for r in runs:  # a speck of another part is the mesh's noise: the run it sits in
@@ -217,9 +228,10 @@ class Course:
                 panels.append([a, b, p])
         panels = [r for r in panels if r[2] >= 0]
         out = []
+        middle = np.abs(self.pts[[0, -1], 0]) < MIDDLE
         for k, (a, b, p) in enumerate(panels):
-            s0 = self.s[a] + (gap / 2 if k > 0 else 0.0)
-            s1 = self.s[b - 1] - (gap / 2 if k < len(panels) - 1 else 0.0)
+            s0 = self.s[a] + (0.0 if k == 0 and middle[0] else gap / 2)
+            s1 = self.s[b - 1] - (0.0 if k == len(panels) - 1 and middle[1] else gap / 2)
             idx = np.flatnonzero((self.s >= s0) & (self.s <= s1))
             if len(idx) > 1 and s1 - s0 >= max(gap, SPECK):
                 out.append(Course(self.pts[idx], f"{self.name}, on the {m.part_names[p]}", self.nrm[idx], False, self.mirror))
