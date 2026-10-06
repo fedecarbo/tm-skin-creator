@@ -43,3 +43,15 @@ underside dark; gunmetal wheels; amber as the one accent, in the lights.
   on the shoulder's crest. Painted, in the Lab; not yet looked at close up. Open (next session): close looks
   along the edge, at the joins under the inlets' frames and at the tail corners (where the change goes
   from the edge to the deck's edge, 3 to 4 cm higher), in the UV map too; then show the user.
+- Close looks (2026-10-06, Claude Opus 5.5) found the navy on the edge guide broken on both sidepods: a silver
+  band inside the navy with a navy stripe below it. The cut along the edge decided which side keeps the navy
+  from 1.5 cm either side of the edge, where the top area (which stops 2 to 4.5 cm above the edge there) covers
+  neither, and picked the wrong side. Now it decides over the whole reach. At the tail corners the cut ended
+  square, short of the fold onto the back face: now it runs on to the piece's edge (`to_fold="both"`).
+- Note 3 (user, 2026-10-06, the left inlet's frame): "Im really struggling to understand why these things
+  happen?? ... There's a clear gap that is not painted here, and the previous agent did the same.  WHY??" Two
+  causes: the cut reached 4 cm from the edge where the top area stops up to 10 cm away (now 10, `INK_REACH`), and
+  the sliver where the body turns in to the frame is a piece of the texture the edge doesn't cross (now such
+  texels within 3 cm take the nearest cut texel's colour, `INK_BLEED`). Checked close up at both inlets, both
+  sidepods' backs and both tail corners: navy to the frame, on the edge, no gaps. Open: a notch a few mm across
+  in the underside area's edge on each tail corner's narrow back face (the car map's lower line there).

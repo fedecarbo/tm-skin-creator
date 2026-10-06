@@ -16,8 +16,8 @@ def design(s):
     s.paint("body", "metallic", colour=SILVER)
     s.paint("sidepod inlet", "metallic", colour=SILVER)  # the inlets' ducts, one colour inside
     # from the inlet to the tail corner the navy stops on the edge guide, where the shading divides top from
-    # side, drawn smooth on the flat texture; elsewhere on the shoulder
-    top = course.top_line("edge").mirrored().inked_edge(shapes.area("top"))
+    # side, drawn smooth on the flat texture, carried on under the inlet's frame and on to the fold at the tail corner; elsewhere on the shoulder
+    top = course.top_line("edge").mirrored().inked_edge(shapes.area("top"), to_fold="both")
     s.paint("body", "gloss", colour=NAVY, zone=top & shapes.outside(0.4))
     s.paint("body", "satin", colour="#1b1d22", zone=shapes.area("under"))
 

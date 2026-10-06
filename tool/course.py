@@ -73,13 +73,17 @@ SHADE = 60.0   # degrees from facing up: where the body's shading divides its to
 # within 0.3 cm of this line (median; 0.6 cm for 90 %), the shoulder's crest 1.4 cm off it
 SHADE_REACH = 7.0  # cm from the guide that the shadow's line is looked for
 INK_KNOT = 8.0     # cm between the knots of the curve an inked strip follows on each piece of the flat texture
-INK_REACH = 4.0    # cm either side of a course an inked edge decides the zone's side
+INK_REACH = 10.0   # cm either side of a course an inked edge moves the zone's edge across: all the way to the zone's own
+# edge (area("top") stops up to 10 cm from the edge guide on the flat texture; at 4 a sliver stayed unpainted by the
+# inlet's frame, the user, 2026-10-06: "There's a clear gap that is not painted here")
 INK_GAP = 4        # course points (a centimetre) a run on one piece may skip and still be one run
 SHADE_KNOT = 6.0   # cm between the knots of the smooth curve the shadow's edge is fitted as
 SHADE_RUN = 4      # centimetres either side whose running median the line holds to
 SHADE_HOLD = 0.8   # cm from that running median a point may lie
 FOLD = 45.0        # degrees from a course's own facing: past its end, where the surface has turned this far is the fold
 FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
+INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
+# the body turns in to an inlet's frame) takes the nearest inked texel's side within this
 SHADE_PAIR = 0.6   # cm: two texels this close either side of the shadow's angle are neighbours (the bake's 2048² pitch is 0.2 to 0.3)
 
 
@@ -428,11 +432,11 @@ class Course:
         return z
 
     @staticmethod
-    def _run_on(r, to_fold):
+    def _run_on(r, to_fold, fold=True):
         """A run of _inking's line carried on straight on the texture past the course's own ends that `to_fold`
-        names, to half a centimetre past the fold (or the piece's edge, or FOLD_RUN cm): the line, its tangents
-        and, per point, the facing the surface must keep there (NaN along the course itself); None for keep when
-        no end runs on."""
+        names, to half a centimetre past the fold (without `fold`, on over it: to the piece's edge, or FOLD_RUN
+        cm): the line, its tangents and, per point, the facing the surface must keep there (NaN along the course
+        itself); None for keep when no end runs on."""
         line, tan = r["line"], r["tan"]
         ends = [e for e, on in (("start", r["first"]), ("end", r["last"])) if on and to_fold in (e, "both")]
         if not ends:
@@ -443,7 +447,7 @@ class Course:
             a, ref = (0, r["start_n"]) if end == "start" else (-1, r["end_n"])
             more = line[a] + (-tan[a] if end == "start" else tan[a]) * step * np.arange(1, int(FOLD_RUN / 0.05) + 1)[:, None]
             gap, j = tree.query(more, workers=-1)
-            turned = (gap > 1.5) | ((r["N"][j] @ ref) < np.cos(np.radians(FOLD)))
+            turned = (gap > 1.5) | (((r["N"][j] @ ref) < np.cos(np.radians(FOLD))) if fold else False)
             n = min(len(more), (int(np.argmax(turned)) if turned.any() else len(more)) + 10)
             more, refs, tans = more[:n], np.repeat(ref[None], n, 0), np.repeat(tan[a][None], n, 0)
             if end == "start":
@@ -452,39 +456,62 @@ class Course:
                 line, tan, keep = np.vstack([line, more]), np.vstack([tan, tans]), np.vstack([keep, refs])
         return line, tan, keep
 
-    def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096):
+    def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096, to_fold=None):
         """`zone` with its edge moved onto the course where it runs within `reach` cm of it, drawn on the
         flat texture as inked() is, so a colour stops on the course in one smooth curve: shapes.area("top")
         cut along the edge guide (course.top_line("edge")). On each piece of the texture the side of the
-        course the zone mostly covers takes it, the other side not; past the course's own ends and
-        further than `reach` from it, the zone as it is."""
+        course the zone covers more of within `reach` takes it, the other side not (within a centimetre and a
+        half the zone can cover neither: area("top") stops 2 to 4.5 cm above the edge guide on the sidepods);
+        past the course's own ends and further than `reach` from it, the zone as it is. `to_fold` as inked()'s:
+        past that end the course's side still decides, up to the fold. A texel on a piece the course doesn't cross,
+        within INK_BLEED cm of one it does, takes that one's side (the user, 2026-10-06, of a silver sliver where
+        the body turns in to the inlet's frame: "There's a clear gap that is not painted here")."""
         keep_p, keep_w = [], []
         for r in self._inking(reach + soft, size):
-            d = r["tex"] - r["line"][r["k"]]
-            t = r["tan"][r["k"]]
-            signed = np.sign(d[:, 0] * t[:, 1] - d[:, 1] * t[:, 0]) * r["dt"] * r["pitch"]
-            near = r["dt"] * r["pitch"] <= reach
+            line, tan, keep = self._run_on(r, to_fold, fold=False)
+            dt, k = (r["dt"], r["k"]) if keep is None else cKDTree(line).query(r["tex"], workers=-1)
+            d, t = r["tex"] - line[k], tan[k]
+            signed = np.sign(d[:, 0] * t[:, 1] - d[:, 1] * t[:, 0]) * dt * r["pitch"]
+            near = dt * r["pitch"] <= reach
             past = (d * t).sum(1) * r["pitch"]
             if r["first"]:
-                near &= ~((r["k"] == 0) & (past < 0))
+                near &= ~((k == 0) & (past < 0))
             if r["last"]:
-                near &= ~((r["k"] == len(r["line"]) - 1) & (past > 0))
+                near &= ~((k == len(line) - 1) & (past > 0))
             if not near.any():
                 continue
             P, N, signed = r["P"][near], r["N"][near], signed[near]
-            # which side is the zone's: where it covers more of the texels within a centimetre and a half
-            close = np.abs(signed) <= 1.5
-            zv = zone(P[close], N[close])
-            share = [float(zv[signed[close] * sign > 0].mean()) if (signed[close] * sign > 0).any() else 0.0
-                     for sign in (1.0, -1.0)]
+            zv = zone(P, N)
+            share = [float(zv[signed * sign > 0].mean()) if (signed * sign > 0).any() else 0.0 for sign in (1.0, -1.0)]
+            if max(share) == 0.0:  # the zone isn't here: nothing to move
+                continue
             side = 1.0 if share[0] >= share[1] else -1.0
             keep_p.append(P)
             keep_w.append(smoothstep(-soft / 2, soft / 2, side * signed).astype(np.float32))
+        if keep_p:
+            keep_p, keep_w = self._bled(np.concatenate(keep_p), np.concatenate(keep_w), reach, size)
         z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
                           np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
                           base=zone, label=f"{zone!r} with its edge inked along {self.name}")
         z.course = self
         return z
+
+    def _bled(self, Pk, Wk, reach, size):
+        """The inked texels (places Pk, values Wk) with the body's texels within `reach` of the course that they
+        leave out (pieces of the texture the course doesn't cross) and within INK_BLEED cm of one of them, each
+        taking its nearest one's value: lists of places and values."""
+        from tool import bake
+        b = bake.bake("Skin", size, size)
+        tri, pos = b["tri"], b["position"]
+        P = self._both()[0]
+        lo, hi = P.min(0) - reach, P.max(0) + reach
+        rr, cc = np.nonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=-1))
+        Q = pos[rr, cc].astype(np.float64)
+        Q = Q[np.isfinite(cKDTree(P).query(Q, distance_upper_bound=reach, workers=-1)[0])]
+        Q = Q[~np.isfinite(cKDTree(Pk).query(Q, distance_upper_bound=1e-3, workers=-1)[0])]  # not inked already
+        d, i = cKDTree(Pk).query(Q, distance_upper_bound=INK_BLEED, workers=-1)
+        hit = np.isfinite(d)
+        return [Pk, Q[hit]], [Wk, Wk[i[hit]]]
 
     def _ends(self):
         """The marking's ends, square to the course: cm inside them (a loop has none)."""

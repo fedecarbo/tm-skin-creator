@@ -32,8 +32,9 @@ more it no longer makes).
   `Course.inked` and `inked_edge` draw a line or a colour's edge smooth on the flat texture (a curve on each
   piece: "The curve follow the edges better definitely"), a line's end runs on to the fold
   (`inked(to_fold=)`), and it is a guide, `course.top_line("edge")`, from the inlets to the tail corners ("It's
-  better, yes"). Open: TSC_Endurance's navy on it, painted, not yet looked at; the shoulder ahead of the
-  inlets still on its crest.
+  better, yes"); TSC_Endurance's navy stops on it, checked close up. Open: the shoulder ahead of the inlets
+  still on its crest; the underside area's edge notched on the tail corners' narrow back faces (the car map's
+  lower line).
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks
