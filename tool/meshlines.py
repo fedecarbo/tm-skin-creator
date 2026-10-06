@@ -487,15 +487,15 @@ def _along(pa, pb, tset):
             ways.append((s0, s1 - cum[-1]) if s1 > s0 else (s0, s1 + cum[-1]))
         for lo, hi in ways:
             if best is None or abs(hi - lo) < best[0]:
-                best = (abs(hi - lo), q, cum, lo, hi)
+                best = (abs(hi - lo), q, cum, lo, hi, L["closed"])
     if best is None:
         return None
-    _, q, cum, lo, hi = best
+    _, q, cum, lo, hi, closed = best
     total = cum[-1]
-    step = np.sign(hi - lo) or 1.0
-    marks = [lo] + [x + w * total for w in (-1, 0, 1) for x in cum if min(lo, hi) < x + w * total < max(lo, hi)]
-    marks = sorted(set(marks + [hi]), key=lambda x: step * x)
-    return [np.array([np.interp(x % total if total else x, cum, q[:, i]) for i in range(3)]) for x in marks]
+    laps = (-1, 0, 1) if closed else (0,)  # only a loop goes on past its end, round to its start
+    marks = [lo, hi] + [x + w * total for w in laps for x in cum if min(lo, hi) < x + w * total < max(lo, hi)]
+    marks = sorted(set(marks), key=lambda x: x if hi >= lo else -x)
+    return [np.array([np.interp(x % total if closed else x, cum, q[:, i]) for i in range(3)]) for x in marks]
 
 
 def _straight(A, B, tset):
