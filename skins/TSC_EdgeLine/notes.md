@@ -64,3 +64,10 @@ tail's middle.
   flank's it is 0.6 cm high at the front, crosses the edge near z -90 and is 0.3 cm low over the arch (0.8 at
   most); where the sidepod's piece meets the rear flank's (z -46) it turns a corner of 12 degrees, the curve
   1.5. The curve stays within 0.3 cm of the edge. Set 1 in the Lab: A the curve (as approved), B straight.
+- Note 1 on A (user, 2026-10-06, the left tail corner, at the line's end): "This area needs to properly cover the
+  surface.  Something we can do is to mark the fold of the surface.  You can clearly see the fold using the
+  shadow". Seen close up (a probe coloured by facing: the tail corner has a top, a side and a narrow back face
+  along the dark frame, the shaded band in their picture): the line stopped half a centimetre short of the fold
+  where the side turns onto the back face, its end square while the fold leans. Built `inked(..., to_fold="end")`:
+  the end runs on to the fold (where the surface turns 45 degrees from the line's own facing) and stops along it.
+  Both takes; checked close up at both tail corners: on the fold, no gap, nothing on the back face.

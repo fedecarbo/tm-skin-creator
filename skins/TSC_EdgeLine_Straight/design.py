@@ -12,4 +12,4 @@ def design(s):
     s.step("The edge", "A black line from each inlet back to the tail corner, straight on each piece of the flat texture.",
            words=HYPOTHESIS)
     edge = course.top_line("edge")  # the guide: where the shading divides top from side, inlet to tail corner
-    s.paint("body", "gloss black", zone=edge.mirrored().inked(0.6, straight=True), across=True)  # straight on each piece of the flat texture
+    s.paint("body", "gloss black", zone=edge.mirrored().inked(0.6, straight=True, to_fold="end"), across=True)  # straight on each piece of the flat texture, on to the fold at the tail corner

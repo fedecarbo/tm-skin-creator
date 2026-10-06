@@ -78,6 +78,8 @@ INK_GAP = 4        # course points (a centimetre) a run on one piece may skip an
 SHADE_KNOT = 6.0   # cm between the knots of the smooth curve the shadow's edge is fitted as
 SHADE_RUN = 4      # centimetres either side whose running median the line holds to
 SHADE_HOLD = 0.8   # cm from that running median a point may lie
+FOLD = 45.0        # degrees from a course's own facing: past its end, where the surface has turned this far is the fold
+FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
 SHADE_PAIR = 0.6   # cm: two texels this close either side of the shadow's angle are neighbours (the bake's 2048² pitch is 0.2 to 0.3)
 
 
@@ -330,7 +332,8 @@ class Course:
         between where it enters and leaves the piece, in rows and columns: dicts of P and N
         (the texels' places on the car and facings), tex (their rows and columns), line, tan, k (each texel's nearest
         point of the line), dt (texels from it), pitch (cm per texel on the piece), first and last (whether
-        the run holds the course's own start or end). Both sides when the course is mirrored."""
+        the run holds the course's own start or end), start_n and end_n (the course's facing SMOOTH cm inside the run's
+        ends, clear of a fold there). Both sides when the course is mirrored."""
         from tool import bake, carmap, uvmap
         b = bake.bake("Skin", size, size)
         tri, pos, nrm = b["tri"], b["position"], b["normal"]
@@ -363,9 +366,11 @@ class Course:
                     mine = np.flatnonzero(isl == piece)
                     tex = np.stack([rr[mine], cc[mine]], 1).astype(np.float64)
                     dt, k = cKDTree(line).query(tex, workers=-1)
+                    inset = min(int(SMOOTH / STEP), len(run) - 1)
                     yield dict(P=P[mine], N=nrm[rr[mine], cc[mine]].astype(np.float64), tex=tex, line=line, tan=tan, k=k, dt=dt,
                                pitch=1.0 / max(float(density[piece]) * size, 1e-9),
-                               first=run[0] == 0, last=run[-1] == len(pts) - 1)
+                               first=run[0] == 0, last=run[-1] == len(pts) - 1,
+                               start_n=N[run[inset]], end_n=N[run[-1 - inset]])
 
     @staticmethod
     def _matched(Pk, Wk, base=None, label=""):
@@ -386,7 +391,7 @@ class Course:
             return w
         return shapes.Zone(f, label=label)
 
-    def inked(self, width, soft=shapes.SOFT, size=4096, straight=False):
+    def inked(self, width, soft=shapes.SOFT, size=4096, straight=False, to_fold=None):
         """A strip `width` cm wide along the course, drawn as a skin artist draws one: on the flat texture
         (the Lab's UV map), one smooth curve on each piece of it the course crosses, so it runs smooth there
         and on the car. (strip(), measured on the car, picks up a texel or two of bend wherever the flat
@@ -395,18 +400,28 @@ class Course:
         the texture; its ends square to it. The body's texture (Skin) only. `straight`: on each piece a
         straight line between where the course enters and leaves it (the user's hypothesis, 2026-10-06: "a
         straighnt line from the uv will create the perfect line in the car"; along the edge guide it strays
-        0.1 cm from the course on the tail corner's piece, 0.6 cm on the sidepod's, 0.7 on the rear flank's)."""
+        0.1 cm from the course on the tail corner's piece, 0.6 cm on the sidepod's, 0.7 on the rear flank's).
+        `to_fold` ("end", "start" or "both"): that end runs on straight, up to FOLD_RUN cm, to the fold where the
+        surface turns FOLD degrees from the course's own facing, and stops along the fold rather than square (the
+        user, 2026-10-06, of the edge line's end at the tail corner, half a centimetre short of the back face: "This
+        area needs to properly cover the surface.  Something we can do is to mark the fold of the surface")."""
         half = width / 2
         keep_p, keep_w = [], []
         for r in self._inking(half + soft + 3.0, size, straight):
-            past = ((r["tex"] - r["line"][r["k"]]) * r["tan"][r["k"]]).sum(1) * r["pitch"]
-            inside = half - r["dt"] * r["pitch"]
+            line, tan, keep = self._run_on(r, to_fold)
+            dt, k = (r["dt"], r["k"]) if keep is None else cKDTree(line).query(r["tex"], workers=-1)
+            past = ((r["tex"] - line[k]) * tan[k]).sum(1) * r["pitch"]
+            inside = half - dt * r["pitch"]
             # square ends only at the course's own ends; where a run ends at a seam the next piece goes on
             if r["first"]:
-                inside = np.minimum(inside, np.where(r["k"] == 0, past, np.inf))
+                inside = np.minimum(inside, np.where(k == 0, past, np.inf))
             if r["last"]:
-                inside = np.minimum(inside, np.where(r["k"] == len(r["line"]) - 1, -past, np.inf))
+                inside = np.minimum(inside, np.where(k == len(line) - 1, -past, np.inf))
             w = smoothstep(-soft / 2, soft / 2, inside)
+            if keep is not None:  # past an end that runs on: only up to the fold
+                on = ~np.isnan(keep[k, 0])
+                c = np.cos(np.radians(FOLD))
+                w[on] *= smoothstep(c - 0.05, c + 0.05, (r["N"][on] * keep[k[on]]).sum(1))
             keep_p.append(r["P"][w > 0])
             keep_w.append(w[w > 0].astype(np.float32))
         z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
@@ -414,6 +429,31 @@ class Course:
                           label=f"a strip {width:g} cm wide inked {'straight ' if straight else ''}along {self.name}")
         z.course = self
         return z
+
+    @staticmethod
+    def _run_on(r, to_fold):
+        """A run of _inking's line carried on straight on the texture past the course's own ends that `to_fold`
+        names, to half a centimetre past the fold (or the piece's edge, or FOLD_RUN cm): the line, its tangents
+        and, per point, the facing the surface must keep there (NaN along the course itself); None for keep when
+        no end runs on."""
+        line, tan = r["line"], r["tan"]
+        ends = [e for e, on in (("start", r["first"]), ("end", r["last"])) if on and to_fold in (e, "both")]
+        if not ends:
+            return line, tan, None
+        keep = np.full((len(line), 3), np.nan)
+        tree, step = cKDTree(r["tex"]), 0.05 / r["pitch"]  # texels between the line's points, 0.05 cm apart
+        for end in ends:
+            a, ref = (0, r["start_n"]) if end == "start" else (-1, r["end_n"])
+            more = line[a] + (-tan[a] if end == "start" else tan[a]) * step * np.arange(1, int(FOLD_RUN / 0.05) + 1)[:, None]
+            gap, j = tree.query(more, workers=-1)
+            turned = (gap > 1.5) | ((r["N"][j] @ ref) < np.cos(np.radians(FOLD)))
+            n = min(len(more), (int(np.argmax(turned)) if turned.any() else len(more)) + 10)
+            more, refs, tans = more[:n], np.repeat(ref[None], n, 0), np.repeat(tan[a][None], n, 0)
+            if end == "start":
+                line, tan, keep = np.vstack([more[::-1], line]), np.vstack([tans, tan]), np.vstack([refs, keep])
+            else:
+                line, tan, keep = np.vstack([line, more]), np.vstack([tan, tans]), np.vstack([keep, refs])
+        return line, tan, keep
 
     def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096):
         """`zone` with its edge moved onto the course where it runs within `reach` cm of it, drawn on the
