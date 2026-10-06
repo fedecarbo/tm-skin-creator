@@ -13,10 +13,12 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **E. Structure for taste** (2026-10-05): a one-page anatomy written by `PY -m tool.carmap --describe`
-  (the flat rooms, the chase camera's share of each part, the levels at each station, which panels are
-  pieces and which are sewn, the game's panels) in place of `car/map.md`; `SPOTS` in
-  `tool/paintbox.py` generated from it; `tool/sets.py` says when two takes differ only in colour.
+- **E. Structure for taste** (2026-10-06): a one-page anatomy written by `PY -m tool.carmap --describe`
+  from the car's own shape, not the guides (the user, 2026-10-06: "just follow the flow of the car.
+  Without needing guides"): how the body flows (where its lines run and turn), the flat rooms, the chase
+  camera's share of each part, which panels are pieces and which are sewn, the game's panels; in place of
+  `car/map.md`; `SPOTS` in `tool/paintbox.py` generated from it; `tool/sets.py` says when two takes differ
+  only in colour.
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.

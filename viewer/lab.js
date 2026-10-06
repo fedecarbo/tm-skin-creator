@@ -215,7 +215,7 @@ function failed(e) {
 
 // ---- the rooms ----
 
-const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials'), levels: $('roomLevels') };
+const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials') };
 const painting = new Set();  // the rooms' keys (tool/rooms.py: the UV map), shown in #roomPaint
 const begun = {};
 function openRoom(name) {
@@ -232,8 +232,6 @@ function openRoom(name) {
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
-  // the levels room: the user draws the car's levels from the side (lab-levels.js)
-  if (name === 'levels') import('./lab-levels.js').then((room) => room.open()).catch(failed);
   // the car's room: the car (lab-studio.js) and the list beside it (lab-car.js)
   if (name === 'studio') import('./lab-car.js').then((room) => room.open({ room: openRoom })).catch(failed);
 }

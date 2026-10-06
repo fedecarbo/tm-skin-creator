@@ -1,13 +1,14 @@
-"""The car's levels: lines the user draws from the side, in the Lab's levels room (viewer/lab-levels.js).
-The user, 2026-10-04: "a tool I can define from the side how the line goes"; the car's line is its
-curved top and bottom seen from the side, and the levels follow it, never a flat cut.
+"""The car's levels: lines the user drew from the side (2026-10-04: "a tool I can define from the side
+how the line goes"); the car's line is its curved top and bottom seen from the side, and the levels
+follow it, never a flat cut. One way to read the car's flow, never required: a design follows the
+car's own flow and takes a guide only where one is the line it needs (the user, 2026-10-06: "the AI
+doesn't only exclusively use those guides ... just follow the flow of the car. Without needing guides").
 
 A level is a height along the car: a handful of points (z, y) in cm, one smooth curve through them
 (a natural cubic spline, held level past the end points), and on the car the line runs wherever
 the outer body is at that height, all round: along both sides, across the front of the sidepods,
 round the nose tip and across the tail. Seen from the side, the line on the car is the curve
-itself. The room draws the same curve (lab-levels.js's spline is this one), so what is dragged
-there is what is painted.
+itself.
 
 The side's levels: the user draws two, the top (role "top") and the bottom (role "bottom"), and
 `between` more are shared out between them, smooth because they are. The bottom's shape fades out
@@ -58,13 +59,9 @@ the flat top (the user: "the in between curvature of the car"): across the back 
 cover's back slope meets the tail deck, 12 cm corners, straight along the cockpit, and one gentle bend
 into the first at the nose root, where it ends.
 
-car/levels.json (committed, written by the room through the viewer's server, /api/levels):
+car/levels.json (committed):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 6, "nose": 3}
 car/top_lines.json (committed): {"lines": [{"name": "top 1", "path": [[x, y, z], ...]}, ...]}
-
-    python -m tool.levels            paint every level on the clay car, for the viewer and the room (LOOK)
-    python -m tool.levels --side     the side view the room draws on, into the work folder (also made
-                                     by the first paint, and again when the mesh changes)
 
     levels.line("top edge", 0.8)     a zone (tool/shapes.py): the level's line, 0.8 cm wide on the surface
                                      ("between 1" is the highest of the levels between, and so on down;
@@ -83,80 +80,37 @@ car/top_lines.json (committed): {"lines": [{"name": "top 1", "path": [[x, y, z],
     levels.where(y, z)               the nearest level to a height, in words: "2 cm below between 5"
 """
 
-import argparse
 import json
-import time
 
 import numpy as np
 
-from tool import paths, progress
+from tool import paths
 
 FILE = paths.REPO / "car" / "levels.json"
 TOP_FILE = paths.REPO / "car" / "top_lines.json"
-LOOK = "Look_Levels"  # the clay car with the levels on it, in the viewer's data (never a skin of the user's)
-SIDE = 0.25  # cm per pixel of the side view
 WHEELS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 # the outer body's parts a level isn't painted on: the struts under the nose and the inlets' insides
 # (a level at their height ran along an inlet's roof)
 OFF = ("wing pylon", "sidepod inlet")
-SIDE_FRONT = 82.0  # where the levels between end, the sidepods' front (z, cm; lab-levels.js SIDE_FRONT)
+SIDE_FRONT = 82.0  # where the levels between end, the sidepods' front (z, cm)
 # the front wheel opening's upright edge (z, cm) and the height it rises to before turning forward
 # into the nose's underside: a level between that passes over it there ends in line with it
-# (lab-levels.js OPENING)
 OPENING = (70.0, 41.0)
-STEER = ("side skirt", "side skirt ahead")  # the seams the levels between lean to (lab-levels.js STEER)
+STEER = ("side skirt", "side skirt ahead")  # the seams the levels between lean to
 STEER_FADE = (-45.0, -25.0)  # z, cm: the lean grows in from the first to the second, the seams' start
 STEER_AT = 16.0  # z, cm: where a level's nearness to the seams is measured, their stretch's middle
 # the nose's lines: where they begin (z, cm: in line with the intake opening's front edge, where the
 # body at the top line's height begins), where they end (past the tip), and how tall the nose's side
 # is where it begins (cm above the top line, up to where its top folds down: the middle of the roll,
-# 45 degrees, measured at z 36) (lab-levels.js NOSE)
+# 45 degrees, measured at z 36)
 NOSE_FROM, NOSE_TO, NOSE_SIDE = 28.0, 220.0, 12.9
-# where to start, for the user to move: the top's edge as Claude found it (the middle of the roll from
-# top to side, smoothed) and the bottom along the body's lower edge (where the side turns under), from
-# the tail's end to the sidepods' front (2026-10-04)
-START = {"levels": [{"name": "top edge", "role": "top",
-                     "points": [[-158, 61.0], [-120, 60.6], [-80, 58.6], [-40, 57.0], [0, 57.6],
-                                [40, 59.8], [90, 56.0], [140, 50.6], [180, 45.7], [210, 41.0]]},
-                    {"name": "bottom edge", "role": "bottom",
-                     "points": [[-162, 38], [-145, 29], [-128, 23], [-105, 19.5], [-60, 20.5], [-10, 22],
-                                [40, 20.5], [82, 18.5]]}],
-         "between": 5}
-MOST = 12  # levels between, at most
-
-
 def load():
-    if FILE.exists():
-        return json.loads(FILE.read_text())
-    return json.loads(json.dumps(START))
-
-
-def save(doc):
-    """Check a document from the room and keep it."""
-    out, roles = [], set()
-    for L in doc.get("levels", []):
-        name = str(L.get("name", "")).strip()[:40]
-        pts = sorted(([round(float(z), 2), round(float(y), 2)] for z, y in L.get("points", [])), key=lambda p: p[0])
-        if not name or len(pts) < 2:
-            raise ValueError("a level needs a name and two points or more")
-        if any(b[0] - a[0] < 0.5 for a, b in zip(pts, pts[1:])):
-            raise ValueError(f"{name}: two points at the same place along the car")
-        level = {"name": name, "points": pts}
-        if L.get("role") in ("top", "bottom") and L["role"] not in roles:
-            level = {"name": name, "role": L["role"], "points": pts}
-            roles.add(L["role"])
-        out.append(level)
-    if len({L["name"].lower() for L in out}) != len(out):
-        raise ValueError("two levels share a name")
-    kept = {"levels": out, "between": min(max(int(doc.get("between", 0)), 0), MOST),
-            "nose": min(max(int(doc.get("nose", 0)), 0), MOST)}
-    paths.write(FILE, json.dumps(kept, indent=1) + "\n")
-    return kept
+    return json.loads(FILE.read_text())
 
 
 def spline(points):
     """The level's height along the car, Y(z), and its slope: a natural cubic spline through the points,
-    held level past the ends (lab-levels.js draws the same)."""
+    held level past the ends."""
     from scipy.interpolate import CubicSpline
     p = np.asarray(points, np.float64)
     if len(p) == 2:
@@ -215,7 +169,7 @@ def curves(doc=None):
 
 def _seams_direction():
     """The STEER seams' direction (cm per cm: a straight line through each one's points, their slopes
-    averaged by length) and the first's height on its line at STEER_AT (lab-levels.js seamsDirection)."""
+    averaged by length) and the first's height on its line at STEER_AT."""
     from tool import seams
     traced = seams.traced()
     fits = []
@@ -249,7 +203,7 @@ def _find(level):
     for c in curves():
         if c[0].lower() == level.lower():
             return Level(*c)
-    raise ValueError(f"no level called {level!r} in {FILE.name}: the levels room draws them")
+    raise ValueError(f"no level called {level!r} in {FILE.name}")
 
 
 def offset(level, cm):
@@ -418,126 +372,3 @@ def top_line(name, width=0.8):
             line = line * smoothstep(-0.1, 0.1, -((q - end[0]) @ end[1]))
         return (line * near * smoothstep(-0.85, -0.75, nn[:, 1])).astype(np.float32)
     return shapes.Zone(f, label=f"top_line({name!r})") & shapes.outside(0.1)
-
-
-# ---- the side view the room draws on ----
-
-def side_view():
-    """The car seen square from its right side (the nose to the right), the wheels off, shaded like
-    clay, one pixel every SIDE cm: written to the work folder (levels/side.png and side.json, the
-    picture's place in cm), and again whenever the mesh changes."""
-    from PIL import Image
-    from tool import fbx, parts, raster, view
-    out = view.DATA / "levels"
-    stamp = out / "side.json"
-    mesh_t = fbx.CACHE.stat().st_mtime if fbx.CACHE.exists() else 0
-    if stamp.exists() and json.loads(stamp.read_text()).get("mesh") == mesh_t:
-        return stamp
-    P = parts.load()
-    names = np.array([i["name"] for i in P.instances])
-    parent = np.array([i.get("parent") or "" for i in P.instances])
-    corners, shade_n, inner = [], [], []
-    for mesh in ("Skin_01", "Details_01"):
-        m = fbx.meshes()[mesh]
-        tset = mesh.split("_")[0]
-        off = P.mesh_offset[tset]
-        part = P.tri_part[off:off + len(m["tri_vertex"])]
-        keep = ~np.isin(names[part], WHEELS) & (parent[part] != "rims and brakes")
-        corners.append(m["positions"][m["tri_vertex"]][keep])
-        shade_n.append(m["tri_normal"][keep])
-        inner.append(np.full(keep.sum(), tset == "Details"))
-    C = np.concatenate(corners).astype(np.float64)
-    N = np.concatenate(shade_n).astype(np.float64)
-    inner = np.concatenate(inner)
-    z0, z1, y0, y1 = -168.0, 220.0, -2.0, 92.0
-    w, h = int((z1 - z0) / SIDE), int((y1 - y0) / SIDE)
-    xy = np.stack([(C[..., 2] - z0) / SIDE, (y1 - C[..., 1]) / SIDE], -1)
-    tri, bary = raster.rasterise(xy, w, h, depth=C[..., 0])  # seen from the right (-x): the nearest is the lowest x
-    hit = tri >= 0
-    n = (N[tri[hit]] * bary[hit][..., None]).sum(1)
-    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
-    light = np.array([-0.75, 0.55, 0.35]); light /= np.linalg.norm(light)
-    lit = 0.38 + 0.62 * np.clip(n @ light, 0, 1)
-    base = np.where(inner[tri[hit]], 0.55, 0.92)
-    img = np.zeros((h, w, 4), np.uint8)
-    img[hit, :3] = (np.clip(base * lit, 0, 1) * 255).astype(np.uint8)[:, None]
-    img[hit, 3] = 255
-    out.mkdir(parents=True, exist_ok=True)
-    Image.fromarray(img, "RGBA").save(out / "side.png", optimize=True)
-    stamp.write_text(json.dumps({"z0": z0, "z1": z1, "y0": y0, "y1": y1, "px": SIDE, "w": w, "h": h, "mesh": mesh_t}))
-    return stamp
-
-
-def seam_lines():
-    """The seams along the side as the room draws them: levels/seams.json, {name: [[z, y], ...]}."""
-    from tool import seams, view
-    out = view.DATA / "levels" / "seams.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    paths.write(out, json.dumps({name: sm["points"] for name, sm in seams.traced().items()}))
-    return out
-
-
-def sections():
-    """The body's outline every cm along the car (the car map's, the left half, its open surface), for
-    the room's live line on the 3D car: levels/sections.json, [[z, [x, y, x, y, ...]], ...] in cm."""
-    from tool import carmap, view
-    out = view.DATA / "levels" / "sections.json"
-    d = np.load(carmap.CACHE)
-    if out.exists() and out.stat().st_mtime > carmap.CACHE.stat().st_mtime:
-        return out
-    Z, st, q = d["sec_Z"], d["sec_starts"], d["sec_q"]
-    rows = []
-    for k, z in enumerate(Z):
-        p = q[st[k]:st[k + 1]][::4]  # a point every cm round the outline
-        rows.append([round(float(z), 2), [round(float(v), 1) for v in p.ravel()]])
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(rows, separators=(",", ":")))
-    return out
-
-
-# ---- the levels on the clay car ----
-
-def paint():
-    """Every level as a line on the clay car (LOOK), for the viewer and the room: the levels drawn in
-    black, the levels between and the nose's in blue."""
-    from tool import build, paintbox, view
-    doc = load()
-    with progress.job("Drawing your levels on the car"):
-        side_view()
-        sections()
-        seam_lines()
-        lines = curves(doc)
-        progress.stage("Painting", total=len(lines))
-        s = paintbox.Skin(LOOK)
-        s.clay()
-        body = sorted({i["name"] for i in s.parts.instances if i["mesh"] == "Skin"} - set(WHEELS) - set(OFF))
-        drawn = {L["name"] for L in doc["levels"]}
-        for name, *_ in lines:
-            s.paint([f"{b}|part" for b in body], "matte", colour="#0a0a0a" if name in drawn else "#1d4ed8", zone=line(name))
-            progress.tick()
-        s.end_steps()
-        progress.stage("Putting it on the car")
-        build.export_to_viewer(s)
-        (view.DATA / "levels").mkdir(parents=True, exist_ok=True)
-        paths.write(view.DATA / "levels" / "painted.json", json.dumps({"stamp": time.time(), "levels": doc["levels"], "between": doc.get("between", 0),
-                                                                     "nose": doc.get("nose", 0)}))
-
-
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--side", action="store_true", help="only the side view and the outlines the room draws on")
-    args = ap.parse_args()
-    if args.side:
-        print(side_view())
-        print(sections())
-        print(seam_lines())
-        return
-    t = time.time()
-    paint()
-    doc = load()
-    print(f"painted {', '.join(L['name'] for L in doc['levels'])}, {doc.get('between', 0)} levels between and"
-          f" {doc.get('nose', 0)} on the nose on {LOOK} in {time.time() - t:.0f} s")
-
-
-if __name__ == "__main__":
-    main()

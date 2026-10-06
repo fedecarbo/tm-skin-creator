@@ -122,40 +122,6 @@
   #prStage { position: relative; margin-top: 8px; background: var(--ball); overflow: hidden; display: grid; place-items: center; }
   #prCar { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   #prCar[hidden], #prMap[hidden], #prCredit[hidden] { display: none; }
-  /* The levels room's panel (lab-levels.js): its hint, its list and the level open */
-  .lnHint { font-size: 13px; line-height: 1.45; color: rgba(242, 244, 247, 0.7); margin: 0 0 12px; min-height: 3.6em; }
-  .lnList { display: flex; flex-direction: column; margin-bottom: 8px; }
-  .lnList .item { gap: 8px; }
-  .lnList .item .n { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lnList .item .cnt { flex: none; white-space: nowrap; font-size: 15px; }
-  .lnOpen { margin-top: 14px; }
-  .lnOpen[hidden] { display: none; }
-  .lnOpen input { flex: 1; min-width: 0; padding: 6px 8px; font: 20px/1 Teko, Bahnschrift, sans-serif; text-transform: uppercase; letter-spacing: 0.03em;
-                  color: var(--text); background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0; }
-  .lnOpen input:focus { outline: none; border-color: var(--acc); }
-  .lnOpen .show .sk { font-size: 15px; padding: 5px 9px 2px; }
-  .lnOpen .tagButtons { flex-wrap: wrap; padding-left: 0; }
-  .lnOpen .tagButtons .sk[hidden] { display: none; }
-  .lnSaved { font-size: 12px; opacity: 0.55; margin: 10px 0 0; min-height: 1.4em; }
-  /* The levels room (lab-levels.js): the car above, the side view to draw on below, the levels in the panel */
-  #lvStage { position: relative; margin-top: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
-  #lvCarBox { position: relative; flex: 1 1 auto; min-height: 260px; background: var(--ball); overflow: hidden; }
-  #lvCar { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  #lvSideBox { position: relative; flex: none; background: #15171c; }
-  #lvSvg { display: block; width: 100%; height: auto; aspect-ratio: 388 / 94; cursor: crosshair; touch-action: none; user-select: none; }
-  .lvCurve { fill: none; stroke: rgba(242, 244, 247, 0.35); stroke-width: 2px; vector-effect: non-scaling-stroke; }
-  .lvCurve.on { stroke: var(--acc); stroke-width: 2.5px; }
-  .lvCurve.between { stroke: #3d7bff; stroke-width: 1.5px; pointer-events: none; }
-  .lvSeam { fill: none; stroke: #ff8a1f; stroke-width: 2.5px; vector-effect: non-scaling-stroke; pointer-events: none; }
-  .lvBetween { align-items: center; margin-bottom: 10px; }
-  .lvBetween[hidden] { display: none; }
-  .lvBetween .lab { width: auto; flex: 1; padding-top: 0; }
-  .lvBetween b { min-width: 2ch; text-align: center; font-size: 22px; }
-  .lvPt { fill: var(--acc); stroke: rgba(13, 15, 18, 0.85); stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: grab; }
-  .lvPt.picked { fill: var(--text); stroke: var(--acc); stroke-width: 3px; }
-  #lvSay { position: absolute; left: 14px; top: 12px; z-index: 3; background: rgba(12, 14, 18, 0.85); backdrop-filter: blur(6px); }
-  #lvSay[hidden] { display: none; }
-  #lvPaint[aria-disabled] { opacity: 0.6; cursor: progress; }
   #prMap { position: relative; background: var(--ball); cursor: crosshair; touch-action: none; }
   #prMap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   #prTag { position: absolute; z-index: 1; pointer-events: none; padding: 5px 10px; font-size: 13px; white-space: nowrap;
@@ -438,7 +404,6 @@
         <hr>
         <button data-go="materials" role="menuitem">The materials</button>
         <button data-go="uv" role="menuitem">The UV map</button>
-        <button data-go="levels" role="menuitem">The levels</button>
         <a id="back" href="./index.html" role="menuitem">Back to the viewer</a>
       </div>
     </div>
@@ -448,7 +413,6 @@
     <nav id="rooms" class="teko" hidden>
       <button class="sk" data-room="studio" aria-pressed="true"><svg class="ic"><use href="#i-back"/></svg><span>The car</span></button>
       <button class="sk" data-room="materials" aria-pressed="false"><span>Materials</span></button>
-      <button class="sk" data-room="levels" aria-pressed="false"><span>The levels</span></button>
     </nav>
   </header>
 
@@ -535,51 +499,6 @@
       <div class="row"><span class="lab">Size</span><span id="prSize"></span></div>
       <button id="prCopy" class="sk acc teko copyWide"><svg class="ic"><use href="#i-copy"/></svg><span>Copy for Claude</span></button>
       <div id="prLine" class="preview"></div>
-    </aside>
-  </section>
-  <section id="roomLevels" class="room" hidden>
-    <div class="paintRoom">
-      <div class="paintHead"><h3 class="teko">The levels</h3><span class="about">Draw from the side where a line runs. The car follows.</span>
-        <div id="lvViews" class="show teko">
-          <button class="sk" data-view="right"><span>Side</span></button>
-          <button class="sk" data-view="front"><span>Front</span></button>
-          <button class="sk" data-view="rear"><span>Rear</span></button>
-          <button class="sk" data-view="top"><span>Top</span></button>
-        </div>
-      </div>
-      <div id="lvStage">
-        <div id="lvCarBox">
-          <iframe id="lvCar" title="the car with the level on it: drag to turn it"></iframe>
-          <div id="lvCover" class="cover"></div>
-          <div id="lvSay" class="live" hidden><i></i><span></span></div>
-          <div id="lvCredit" class="credit" hidden></div>
-        </div>
-        <div id="lvSideBox">
-          <svg id="lvSvg" aria-label="the car from the side: drag the points, click to add one"><image id="lvImg" preserveAspectRatio="none"/><g id="lvCurves"></g></svg>
-        </div>
-      </div>
-    </div>
-    <aside class="spec lnSpec">
-      <h2 class="specName teko" style="margin-top: 14px">The levels</h2>
-      <p id="lvHint" class="lnHint"></p>
-      <div id="lvList" class="lnList"></div>
-      <div id="lvBetweenRow" class="row lvBetween" hidden><span class="lab">Between the top and the bottom</span>
-        <button id="lvFewer" class="sk" aria-label="fewer levels between"><span>−</span></button><b id="lvBetween" class="teko"></b>
-        <button id="lvMore" class="sk" aria-label="more levels between"><span>+</span></button></div>
-      <div id="lvNoseRow" class="row lvBetween" hidden><span class="lab">On the nose, above the top</span>
-        <button id="lvNoseFewer" class="sk" aria-label="fewer lines on the nose"><span>−</span></button><b id="lvNose" class="teko"></b>
-        <button id="lvNoseMore" class="sk" aria-label="more lines on the nose"><span>+</span></button></div>
-      <div class="lnOpen">
-        <div class="row"><span class="lab">Name</span><input id="lvName" maxlength="40" autocomplete="off" spellcheck="false"></div>
-        <div class="tagButtons teko">
-          <button id="lvDelPt" class="sk" hidden><span>Take this point off</span></button>
-          <button id="lvUndo" class="sk" aria-disabled="true"><span>Undo</span></button>
-          <button id="lvDelete" class="sk"><span>Delete the level</span></button>
-        </div>
-      </div>
-      <button id="lvPaint" class="sk acc teko copyWide"><span>Show it on the car</span></button>
-      <p id="lvSaved" class="lnSaved"></p>
-      <button id="lvNew" class="sk teko copyWide"><span>Add a level</span></button>
     </aside>
   </section>
   <div id="status">Loading…</div>

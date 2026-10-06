@@ -28,8 +28,9 @@ game or the code goes into the code (a warning, a check, a docstring).
 - **Don't put words on a car the user didn't ask for.** Lettering has never come out well on this
   car's curves (the user, 2026-10-05: "The approach is always terrible"); write only words they ask
   for.
-- **Don't paint the guides, or spread a detail over the car by a rule.** The levels, the top's lines
-  and the seams are the painter's eyes on the car's curvature: they shape and place graphics. A line on
+- **Don't design from the guides, paint them, or spread a detail over the car by a rule.** Follow the
+  car's own flow, read from its shape (the user, 2026-10-06: "just follow the flow of the car. Without
+  needing guides"); a level, a top line or a seam is there when it's the line a graphic needs. A line on
   a skin needs a reason in the idea (some liveries use lines for mood; most have none). A detail goes a
   few at a time where it means something, in the car's own language (its own fasteners and seams), shown
   close up before there are more: bolts round every panel by a rule were "one of the biggest failures"

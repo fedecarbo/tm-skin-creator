@@ -609,3 +609,11 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   lines room's tool was meant): "Oh ok! Yes. That "The lines" tool didn't help at all. You can retire
   that". The drawing tool they like is the Lab's pen; it stays. Step D dropped; the lines room, its pins
   and the line tool behind it retired. Open: the pen's refinements, in the user's words.
+- The user, of the levels room: "Even the levels room was meant to define the levels, but I don't even
+  know if its actually necessary? My intentions to that tool was to sort of provide guidance for the AI
+  to understand how the car kind of flows but I don't want to add more complexity". Recommended keeping
+  the guides and retiring the room (question 12). The user: "Yeah, but what's important is that the AI
+  doesn't only exclusively use those guides ... what I expect for the AI is to just follow the flow of
+  the car. Without needing guides. Like if I ask the AI to build a car, it doesn't need to use one of the
+  guides". The levels room retired; the guides (car/levels.json, car/top_lines.json) stay, optional; a
+  design follows the car's own flow (RULES.md), and step E reads it from the car's shape.

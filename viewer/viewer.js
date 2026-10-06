@@ -6,8 +6,6 @@
 //                          or dresses step by step and hangs notes on (the Lab's stand,
 //                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
 //                          and lets the user draw on (pen, onStroke, drawings)
-//                          or draws the levels on (the Lab's levels room, viewer/lab-levels.js:
-//                          curves)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -491,8 +489,6 @@ async function loadLighting() {
 // ---- The car ----
 
 const parts = {};  // Skin, Details, Wheels, Glass -> mesh
-const curveGroup = new THREE.Group();  // the Lab's levels room: curves drawn on the body (viewer.curves)
-scene.add(curveGroup);
 
 async function loadMeshes() {
   const meta = await (await fetch('data/car.json')).json();
@@ -1912,22 +1908,6 @@ Object.assign(window.viewer, {
   mood(m) { setMood(m); },  // day or night, the camera left where it is
   views() {  // the game's cameras, as the viewer's own buttons name them
     return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
-  },
-  // The Lab's levels room (viewer/lab-levels.js): the levels drawn on the body as it moves them.
-  // curves: [{ key, points: [[x, y, z]] metres, colour, radius (metres), dim }], each drawn on the
-  // body as a thin tube through its points; the list replaces what was drawn (an empty one clears).
-  curves(list) {
-    for (const c of curveGroup.children) { c.geometry.dispose(); c.material.dispose(); }
-    curveGroup.clear();
-    for (const c of list) {
-      if (!c.points || c.points.length < 2) continue;
-      const path = new THREE.CatmullRomCurve3(c.points.map((p) => new THREE.Vector3(...p)), false, 'centripetal');
-      const geo = new THREE.TubeGeometry(path, Math.max(2, c.points.length), c.radius || 0.003, 6, false);
-      const mat = new THREE.MeshBasicMaterial({ color: c.colour || '#e8ff47', transparent: !!c.dim, opacity: c.dim ? 0.5 : 1 });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.name = c.key || '';
-      curveGroup.add(mesh);
-    }
   },
   // The stock car, for a Lab with no skin to show (it builds the car only when it dresses it).
   async stock() {
