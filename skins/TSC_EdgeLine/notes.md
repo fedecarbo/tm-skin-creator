@@ -25,3 +25,9 @@ tail's middle.
   the shoulder from z -14, across the tail's edge to the middle. Checked close up every few cm on the
   left: on the shadow's divide, smooth, no hook at the inlet, no jump at the sidepod's corner; across the
   tail's sharp edge the line wraps half onto the back face and looks thinner from above.
+- Notes 1 to 3 (user, 2026-10-06, the right side): "The transition between this part has a jagged line.
+  It just needs to follow straight" (the seam at the sidepod's back), "Same here." (the tail corner's
+  seam), "Why is this not reaching the edge?" (it stopped 3 to 4 cm short of the inlet's frame). The
+  shadow's edge is now fitted as one smooth curve (a knot every 6 cm), so it runs straight on where the
+  shading steps across a seam; it starts at z -12 (just ahead the divide turns round the sidepod's front
+  corner) and is carried on straight 3 cm under the frame (`Course.extended`). Checked at the three pins.

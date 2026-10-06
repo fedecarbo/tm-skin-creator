@@ -11,7 +11,9 @@ def design(s):
     s.clay()
     s.step("The edge", "A black line where the shading divides top from side, from each inlet back round the tail.",
            words=WORDS)
-    side = course.shoulder().between(-14, -154)                # behind the inlet to the tail corner
+    side = course.shoulder().between(-12, -154)                # from the inlet's frame to the tail corner
     tail = course.flow((30, 63, -158)).between(-154, -162)     # the tail's edge, from the corner to the middle
-    edge = course.shadow(side.then(tail))                     # where the shading divides top from side
+    # where the shading divides top from side, carried on under the inlet's frame: just ahead of it the
+    # divide turns round the sidepod's front corner
+    edge = course.shadow(side.then(tail)).extended(start=3)
     s.paint("body", "gloss black", zone=edge.mirrored().strip(0.6), across=True)

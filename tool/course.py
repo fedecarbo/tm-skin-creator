@@ -25,6 +25,7 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
                                              (on a loop: from the first to the second the way it runs)
     c.then(other)                            on along another course (joined straight where they don't meet)
     c.rounded(8)                             its corners rounded over 8 cm
+    c.extended(start=3)                      carried on straight 3 cm before its start (under a frame)
     c.mirrored()                             the same on both sides; c.reversed() the other way
     c.panels(3)                              cut at each seam between the body's panels it crosses, a piece per
                                              panel stopping 1.5 cm short of each edge it ends at (a seam, an
@@ -68,6 +69,7 @@ SHADE = 60.0   # degrees from facing up: where the body's shading divides its to
 # sees (the user, 2026-10-06: "the shadow divides the edge properly"); their stroke of the rear flank's edge ran
 # within 0.3 cm of this line (median; 0.6 cm for 90 %), the shoulder's crest 1.4 cm off it
 SHADE_REACH = 7.0  # cm from the guide that the shadow's line is looked for
+SHADE_KNOT = 6.0   # cm between the knots of the smooth curve the shadow's edge is fitted as
 SHADE_RUN = 4      # centimetres either side whose running median the line holds to
 SHADE_HOLD = 0.8   # cm from that running median a point may lie
 SHADE_PAIR = 0.6   # cm: two texels this close either side of the shadow's angle are neighbours (the bake's 2048² pitch is 0.2 to 0.3)
@@ -206,6 +208,17 @@ class Course:
         pts = _smooth(self.pts, cm, self.closed)
         pts, _, _ = carmap.load().project(pts, self.nrm)
         return Course(pts, f"{self.name} rounded over {cm:g} cm", None, self.closed, self.mirror)
+
+    def extended(self, start=0.0, end=0.0):
+        """Carried on straight past its ends, `start` cm before its first point and `end` cm after its last,
+        laid on the body: a line that runs on under a frame (an inlet's) rather than stopping short of it."""
+        from tool import carmap
+        n = int(round(start / STEP)), int(round(end / STEP))
+        before = self.pts[0] - self.tan[0] * STEP * np.arange(n[0], 0, -1)[:, None]
+        after = self.pts[-1] + self.tan[-1] * STEP * np.arange(1, n[1] + 1)[:, None]
+        pts = np.vstack([before, self.pts, after])
+        pts, _, _ = carmap.load().project(pts)
+        return Course(pts, f"{self.name} carried on", None, self.closed, self.mirror)
 
     def mirrored(self):
         """The same on both sides of the car."""
@@ -679,7 +692,7 @@ def shadow(guide, angle=SHADE, reach=SHADE_REACH):
     bake's normals), turns past `angle` degrees from facing up, so the shadow divides there: midway
     between neighbouring texels either side of it, which on a rounded edge straddle the line and on a
     sharp one (the tail's edge) the crease. Followed a centimetre at a time along the guide, never past
-    its ends, smoothed over two centimetres and laid on the body; the side the guide is on."""
+    its ends, fitted as one smooth curve and laid on the body; the side the guide is on."""
     from tool import bake, carmap
     right = float(np.mean(guide.pts[:, 0])) < 0
     g = guide.pts * (MIRROR if right else 1)
@@ -713,7 +726,13 @@ def shadow(guide, angle=SHADE, reach=SHADE_REACH):
     pts = np.array(pts)
     if len(pts) < 2:
         raise ValueError(f"no shadow line within {reach:g} cm of {guide.name}")
-    pts = _smooth(_resample(pts), 2.0)
+    # one smooth curve through them, a knot every SHADE_KNOT cm, so it runs straight on where the shading
+    # steps a millimetre or two across a seam between two panels (the user, 2026-10-06: "The transition between
+    # this part has a jagged line.  It just needs to follow straight")
+    t = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]
+    knots = list(np.arange(SHADE_KNOT, t[-1] - SHADE_KNOT / 2, SHADE_KNOT))
+    fs = [carmap._lsq(t, pts[:, i], knots) for i in range(3)]
+    pts = np.stack([f(np.arange(0.0, t[-1], STEP)) for f in fs], 1)
     pts = _smooth(carmap.load().project(pts)[0], 1.0)  # laid on a sharp edge, points fall either side of it
     c = Course(pts, f"the shadow's edge along {guide.name}", None, False, guide.mirror)
     return _flip(c) if right else c
