@@ -214,7 +214,7 @@ def export_uvmap():
 
 
 TEMPLATE = DATA / "template"
-TEMPLATE_VERSION = 3  # bump when export_template changes what it draws
+TEMPLATE_VERSION = 4  # bump when export_template changes what it draws
 TEMPLATE_KEY = {"mesh": (58, 58, 62), "outward": (255, 120, 20), "inward": (130, 80, 255), "crease": (240, 190, 0),
                 "opening": (225, 45, 45), "cut": (0, 160, 230)}  # the colours of the mesh, of its edges where the body
 # bends (meshlines.mesh: outward, a rounded edge; inward, an indentation) and of meshlines.template's kinds, as the
@@ -229,6 +229,8 @@ def export_template():
                               normals), the model's mesh (every edge of its triangles, coloured where the body bends
                               across it), its lines in their colours (TEMPLATE_KEY)
       template/<slot>.png     the car dressed in it: each map mid-grey clay, matte, with the same mesh and lines
+      template/<Set>_Mesh.png the same mesh and lines alone, clear between them (colour premultiplied by its alpha):
+                              what the Lab's Mesh button lays over any car's paint (viewer.js, addMesh)
       template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key"""
     from tool import meshlines, paintbox
     stamp = TEMPLATE / "template.json"
@@ -254,6 +256,10 @@ def export_template():
             pw, ph = paintbox.SIZES[tset]
             clay = Image.new("RGB", (2 * pw, 2 * ph), (150, 150, 148))  # mid grey: light clay washes out under the studio's light
             car[f"{tset}_B"] = np.asarray(_template_lines(clay, mesh, lines, 2 * pw / 4096, 255).resize((pw, ph), Image.LANCZOS))
+            over = _template_lines(Image.new("RGBA", (2 * pw, 2 * ph), (0, 0, 0, 0)), mesh, lines, 2 * pw / 4096, 170)
+            over = np.asarray(over.resize((pw, ph), Image.LANCZOS)).astype(np.uint16)
+            over[..., :3] = over[..., :3] * over[..., 3:] // 255  # premultiplied, so the GPU blends its edges cleanly
+            Image.fromarray(over.astype(np.uint8), "RGBA").save(TEMPLATE / f"{tset}_Mesh.png", compress_level=1)
             matte = np.zeros((8, 8, 2), np.uint8)
             matte[..., 0] = 235
             car[f"{tset}_R"] = matte
@@ -262,16 +268,18 @@ def export_template():
     stock = set(json.loads((STOCK / "stock.json").read_text()))
     urls = {slot: f"template/{slot}.png" if slot in own else f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK
             else None for slot in SLOTS}
-    _json(stamp, {"key": key, "textures": urls, "colours": {k: "#%02x%02x%02x" % c for k, c in TEMPLATE_KEY.items()}})
+    _json(stamp, {"key": key, "textures": urls, "colours": {k: "#%02x%02x%02x" % c for k, c in TEMPLATE_KEY.items()},
+                  "mesh": {tset: f"template/{tset}_Mesh.png" for tset in parts.BAKE_SIZE if tset != "Glass"}})
 
 
 def _template_lines(img, mesh, lines, scale, alpha):
     """The model's mesh (meshlines.mesh: every edge of its triangles, grey where the body is flat, turning to the bend's
     colour over BEND) and its lines (meshlines.template) drawn on a map's picture, the flat mesh at `alpha` and the
-    bends opaque; widths in pixels of a 4096 map, times scale."""
+    bends opaque (over an RGB picture, blended; on an RGBA one, written as they are); widths in pixels of a 4096 map,
+    times scale."""
     from PIL import ImageDraw
     w, h = img.size
-    dr = ImageDraw.Draw(img, "RGBA")
+    dr = ImageDraw.Draw(img, "RGBA")  # an RGB picture blends; an RGBA one takes each line's colour and alpha
     _, uv, bend = mesh
     xy = uv.astype(np.float64) * [w, -h] + [0, h]
     t = np.clip((np.abs(bend) - BEND[0]) / (BEND[1] - BEND[0]), 0, 1)

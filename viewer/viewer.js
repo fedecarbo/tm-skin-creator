@@ -5,7 +5,8 @@
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and hangs notes on (the Lab's stand,
 //                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
-//                          and lets the user draw on (pen, onStroke, drawings)
+//                          and lets the user draw on (pen, onStroke, drawings) and see the model's mesh
+//                          over the paint (mesh)
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
@@ -644,6 +645,55 @@ function addParts(material, sharedMap, surface) {
         }`);
   };
   material.customProgramCacheKey = () => 'parts';
+}
+
+// ---- The model's mesh over the paint (the Lab's Mesh button, embed only; the user, 2026-10-06: "Is there anyway
+// that this mesh can be toggled on or off when viewing a car?"): the template's mesh and lines alone (tool/view.py,
+// export_template: template/<Set>_Mesh.png, its colour premultiplied), laid over the paint, lit with it. Its grey
+// turns light over dark paint, so the flat mesh shows on any colour.
+const meshUniforms = { meshOn: { value: 0 } };
+const meshMaps = { Skin: { value: null }, Details: { value: null }, Wheels: { value: null } };
+let meshLoaded = null;  // the overlays loading or loaded (a promise of true, or of false when there's no template)
+
+function addMesh(material, set) {
+  const previous = material.onBeforeCompile;
+  const previousKey = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
+  material.onBeforeCompile = (shader) => {
+    if (previous) previous(shader);
+    Object.assign(shader.uniforms, { meshOn: meshUniforms.meshOn, meshMap: meshMaps[set] });
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
+        uniform float meshOn; uniform sampler2D meshMap;`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        if ( meshOn > 0.5 ) {
+          vec4 m = texture2D( meshMap, vMapUv );
+          vec3 c = m.rgb / max( m.a, 0.004 );
+          bool grey = max( c.r, max( c.g, c.b ) ) - min( c.r, min( c.g, c.b ) ) < 0.03;
+          if ( grey && dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) ) < 0.12 ) c = vec3( 0.55 );
+          diffuseColor.rgb = diffuseColor.rgb * ( 1.0 - m.a ) + c * m.a;
+        }`);
+  };
+  material.customProgramCacheKey = () => `${previousKey()}|mesh`;
+}
+
+async function showMesh(on) {
+  if (on && !meshLoaded) {
+    meshLoaded = (async () => {
+      const doc = await fetch('data/template/template.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      if (!doc || !doc.mesh) return false;
+      await Promise.all(Object.entries(doc.mesh).map(async ([set, url]) => {
+        const t = await textureLoader.loadAsync(`data/${url}?${doc.key}`);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = maxAniso;
+        meshMaps[set].value = t;
+      }));
+      return true;
+    })();
+  }
+  const ready = on ? await meshLoaded : true;
+  meshUniforms.meshOn.value = on && ready ? 1 : 0;
+  rouse();
+  return ready;
 }
 
 // ---- The game's number. The game writes the player's initials and number on two engine-cover
@@ -1552,6 +1602,7 @@ function makeMaterials(tex) {
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name], surfaceState[name]);
+  if (embed) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
   addPlate(skin);
   if (tex.Details_I) addDisplays(details);
   addWing(skin);
@@ -1881,6 +1932,8 @@ Object.assign(window.viewer, {
     canvas.style.cursor = penOn ? 'crosshair' : '';
   },
   onStroke: null,
+  // the model's mesh over the paint, on or off (addMesh); true once it shows, false when there's no template yet
+  mesh(on) { return showMesh(!!on); },
   // lines drawn on the car, the notes' drawings ([{ points: [[x, y, z]] metres, colour, dim }]): the
   // list replaces what was drawn, and the line just drawn with the pen
   drawings(list) {

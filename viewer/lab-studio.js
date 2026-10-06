@@ -5,7 +5,8 @@
 // part under it, the lines drawn (in the paint box's cm, the car's own: tool/notes.py), the view (a
 // click on its tag turns the car back to it) and a picture of what the user saw, in .notes/notes.json through the
 // viewer's server (tool/notes.py, /api/notes), and reaches Claude with the user's next message (or at
-// once, while Claude waits: tool.notes wait). Done, a note leaves the car and stays in the timeline
+// once, while Claude waits: tool.notes wait). Mesh lays the model's mesh over the paint (the viewer's mesh, from the
+// UV room's template), on or off. Done, a note leaves the car and stays in the timeline
 // beside it (lab-car.js), which also puts an option on the car to look at: its notes are that option's.
 //   show(name)    a skin on the car: the car itself, or one of its options
 //   look(note)    the car as the user saw it when they wrote the note
@@ -34,6 +35,7 @@ let writing = null;       // the note being written: { part, at, normal, view, p
 let partInfo = new Map(); // uvmap.json's parts by id, to name the part under a click
 let tags = null;          // lab-tags.js
 let pen = false;          // Draw: a drag on the car draws on it
+let meshOn = false;       // Mesh: the model's mesh over the paint
 let lift = 0;             // cm the viewer raises the car by, tyres on the floor (data/car.json)
 const SIMPLER = 0.1;      // cm: a drawn line's points kept where it bends more than this
 
@@ -218,6 +220,15 @@ function setPen(on) {
     : HINT;
 }
 
+async function setMesh(on) {
+  meshOn = on;
+  $('stMesh').setAttribute('aria-pressed', String(on));
+  if (stage && !(await stage.mesh(on)) && on) {  // no template built yet
+    meshOn = false;
+    $('stMesh').setAttribute('aria-pressed', 'false');
+  }
+}
+
 // What the user sees in the car's box, the note's dot drawn on, for Claude (a JPEG data: URL).
 async function notePicture(at, n) {
   const url = await stage.picture({ crop: 'inset' });
@@ -328,6 +339,7 @@ async function openSkin(name) {
       stage.onPick = startNote;
       stage.onStroke = drew;
       stage.pen(pen);
+      if (meshOn) stage.mesh(true);
     }
     framed();
   }
@@ -391,6 +403,7 @@ export async function open() {
   });
   HINT = $('stHint').textContent;
   $('stPen').addEventListener('click', () => setPen(!pen));
+  $('stMesh').addEventListener('click', () => setMesh(!meshOn));
   addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || $('roomStudio').hidden) return;
     if (writing) cancelNote();
