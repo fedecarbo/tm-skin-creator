@@ -13,14 +13,21 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **E. Structure for taste** (2026-10-06): built, waiting for the user's OK. `car/anatomy.md`, written
-  by `PY -m tool.carmap --describe` from the car's own shape and read before every design: the body's
-  lines (its creases and rolled edges, each with the corners where it turns, drawn in `car/map/flow.jpg`;
-  `course.flow` lays a marking along one), its flat rooms, what the chase cameras see, where a graphic
-  stops. The map's numbers moved to `car/map/tables.md`. `tool.sets open` says when a take is another
-  repainted. `SPOTS` stay as set: measured, the side, sidepod and deck spots lie within 10 cm of their
-  panels' biggest flat room, and a word moves to room anyway; regenerating them would move TSC_Snow's
-  RESCUE for nothing. Its worth shows on the user's next car.
+- **E. Structure for taste, from the mesh** (2026-10-06; the user agreed, for the next session: "Sure, I can do
+  that ... But I will do all of that with the next agent"). Two steps, each under the self-test, before their next car:
+  1. The line-guessing out of the tool: `course.flow` (the anatomy's traced lines, `carmap.flow_lines`),
+     `course.shadow`, the edge guide (`course.top_line("edge")`) and `course.shoulder` read the car through the
+     texture's texels and smooth the guess ("you are basically scribbling blindly everywhere"); the model's own lines
+     replace them (`meshlines.line`, `meshlines.strips`, `meshlines.picked`). TSC_EdgeLine and TSC_Endurance's navy
+     follow the edge guide: their lines move, shown to the user. The areas (`shapes.area`) split on the car map's
+     traced lines too: ask the user first. Open from before: the underside area's edge notched on the tail corners'
+     narrow back faces.
+  2. `car/anatomy.md` rewritten from the mesh (`PY -m tool.carmap --describe`, and `car/map/flow.jpg`): the model's
+     own lines in place of the traced ones; its flat rooms and where a graphic stops kept; the chase camera out (the
+     user: "make sure to change the chase camera because I don't think that's relevant. In a way, for designing a good
+     car. Doesn't really matter how I see the car, it should just be properly designed everywhere"): its section in
+     the anatomy, the share the driving camera sees in show's report, and the skill's mention of both.
+  `SPOTS` stay as set (measured within 10 cm of their panels' biggest flat room).
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.
@@ -44,10 +51,6 @@ more it no longer makes).
 
 ## The tool
 
-- **Lines read from the texture** (2026-10-06): `course.shadow`, the edge guide (`course.top_line("edge")`, which
-  TSC_EdgeLine and TSC_Endurance's navy follow) and the anatomy's traced lines read the car through the texture's
-  texels and smooth the guess ("you are basically scribbling blindly everywhere"); they go once G covers them.
-  Open: the underside area's edge notched on the tail corners' narrow back faces (the car map's lower line).
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks
