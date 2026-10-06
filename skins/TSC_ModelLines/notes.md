@@ -56,3 +56,8 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   the trims on both sides. Measured on the texture: the black line is 0.3 cm each side of the panel line; the panel
   line is a groove 0.36 cm wide and the line sits on its inner wall, so it covers all but the groove's last half
   millimetre on the body shell's side. Shown in the Lab.
+- Note 1 (user, 2026-10-06, the left sidepod's rear edge): "Where is this line coming from, I've seen it before and
+  its wrong". It was the sidepod's rear edge from set 1, the model's line where the shading is halfway along the car
+  map's traced line: 1.5 cm in from the sidepod panel's own edge (the template's crisp line where the panel turns
+  under). Redrawn on that edge (`meshlines.line`, up the panel's back and along its foot), both sides; checked from
+  the note's camera and close up on both sides: on the edge all along.
