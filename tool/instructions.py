@@ -4,8 +4,8 @@ fails the self-test, not a session that trusts the instructions.
     python -m tool.instructions     prints what's missing, or one line: all present
 
 The self-test runs it on the working tree. The instructions are what a session reads: CLAUDE.md,
-RULES.md, the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car map's words
-(car/anatomy.md, car/map/tables.md), and the hooks in .claude/settings.json. What each names, in backticks:
+RULES.md, the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car in words
+(car/anatomy.md), and the hooks in .claude/settings.json. What each names, in backticks:
 
 - a command (`PY -m tool.snap <name> --close`, `tool.notes say`): its module, and the word after
   it and every flag as strings in the module's code. A flag alone (`--before`), or a word and what
@@ -31,7 +31,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 READ = ("CLAUDE.md", "RULES.md", "IMPROVEMENTS.md", ".claude/rules/*.md", ".claude/skills/*/*.md",
-        ".claude/agents/*.md", "car/anatomy.md", "car/map/tables.md")
+        ".claude/agents/*.md", "car/anatomy.md")
 CODE = ("tool/*.py", "viewer/*.js", "viewer/*.html")
 FILE = re.compile(r"\.(?:md|py|js|json|html|png|jpg|txt|zip|tga|lock|rar|css)$")
 SPAN = re.compile(r"`([^`]+)`")

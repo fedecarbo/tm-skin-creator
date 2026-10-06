@@ -31,7 +31,7 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
     c.strip(1.0)                             a strip 1 cm wide along it, its ends square
     c.inked(0.6)                             the same drawn on the flat texture, one smooth curve per piece of it
-    c.inked_edge(shapes.area("top"))         a zone whose edge is moved onto the course, drawn the same way
+    c.inked_edge(shapes.below(26))           a zone whose edge is moved onto the course, drawn the same way
     c.dashes(5, gap=3, width=1)              dashes 5 cm long with 3 cm gaps, a whole dash at each end
     c.dashes(2.5, width=5, slant=45)         stripes across a 5 cm strip, slanted 45 degrees: hazard tape
     c.blocks(5, 2.5)                         two rows of blocks 5 cm long and 2.5 high, alternating: block tape
@@ -64,14 +64,33 @@ OFF = 3.0      # cm: a stroke's point further than this from the body is dropped
 MIRROR = np.array([-1.0, 1.0, 1.0])
 INK_KNOT = 8.0     # cm between the knots of the curve an inked strip follows on each piece of the flat texture
 INK_REACH = 10.0   # cm either side of a course an inked edge moves the zone's edge across: all the way to the zone's own
-# edge (area("top") stops up to 10 cm from the shoulder's own line on the flat texture; at 4 a sliver stayed unpainted
-# by the inlet's frame, the user, 2026-10-06: "There's a clear gap that is not painted here")
+# edge (at 4 a sliver stayed unpainted by the inlet's frame, the user, 2026-10-06: "There's a clear gap that is not
+# painted here")
 INK_GAP = 4        # course points (a centimetre) a run on one piece may skip and still be one run
 OFFSET_KNOT = 6.0  # cm along a course between the knots of the smooth curve a line beside it is drawn as
 FOLD = 45.0        # degrees from a course's own facing: past its end, where the surface has turned this far is the fold
 FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
 INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
 # the body turns in to an inlet's frame) takes the nearest inked texel's side within this
+
+
+def _lsq(t, v, knots):
+    """v(t) as a cubic least-squares B-spline with interior knots `knots` (a straight polynomial
+    when there are too few points for the knots)."""
+    from scipy.interpolate import make_lsq_spline
+    t, v = np.asarray(t, float), np.asarray(v, float)
+    kept, prev = [], t[0]
+    for k in knots:
+        if t[0] + 1e-6 < k < t[-1] - 1e-6 and ((t >= prev) & (t < k)).any():  # a knot interval with no point makes the fit singular
+            kept.append(k)
+            prev = k
+    knots = kept if not kept or ((t >= kept[-1]) & (t <= t[-1])).any() else kept[:-1]
+    if knots and len(t) >= len(knots) + 4:
+        try:
+            return make_lsq_spline(t, v, np.r_[[t[0]] * 4, knots, [t[-1]] * 4], k=3)
+        except ValueError:
+            pass
+    return np.poly1d(np.polyfit(t, v, max(1, min(3, (len(t) - 1) // 4))))  # a short run: a straight line or a gentle bend
 
 
 def _resample(pts, step=STEP, closed=False):
@@ -235,7 +254,7 @@ class Course:
             L /= np.maximum(np.linalg.norm(L, axis=1, keepdims=True), 1e-9)
             P, N, _ = m.project(P + (cm / n) * L, N)
         knots = list(np.arange(OFFSET_KNOT, self.length - OFFSET_KNOT / 2, OFFSET_KNOT))
-        pts = np.stack([carmap._lsq(self.s, P[:, k], knots)(self.s) for k in range(3)], 1)
+        pts = np.stack([_lsq(self.s, P[:, k], knots)(self.s) for k in range(3)], 1)
         pts = np.array([meshlines._closest(p)[1] for p in pts])  # on the surface itself (a triangle's plane strays off it)
         return Course(pts, f"{self.name}, {abs(cm):g} cm to its {'left' if cm > 0 else 'right'}", None, False, self.mirror)
 
@@ -367,7 +386,7 @@ class Course:
                         continue
                     t = s[run]
                     knots = list(np.arange(t[0] + INK_KNOT, t[-1] - INK_KNOT / 2, INK_KNOT))
-                    fr, fc = (carmap._lsq(t, v[run], knots) for v in (prow, pcol))
+                    fr, fc = (_lsq(t, v[run], knots) for v in (prow, pcol))
                     line = np.stack([fr(np.arange(t[0], t[-1] + 1e-9, 0.05)), fc(np.arange(t[0], t[-1] + 1e-9, 0.05))], 1)
                     tan = np.gradient(line, axis=0)
                     tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-9)
@@ -465,10 +484,10 @@ class Course:
 
     def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096, to_fold=None):
         """`zone` with its edge moved onto the course where it runs within `reach` cm of it, drawn on the
-        flat texture as inked() is, so a colour stops on the course in one smooth curve: shapes.area("top")
-        cut along the shoulder's own line (meshlines.picked). On each piece of the texture the side of the
-        course the zone covers more of within `reach` takes it, the other side not (within a centimetre and a
-        half the zone can cover neither: area("top") stops 2 to 4.5 cm above the shoulder's line on the sidepods);
+        flat texture as inked() is, so a colour stops on the course in one smooth curve: shapes.below(26) cut
+        along a line beside the body's bottom edge (meshlines.line(...).offset(14)). On each piece of the texture
+        the side of the course the zone covers more of within `reach` takes it, the other side not (within a
+        centimetre and a half the zone can cover neither);
         past the course's own ends and further than `reach` from it, the zone as it is. `to_fold` as inked()'s:
         past that end the course's side still decides, up to the fold. A texel on a piece the course doesn't cross,
         within INK_BLEED cm of one it does, takes that one's side (the user, 2026-10-06, of a silver sliver where

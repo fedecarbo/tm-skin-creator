@@ -22,32 +22,12 @@ def covered(bake):
 
 
 
-def project(bake, image, centre, right, up, width_cm, facing, min_facing=0.35, where=None):
-    """Project a flat image onto the car, like a decal.
-
-    centre: 3D point (cm) where the image's centre lands. right/up: unit 3D directions of the
-    image's x and y axes on the car. width_cm: the image's width on the car. facing: the
-    direction the decal is seen from (towards the viewer); texels whose normal points less
-    than min_facing that way are left alone. where: optional extra texel mask.
-    Returns a float mask (h, w): the image's value at each texel, 0 elsewhere.
-    """
-    ih, iw = image.shape
-    cm_per_px = width_cm / iw
-    rel = bake["position"] - np.asarray(centre, np.float32)
-    s = rel @ np.asarray(right, np.float32) / cm_per_px + iw / 2
-    t = ih / 2 - rel @ np.asarray(up, np.float32) / cm_per_px
-    ok = covered(bake) & ((bake["normal"] @ np.asarray(facing, np.float32)) >= min_facing)
-    ok &= (s >= 0) & (s < iw) & (t >= 0) & (t < ih)
-    if where is not None:
-        ok &= where
-    out = np.zeros(ok.shape, np.float32)
-    out[ok] = image[t[ok].astype(int), s[ok].astype(int)]
-    return out
-
-
 def project_near(bake, image, centre, right, up, width_cm, facing, min_facing=0.3, cell_cm=1.5, tol_cm=10.0):
-    """Like project(), but only onto the surface nearest the viewer: a decal crosses every panel
-    in its footprint and never reaches the far side of the car or anything behind a panel.
+    """A flat image projected onto the car like a decal, only onto the surface nearest the viewer:
+    centre, the 3D point (cm) where its centre lands; right and up, the unit directions of its x and
+    y on the car; width_cm its width there; facing, the direction it's seen from (texels facing
+    less than min_facing that way are left alone). It crosses every panel in its footprint and
+    never reaches the far side of the car or anything behind a panel.
     Returns (values (h, w), info): info["landed"] is the share of the image's opaque pixels that
     reached a texel, so the caller can say when part of a picture fell into a gap or off an
     edge; info["step_cm"] how far the surface under it departs from flat (a fold or a step)."""
@@ -127,10 +107,3 @@ def project_points(pos, nrm, cov, image, centre, right, up, width_cm, facing, mi
         resid = depth[keep] - A @ coef
         step = float(np.percentile(resid, 97) - np.percentile(resid, 3))
     return out, {"landed": landed, "step_cm": step}
-
-
-
-def mix(base, colour, mask):
-    """Blend a colour into an (h, w, c) float image by a (h, w) mask."""
-    m = np.clip(mask, 0, 1)[..., None]
-    return base * (1 - m) + np.asarray(colour, np.float32) * m

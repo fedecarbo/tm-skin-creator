@@ -61,7 +61,6 @@ SHINES = {
 # says otherwise: "measured" (a real metal's measured colour from Physically Based,
 # physicallybased.info, CC0, then set by eye beside the rest) or "eye" (set by eye in the viewer,
 # not yet seen in the game). ----
-GREY = (0.5, 0.5, 0.52)
 LIBRARY = {
     # paint
     "gloss": SHINES["gloss"],

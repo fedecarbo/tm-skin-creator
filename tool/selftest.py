@@ -45,8 +45,8 @@ SNAP = ("TSC_CMYK_EndsInK",)
 HOME = paths.WORK / "selftest"
 OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none rebuilds for them
 
-# The tour: clay, steps, a fade, zones by facing and height, a noise pattern, wear, the car map's
-# areas, air, lines and edges, grass, a blob, a decal, a scatter, a print,
+# The tour: clay, steps, a fade, zones by facing and height, a noise pattern, wear, the flanks, the
+# car map's open air and length, a drawn line, grass, a blob, a decal, a scatter, a print,
 # lettering, marks laid on a panel and across them, a band kept off a part painted by name, the
 # model's lines (a band beside one, ticks along a rounded edge's, tape beside a picked line panel by
 # panel, a panel's trim), stripes, checks, courses (a seam's dashes, a panel edge's strip, a drawn
@@ -74,11 +74,9 @@ def tour(s):
     s.paint("body", "splatter", palette=["keep", "hot pink", "lemon"], scale=9, zone=shapes.along(0.6, 0.8))
     s.paint("nose fin", "satin", colour="#e02020", zone=shapes.stripe(4))
     s.wear(under, fade=0.3, chips=0.08, scrapes=0.05, clearcoat=0.2)
-    s.step("The map", "The car map's areas, its air, its lines, grass and a blob.")
-    s.paint("body", "satin", colour="#f4f2ec", zone=shapes.area("top") & shapes.outside(0.4) & shapes.along(0.2, 0.4))
-    s.paint("body", "satin", colour="#9fc3e6", zone=shapes.streamlines(shapes.front_rake(np.arange(3, 84, 12)), 1.2))
-    s.paint("body", "satin", colour="#d0208e", zone=shapes.streamlines(shapes.rake(150, [1.35]), 1.2))
-    s.paint("body", "satin", colour="#1f8f3a", zone=shapes.line("shoulder", 1.6))
+    s.step("The map", "The flanks on the outer body, a line through points, grass and a blob.")
+    s.paint("body", "satin", colour="#f4f2ec", zone=shapes.sides(0.5) & shapes.outside(0.4) & shapes.along(0.2, 0.4))
+    s.paint("body", "satin", colour="#9fc3e6", zone=shapes.polyline([[(86.0, 41.6, -6.1), (86.9, 42.0, -20.0), (86.8, 42.0, -35.0)]], 1.2))
     s.paint("body", "satin", colour="#2e7d32", zone=shapes.grass(base=6, height=(18, 30), every=3.0, seed=7))
     s.paint("body", "gloss", colour="#111111", zone=shapes.blob((30, 0, 60), 9, seed=1))
     s.step("Pictures", "A decal, a scatter, a print, lettering and marks.")

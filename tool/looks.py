@@ -327,15 +327,6 @@ def sheen_grain(pos, nrm, colour, finish, params):
     return {"colour": tint(colour, const(len(pos), 1.0)), "roughness": const(len(pos), finish.roughness) - params.get("amount", 0.25) * speck}
 
 
-@look("cast")
-def cast(pos, nrm, colour, finish, params):
-    seed = params.get("seed", 0)
-    g = noise.fbm(pos * 2, 3, seed)
-    pits = smoothstep(0.62, 0.7, noise.value(pos * 4 + 3, seed + 2))
-    v = (0.85 + 0.3 * g) * (1 - 0.35 * pits)
-    return {"colour": tint(colour, v), "roughness": const(len(pos), finish.roughness) + 0.15 * (g - 0.5) + 0.2 * pits}
-
-
 # ---- paints ----
 
 
@@ -412,20 +403,6 @@ def faded(pos, nrm, colour, finish, params):
     grey = np.array([0.6, 0.6, 0.58], np.float32) * 0.5 + colour * 0.5
     pale = mix(colour, grey, t)
     return {"colour": pale, "roughness": const(len(pos), finish.roughness) + 0.2 * t}
-
-
-@look("rusted")
-def rusted(pos, nrm, colour, finish, params):
-    seed = params.get("seed", 0)
-    amt = _amount(params)
-    f = noise.fbm(pos / 6, 5, seed)
-    thr = 0.62 - 0.2 * amt
-    rust = smoothstep(thr - 0.06, thr + 0.06, f)
-    tone = noise.fbm(pos / 2, 3, seed + 5)
-    rust_col = mix(np.array([0.42, 0.18, 0.07], np.float32), np.array([0.7, 0.35, 0.12], np.float32), tone)
-    n = len(pos)
-    return {"colour": mix(colour, rust_col, rust), "roughness": const(n, finish.roughness) * (1 - rust) + 0.92 * rust,
-            "metalness": const(n, finish.metalness) * (1 - rust), "varnish": const(n, finish.varnish) * (1 - rust)}
 
 
 @look("greasy")

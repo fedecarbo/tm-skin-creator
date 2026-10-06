@@ -101,12 +101,10 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   photographs the library (`tool/tyresheet.py`).
 - A marking along the car's own lines or the user's stroke is a course (`tool/course.py`, its
   docstring is the key: the line's points every 0.25 cm, zones measured square to it).
-- The car map (`tool/carmap.py`; in words `car/anatomy.md` and `car/map/tables.md`, its pictures in
-  `car/map/`) rebuilds itself when the mesh changes (`PY -m tool.carmap`, 30 s). After a change to its
-  code: rebuild, `tool.carmap --describe` again (on the Mac, whose map the pages hold: the two
-  computers trace different ridges, `IMPROVEMENTS.md`) and retake the pictures in `car/map/`
-  (`tool.snap <name> --body` of a car painted by the map's zones; `model.jpg` is the template's car,
-  `tool.snap Template --body`).
+- The car map (`tool/carmap.py`: the body as one surface, the open air each spot sees) rebuilds itself
+  when the mesh changes (`PY -m tool.carmap`, a minute). The car in words, `car/anatomy.md`, comes from
+  the model's lines and the map: after a change to either, `tool.carmap --describe` again, and retake
+  its picture `car/map/model.jpg` (`tool.snap Template --body`).
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

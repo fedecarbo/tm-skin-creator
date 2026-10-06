@@ -47,8 +47,6 @@ game: install from the Windows PC after a push.
   `borrow("TSC_X")` (`tool.skin`) builds on another skin's design, only when the user names it.
 - Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
   its family in `finishes.CATALOGUE`.
-- Read only when a design needs it: `car/map/tables.md` and its pictures (the map in numbers, for
-  exact positions).
 
 ## What the car allows
 

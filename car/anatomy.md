@@ -1,6 +1,6 @@
 # The car's anatomy
 
-Written by `python -m tool.carmap --describe` from the car's own shape (2026-10-06): how the body is built, where it's calm and where a graphic stops. Read it before a design, and follow these lines and rooms where the idea needs them, never by rule. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162). The map in numbers (each slice, piece, opening and panel): `car/map/tables.md`.
+Written by `python -m tool.carmap --describe` from the car's own shape (2026-10-07): how the body is built, where it's calm and where a graphic stops. Read it before a design, and follow these lines and rooms where the idea needs them, never by rule. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
 
 ## How the body is built
 

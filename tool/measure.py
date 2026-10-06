@@ -13,11 +13,11 @@ For a paint that runs along the car (RUN times longer than it's high: a band, a 
     the back), until the surface stops: the body's end, or an opening. An end SHORT cm or more
     short names what ends it: one of the zone's parts (shapes.Zone.parts) leaving the rest out, or
     a later call covering it (Canvas.owner), unless that call is laid on it (ON of it within the
-    paint's zone: a pattern, checks on a band, stripes on a tape). Only a reading of the car (READINGS: the map's areas,
-    its open air, its lines) makes a shortfall: a length, a height, a box or a pattern ends a paint
+    paint's zone: a pattern, checks on a band, stripes on a tape). Only a reading of the car (READINGS: its open air, the
+    way it faces, a named region) makes a shortfall: a length, a height, a box or a pattern ends a paint
     where the design wrote it. Past an opening the body at the paint's height can resume (behind
     the rear wheel, the farthest back of the side): the first stretch of it within FAR cm, bare, is
-    said too, unless the design ends the paint there (TSC_Snow's band ends at the sidepods);
+    said too, unless the design ends the paint there (a band that ends at the sidepods);
   - the gaps: stretches of GAP cm or more inside the run where the body is there at the paint's
     height and less than half of it shows the paint, with what left them out or covered them.
 A line both sides share is said once; the two sides' own lines show where they differ.
@@ -52,7 +52,7 @@ RUN = 3  # a paint runs along the car when it's at least this many times longer 
 FACING = 0.25  # the bare body followed past an end faces within 75 degrees of the paint's end: a band
 # along the side runs on round the rounded corner to where the surface faces the back
 ON = 0.95  # a later paint with this share of it on a paint's zone is laid on it, a pattern: what it covers is as written
-READINGS = ("area", "outside", "near", "line", "region", "sides", "facing")  # zones whose edges are the car's,
+READINGS = ("outside", "region", "sides", "facing")  # zones whose edges are the car's,
 # read off its mesh: the rest (a length, a height, a box, a pattern) end a paint where the design wrote it
 
 

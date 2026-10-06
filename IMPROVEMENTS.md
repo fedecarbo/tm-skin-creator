@@ -10,8 +10,8 @@ and checked by the self-test; ideas are named in plain words.
 ## Next: intent to result
 
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
-by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
-more it no longer makes).
+by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 4 of 4 today; nine
+more it no longer makes, two cars it can't repaint, built on what the tool retired).
 
 - **The mesh is the guide** (2026-10-06, the user: "I think we can retire the guides and the mesh somehow will be
   improved, but I guess that would be the new "guides""). Built, waiting for the user's OK: the height lines drawn on 4
@@ -19,7 +19,10 @@ more it no longer makes).
   one whole or a line beside one (`Course.offset`), and the paint report says a paint's height in cm; the self-test's
   tour paints on the model's lines (a band beside the body's bottom edge, ticks along a rounded edge's line, tape beside
   a picked line, a panel's trim). The Rescue car is take D, the mesh as the guide (the user: "let's just have the mesh as the
-  source"). Next: "the mesh somehow will be improved", from their words.
+  source ... let's just start cleaning things up"). Cleaned up with it: the car map keeps only what it reads off the
+  mesh (the open air, which way the body faces, the body under a point); its traced lines and areas, the air's flow,
+  its checker and its pictures are out, and code nothing called. Next: "the mesh somehow will be improved", from their
+  words.
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.
@@ -37,20 +40,15 @@ more it no longer makes).
   `meshlines.panel` (filled to its lines, or a trim). The Lab's Mesh button lays the mesh over any car, and with it
   Draw picks a line by points where the mesh's lines cross (`meshlines.picked`, one smooth curve through them, the
   user's pick). The user, 2026-10-06: "Its ok, there's improvements to make but for now let's keep it that way until I
-  actually start building a car". Next: their improvements, when they start a car. Not: a line from the car map's traced
-  lines ("random lines ... no meaning whatsoever"), nor from a light rule alone (the 60-degree divide wandered in a
-  zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm groove, not its middle.
+  actually start building a car". Next: their improvements, when they start a car. Not: a line from a light rule alone (the
+  60-degree divide wandered in a zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm
+  groove, not its middle.
 
 ## The tool
 
-- **The areas split on the car map's traced lines** (2026-10-06): `shapes.area` ("top", "sides", "under") divides the
-  body on the car map's lines, not the model's, and the underside's edge is notched on the tail corners' narrow back
-  faces. Ask the user first: it moves every car painted by area.
-- **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
-  lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
-  now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks
-  (`tool/checks.py`) and a mark's room (`tool/marks.py`, the open air) read the map too and haven't run
-  on the PC yet: a mark could land a texel or two apart on the two computers.
+- **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
+  is worked out on each computer (numpy and BLAS); the checks (`tool/checks.py`) and a mark's room
+  (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
 - **A mark's `at` seen along an axis** (2026-10-05, the agent's test car): `(x, None, z)` takes the panel's
   nearest texel in x and z, which can be its underside, with no note that it faces away; a shrunk mark
   that fills its room hugs the panel's edges, which no note says; placing a tight mark takes a paint per
@@ -87,10 +85,6 @@ more it no longer makes).
   idea: open look-alikes).
 - **The materials and the UV map, in a new way** (2026-10-05): the user's to describe (2026-10-02);
   start from their words.
-- **The car map against well-made skins** (2026-10-05, the user's idea): 11 skins the user downloaded
-  (2026-10-04; the Mac only, git-ignored). Lay their body textures' sharp colour edges on the car and
-  compare them with the guides; fix the map where they agree it's off, in pictures. For checking only:
-  they never shape a design. Some use BC5U and BC4U headers, which `dds.read` doesn't take yet.
 
 ## The viewer
 

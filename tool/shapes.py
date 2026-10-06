@@ -26,18 +26,12 @@ because it's drawn in 3D, not on the flat texture.
     shapes.grass(base=10)                  blades of grass rising up the sides; line=0.6 for ink strokes
     shapes.blob((x, 0, z), 12)             a spot that isn't quite round, seen from above (axis="x": from the side)
     shapes.region("nose")                  a named region of the body (REGIONS)
-    shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
     shapes.noisy(zone, amount=6)           a zone's edge roughened: torn, ragged, hand-painted
-  The car map's (tool/carmap.py, car/anatomy.md: they follow the body's own shape):
-    shapes.area("top")                     the top between the shoulders; "sides", "under"; wrap=6: the
-                                           top's colour over the shoulder's whole roll
+    shapes.sides(0.5)                      the flanks: surfaces facing left or right
+    shapes.polyline([points, ...], 1.5)    a line 1.5 cm wide along points on the body
+  The car map's (tool/carmap.py: the body's own open air and length):
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
-    shapes.line("fold", 1.5)               a line along the map's own "fold", "opening", "join", "shoulder",
-                                           "lower" (it shows the map; lines along the car's own are courses)
-    shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
-    shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
-    shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
   Markings along the car's own lines (tool/course.py: a strip, dashes, ticks along one of the
   model's lines, a seam, a panel's edge or the line the user drew, a band beside one) and the
   model's own panels (tool/meshlines.py) give zones like these.
@@ -431,135 +425,11 @@ def region(name):
     return REGIONS[key]()
 
 
-# ---- Seams: the edges of the body's panels, found on the mesh ----
-_SEAMS = {}
-
-
-def _seam_points(spacing=0.4):
-    """Points along the body mesh's edges, by kind: "border" (between two named parts), "open"
-    (an edge with one triangle: the cockpit opening, wheel arches, the wing's edges) and
-    "crease" (a fold between two triangles). Each kind is (points (n, 3), fold angle in degrees
-    (n), the part instance ids on each side (n, 2), -1 for none). Cached per run."""
-    if _SEAMS:
-        return _SEAMS
-    from tool import fbx, parts
-    P = parts.load()
-    m = fbx.meshes()["Skin_01"]
-    tv, pos = m["tri_vertex"], m["positions"].astype(np.float64)
-    T = len(tv)
-    off = P.mesh_offset["Skin"]
-    tri_part = P.tri_part[off:off + T]
-    # the exporter split the mesh at every hard edge and UV seam, so weld vertices by position
-    _, inv = np.unique(np.round(pos, 2), axis=0, return_inverse=True)
-    wt = inv.reshape(-1)[tv]
-    e = np.concatenate([wt[:, [0, 1]], wt[:, [1, 2]], wt[:, [2, 0]]])
-    e.sort(1)
-    ends = np.concatenate([tv[:, [0, 1]], tv[:, [1, 2]], tv[:, [2, 0]]])  # original vertex ids, for positions
-    tid = np.tile(np.arange(T), 3)
-    key = e[:, 0].astype(np.int64) * (int(inv.max()) + 1) + e[:, 1]
-    order = np.argsort(key, kind="stable")
-    key, tid, ends = key[order], tid[order], ends[order]
-    _, start, cnt = np.unique(key, return_index=True, return_counts=True)
-    p = pos[tv]
-    n = np.cross(p[:, 1] - p[:, 0], p[:, 2] - p[:, 0])
-    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
-    kinds = {"border": [], "open": [], "crease": []}
-    for s, c in zip(start, cnt):
-        ts = tid[s:s + c]
-        a, b = pos[ends[s, 0]], pos[ends[s, 1]]
-        ids = np.unique(tri_part[ts])
-        if c == 1:
-            kinds["open"].append((a, b, 0.0, (int(ids[0]), -1)))
-        elif len(ids) > 1:
-            kinds["border"].append((a, b, 0.0, (int(ids[0]), int(ids[1]))))
-        elif c == 2:
-            d = np.degrees(np.arccos(np.clip(np.dot(n[ts[0]], n[ts[1]]), -1, 1)))
-            kinds["crease"].append((a, b, float(d), (int(ids[0]), int(ids[0]))))
-    for kind, segs in kinds.items():
-        pts, ang, pp = [], [], []
-        for a, b, d, ids in segs:
-            k = max(2, int(np.ceil(np.linalg.norm(b - a) / spacing)) + 1)
-            t = np.linspace(0, 1, k)[:, None]
-            pts.append(a + (b - a) * t)
-            ang.append(np.full(k, d))
-            pp.append(np.tile(ids, (k, 1)))
-        _SEAMS[kind] = ((np.concatenate(pts).astype(np.float32), np.concatenate(ang), np.concatenate(pp))
-                        if pts else (np.zeros((0, 3), np.float32), np.zeros(0), np.zeros((0, 2), int)))
-    return _SEAMS
-
-
-def seams(width=1.0, kinds=("border",), crease=60.0, parts=None, exclude=(), soft=0.3):
-    """A line of `width` cm along the seams of the body: the borders between body panels
-    ("border"), the free edges of panels ("open": the cockpit opening, the wings' edges) and
-    sharp folds ("crease", steeper than `crease` degrees). `parts`: only seams between these
-    parts (names, or assemblies); `exclude`: never these. Drawn in 3D, so it follows the panel
-    gaps exactly; the edge is crisp (`soft` 0.3 cm) so a thin line stays a line."""
-    from scipy.spatial import cKDTree
-    from tool import parts as parts_mod
-    sp = _seam_points()
-    P = parts_mod.load()
-    def ids_of(name):  # a part by its exact name; an assembly's name takes all its parts
-        exact = [i for i, inst in enumerate(P.instances) if inst["name"] == name]
-        return exact or P.select(name)
-    allowed = None
-    if parts is not None:
-        allowed = set()
-        for name in parts:
-            allowed.update(ids_of(name))
-    banned = set()
-    for name in exclude:
-        banned.update(ids_of(name))
-    chosen = []
-    for kind in kinds:
-        pts, ang, pp = sp[kind]
-        keep = ang >= crease if kind == "crease" else np.ones(len(pts), bool)
-        if allowed is not None:
-            keep &= np.array([all(i in allowed for i in row if i >= 0) for row in pp]) if len(pp) else keep
-        if banned:
-            keep &= ~np.array([any(i in banned for i in row) for row in pp]) if len(pp) else keep
-        chosen.append(pts[keep])
-    pts = np.concatenate(chosen) if chosen else np.zeros((0, 3), np.float32)
-    if not len(pts):
-        return Zone(lambda p, n: np.zeros(len(p), np.float32))
-    tree = cKDTree(pts)
-
-    def dist(p, n):
-        d, _ = tree.query(p.astype(np.float32), workers=-1)
-        return width / 2 - d
-
-    def grad(p, n):
-        _, i = tree.query(p.astype(np.float32), workers=-1)
-        r = p - pts[i]
-        return r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)
-    return field(dist, soft, grad)
-
-
-# ---- The car map (tool/carmap.py): the body's own areas, lines and positions ----
+# ---- The car map (tool/carmap.py): the body's own open air and positions ----
 
 def _map():
     from tool import carmap
     return carmap.load()
-
-
-AREAS = ("top", "sides", "under")
-
-
-def area(name, soft=SOFT, wrap=0.0):
-    """One of the body's areas, split along the car's own lines (the car map): "top" (between the
-    shoulders), "sides" (from the shoulder down to where the side turns under), "under". Edges
-    crisp, on the fitted lines. The body has no front or back face (car/map/tables.md): where the air
-    hits is `hit`. wrap: the cm the top reaches on past the shoulder, down the side (the sides start
-    as much lower). The shoulder is the crest of a rolled edge, 7 to 9 cm round, so a split on it lands
-    halfway round the curve; the roll goes flat about 6 cm down the side, and wrap=6 takes the top's
-    colour over the whole roll (the user, 2026-10-06, of a split on the crest: "Is this deliberate")."""
-    if name not in AREAS:
-        raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)} (the body has no front or back face: car/map/tables.md)")
-
-    def dist(p, n):
-        m = _map()
-        a1, a2 = m.across_level(p, 1) - wrap, m.across_level(p, 2)
-        return {"top": np.minimum(-a1, -a2), "sides": np.minimum(a1, -a2), "under": a2}[name]
-    return field(dist, soft)
 
 
 def outside(at_least=0.4, soft=SOFT):
@@ -573,46 +443,24 @@ def along(a0, a1, soft=SOFT):
     return field(lambda p, n: np.minimum(_map().level("along", a0, p, n), -_map().level("along", a1, p, n)), soft)
 
 
-def near(kind, reach, soft=SOFT):
-    """Within `reach` cm of one of the car's lines (the car map's LINES: "fold", "opening", "join",
-    "shoulder", "lower"). ~near(...) keeps a graphic clear of them."""
-    def dist(p, n):
-        m = _map()
-        if kind == "shoulder":
-            d = m.mark_distance(p, 1)
-        elif kind == "lower":
-            d = m.mark_distance(p, 2)
-        else:
-            d = m.distance(kind, p)
-        return reach - d
-    return field(dist, soft)
-
-
-def line(kind, width=1.0, soft=SOFT):
-    """A line `width` cm wide along one of the car map's own lines (see near), to show the map's
-    lines. "shoulder" and "lower" are fitted off the mesh; they cut the map's
-    areas and aren't for drawing a design: a line along the car's own lines is a course (tool/course.py)."""
-    return near(kind, width / 2, soft)
-
-
-def hit(lo, hi=1.01, soft=SOFT):
-    """Where the oncoming air hits the body between two strengths (the car map's hit, 0..1): the
-    nose's tip and the lips round the openings take the most. Bands of it make a pressure map."""
-    def dist(p, n):
-        h = _map().hit(p, n)
-        # the edge made crisp by how fast hit changes, which follows the facing: about 1/25 per cm
-        return np.minimum(h - lo, hi - h) * 25.0
-    return field(dist, soft)
+def _spaced(lines, spacing=0.25):
+    """Points every `spacing` cm along polylines, for the distance trees."""
+    out = []
+    for l in lines:
+        seg = np.linalg.norm(np.diff(l, axis=0), axis=1)
+        s = np.r_[0, np.cumsum(seg)]
+        u = np.arange(0, s[-1], spacing)
+        out.append(np.stack([np.interp(u, s, l[:, k]) for k in range(3)], 1))
+    return np.concatenate(out).astype(np.float32) if out else np.zeros((0, 3), np.float32)
 
 
 def polyline(lines, width=1.5, soft=SOFT, spacing=0.25):
     """Lines `width` cm wide along polylines on the body: one (n, 3) array of points in cm, or a
-    list of them (the car map's ridges, say: shapes.polyline(carmap.load().ridges[3])). spacing:
-    cm between the points the distance is taken to (a quarter of the width or less: no beads)."""
+    list of them (a line the user drew, say). spacing: cm between the points the distance is taken
+    to (a quarter of the width or less: no beads)."""
     from scipy.spatial import cKDTree
-    from tool import carmap
     lines = [np.asarray(l, np.float64) for l in lines] if isinstance(lines, (list, tuple)) else [np.asarray(lines, np.float64)]
-    pts = carmap._resample([l for l in lines if len(l) > 1], spacing)
+    pts = _spaced([l for l in lines if len(l) > 1], spacing)
     tree = cKDTree(pts) if len(pts) else None
 
     def dist(p, n):
@@ -628,32 +476,6 @@ def polyline(lines, width=1.5, soft=SOFT, spacing=0.25):
         r = p - pts[np.minimum(i, len(pts) - 1)]
         return (r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)).astype(np.float32)
     return field(dist, soft, grad)
-
-
-def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
-    """Lines `width` cm wide along the air's path over the body (the car map's streamlines), traced
-    from seed points (x, y, z) in cm on the body: a smoke rake's row at the nose, say. both: the
-    seeds mirrored onto the other side too. The traced lines are kept on the zone as .lines."""
-    seeds = np.asarray(seeds, np.float64)
-    if both:
-        seeds = np.concatenate([seeds, seeds[np.abs(seeds[:, 0]) > 0.3] * np.array([-1.0, 1.0, 1.0])])
-    lines = _map().streamlines(seeds, step, length)
-    z = polyline(lines, width, soft)
-    z.lines = lines
-    return z
-
-
-def rake(z, across):
-    """Seed points on the body at length z, at across positions (see across): the smoke rake's row
-    for streamlines. shapes.streamlines(shapes.rake(198, np.linspace(0.1, 0.9, 5)), 1.5)."""
-    return _map().rake(z, across)
-
-
-def front_rake(xs, top=True):
-    """Seed points across the car's width, each where the air first meets the top at that x (cm, the
-    left side; streamlines mirrors them): a wind tunnel's smoke rake in front of the car.
-    shapes.streamlines(shapes.front_rake(np.linspace(3, 80, 10)), 1.5)."""
-    return _map().front_rake(xs, top)
 
 
 def _word(v):
@@ -679,5 +501,5 @@ def _named(fn):
 
 for _maker in ("stripe", "stripes", "checks", "band", "front_of", "behind", "above", "below", "left", "right", "plane",
                "sphere", "box", "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy",
-               "region", "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "streamlines"):
+               "region", "outside", "along", "polyline"):
     globals()[_maker] = _named(globals()[_maker])
