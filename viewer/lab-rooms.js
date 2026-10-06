@@ -14,7 +14,8 @@
 // The car is the viewer itself (?embed=1).
 // Show: the paint, or the template (tool/view.py, export_template): the model's own lines, on the maps and on the
 // car, from the mesh alone (tool/meshlines.py, template): its crisp lines and panel lines, where the body ends,
-// where the map is cut while the car carries on, its triangles, and on the maps the body's shape, shaded.
+// where the map is cut while the car carries on, its triangles, a tint where the body curves outward or inward, and
+// on the maps the body's shape, shaded.
 //   [&show=template]
 
 import { $, ago, embedViewer, every, followed, note, titleOf, wanted } from './lab-common.js';
@@ -381,7 +382,8 @@ async function readTemplate() {
     const box = $('prKey');
     box.textContent = '';
     for (const [kind, words] of [['crease', 'crisp lines and panel lines'], ['opening', 'where the body ends'],
-      ['cut', 'where the map is cut, the car carries on']]) {
+      ['cut', 'where the map is cut, the car carries on'], ['outward', 'tint: the body curves outward (a rounded edge)'],
+      ['inward', 'curves inward (an indentation)']]) {
       const s = document.createElement('span');
       s.innerHTML = '<i></i>';
       s.querySelector('i').style.background = template.colours[kind];

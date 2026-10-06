@@ -214,21 +214,25 @@ def export_uvmap():
 
 
 TEMPLATE = DATA / "template"
-TEMPLATE_VERSION = 1  # bump when export_template changes what it draws
-TEMPLATE_KEY = {"crease": (240, 190, 0), "opening": (225, 45, 45), "cut": (0, 160, 230)}  # the colours of
-# meshlines.template's kinds, as the Lab's key names them
+TEMPLATE_VERSION = 2  # bump when export_template changes what it draws
+TEMPLATE_KEY = {"crease": (240, 190, 0), "opening": (225, 45, 45), "cut": (0, 160, 230),
+                "outward": (255, 120, 20), "inward": (120, 70, 255)}  # the colours of meshlines.template's kinds and of
+# the body's curves (meshlines.curvature: outward, a rounded edge; inward, an indentation), as the Lab's key names them
+CURVE_TINT = (2.0, 10.0, 0.7)  # degrees a cm where the curves' tint starts and where it's full, and how strong it gets
 TEMPLATE_LIGHT = np.array([0.35, 0.85, 0.4]) / np.linalg.norm([0.35, 0.85, 0.4])  # the shape's light: high, front left
 
 
 def export_template():
-    """The Lab's UV map template (viewer/lab-rooms.js, Template), from the model alone (meshlines.template):
+    """The Lab's UV map template (viewer/lab-rooms.js, Template), from the model alone (meshlines.template, curvature):
       template/<Set>_Map.png  each map at the Lab's grid: the body's shape (clay lit from above, from the bake's
-                              normals), the model's triangles faint, its lines in their colours (TEMPLATE_KEY)
+                              normals), tinted where it curves outward or inward, the model's triangles faint, its
+                              lines in their colours (TEMPLATE_KEY)
       template/<slot>.png     the car dressed in it: each map mid-grey clay, matte, with the same triangles and lines
       template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key"""
     from tool import meshlines, paintbox
     stamp = TEMPLATE / "template.json"
-    key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, meshlines.SHARP, meshlines.SEWN, paintbox.SIZES)).encode()).hexdigest()[:12]
+    key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, CURVE_TINT, meshlines.SHARP, meshlines.SEWN, meshlines.CURVE_SMOOTH,
+                             paintbox.SIZES)).encode()).hexdigest()[:12]
     if (not _stale(stamp, fbx.CACHE, paths.REPO / "tool" / "meshlines.py", this_file=False)
             and json.loads(stamp.read_text()).get("key") == key):
         return
@@ -243,13 +247,15 @@ def export_template():
         b = bake.bake(tset, gw, gh)
         lit = np.clip(b["normal"] @ TEMPLATE_LIGHT, 0, 1)
         shade = 0.35 + 0.65 * (0.5 * lit + 0.5 * (0.5 + 0.5 * b["normal"][..., 1]))
-        rgb = np.where((b["tri"] >= 0)[..., None], shade[..., None] * [0.93, 0.92, 0.9], [0.05, 0.05, 0.06])
-        img = Image.fromarray((np.clip(rgb, 0, 1) * 255).astype(np.uint8), "RGB")
+        rgb = _curves_tinted(shade[..., None] * [0.93, 0.92, 0.9] * 255, _curved(tset, gw, gh))
+        rgb = np.where((b["tri"] >= 0)[..., None], rgb, [12, 12, 14])
+        img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
         img = _template_lines(img.resize((2 * gw, 2 * gh), Image.BILINEAR), m, lines, (0, 0, 0, 34), 2 * gw / 4096)
         img.resize((gw, gh), Image.LANCZOS).save(TEMPLATE / f"{tset}_Map.png", compress_level=1)
         if tset != "Glass":  # the glass keeps its own tint on the car
             pw, ph = paintbox.SIZES[tset]
-            clay = Image.new("RGB", (pw, ph), (140, 140, 138))  # mid grey: light clay washes out under the studio's light
+            clay = np.full((ph, pw, 3), (140.0, 140.0, 138.0))  # mid grey: light clay washes out under the studio's light
+            clay = Image.fromarray(np.clip(_curves_tinted(clay, _curved(tset, pw, ph)), 0, 255).astype(np.uint8), "RGB")
             car[f"{tset}_B"] = np.asarray(_template_lines(clay, m, lines, (112, 112, 110, 255), 1.6 * pw / 4096))
             matte = np.zeros((8, 8, 2), np.uint8)
             matte[..., 0] = 235
@@ -260,6 +266,37 @@ def export_template():
     urls = {slot: f"template/{slot}.png" if slot in own else f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK
             else None for slot in SLOTS}
     _json(stamp, {"key": key, "textures": urls, "colours": {k: "#%02x%02x%02x" % c for k, c in TEMPLATE_KEY.items()}})
+
+
+def _curved(tset, w, h, chunk=1 << 21):
+    """The body's curvature (meshlines.curvature) at each texel of a w x h map, blended across each triangle from its
+    points; 0 off the map."""
+    from tool import meshlines
+    e, k = meshlines._edges(tset), meshlines.curvature(tset)
+    b = bake.bake(tset, w, h)
+    tri, pos = b["tri"].reshape(-1), b["position"].reshape(-1, 3)
+    out = np.zeros(len(tri), np.float32)
+    on = np.flatnonzero(tri >= 0)
+    for lo in range(0, len(on), chunk):  # in pieces: a 4096 map holds ten million texels
+        i = on[lo:lo + chunk]
+        T = e["T"][tri[i]]
+        A, B, C = (e["P"][T[:, j]] for j in range(3))
+        v0, v1, v2 = B - A, C - A, pos[i].astype(np.float64) - A
+        d00, d01, d11 = (v0 * v0).sum(1), (v0 * v1).sum(1), (v1 * v1).sum(1)
+        d20, d21 = (v2 * v0).sum(1), (v2 * v1).sum(1)
+        den = np.maximum(d00 * d11 - d01 * d01, 1e-12)
+        bv, bw = (d11 * d20 - d01 * d21) / den, (d00 * d21 - d01 * d20) / den
+        out[i] = (1 - bv - bw) * k[T[:, 0]] + bv * k[T[:, 1]] + bw * k[T[:, 2]]
+    return out.reshape(h, w)
+
+
+def _curves_tinted(rgb, k):
+    """A map's colours (0..255) tinted where the body curves outward or inward (TEMPLATE_KEY, CURVE_TINT)."""
+    start, full, most = CURVE_TINT
+    for sign, kind in ((1, "outward"), (-1, "inward")):
+        a = (np.clip((sign * k - start) / (full - start), 0, 1) * most)[..., None]
+        rgb = rgb * (1 - a) + np.asarray(TEMPLATE_KEY[kind], np.float64) * a
+    return rgb
 
 
 def _template_lines(img, m, lines, wire, scale):

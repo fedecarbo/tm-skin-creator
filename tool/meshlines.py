@@ -1,21 +1,13 @@
-"""The model's own lines: the edges the car's body is built from (the lines of the UV map's wireframe). Along each of
-the car's edges the modeller laid lines from end to end (on a rounded edge, a family of them across the curve, one
-every few degrees of turn); a marking along an edge follows one of them exactly, from one of the model's points to
-the next: straight on the UV map between the car's own points, unbroken across the texture's seams. (The user,
-2026-10-06, of lines traced from the texture and smoothed: "you are basically scribbling blindly everywhere";
-"There's got to be a precise solution to this".)
+"""The model's own lines: the edges the car's body is built from, the lines of the UV map's wireframe, each known on
+the car and on the map at once: the template to design on. Read off the model's triangles alone: nothing traced from
+the texture, nothing from the car map, no light or shading (the user, 2026-10-06: "doing it with the exact lines that
+the model had all along"; "Your new method ... shouldnt be needing shadows anyways to design properly").
 
-    meshlines.along(guide)          the model's line along a guide (course.shoulder(), course.flow(...)): of the lines
-                                    within `reach` cm of it, the one where the body's shading is halfway between the two
-                                    surfaces it divides (as course.shadow reads them), kept to one line and joined
-                                    straight across the panels' seams; a Course through the model's points
-    meshlines.along(guide).strip(0.6)    a strip along it, straight from point to point (on a body shaded smooth it shows
-                                    a small corner at each point: 4 to 7 degrees on the shoulder)
-    meshlines.along(guide).inked(0.6)    one smooth stroke on each piece of the UV map through where the line falls
-    meshlines.template("Skin")           the model's own lines on one of the game's maps, each on the car and on the map
-                                    at once: its creases (crisp lines and panel lines), where the body ends, and where
-                                    the map is cut while the car carries on; the Lab's UV map room draws them
-                                    (view.export_template; the user, 2026-10-06: "the ultimate uv map template")
+    meshlines.template("Skin")           the model's lines on one of the game's maps: its creases (crisp lines and panel
+                                    lines), where the body ends, and where the map is cut while the car carries on;
+                                    the Lab's UV map room draws them (view.export_template)
+    meshlines.curvature("Skin")          how much the body curves at each of the model's points, degrees a cm, + outward (a
+                                    rounded edge) and - inward (an indentation), off its creases; the template tints by it
     meshlines.line((35, 71, 9), least=100)   the template's line nearest a point, a Course exactly through the model's
                                     points: .strip(0.6) a line on it (a panel line's groove is 0.3 to 0.4 cm wide, and
                                     the line is on one of its walls); along where the body ends a strip is half on it
@@ -29,143 +21,11 @@ import functools
 
 import numpy as np
 from scipy.sparse import coo_matrix
-from scipy.sparse.csgraph import dijkstra
 from scipy.spatial import cKDTree
 
 from tool.noise import smoothstep
 
-WELD = 1e-3      # cm: the model's points this close are one point
-SEAM = 2.0       # cm: across a seam between two of the model's pieces, a line joins the next piece's point this near
-LEVEL = 0.06     # how far a point's shading may stray from the level before it costs as much again as its length
-SIDEWAYS = 10.0  # cm: what stepping sideways onto the next line costs, so a line keeps to one of the model's lines
-SWITCH = 0.1     # a change of shading this big along one edge is a change of line (the lines across a curve differ by
-# 0.1 to 0.2 in facing up; along one line it changes by 0.01 or 0.02 an edge)
-REACH = 8.0      # cm from the guide the model's lines are looked for (a crest guide strays 4 cm and more from the shading line round the rear arch)
-STRAIGHT = 0.95  # a line carries on to the guide's ends along its own edges while they turn less than this (cosine)
-
-
-@functools.lru_cache(maxsize=1)
-def _graph():
-    """The body's (Skin) points welded, their shading normals (the corners' mean), its edges, their lengths and which
-    of them join two pieces of the model across a seam."""
-    from tool import fbx
-    m = fbx.meshes()[fbx.MESH_OF["Skin"]]
-    p0, tv, tn = m["positions"].astype(np.float64), m["tri_vertex"], m["tri_normal"].astype(np.float64)
-    _, first, inv = np.unique(np.round(p0 / WELD).astype(np.int64), axis=0, return_index=True, return_inverse=True)
-    P, T = p0[first], inv.ravel()[tv]
-    N = np.zeros((len(P), 3))
-    np.add.at(N, T.ravel(), tn.reshape(-1, 3))
-    N /= np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-9)
-    E = np.unique(np.sort(np.concatenate([T[:, [0, 1]], T[:, [1, 2]], T[:, [2, 0]]]), axis=1), axis=0)
-    E = E[E[:, 0] != E[:, 1]]
-    from scipy.sparse.csgraph import connected_components
-    _, piece = connected_components(coo_matrix((np.ones(len(E)), (E[:, 0], E[:, 1])), shape=(len(P), len(P))), directed=False)
-    pairs = np.array(sorted(cKDTree(P).query_pairs(SEAM)), dtype=np.int64).reshape(-1, 2)
-    pairs = pairs[piece[pairs[:, 0]] != piece[pairs[:, 1]]]
-    seam = np.r_[np.zeros(len(E), bool), np.ones(len(pairs), bool)]
-    E = np.vstack([E, pairs])
-    return P, N, E, np.linalg.norm(P[E[:, 1]] - P[E[:, 0]], axis=1), seam
-
-
-def _level(c):
-    """The shading halfway between the two surfaces a guide divides, each read a roll's radius off it (facing up)."""
-    from tool import carmap
-    m = carmap.load()
-    radius = 1.0 / max(float(np.median(m.value("k1", c.pts))), 1e-3)
-    side = np.cross(c.tan, c.nrm)
-    faces = [float(np.median(m.value("facing_y", m.project(c.pts + sign * side * radius)[0]))) for sign in (1, -1)]
-    return 0.5 * (faces[0] + faces[1])
-
-
-def along(guide, level=None, reach=REACH):
-    """The model's line along `guide` (a Course on either side): see the module's key. `level` (facing up, -1 to 1)
-    gives the shading outright."""
-    from tool import course
-    right = float(np.mean(guide.pts[:, 0])) < 0
-    chain = _chain(guide, level, reach)
-    out = course.points(_graph()[0][chain], f"the model's line along {guide.name}")
-    return course._flip(out) if right else out
-
-
-def _chain(guide, level=None, reach=REACH):
-    """The model's points along `guide` (its left side), in order: indices into _graph()'s points."""
-    from tool import course
-    right = float(np.mean(guide.pts[:, 0])) < 0
-    g = course.Course(guide.pts * (course.MIRROR if right else 1), guide.name)
-    level = _level(g) if level is None else float(level)
-    P, N, E, L, seam = _graph()
-    n = len(P)
-    tree = cKDTree(g.pts)
-    near = tree.query(P)[0] <= reach
-    keep = near[E[:, 0]] & near[E[:, 1]]
-    Ek, Lk, Sk = E[keep], L[keep], seam[keep]
-    dy = (N[:, 1] - level) / LEVEL
-    off = 1.0 + 0.5 * (dy[Ek[:, 0]] ** 2 + dy[Ek[:, 1]] ** 2)
-    way = (P[Ek[:, 1]] - P[Ek[:, 0]]) / np.maximum(Lk[:, None], 1e-9)
-    tan = g.tan[tree.query(0.5 * (P[Ek[:, 0]] + P[Ek[:, 1]]))[1]]
-    sideways = np.abs((way * tan).sum(1)) < 0.5
-    # changing to the next line across the curve (an edge whose ends shade differently: a rung, or the diagonal of
-    # one of the long thin strips the curve is built of) costs as stepping sideways does, so the line is one line
-    # end to end (the user, 2026-10-06, of a line that slipped onto the next one and back: "Why is there a change in
-    # elevation of something here?")
-    change = (np.abs(N[Ek[:, 0], 1] - N[Ek[:, 1], 1]) / SWITCH) ** 2
-    w = np.where(Sk, 1.5 * Lk * off, Lk * off + SIDEWAYS * sideways) + SIDEWAYS * change
-    # its ends: a start joined to the model's points near the guide's start, an end to those near its end, each at
-    # the cost of how far it is from the guide's end and from the level there
-    S, Z = n, n + 1
-
-    def ends(p):
-        d = np.linalg.norm(P - p, axis=1)
-        idx = np.flatnonzero(near & (d < 8.0))
-        return idx, d[idx] + 2.0 * np.abs(N[idx, 1] - level) / LEVEL + 1e-6
-
-    si, sw = ends(g.pts[0])
-    zi, zw = ends(g.pts[-1])
-    G = coo_matrix((np.r_[w, w, sw, zw], (np.r_[Ek[:, 0], Ek[:, 1], np.full(len(si), S), zi],
-                                          np.r_[Ek[:, 1], Ek[:, 0], si, np.full(len(zi), Z)])), shape=(n + 2, n + 2)).tocsr()
-    dist, pred = dijkstra(G, directed=True, indices=S, return_predecessors=True)
-    if not np.isfinite(dist[Z]):
-        raise ValueError(f"none of the model's lines runs along {guide.name}")
-    chain = [pred[Z]]
-    while pred[chain[-1]] != S:
-        chain.append(pred[chain[-1]])
-    return _carried(chain[::-1], g, P, E, tree.query(P)[0] <= 2 * reach)
-
-
-def _carried(chain, g, P, E, near):
-    """The chain carried on at each end along its own edges, while they run on straight (STRAIGHT) and the guide
-    still lies ahead, to the guide's own ends (within twice the reach: a guide on a rounded edge's crest bends away
-    from its shading line round a corner, as the shoulder does at the inlet)."""
-    nbr = {}
-    for a, b in E:
-        nbr.setdefault(a, []).append(b)
-        nbr.setdefault(b, []).append(a)
-    s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(g.pts, axis=0), axis=1))]
-    tree = cKDTree(g.pts)
-    for flip in (False, True):
-        chain = chain[::-1] if flip else chain
-        goal = s[-1] if not flip else 0.0
-        while len(chain) > 1:
-            a, b = chain[-2], chain[-1]
-            d = (P[b] - P[a]) / max(np.linalg.norm(P[b] - P[a]), 1e-9)
-            here = s[tree.query(P[b])[1]]
-            if abs(goal - here) < 0.5:
-                break
-            best, cos = None, STRAIGHT
-            for c in nbr.get(b, ()):
-                if c in chain or not near[c]:
-                    continue
-                e = (P[c] - P[b]) / max(np.linalg.norm(P[c] - P[b]), 1e-9)
-                ahead = s[tree.query(P[c])[1]]
-                if e @ d > cos and abs(goal - ahead) < abs(goal - here):
-                    best, cos = c, e @ d
-            if best is None:
-                break
-            chain.append(best)
-        chain = chain[::-1] if flip else chain
-    return list(chain)
-
-
+WELD = 1e-3   # cm: the model's points this close are one point
 SHARP = 30.0  # degrees: where the model's two triangles meet at this angle or more, one of its crisp lines (a panel
 # line's walls, a knife edge, an opening's lip); along a rolled edge each of its lines turns 5 to 10 degrees
 SEWN = 0.15   # cm: an edge of one of the model's pieces this near another piece's is sewn to it (they meet within 0.12 mm)
@@ -226,8 +86,48 @@ def _edges(tset):
     mine = np.repeat(piece[tri[hb]], len(t))
     other = np.array([any(owner[j] != p for j in js) for js, p in zip(near, mine)]).reshape(len(hb), len(t))
     sewn = other.sum(1) >= len(t) - 1
-    return dict(T=T, P=p0[first], tri=tri, a=a, b=b, h1=h1, h2=h2, hb=hb, s1=s1, u1=u1, s2=s2, u2=u2, sb=sb, ub=ub,
+    N = np.zeros((len(first), 3))
+    np.add.at(N, T.ravel(), tn.reshape(-1, 3))  # each point's normal: its corners' mean
+    N /= np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-12)
+    return dict(T=T, P=p0[first], N=N, tri=tri, a=a, b=b, h1=h1, h2=h2, hb=hb, s1=s1, u1=u1, s2=s2, u2=u2, sb=sb, ub=ub,
                 cut=cut, crease=crease, sewn=sewn, piece=piece)
+
+
+CURVE_SMOOTH = 4  # times each point's curvature is blended with its neighbours': the model's triangles are big on the
+# flat panels and small on the edges, and one point's own reading is patchy
+
+
+@functools.lru_cache(maxsize=4)
+def curvature(tset="Skin"):
+    """How much the body curves at each of the model's points (_edges' P): degrees a cm across the way it curves most,
+    + outward (a rounded edge) and - inward (an indentation), from the change of the model's normals to its neighbours
+    over the edges that aren't creases (a crease is a line of its own), blended CURVE_SMOOTH times with theirs."""
+    e = _edges(tset)
+    P, N = e["P"], e["N"]
+    smooth = ~e["crease"]
+    a, b = e["a"][e["h1"]][smooth], e["b"][e["h1"]][smooth]
+    nbr = [[] for _ in range(len(P))]
+    for u, v in zip(a, b):
+        nbr[u].append(v)
+        nbr[v].append(u)
+    k = np.zeros(len(P))
+    for v, near in enumerate(nbr):
+        n = N[v]
+        if len(near) < 2 or not np.linalg.norm(n) > 0.5:  # a point of degenerate triangles has no facing
+            continue
+        d = P[near] - P[v]
+        d -= np.outer(d @ n, n)
+        dn = N[near] - n
+        dn -= np.outer(dn @ n, n)
+        e1 = np.cross(n, [1.0, 0.0, 0.0]) if abs(n[0]) < 0.9 else np.cross(n, [0.0, 1.0, 0.0])
+        e1 /= np.linalg.norm(e1)
+        e2 = np.cross(n, e1)
+        S = np.linalg.lstsq(np.c_[d @ e1, d @ e2], np.c_[dn @ e1, dn @ e2], rcond=None)[0]
+        w = np.linalg.eigvalsh(0.5 * (S + S.T))
+        k[v] = np.degrees(w[np.argmax(np.abs(w))])
+    for _ in range(CURVE_SMOOTH):
+        k = np.array([0.5 * k[v] + 0.5 * k[near].mean() if near else k[v] for v, near in enumerate(nbr)])
+    return k
 
 
 @functools.lru_cache(maxsize=4)
@@ -314,7 +214,7 @@ def lines(tset="Skin"):
         for path, edges in found:
             pts = e["P"][path]
             closed = path[0] == path[-1] and len(path) > 3
-            out.append(dict(kind=kind, pts=pts, closed=closed, length=float(np.linalg.norm(np.diff(pts, axis=0), axis=1).sum()),
+            out.append(dict(kind=kind, pts=pts, nrm=e["N"][path], closed=closed, length=float(np.linalg.norm(np.diff(pts, axis=0), axis=1).sum()),
                             parts=_most(names[tris[edges].ravel()]), walls=1))
     out.sort(key=lambda L: -L["length"])
     kept = []
@@ -336,7 +236,8 @@ def line(near, kind=None, least=3.0, tset="Skin"):
     pool = [L for L in lines(tset) if L["length"] >= least and (kind is None or L["kind"] == kind)]
     L = min(pool, key=lambda L: float(np.linalg.norm(L["pts"] - at, axis=1).min()))
     words = {"crease": "crisp line", "opening": "edge where the body ends"}[L["kind"]]
-    c = course.Course(L["pts"][:-1] if L["closed"] else L["pts"], f"the model's {words} along the {L['parts'][0]} near {course._said(at)}",
+    k = slice(0, -1) if L["closed"] else slice(None)
+    c = course.Course(L["pts"][k], f"the model's {words} along the {L['parts'][0]} near {course._said(at)}", nrm=L["nrm"][k],
                       closed=L["closed"])
     c.model = L
     return c

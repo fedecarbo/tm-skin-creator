@@ -61,3 +61,15 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   map's traced line: 1.5 cm in from the sidepod panel's own edge (the template's crisp line where the panel turns
   under). Redrawn on that edge (`meshlines.line`, up the panel's back and along its foot), both sides; checked from
   the note's camera and close up on both sides: on the edge all along.
+- The user, 2026-10-06, of the light-divide line and the shoulder line: "The whole point of all of these things that
+  we've been doing is for you to be able to see better the UV map that will translate into the three D model. And you
+  keep just creating random lines like the one that I flagged ... Either your using other methodologies, you are getting
+  inspired or contaminated by other modules, or the new mesh UV map is just not working. For you to actually produce a
+  line on edges, around shapes, on curvature, or whatever." Then: "Stop with the light and the shading", and: "The shade
+  is fine if it works for you.  That's what im saying.  If that helps you map the car's curvature indentations, etc".
+  The shoulder line (the shading rule along the car map's traced shoulder) is gone, with the method that drew it; the
+  car shows only the template's lines and panels. A line where the light divides top from side all round was tried:
+  clean along the nose, the sidepods, the rear flanks and the tail corners, but a zigzag before each inlet, so it isn't
+  used. Built instead: the body's curvature from the mesh (`meshlines.curvature`), tinted in the template (orange
+  outward, violet inward). Open (next session): the user looks at the curvature tint in the UV room; then lines on
+  curvature from it, checked close up.
