@@ -1,0 +1,1 @@
+Option A of TSC_Endurance's set 2 (The edge: measured, or your line · 2 takes), 2026-10-06: Measured corner. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).

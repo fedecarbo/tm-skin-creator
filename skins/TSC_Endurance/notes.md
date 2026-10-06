@@ -26,3 +26,10 @@ underside dark; gunmetal wheels; amber as the one accent, in the lights.
   (17 places a side, and the tail corner's seam): the edge runs smooth on the crest from the nose to
   the tail, crosses the sidepods' rear corners and the tail corner's seam without a step; its rises
   are the shoulder's own over the rear arches.
+- Note 2 (user, 2026-10-06, a line drawn on the right side from the sidepod's inlet to the rear wheel):
+  "As you can see with my not so perfect line, that the tool does not know how to place the right edge of
+  the car.  Can't you measure by the edge of the corner along the car?" Measured the corner a second way,
+  where the shading (the bake's normals) turns halfway from the top's facing (7 degrees) to the side's
+  (86 to 98): within 0.0 to 1.0 cm below the crest from z -25 to -102. The user's line runs 0.8 to 2.4 cm
+  below the crest (once 0.3 above). Set 2: A on the measured corner, B `area("top", wrap=1.5)`, along
+  their line.
