@@ -147,3 +147,9 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   every edge it ends at, not only at seams: the intake's frame (the side box's piece and the nose's),
   and the tail corner's rear edge, which it no longer wraps round onto the lights. Only at the nose's
   tip, where the two sides meet, does it run on. Close looks: orange shows at each end, both sides.
+- Change 15 (user, notes 18 to 21, 2026-10-06, Claude Opus 5.5): "Or here" (the nose's piece at the air
+  intake), "Very little gap here" (the side box's seam), "Same here very little gap" (the tail corner's
+  step), "This does not have a gap that I can see" (the tail corner's end). Notes 18 and 21 were on the
+  paint before Change 14 (their pictures show the tape at the frame and round the corner). Each piece
+  now stops 3 cm short of every edge, 6 cm of orange across each seam, twice what it was. Close looks
+  at all four places and at the intake's frame: each gap reads, both sides.

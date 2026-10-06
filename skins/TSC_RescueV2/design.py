@@ -21,7 +21,9 @@ TAPE = ("Include a tape like pattern here (note 13, a line drawn along the top o
         "along the top line); picked block tape; Maybe include the tape around the car, you can be the judge on how to "
         "distribute it so that it looks like a hazard car")
 BAND = "Remove this one (note 1 on the block tape's take, on the side's check band)"
-SEAMS = "I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box and the rear flank)"
+SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box "
+         "and the rear flank); Can't see gap here (note 17, at the intake's frame); Very little gap here; Same here very "
+         "little gap (notes 19 and 20, at the side box's and the tail corner's seams)")
 
 
 def design(s):
@@ -40,10 +42,10 @@ def design(s):
     s.paint("rear quarter panel", "reflective tape", zone=shapes.stripes(4, across=SLANT, edge=2.5))
 
     s.step("The contour tape", "Block tape, two rows of silver and orange blocks 5 cm wide, round the car's contour on "
-           "its top line, as a hazard vehicle is outlined, a piece on each panel with 3 cm bare across each seam: the "
-           "nose's tip, the nose back to the air intake, the side box, the rear flank and the tail corner. The side's "
-           "big check band is off.", words=TAPE + "; " + BAND + "; " + SEAMS)
-    s.paint("body", "reflective tape", zone=course.around("top edge").panels(3).mirrored().blocks(5, 2.5))
+           "its top line, as a hazard vehicle is outlined, a piece on each panel stopping 3 cm short of every edge, so "
+           "6 cm of orange shows across each seam: the nose's tip, the nose back to the air intake, the side box, the "
+           "rear flank and the tail corner. The side's big check band is off.", words=TAPE + "; " + BAND + "; " + SEAMS)
+    s.paint("body", "reflective tape", zone=course.around("top edge").panels(6).mirrored().blocks(5, 2.5))
 
     s.step("No step", "NO STEP in black on each side, a small placard with a thin black box round the words, facing "
            "outward: on the deck beside the rear flank's seam, where the user's arrow pointed, reading along the "
