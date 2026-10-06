@@ -20,3 +20,9 @@ underside dark; gunmetal wheels; amber as the one accent, in the lights.
   top's colour over the whole roll. Set 1, two takes: A on the crest, B over the shoulder. Also found:
   the inlets' ducts, inboard of the shoulder, took navy inside (blots on the duct's ceiling and inner
   wall): the sidepod inlet painted silver by name in both.
+- Change (user, 2026-10-06, in the chat): "I want you to actually create the paint to stop at the
+  shoulder of the car.  I want to check whether the tool can make a perfectily round edge". Picked A
+  (on the crest; B and its wrap left out). Checked close up along the whole shoulder on both sides
+  (17 places a side, and the tail corner's seam): the edge runs smooth on the crest from the nose to
+  the tail, crosses the sidepods' rear corners and the tail corner's seam without a step; its rises
+  are the shoulder's own over the rear arches.

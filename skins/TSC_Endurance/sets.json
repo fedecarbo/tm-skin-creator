@@ -6,22 +6,24 @@
    "title": "Where the navy ends · 2 takes",
    "words": "Is this deliberate.  Because this is the kind of things I worry that the ai thinks that the paint is straight along the edges or anywhere but in the actual car, they are not.",
    "made": "2026-10-06T12:27:49",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "On the crease",
-     "skin": "TSC_Endurance_OnTheCrease"
+     "skin": "TSC_Endurance_OnTheCrease",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Over the shoulder",
-     "skin": "TSC_Endurance_OverTheShoulder"
+     "skin": "TSC_Endurance_OverTheShoulder",
+     "picture": "sets/1/B.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "A",
+   "decision": "the navy stops at the shoulder: the user wants to check the tool can make a perfectly round edge",
+   "done": "2026-10-06T12:37:21"
   }
  ]
 }
