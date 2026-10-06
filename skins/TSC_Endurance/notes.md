@@ -55,3 +55,8 @@ underside dark; gunmetal wheels; amber as the one accent, in the lights.
   texels within 3 cm take the nearest cut texel's colour, `INK_BLEED`). Checked close up at both inlets, both
   sidepods' backs and both tail corners: navy to the frame, on the edge, no gaps. Open: a notch a few mm across
   in the underside area's edge on each tail corner's narrow back face (the car map's lower line there).
+- Change (2026-10-06, Claude Opus 5.5, the road's step E): from the inlets to the tail corners the navy stops on the
+  model's own line along the shoulder, picked on the mesh, as TSC_EdgeLine's line now is (up to 0.6 cm lower on the
+  roll than before). Checked close up at both inlets, across the sidepods' seams, along the rear flanks and at both
+  tail corners: navy to the frame, on the line, no gaps. The navy's 8 cm short of the tail's end at the deck's
+  back edge is named by the checks as before.

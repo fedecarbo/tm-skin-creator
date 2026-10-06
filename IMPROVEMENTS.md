@@ -13,21 +13,16 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **E. Structure for taste, from the mesh** (2026-10-06; the user agreed, for the next session: "Sure, I can do
-  that ... But I will do all of that with the next agent"). Two steps, each under the self-test, before their next car:
-  1. The line-guessing out of the tool: `course.flow` (the anatomy's traced lines, `carmap.flow_lines`),
-     `course.shadow`, the edge guide (`course.top_line("edge")`) and `course.shoulder` read the car through the
-     texture's texels and smooth the guess ("you are basically scribbling blindly everywhere"); the model's own lines
-     replace them (`meshlines.line`, `meshlines.strips`, `meshlines.picked`). TSC_EdgeLine and TSC_Endurance's navy
-     follow the edge guide: their lines move, shown to the user. The areas (`shapes.area`) split on the car map's
-     traced lines too: ask the user first. Open from before: the underside area's edge notched on the tail corners'
-     narrow back faces.
-  2. `car/anatomy.md` rewritten from the mesh (`PY -m tool.carmap --describe`, and `car/map/flow.jpg`): the model's
-     own lines in place of the traced ones; its flat rooms and where a graphic stops kept; the chase camera out (the
-     user: "make sure to change the chase camera because I don't think that's relevant. In a way, for designing a good
-     car. Doesn't really matter how I see the car, it should just be properly designed everywhere"): its section in
-     the anatomy, the share the driving camera sees in show's report, and the skill's mention of both.
-  `SPOTS` stay as set (measured within 10 cm of their panels' biggest flat room).
+- **E. Structure for taste, from the mesh** (2026-10-06; the user: "Sure, I can do that ... make sure to change the
+  chase camera"). Built, waiting for the user's OK: the lines the tool guessed from the texture's texels are out (the
+  traced lines, the shading's divide, the shoulder as a line, the edge guide); a design takes the model's own lines
+  (`meshlines.line`, along a rounded edge with `kind="rounded"`, and `meshlines.picked`). TSC_EdgeLine's line and
+  TSC_Endurance's navy edge are on the model's line along the shoulder (up to 0.6 cm further down the roll). The
+  anatomy (`car/anatomy.md`) is written from the mesh: its crisp lines, its rounded edges with the lines across each
+  (`meshlines.rolls`), its panels (`meshlines.panels`), its picture the Lab's template on the bare body
+  (`car/map/model.jpg`); the chase camera is out of it, of show's report and of the skill. Open: the areas
+  (`shapes.area`) still split on the car map's traced lines (ask the user first); the underside area's edge notched
+  on the tail corners' narrow back faces.
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.

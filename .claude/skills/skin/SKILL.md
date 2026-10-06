@@ -21,7 +21,7 @@ game: install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints, its measures (how far each zoned paint on the body reaches) and what its checks name: a paint that stops short or leaves a gap, a graphic cut by an edge, on two pieces or over another, anything by the game's panels, a soft edge; and how much of each graphic the driving camera sees. |
+| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints, its measures (how far each zoned paint on the body reaches) and what its checks name: a paint that stops short or leaves a gap, a graphic cut by an edge, on two pieces or over another, anything by the game's panels, a soft edge. |
 | `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
@@ -35,8 +35,8 @@ game: install from the Windows PC after a push.
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls. Before the
-  first design in a session, read `car/anatomy.md` (how the body flows, where it's calm, what the
-  player sees, where a graphic stops) with its picture `car/map/flow.jpg`, and the docstrings of
+  first design in a session, read `car/anatomy.md` (how the body is built, where it's calm, where a
+  graphic stops) with its picture `car/map/model.jpg`, and the docstrings of
   `tool/paintbox.py` (the key), `tool/shapes.py` (zones), `tool/course.py` (markings along the car's
   lines), `tool/marks.py` (shapes on a panel) and `tool/finishes.py`. Part names are in
   `car/parts.json`.

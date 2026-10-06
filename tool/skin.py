@@ -114,9 +114,9 @@ def show(name, open_browser=False, snapshot=True):
             print("\n".join(f"  {line}" for line in lines))
             t0 = time.time()
             progress.stage("Checking the car")
-            found, seen = checks.run(s, found)
-            checks.save(name, found, seen)
-            lines = checks.words(found, seen)
+            found = checks.run(s, found)
+            checks.save(name, found)
+            lines = checks.words(found)
             print(f"checked in {time.time() - t0:.1f} s: " + (f"the checks name {len(found)}" if found else "the checks name nothing"))
             print("\n".join(f"  {line}" for line in lines))
             if found:  # the Lab's chat says it under the job

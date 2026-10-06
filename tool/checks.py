@@ -36,8 +36,6 @@ its cuts and spills unsaid.
   spread   a scatter whose copies lie unevenly (UNEVEN) or leave BARE of the surface far from any.
 A picture laid across the panels on purpose (Skin.decal's across=True) keeps its cuts and spills
 unsaid, as a paint does.
-`seen` says how much of each graphic the driving camera sees (the car map's chase layer): not a
-flaw, something to know before the detail goes in.
 """
 
 import json
@@ -329,7 +327,7 @@ def _lengths(o, sel):
     return float(o["length"][sel].sum())
 
 
-def _zoned(car, call, found, seen):
+def _zoned(car, call, found):
     """One zoned paint's findings: its edge, and each of its graphics' cuts, spills and overlaps.
     True when the paint is graphics and next to nothing else."""
     c = car.c
@@ -365,7 +363,6 @@ def _zoned(car, call, found, seen):
     if not graphic[mark].any():
         return
     at = mark[np.searchsorted(shown, o["b"])] if len(o["b"]) else np.zeros(0, int)
-    seen.append((name, shown[graphic[mark]]))
     under = call["under"][still]
     cuts, covers, across = {}, {}, {}
     for k in np.flatnonzero(graphic):
@@ -469,7 +466,7 @@ def _sits_on(car, later, op):
     return False
 
 
-def _pictures(car, found, seen):
+def _pictures(car, found):
     """Each picture projected onto the body (Skin.decal's across=True): pixelated; and, as it says it
     crosses edges on purpose, nothing of its pieces or what it lies across."""
     c = car.c
@@ -486,7 +483,6 @@ def _pictures(car, found, seen):
         S, under = idx[still], under[still]
         if len(S) < 20:
             continue
-        seen.append((name, S))
         car.graphics.append((op, S))
         _pixelated(car, name, step, S, min(p["pixels"] for p in laid), found)
         if any(p.get("across") for p in laid):
@@ -545,7 +541,7 @@ def _area(c, texels):
     return float(area[ok].sum() * len(texels) / max(int(ok.sum()), 1))
 
 
-def _laid(car, found, seen):
+def _laid(car, found):
     """Each mark laid on a panel (a shape, words, a placard, a picture): whole, on one piece, clear of
     another graphic's edge; a picture sharp enough; words flat and the right way up (_upright). Its
     area is measured on the car's own surface, texel by texel."""
@@ -563,7 +559,6 @@ def _laid(car, found, seen):
                           "text": f"{name}: {on / mark['whole']:.0%} of its shape is on the car ({on:.0f} of {mark['whole']:.0f} cm²), {where}"})
         if len(S) < 20:
             continue
-        seen.append((name, S))
         car.graphics.append((mark["op"], S))
         kind = mark.get("kind", "shape")
         if kind != "shape":
@@ -651,21 +646,20 @@ def _scattered(car, found):
 
 
 def run(skin, measures=None):
-    """(the findings, what the driving camera sees of each graphic) for a skin painted with
-    Skin.measure on. measures: tool/measure.py's, when the caller has them."""
-    found, seen = list(skin.findings), []
+    """The findings for a skin painted with Skin.measure on. measures: tool/measure.py's, when the caller has
+    them."""
+    found = list(skin.findings)
     measures = measure.measure(skin) if measures is None else measures
     if "Skin" in skin.canvases and skin.canvases["Skin"].owner is not None:
         car = _Car(skin)
         car.zoned_ops = {call["op"] for call in skin.zoned} | {p["op"] for p in skin.pictures + skin.marks}
-        graphics = [_zoned(car, call, found, seen) for call in skin.zoned]  # the measures' own order
+        graphics = [_zoned(car, call, found) for call in skin.zoned]  # the measures' own order
         # a graphic's cuts and spills say what its run along the car would
         found += measure.findings([m for m, g in zip(measures, graphics) if not g])
-        _pictures(car, found, seen)
-        _laid(car, found, seen)
+        _pictures(car, found)
+        _laid(car, found)
         _clear(car, found)
         _scattered(car, found)
-        seen = _seen(car, seen)
     once = {}
     for f in found:  # a side's twin once
         f.setdefault("side", None)
@@ -674,36 +668,18 @@ def run(skin, measures=None):
             once[f["text"]]["side"] = None
         else:
             once[f["text"]] = f
-    return list(once.values()), seen
+    return list(once.values())
 
 
-def _seen(car, graphics):
-    """How much of each graphic the driving camera sees: [(the paint, the share of its area)]."""
-    by_name = {}
-    for name, texels in graphics:
-        by_name.setdefault(name, []).append(texels)
-    out = []
-    rng = np.random.default_rng(0)
-    for name, sets in by_name.items():
-        t = np.concatenate(sets)
-        t = t[rng.choice(len(t), min(len(t), 4000), replace=False)]
-        chase = carmap.load().value("chase", car.c.pos[t], car.c.nrm[t])
-        out.append((name, float(((chase > 0.02) * car.cm2[t]).sum() / max(float(car.cm2[t].sum()), 1e-9))))
-    return out
+def words(found):
+    """The findings as lines for Claude, by kind."""
+    return [f"{f['kind']}: {f['text']}" for f in sorted(found, key=lambda f: f["kind"])]
 
 
-def words(found, seen=()):
-    """The findings as lines for Claude, by kind; then what the driving camera sees."""
-    lines = [f"{f['kind']}: {f['text']}" for f in sorted(found, key=lambda f: f["kind"])]
-    if seen:
-        lines.append("from the driving camera: " + "; ".join(f"{name} {share:.0%} seen" for name, share in seen))
-    return lines
-
-
-def save(name, found, seen=()):
+def save(name, found):
     out = paths.BUILD / name
     out.mkdir(parents=True, exist_ok=True)
-    paths.write(out / "found.json", json.dumps({"found": found, "seen": [list(x) for x in seen]}, indent=1))
+    paths.write(out / "found.json", json.dumps({"found": found}, indent=1))
 
 
 def main():
@@ -714,8 +690,7 @@ def main():
         s.measure = True
         skin_mod.load_design(name)(s)
         s.end_steps()
-    found, seen = run(s)
-    print("\n".join(words(found, seen)) or "the checks name nothing")
+    print("\n".join(words(run(s))) or "the checks name nothing")
 
 
 if __name__ == "__main__":

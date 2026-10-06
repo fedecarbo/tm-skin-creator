@@ -63,7 +63,7 @@ with skin.paint_slot():
     s.measure = True
     skin.load_design(name)(s)
     s.end_steps()
-json.dump(checks.run(s)[0], open(out, "w"))
+json.dump(checks.run(s), open(out, "w"))
 '''
 
 

@@ -73,3 +73,11 @@ tail's middle.
   Both takes; checked close up at both tail corners: on the fold, no gap, nothing on the back face.
 - The user's pick (set 1): A, "The curve follow the edges better definitely". The straight line is out of the tool;
   what it showed is in `Course.inked`'s docstring. The car is the curve, ending on the fold at each tail corner.
+- Change (2026-10-06, Claude Opus 5.5, the road's step E: the tool's lines guessed from the texture's texels taken
+  out, the edge guide with them): the line is on the model's own line along the shoulder now, picked on the mesh
+  (`meshlines.picked`): three of its lines end to end, the sidepod's, the rear flank's and the tail corner's; of the
+  seven side by side across the rear flank's rounded edge, the one facing 63 degrees from up, the nearest the edge
+  approved (on it within 0.2 cm on the sidepod; 0.5 cm lower on the roll along the rear flank, 0.2 on the tail corner).
+  It ends on the tail corner's fold by itself; still carried on 3 cm under the inlet's frame and drawn smooth on the
+  flat texture. Checked close up at the inlet, along the sidepod, across the sidepod's seam and the tail corner's,
+  at both tail corners' ends, both sides: smooth, unbroken, on the line; the checks name nothing.

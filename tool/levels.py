@@ -61,13 +61,7 @@ into the first at the nose root, where it ends.
 
 car/levels.json (committed):
     {"levels": [{"name": "top edge", "role": "top", "points": [[z, y], ...]}, ...], "between": 6, "nose": 3}
-car/top_lines.json (committed): {"lines": [{"name": "top 1", "path": [[x, y, z], ...]}, ...]}, and the edge:
-
-The edge ("edge" in car/top_lines.json, course.top_line("edge")): where the side's shading divides the
-top from the side, the edge as the eye sees it (course.shadow along the shoulder: the user's own stroke
-of it ran within 0.3 cm of the line facing 60 degrees from up), from under the inlet's frame to where
-the side ends at the tail corner, drawn with Course.inked so it runs smooth on the flat texture (the
-user, 2026-10-06: "That line should be a guide line"). write_edge() remakes it.
+car/top_lines.json (committed): {"lines": [{"name": "top 1", "path": [[x, y, z], ...]}, ...]}
 
     levels.line("top edge", 0.8)     a zone (tool/shapes.py): the level's line, 0.8 cm wide on the surface
                                      ("between 1" is the highest of the levels between, and so on down;
@@ -339,22 +333,8 @@ def band(upper, lower):
     return z & run if run is not None else z
 
 
-def write_edge():
-    """The edge guide (car/top_lines.json's "edge"), made afresh from the car's shape: the shadow's edge
-    along the shoulder from z -12 (just ahead the divide turns round the sidepod's front corner) to -152,
-    carried on straight 3 cm under the inlet's frame and 5 cm to where the side ends at the tail corner.
-    The left side, every half centimetre."""
-    from tool import course
-    c = course.shadow(course.shoulder().between(-12, -152)).extended(start=3, end=5)
-    doc = json.loads(TOP_FILE.read_text()) if TOP_FILE.exists() else {"lines": []}
-    path = [[round(float(v), 2) for v in p] for p in c.pts[::2]] + [[round(float(v), 2) for v in c.pts[-1]]]
-    doc["lines"] = [L for L in doc["lines"] if L["name"] != "edge"] + [{"name": "edge", "path": path}]
-    TOP_FILE.write_text(json.dumps(doc, separators=(",", ":")))
-    return path
-
-
 def top_lines():
-    """The guides' paths, the top's lines and the edge: [{"name", "path": [[x, y, z], ...]}], the left half each."""
+    """The top's lines: [{"name", "path": [[x, y, z], ...]}], the left half each."""
     return json.loads(TOP_FILE.read_text())["lines"] if TOP_FILE.exists() else []
 
 

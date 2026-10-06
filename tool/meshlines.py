@@ -12,6 +12,9 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
     meshlines.line((35, 71, 9), least=100)   the template's line nearest a point, a Course exactly through the model's
                                     points: .strip(0.6) a line on it (a panel line's groove is 0.3 to 0.4 cm wide, and
                                     the line is on one of its walls); along where the body ends a strip is half on it
+    meshlines.line((65, 59, -85), kind="rounded")   one of the model's lines along a rounded edge, the one nearest a
+                                    point of those side by side across it (one every 1 to 2 cm, each facing its own way)
+    meshlines.rolls()               the body's rounded edges, each its lines side by side across it, facing up first
     meshlines.panel((25, 80, 11))        the model's own panel under a point (bounded by its creases and the body's
                                     edges), a zone filled right up to its lines; both=True the mirror image's too;
                                     border=1.5 only a trim that far inside its edge
@@ -20,7 +23,8 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
                                     points, where its lines cross; between two joined by an edge, that edge; on one of
                                     its lines, along it point by point; else straight across the surface; and all of
                                     it one smooth curve through those points (smooth)
-    PY -m tool.meshlines            the body's panels and its longest lines, each with a point on it and its parts
+    PY -m tool.meshlines            the body's panels, its longest lines and its rounded edges, each with a point on it
+                                    and its parts
 """
 
 import functools
@@ -219,12 +223,14 @@ def lines(tset="Skin", fold=True):
 
 def line(near, kind=None, least=3.0, tset="Skin"):
     """The model's line nearest a point (x, y, z) on the car, of `kind` ("crease" or "opening") or either, `least` cm
-    long or more: a Course along it, exactly through the model's points (closed round a loop)."""
+    long or more: a Course along it, exactly through the model's points (closed round a loop). kind="rounded": one of
+    the lines along a rounded edge (strips), the one nearest the point of those side by side across it."""
     from tool import course
     at = np.asarray(near, np.float64)
-    pool = [L for L in lines(tset) if L["length"] >= least and (kind is None or L["kind"] == kind)]
+    pool = [L for L in (strips(tset) if kind == "rounded" else lines(tset))
+            if L["length"] >= least and (kind is None or L["kind"] == kind)]
     L = min(pool, key=lambda L: float(np.linalg.norm(L["pts"] - at, axis=1).min()))
-    words = {"crease": "crisp line", "opening": "edge where the body ends"}[L["kind"]]
+    words = {"crease": "crisp line", "opening": "edge where the body ends", "rounded": "line along a rounded edge"}[L["kind"]]
     k = slice(0, -1) if L["closed"] else slice(None)
     c = course.Course(L["pts"][k], f"the model's {words} along the {L['parts'][0]} near {course._said(at)}", nrm=L["nrm"][k],
                       closed=L["closed"])
@@ -390,7 +396,7 @@ def _lines_at(p, tset):
 def strips(tset="Skin"):
     """The model's lines along its rounded edges: its edges the body bends across FLAT to SHARP degrees, joined end to
     end where one goes on from another turning least (under TURN), on across the seams between its pieces: a list of
-    dicts like lines' (pts, closed, length), the longest first."""
+    dicts like lines' (kind "rounded", pts, nrm, closed, length, parts), the longest first."""
     e, g = _edges(tset), _graph(tset)
     P, seam = e["P"], g["seam"]
     k = (np.abs(e["bend"]) >= FLAT) & ~e["crease"]
@@ -451,9 +457,48 @@ def strips(tset="Skin"):
         if not done[j]:
             pts, _ = walk(j, 0)
             out.append((pts, True))
-    lines = [dict(pts=np.array(q), closed=c, length=float(np.linalg.norm(np.diff(np.array(q), axis=0), axis=1).sum()))
+    near, names = cKDTree(P), _parts_of(tset)
+    lines = [dict(kind="rounded", pts=np.array(q), nrm=e["N"][near.query(np.array(q))[1]], closed=c,
+                  length=float(np.linalg.norm(np.diff(np.array(q), axis=0), axis=1).sum()),
+                  parts=_most(names[_centres(tset).query(np.array(q))[1]]))
              for q, c in out if len(q) > 1]
     return sorted(lines, key=lambda L: -L["length"])
+
+
+ROLL_LENGTH = 0.15  # lines of a rounded edge are as long as one another within this share
+ROLL_ENDS = 0.08    # their ends as near one another as this share of their length (3 cm at least)
+ROLL_BESIDE = 6.0   # cm: every point of one within this of the other
+
+
+@functools.lru_cache(maxsize=4)
+def rolls(tset="Skin", least=40.0):
+    """The body's rounded edges: the model's lines along them (strips) `least` cm or longer, those that run side by side
+    from end to end together (a band of the model's faces rolling from one way to another, as along the rear flank's
+    shoulder): a list of lists of strips' dicts, each with tilt (degrees its surface faces from up, the median along
+    it), from the line facing most up; the edge with the longest line first."""
+    ok = [dict(L, tilt=float(np.median(np.degrees(np.arccos(np.clip(L["nrm"][:, 1], -1, 1))))))
+          for L in strips(tset) if L["length"] >= least and not L["closed"]]
+    root = list(range(len(ok)))
+
+    def find(i):
+        while root[i] != i:
+            root[i] = root[root[i]]
+            i = root[i]
+        return i
+    for i, a in enumerate(ok):
+        for j in range(i + 1, len(ok)):
+            b = ok[j]
+            if abs(a["length"] - b["length"]) > ROLL_LENGTH * max(a["length"], b["length"]):
+                continue
+            ea, eb, reach = a["pts"][[0, -1]], b["pts"][[0, -1]], max(3.0, ROLL_ENDS * a["length"])
+            if min(np.linalg.norm(ea - eb, axis=1).max(), np.linalg.norm(ea - eb[::-1], axis=1).max()) > reach:
+                continue
+            if min(cKDTree(b["pts"]).query(a["pts"])[0].max(), cKDTree(a["pts"]).query(b["pts"])[0].max()) <= ROLL_BESIDE:
+                root[find(i)] = find(j)
+    groups = {}
+    for i in range(len(ok)):
+        groups.setdefault(find(i), []).append(ok[i])
+    return sorted((sorted(g, key=lambda L: L["tilt"]) for g in groups.values()), key=lambda g: -max(L["length"] for L in g))
 
 
 DENSE = 0.1  # cm between the points a click is matched to a line by
@@ -653,21 +698,29 @@ def picked(clicks, tset="Skin", closed=False):
     return course.Course(pts, f"the line picked on the model from {course._said(pts[0])}", nrm=nrm, closed=closed)
 
 
-def main():
-    """The body's panels, the biggest first, and its longest lines: a point on each to pick it by, and its parts."""
-    e, lab, names = _edges("Skin"), _panels("Skin"), _parts_of("Skin")
+def panels(tset="Skin", least=50.0):
+    """The model's panels (bounded by its creases and the body's edges) of `least` cm2 or more, the biggest first: (cm2,
+    a point on one of its own triangles near its middle, its parts, most first)."""
+    e, lab, names = _edges(tset), _panels(tset), _parts_of(tset)
     X = e["P"][e["T"]]
     area = 0.5 * np.linalg.norm(np.cross(X[:, 1] - X[:, 0], X[:, 2] - X[:, 0]), axis=1)
     A = np.bincount(lab, weights=area)
     C = X.mean(1)
-    print("The body's panels (meshlines.panel(point)), 50 cm2 or more, the biggest first:")
+    out = []
     for p in np.argsort(-A):
-        if A[p] < 50:
+        if A[p] < least:
             break
         mine = np.flatnonzero(lab == p)
         mid = np.average(C[mine], axis=0, weights=area[mine])
-        at = C[mine[np.argmin(np.linalg.norm(C[mine] - mid, axis=1))]]  # a triangle of its own near its middle
-        print(f"  {A[p]:7.0f} cm2  at ({at[0]:.0f}, {at[1]:.0f}, {at[2]:.0f})  {', '.join(_most(names[mine])[:3])}")
+        out.append((float(A[p]), C[mine[np.argmin(np.linalg.norm(C[mine] - mid, axis=1))]], _most(names[mine])))
+    return out
+
+
+def main():
+    """The body's panels, the biggest first, and its longest lines: a point on each to pick it by, and its parts."""
+    print("The body's panels (meshlines.panel(point)), 50 cm2 or more, the biggest first:")
+    for A, at, parts in panels("Skin"):
+        print(f"  {A:7.0f} cm2  at ({at[0]:.0f}, {at[1]:.0f}, {at[2]:.0f})  {', '.join(parts[:3])}")
     print("Its lines (meshlines.line(point)), 40 cm or more, the longest first:")
     for L in lines("Skin"):
         if L["length"] < 40:
@@ -676,6 +729,10 @@ def main():
         groove = f", a groove of {L['walls']}" if L["walls"] > 1 else ""
         print(f"  {L['kind']:7s} {L['length']:6.0f} cm{' loop' if L['closed'] else ''}  at ({at[0]:.0f}, {at[1]:.0f}, {at[2]:.0f})"
               f"  {', '.join(L['parts'][:3])}{groove}")
+    print("Its rounded edges (meshlines.line(point, kind=\"rounded\")), 40 cm or more: the lines across each, facing up first:")
+    for g in rolls("Skin"):
+        print("  " + "; ".join(f"{L['tilt']:.0f} deg {L['length']:.0f} cm at ({q[0]:.0f}, {q[1]:.0f}, {q[2]:.0f})"
+                               for L in g for q in [L["pts"][len(L["pts"]) // 2]]) + f"  {', '.join(g[0]['parts'][:3])}")
 
 
 if __name__ == "__main__":

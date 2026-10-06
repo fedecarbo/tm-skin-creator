@@ -12,7 +12,7 @@ The work folder's viewer/ folder (served as /data/), all rebuildable:
   <Set>_Parts.png,     the Lab's UV map: which part covers each texel, every part's
   uvmap.json           words and numbers, the room (export_uvmap)
   template/            the Lab's UV map template: the model's own lines on the maps and on the car
-                       (export_template)
+                       (export_template), the car a skin of its own too, skins/Template
   <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
   floor/               the studio floor's grain (ambientCG, CC0), see FLOOR_SETS
   stock/*.png          Nadeo's stock textures, for anything a skin leaves out
@@ -231,13 +231,16 @@ def export_template():
       template/<slot>.png     the car dressed in it: each map mid-grey clay, matte, with the same mesh and lines
       template/<Set>_Mesh.png the same mesh and lines alone, clear between them (colour premultiplied by its alpha):
                               what the Lab's Mesh button lays over any car's paint (viewer.js, addMesh)
-      template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key"""
+      template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key
+    and skins/Template/skin.json, the same car as a skin the viewer opens by name (car/map/model.jpg: `PY -m tool.snap
+    Template --body`)."""
     from tool import meshlines, paintbox
     stamp = TEMPLATE / "template.json"
     key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, BEND, meshlines.SHARP, meshlines.SEWN,
                              paintbox.SIZES)).encode()).hexdigest()[:12]
     if (not _stale(stamp, fbx.CACHE, paths.REPO / "tool" / "meshlines.py", this_file=False)
             and json.loads(stamp.read_text()).get("key") == key):
+        _template_skin()
         return
     ensure_stock()
     TEMPLATE.mkdir(parents=True, exist_ok=True)
@@ -270,6 +273,13 @@ def export_template():
             else None for slot in SLOTS}
     _json(stamp, {"key": key, "textures": urls, "colours": {k: "#%02x%02x%02x" % c for k, c in TEMPLATE_KEY.items()},
                   "mesh": {tset: f"template/{tset}_Mesh.png" for tset in parts.BAKE_SIZE if tset != "Glass"}})
+    _template_skin()
+
+
+def _template_skin():
+    """The template's car as a skin of its own, Template."""
+    doc = json.loads((TEMPLATE / "template.json").read_text())
+    _json(DATA / "skins" / "Template" / "skin.json", {"name": "Template", "textures": doc["textures"], "own": []})
 
 
 def _template_lines(img, mesh, lines, scale, alpha):

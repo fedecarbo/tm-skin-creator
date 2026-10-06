@@ -12,13 +12,9 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
-    course.flow((44, 58, 30))                one of the body's own lines (car/anatomy.md), the one nearest a point
-    course.shoulder()                        the shoulder, where the top turns down into the side: the line the car
-                                             map's areas split on (shapes.area), nose to tail corner, the left side
-    course.shadow(course.shoulder())         the edge as the eye sees it, along a guide: where the shading divides
-    course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half;
-                                             "edge": the edge as the eye sees it, inlet to tail corner (tool/levels.py)
-    course.stroke(points)                    the line the user drew (tool.notes show_drawn prints its points):
+    course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half
+    meshlines.line(point), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py): Courses too
+    course.stroke(points)                   the line the user drew (tool.notes show_drawn prints its points):
                                              smoothed over SMOOTH cm and laid on the body
     course.points([(x, y, z), ...])          any points on the car, joined straight
   Shaped:
@@ -68,23 +64,15 @@ SMOOTH = 2.5   # cm: the surface's facing along a course, and a stroke's path, a
 FACING = 0.5   # a texel takes a marking when it faces within 60 degrees of the course's surface there
 OFF = 3.0      # cm: a stroke's point further than this from the body is dropped
 MIRROR = np.array([-1.0, 1.0, 1.0])
-SHADE = 60.0   # degrees from facing up: where the body's shading divides its top from its side, the edge the eye
-# sees (the user, 2026-10-06: "the shadow divides the edge properly"); their stroke of the rear flank's edge ran
-# within 0.3 cm of this line (median; 0.6 cm for 90 %), the shoulder's crest 1.4 cm off it
-SHADE_REACH = 7.0  # cm from the guide that the shadow's line is looked for
 INK_KNOT = 8.0     # cm between the knots of the curve an inked strip follows on each piece of the flat texture
 INK_REACH = 10.0   # cm either side of a course an inked edge moves the zone's edge across: all the way to the zone's own
-# edge (area("top") stops up to 10 cm from the edge guide on the flat texture; at 4 a sliver stayed unpainted by the
-# inlet's frame, the user, 2026-10-06: "There's a clear gap that is not painted here")
+# edge (area("top") stops up to 10 cm from the shoulder's own line on the flat texture; at 4 a sliver stayed unpainted
+# by the inlet's frame, the user, 2026-10-06: "There's a clear gap that is not painted here")
 INK_GAP = 4        # course points (a centimetre) a run on one piece may skip and still be one run
-SHADE_KNOT = 6.0   # cm between the knots of the smooth curve the shadow's edge is fitted as
-SHADE_RUN = 4      # centimetres either side whose running median the line holds to
-SHADE_HOLD = 0.8   # cm from that running median a point may lie
 FOLD = 45.0        # degrees from a course's own facing: past its end, where the surface has turned this far is the fold
 FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
 INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
 # the body turns in to an inlet's frame) takes the nearest inked texel's side within this
-SHADE_PAIR = 0.6   # cm: two texels this close either side of the shadow's angle are neighbours (the bake's 2048² pitch is 0.2 to 0.3)
 
 
 def _resample(pts, step=STEP, closed=False):
@@ -399,8 +387,8 @@ class Course:
         layout stretches one of the model's small flat faces differently from the next: the user, 2026-10-06,
         "I look at the uv map and the lines are wobbly".) Its width is the piece's own texels per cm, even on
         the texture; its ends square to it. The body's texture (Skin) only. A curve, not a straight line, on each
-        piece: the edge guide bends on the texture, and a line drawn straight there strays 0.4 to 0.8 cm off it on
-        the sidepod's and the rear flank's pieces, with a 12 degree corner where they meet (measured 2026-10-06;
+        piece: the shoulder's edge bends on the texture, and a line drawn straight there strays 0.4 to 0.8 cm off it
+        on the sidepod's and the rear flank's pieces, with a 12 degree corner where they meet (measured 2026-10-06;
         the user: "The curve follow the edges better definitely").
         `to_fold` ("end", "start" or "both"): that end runs on straight, up to FOLD_RUN cm, to the fold where the
         surface turns FOLD degrees from the course's own facing, and stops along the fold rather than square (the
@@ -459,9 +447,9 @@ class Course:
     def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096, to_fold=None):
         """`zone` with its edge moved onto the course where it runs within `reach` cm of it, drawn on the
         flat texture as inked() is, so a colour stops on the course in one smooth curve: shapes.area("top")
-        cut along the edge guide (course.top_line("edge")). On each piece of the texture the side of the
+        cut along the shoulder's own line (meshlines.picked). On each piece of the texture the side of the
         course the zone covers more of within `reach` takes it, the other side not (within a centimetre and a
-        half the zone can cover neither: area("top") stops 2 to 4.5 cm above the edge guide on the sidepods);
+        half the zone can cover neither: area("top") stops 2 to 4.5 cm above the shoulder's line on the sidepods);
         past the course's own ends and further than `reach` from it, the zone as it is. `to_fold` as inked()'s:
         past that end the course's side still decides, up to the fold. A texel on a piece the course doesn't cross,
         within INK_BLEED cm of one it does, takes that one's side (the user, 2026-10-06, of a silver sliver where
@@ -857,82 +845,6 @@ def stroke(points):
     if len(on) < 2:
         raise ValueError("the drawn line isn't on the body")
     return Course(on, "the line drawn")
-
-
-def flow(near):
-    """One of the body's own lines (car/anatomy.md: a crease or a rolled edge read off its curvature),
-    the one nearest a point, from its front end, on the side the point is: smoothed over SMOOTH cm and
-    laid on the body, as a drawn line is."""
-    from tool import carmap
-    at = np.asarray(near, np.float64)
-    right = at[0] < -MIDDLE
-    line = min(carmap.flow_lines(), key=lambda L: np.linalg.norm(L["pts"] - at * (MIRROR if right else 1), axis=1).min())
-    c = stroke(line["pts"])
-    c.name = f"the body's line from {_said(line['pts'][0])} on the left"
-    return _flip(c) if right else c
-
-
-def shoulder(side="left"):
-    """The shoulder, where the top turns down into the side: the line the car map's areas split on
-    (shapes.area, carmap.Map.design_lines), one smooth curve per stretch the body carries it on, from
-    its front end; several stretches are Courses."""
-    from tool import carmap
-    stretches = [Course(p if p[0, 2] >= p[-1, 2] else p[::-1], f"the shoulder on the {side}")
-                 for p, _ in carmap.load().design_lines(0)]
-    stretches = stretches if side == "left" else [_flip(c) for c in stretches]
-    return stretches[0] if len(stretches) == 1 else Courses(stretches, f"the shoulder on the {side}")
-
-
-def shadow(guide, angle=SHADE, reach=SHADE_REACH):
-    """The edge as the eye sees it, along a guide (course.shoulder(), a stretch of it, a line of the
-    body's): the line within `reach` cm of the guide where the surface, as the game shades it (the
-    bake's normals), turns past `angle` degrees from facing up, so the shadow divides there: midway
-    between neighbouring texels either side of it, which on a rounded edge straddle the line and on a
-    sharp one (the tail's edge) the crease. Followed a centimetre at a time along the guide, never past
-    its ends, fitted as one smooth curve and laid on the body; the side the guide is on."""
-    from tool import bake, carmap
-    right = float(np.mean(guide.pts[:, 0])) < 0
-    g = guide.pts * (MIRROR if right else 1)
-    b = bake.bake("Skin", 2048, 2048)
-    on = (b["tri"] >= 0) & (b["position"][..., 0] > -MIDDLE)
-    P = b["position"][on].astype(np.float64)
-    tilt = np.degrees(np.arccos(np.clip(b["normal"][on][:, 1].astype(np.float64), -1, 1)))
-    d, k = cKDTree(g).query(P, distance_upper_bound=reach, workers=-1)
-    near = np.isfinite(d)
-    near[near] &= (k[near] > 0) & (k[near] < len(g) - 1)  # nothing past the guide's ends (round the inlet's corner)
-    P, tilt, k = P[near], tilt[near], k[near]
-    up = tilt < angle
-    gap, j = cKDTree(P[~up]).query(P[up], workers=-1)
-    pair = gap < SHADE_PAIR
-    q = 0.5 * (P[up][pair] + P[~up][j[pair]])
-    s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(g, axis=0), axis=1))][k[up][pair]]
-    cm = np.floor(s).astype(int)
-    order = np.argsort(cm, kind="stable")
-    cm, q = cm[order], q[order]
-    parts = np.split(q, np.flatnonzero(np.diff(cm)) + 1)
-    mids = np.array([np.median(part, 0) for part in parts])
-    # the line holds its course: in each centimetre only the points within SHADE_HOLD cm of the running median
-    # of its neighbours' (SHADE_RUN cm either side), so it never jumps to another panel's rim where that turns
-    # past the angle too (the sidepod top's back edge, the tail corner's front edge)
-    run = np.array([np.median(mids[max(0, i - SHADE_RUN):i + SHADE_RUN + 1], 0) for i in range(len(mids))])
-    pts = []
-    for part, r in zip(parts, run):
-        held = part[np.linalg.norm(part - r, axis=1) < SHADE_HOLD]
-        if len(held):
-            pts.append(np.median(held, 0))
-    pts = np.array(pts)
-    if len(pts) < 2:
-        raise ValueError(f"no shadow line within {reach:g} cm of {guide.name}")
-    # one smooth curve through them, a knot every SHADE_KNOT cm, so it runs straight on where the shading
-    # steps a millimetre or two across a seam between two panels (the user, 2026-10-06: "The transition between
-    # this part has a jagged line.  It just needs to follow straight")
-    t = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]
-    knots = list(np.arange(SHADE_KNOT, t[-1] - SHADE_KNOT / 2, SHADE_KNOT))
-    fs = [carmap._lsq(t, pts[:, i], knots) for i in range(3)]
-    pts = np.stack([f(np.arange(0.0, t[-1], STEP)) for f in fs], 1)
-    pts = _smooth(carmap.load().project(pts)[0], 1.0)  # laid on a sharp edge, points fall either side of it
-    c = Course(pts, f"the shadow's edge along {guide.name}", None, False, guide.mirror)
-    return _flip(c) if right else c
 
 
 def points(pts, name="the points given"):

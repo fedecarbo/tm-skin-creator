@@ -6,7 +6,7 @@ Written by `python -m tool.carmap --describe` from the car's own mesh (2026-10-0
 
 The body alone, the wheels taken off, nine views each (`tool.snap <name> --body`):
 
-- `car/map/flow.jpg`: the anatomy's lines on clay, each in its colour.
+- `car/map/model.jpg`: the model's own lines on clay, as the Lab's template draws them (`tool.snap Template --body`).
 - `car/map/areas.jpg`: the top white, the sides blue, underneath grey; the shoulder green, the lower edge magenta (each one smooth curve per stretch; the shoulder absent where the body has no line, the lower edge along where the skin turns to face the ground where it has no crease: `python -m tool.carmap --check`), the real folds black, openings red, joins blue.
 - `car/map/lines.jpg`: every ridge of the body's curvature on clay, each in its own colour.
 - `car/map/texture.jpg`: the areas car's flat texture (Skin_B), the lines on it as the game's texture holds them.
@@ -90,32 +90,32 @@ Loops of open edges 30 cm round or more (`shapes.near("opening", r)` keeps clear
 
 ## The panels
 
-Each body part (a pair's two sides, or the four wheels', together): its area, where it sits (its share on the top, the sides and under), how open it is, how big it looks from the chase cameras and how much of the oncoming air it takes.
+Each body part (a pair's two sides, or the four wheels', together): its area, where it sits (its share on the top, the sides and under), how open it is and how much of the oncoming air it takes.
 
-| part | cm² | top / sides / under | open | seen from behind, cm² | air, cm² | z |
-|---|---|---|---|---|---|---|
-| body shell | 17642 | 48% / 41% / 10% | 88% | 3051 | 398 | -83 to 145 |
-| rear flank | 10924 | 11% / 72% / 17% | 60% | 1974 | 1 | -152 to -25 |
-| wheel cover ring | 9566 | 0% / 51% / 49% | 76% | 409 | 463 | -150 to 208 |
-| side skirt | 9159 | 0% / 23% / 77% | 43% | 2 | 347 | -25 to 215 |
-| sidepod top | 5055 | 56% / 44% / 0% | 96% | 1208 | 21 | -50 to 12 |
-| engine cover | 4411 | 100% / 0% / 0% | 95% | 2343 | 1 | -133 to -51 |
-| wheel cover hub | 4087 | 0% / 50% / 50% | 37% | 0 | 96 | -130 to 188 |
-| sidepod inlet | 3774 | 50% / 50% / 0% | 20% | 0 | 59 | -51 to 19 |
-| wheel cover disc | 3575 | 0% / 57% / 43% | 64% | 80 | 35 | -139 to 197 |
-| nose tip | 3370 | 36% / 34% / 29% | 70% | 192 | 171 | 142 to 211 |
-| cockpit surround | 2818 | 100% / 0% / 0% | 98% | 811 | 24 | -53 to 91 |
-| diffuser | 2117 | 0% / 1% / 99% | 93% | 72 | 0 | -145 to -109 |
-| diffuser strake | 2028 | 0% / 0% / 100% | 78% | 53 | 0 | -144 to -107 |
-| tail panel | 1822 | 95% / 5% / 1% | 99% | 849 | 0 | -162 to -131 |
-| tail corner | 1762 | 59% / 40% / 1% | 88% | 649 | 0 | -159 to -123 |
-| engine cover panel | 1621 | 100% / 0% / 0% | 100% | 1052 | 0 | -120 to -81 |
-| wing pylon | 1579 | 10% / 7% / 83% | 36% | 0 | 91 | 164 to 208 |
-| rear quarter panel | 1347 | 100% / 0% / 0% | 94% | 491 | 0 | -85 to -42 |
-| nose panel | 1017 | 100% / 0% / 0% | 99% | 179 | 50 | 142 to 187 |
-| number panel | 655 | 100% / 0% / 0% | 100% | 391 | 0 | -78 to -62 |
-| nose fin | 471 | 100% / 0% / 0% | 87% | 89 | 14 | 118 to 142 |
-| fuel cap | 79 | 100% / 0% / 0% | 95% | 33 | 0 | -77 to -67 |
+| part | cm² | top / sides / under | open | air, cm² | z |
+|---|---|---|---|---|---|
+| body shell | 17642 | 48% / 41% / 10% | 88% | 398 | -83 to 145 |
+| rear flank | 10924 | 11% / 72% / 17% | 60% | 1 | -152 to -25 |
+| wheel cover ring | 9566 | 0% / 51% / 49% | 76% | 463 | -150 to 208 |
+| side skirt | 9159 | 0% / 23% / 77% | 43% | 347 | -25 to 215 |
+| sidepod top | 5055 | 56% / 44% / 0% | 96% | 21 | -50 to 12 |
+| engine cover | 4411 | 100% / 0% / 0% | 95% | 1 | -133 to -51 |
+| wheel cover hub | 4087 | 0% / 50% / 50% | 37% | 96 | -130 to 188 |
+| sidepod inlet | 3774 | 50% / 50% / 0% | 20% | 59 | -51 to 19 |
+| wheel cover disc | 3575 | 0% / 57% / 43% | 64% | 35 | -139 to 197 |
+| nose tip | 3370 | 36% / 34% / 29% | 70% | 171 | 142 to 211 |
+| cockpit surround | 2818 | 100% / 0% / 0% | 98% | 24 | -53 to 91 |
+| diffuser | 2117 | 0% / 1% / 99% | 93% | 0 | -145 to -109 |
+| diffuser strake | 2028 | 0% / 0% / 100% | 78% | 0 | -144 to -107 |
+| tail panel | 1822 | 95% / 5% / 1% | 99% | 0 | -162 to -131 |
+| tail corner | 1762 | 59% / 40% / 1% | 88% | 0 | -159 to -123 |
+| engine cover panel | 1621 | 100% / 0% / 0% | 100% | 0 | -120 to -81 |
+| wing pylon | 1579 | 10% / 7% / 83% | 36% | 91 | 164 to 208 |
+| rear quarter panel | 1347 | 100% / 0% / 0% | 94% | 0 | -85 to -42 |
+| nose panel | 1017 | 100% / 0% / 0% | 99% | 50 | 142 to 187 |
+| number panel | 655 | 100% / 0% / 0% | 100% | 0 | -78 to -62 |
+| nose fin | 471 | 100% / 0% / 0% | 87% | 14 | 118 to 142 |
+| fuel cap | 79 | 100% / 0% / 0% | 95% | 0 | -77 to -67 |
 
 ## Where the air hits
 
