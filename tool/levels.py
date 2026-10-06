@@ -73,6 +73,14 @@ car/top_lines.json (committed): {"lines": [{"name": "top 1", "path": [[x, y, z],
     levels.below("bottom edge")      a zone: the body below it, as far as it runs
     levels.band("between 1", "between 2")   a zone: the body between two levels, as far as both run
     levels.top_line("top 1", 0.8)    a zone: a top line, 0.8 cm wide on the surface
+  A height shaped from the guides takes a level's place in any of those (Level):
+    levels.offset("top edge", -2)    2 cm below the top line all along, the same curve
+    levels.split("between 3", "between 6")   halfway between two (t: 0.3 of the way down from the first)
+    levels.higher(a, b, ...), levels.lower(a, b, ...)   the highest (lowest) of several where each runs:
+                                     a band's foot that is a level, or a seam where it rises above it
+    levels.smoothed(level, 12)       its height averaged over 12 cm along the car
+    seams.height("side skirt")       a seam as a height (tool/seams.py)
+    levels.where(y, z)               the nearest level to a height, in words: "2 cm below between 5"
 """
 
 import argparse
@@ -219,11 +227,99 @@ def _seams_direction():
     return slope, float(fits[0][0] * STEER_AT + fits[0][1])
 
 
-def _find(name):
+class Level:
+    """A height along the car, as the guides are: Y(z) and its slope dY(z) in cm, the stretch (z0, z1)
+    it runs along (None: all along the car), and its name, as the design wrote it."""
+
+    def __init__(self, name, Y, dY, span=None):
+        self.name, self.Y, self.dY, self.span = name, Y, dY, span
+
+    def __repr__(self):
+        return self.name
+
+    def runs(self, z):
+        """Whether it runs at these lengths along the car."""
+        z = np.asarray(z, np.float64)
+        return np.ones(z.shape, bool) if self.span is None else (z >= self.span[0]) & (z <= self.span[1])
+
+
+def _find(level):
+    if isinstance(level, Level):
+        return level
     for c in curves():
-        if c[0].lower() == name.lower():
-            return c
-    raise ValueError(f"no level called {name!r} in {FILE.name}: the levels room draws them")
+        if c[0].lower() == level.lower():
+            return Level(*c)
+    raise ValueError(f"no level called {level!r} in {FILE.name}: the levels room draws them")
+
+
+def offset(level, cm):
+    """The level moved `cm` up (down when negative), the same curve."""
+    L = _find(level)
+    return Level(f"{L} {cm:+g} cm", lambda z, L=L: L.Y(z) + cm, L.dY, L.span)
+
+
+def split(upper, lower, t=0.5):
+    """The height `t` of the way down from one level to another: halfway by default."""
+    A, B = _find(upper), _find(lower)
+    name = f"halfway from {A} to {B}" if t == 0.5 else f"{t:g} of the way from {A} to {B}"
+    return Level(name, lambda z: A.Y(z) + t * (B.Y(z) - A.Y(z)), lambda z: A.dY(z) + t * (B.dY(z) - A.dY(z)), _overlap(A.span, B.span))
+
+
+def _overlap(a, b):
+    if a is None or b is None:
+        return a or b
+    return (max(a[0], b[0]), min(a[1], b[1]))
+
+
+def _pick(levels, which, word):
+    Ls = [_find(L) for L in levels]
+    spans = [L.span for L in Ls]
+    span = None if any(s is None for s in spans) else (min(s[0] for s in spans), max(s[1] for s in spans))
+
+    def choose(z):
+        z = np.asarray(z, np.float64)
+        ys = np.stack([np.where(L.runs(z), L.Y(z), np.nan) for L in Ls])
+        ys = np.where(np.isnan(ys).all(0), np.stack([L.Y(z) for L in Ls]), ys)
+        return which(np.where(np.isnan(ys), -np.inf if which is np.nanargmax else np.inf, ys), axis=0)
+    names = ", ".join(map(str, Ls[:-1])) + f" and {Ls[-1]}"
+    return Level(f"the {word} of {names}", lambda z: np.choose(choose(z), [L.Y(z) for L in Ls]),
+                 lambda z: np.choose(choose(z), [L.dY(z) for L in Ls]), span)
+
+
+def higher(*levels):
+    """The highest of several levels at each length along the car, among those that run there."""
+    return _pick(levels, np.nanargmax, "higher" if len(levels) == 2 else "highest")
+
+
+def lower(*levels):
+    """The lowest of several levels at each length along the car, among those that run there."""
+    return _pick(levels, np.nanargmin, "lower" if len(levels) == 2 else "lowest")
+
+
+def smoothed(level, cm):
+    """The level's height averaged over `cm` along the car (a step in it becomes a ramp)."""
+    L = _find(level)
+    z0, z1 = L.span or (-170.0, 225.0)
+    zs = np.arange(z0 - cm, z1 + cm + 0.25, 0.25)
+    k = max(1, int(round(cm / 0.25)))
+    y = np.convolve(np.pad(L.Y(zs), k // 2, mode="edge"), np.ones(k) / k, mode="same")[k // 2:k // 2 + len(zs)]
+    dy = np.gradient(y, 0.25)
+    return Level(f"{L} smoothed over {cm:g} cm", lambda z: np.interp(z, zs, y), lambda z: np.interp(z, zs, dy), L.span)
+
+
+def where(y, z):
+    """The nearest level to a height at a length along the car, in words: "2 cm below between 5"."""
+    best = None
+    for name, Y, dY, span in curves():
+        if span and not (span[0] - 3 <= z <= span[1] + 3):
+            continue
+        d = float(y - Y(z))
+        if best is None or abs(d) < abs(best[1]):
+            best = (name, d)
+    if best is None:
+        return ""
+    name, d = best
+    return f"on {name}" if abs(d) < 0.5 else f"{abs(d):.0f} cm {'above' if d > 0 else 'below'} {name}"
 
 
 def _above_cm(Y, dY):
@@ -238,40 +334,42 @@ def _above_cm(Y, dY):
     return f
 
 
-def line(name, width=0.8):
+def line(level, width=0.8):
     """The level's line on the outer body, `width` cm wide on the surface."""
     from tool import shapes
     from tool.noise import smoothstep
-    _, Y, dY, span = _find(name)
-    f = _above_cm(Y, dY)
-    z = shapes.Zone(lambda p, n: smoothstep(-0.1, 0.1, width / 2 - np.abs(f(p, n))).astype(np.float32))
+    L = _find(level)
+    f = _above_cm(L.Y, L.dY)
+    z = shapes.Zone(lambda p, n: smoothstep(-0.1, 0.1, width / 2 - np.abs(f(p, n))).astype(np.float32), label=f"line({L!r})")
     # the outer body (the flanks behind the wheels see little of the open air), and not its undersides;
     # the side tucks under along the sidepods, facing 15 to 40 degrees down from 34 cm to its foot, and
     # is still the side the room draws on: only what faces more than 50 degrees down is under the car
     z = z & shapes.outside(0.1) & shapes.Zone(lambda p, n: smoothstep(-0.85, -0.75, n[:, 1]).astype(np.float32))
-    return z & shapes.band(*span) if span else z
+    return z & shapes.band(*L.span) if L.span else z
 
 
-def above(name):
+def above(level):
     """The body above the level."""
     from tool import shapes
     from tool.noise import smoothstep
-    f = _above_cm(*_find(name)[1:3])
-    return shapes.Zone(lambda p, n: smoothstep(-0.05, 0.05, f(p, n)).astype(np.float32))
+    L = _find(level)
+    f = _above_cm(L.Y, L.dY)
+    return shapes.Zone(lambda p, n: smoothstep(-0.05, 0.05, f(p, n)).astype(np.float32), label=f"above({L!r})")
 
 
-def _run(*names):
+def _run(*levels):
     """A zone: the stretch along the car every one of these levels runs (all of it, if none ends)."""
     from tool import shapes
-    spans = [sp for sp in (_find(n)[3] for n in names) if sp]
+    spans = [sp for sp in (_find(L).span for L in levels) if sp]
     if not spans:
         return None
     return shapes.band(max(a for a, _ in spans), min(b for _, b in spans))
 
 
-def below(name):
+def below(level):
     """The body below the level, as far along the car as it runs."""
-    z, run = ~above(name), _run(name)
+    z, run = ~above(level), _run(level)
+    z.label = f"below({_find(level)!r})"
     return z & run if run is not None else z
 
 

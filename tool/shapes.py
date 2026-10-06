@@ -1,12 +1,19 @@
-"""Zones on the car, drawn in 3D with soft edges: stripes, bands, splits, fades, spots.
+"""Zones on the car, drawn in 3D with crisp edges: stripes, bands, splits, fades, spots.
 
 Every zone is a function (pos, nrm) -> weight 0..1 per point, where pos is (n, 3) in cm
 (x = the car's left, y = up, z = forward) and nrm the unit normals. A weight of 1 is inside.
-Edges are feathered over `soft` cm (default 0.2, about two texels), so the border never shows the texel grid,
-and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
+Edges are feathered over `soft` cm (default 0.2, about two texels) measured along the surface, so
+the border never shows the texel grid and stays as crisp on a slope as on a flat panel (a height's
+edge where the side rolls under, a shape drawn from above on a flank), and it never breaks at a seam
+because it's drawn in 3D, not on the flat texture.
 
     shapes.stripe(width=20)                a stripe down the middle, along the car
     shapes.stripe(width=8, at=30)          a stripe 30 cm to the left of the middle
+    shapes.stripes(4, across=(0.75, 0, 1)) stripes 4 cm wide with 4 cm gaps, square to a direction (slanted, seen
+                                           from above, mirrored side to side: hazard stripes, chevrons); `edge`
+                                           where one begins; stripes(15, across="back", edge=72): 15 cm blocks
+                                           along the car from z 72 back
+    shapes.checks(10, across=("z", "y"))   a checkerboard, 10 cm squares, along the car and up it
     shapes.band(z0=-40, z1=20)             a band across the car between two lengths
     shapes.front_of(60), shapes.behind(-50), shapes.above(45), shapes.below(30)
     shapes.left(), shapes.right()
@@ -33,8 +40,9 @@ and it never breaks at a seam because it's drawn in 3D, not on the flat texture.
   The car's skeleton (tool/skeleton.py: the body cut by flat planes every cm, nothing read into it):
     shapes.skeleton("contour", 30)         the line level all round at 30 cm up; "section" across the
                                            car at a length, "profile" along it at a distance from the middle
-  Lines, stripes, bands and rings are drawn on the car's own skin: tool/skindraw.py, whose band()
-  gives a zone like these.
+  The painter's guides, heights along the car (tool/levels.py: levels.band, above, below, split,
+  offset) and markings along the car's own lines (tool/course.py: a strip, dashes, ticks along a
+  level, a seam, a panel's edge or the line the user drew) give zones like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Each zone keeps how the design wrote it (`label`, "behind(40)") and the zones an & joined
 (`parts()`), so tool/measure.py can say which of them ends a paint where it ends.
@@ -87,63 +95,171 @@ class Zone:
         return Zone(lambda p, n: self(p, n) * k, label=f"{self!r} * {k:g}")
 
 
-def field(fn, soft=SOFT):
-    """A zone from a signed distance in cm: positive inside. The edge is feathered over `soft`."""
-    return Zone(lambda p, n: smoothstep(-soft / 2, soft / 2, fn(p, n)))
+# a distance that changes slower than this along the surface (cm per cm) is level with it: its edge
+# there is a step, not a slope's long feather
+FLAT = 0.05
+
+
+def _slope(g, n):
+    """How fast a distance changes along the surface: its gradient's length within the surface, at
+    least FLAT."""
+    g = np.asarray(g, np.float32)
+    if g.ndim == 1:
+        g = np.broadcast_to(g, n.shape)
+    t = g - (g * n).sum(1, keepdims=True) * n
+    return np.maximum(np.linalg.norm(t, axis=1), FLAT)
+
+
+def field(fn, soft=SOFT, grad=None):
+    """A zone from a signed distance in cm: positive inside. The edge is feathered over `soft`,
+    measured along the surface when `grad` gives the distance's gradient (a direction (3,), or
+    (pos, nrm) -> (n, 3)); without it, through space."""
+    if grad is None:
+        return Zone(lambda p, n: smoothstep(-soft / 2, soft / 2, fn(p, n)))
+    return Zone(lambda p, n: smoothstep(-soft / 2, soft / 2, fn(p, n) / _slope(grad(p, n) if callable(grad) else grad, n)))
+
+
+def _unit(k):
+    return np.eye(3, dtype=np.float32)[k]
 
 
 def stripe(width, at=0.0, axis="x", soft=SOFT):
     """A stripe of `width` cm, centred `at` cm along `axis` (x: across the car, so the stripe
     runs along its length; z: along the car, so it runs across)."""
     k = "xyz".index(axis)
-    return field(lambda p, n: width / 2 - np.abs(p[:, k] - at), soft)
+    return field(lambda p, n: width / 2 - np.abs(p[:, k] - at), soft, _unit(k))
 
 
 def band(z0, z1, soft=SOFT):
     """Everything between two lengths along the car."""
     lo, hi = min(z0, z1), max(z0, z1)
-    return field(lambda p, n: np.minimum(p[:, 2] - lo, hi - p[:, 2]), soft)
+    return field(lambda p, n: np.minimum(p[:, 2] - lo, hi - p[:, 2]), soft, _unit(2))
 
 
 def front_of(z, soft=SOFT):
-    return field(lambda p, n: p[:, 2] - z, soft)
+    return field(lambda p, n: p[:, 2] - z, soft, _unit(2))
 
 
 def behind(z, soft=SOFT):
-    return field(lambda p, n: z - p[:, 2], soft)
+    return field(lambda p, n: z - p[:, 2], soft, _unit(2))
 
 
 def above(y, soft=SOFT):
-    return field(lambda p, n: p[:, 1] - y, soft)
+    return field(lambda p, n: p[:, 1] - y, soft, _unit(1))
 
 
 def below(y, soft=SOFT):
-    return field(lambda p, n: y - p[:, 1], soft)
+    return field(lambda p, n: y - p[:, 1], soft, _unit(1))
 
 
 def left(soft=SOFT):
-    return field(lambda p, n: p[:, 0], soft)
+    return field(lambda p, n: p[:, 0], soft, _unit(0))
 
 
 def right(soft=SOFT):
-    return field(lambda p, n: -p[:, 0], soft)
+    return field(lambda p, n: -p[:, 0], soft, _unit(0))
 
 
 def plane(point, normal, soft=SOFT):
     """The side of a plane its normal points to."""
     point, normal = np.asarray(point, np.float32), np.asarray(normal, np.float32)
     normal = normal / np.linalg.norm(normal)
-    return field(lambda p, n: (p - point) @ normal, soft)
+    return field(lambda p, n: (p - point) @ normal, soft, normal)
+
+
+def _radial(centre, axes=(0, 1, 2)):
+    """(pos, nrm) -> the unit direction from a centre, within the given axes."""
+    centre = np.asarray(centre, np.float32)
+
+    def g(p, n):
+        d = np.zeros_like(p)
+        d[:, axes] = p[:, axes] - centre[list(axes)]
+        return d / np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-6)
+    return g
 
 
 def sphere(centre, radius, soft=SOFT):
     centre = np.asarray(centre, np.float32)
-    return field(lambda p, n: radius - np.linalg.norm(p - centre, axis=1), soft)
+    return field(lambda p, n: radius - np.linalg.norm(p - centre, axis=1), soft, _radial(centre))
 
 
 def box(lo, hi, soft=SOFT):
     lo, hi = np.asarray(lo, np.float32), np.asarray(hi, np.float32)
-    return field(lambda p, n: np.minimum(p - lo, hi - p).min(1), soft)
+
+    def g(p, n):  # the nearest face's axis
+        k = np.minimum(p - lo, hi - p).argmin(1)
+        return np.eye(3, dtype=np.float32)[k]
+    return field(lambda p, n: np.minimum(p - lo, hi - p).min(1), soft, g)
+
+
+def _direction(across):
+    """A direction across the car as a unit vector: "x", "y", "z", a word (DIRECTIONS) or a vector."""
+    if isinstance(across, str):
+        d = _unit("xyz".index(across)) if across in "xyz" else np.asarray(DIRECTIONS[across], np.float32)
+    else:
+        d = np.asarray(across, np.float32)
+    return d / np.linalg.norm(d)
+
+
+def _stripes(width, across, gap, edge, mirror):
+    """The signed distance into stripes `width` cm wide with `gap` between, square to `across`, one
+    beginning at `edge` and running the way `across` points; and its gradient. mirror: the car's
+    left and right read the same (|x|), so a slanted run meets itself on the middle line."""
+    d = _direction(across)
+    gap = width if gap is None else gap
+    period = width + gap
+    flip = mirror and abs(d[0]) > 1e-6
+    if np.isscalar(edge):
+        u0 = float(edge) * (float(d["xyz".index(across)]) if isinstance(across, str) and across in "xyz" else float(d[2]))
+    else:
+        u0 = float(np.asarray(edge, np.float32) @ d)
+
+    def q(p):
+        if not flip:
+            return p
+        p = p.copy()
+        p[:, 0] = np.abs(p[:, 0])
+        return p
+
+    def dist(p, n):
+        ph = np.mod(q(p) @ d - u0, period)
+        return np.where(ph <= width, np.minimum(ph, width - ph), np.maximum(width - ph, ph - period))
+
+    def grad(p, n):
+        g = np.broadcast_to(d, p.shape).copy()
+        if flip:
+            g[:, 0] *= np.sign(p[:, 0])
+        return g
+    return dist, grad
+
+
+def stripes(width, across="z", gap=None, edge=0.0, mirror=True, soft=SOFT):
+    """Stripes `width` cm wide with `gap` cm between (as wide as the stripes), square to a direction
+    across the car: "x", "y", "z", a word ("back") or a vector ((0.75, 0, 1): slanted, seen from above);
+    the car's left and right read the same, so a slanted run meets itself in a chevron on the middle
+    line (mirror=False: one slant right across). One stripe begins at `edge`, a length along the car
+    on the middle line (or the coordinate on the axis named) or a point, and runs the way `across`
+    points. Painted on a part, they run edge to edge: hazard stripes on a panel, chevrons on the
+    tail, blocks along a band."""
+    dist, grad = _stripes(width, across, gap, edge, mirror)
+    return field(dist, soft, grad)
+
+
+def checks(size, across=("z", "y"), edge=(0.0, 0.0), mirror=True, soft=SOFT):
+    """A checkerboard: squares `size` cm (or (along, across)), their rows square to the two directions
+    (as stripes takes them), a square's corner at the two `edge`s."""
+    size = (size, size) if np.isscalar(size) else tuple(size)
+    a, b = (_stripes(size[k], across[k], size[k], edge[k], mirror) for k in range(2))
+
+    def dist(p, n):
+        da, db = a[0](p, n), b[0](p, n)
+        inside = (da > 0) != (db > 0)
+        return np.where(inside, 1.0, -1.0) * np.minimum(np.abs(da), np.abs(db))
+
+    def grad(p, n):
+        da, db = a[0](p, n), b[0](p, n)
+        return np.where((np.abs(da) < np.abs(db))[:, None], a[1](p, n), b[1](p, n))
+    return field(dist, soft, grad)
 
 
 # the wheel centres, fitted to the tyres' tread and bead, the covers' and the rims' edges (within
@@ -160,7 +276,12 @@ def wheel_ring(r0, r1, soft=SOFT):
         zc = np.where(p[:, 2] > 30, WHEEL_Z[0], WHEEL_Z[1])
         r = np.hypot(p[:, 1] - WHEEL_Y, p[:, 2] - zc)
         return np.minimum(r - r0, r1 - r)
-    return field(f, soft)
+
+    def g(p, n):
+        zc = np.where(p[:, 2] > 30, WHEEL_Z[0], WHEEL_Z[1])
+        d = np.stack([np.zeros(len(p), np.float32), p[:, 1] - WHEEL_Y, p[:, 2] - zc], 1)
+        return d / np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-6)
+    return field(f, soft, g)
 
 
 def cylinder(a, b, radius, soft=SOFT):
@@ -174,7 +295,13 @@ def cylinder(a, b, radius, soft=SOFT):
         rel = p - a
         t = np.clip(rel @ d, 0, L)
         return radius - np.linalg.norm(rel - t[:, None] * d, axis=1)
-    return field(f, soft)
+
+    def g(p, n):
+        rel = p - a
+        t = np.clip(rel @ d, 0, L)
+        r = rel - t[:, None] * d
+        return r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)
+    return field(f, soft, g)
 
 
 def fade(axis="z", start=200.0, end=-150.0, curve=1.0):
@@ -228,7 +355,7 @@ def blob(centre, radius, axis="y", wobble=0.1, seed=0, soft=SOFT):
         ang = np.arctan2(dv, du)
         edge = radius * (1 + scale * sum(amp * np.sin(m * ang + ph) for m, amp, ph in lobes))
         return edge - np.hypot(du, dv)
-    return field(f, soft)
+    return field(f, soft, _radial(c, (a, b)))
 
 
 def grass(base=10.0, height=(14.0, 30.0), width=(4.0, 8.0), lean=0.4, every=3.0, line=None, seed=0, soft=SOFT):
@@ -401,7 +528,12 @@ def seams(width=1.0, kinds=("border",), crease=60.0, parts=None, exclude=(), sof
     def dist(p, n):
         d, _ = tree.query(p.astype(np.float32), workers=-1)
         return width / 2 - d
-    return field(dist, soft)
+
+    def grad(p, n):
+        _, i = tree.query(p.astype(np.float32), workers=-1)
+        r = p - pts[i]
+        return r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)
+    return field(dist, soft, grad)
 
 
 # ---- The car map (tool/carmap.py): the body's own areas, lines and positions ----
@@ -487,7 +619,14 @@ def polyline(lines, width=1.5, soft=SOFT, spacing=0.25):
             return np.full(len(p), -1.0, np.float32)
         d, _ = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
         return (width / 2 - np.minimum(d, width * 2)).astype(np.float32)
-    return field(dist, soft)
+
+    def grad(p, n):
+        if tree is None:
+            return np.broadcast_to(_unit(1), p.shape)
+        d, i = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
+        r = p - pts[np.minimum(i, len(pts) - 1)]
+        return (r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)).astype(np.float32)
+    return field(dist, soft, grad)
 
 
 def skeleton(family, at, width=0.4, parts=None, soft=SOFT):
@@ -554,7 +693,7 @@ def _named(fn):
     return make
 
 
-for _maker in ("stripe", "band", "front_of", "behind", "above", "below", "left", "right", "plane", "sphere", "box",
-               "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy", "region",
-               "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "skeleton", "streamlines"):
+for _maker in ("stripe", "stripes", "checks", "band", "front_of", "behind", "above", "below", "left", "right", "plane",
+               "sphere", "box", "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy",
+               "region", "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "skeleton", "streamlines"):
     globals()[_maker] = _named(globals()[_maker])

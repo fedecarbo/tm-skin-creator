@@ -111,3 +111,11 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   spots within a millimetre, the box and letters drawn a little differently at their edges. Close looks:
   both crisp, upright to someone beside the car, reading forward on both sides; nothing cut or bent;
   the checks name nothing on them and the driving camera sees them whole.
+- Tool (Claude, 2026-10-06, Claude Fable 5.1): the design's own geometry went into the paint box: the
+  check band's blocks, the tail's chevrons and the quarter panels' hazard stripes are stripes the box
+  draws (the same edges, to a hundredth of a millimetre); the rows split halfway between the band's top
+  guide and its foot (the sixth level, or the bottom piece's top seam where it rises above it ahead of
+  the sidepods, smoothed over 12 cm), within half a centimetre of where the split was, measured from the
+  guides instead of the mesh. 68 lines, from 137. The checks no longer call the hazard stripes' edge
+  soft: they read a slanted edge twice too wide (the edge was always crisp); they now read every edge
+  square to it. Close looks beside the last: nothing moved that the eye can see.

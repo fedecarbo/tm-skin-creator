@@ -34,7 +34,8 @@ where it's wanted, on one flat piece of the unfolding, without:
   - `margin` cm in from all of those.
 The mark goes where it's wanted if it's whole there; else to the nearest place it is, within `reach`;
 else it shrinks until one exists, down to LEAST of its size; else nothing is laid. Each of those is
-a note. Wanted on the car's middle, it stays on the middle. Its twin on the other side is its mirror
+a note. Wanted at a course (tool/course.py, a stretch of one of the car's lines or of the line the
+user drew), it goes at the course's middle, anywhere along it, reading along it. Wanted on the car's middle, it stays on the middle. Its twin on the other side is its mirror
 image, at the same size; words and a placard are laid there as they are, reading forward on each
 side. They face the free room they land on, not the texel under `at` (a lip's face, a bolt), and
 unless the design says where their top points, they're upright to someone standing beside the car
@@ -567,7 +568,11 @@ def _where(panel):
 
 def _stroke(at, size, reach):
     """`at` as a point: the points of a line the user drew become its middle, and the mark may go
-    anywhere along it. (a point, reach)."""
+    anywhere along it; a course (tool/course.py) its middle point. (a point, reach)."""
+    if hasattr(at, "pts"):
+        if reach is None:
+            reach = at.length / 2 + (size or 0.0) / 2
+        return at.middle, reach
     if at is None or np.isscalar(at[0]) or at[0] is None:
         return at, reach
     P = np.asarray(at, np.float64)
@@ -670,6 +675,8 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
     panel = _Panel(skin, c, targets.get("Skin", []))
     if not len(panel.texels):
         skin.notes.append(f"{name}: {'pictures' if picture else 'marks'} go on the body; nothing laid")
+    if hasattr(at, "pts") and up is None:  # at a course: reading along it
+        up = at.up_at(at.middle)
     at, reach = _stroke(at, size, reach)
     nowhere = Laid([v or 0 for v in at] if at is not None else (0, 0, 0))
     if not len(panel.texels):

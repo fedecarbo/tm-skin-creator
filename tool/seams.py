@@ -12,6 +12,8 @@ share a seam's curve when the top or the bottom near it does); a design shapes i
     seams.traced()                   {name: {"points": [[z, y], ...], "path": [[x, y, z], ...]}}
     seams.line("side skirt", 0.6)    a zone (tool/shapes.py): a line along the seam, 0.6 cm wide, both sides
     seams.near("rear wing", 3)       a zone: within 3 cm of it
+    seams.height("side skirt")       the seam as a height along the car (tool/levels.py's Level), for a band
+                                     whose edge is the seam: levels.band("between 3", seams.height("side skirt"))
 
     python -m tool.seams             trace them and print how closely each curve follows its edge
 """
@@ -105,6 +107,14 @@ def _distance(name):
     dense = np.array(dense)
     tree = cKDTree(np.concatenate([dense, dense * [-1, 1, 1]]))
     return lambda p, n: tree.query(p.astype(np.float64))[0]
+
+
+def height(name):
+    """The seam as a height along the car (tool/levels.py's Level), where it runs."""
+    from tool import levels
+    s = traced()[name]
+    Y, dY = levels.spline(s["points"])
+    return levels.Level(name, Y, dY, (s["points"][0][0], s["points"][-1][0]))
 
 
 def line(name, width=0.6):

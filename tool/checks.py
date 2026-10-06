@@ -168,6 +168,33 @@ class _Car:
         return f"{o['what']} ({o['step']})"
 
 
+def _inverse_smoothstep(w):
+    """x in 0..1 for w = 3x² - 2x³ (tool/noise.py's smoothstep): a zone's weight linearised back to
+    where it sits across its feather."""
+    return 0.5 - np.sin(np.arcsin(np.clip(1 - 2 * w, -1, 1)) / 3)
+
+
+def _feather(car, factors, B):
+    """How wide a zone's own edge is at texels B, in cm: the zone's weight (its factors' product) over
+    each texel's four neighbours on the texture, linearised through the feather's own curve, gives how
+    fast it changes per cm across the texture whichever way the edge runs (a step across a slanted
+    edge alone reads it twice too wide); the feather is one over that."""
+    c = car.c
+    pitch = np.sqrt(np.maximum(car.cm2[B], 1e-6))
+    pts = np.clip(np.stack([B, B - 1, B + 1, B - c.w, B + c.w]), 0, car.n - 1)
+    flat = pts.reshape(-1)
+    w = np.ones(len(flat), np.float32)
+    for f in factors:
+        w *= f(c.pos[flat], c.nrm[flat])
+    x = _inverse_smoothstep(w).reshape(5, -1)
+    near = car.cover[pts] & (np.linalg.norm(c.pos[pts] - c.pos[pts[0]][None], axis=2) <= 3 * pitch)
+    grad2 = np.zeros(len(B))
+    for lo, hi in ((1, 2), (3, 4)):
+        d = np.maximum(np.where(near[lo], np.abs(x[0] - x[lo]), 0), np.where(near[hi], np.abs(x[hi] - x[0]), 0))
+        grad2 += (d / pitch) ** 2
+    return 1 / np.sqrt(np.maximum(grad2, 1e-4))
+
+
 def _outline(car, call, shown):
     """A zoned paint's outline, a step for each texel edge between a texel showing it and one that
     doesn't (across the texture's seams too): the texel inside (b), what ends the paint there
@@ -223,9 +250,10 @@ def _outline(car, call, shown):
                               (PART, ~written_low & ~reading_low & ~in_ids, car.part[t]),
                               (FOLD, ~written_low & reading_low, turned), (NATURAL, written_low, lowest)):
         kind[where], detail[where] = code, what[where]
-    step = np.linalg.norm(c.pos[b] - c.pos[t], axis=1)
-    feather = np.where((kind == NATURAL) | (kind == FOLD), 1.5 * step / np.maximum(vb.prod(0) - vt.prod(0), 1e-3), np.nan)
-    feather[step > 3 * np.sqrt(np.maximum(car.cm2[b], 1e-6))] = np.nan  # across a gap: not the zone's own slope
+    feather = np.full(len(t), np.nan)
+    own = (kind == NATURAL) | (kind == FOLD)
+    if own.any():
+        feather[own] = _feather(car, factors, b[own])
     # where the surface ends: cut there if the zone's own shape is still whole (well inside its edge)
     whole = (ve[~reading] >= 0.999).all(0) if (~reading).any() else np.ones(len(e), bool)
     return {"b": np.concatenate([b, e]), "kind": np.concatenate([kind, np.where(whole, EDGE, NATURAL)]),

@@ -14,3 +14,8 @@ Read as a loose idea: three takes (set 1). A, Rescue: a car that stands out agai
   side turns onto the back, left out by the map's sides. The band now runs on round the corner
   wherever the body still faces sideways. Measured after: nothing short. Close looks checked on both
   sides (the corner, behind the vent, inside the vent); the before and after at the same camera shown.
+- Tool (Claude, 2026-10-06, Claude Fable 5.1): the black lower edge is crisp where the side rolls under:
+  its feather is measured along the surface now, 0.2 cm all along, where a height cut through space
+  spread it up to 0.7 cm on a quarter of that edge. Nothing in the design changed. The checks say
+  RESCUE touches the band's top on both sides (its 9 cm capitals reach it at the spot), as they have
+  since words were laid as marks.

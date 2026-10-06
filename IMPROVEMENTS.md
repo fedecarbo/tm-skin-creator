@@ -13,21 +13,14 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **B. Words and placards that fit** (2026-10-05): **built, waiting for the user's OK**, shown on
-  TSC_RescueV2's placards. `s.text`, `s.placard` and `s.decal` lay words, a placard and a picture as
-  `s.mark` lays a shape (`tool/marks.py`): whole on a panel's free room, flat (words within 20 degrees
-  of one facing), off its folds and clear of the game's panels, moved then shrunk and each move said,
-  refused with a note when nothing fits. They face the room they land on, not a lip under `at`; words
-  read forward on both sides, upright to someone standing beside the car (on the top, their top
-  towards the middle) unless the design says where their top points. A placard goes near a point or
-  the points of a line the user drew. The checks name words over a fold, flipped or hanging upside
-  down (`tool/checks.py`). TSC_RescueV2's own placard code went (80 lines): two calls.
-- **C. The geometry hoisted** (2026-10-05): a course along a guide, a level, a seam, a panel's edge or a
-  pen stroke, with strips, dashes and spots along it; stripes and checks as zones in `tool/shapes.py`; a level's offset, split and
-  "where" in `tool/levels.py`; a zone's edge feathered along the surface, so a height or a shape drawn
-  from above stays crisp where the body slopes (the checks name TSC_Snow's lower edge, 0.7 cm soft, and
-  TSC_RescueV2's hazard stripes, 0.5). TSC_RescueV2 rewritten in about 45 lines as the proof (290 today). Shown:
-  a marking along the user's stroke in one show.
+- **C. The geometry hoisted** (2026-10-05): **built, waiting for the user's OK**, shown on
+  TSC_RescueV2 (the same car from 68 lines, 137 before: its checks, chevrons, hazard stripes and row
+  split are the tool's) and TSC_Snow (its lower edge crisp). A course along a level, a seam, a panel's
+  edge, a top line or the line the user drew, with a strip, dashes, ticks, places for marks and words
+  reading along it (`tool/course.py`); `shapes.stripes` and `shapes.checks`; a level's `offset`,
+  `split`, `higher`, `smoothed` and `where`, a seam as a height (`seams.height`), in `tool/levels.py`;
+  every zone's edge feathered along the surface, so a height or a shape drawn from above stays crisp
+  where the body slopes. Still to see: a marking along a line the user draws, in one show.
 - **D. Lines drawn in the flat texture** (2026-10-05): a course mapped to the texture, one smooth
   spline per UV island, mirrored (how Peach's artist drew). TSC_Skeleton repainted beside today's for
   the user's eye; if it passes, `tool/skindraw.py`, `tool/skinmesh.py` and `tool/skincheck.py` retire.

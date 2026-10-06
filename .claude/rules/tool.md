@@ -99,7 +99,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres`
   photographs the library (`tool/tyresheet.py`).
-- Drawing on the skin, the one way lines are drawn: `tool/skinmesh.py` is the whole car's paintable
+- A marking along the car's own lines or the user's stroke is a course (`tool/course.py`, its
+  docstring is the key: the line's points every 0.25 cm, zones measured square to it). Lines drawn
+  free-hand through places: `tool/skinmesh.py` is the whole car's paintable
   surface as one mesh (its panels sewn across their joins, mirrored to the whole car and
   subdivided; `PY -m tool.skinmesh --build`, cached in the work folder); `tool/skindraw.py` draws on
   it (its docstring is the reference; `PY -m tool.skindraw --probe "place,place"`); `PY -m
