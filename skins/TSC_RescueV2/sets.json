@@ -30,6 +30,36 @@
    "pick": "C",
    "decision": "Hazard stripes on the rear quarter panels",
    "done": "2026-10-05T16:32:19"
+  },
+  {
+   "n": 2,
+   "title": "Rear flank tape · 3 takes",
+   "words": "Include a tape like pattern here (note 13, a line drawn along the top of the left rear flank)",
+   "made": "2026-10-06T09:04:41",
+   "state": "picked",
+   "options": [
+    {
+     "key": "A",
+     "title": "Block tape",
+     "skin": "TSC_RescueV2_BlockTape",
+     "picture": "sets/2/A.png"
+    },
+    {
+     "key": "B",
+     "title": "Segment tape",
+     "skin": "TSC_RescueV2_SegmentTape",
+     "picture": "sets/2/B.png"
+    },
+    {
+     "key": "C",
+     "title": "Hazard tape",
+     "skin": "TSC_RescueV2_HazardTape",
+     "picture": "sets/2/C.png"
+    }
+   ],
+   "pick": "A",
+   "decision": "Block tape along the top of the rear flanks",
+   "done": "2026-10-06T09:16:37"
   }
  ]
 }

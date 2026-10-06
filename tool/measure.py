@@ -12,7 +12,8 @@ For a paint that runs along the car (RUN times longer than it's high: a band, a 
     degrees of the paint's end (round the corner where the side turns onto the back, not across
     the back), until the surface stops: the body's end, or an opening. An end SHORT cm or more
     short names what ends it: one of the zone's parts (shapes.Zone.parts) leaving the rest out, or
-    a later call covering it (Canvas.owner). Only a reading of the car (READINGS: the map's areas,
+    a later call covering it (Canvas.owner), unless that call is laid on it (ON of it within the
+    paint's zone: a pattern, checks on a band, stripes on a tape). Only a reading of the car (READINGS: the map's areas,
     its open air, its lines) makes a shortfall: a length, a height, a box or a pattern ends a paint
     where the design wrote it. Past an opening the body at the paint's height can resume (behind
     the rear wheel, the farthest back of the side): the first stretch of it within FAR cm, bare, is
@@ -50,6 +51,7 @@ ACROSS = 3.0  # cm along the car: body past an opening at a paint's height, long
 RUN = 3  # a paint runs along the car when it's at least this many times longer than it's high
 FACING = 0.25  # the bare body followed past an end faces within 75 degrees of the paint's end: a band
 # along the side runs on round the rounded corner to where the surface faces the back
+ON = 0.95  # a later paint with this share of it on a paint's zone is laid on it, a pattern: what it covers is as written
 READINGS = ("area", "outside", "near", "line", "region", "sides", "facing")  # zones whose edges are the car's,
 # read off its mesh: the rest (a length, a height, a box, a pattern) end a paint where the design wrote it
 
@@ -130,7 +132,12 @@ def _why(skin, call, texels, aimed):
         owners = owners[owners != call["op"]]
         if len(owners):
             op = int(np.bincount(owners - owners.min()).argmax() + owners.min())
-            return f"covered by {skin.ops[op]['what']} ({skin.ops[op]['step']})", False
+            said = f"{skin.ops[op]['what']} ({skin.ops[op]['step']})"
+            # a pattern laid on the paint (checks on a band, stripes on a tape) lies wholly within it
+            on = [z for z in skin.zoned if z["op"] == op]
+            if on and len(on[0]["idx"]) and aimed[on[0]["idx"]].mean() >= ON:
+                return f"under {said}, laid on it", True
+            return f"covered by {said}", False
         return "covered", False
     pos, nrm = c.pos[texels], c.nrm[texels]
     out = [f for f in call["zone"].parts() if (f(pos, nrm) < 0.5).mean() >= 0.5]

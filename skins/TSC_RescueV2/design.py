@@ -1,9 +1,9 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
-Signal orange; a black lower edge and a band of silver and orange checks that follow the side's
-curve, rising with the tail; silver chevrons on the tail's deck; NO STEP on the deck and the side
-box's top, each side, as small boxed placards; silver hazard stripes across the rear quarter panels;
-studded snow tyres; amber rear lights."""
-from tool import levels, seams, shapes
+Signal orange; a black lower edge that follows the side's curve, rising with the tail; block tape of
+silver and orange round the car's contour, along its top line from the nose's tip to the tail; silver
+chevrons on the tail's deck; NO STEP on the deck and the side box's top, each side, as small boxed
+placards; silver hazard stripes across the rear quarter panels; studded snow tyres; amber rear lights."""
+from tool import course, levels, shapes
 
 WORDS = "based on what you know can you design a skin or use the Rescue as a v2, to add more details"
 ORANGE, AMBER = "#ff5a0f", "#ffb000"
@@ -16,6 +16,10 @@ NOTES = ("Do an interval lines with DO NOT STEP text. (note 4, a line along the 
 # the car's length there); on the side box's top beside its inner edge, where the user drew (note 5).
 SIGNS = (((63.3, -68.2), 34), ((53.0, -22.0), 0))
 QUARTER = "What can we do here in this piece? (note 11, on the right rear quarter panel)"
+TAPE = ("Include a tape like pattern here (note 13, a line drawn along the top of the left rear flank, which runs "
+        "along the top line); picked block tape; Maybe include the tape around the car, you can be the judge on how to "
+        "distribute it so that it looks like a hazard car")
+BAND = "Remove this one (note 1 on the block tape's take, on the side's check band)"
 
 
 def design(s):
@@ -26,23 +30,18 @@ def design(s):
     s.paint("body", "gloss black", zone=levels.below("between 6") | levels.below("bottom edge"))
     s.paint("side skirt", "gloss black")  # on round the nose, under the front flank and the nose
 
-    s.step("The check band", "Two rows of silver and orange checks along each side between the levels, from the tail "
-           "to the front wheel opening, on the body only: the bottom piece keeps its black.", words=WORDS)
-    band = levels.band("between 3", "between 6")
-    # the band's foot: the sixth level, or the bottom piece's top edge where it rises above it ahead of
-    # the sidepods; the rows split halfway, so they stay even there
-    foot = levels.higher("between 6", seams.height("side skirt ahead"))
-    upper = levels.above(levels.split("between 3", levels.smoothed(foot, 12)))
-    blocks = shapes.stripes(15, across="back", edge=72)  # 15 cm blocks along the car, whole from the body's front edge
-    s.paint("body", "gloss", colour=ORANGE, zone=band)
-    s.paint("body", "reflective tape", zone=band & (upper & blocks | ~upper & ~blocks))
-
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
     s.paint("tail panel", "reflective tape", zone=shapes.stripes(4, across=SLANT, edge=-132) & shapes.band(-152, -132))
 
     s.step("The rear quarter panels", "Silver and orange hazard stripes across the angled panels behind the "
            "cockpit, at the tail chevrons' slant.", words=QUARTER)
     s.paint("rear quarter panel", "reflective tape", zone=shapes.stripes(4, across=SLANT, edge=2.5))
+
+    s.step("The contour tape", "Block tape, two rows of silver and orange blocks 5 cm wide, round the car's contour on "
+           "its top line, as a hazard vehicle is outlined: from the nose's tip back along the nose to the air intake, "
+           "then along the side box and the rear flank, and on the tail corner. The side's big check band is off.",
+           words=TAPE + "; " + BAND)
+    s.paint("body", "reflective tape", zone=course.around("top edge").mirrored().blocks(5, 2.5))
 
     s.step("No step", "NO STEP in black on each side, a small placard with a thin black box round the words, facing "
            "outward: on the deck beside the rear flank's seam, where the user's arrow pointed, reading along the "

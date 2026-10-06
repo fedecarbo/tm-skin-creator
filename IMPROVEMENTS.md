@@ -20,7 +20,8 @@ more it no longer makes).
   reading along it (`tool/course.py`); `shapes.stripes` and `shapes.checks`; a level's `offset`,
   `split`, `higher`, `smoothed` and `where`, a seam as a height (`seams.height`), in `tool/levels.py`;
   every zone's edge feathered along the surface, so a height or a shape drawn from above stays crisp
-  where the body slopes. Still to see: a marking along a line the user draws, in one show.
+  where the body slopes. Seen on the user's own line (TSC_RescueV2, note 13): three tapes along it in
+  one show, then block tape round the car's contour (`course.around`, the level traced on the mesh).
 - **D. Lines drawn in the flat texture** (2026-10-05): a course mapped to the texture, one smooth
   spline per UV island, mirrored (how Peach's artist drew). TSC_Skeleton repainted beside today's for
   the user's eye; if it passes, `tool/skindraw.py`, `tool/skinmesh.py` and `tool/skincheck.py` retire.
@@ -44,6 +45,9 @@ more it no longer makes).
   that fills its room hugs the panel's edges, which no note says; placing a tight mark takes a paint per
   try. Ideas: among the texels in line, the one facing the free axis, and a note when none does; a note
   when a mark takes over 80 % of its room; a probe command for marks, as lines have one.
+- **A paint covered by the same paint is said to stop short** (2026-10-06): TSC_RescueV2's black lower
+  edge "stops 40 cm short" where the side skirt, painted black by name, covers it. Idea: a later call in
+  the same colour and finish leaves no shortfall (`measure._why`).
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.

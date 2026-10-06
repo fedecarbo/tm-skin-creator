@@ -3,7 +3,11 @@ drawing with the Lab's pen: "Do an interval lines with DO NOT STEP text." A mark
 of the car (a guide, a seam, a panel's edge) or to the line the user drew, and the tool lays it along
 that line in one go: a strip, dashes, ticks, spots or words.
 
-    course.level("between 3")                the level's line along the left side (side="right" the other)
+    course.level("between 3")                the level's line along the left side (side="right" the other), where
+                                             it's painted: its longest stretch, or the one nearest `near` (a point,
+                                             a drawn line); an opening or a piece standing proud breaks it
+    course.around("top edge")                every stretch of it on the left side, the car's contour at that height:
+                                             course.around("top edge").mirrored().blocks(5, 2.5) tapes them all
     course.seam("side skirt")                a seam (tool/seams.py), the left side
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
@@ -23,6 +27,8 @@ that line in one go: a strip, dashes, ticks, spots or words.
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
     c.strip(1.0)                             a strip 1 cm wide along it, its ends square
     c.dashes(5, gap=3, width=1)              dashes 5 cm long with 3 cm gaps, a whole dash at each end
+    c.dashes(2.5, width=5, slant=45)         stripes across a 5 cm strip, slanted 45 degrees: hazard tape
+    c.blocks(5, 2.5)                         two rows of blocks 5 cm long and 2.5 high, alternating: block tape
     c.ticks(every=10, length=3, width=0.6, side=1)   short strokes square to it every 10 cm, to its left (+1),
                                              its right (-1) or both ways (0)
     s.text("NO STEP", "engine cover", at=c.between(-74, -62))   words (a placard, a mark) at a stretch's
@@ -95,10 +101,13 @@ def _tangent(pts, closed=False):
 
 class Course:
     def __init__(self, pts, name, nrm=None, closed=False, mirror=False):
-        self.pts = _resample(pts, STEP, closed)
+        given = np.asarray(pts, np.float64)
+        self.pts = _resample(given, STEP, closed)
         self.name, self.closed, self.mirror = name, closed, mirror
         self.s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(self.pts, axis=0), axis=1))]
         self.tan = _tangent(self.pts, closed)
+        if nrm is not None and len(nrm) != len(self.pts):  # facings given for the points as they came
+            nrm = np.asarray(nrm)[cKDTree(given).query(self.pts)[1]]
         self.nrm = _facing(self.pts, closed) if nrm is None else nrm
 
     def __repr__(self):
@@ -194,8 +203,10 @@ class Course:
 
     def _zone(self, half, along, label, soft, reach=None):
         """A zone: within `half` cm across of the course (measured square to it) where `along`
-        (s -> cm inside the marking along it, negative outside) says so."""
+        (s, b -> cm inside the marking, negative outside: s how far along the course, b how far across
+        it, + to its left seen from outside) says so."""
         P, T, N, S = self._both()
+        L = np.cross(N, T)  # the course's left, seen from outside; the mirror image's is its right
         tree = cKDTree(P)
         bound = (half if reach is None else reach) + soft + 1.0
         lo, hi = P.min(0) - bound, P.max(0) + bound
@@ -214,7 +225,8 @@ class Course:
             rel = q - P[i]
             a = (rel * T[i]).sum(1)
             across = np.sqrt(np.maximum(d * d - a * a, 0.0))
-            inside = np.minimum(half - across, along(S[i] + a, i))
+            b = np.copysign(across, (rel * L[i]).sum(1))
+            inside = np.minimum(half - across, along(S[i] + a, b))
             ok = (qn * N[i]).sum(1) >= FACING
             w[box[live]] = smoothstep(-soft / 2, soft / 2, inside) * ok
             return w
@@ -224,13 +236,18 @@ class Course:
 
     def strip(self, width, soft=shapes.SOFT):
         """A strip `width` cm wide along the course, its ends square to it."""
-        L = self.length
-        along = (lambda s, i: np.full(len(s), 1e3)) if self.closed else (lambda s, i: np.minimum(s, L - s))
-        return self._zone(width / 2, along, f"a strip {width:g} cm wide along {self.name}", soft)
+        return self._zone(width / 2, self._ends(), f"a strip {width:g} cm wide along {self.name}", soft)
 
-    def dashes(self, length, gap=None, width=1.0, soft=shapes.SOFT):
+    def _ends(self):
+        """The marking's ends, square to the course: cm inside them (a loop has none)."""
+        L = self.length
+        return (lambda s, b: np.full(len(s), 1e3)) if self.closed else (lambda s, b: np.minimum(s, L - s))
+
+    def dashes(self, length, gap=None, width=1.0, slant=0.0, soft=shapes.SOFT):
         """Dashes `length` cm long with `gap` cm between (as long as a dash), `width` cm wide, the run of
-        them centred on the course so a whole dash sits at each end (on a loop, spaced evenly round)."""
+        them centred on the course so a whole dash sits at each end (on a loop, spaced evenly round).
+        slant: degrees the dashes' ends lean (towards the course's start on its left), so dashes as long
+        as their gaps across a wide strip are hazard tape; the strip's own ends stay square."""
         gap = length if gap is None else gap
         L, period = self.length, length + gap
         if self.closed:
@@ -240,12 +257,36 @@ class Course:
         else:
             n = max(1, int((L + gap) // period))
             s0 = (L - (n * period - gap)) / 2
+        lean, square = np.tan(np.radians(slant)), np.cos(np.radians(slant))
+        ends = self._ends()
 
-        def along(s, i):
-            k = np.clip(np.floor((s - s0) / period), 0, n - 1)
-            local = s - s0 - k * period
-            return np.minimum(local, length - local)
-        return self._zone(width / 2, along, f"dashes {length:g} cm long, {gap:g} apart, {width:g} cm wide along {self.name}", soft)
+        def along(s, b):
+            u = s + lean * b
+            k = np.floor((u - s0) / period) if slant or self.closed else np.clip(np.floor((u - s0) / period), 0, n - 1)
+            local = u - s0 - k * period
+            return np.minimum(np.minimum(local, length - local) * square, ends(s, b))
+        how = f", slanted {slant:g} degrees" if slant else ""
+        return self._zone(width / 2, along, f"dashes {length:g} cm long, {gap:g} apart, {width:g} cm wide{how} along {self.name}",
+                          soft)
+
+    def blocks(self, length, high, rows=2, soft=shapes.SOFT):
+        """Rows of blocks along the course, `length` cm long and `high` cm high, alternating from row to
+        row like a chessboard (the first block at the course's start in its left row), as many rows as
+        `rows` across a strip centred on it; a whole block at each end."""
+        L = self.length
+        n = max(1, int(round(L / length)))
+        length = L / n  # whole blocks from end to end
+        half = rows * high / 2
+        ends = self._ends()
+
+        def along(s, b):
+            j = np.floor(s / length)
+            r = np.floor((half - b) / high)  # the row: 0 the left
+            on = (j + r) % 2 == 0
+            ds = np.minimum(s - j * length, (j + 1) * length - s)
+            db = np.minimum((half - b) - r * high, (r + 1) * high - (half - b))
+            return np.minimum(np.where(on, 1.0, -1.0) * np.minimum(ds, db), ends(s, b))
+        return self._zone(half, along, f"{rows} rows of blocks {length:.3g} by {high:g} cm along {self.name}", soft)
 
     def ticks(self, every, length, width=0.6, side=0, soft=shapes.SOFT):
         """Short strokes square to the course, `length` cm long and `width` wide, every `every` cm, to
@@ -324,50 +365,164 @@ def _side_sign(side):
     return 1.0 if side == "left" else -1.0
 
 
-def level(name, side="left"):
-    """The level's line along one side of the car, its longest stretch: on each slice of the body (the
-    car map's, every cm) the outermost point of the open side at the level's height."""
+def _isoline(L):
+    """The level's line on the outer body, as painted (tool/levels.py's line): where the welded body's
+    mesh (the car map's) crosses the level's height, its triangles' crossings chained into polylines,
+    on the body's parts that take a level, outside (the open air) and not underneath."""
+    from collections import defaultdict
     from tool import carmap, levels
-    L = levels._find(name)
     m = carmap.load()
-    Z, st, q = m.sec["Z"], m.sec["starts"], m.sec["q"]
-    found = []
-    for k, z in enumerate(Z):
-        if not L.runs(z):
-            continue
-        pts = q[st[k]:st[k + 1]].astype(np.float64)
-        if len(pts) < 2:
-            continue
-        y = float(L.Y(z))
-        a, b = pts[:-1], pts[1:]
-        cross = ((a[:, 1] - y) * (b[:, 1] - y) <= 0) & (np.abs(b[:, 1] - a[:, 1]) > np.abs(b[:, 0] - a[:, 0]))
-        cross &= (a[:, 0] > 2) & (b[:, 0] > 2)
-        if not cross.any():
-            continue
-        t = (y - a[cross, 1]) / np.where(np.abs(b[cross, 1] - a[cross, 1]) < 1e-9, 1e-9, b[cross, 1] - a[cross, 1])
-        x = a[cross, 0] + t * (b[cross, 0] - a[cross, 0])
-        found += [(float(xi), y, float(z)) for xi in x]
-    if len(found) < 2:
-        raise ValueError(f"{L}: no line along the {side} side")
-    found = np.array(found)
-    found = found[m.value("open", found) >= 0.1]  # the outer body: not an inlet's inside
+    V, F = m.V.astype(np.float64), m.F
+    f = V[:, 1] - L.Y(V[:, 2])
+    f[np.abs(f) < 1e-7] = 1e-7
+    names = m.part_names[m.part]
+    keep = (~np.isin(names, list(levels.WHEELS) + list(levels.OFF)) & (m.layers["open"][F].mean(1) >= 0.1)
+            & (m.layers["facing_y"][F].mean(1) > -0.8) & L.runs(V[F, 2].mean(1)))
+    up = f[F] > 0
+    pts, adj = {}, defaultdict(list)
+    for t in np.flatnonzero(keep & up.any(1) & ~up.all(1)):
+        ends = []
+        for a, b in ((0, 1), (1, 2), (2, 0)):
+            if up[t, a] != up[t, b]:
+                i, j = int(F[t, a]), int(F[t, b])
+                key = (min(i, j), max(i, j))
+                if key not in pts:
+                    pts[key] = V[i] + f[i] / (f[i] - f[j]) * (V[j] - V[i])
+                ends.append(key)
+        if len(ends) == 2:
+            adj[ends[0]].append(ends[1])
+            adj[ends[1]].append(ends[0])
+    seen, chains = set(), []
+    for loops in (False, True):  # the open chains from their ends first, then the loops
+        for start in adj:
+            if start in seen or (not loops and len(adj[start]) == 2):
+                continue
+            chain, prev, cur = [start], None, start
+            seen.add(start)
+            while True:
+                nxt = [k for k in adj[cur] if k != prev and k not in seen]
+                if not nxt:
+                    break
+                prev, cur = cur, nxt[0]
+                seen.add(cur)
+                chain.append(cur)
+            if len(chain) > 1:
+                chains.append(np.array([pts[k] for k in chain]))
+    return chains
+
+
+def _half(chains, sign):
+    """The chains' parts on one side of the car's middle (sign 1 the left), each cut at x = 0."""
     out = []
-    for z in np.unique(found[:, 2]):
-        at = found[found[:, 2] == z]
-        out.append(at[np.argmax(at[:, 0])])
-    pts = np.array(out)[::-1]  # the slices run from the tail: the course runs nose to tail
-    pts = _longest_run(pts)
-    c = Course(_smooth(_resample(pts), 1.0) if len(pts) > 2 else pts, f"the level {L!r} on the {side}")
-    return c if side == "left" else _flip(c)
+    for c in chains:
+        on = c[:, 0] * sign >= 0
+        edges = np.flatnonzero(np.diff(np.r_[0, on.astype(int), 0]))
+        for a, b in zip(edges[::2], edges[1::2]):
+            piece = c[a:b]
+            if a > 0:  # where it crosses the middle
+                p, q = c[a - 1], c[a]
+                piece = np.vstack([p + (q - p) * (p[0] / (p[0] - q[0])), piece])
+            if b < len(c):
+                p, q = c[b - 1], c[b]
+                piece = np.vstack([piece, p + (q - p) * (p[0] / (p[0] - q[0]))])
+            if len(piece) > 1:
+                out.append(piece)
+    return out
 
 
-def _longest_run(pts, gap=6.0):
-    """The longest stretch of points with no gap over `gap` cm."""
-    d = np.linalg.norm(np.diff(pts, axis=0), axis=1)
-    cuts = np.flatnonzero(d > gap)
-    starts, ends = np.r_[0, cuts + 1], np.r_[cuts + 1, len(pts)]
-    k = int(np.argmax(ends - starts))
-    return pts[starts[k]:ends[k]]
+def _joined(chains, gap):
+    """Chains whose ends meet within `gap` cm joined into one (a seam between two pieces lying flush)."""
+    chains = [c for c in chains if np.linalg.norm(np.diff(c, axis=0), axis=1).sum() >= 1.0]
+    merged = True
+    while merged:
+        merged = False
+        for i in range(len(chains)):
+            for j in range(i + 1, len(chains)):
+                a, b = chains[i], chains[j]
+                for x, y in ((a, b), (a, b[::-1]), (a[::-1], b), (a[::-1], b[::-1])):
+                    if np.linalg.norm(x[-1] - y[0]) <= gap:
+                        chains[i] = np.vstack([x, y])
+                        del chains[j]
+                        merged = True
+                        break
+                if merged:
+                    break
+            if merged:
+                break
+    return chains
+
+
+JOIN = 4.0  # cm: two stretches of a level whose ends meet this close are one: pieces lying flush, or one standing a
+# step proud of the next (the tail corner over the rear flank, 3.8 cm), where a marking runs on in step
+
+
+def _stretches(name, side):
+    from tool import levels
+    L = levels._find(name)
+    sign = _side_sign(side)
+    chains = _joined(_half(_isoline(L), sign), JOIN)
+    if not chains:
+        raise ValueError(f"{L}: no line on the {side} side")
+    out = []
+    for c in chains:
+        if c[0, 2] < c[-1, 2]:  # nose to tail
+            c = c[::-1]
+        out.append(Course(_smooth(_resample(c), 1.0), f"the level {L!r} on the {side}"))
+    return out
+
+
+def level(name, side="left", near=None):
+    """The level's line along one side of the car where it's painted, traced on the body (_isoline): an
+    opening or a piece standing proud of the next breaks it into stretches; the longest, or the one
+    nearest `near` (a point, or the points of a line the user drew). It runs from the nose to the tail."""
+    runs = _stretches(name, side)
+    if near is None:
+        return max(runs, key=lambda c: c.length)
+    want = np.asarray(near.middle if hasattr(near, "pts") else near, np.float64).reshape(-1, 3).mean(0)
+    return min(runs, key=lambda c: float(np.linalg.norm(c.pts - want, axis=1).min()))
+
+
+def around(name, side="left"):
+    """Every stretch of the level's line on one side of the car (level): the car's contour at that
+    height, as Courses; its markings are every stretch's."""
+    runs = _stretches(name, side)
+    return Courses(sorted(runs, key=lambda c: -c.pts[:, 2].max()), f"the level {name!r} all round the {side}")
+
+
+class Courses:
+    """Several courses marked alike: each marking is every course's, in one zone."""
+
+    def __init__(self, courses, name):
+        self.courses, self.name = list(courses), name
+
+    def __repr__(self):
+        return self.name
+
+    def __iter__(self):
+        return iter(self.courses)
+
+    def mirrored(self):
+        return Courses([c.mirrored() for c in self.courses], self.name)
+
+    def _all(self, method, *a, **k):
+        zones = [getattr(c, method)(*a, **k) for c in self.courses]
+        fns = [z.fn for z in zones]
+        label = zones[0].label.replace(self.courses[0].name, self.name) if zones else self.name
+        z = shapes.Zone(lambda p, n: np.max([fn(p, n) for fn in fns], axis=0), label=label)
+        z.course = self
+        return z
+
+    def strip(self, *a, **k):
+        return self._all("strip", *a, **k)
+
+    def dashes(self, *a, **k):
+        return self._all("dashes", *a, **k)
+
+    def blocks(self, *a, **k):
+        return self._all("blocks", *a, **k)
+
+    def ticks(self, *a, **k):
+        return self._all("ticks", *a, **k)
 
 
 def _flip(c):

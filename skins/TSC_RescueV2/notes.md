@@ -119,3 +119,19 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   guides instead of the mesh. 68 lines, from 137. The checks no longer call the hazard stripes' edge
   soft: they read a slanted edge twice too wide (the edge was always crisp); they now read every edge
   square to it. Close looks beside the last: nothing moved that the eye can see.
+- Set 2 (user, note 13 drawn along the top of the left rear flank, 2026-10-06, Claude Opus 5.5): "Include a
+  tape like pattern here". The drawn line runs within 1.5 cm of the top line (the levels room's black
+  line), so the tape follows that line between the line's two ends (z -60 to -116), on both sides.
+  Three takes: A block tape (two rows of silver and orange blocks, 5 cm wide, the side band in small),
+  B segment tape (silver, 15 cm segments with 5 cm gaps, 4 cm wide), C hazard tape (a 5 cm silver strip
+  with black stripes slanted 45 degrees). Close looks: all three crisp, clear of the placards. Open in
+  the Lab.
+- Picked (user, set 2, 2026-10-06): A, the block tape; the others went.
+- Change 12 (user, note 1 on the block tape's take, pinned on the side's check band, and in the chat,
+  2026-10-06, Claude Opus 5.5): "Remove this one"; "Maybe include the table around the car, you can be
+  the judge on how to distribute it so that it looks like a hazard car" (read as the tape). The side's
+  big check band is off. The block tape outlines the car as a hazard vehicle's contour tape does, on
+  its top line all round: from the nose's tip (both sides meeting there) back along the nose to the air
+  intake, then along the side box and the rear flank and on over the tail corner, its blocks running in
+  step across the corner's step; it ends at the tail corners, where the back is open for the lights.
+  Close looks: crisp all round, whole blocks at its ends, clear of the placards and the chevrons.
