@@ -102,3 +102,5 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   and forward along it, 6 points): "lets try this". Read as: the same red tape along it, both sides. Its turn at the
   bonnet's edge is 40 degrees, kept as a corner (as the Lab drew it); the rest smooth through the points. Checked close
   up from the note's camera, at the turn and on the right: even, a clean bend, on the line; the checks name nothing.
+- The user, 2026-10-06, of the tapes and the picking: "Its ok, there's improvements to make but for now let's keep it
+  that way until I actually start building a car". Kept as it is; not for the game.

@@ -35,9 +35,10 @@ more it no longer makes).
   the body bends across it: outward, a rounded edge is a run of them side by side; inward, an indentation), drawn by
   `view.export_template` on the maps and on the car (the Lab's UV map room, Show, Template; the user: "I want to see
   the mesh reflected in the car"); a design picks `meshlines.line` (exactly along a template line) and
-  `meshlines.panel` (filled to its lines, or a trim). TSC_ModelLines shows only those: on edges and round shapes,
-  checked close up. Next: the user looks at the mesh on the car; then lines on curvature, a rounded edge's own lines
-  (its middle, where it starts), each named for what it follows, checked close up before showing. Not: a line from the car map's traced
+  `meshlines.panel` (filled to its lines, or a trim). The Lab's Mesh button lays the mesh over any car, and with it
+  Draw picks a line by points where the mesh's lines cross (`meshlines.picked`, one smooth curve through them, the
+  user's pick). The user, 2026-10-06: "Its ok, there's improvements to make but for now let's keep it that way until I
+  actually start building a car". Next: their improvements, when they start a car. Not: a line from the car map's traced
   lines ("random lines ... no meaning whatsoever"), nor from a light rule alone (the 60-degree divide wandered in a
   zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm groove, not its middle.
 
