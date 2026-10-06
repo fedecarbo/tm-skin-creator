@@ -345,7 +345,7 @@ def write_edge():
     carried on straight 3 cm under the inlet's frame and 5 cm to where the side ends at the tail corner.
     The left side, every half centimetre."""
     from tool import course
-    c = course.shadow(course.shoulder().between(-12, -152)).extended(start=3, end=5)
+    c = course.shadow(course.shoulder().between(-12, -152), angle=course.SHADE).extended(start=3, end=5)
     doc = json.loads(TOP_FILE.read_text()) if TOP_FILE.exists() else {"lines": []}
     path = [[round(float(v), 2) for v in p] for p in c.pts[::2]] + [[round(float(v), 2) for v in c.pts[-1]]]
     doc["lines"] = [L for L in doc["lines"] if L["name"] != "edge"] + [{"name": "edge", "path": path}]
