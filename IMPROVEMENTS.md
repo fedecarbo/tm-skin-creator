@@ -13,16 +13,6 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 4 of 4 today; nine
 more it no longer makes, two cars it can't repaint, built on what the tool retired).
 
-- **The mesh is the guide** (2026-10-06, the user: "I think we can retire the guides and the mesh somehow will be
-  improved, but I guess that would be the new "guides""). Built, waiting for the user's OK: the height lines drawn on 4
-  and 5 October are out of the tool, with the courses and heights made from them; a design takes the model's own lines,
-  one whole or a line beside one (`Course.offset`), and the paint report says a paint's height in cm; the self-test's
-  tour paints on the model's lines (a band beside the body's bottom edge, ticks along a rounded edge's line, tape beside
-  a picked line, a panel's trim). The Rescue car is take D, the mesh as the guide (the user: "let's just have the mesh as the
-  source ... let's just start cleaning things up"). Cleaned up with it: the car map keeps only what it reads off the
-  mesh (the open air, which way the body faces, the body under a point); its traced lines and areas, the air's flow,
-  its checker and its pictures are out, and code nothing called. Next: "the mesh somehow will be improved", from their
-  words.
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.
@@ -40,7 +30,8 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   `meshlines.panel` (filled to its lines, or a trim). The Lab's Mesh button lays the mesh over any car, and with it
   Draw picks a line by points where the mesh's lines cross (`meshlines.picked`, one smooth curve through them, the
   user's pick). The user, 2026-10-06: "Its ok, there's improvements to make but for now let's keep it that way until I
-  actually start building a car". Next: their improvements, when they start a car. Not: a line from a light rule alone (the
+  actually start building a car"; "the mesh somehow will be improved". Next: their improvements, when they
+  start a car. Not: a line from a light rule alone (the
   60-degree divide wandered in a zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm
   groove, not its middle.
 
@@ -62,30 +53,17 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   identical.
 - **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
   on the stage until the first paint.
-- **Words on the inner car** read backwards on one side (2026-10-05): mirror twins share texels. Idea:
-  name the inner parts' unshared areas big enough for a word as spots.
-- **Motifs lined up across panels** (2026-10-05): scatter spreads evenly but can't do rows that line
-  up. Idea: a regular switch on `Skin.scatter`.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
   nose sensor, airbox: check them the first time a design paints them), and the fasteners have none
   (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand). The body's own bolt heads are four tiny parts with one paint for
   the whole car, which no zoned paint reaches: gold dots on every shard of TSC_Kintsugi, unasked.
   Renaming touches `tool/naming.py` and the viewer.
-- **Worn paint doesn't read as worn** (2026-10-05): `s.wear` scatters by noise, like a pattern. Idea:
-  wear driven by the car's shape (edges, recesses, contact points), layered paint, primer, metal, with
-  real scanned materials (Poly Haven, ambientCG, CC0) for finishes and wear, fetched as needed.
 - **The pictures Claude looks at** (2026-10-05): the comparison picture's number takes 1, 2, 3 on top
   of A, B, C, and drops a fourth view (idea: letters, and a second row); the close looks give the right
   side one tile in ten, so a car that isn't the same on both sides goes half unseen (TSC_Kintsugi).
-- **A finer, evenly shaped grain** (2026-10-05, the user, on TSC_CMYK_EndsInK): 2 mm noise specks are
-  the smallest that survive the zip budget. Idea: specks per 4x4 block from a few variants, so they
-  compress.
 - **What the Mac lacks** (2026-10-05): the picture maker (it needs the PC's card; idea: FLUX.2 [klein]
   on Metal, quantised, the latest release looked up first) and two tyre fonts (Bahnschrift, Consolas;
   idea: open look-alikes).
-- **The materials and the UV map, in a new way** (2026-10-05): the user's to describe (2026-10-02);
-  start from their words.
-
 ## The viewer
 
 - **The viewer against the game** (2026-10-05): the game's cameras pull back with speed (fitted
