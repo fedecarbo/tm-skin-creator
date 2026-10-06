@@ -30,22 +30,24 @@
    "title": "The edge: measured, or your line · 2 takes",
    "words": "As you can see with my not so perfect line, that the tool does not know how to place the right edge of the car.  Can't you measure by the edge of the corner along the car?",
    "made": "2026-10-06T12:43:42",
-   "state": "open",
+   "state": "dropped",
    "options": [
     {
      "key": "A",
      "title": "Measured corner",
-     "skin": "TSC_Endurance_MeasuredCorner"
+     "skin": "TSC_Endurance_MeasuredCorner",
+     "picture": "sets/2/A.png"
     },
     {
      "key": "B",
      "title": "Your line",
-     "skin": "TSC_Endurance_YourLine"
+     "skin": "TSC_Endurance_YourLine",
+     "picture": "sets/2/B.png"
     }
    ],
    "pick": null,
-   "decision": "",
-   "done": ""
+   "decision": "the user: \"Dude no, stop. YOu are so way off all around the car. There needs to be a way to actually get the edge right\"",
+   "done": "2026-10-06T12:51:12"
   }
  ]
 }

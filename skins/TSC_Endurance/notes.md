@@ -33,3 +33,7 @@ underside dark; gunmetal wheels; amber as the one accent, in the lights.
   (86 to 98): within 0.0 to 1.0 cm below the crest from z -25 to -102. The user's line runs 0.8 to 2.4 cm
   below the crest (once 0.3 above). Set 2: A on the measured corner, B `area("top", wrap=1.5)`, along
   their line.
+- The user, 2026-10-06, of set 2: "Dude no, stop.  YOu are so way off all around the car.  There needs to
+  be a way to actually get the edge right". Set 2 dropped; the car back to A (on the crest). Asked them
+  to trace the edge they mean with the pen along one side: paint to their line first, then teach the
+  tool to find it. Open: their line.
