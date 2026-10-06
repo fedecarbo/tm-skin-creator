@@ -47,3 +47,12 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   round the cockpit, the nose plate, the engine cover and the number panel, the inlets, the fasteners' holes, all on
   the car's own. The rolled edges aren't in it: found as a shading isoline over every roll at once they broke, wobbled
   on gentle curves and looped where rolls meet. Open: the rolled edges, one at a time, as the shoulder was drawn.
+- The user, 2026-10-06, of painting along the template's lines or the rolled edges first: "You choose, because this
+  tool is really for you to paint accurately.  If you need to run a test feel free". Chosen: the template's lines and
+  panels first (exact already, and they bound the model's own panels). A second step on this car: the cockpit
+  surround filled red right up to its panel line with a black line 0.6 cm on the line itself, the nose panel blue, a
+  black trim 1.5 cm inside each inlet's edge. Checked close up (the cockpit's front, side and back corner, both
+  inlets, the nose panel): every fill meets its line with no gap and nothing over it, the fasteners' holes left clear,
+  the trims on both sides. Measured on the texture: the black line is 0.3 cm each side of the panel line; the panel
+  line is a groove 0.36 cm wide and the line sits on its inner wall, so it covers all but the groove's last half
+  millimetre on the body shell's side. Shown in the Lab.

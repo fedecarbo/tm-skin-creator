@@ -28,13 +28,15 @@ more it no longer makes).
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
   accurately"; then: "im interested to know if with this new mesh to uv map method will help enhance the uv map so
-  that ai can "see" the geometry of the car. I want to see it in the uv map template room as well"). Built, waiting
-  for the user's look: `meshlines.template` (the model's creases and panel lines, where the body ends, where the map
-  is cut while the car carries on, read off its triangles), drawn by `view.export_template` on all four maps (the
-  body's shape shaded) and on the car, in the Lab's UV map room under Show, Template. Next: the rolled edges (the
-  shoulder and the like), each the model's line where the shading is halfway, one line end to end as `meshlines.along`
-  draws the shoulder (as a shading isoline over every roll at once they wobbled and looped where rolls meet); then
-  what a design picks from; TSC_Endurance's navy moved onto it.
+  that ai can "see" the geometry of the car. I want to see it in the uv map template room as well"; of which to do
+  first: "You choose, because this tool is really for you to paint accurately"). Built: `meshlines.template` (the
+  model's creases and panel lines, where the body ends, where the map is cut while the car carries on, read off its
+  triangles), drawn by `view.export_template` on the four maps and on the car (the Lab's UV map room, Show,
+  Template); a design picks from it: `meshlines.line` a course exactly along one of its lines, `meshlines.panel` a
+  panel filled to its lines or trimmed inside its edge (TSC_ModelLines' second step, checked close up). Next: the
+  rolled edges (the shoulder and the like), each the model's line where the shading is halfway, one line end to end
+  as `meshlines.along` draws the shoulder (as a shading isoline over every roll at once they wobbled and looped where
+  rolls meet); a line on a panel line centred on its groove, not on one wall; TSC_Endurance's navy moved onto it.
 
 ## The tool
 
