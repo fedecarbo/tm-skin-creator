@@ -1,1 +1,0 @@
-Option B of TSC_ModelLines's set 1 (The model's lines: straight point to point, or smooth on the UV map · 2 takes), 2026-10-06: Smooth. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).

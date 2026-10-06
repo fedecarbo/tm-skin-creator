@@ -6,22 +6,24 @@
    "title": "The model's lines: straight point to point, or smooth on the UV map · 2 takes",
    "words": "if you can convince me about this method, im all in to actually see it in use",
    "made": "2026-10-06T16:58:12",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "PointToPoint",
-     "skin": "TSC_ModelLines_PointToPoint"
+     "skin": "TSC_ModelLines_PointToPoint",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Smooth",
-     "skin": "TSC_ModelLines_Smooth"
+     "skin": "TSC_ModelLines_Smooth",
+     "picture": "sets/1/B.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "B",
+   "decision": "smooth: the user saw both as accurate; B bends without corners",
+   "done": "2026-10-06T17:17:15"
   }
  ]
 }

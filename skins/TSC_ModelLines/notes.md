@@ -31,3 +31,6 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   shading along an edge, seams included): the shoulder is one model line from z -12 to -154, facing up 0.43 to
   0.52, every step an edge of the model or a seam between coinciding points. Both takes repainted; checked from
   the notes' cameras: no rise, no dip.
+- The user, of set 1: "I see not much difference, they both seem accurate, which one is the new method?" Both are:
+  the same model line, drawn straight from point to point (A) or as one smooth stroke on the UV map through the same
+  points (B). Picked B (no corners at the bends, visible only close up behind the sidepod and at the inlet's end).
