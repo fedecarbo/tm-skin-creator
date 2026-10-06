@@ -174,3 +174,12 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   rear flank's front edge; before it the black stopped on a flat height, and the two made a step. B's black now starts
   on the rear flank's front edge at the bottom piece's top (26 cm up), straight across the surface to that line: no
   step, both sides; the checks name nothing.
+- Note 2 on B (user, 2026-10-06, the left rear flank in front of the wheel): "Do you need to recreate the black bottom
+  concept from scratch?  these wobbles are so not serving the mesh guides justice.  Why did it lead you to make things
+  wobble like that?  I thought the mesh would help paint smooth". Why: to keep the guides' idea of a black edge rising
+  towards the tail, two of the model's lines were joined end to end, and at the join (z -91) the edge dropped 3 cm and
+  climbed back within 6 cm. Rebuilt from the mesh: B's black is below one whole line of the model along the rear flank's
+  lower curve, from its front edge to where it meets the body's edge by the rear wheel (it faces down, so it reads as a
+  thin dark edge; it steps down 4 cm from the bottom piece's top at the panel line behind the sidepod); a third take,
+  C, has no line: only the car's own bottom piece in black, the rear flanks orange to their edge. Checks name nothing
+  on either; looked at low on both sides.

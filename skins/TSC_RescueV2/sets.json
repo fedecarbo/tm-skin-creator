@@ -77,6 +77,11 @@
      "key": "B",
      "title": "ModelLines",
      "skin": "TSC_RescueV2_ModelLines"
+    },
+    {
+     "key": "C",
+     "title": "BottomPiece",
+     "skin": "TSC_RescueV2_BottomPiece"
     }
    ],
    "pick": null,

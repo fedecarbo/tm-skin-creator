@@ -1,6 +1,6 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, on the model's own lines.
-Signal orange; black on the car's bottom piece and, on the rear flanks, below one of the model's lines along their
-lower curve, from the sidepod's back to the rear wheel; block tape of silver and orange round the car's contour, on
+Signal orange; black on the car's own bottom piece, the rear flanks orange to their edge; block tape of silver and
+orange round the car's contour, on
 the model's lines along the nose's lower crease and the shoulder from the sidepods to the tail, a piece on
 each panel, none on the nose's tip; silver
 chevrons on the tail's deck; NO STEP on the deck and the side box's top, each side, as small boxed
@@ -26,13 +26,11 @@ WITHOUT = "not sure what guides you mean but show me a version without the guide
 # The model's own lines (picked on the mesh, tool/meshlines.py), the left side: the tape's, along the nose's lower crease
 # from behind the nose tip's seam to where it meets the curve rising in front of the air intake, on straight across the
 # surface to the intake's crisp front edge, and along the shoulder (the line facing 47 degrees from up across its rounded
-# edge) from the sidepod's front to the tail corner's end. The black's (note 2: two lines joined made a wobble): one line
-# whole, along the rear flank's lower curve from its front edge to the rear wheel, where it meets the body's edge
+# edge) from the sidepod's front to the tail corner's end. The black is the car's own bottom piece, no line at all (note 2)
 NOSE = [(25.5, 46.7, 142.3), (35.0, 53.4, 81.3), (36.4, 52.8, 67.5), (38.9, 54.7, 48.4), (41.5, 55.0, 35.7),
         (47.9, 54.3, 28.2)]
 SHOULDER = [(84.4, 57.0, -11.6), (83.7, 57.9, -48.3), (83.6, 57.9, -48.4), (49.6, 61.5, -126.1), (49.7, 61.6, -126.2),
             (47.6, 60.9, -155.1)]
-UNDER = (69, 20, -61)  # a point on it
 SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box "
          "and the rear flank); Can't see gap here (note 17, at the intake's frame); Very little gap here; Same here very "
          "little gap (notes 19 and 20, at the side box's and the tail corner's seams); In this part remove the tape. "
@@ -41,11 +39,8 @@ SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. 
 
 def design(s):
     s.clay()
-    s.step("Signal orange", "The body in gloss signal orange; gloss black on the bottom piece and, on the rear flanks, "
-           "below one of the model's lines along their lower curve.", words=WORDS + "; " + WITHOUT)
+    s.step("Signal orange", "The body in gloss signal orange; gloss black on the bottom piece.", words=WORDS + "; " + WITHOUT)
     s.paint("body", "gloss", colour=ORANGE)
-    under = meshlines.line(UNDER, kind="rounded").mirrored()
-    s.paint("rear flank", "gloss black", zone=under.inked_edge(shapes.below(26) & shapes.front_of(-108)))
     s.paint("side skirt", "gloss black")  # on round the nose, under the front flank and the nose
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
