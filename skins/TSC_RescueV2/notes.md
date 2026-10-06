@@ -156,3 +156,5 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
 - Change 16 (user, note 22 on the nose's tip, 2026-10-06, Claude Opus 5.5): "In this part remove the
   tape." The nose's tip has no tape now, both sides; the nose's piece runs from behind the tip's seam
   back to the air intake. Close looks: the tip clean, the tape starting behind its seam.
+- The user, 2026-10-06: "lets leave it there for the car for no[w]". Not installed; the game has no
+  copy of it. Open: whether it's ready to install, the next time they pick it up.
