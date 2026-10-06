@@ -71,11 +71,7 @@ MIRROR = np.array([-1.0, 1.0, 1.0])
 SHADE = 60.0   # degrees from facing up: where the body's shading divides its top from its side, the edge the eye
 # sees (the user, 2026-10-06: "the shadow divides the edge properly"); their stroke of the rear flank's edge ran
 # within 0.3 cm of this line (median; 0.6 cm for 90 %), the shoulder's crest 1.4 cm off it
-SHADE_REACH = 7.0  # cm along the surface from the guide that the shadow's line is looked for
-SHADE_DIVIDE = 0.4  # how much further one surface faces up than the other for the line between them to be a
-# light-to-dark edge: less (a soft crease, a rib) and the eye sees the line on its crest
-SHADE_ROUND = 3.0   # cm: a line rolled over less than this is sharp, its crest the edge
-SHADE_FACES = 10.0  # cm along a line that the two surfaces' shading is read over at each point
+SHADE_REACH = 7.0  # cm from the guide that the shadow's line is looked for
 INK_KNOT = 8.0     # cm between the knots of the curve an inked strip follows on each piece of the flat texture
 INK_REACH = 10.0   # cm either side of a course an inked edge moves the zone's edge across: all the way to the zone's own
 # edge (area("top") stops up to 10 cm from the edge guide on the flat texture; at 4 a sliver stayed unpainted by the
@@ -88,6 +84,7 @@ FOLD = 45.0        # degrees from a course's own facing: past its end, where the
 FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
 INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
 # the body turns in to an inlet's frame) takes the nearest inked texel's side within this
+SHADE_PAIR = 0.6   # cm: two texels this close either side of the shadow's angle are neighbours (the bake's 2048² pitch is 0.2 to 0.3)
 
 
 def _resample(pts, step=STEP, closed=False):
@@ -886,109 +883,56 @@ def shoulder(side="left"):
     return stretches[0] if len(stretches) == 1 else Courses(stretches, f"the shoulder on the {side}")
 
 
-def _across(P, N, tree, p, t, n, reach):
-    """The surface's profile square across a line at p (its tangent t, its facing n): the texels (places P, normals
-    N, in `tree`) within a quarter centimetre of the plane square to the line and facing its way, chained outward
-    from p while neighbours are within half a centimetre (so it stays on the one surface): their places, normals
-    and p's index among them; None where there's too little of it."""
-    idx = tree.query_ball_point(p, reach)
-    Q, M = P[idx], N[idx]
-    keep = (np.abs((Q - p) @ t) < 0.25) & ((M @ n) > 0.0)
-    Q, M = Q[keep], M[keep]
-    if len(Q) < 8:
-        return None
-    o = np.argsort((Q - p) @ np.cross(t, n))
-    Q, M = Q[o], M[o]
-    i0 = int(np.argmin(np.linalg.norm(Q - p, axis=1)))
-    lo = hi = i0
-    while lo > 0 and np.linalg.norm(Q[lo] - Q[lo - 1]) < 0.5:
-        lo -= 1
-    while hi < len(Q) - 1 and np.linalg.norm(Q[hi + 1] - Q[hi]) < 0.5:
-        hi += 1
-    return (Q[lo:hi + 1], M[lo:hi + 1], i0 - lo) if hi - lo >= 7 else None
-
-
-def shadow(guide, angle=None, reach=SHADE_REACH):
-    """The edge as the eye sees it along a guide (one of the body's lines, course.flow; the shoulder): where the
-    body's shading, lit from above as the game lights it (how far a surface faces up), is halfway between the two
-    surfaces the guide divides, each read a roll's radius off it at each point (over SHADE_FACES cm along it: a long
-    line's surfaces change). On the shoulder that is 60 degrees from facing up (SHADE), where the user's own stroke
-    of the edge ran; `angle` gives it outright. At each point the surface's own profile square across the guide is
-    read, and how far along it (from the guide, within 1.5 times the roll's radius and `reach` cm) the shading
-    crosses that level, falling from the lit surface toward the dark one (not a bump's far side); where none is
-    found, from the neighbours. That one number along the guide is held to its running median (SHADE_RUN cm either
-    side) and smoothed over SHADE_KNOT cm,
-    so the line keeps the guide's whole length, never jumps to another panel and runs straight on where the shading
-    steps a millimetre or two across a seam (the user, 2026-10-06: "The transition between this part has a jagged
-    line.  It just needs to follow straight"); laid on the body, the side the guide is on. A guide sharper than
-    SHADE_ROUND cm round, or with no light-to-dark divide anywhere, comes back as it is (its crest is the edge)."""
+def shadow(guide, angle=SHADE, reach=SHADE_REACH):
+    """The edge as the eye sees it, along a guide (course.shoulder(), a stretch of it, a line of the
+    body's): the line within `reach` cm of the guide where the surface, as the game shades it (the
+    bake's normals), turns past `angle` degrees from facing up, so the shadow divides there: midway
+    between neighbouring texels either side of it, which on a rounded edge straddle the line and on a
+    sharp one (the tail's edge) the crease. Followed a centimetre at a time along the guide, never past
+    its ends, fitted as one smooth curve and laid on the body; the side the guide is on."""
     from tool import bake, carmap
-    m = carmap.load()
     right = float(np.mean(guide.pts[:, 0])) < 0
-    c = Course(guide.pts * (MIRROR if right else 1), guide.name)
-    n = len(c.pts)
-    radius = 1.0 / max(float(np.median(m.value("k1", c.pts))), 1e-3)
-    side = np.cross(c.tan, c.nrm)
-    if angle is None:
-        if radius < SHADE_ROUND:
-            return guide
-        k = max(1, int(SHADE_FACES / STEP / 2))
-        faces = [m.value("facing_y", m.project(c.pts + sign * side * radius)[0]) for sign in (1, -1)]
-        faces = [np.array([np.median(f[max(0, i - k):i + k + 1]) for i in range(n)]) for f in faces]
-        faces = [_smooth(f[:, None], SHADE_FACES)[:, 0] for f in faces]
-        if np.median(np.abs(faces[0] - faces[1])) < SHADE_DIVIDE:
-            return guide
-        level = 0.5 * (faces[0] + faces[1])
-        bright = np.sign(faces[0] - faces[1])  # +1 where the surface toward `side` is the lit one
-    else:
-        level = np.full(n, float(np.cos(np.radians(angle))))
-        lit = [m.value("facing_y", m.project(c.pts + sign * side * radius)[0]) for sign in (1, -1)]
-        bright = np.sign(_smooth((lit[0] - lit[1])[:, None], SHADE_FACES)[:, 0])
+    g = guide.pts * (MIRROR if right else 1)
     b = bake.bake("Skin", 2048, 2048)
     on = (b["tri"] >= 0) & (b["position"][..., 0] > -MIDDLE)
     P = b["position"][on].astype(np.float64)
-    N = b["normal"][on].astype(np.float64)
-    N /= np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-9)
-    tree = cKDTree(P)
-    span = min(1.5 * radius, reach)
-    off = np.full(n, np.nan)       # how far along the surface, across the guide, the edge lies (+ toward side)
-    for i in range(n):
-        prof = _across(P, N, tree, c.pts[i], c.tan[i], c.nrm[i], max(4.0, 2.0 * span))
-        if prof is None:
-            continue
-        Q, M, k0 = prof
-        Q = Q - np.outer((Q - c.pts[i]) @ c.tan[i], c.tan[i])  # in the plane square to the guide: across it only
-        s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(Q, axis=0), axis=1))]
-        s = s - s[k0]  # along the surface, + toward side (the profile runs that way)
-        grid = np.arange(s[0], s[-1], 0.05)
-        if len(grid) < 10:
-            continue
-        ny = np.convolve(np.pad(np.interp(grid, s, M[:, 1]), 4, mode="edge"), np.ones(9) / 9, "valid")
-        # a crossing where the shading falls from the lit surface toward the dark one, not a bump's far side
-        x = np.flatnonzero((np.diff(np.sign(ny - level[i])) != 0) & (np.abs(grid[:-1]) <= span)
-                           & (np.sign(np.diff(ny)) == bright[i]))
-        if len(x):
-            j = x[np.argmin(np.abs(grid[x]))]
-            off[i] = grid[j] + (level[i] - ny[j]) / (ny[j + 1] - ny[j] + 1e-12) * (grid[j + 1] - grid[j])
-    known = np.isfinite(off)
-    if known.sum() < 8:
-        raise ValueError(f"no shadow line along {guide.name}")
-    off = np.interp(c.s, c.s[known], off[known])  # where none was found, from the neighbours
-    run = max(1, int(SHADE_RUN / STEP))
-    off = np.array([np.median(off[max(0, i - run):i + run + 1]) for i in range(n)])
-    off = _smooth(off[:, None], SHADE_KNOT)[:, 0]
-    # each point walked that far across the surface from the guide, a millimetre at a time, square to the guide
-    pts, left = c.pts.copy(), off.copy()
-    for _ in range(int(np.ceil(np.abs(off).max() / 0.1))):
-        nrm = np.stack([m.value(f"facing_{a}", pts) for a in "xyz"], 1).astype(np.float64)
-        way = np.cross(c.tan, nrm) * np.sign(left)[:, None]
-        way /= np.maximum(np.linalg.norm(way, axis=1, keepdims=True), 1e-9)
-        stride = np.clip(np.abs(left), 0.0, 0.1)
-        pts = m.project(pts + way * stride[:, None])[0]
-        left -= np.sign(left) * stride
-    pts = _smooth(m.project(_smooth(pts, SHADE_KNOT / 2))[0], 1.0)  # walked points jitter a millimetre: smoothed, laid back on
-    out = Course(pts, f"the shadow's edge along {guide.name}", None, False, guide.mirror)
-    return _flip(out) if right else out
+    tilt = np.degrees(np.arccos(np.clip(b["normal"][on][:, 1].astype(np.float64), -1, 1)))
+    d, k = cKDTree(g).query(P, distance_upper_bound=reach, workers=-1)
+    near = np.isfinite(d)
+    near[near] &= (k[near] > 0) & (k[near] < len(g) - 1)  # nothing past the guide's ends (round the inlet's corner)
+    P, tilt, k = P[near], tilt[near], k[near]
+    up = tilt < angle
+    gap, j = cKDTree(P[~up]).query(P[up], workers=-1)
+    pair = gap < SHADE_PAIR
+    q = 0.5 * (P[up][pair] + P[~up][j[pair]])
+    s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(g, axis=0), axis=1))][k[up][pair]]
+    cm = np.floor(s).astype(int)
+    order = np.argsort(cm, kind="stable")
+    cm, q = cm[order], q[order]
+    parts = np.split(q, np.flatnonzero(np.diff(cm)) + 1)
+    mids = np.array([np.median(part, 0) for part in parts])
+    # the line holds its course: in each centimetre only the points within SHADE_HOLD cm of the running median
+    # of its neighbours' (SHADE_RUN cm either side), so it never jumps to another panel's rim where that turns
+    # past the angle too (the sidepod top's back edge, the tail corner's front edge)
+    run = np.array([np.median(mids[max(0, i - SHADE_RUN):i + SHADE_RUN + 1], 0) for i in range(len(mids))])
+    pts = []
+    for part, r in zip(parts, run):
+        held = part[np.linalg.norm(part - r, axis=1) < SHADE_HOLD]
+        if len(held):
+            pts.append(np.median(held, 0))
+    pts = np.array(pts)
+    if len(pts) < 2:
+        raise ValueError(f"no shadow line within {reach:g} cm of {guide.name}")
+    # one smooth curve through them, a knot every SHADE_KNOT cm, so it runs straight on where the shading
+    # steps a millimetre or two across a seam between two panels (the user, 2026-10-06: "The transition between
+    # this part has a jagged line.  It just needs to follow straight")
+    t = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]
+    knots = list(np.arange(SHADE_KNOT, t[-1] - SHADE_KNOT / 2, SHADE_KNOT))
+    fs = [carmap._lsq(t, pts[:, i], knots) for i in range(3)]
+    pts = np.stack([f(np.arange(0.0, t[-1], STEP)) for f in fs], 1)
+    pts = _smooth(carmap.load().project(pts)[0], 1.0)  # laid on a sharp edge, points fall either side of it
+    c = Course(pts, f"the shadow's edge along {guide.name}", None, False, guide.mirror)
+    return _flip(c) if right else c
 
 
 def points(pts, name="the points given"):
