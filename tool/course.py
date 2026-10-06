@@ -324,12 +324,11 @@ class Course:
         """A strip `width` cm wide along the course, its ends square to it."""
         return self._zone(width / 2, self._ends(), f"a strip {width:g} cm wide along {self.name}", soft)
 
-    def _inking(self, reach, size=4096, straight=False):
+    def _inking(self, reach, size=4096):
         """Where the course runs on the flat texture (the body's, Skin): for each piece of it the course
         crosses (a run of its points whose nearest texel is on that piece), the texels of the piece within
         `reach` cm of the course (facing its way, not the far side of a thin panel) and one smooth curve
-        (a knot every INK_KNOT cm) through where the course falls on it, or with `straight` the straight line
-        between where it enters and leaves the piece, in rows and columns: dicts of P and N
+        (a knot every INK_KNOT cm) through where the course falls on it, in rows and columns: dicts of P and N
         (the texels' places on the car and facings), tex (their rows and columns), line, tan, k (each texel's nearest
         point of the line), dt (texels from it), pitch (cm per texel on the piece), first and last (whether
         the run holds the course's own start or end), start_n and end_n (the course's facing SMOOTH cm inside the run's
@@ -359,8 +358,6 @@ class Course:
                     knots = list(np.arange(t[0] + INK_KNOT, t[-1] - INK_KNOT / 2, INK_KNOT))
                     fr, fc = (carmap._lsq(t, v[run], knots) for v in (prow, pcol))
                     line = np.stack([fr(np.arange(t[0], t[-1] + 1e-9, 0.05)), fc(np.arange(t[0], t[-1] + 1e-9, 0.05))], 1)
-                    if straight:
-                        line = line[0] + np.outer(np.linspace(0.0, 1.0, len(line)), line[-1] - line[0])
                     tan = np.gradient(line, axis=0)
                     tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-9)
                     mine = np.flatnonzero(isl == piece)
@@ -391,23 +388,23 @@ class Course:
             return w
         return shapes.Zone(f, label=label)
 
-    def inked(self, width, soft=shapes.SOFT, size=4096, straight=False, to_fold=None):
+    def inked(self, width, soft=shapes.SOFT, size=4096, to_fold=None):
         """A strip `width` cm wide along the course, drawn as a skin artist draws one: on the flat texture
         (the Lab's UV map), one smooth curve on each piece of it the course crosses, so it runs smooth there
         and on the car. (strip(), measured on the car, picks up a texel or two of bend wherever the flat
         layout stretches one of the model's small flat faces differently from the next: the user, 2026-10-06,
         "I look at the uv map and the lines are wobbly".) Its width is the piece's own texels per cm, even on
-        the texture; its ends square to it. The body's texture (Skin) only. `straight`: on each piece a
-        straight line between where the course enters and leaves it (the user's hypothesis, 2026-10-06: "a
-        straighnt line from the uv will create the perfect line in the car"; along the edge guide it strays
-        0.1 cm from the course on the tail corner's piece, 0.6 cm on the sidepod's, 0.7 on the rear flank's).
+        the texture; its ends square to it. The body's texture (Skin) only. A curve, not a straight line, on each
+        piece: the edge guide bends on the texture, and a line drawn straight there strays 0.4 to 0.8 cm off it on
+        the sidepod's and the rear flank's pieces, with a 12 degree corner where they meet (measured 2026-10-06;
+        the user: "The curve follow the edges better definitely").
         `to_fold` ("end", "start" or "both"): that end runs on straight, up to FOLD_RUN cm, to the fold where the
         surface turns FOLD degrees from the course's own facing, and stops along the fold rather than square (the
         user, 2026-10-06, of the edge line's end at the tail corner, half a centimetre short of the back face: "This
         area needs to properly cover the surface.  Something we can do is to mark the fold of the surface")."""
         half = width / 2
         keep_p, keep_w = [], []
-        for r in self._inking(half + soft + 3.0, size, straight):
+        for r in self._inking(half + soft + 3.0, size):
             line, tan, keep = self._run_on(r, to_fold)
             dt, k = (r["dt"], r["k"]) if keep is None else cKDTree(line).query(r["tex"], workers=-1)
             past = ((r["tex"] - line[k]) * tan[k]).sum(1) * r["pitch"]
@@ -426,7 +423,7 @@ class Course:
             keep_w.append(w[w > 0].astype(np.float32))
         z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
                           np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
-                          label=f"a strip {width:g} cm wide inked {'straight ' if straight else ''}along {self.name}")
+                          label=f"a strip {width:g} cm wide inked along {self.name}")
         z.course = self
         return z
 

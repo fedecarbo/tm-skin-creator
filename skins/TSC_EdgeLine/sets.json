@@ -6,22 +6,24 @@
    "title": "The edge line: curve or straight on the flat texture · 2 takes",
    "words": "I do have a hypothesis if a straighnt line from the uv will create the perfect line in the car",
    "made": "2026-10-06T14:24:35",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Curve",
-     "skin": "TSC_EdgeLine_Curve"
+     "skin": "TSC_EdgeLine_Curve",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Straight",
-     "skin": "TSC_EdgeLine_Straight"
+     "skin": "TSC_EdgeLine_Straight",
+     "picture": "sets/1/B.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "A",
+   "decision": "the curve: it follows the edge better",
+   "done": "2026-10-06T14:59:31"
   }
  ]
 }

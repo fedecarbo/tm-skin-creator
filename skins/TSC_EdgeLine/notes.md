@@ -71,3 +71,5 @@ tail's middle.
   where the side turns onto the back face, its end square while the fold leans. Built `inked(..., to_fold="end")`:
   the end runs on to the fold (where the surface turns 45 degrees from the line's own facing) and stops along it.
   Both takes; checked close up at both tail corners: on the fold, no gap, nothing on the back face.
+- The user's pick (set 1): A, "The curve follow the edges better definitely". The straight line is out of the tool;
+  what it showed is in `Course.inked`'s docstring. The car is the curve, ending on the fold at each tail corner.
