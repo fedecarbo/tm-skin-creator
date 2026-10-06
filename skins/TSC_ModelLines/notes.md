@@ -81,3 +81,17 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   the crisp lines, openings and cuts on top as before. The tint is gone. Checked close up on the car (bonnet, nose,
   flanks, sidepod, deck and tail, wheel) and on the maps. Open: the user looks at it in the UV room (Show, Template,
   Car); then lines on curvature from a rounded edge's own lines.
+- The Mesh button (any car in the Lab) and picking a line on it by clicks (Draw with Mesh on), the user's idea: "There's
+  something about having them that might be also somehow useful to click on certain multiple points similar to the draw
+  tool". Note 2 (user, 2026-10-06, "Got this glitch"; in the chat: "I clicked a third point and the line just went all
+  crazy"): a click at a line's very end jumped to its start, a metre up the nose; fixed. Note 3 ("test"), then in the
+  chat: "It just looks like sloppy work.  I just did a line and the outline is so wobbly a glitchy" and "I thought we
+  were going to just have the points when two or more lines cross, that creates a point": each click lands on the
+  nearest of the model's points now, marked with a small cross. Their clicks were already on its points: the wobble
+  was the model's own edges, a small corner at each point and a sharp bend over the sidepod's back edge. Open
+  (question 4 in the Lab): straight from point to point (A) or one smooth curve through the same points (B).
+- Note 4 (user, 2026-10-06, a line picked on the left rear flank, 8 points along one of its rounded edge's lines): "Draw
+  a red tape here". Read as: a red tape 2 cm wide, the cockpit surround's red, exactly along the picked line
+  (`meshlines.picked`, straight from point to point, as they saw it), both sides like the rest of the car. Checked close
+  up from the note's camera, along it and from above, mesh off and on: crisp, even, on the line they picked; the
+  checks name nothing. Shown in the Lab.
