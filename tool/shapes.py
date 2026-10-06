@@ -38,12 +38,10 @@ because it's drawn in 3D, not on the flat texture.
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
-  The car's skeleton (tool/skeleton.py: the body cut by flat planes every cm, nothing read into it):
-    shapes.skeleton("contour", 30)         the line level all round at 30 cm up; "section" across the
-                                           car at a length, "profile" along it at a distance from the middle
   The painter's guides, heights along the car (tool/levels.py: levels.band, above, below, split,
-  offset) and markings along the car's own lines (tool/course.py: a strip, dashes, ticks along a
-  level, a seam, a panel's edge or the line the user drew) give zones like these.
+  offset), markings along the car's own lines (tool/course.py: a strip, dashes, ticks along a
+  level, a seam, a panel's edge or the line the user drew) and the model's own lines and panels
+  (tool/meshlines.py) give zones like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Each zone keeps how the design wrote it (`label`, "behind(40)") and the zones an & joined
 (`parts()`), so tool/measure.py can say which of them ends a paint where it ends.
@@ -633,18 +631,6 @@ def polyline(lines, width=1.5, soft=SOFT, spacing=0.25):
     return field(dist, soft, grad)
 
 
-def skeleton(family, at, width=0.4, parts=None, soft=SOFT):
-    """Lines `width` cm wide along the car's skeleton (tool/skeleton.py): the body cut by flat
-    planes, from its mesh alone. family: "section" (across the car at a length z), "contour" (level
-    at a height y) or "profile" (along the car at a distance x from the middle, + the left); at: a
-    whole number of cm, or several. parts="body" leaves out the wheel covers and the blades."""
-    from tool import skeleton as sk
-    at = list(at) if isinstance(at, (list, tuple, range, np.ndarray)) else at
-    z = polyline(sk.load().lines(family, at, parts), width, soft, spacing=min(0.25, width / 4))
-    z.label = None  # named as the design wrote it (_named), not as the polyline under it
-    return z
-
-
 def streamlines(seeds, width=1.5, step=0.5, length=450.0, soft=SOFT, both=True):
     """Lines `width` cm wide along the air's path over the body (the car map's streamlines), traced
     from seed points (x, y, z) in cm on the body: a smoke rake's row at the nose, say. both: the
@@ -694,5 +680,5 @@ def _named(fn):
 
 for _maker in ("stripe", "stripes", "checks", "band", "front_of", "behind", "above", "below", "left", "right", "plane",
                "sphere", "box", "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy",
-               "region", "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "skeleton", "streamlines"):
+               "region", "seams", "area", "outside", "along", "near", "line", "hit", "polyline", "streamlines"):
     globals()[_maker] = _named(globals()[_maker])
