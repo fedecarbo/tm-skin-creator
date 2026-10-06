@@ -31,12 +31,13 @@ more it no longer makes).
   UV map that will translate into the three D model ... For you to actually produce a line on edges, around shapes, on
   curvature, or whatever"; of shading: "The shade is fine if it works for you ... If that helps you map the car's
   curvature indentations, etc"). Built, from the model's triangles alone: `meshlines.template` (creases and panel
-  lines, where the body ends, where the map is cut) and `meshlines.curvature` (outward: a rounded edge; inward: an
-  indentation), drawn by `view.export_template` on the maps and on the car (the Lab's UV map room, Show, Template);
-  a design picks `meshlines.line` (exactly along a template line) and `meshlines.panel` (filled to its lines, or a
-  trim). TSC_ModelLines shows only those: on edges and round shapes, checked close up. Next: the user looks at the
-  curvature tint in the UV room; then lines on curvature read from it (down the middle of a rounded edge, where it
-  starts), each named for what it follows, checked close up before showing. Not: a line from the car map's traced
+  lines, where the body ends, where the map is cut) and `meshlines.mesh` (every edge of its triangles, with how much
+  the body bends across it: outward, a rounded edge is a run of them side by side; inward, an indentation), drawn by
+  `view.export_template` on the maps and on the car (the Lab's UV map room, Show, Template; the user: "I want to see
+  the mesh reflected in the car"); a design picks `meshlines.line` (exactly along a template line) and
+  `meshlines.panel` (filled to its lines, or a trim). TSC_ModelLines shows only those: on edges and round shapes,
+  checked close up. Next: the user looks at the mesh on the car; then lines on curvature, a rounded edge's own lines
+  (its middle, where it starts), each named for what it follows, checked close up before showing. Not: a line from the car map's traced
   lines ("random lines ... no meaning whatsoever"), nor from a light rule alone (the 60-degree divide wandered in a
   zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm groove, not its middle.
 

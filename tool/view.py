@@ -214,49 +214,46 @@ def export_uvmap():
 
 
 TEMPLATE = DATA / "template"
-TEMPLATE_VERSION = 2  # bump when export_template changes what it draws
-TEMPLATE_KEY = {"crease": (240, 190, 0), "opening": (225, 45, 45), "cut": (0, 160, 230),
-                "outward": (255, 120, 20), "inward": (120, 70, 255)}  # the colours of meshlines.template's kinds and of
-# the body's curves (meshlines.curvature: outward, a rounded edge; inward, an indentation), as the Lab's key names them
-CURVE_TINT = (2.0, 10.0, 0.7)  # degrees a cm where the curves' tint starts and where it's full, and how strong it gets
+TEMPLATE_VERSION = 3  # bump when export_template changes what it draws
+TEMPLATE_KEY = {"mesh": (58, 58, 62), "outward": (255, 120, 20), "inward": (130, 80, 255), "crease": (240, 190, 0),
+                "opening": (225, 45, 45), "cut": (0, 160, 230)}  # the colours of the mesh, of its edges where the body
+# bends (meshlines.mesh: outward, a rounded edge; inward, an indentation) and of meshlines.template's kinds, as the
+# Lab's key names them
+BEND = (1.0, 12.0)  # degrees: where an edge's colour starts to turn from the mesh's to its bend's, and where it's full
 TEMPLATE_LIGHT = np.array([0.35, 0.85, 0.4]) / np.linalg.norm([0.35, 0.85, 0.4])  # the shape's light: high, front left
 
 
 def export_template():
-    """The Lab's UV map template (viewer/lab-rooms.js, Template), from the model alone (meshlines.template, curvature):
+    """The Lab's UV map template (viewer/lab-rooms.js, Template), from the model alone (meshlines.mesh, template):
       template/<Set>_Map.png  each map at the Lab's grid: the body's shape (clay lit from above, from the bake's
-                              normals), tinted where it curves outward or inward, the model's triangles faint, its
-                              lines in their colours (TEMPLATE_KEY)
-      template/<slot>.png     the car dressed in it: each map mid-grey clay, matte, with the same triangles and lines
+                              normals), the model's mesh (every edge of its triangles, coloured where the body bends
+                              across it), its lines in their colours (TEMPLATE_KEY)
+      template/<slot>.png     the car dressed in it: each map mid-grey clay, matte, with the same mesh and lines
       template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key"""
     from tool import meshlines, paintbox
     stamp = TEMPLATE / "template.json"
-    key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, CURVE_TINT, meshlines.SHARP, meshlines.SEWN, meshlines.CURVE_SMOOTH,
+    key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, BEND, meshlines.SHARP, meshlines.SEWN,
                              paintbox.SIZES)).encode()).hexdigest()[:12]
     if (not _stale(stamp, fbx.CACHE, paths.REPO / "tool" / "meshlines.py", this_file=False)
             and json.loads(stamp.read_text()).get("key") == key):
         return
     ensure_stock()
     TEMPLATE.mkdir(parents=True, exist_ok=True)
-    meshes = fbx.meshes()
     car = {}
     for tset, (gw, gh) in parts.BAKE_SIZE.items():
-        m = meshes[fbx.MESH_OF[tset]]
-        lines = meshlines.template(tset)
-        # the map: drawn at twice the grid and brought down, so its lines are smooth
+        mesh, lines = meshlines.mesh(tset), meshlines.template(tset)
+        # each picture drawn at twice its size and brought down, so its lines are smooth
         b = bake.bake(tset, gw, gh)
         lit = np.clip(b["normal"] @ TEMPLATE_LIGHT, 0, 1)
         shade = 0.35 + 0.65 * (0.5 * lit + 0.5 * (0.5 + 0.5 * b["normal"][..., 1]))
-        rgb = _curves_tinted(shade[..., None] * [0.93, 0.92, 0.9] * 255, _curved(tset, gw, gh))
-        rgb = np.where((b["tri"] >= 0)[..., None], rgb, [12, 12, 14])
+        rgb = np.where((b["tri"] >= 0)[..., None], shade[..., None] * [0.93, 0.92, 0.9] * 255, [12, 12, 14])
         img = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB")
-        img = _template_lines(img.resize((2 * gw, 2 * gh), Image.BILINEAR), m, lines, (0, 0, 0, 34), 2 * gw / 4096)
+        img = _template_lines(img.resize((2 * gw, 2 * gh), Image.BILINEAR), mesh, lines, 2 * gw / 4096, 110)
         img.resize((gw, gh), Image.LANCZOS).save(TEMPLATE / f"{tset}_Map.png", compress_level=1)
         if tset != "Glass":  # the glass keeps its own tint on the car
             pw, ph = paintbox.SIZES[tset]
-            clay = np.full((ph, pw, 3), (140.0, 140.0, 138.0))  # mid grey: light clay washes out under the studio's light
-            clay = Image.fromarray(np.clip(_curves_tinted(clay, _curved(tset, pw, ph)), 0, 255).astype(np.uint8), "RGB")
-            car[f"{tset}_B"] = np.asarray(_template_lines(clay, m, lines, (112, 112, 110, 255), 1.6 * pw / 4096))
+            clay = Image.new("RGB", (2 * pw, 2 * ph), (150, 150, 148))  # mid grey: light clay washes out under the studio's light
+            car[f"{tset}_B"] = np.asarray(_template_lines(clay, mesh, lines, 2 * pw / 4096, 255).resize((pw, ph), Image.LANCZOS))
             matte = np.zeros((8, 8, 2), np.uint8)
             matte[..., 0] = 235
             car[f"{tset}_R"] = matte
@@ -268,49 +265,25 @@ def export_template():
     _json(stamp, {"key": key, "textures": urls, "colours": {k: "#%02x%02x%02x" % c for k, c in TEMPLATE_KEY.items()}})
 
 
-def _curved(tset, w, h, chunk=1 << 21):
-    """The body's curvature (meshlines.curvature) at each texel of a w x h map, blended across each triangle from its
-    points; 0 off the map."""
-    from tool import meshlines
-    e, k = meshlines._edges(tset), meshlines.curvature(tset)
-    b = bake.bake(tset, w, h)
-    tri, pos = b["tri"].reshape(-1), b["position"].reshape(-1, 3)
-    out = np.zeros(len(tri), np.float32)
-    on = np.flatnonzero(tri >= 0)
-    for lo in range(0, len(on), chunk):  # in pieces: a 4096 map holds ten million texels
-        i = on[lo:lo + chunk]
-        T = e["T"][tri[i]]
-        A, B, C = (e["P"][T[:, j]] for j in range(3))
-        v0, v1, v2 = B - A, C - A, pos[i].astype(np.float64) - A
-        d00, d01, d11 = (v0 * v0).sum(1), (v0 * v1).sum(1), (v1 * v1).sum(1)
-        d20, d21 = (v2 * v0).sum(1), (v2 * v1).sum(1)
-        den = np.maximum(d00 * d11 - d01 * d01, 1e-12)
-        bv, bw = (d11 * d20 - d01 * d21) / den, (d00 * d21 - d01 * d20) / den
-        out[i] = (1 - bv - bw) * k[T[:, 0]] + bv * k[T[:, 1]] + bw * k[T[:, 2]]
-    return out.reshape(h, w)
-
-
-def _curves_tinted(rgb, k):
-    """A map's colours (0..255) tinted where the body curves outward or inward (TEMPLATE_KEY, CURVE_TINT)."""
-    start, full, most = CURVE_TINT
-    for sign, kind in ((1, "outward"), (-1, "inward")):
-        a = (np.clip((sign * k - start) / (full - start), 0, 1) * most)[..., None]
-        rgb = rgb * (1 - a) + np.asarray(TEMPLATE_KEY[kind], np.float64) * a
-    return rgb
-
-
-def _template_lines(img, m, lines, wire, scale):
-    """The model's triangles (wire, RGBA) and its lines (meshlines.template) drawn on a map's picture; widths in
-    pixels of a 4096 map, times scale."""
+def _template_lines(img, mesh, lines, scale, alpha):
+    """The model's mesh (meshlines.mesh: every edge of its triangles, grey where the body is flat, turning to the bend's
+    colour over BEND) and its lines (meshlines.template) drawn on a map's picture, the flat mesh at `alpha` and the
+    bends opaque; widths in pixels of a 4096 map, times scale."""
     from PIL import ImageDraw
     w, h = img.size
     dr = ImageDraw.Draw(img, "RGBA")
-    xy = m["tri_uv"].astype(np.float64) * [w, -h] + [0, h]
-    for tri in xy:
-        dr.polygon([tuple(p) for p in tri], outline=wire)
-    for kind, width in (("cut", 7), ("opening", 7), ("crease", 5)):
+    _, uv, bend = mesh
+    xy = uv.astype(np.float64) * [w, -h] + [0, h]
+    t = np.clip((np.abs(bend) - BEND[0]) / (BEND[1] - BEND[0]), 0, 1)
+    grey = np.asarray(TEMPLATE_KEY["mesh"], np.float64)
+    hue = np.where((bend > 0)[:, None], TEMPLATE_KEY["outward"], TEMPLATE_KEY["inward"])
+    colour = np.rint(np.c_[grey + (hue - grey) * t[:, None], alpha + (255 - alpha) * t]).astype(int)
+    width = max(1, round(2.5 * scale))
+    for k in np.argsort(t, kind="stable"):  # the flat edges first, those that bend over them
+        dr.line([tuple(xy[k, 0]), tuple(xy[k, 1])], fill=tuple(colour[k]), width=width)
+    for kind, wide in (("cut", 6), ("opening", 6), ("crease", 4.5)):
         for p, q in lines[kind][1].astype(np.float64) * [w, -h] + [0, h]:
-            dr.line([tuple(p), tuple(q)], fill=TEMPLATE_KEY[kind], width=max(2, round(width * scale)))
+            dr.line([tuple(p), tuple(q)], fill=TEMPLATE_KEY[kind], width=max(2, round(wide * scale)))
     return img
 
 

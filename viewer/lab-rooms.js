@@ -12,10 +12,10 @@
 // (studio.json), else the one the viewer showed last; as in the Studio, when Claude starts painting
 // another, the rooms follow it, and they show each step as it lands (steps.json).
 // The car is the viewer itself (?embed=1).
-// Show: the paint, or the template (tool/view.py, export_template): the model's own lines, on the maps and on the
-// car, from the mesh alone (tool/meshlines.py, template): its crisp lines and panel lines, where the body ends,
-// where the map is cut while the car carries on, its triangles, a tint where the body curves outward or inward, and
-// on the maps the body's shape, shaded.
+// Show: the paint, or the template (tool/view.py, export_template): the model's mesh and its own lines, on the maps
+// and on the car, from the mesh alone (tool/meshlines.py, mesh and template): every edge of its triangles, coloured
+// where the body bends across it, outward or inward, its crisp lines and panel lines, where the body ends, where the
+// map is cut while the car carries on, and on the maps the body's shape, shaded.
 //   [&show=template]
 
 import { $, ago, embedViewer, every, followed, note, titleOf, wanted } from './lab-common.js';
@@ -381,16 +381,17 @@ async function readTemplate() {
   if (template) {  // the key: each colour and what it is
     const box = $('prKey');
     box.textContent = '';
-    for (const [kind, words] of [['crease', 'crisp lines and panel lines'], ['opening', 'where the body ends'],
-      ['cut', 'where the map is cut, the car carries on'], ['outward', 'tint: the body curves outward (a rounded edge)'],
-      ['inward', 'curves inward (an indentation)']]) {
+    for (const [kind, words] of [['mesh', 'the mesh: every edge of its triangles'],
+      ['outward', 'an edge the body bends outward across, the brighter the more (a rounded edge: a run of them)'],
+      ['inward', 'bends inward (an indentation)'], ['crease', 'crisp lines and panel lines'], ['opening', 'where the body ends'],
+      ['cut', 'where the map is cut, the car carries on']]) {
       const s = document.createElement('span');
       s.innerHTML = '<i></i>';
       s.querySelector('i').style.background = template.colours[kind];
       s.append(words);
       box.append(s);
     }
-    box.append(Object.assign(document.createElement('span'), { textContent: 'grey: its triangles · on the maps, shaded: its shape' }));
+    box.append(Object.assign(document.createElement('span'), { textContent: 'on the maps, shaded: its shape' }));
   }
   return template;
 }
@@ -424,7 +425,7 @@ async function setRoom(key) {
 function live() {
   const box = $('prLive'), text = $('prLiveText');
   $('prKey').hidden = show !== 'template';
-  if (show === 'template') { box.classList.remove('on'); text.textContent = 'The template: the model\'s own lines, nothing painted'; return; }
+  if (show === 'template') { box.classList.remove('on'); text.textContent = 'The template: the model\'s mesh and its own lines, nothing painted'; return; }
   box.classList.toggle('on', !!(skin && skin.painting));
   if (!skin) { text.textContent = 'No skin yet: ask Claude for one'; return; }
   if (skin.painting) text.textContent = `${skin.title} · Claude is painting${skin.step ? ` · ${skin.step}` : ''}`;

@@ -6,8 +6,9 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
     meshlines.template("Skin")           the model's lines on one of the game's maps: its creases (crisp lines and panel
                                     lines), where the body ends, and where the map is cut while the car carries on;
                                     the Lab's UV map room draws them (view.export_template)
-    meshlines.curvature("Skin")          how much the body curves at each of the model's points, degrees a cm, + outward (a
-                                    rounded edge) and - inward (an indentation), off its creases; the template tints by it
+    meshlines.mesh("Skin")               every edge of the model's triangles on the car and on the map, with how much the
+                                    body bends across it (+ outward: a rounded edge is a run of them; - inward); the
+                                    template draws the mesh by it, on the maps and on the car
     meshlines.line((35, 71, 9), least=100)   the template's line nearest a point, a Course exactly through the model's
                                     points: .strip(0.6) a line on it (a panel line's groove is 0.3 to 0.4 cm wide, and
                                     the line is on one of its walls); along where the body ends a strip is half on it
@@ -37,7 +38,8 @@ WALLS = 0.4   # cm: a line all within this of a longer one is a wall of the same
 def _edges(tset):
     """The model's edges on one of the game's maps, sorted: its triangles' welded points (T into P), and for the edges
     two triangles share (h1, h2: half-edges) and those with one (hb), where each lies on the car and on the map, and
-    which are creases, cuts and sewn; each triangle's piece."""
+    which are creases, cuts and sewn, how much the body bends across each (bend, degrees, + outward); each triangle's
+    piece."""
     from scipy.sparse.csgraph import connected_components
     from tool import fbx
     m = fbx.meshes()[fbx.MESH_OF[tset]]
@@ -70,7 +72,10 @@ def _edges(tset):
     s1, u1 = on(h1)
     s2, u2 = on(h2, flip=a[h2] != a[h1])
     cut = np.abs(u1 - u2).reshape(len(h1), -1).max(1) > CUT
-    crease = np.degrees(np.arccos(np.clip((fn[tri[h1]] * fn[tri[h2]]).sum(1), -1, 1))) >= SHARP
+    bend = np.degrees(np.arccos(np.clip((fn[tri[h1]] * fn[tri[h2]]).sum(1), -1, 1)))
+    crease = bend >= SHARP
+    # outward where the second triangle falls away behind the first one's face (a rounded edge), inward where it rises
+    bend *= np.where(((X[tri[h2]].mean(1) - s1[:, 0]) * fn[tri[h1]]).sum(1) > 0, -1.0, 1.0)
     # the model's pieces (triangles joined edge to edge), and their edges sewn to another piece's
     n = len(T)
     _, piece = connected_components(coo_matrix((np.ones(len(h1)), (tri[h1], tri[h2])), shape=(n, n)), directed=False)
@@ -90,44 +95,21 @@ def _edges(tset):
     np.add.at(N, T.ravel(), tn.reshape(-1, 3))  # each point's normal: its corners' mean
     N /= np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-12)
     return dict(T=T, P=p0[first], N=N, tri=tri, a=a, b=b, h1=h1, h2=h2, hb=hb, s1=s1, u1=u1, s2=s2, u2=u2, sb=sb, ub=ub,
-                cut=cut, crease=crease, sewn=sewn, piece=piece)
-
-
-CURVE_SMOOTH = 4  # times each point's curvature is blended with its neighbours': the model's triangles are big on the
-# flat panels and small on the edges, and one point's own reading is patchy
+                cut=cut, crease=crease, bend=bend, sewn=sewn, piece=piece)
 
 
 @functools.lru_cache(maxsize=4)
-def curvature(tset="Skin"):
-    """How much the body curves at each of the model's points (_edges' P): degrees a cm across the way it curves most,
-    + outward (a rounded edge) and - inward (an indentation), from the change of the model's normals to its neighbours
-    over the edges that aren't creases (a crease is a line of its own), blended CURVE_SMOOTH times with theirs."""
+def mesh(tset="Skin"):
+    """Every edge of the model's triangles: on the car (n, 2, 3) cm, on the map (n, 2, 2) uv, v up, and how much the
+    body bends across it (n,): the angle between its two triangles, degrees, + outward (a rounded edge is a run of
+    them side by side, 5 to 10 degrees each), - inward (an indentation), 0 where the body ends. An edge where the map is
+    cut is on the map twice, once on each side."""
     e = _edges(tset)
-    P, N = e["P"], e["N"]
-    smooth = ~e["crease"]
-    a, b = e["a"][e["h1"]][smooth], e["b"][e["h1"]][smooth]
-    nbr = [[] for _ in range(len(P))]
-    for u, v in zip(a, b):
-        nbr[u].append(v)
-        nbr[v].append(u)
-    k = np.zeros(len(P))
-    for v, near in enumerate(nbr):
-        n = N[v]
-        if len(near) < 2 or not np.linalg.norm(n) > 0.5:  # a point of degenerate triangles has no facing
-            continue
-        d = P[near] - P[v]
-        d -= np.outer(d @ n, n)
-        dn = N[near] - n
-        dn -= np.outer(dn @ n, n)
-        e1 = np.cross(n, [1.0, 0.0, 0.0]) if abs(n[0]) < 0.9 else np.cross(n, [0.0, 1.0, 0.0])
-        e1 /= np.linalg.norm(e1)
-        e2 = np.cross(n, e1)
-        S = np.linalg.lstsq(np.c_[d @ e1, d @ e2], np.c_[dn @ e1, dn @ e2], rcond=None)[0]
-        w = np.linalg.eigvalsh(0.5 * (S + S.T))
-        k[v] = np.degrees(w[np.argmax(np.abs(w))])
-    for _ in range(CURVE_SMOOTH):
-        k = np.array([0.5 * k[v] + 0.5 * k[near].mean() if near else k[v] for v, near in enumerate(nbr)])
-    return k
+    cut = e["cut"]
+    s = np.concatenate([e["s1"], e["s2"][cut], e["sb"]])
+    u = np.concatenate([e["u1"], e["u2"][cut], e["ub"]])
+    bend = np.concatenate([e["bend"], e["bend"][cut], np.zeros(len(e["hb"]))])
+    return s.astype(np.float32), u.astype(np.float32), bend.astype(np.float32)
 
 
 @functools.lru_cache(maxsize=4)

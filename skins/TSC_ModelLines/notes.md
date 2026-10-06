@@ -73,3 +73,11 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
   used. Built instead: the body's curvature from the mesh (`meshlines.curvature`), tinted in the template (orange
   outward, violet inward). Open (next session): the user looks at the curvature tint in the UV room; then lines on
   curvature from it, checked close up.
+- The user, 2026-10-06 (the next session, Claude Opus 5.5), asked whether projecting the mesh onto the car would help:
+  "I want to see the mesh reflected in the car". The template's car showed the triangles too faint to see, under a
+  curvature tint over most of the body. Now the template draws the mesh itself (`meshlines.mesh`): every edge of the
+  model's triangles in dark grey on plain clay, an edge the body bends across turning orange (outward) or violet
+  (inward) the more it bends (full at 12 degrees), so each rounded edge shows as its bundle of the model's own lines;
+  the crisp lines, openings and cuts on top as before. The tint is gone. Checked close up on the car (bonnet, nose,
+  flanks, sidepod, deck and tail, wheel) and on the maps. Open: the user looks at it in the UV room (Show, Template,
+  Car); then lines on curvature from a rounded edge's own lines.
