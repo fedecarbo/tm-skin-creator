@@ -66,32 +66,36 @@
    "title": "Without the guides",
    "words": "not sure what guides you mean but show me a version without the guides and using the new approach tool",
    "made": "2026-10-06T22:59:38",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Guides",
-     "skin": "TSC_RescueV2_Guides"
+     "skin": "TSC_RescueV2_Guides",
+     "picture": "sets/3/A.png"
     },
     {
      "key": "B",
      "title": "ModelLines",
-     "skin": "TSC_RescueV2_ModelLines"
+     "skin": "TSC_RescueV2_ModelLines",
+     "picture": "sets/3/B.png"
     },
     {
      "key": "C",
      "title": "BottomPiece",
-     "skin": "TSC_RescueV2_BottomPiece"
+     "skin": "TSC_RescueV2_BottomPiece",
+     "picture": "sets/3/C.png"
     },
     {
      "key": "D",
      "title": "MeshGuided",
-     "skin": "TSC_RescueV2_MeshGuided"
+     "skin": "TSC_RescueV2_MeshGuided",
+     "picture": "sets/3/D.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "D",
+   "decision": "The mesh as the source: the user, 2026-10-06, \"let's just have the mesh as the source\"",
+   "done": "2026-10-06T23:42:13"
   }
  ]
 }

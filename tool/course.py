@@ -1,26 +1,22 @@
 """A course: a path along one of the car's own lines, and markings laid along it. The user, 2026-10-05,
 drawing with the Lab's pen: "Do an interval lines with DO NOT STEP text." A marking belongs to a line
-of the car (one of its own creases or rolled edges, a guide, a seam, a panel's edge) or to the line
+of the car (one of its own creases or rolled edges, a seam, a panel's edge) or to the line
 the user drew, and the tool lays it along that line in one go: a strip, dashes, ticks, spots or words.
 
-    course.level("between 3")                the level's line along the left side (side="right" the other), where
-                                             it's painted: its longest stretch, or the one nearest `near` (a point,
-                                             a drawn line); an opening or a piece standing proud breaks it
-    course.around("top edge")                every stretch of it on the left side, the car's contour at that height:
-                                             course.around("top edge").mirrored().blocks(5, 2.5) tapes them all
     course.seam("side skirt")                a seam (tool/seams.py), the left side
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
-    course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half
-    meshlines.line(point), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py): Courses too
+    meshlines.line(point), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py), as courses
     course.stroke(points)                   the line the user drew (tool.notes show_drawn prints its points):
                                              smoothed over SMOOTH cm and laid on the body
     course.points([(x, y, z), ...])          any points on the car, joined straight
+    course.Courses([a, b], "the contour")    several courses marked alike: a marking is every one's, in one zone
   Shaped:
     c.between(-128, -50)                     the stretch between two lengths along the car, or two points
                                              (on a loop: from the first to the second the way it runs)
-    c.then(other)                            on along another course (joined straight where they don't meet)
+    c.then(other)                            on along another course (joined straight where they don't meet: the
+                                             join shows as a step; one line whole, or one beside it, runs smooth)
     c.rounded(8)                             its corners rounded over 8 cm
     c.extended(start=3)                      carried on straight 3 cm before its start (under a frame)
     c.offset(14)                             a line beside it, 14 cm across the surface to its left all along (- its
@@ -645,151 +641,6 @@ def _resample_like(pts, nrm):
 
 # ---- the car's lines as courses ----
 
-def _side_sign(side):
-    if side not in ("left", "right"):
-        raise ValueError(f"side is 'left' or 'right', not {side!r}")
-    return 1.0 if side == "left" else -1.0
-
-
-def _isoline(L):
-    """The level's line on the outer body, as painted (tool/levels.py's line): where the welded body's
-    mesh (the car map's) crosses the level's height, its triangles' crossings chained into polylines,
-    on the body's parts that take a level, outside (the open air) and not underneath."""
-    from collections import defaultdict
-    from tool import carmap, levels
-    m = carmap.load()
-    V, F = m.V.astype(np.float64), m.F
-    f = V[:, 1] - L.Y(V[:, 2])
-    f[np.abs(f) < 1e-7] = 1e-7
-    names = m.part_names[m.part]
-    keep = (~np.isin(names, list(levels.WHEELS) + list(levels.OFF)) & (m.layers["open"][F].mean(1) >= 0.1)
-            & (m.layers["facing_y"][F].mean(1) > -0.8) & L.runs(V[F, 2].mean(1)))
-    up = f[F] > 0
-    pts, adj = {}, defaultdict(list)
-    for t in np.flatnonzero(keep & up.any(1) & ~up.all(1)):
-        ends = []
-        for a, b in ((0, 1), (1, 2), (2, 0)):
-            if up[t, a] != up[t, b]:
-                i, j = int(F[t, a]), int(F[t, b])
-                key = (min(i, j), max(i, j))
-                if key not in pts:
-                    pts[key] = V[i] + f[i] / (f[i] - f[j]) * (V[j] - V[i])
-                ends.append(key)
-        if len(ends) == 2:
-            adj[ends[0]].append(ends[1])
-            adj[ends[1]].append(ends[0])
-    seen, chains = set(), []
-    for loops in (False, True):  # the open chains from their ends first, then the loops
-        for start in adj:
-            if start in seen or (not loops and len(adj[start]) == 2):
-                continue
-            chain, prev, cur = [start], None, start
-            seen.add(start)
-            while True:
-                nxt = [k for k in adj[cur] if k != prev and k not in seen]
-                if not nxt:
-                    break
-                prev, cur = cur, nxt[0]
-                seen.add(cur)
-                chain.append(cur)
-            if len(chain) > 1:
-                chains.append(np.array([pts[k] for k in chain]))
-    return chains
-
-
-def _half(chains, sign):
-    """The chains' parts on one side of the car's middle (sign 1 the left), each cut at x = 0."""
-    out = []
-    for c in chains:
-        on = c[:, 0] * sign >= 0
-        edges = np.flatnonzero(np.diff(np.r_[0, on.astype(int), 0]))
-        for a, b in zip(edges[::2], edges[1::2]):
-            piece = c[a:b]
-            if a > 0:  # where it crosses the middle
-                p, q = c[a - 1], c[a]
-                piece = np.vstack([p + (q - p) * (p[0] / (p[0] - q[0])), piece])
-            if b < len(c):
-                p, q = c[b - 1], c[b]
-                piece = np.vstack([piece, p + (q - p) * (p[0] / (p[0] - q[0]))])
-            if len(piece) > 1:
-                out.append(piece)
-    return out
-
-
-def _meet(x, y, reach):
-    """x's end and y's start trimmed to where they come nearest within `reach` cm of them: a line that
-    runs on along a piece's edge under the next one (the rear flank under the tail corner) and would
-    double back is cut where it passes the next."""
-    def tail(c):  # the indices of c's last `reach` cm
-        d = np.r_[0, np.cumsum(np.linalg.norm(np.diff(c[::-1], axis=0), axis=1))]
-        return len(c) - 1 - np.flatnonzero(d <= reach)
-    xi = tail(x)
-    yi = len(y) - 1 - tail(y[::-1])
-    d = np.linalg.norm(x[xi][:, None] - y[yi][None], axis=2)
-    a, b = np.unravel_index(int(np.argmin(d)), d.shape)
-    return x[:xi[a] + 1], y[yi[b]:]
-
-
-def _joined(chains, gap):
-    """Chains whose ends meet within `gap` cm joined into one (a seam between two pieces lying flush, or
-    one standing a step proud of the next), each trimmed to where it passes the other (_meet)."""
-    chains = [c for c in chains if np.linalg.norm(np.diff(c, axis=0), axis=1).sum() >= 1.0]
-    merged = True
-    while merged:
-        merged = False
-        for i in range(len(chains)):
-            for j in range(i + 1, len(chains)):
-                a, b = chains[i], chains[j]
-                for x, y in ((a, b), (a, b[::-1]), (a[::-1], b), (a[::-1], b[::-1])):
-                    if np.linalg.norm(x[-1] - y[0]) <= gap:
-                        chains[i] = np.vstack(_meet(x, y, 2 * gap))
-                        del chains[j]
-                        merged = True
-                        break
-                if merged:
-                    break
-            if merged:
-                break
-    return chains
-
-
-JOIN = 4.0  # cm: two stretches of a level whose ends meet this close are one: pieces lying flush, or one standing a
-# step proud of the next (the tail corner over the rear flank, 3.8 cm), where a marking runs on in step
-
-
-def _stretches(name, side):
-    from tool import levels
-    L = levels._find(name)
-    sign = _side_sign(side)
-    chains = _joined(_half(_isoline(L), sign), JOIN)
-    if not chains:
-        raise ValueError(f"{L}: no line on the {side} side")
-    out = []
-    for c in chains:
-        if c[0, 2] < c[-1, 2]:  # nose to tail
-            c = c[::-1]
-        out.append(Course(_smooth(_resample(c), 1.0), f"the level {L!r} on the {side}"))
-    return out
-
-
-def level(name, side="left", near=None):
-    """The level's line along one side of the car where it's painted, traced on the body (_isoline): an
-    opening or a piece standing proud of the next breaks it into stretches; the longest, or the one
-    nearest `near` (a point, or the points of a line the user drew). It runs from the nose to the tail."""
-    runs = _stretches(name, side)
-    if near is None:
-        return max(runs, key=lambda c: c.length)
-    want = np.asarray(near.middle if hasattr(near, "pts") else near, np.float64).reshape(-1, 3).mean(0)
-    return min(runs, key=lambda c: float(np.linalg.norm(c.pts - want, axis=1).min()))
-
-
-def around(name, side="left"):
-    """Every stretch of the level's line on one side of the car (level): the car's contour at that
-    height, as Courses; its markings are every stretch's."""
-    runs = _stretches(name, side)
-    return Courses(sorted(runs, key=lambda c: -c.pts[:, 2].max()), f"the level {name!r} all round the {side}")
-
-
 class Courses:
     """Several courses marked alike: each marking is every course's, in one zone."""
 
@@ -846,15 +697,6 @@ def seam(name, side="left"):
     path = np.asarray(seams.traced()[name]["path"], np.float64)
     c = Course(path, f"the seam {name!r} on the {side}")
     return c if side == "left" else _flip(c)
-
-
-def top_line(name):
-    """One of the top's lines (car/top_lines.json), the left half as drawn: from the tail's middle."""
-    from tool import levels
-    path = next((L["path"] for L in levels.top_lines() if L["name"].lower() == name.lower()), None)
-    if path is None:
-        raise ValueError(f"no top line called {name!r}")
-    return Course(np.asarray(path, np.float64), f"the top line {name!r}")
 
 
 def stroke(points):

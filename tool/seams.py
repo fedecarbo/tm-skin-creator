@@ -1,21 +1,15 @@
-"""The car's seams: where its pieces meet along the side, traced from the mesh, for the painter's guides.
-The user, 2026-10-04: "there are seams between pieces, like the one between body shell and side
-skirt", and of the guides: "for you to have a bit better eyes to painting ... the uv map is a uv
-map +, something digitally perfect for you."
+"""The car's seams: where its pieces meet along the side, traced from the mesh. The user, 2026-10-04:
+"there are seams between pieces, like the one between body shell and side skirt".
 
 A seam is one piece's edge, where it meets the piece beside it (or stands a step proud of it): its
-height along the car seen from the side, one smooth curve through points every 8 cm or so (the
-levels' own spline, tool/levels.py), and its path on the car (the left side; the right mirrors it).
-The levels between lean to the side skirt's seams (tool/levels.py); a design may shape its graphics
-by them.
+path on the car, a point every cm along it (the left side; the right mirrors it).
 
-    seams.traced()                   {name: {"points": [[z, y], ...], "path": [[x, y, z], ...]}}
+    seams.traced()                   {name: {"path": [[x, y, z], ...]}}
     seams.line("side skirt", 0.6)    a zone (tool/shapes.py): a line along the seam, 0.6 cm wide, both sides
     seams.near("rear wing", 3)       a zone: within 3 cm of it
-    seams.height("side skirt")       the seam as a height along the car (tool/levels.py's Level), for a band
-                                     whose edge is the seam: levels.band("between 3", seams.height("side skirt"))
+    course.seam("side skirt")        the seam as a course (tool/course.py), for markings along it
 
-    python -m tool.seams             trace them and print how closely each curve follows its edge
+    python -m tool.seams             trace them and print where each runs
 """
 
 import json
@@ -34,8 +28,7 @@ SEAMS = {
     "side skirt": ("side skirt", -26, 40, 24, 28, "upper"),              # its top edge, under the inlet
     "side skirt ahead": ("side skirt", 44, 72, 27, 32, "upper"),         # its top edge against the body shell
 }
-CACHE = paths.CACHE / "seams.json"
-KNOT = 8.0  # cm between the curve's points
+CACHE = paths.CACHE / "seam_paths.json"
 
 
 def _edges(piece):
@@ -62,7 +55,6 @@ def _edges(piece):
 
 
 def _trace(piece, z0, z1, y0, y1, which):
-    from tool.levels import spline
     p = _edges(piece)
     p = p[(p[:, 2] >= z0 - 0.5) & (p[:, 2] <= z1 + 0.5) & (p[:, 1] >= y0) & (p[:, 1] <= y1)]
     path = []
@@ -70,17 +62,7 @@ def _trace(piece, z0, z1, y0, y1, which):
         q = p[np.abs(p[:, 2] - z) < 0.5]
         if len(q):
             path.append(q[np.argmin(q[:, 1])] if which == "lower" else q[np.argmax(q[:, 1])])
-    path = np.array(path)
-    zs, ys = path[:, 2], path[:, 1]
-    knots = np.linspace(zs[0], zs[-1], max(2, int(round((zs[-1] - zs[0]) / KNOT)) + 1))
-
-    def ev(vals, zz):
-        Y, _ = spline(list(zip(knots, vals)))
-        return np.asarray(Y(zz), float)
-    A = np.stack([ev(np.eye(len(knots))[i], zs) for i in range(len(knots))], 1)
-    vals, *_ = np.linalg.lstsq(A, ys, rcond=None)
-    points = [[round(float(k), 2), round(float(v), 2)] for k, v in zip(knots, vals)]
-    return {"points": points, "path": path.round(2).tolist(), "fit": round(float(np.max(np.abs(ev(vals, zs) - ys))), 2)}
+    return {"path": np.array(path).round(2).tolist()}
 
 
 def traced():
@@ -109,14 +91,6 @@ def _distance(name):
     return lambda p, n: tree.query(p.astype(np.float64))[0]
 
 
-def height(name):
-    """The seam as a height along the car (tool/levels.py's Level), where it runs."""
-    from tool import levels
-    s = traced()[name]
-    Y, dY = levels.spline(s["points"])
-    return levels.Level(name, Y, dY, (s["points"][0][0], s["points"][-1][0]))
-
-
 def line(name, width=0.6):
     """A line along the seam, `width` cm wide."""
     from tool import shapes
@@ -135,8 +109,8 @@ def near(name, reach):
 
 def main():
     for name, s in traced().items():
-        z = [p[0] for p in s["points"]]
-        print(f"{name:18s} z {z[0]:7.1f} to {z[-1]:7.1f}, {len(z)} points, the curve within {s['fit']:.2f} cm of the edge")
+        z = [p[2] for p in s["path"]]
+        print(f"{name:18s} z {z[0]:7.1f} to {z[-1]:7.1f}, {len(z)} points")
 
 
 if __name__ == "__main__":

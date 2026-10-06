@@ -48,8 +48,7 @@ game: install from the Windows PC after a push.
 - Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
   its family in `finishes.CATALOGUE`.
 - Read only when a design needs it: `car/map/tables.md` and its pictures (the map in numbers, for
-  exact positions), and `tool/levels.py` (the guides as heights, when one is the line a graphic
-  needs: a band between two, a split, an offset).
+  exact positions).
 
 ## What the car allows
 
@@ -73,7 +72,7 @@ game: install from the Windows PC after a push.
   `tool/paintbox.py`, one side): whole, flat, upright to someone standing beside the car, moved or
   shrunk until they fit. Read the notes. Objects: `s.scatter` (whole copies). A continuous texture:
   a tile through `s.print`.
-- **A marking along one of the car's lines** (a level, a seam, a panel's edge, a top line) or along
+- **A marking along one of the car's lines** (one of the model's lines, a seam, a panel's edge) or along
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
   places, words reading along it (`at=` a stretch of it), in one paint. The user's line: `PY -m
   tool.notes drawn <skin> <n>` prints its points for `course.stroke`, or for a line picked on the mesh (Mesh and
@@ -82,7 +81,8 @@ game: install from the Windows PC after a push.
   `course.points(...)`, `.rounded(cm)` for its corners. The cockpit leaves no skin down the top's
   middle from z +70 to -45. The model's own crisp lines and panels (the Lab's UV map template, `PY
   -m tool.meshlines` lists them with a point on each) are exact: `meshlines.line(point)` a course
-  along one, `meshlines.panel(point)` a zone filling one right up to its lines (`border=` a trim).
+  along one, `meshlines.panel(point)` a zone filling one right up to its lines (`border=` a trim);
+  `.offset(cm)` a line beside one, for a band of even width along it.
 - **Edges are crisp** (a zone's edge is 0.2 cm). Paint can't fake big 3D shapes; a painted shadow
   must be even all round. Fine grain goes in the sheen, not the colour (compression flattens it).
 - **Glows light the inner car only**: `s.glow(part, colour, kind)`: always on, night only, front

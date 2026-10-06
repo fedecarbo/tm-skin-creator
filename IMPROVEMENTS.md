@@ -13,23 +13,13 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **E. Structure for taste, from the mesh** (2026-10-06; the user: "Sure, I can do that ... make sure to change the
-  chase camera"). Built, waiting for the user's OK: the lines the tool guessed from the texture's texels are out (the
-  traced lines, the shading's divide, the shoulder as a line, the edge guide); a design takes the model's own lines
-  (`meshlines.line`, along a rounded edge with `kind="rounded"`, and `meshlines.picked`). TSC_EdgeLine's line is
-  on the model's line along the shoulder (up to 0.6 cm further down the roll). The
-  anatomy (`car/anatomy.md`) is written from the mesh: its crisp lines, its rounded edges with the lines across each
-  (`meshlines.rolls`), its panels (`meshlines.panels`), its picture the Lab's template on the bare body
-  (`car/map/model.jpg`); the chase camera is out of it, of show's report and of the skill. Open: the areas
-  (`shapes.area`) still split on the car map's traced lines (ask the user first); the underside area's edge notched
-  on the tail corners' narrow back faces.
-- **Retire the guides; the mesh is the guide** (2026-10-06, the user: "I think we can retire the guides and the mesh
-  somehow will be improved, but I guess that would be the new "guides""). First the Rescue car's take (its set 3: A is
-  built on the guides; D, the mesh as the guide, is mine). Out then: `tool/levels.py`, `car/levels.json`,
-  `car/top_lines.json`, `course.level`, `course.around`, `course.top_line`; the paint report words a height by the guides
-  (`measure.py`, levels.where), the seams' heights lean on them (`seams.height`), and the self-test's tour paints with
-  them: each moves to the model's own lines or plain words, the tour's paint differing where meant. Built for it:
-  `Course.offset`, a line beside one of the model's lines (a band of even width, a tape beside a crease).
+- **The mesh is the guide** (2026-10-06, the user: "I think we can retire the guides and the mesh somehow will be
+  improved, but I guess that would be the new "guides""). Built, waiting for the user's OK: the height lines drawn on 4
+  and 5 October are out of the tool, with the courses and heights made from them; a design takes the model's own lines,
+  one whole or a line beside one (`Course.offset`), and the paint report says a paint's height in cm; the self-test's
+  tour paints on the model's lines (a band beside the body's bottom edge, ticks along a rounded edge's line, tape beside
+  a picked line, a panel's trim). The Rescue car is take D, the mesh as the guide (the user: "let's just have the mesh as the
+  source"). Next: "the mesh somehow will be improved", from their words.
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.
@@ -53,6 +43,9 @@ more it no longer makes).
 
 ## The tool
 
+- **The areas split on the car map's traced lines** (2026-10-06): `shapes.area` ("top", "sides", "under") divides the
+  body on the car map's lines, not the model's, and the underside's edge is notched on the tail corners' narrow back
+  faces. Ask the user first: it moves every car painted by area.
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks

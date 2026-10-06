@@ -38,10 +38,9 @@ because it's drawn in 3D, not on the flat texture.
     shapes.near("opening", 3)              within 3 cm of one of those (~ keeps a graphic clear)
     shapes.hit(0.3)                        where the oncoming air hits the body hard (0..1)
     shapes.streamlines(shapes.rake(198, [0.2, 0.5, 0.8]), 1.5)   smoke lines along the air's flow
-  The painter's guides, heights along the car (tool/levels.py: levels.band, above, below, split,
-  offset), markings along the car's own lines (tool/course.py: a strip, dashes, ticks along a
-  level, a seam, a panel's edge or the line the user drew) and the model's own lines and panels
-  (tool/meshlines.py) give zones like these.
+  Markings along the car's own lines (tool/course.py: a strip, dashes, ticks along one of the
+  model's lines, a seam, a panel's edge or the line the user drew, a band beside one) and the
+  model's own panels (tool/meshlines.py) give zones like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Each zone keeps how the design wrote it (`label`, "behind(40)") and the zones an & joined
 (`parts()`), so tool/measure.py can say which of them ends a paint where it ends.

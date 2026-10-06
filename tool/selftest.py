@@ -48,15 +48,15 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, wear, the car map's
 # areas, air, lines and edges, grass, a blob, a decal, a scatter, a print,
 # lettering, marks laid on a panel and across them, a band kept off a part painted by name, the
-# guides as heights (a band between a level and a seam, an offset, a split), stripes, checks,
-# courses (a seam's dashes, a panel edge's strip, a level's ticks, a drawn line's placard), a camo
-# pattern, fabric, glows, a relit light, glass, dirt, a wheel ring, tyre markings and a tread. Its
-# pictures are drawn here, so it needs no stored art.
+# model's lines (a band beside one, ticks along a rounded edge's, tape beside a picked line panel by
+# panel, a panel's trim), stripes, checks, courses (a seam's dashes, a panel edge's strip, a drawn
+# line's placard), a camo pattern, fabric, glows, a relit light, glass, dirt, a wheel ring, tyre
+# markings and a tread. Its pictures are drawn here, so it needs no stored art.
 TOUR_CODE = r'''
 def tour(s):
     from pathlib import Path
     from PIL import Image, ImageDraw
-    from tool import course, levels, marks, seams, shapes, textures
+    from tool import course, marks, meshlines, shapes, textures
     pic = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     d = ImageDraw.Draw(pic)
     d.ellipse((16, 16, 240, 240), fill=(250, 200, 30, 255), outline=(20, 20, 20, 255), width=14)
@@ -92,13 +92,17 @@ def tour(s):
     s.mark("sidepod top", "gloss", marks.disc(), size=0.3 * spot.size, colour="#111111")
     s.mark("rear quarter panel", "satin", marks.box(0.5, corner=0.1), size=40, at=(30, None, -60), colour="#e0a82e", turn=20)
     s.mark("body", "satin", marks.ring(0.7), size=22, at=(0, None, 150), colour="#e8601c", across=True)
-    s.step("Guides and courses", "A band between a level and a seam, stripes, checks, and markings along the car's lines.")
-    s.paint("body", "satin", colour="#1f8f3a", zone=levels.band(levels.offset("between 2", -1), levels.split("between 3", levels.higher("between 6", seams.height("side skirt ahead")))))
+    s.step("The model's lines", "A band beside the body's bottom edge, stripes, checks, and markings along the car's lines.")
+    bottom = meshlines.line((60, 16.5, -60), kind="opening").between((74.1, 17.9, -25.0), (41.8, 15.2, -97.2))
+    s.paint("rear flank", "satin", colour="#1f8f3a", zone=bottom.offset(14).mirrored().inked_edge(shapes.below(26)))
     s.paint("tail panel", "satin", colour="#f4f2ec", zone=shapes.stripes(3, across=(0.75, 0, 1), edge=-132))
     s.paint("sidepod top", "satin", colour="#111111", zone=shapes.checks(6, across=("z", "x")))
     s.paint("body", "satin", colour="#111111", zone=course.seam("side skirt").mirrored().dashes(5, gap=3, width=1))
     s.paint("rear quarter panel", "satin", colour="#e0a82e", zone=course.edge("rear quarter panel", side="left").mirrored().strip(0.8))
-    s.paint("body", "satin", colour="#d0208e", zone=course.level("between 1").ticks(every=12, length=3, width=0.6, side=1))
+    s.paint("body", "satin", colour="#d0208e", zone=meshlines.line((65, 59, -85), kind="rounded").ticks(every=12, length=3, width=0.6, side=1))
+    nose = meshlines.picked([(25.5, 46.7, 142.3), (35.0, 53.4, 81.3), (36.4, 52.8, 67.5)]).offset(2.5)
+    s.paint("body", "satin", colour="#e0a82e", zone=course.Courses([nose], "the nose").panels(6).mirrored().blocks(5, 2.5))
+    s.paint("body", "satin", colour="#f4f2ec", zone=meshlines.panel((25, 80, 11), both=True, border=1.5))
     drawn = course.stroke([(42.8, 64.0, -128.1), (50.0, 63.6, -100.0), (58.6, 63.0, -78.6), (76.4, 60.8, -50.0)])
     s.paint("body", "satin", colour="#111111", zone=drawn.strip(0.6))
     s.placard("ALONG", "engine cover", at=drawn.between(-110, -90), height=2.6, colour="#111111", mirror=False)

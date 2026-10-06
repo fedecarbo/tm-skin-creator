@@ -56,12 +56,6 @@ READINGS = ("area", "outside", "near", "line", "region", "sides", "facing")  # z
 # read off its mesh: the rest (a length, a height, a box, a pattern) end a paint where the design wrote it
 
 
-def _level(height, z):
-    """The guide nearest a height at a length along the car, in words (tool/levels.py)."""
-    from tool import levels
-    return levels.where(float(np.mean(height)), float(z))
-
-
 def _place(z):
     stations = np.array([s for s, _ in carmap.STATIONS], float)
     k = int(np.argmin(np.abs(stations - z)))
@@ -285,7 +279,7 @@ def words(measures):
                                       f"{_place(x['from'])} to {_place(x['to'])}; {x['why']}")
                 if e["short"] < SHORT or e["as_written"]:
                     continue
-                at = f"{e['height'][0]:.0f} to {e['height'][1]:.0f} cm up ({_level(e['height'], s[end])})"
+                at = f"{e['height'][0]:.0f} to {e['height'][1]:.0f} cm up"
                 much = f"{e['short']:.0f} cm" if e["short"] < REACH - BIN else f"{REACH:.0f} cm or more"
                 said[side].append(f"{end} end STOPS {much} SHORT: at {at} the bare body goes on to "
                                   f"{_place(e['body'])}; {e['why']}")

@@ -1,10 +1,11 @@
-"""Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
-Signal orange; a black lower edge that follows the side's curve, rising with the tail; block tape of
-silver and orange round the car's contour, along its top line from the nose to the tail, a piece on
+"""Rescue v2: the snow rescue car (TSC_Snow) with more detail, the model's mesh as the guide.
+Signal orange; black on the car's bottom piece and on the rear flanks in a band of even width along the body's own
+bottom edge, its top meeting the bottom piece's behind the sidepod; block tape of silver and orange round the car's
+contour, lying beside the nose's lower crease and on the shoulder's line from the sidepods to the tail, a piece on
 each panel, none on the nose's tip; silver
 chevrons on the tail's deck; NO STEP on the deck and the side box's top, each side, as small boxed
 placards; silver hazard stripes across the rear quarter panels; studded snow tyres; amber rear lights."""
-from tool import course, levels, shapes
+from tool import course, meshlines, shapes
 
 WORDS = "based on what you know can you design a skin or use the Rescue as a v2, to add more details"
 ORANGE, AMBER = "#ff5a0f", "#ffb000"
@@ -21,6 +22,20 @@ TAPE = ("Include a tape like pattern here (note 13, a line drawn along the top o
         "along the top line); picked block tape; Maybe include the tape around the car, you can be the judge on how to "
         "distribute it so that it looks like a hazard car")
 BAND = "Remove this one (note 1 on the block tape's take, on the side's check band)"
+WITHOUT = ("not sure what guides you mean but show me a version without the guides and using the new approach tool; "
+           "Oh, but I want to see your take on making a perfect paint but using the mesh as guides")
+# The model's own lines as the guide (tool/meshlines.py), the left side. The tape: along the nose's lower crease from
+# behind the nose tip's seam to where it meets the curve rising in front of the air intake, on straight across the surface
+# to the intake's crisp front edge, lying beside it (its lower edge on the crease, not folded over it); and on the
+# shoulder's line facing 47 degrees from up across its rounded edge, from the sidepod's front to the tail corner's end.
+# The black: the body's own bottom edge along the rear flank, from behind the sidepod to below the opening over the rear
+# wheel, a band 14 cm wide across the surface up from it (its top meets the bottom piece's top, 26 cm up, at the panel
+# line, and runs into the opening's lower edge)
+NOSE = [(25.5, 46.7, 142.3), (35.0, 53.4, 81.3), (36.4, 52.8, 67.5), (38.9, 54.7, 48.4), (41.5, 55.0, 35.7),
+        (47.9, 54.3, 28.2)]
+SHOULDER = [(84.4, 57.0, -11.6), (83.7, 57.9, -48.3), (83.6, 57.9, -48.4), (49.6, 61.5, -126.1), (49.7, 61.6, -126.2),
+            (47.6, 60.9, -155.1)]
+BOTTOM = (60, 16.5, -60), (74.1, 17.9, -25.0), (41.8, 15.2, -97.2)  # a point on the edge, and where the band runs
 SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box "
          "and the rear flank); Can't see gap here (note 17, at the intake's frame); Very little gap here; Same here very "
          "little gap (notes 19 and 20, at the side box's and the tail corner's seams); In this part remove the tape. "
@@ -29,10 +44,12 @@ SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. 
 
 def design(s):
     s.clay()
-    s.step("Signal orange", "The body in gloss signal orange; below the lowest side level, rising with the tail, "
-           "gloss black.", words=WORDS)
+    s.step("Signal orange", "The body in gloss signal orange; gloss black on the bottom piece and on the rear flanks in "
+           "a band of even width along the body's bottom edge.", words=WORDS + "; " + WITHOUT)
     s.paint("body", "gloss", colour=ORANGE)
-    s.paint("body", "gloss black", zone=levels.below("between 6") | levels.below("bottom edge"))
+    at, start, end = BOTTOM
+    band = meshlines.line(at, kind="opening").between(start, end).offset(14).mirrored()
+    s.paint("rear flank", "gloss black", zone=band.inked_edge(shapes.below(26)))
     s.paint("side skirt", "gloss black")  # on round the nose, under the front flank and the nose
 
     s.step("The tail", "Silver chevrons on the tail's deck, pointing forward.", words=WORDS)
@@ -43,11 +60,12 @@ def design(s):
     s.paint("rear quarter panel", "reflective tape", zone=shapes.stripes(4, across=SLANT, edge=2.5))
 
     s.step("The contour tape", "Block tape, two rows of silver and orange blocks 5 cm wide, round the car's contour on "
-           "its top line, as a hazard vehicle is outlined, a piece on each panel stopping 3 cm short of every edge, so "
+           "the model's own lines, as a hazard vehicle is outlined, a piece on each panel stopping 3 cm short of every edge, so "
            "6 cm of orange shows across each seam: the nose from its tip's seam back to the air intake, the side box, "
            "the rear flank and the tail corner; none on the nose's tip. The side's big check band is off.",
-           words=TAPE + "; " + BAND + "; " + SEAMS)
-    tape = course.around("top edge").panels(6).without("nose tip")
+           words=TAPE + "; " + BAND + "; " + SEAMS + "; " + WITHOUT)
+    nose = meshlines.picked(NOSE).offset(2.5)  # the 5 cm tape beside the crease, its lower edge on it
+    tape = course.Courses([nose, meshlines.picked(SHOULDER)], "the car's contour").panels(6)
     s.paint("body", "reflective tape", zone=tape.mirrored().blocks(5, 2.5))
 
     s.step("No step", "NO STEP in black on each side, a small placard with a thin black box round the words, facing "

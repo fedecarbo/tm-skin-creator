@@ -192,5 +192,9 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   26 to 23 cm up into the opening's lower edge over the rear wheel; the nose's tape lies beside the nose's crease, its
   lower edge on it, rather than folded over it; the sides' tape as in B. Close looks: the band smooth all along, both
   sides; the nose's rows even and flat to the intake; the checks name nothing.
-- The user, 2026-10-06: "Will do but with next agent". Open (next session): their pick of set 3 (A as it was, B on the
-  model's lines, C the bottom piece alone, D the mesh as the guide); then the guides retire (IMPROVEMENTS.md).
+- The user, 2026-10-06: "Will do but with next agent". Closed (next session): their pick of set 3, then the guides
+  retire (IMPROVEMENTS.md).
+- Pick of set 3 (user, 2026-10-06, Claude Opus 5.5): "I really just don't care, let's just have the mesh as the source.
+  It's not perfect at the moment but let's just start cleaning things up". D, the mesh as the guide, is the car now; A,
+  B and C deleted, and the guides retired from the tool. Not installed. Open: whether it's ready to install, the next
+  time they pick it up.
