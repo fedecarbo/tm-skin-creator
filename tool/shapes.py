@@ -29,7 +29,8 @@ because it's drawn in 3D, not on the flat texture.
     shapes.seams(width=2)                  a line along every seam of the body panels (for tape)
     shapes.noisy(zone, amount=6)           a zone's edge roughened: torn, ragged, hand-painted
   The car map's (tool/carmap.py, car/anatomy.md: they follow the body's own shape):
-    shapes.area("top")                     the top between the shoulders; "sides", "under"
+    shapes.area("top")                     the top between the shoulders; "sides", "under"; wrap=6: the
+                                           top's colour over the shoulder's whole roll
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
     shapes.line("fold", 1.5)               a line along the map's own "fold", "opening", "join", "shoulder",
@@ -546,17 +547,20 @@ def _map():
 AREAS = ("top", "sides", "under")
 
 
-def area(name, soft=SOFT):
+def area(name, soft=SOFT, wrap=0.0):
     """One of the body's areas, split along the car's own lines (the car map): "top" (between the
     shoulders), "sides" (from the shoulder down to where the side turns under), "under". Edges
     crisp, on the fitted lines. The body has no front or back face (car/map/tables.md): where the air
-    hits is `hit`."""
+    hits is `hit`. wrap: the cm the top reaches on past the shoulder, down the side (the sides start
+    as much lower). The shoulder is the crest of a rolled edge, 7 to 9 cm round, so a split on it lands
+    halfway round the curve; the roll goes flat about 6 cm down the side, and wrap=6 takes the top's
+    colour over the whole roll (the user, 2026-10-06, of a split on the crest: "Is this deliberate")."""
     if name not in AREAS:
         raise KeyError(f"no area called {name!r}; known: {', '.join(AREAS)} (the body has no front or back face: car/map/tables.md)")
 
     def dist(p, n):
         m = _map()
-        a1, a2 = m.across_level(p, 1), m.across_level(p, 2)
+        a1, a2 = m.across_level(p, 1) - wrap, m.across_level(p, 2)
         return {"top": np.minimum(-a1, -a2), "sides": np.minimum(a1, -a2), "under": a2}[name]
     return field(dist, soft)
 

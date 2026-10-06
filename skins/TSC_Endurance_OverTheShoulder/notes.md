@@ -1,0 +1,1 @@
+Option B of TSC_Endurance's set 1 (Where the navy ends · 2 takes), 2026-10-06: Over the shoulder. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).
