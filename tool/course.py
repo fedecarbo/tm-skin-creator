@@ -13,6 +13,8 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
     course.flow((44, 58, 30))                one of the body's own lines (car/anatomy.md), the one nearest a point
+    course.shoulder()                        the shoulder, where the top turns down into the side: the line the car
+                                             map's areas split on (shapes.area), nose to tail corner, the left side
     course.top_line("top 1")                 one of the top's lines (car/top_lines.json), the left half
     course.stroke(points)                    the line the user drew (tool.notes show_drawn prints its points):
                                              smoothed over SMOOTH cm and laid on the body
@@ -650,6 +652,17 @@ def flow(near):
     c = stroke(line["pts"])
     c.name = f"the body's line from {_said(line['pts'][0])} on the left"
     return _flip(c) if right else c
+
+
+def shoulder(side="left"):
+    """The shoulder, where the top turns down into the side: the line the car map's areas split on
+    (shapes.area, carmap.Map.design_lines), one smooth curve per stretch the body carries it on, from
+    its front end; several stretches are Courses."""
+    from tool import carmap
+    stretches = [Course(p if p[0, 2] >= p[-1, 2] else p[::-1], f"the shoulder on the {side}")
+                 for p, _ in carmap.load().design_lines(0)]
+    stretches = stretches if side == "left" else [_flip(c) for c in stretches]
+    return stretches[0] if len(stretches) == 1 else Courses(stretches, f"the shoulder on the {side}")
 
 
 def points(pts, name="the points given"):

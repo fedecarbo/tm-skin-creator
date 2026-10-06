@@ -27,6 +27,11 @@ more it no longer makes).
 
 ## The tool
 
+- **The edge the tool reads wobbles** (2026-10-06, the user on TSC_EdgeLine: "those lines are so
+  wobbly"): the shoulder is found slice by slice where the surface bends most; on a soft rounded
+  shoulder that point drifts about a centimetre up and down against where the shading turns. Idea: the
+  edge as the line where the shading (the bake's normals) turns halfway from the top's facing to the
+  side's, an isoline that can't drift.
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks
