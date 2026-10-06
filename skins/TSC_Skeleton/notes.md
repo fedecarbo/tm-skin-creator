@@ -594,3 +594,12 @@ blue, every 50 cm twice as thick to count them by. Made 2026-10-04 by Claude Opu
   its end. TSC_Skeleton repainted (its join the trial's exactly), TSC_RescueV2's pinstripe follows the
   first line into the tip. Self-test: the self-test's cars identical. The trials are gone from the work
   folder.
+- Step D of the road (2026-10-06, Claude Opus 5.5; the user: "next"): the guides' lines drawn in the flat
+  texture. Measured first: the texture's flat layout stretches some facets of the nose and the rear flank
+  by a quarter or more, so a line drawn smooth in it comes out less smooth there. Drawn smooth instead in
+  the car's own flattening (the facets along each line unfolded exactly; each line within 1.5 mm of
+  itself) and painted as a second take: close up at the nose root and the tail it looked the same as
+  this car, with one small new notch on the first top line. The corners that show close up there are
+  the model's own folds between its big flat faces (the first top line bends 6 to 12 degrees with them at
+  the nose root, 1 to 5 along the surface), and any line crossing them bends with them, in the game too.
+  Not shown to the user; the take and its code are gone. Open: the user's OK to drop the step.

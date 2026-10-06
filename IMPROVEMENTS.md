@@ -13,9 +13,11 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
 more it no longer makes).
 
-- **D. Lines drawn in the flat texture** (2026-10-05): a course mapped to the texture, one smooth
-  spline per UV island, mirrored (how Peach's artist drew). TSC_Skeleton repainted beside today's for
-  the user's eye; if it passes, `tool/skindraw.py`, `tool/skinmesh.py` and `tool/skincheck.py` retire.
+- **D. Lines drawn in the flat texture** (2026-10-06): measured, nothing to gain; waiting for the user's
+  OK to drop it. The guides' lines are as smooth as the model allows: the corners seen close up are its
+  folds (`tool/course.py`'s docstring), and TSC_Skeleton drawn smooth looked the same. On the OK it goes,
+  and so do `tool/skindraw.py`, `tool/skinmesh.py` and `tool/skincheck.py` (the lines room's pins and the
+  tour car's sweep painted as courses).
 - **E. Structure for taste** (2026-10-05): a one-page anatomy written by `PY -m tool.carmap --describe`
   (the flat rooms, the chase camera's share of each part, the levels at each station, which panels are
   pieces and which are sewn, the game's panels) in place of `car/map.md`; `SPOTS` in

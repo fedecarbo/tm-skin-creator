@@ -39,6 +39,11 @@ that line in one go: a strip, dashes, ticks, spots or words.
                                              middle, reading along it, upright to someone beside the car
 A marking lands only on skin facing within FACING of the course's own surface, never on the far side
 of a thin panel. The checks (tool/checks.py) read each dash and tick as they read any small mark.
+Close up where the model's flat faces are big (the nose root, the sidepods' fronts, the tail), a line
+bends where it crosses a fold between two of them, as the body does: those corners are the model's,
+and no way of drawing the line takes them out (measured 2026-10-06: 6 to 12 degrees with the folds at
+the nose root, 1 to 5 along the surface; the texture's flat layout stretches some facets of the nose
+and the rear flank by a quarter or more, so a curve drawn smooth there comes out less smooth).
 """
 
 import numpy as np
