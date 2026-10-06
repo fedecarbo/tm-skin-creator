@@ -41,3 +41,9 @@ tail's middle.
 - The user's pick (question 1): stop at each tail corner. The shadow's edge along the shoulder to z -152,
   carried on straight 5 cm to where the side ends at the tail corner (z -154); nothing across the back.
   Checked close up at both corners: straight to the end, no dip, no climb.
+- The user, 2026-10-06: "I look at the uv map and the lines are wobbly, so you cant tell me they are not.
+  It's getting better but sursly there has to be a way that the line rund smoothly". In the flat texture
+  the strip measured on the car wandered a texel or two and thinned to 1 to 2 texels in places: the
+  flat layout stretches each of the model's small faces differently. Built `Course.inked`: the strip
+  drawn on the flat texture, one smooth curve per piece of it, its width even there. Measured on the
+  car's own texels: width 6 to 7 texels along the rear flank (was 1 to 7). The user: "better".

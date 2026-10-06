@@ -15,4 +15,4 @@ def design(s):
     # turns round the sidepod's front corner) and to where the side ends at the tail corner; it stops there
     # (the user's pick: across the back the deck's edge is 3 cm higher)
     edge = course.shadow(course.shoulder().between(-12, -152)).extended(start=3, end=5)
-    s.paint("body", "gloss black", zone=edge.mirrored().strip(0.6), across=True)
+    s.paint("body", "gloss black", zone=edge.mirrored().inked(0.6), across=True)  # drawn smooth on the flat texture
