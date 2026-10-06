@@ -38,3 +38,6 @@ tail's middle.
   is no bodywork at the side edge's height (60 cm up): only the deck's lip at 63 to 65 and the inner car's
   tail frame below it. Asked (question 1): climb gently round the corner, level across the frame, or stop
   at each corner.
+- The user's pick (question 1): stop at each tail corner. The shadow's edge along the shoulder to z -152,
+  carried on straight 5 cm to where the side ends at the tail corner (z -154); nothing across the back.
+  Checked close up at both corners: straight to the end, no dip, no climb.
