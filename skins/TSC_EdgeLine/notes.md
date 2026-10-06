@@ -57,3 +57,10 @@ tail's middle.
   700 rows; the sidepod's: 291 to 274 over 330 rows); a line drawn dead straight on each piece, between
   where the edge enters and leaves it, set against the shadow's edge on the car, would show how far a
   straight line strays from the edge the user sees.
+- Tested (2026-10-06, Claude Opus 5.5): the user's hypothesis, a line dead straight on each piece of the flat
+  texture, between where the edge enters and leaves it (`inked(0.6, straight=True)`). Measured on the car
+  against the edge guide: on the tail corner's piece it is the edge (within 0.2 cm; the edge is straight there
+  on the texture); on the sidepod's it rides 0.4 to 0.5 cm up onto the top all along (0.6 at most); on the rear
+  flank's it is 0.6 cm high at the front, crosses the edge near z -90 and is 0.3 cm low over the arch (0.8 at
+  most); where the sidepod's piece meets the rear flank's (z -46) it turns a corner of 12 degrees, the curve
+  1.5. The curve stays within 0.3 cm of the edge. Set 1 in the Lab: A the curve (as approved), B straight.

@@ -1,0 +1,27 @@
+{
+ "car": "TSC_EdgeLine",
+ "sets": [
+  {
+   "n": 1,
+   "title": "The edge line: curve or straight on the flat texture · 2 takes",
+   "words": "I do have a hypothesis if a straighnt line from the uv will create the perfect line in the car",
+   "made": "2026-10-06T14:24:35",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Curve",
+     "skin": "TSC_EdgeLine_Curve"
+    },
+    {
+     "key": "B",
+     "title": "Straight",
+     "skin": "TSC_EdgeLine_Straight"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
+  }
+ ]
+}

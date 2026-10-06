@@ -1,0 +1,1 @@
+Option B of TSC_EdgeLine's set 1 (The edge line: curve or straight on the flat texture · 2 takes), 2026-10-06: Straight. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).
