@@ -141,3 +141,4 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   (their seam at z +144), the side box and the rear flank (z -48), the rear flank and the tail corner
   (at its step, z -126). Close looks at each seam, both sides: the gap reads at the side box's and the
   tail corner's; on the nose's straight run it reads more quietly, both rows orange across the line.
+- The user, 2026-10-06, of the tape round the car: does it read as a hazard car? "yes".
