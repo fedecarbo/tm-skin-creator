@@ -10,22 +10,18 @@ and checked by the self-test; ideas are named in plain words.
 ## Next: intent to result
 
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
-by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 7 of 7 today; an
-eighth it no longer makes).
+by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 6 of 6 today; nine
+more it no longer makes).
 
-- **A. Graphics that fit by themselves** (2026-10-05, the user: "it shouldn't do mistakes in the first
-  place"): **built, waiting for the user's OK**, to be shown on the next skin from their words (a test car
-  only if they ask). `s.mark` lays a shape (`tool/marks.py`: a disc, a ring, a blob, a box, a star, any
-  outline) flat on a named panel, whole inside its edges, off its folds and clear of the game's panels,
-  moved then shrunk to its free room and each move said; `across=True` on a mark or a paint says a
-  shape crosses parts on purpose, which the checks then leave alone (the user: "what if AI wants to
-  create shapes that overlap parts deliberatively, would a check ruin the creative approach?"); a zoned
-  paint on "body" leaves a part painted by its name. A mark's room is read off the body's flat texture,
-  where each panel is one piece.
-- **B. Words and placards that fit** (2026-10-05): `s.text` and a picture laid as a mark is (the room,
-  the fit, a note when it's refused); a placard call that finds the flattest patch near a point or a
-  pen stroke and faces the words outward; upside-down and fold findings. Shown on TSC_RescueV2's
-  placards.
+- **B. Words and placards that fit** (2026-10-05): **built, waiting for the user's OK**, shown on
+  TSC_RescueV2's placards. `s.text`, `s.placard` and `s.decal` lay words, a placard and a picture as
+  `s.mark` lays a shape (`tool/marks.py`): whole on a panel's free room, flat (words within 20 degrees
+  of one facing), off its folds and clear of the game's panels, moved then shrunk and each move said,
+  refused with a note when nothing fits. They face the room they land on, not a lip under `at`; words
+  read forward on both sides, upright to someone standing beside the car (on the top, their top
+  towards the middle) unless the design says where their top points. A placard goes near a point or
+  the points of a line the user drew. The checks name words over a fold, flipped or hanging upside
+  down (`tool/checks.py`). TSC_RescueV2's own placard code went (80 lines): two calls.
 - **C. The geometry hoisted** (2026-10-05): a course along a guide, a level, a seam, a panel's edge or a
   pen stroke, with strips, dashes and spots along it; stripes and checks as zones in `tool/shapes.py`; a level's offset, split and
   "where" in `tool/levels.py`; a zone's edge feathered along the surface, so a height or a shape drawn
@@ -54,7 +50,7 @@ eighth it no longer makes).
   nearest texel in x and z, which can be its underside, with no note that it faces away; a shrunk mark
   that fills its room hugs the panel's edges, which no note says; placing a tight mark takes a paint per
   try. Ideas: among the texels in line, the one facing the free axis, and a note when none does; a note
-  when a mark takes over 80 % of its room; `tool.marks --probe`.
+  when a mark takes over 80 % of its room; a probe command for marks, as lines have one.
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.

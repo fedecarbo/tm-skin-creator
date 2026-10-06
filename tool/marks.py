@@ -5,8 +5,11 @@ mistakes in the first place".
     s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)     # each side, its roomiest spot
     spot = s.mark("body shell", "racing red", marks.star(5), size=16, at=(0, None, 117))
     s.mark("body shell", "gloss white", marks.disc(), size=0.4 * spot.size, at=spot.centre)
-    s.text("7", spot.spot(0.3), colour="black", height=4)
+    s.text("7", spot, colour="black", height=0.3 * spot.size)      # on the star, upright as it is
     s.mark("body", "gloss black", marks.box(0.25), size=40, at=(0, None, 100), across=True)
+    s.text("27", "rear flank", colour="black", height=20)                 # words, laid the same way
+    s.placard("NO STEP", "body shell", at=(63, None, -68), height=2.6)   # words in a thin box
+    s.decal(s.art("tiger"), "rear flank", width=30)                       # a picture
 
 The shapes, each one unit wide and scaled by the mark's `size` (its width in cm):
     marks.disc()                 a disc
@@ -15,6 +18,7 @@ The shapes, each one unit wide and scaled by the mark's `size` (its width in cm)
     marks.box(0.5, corner=0.1)   a box half as high as it's wide, its corners rounded
     marks.polygon([(x, y), ...]) any outline, x to its right and y up, in its own units
     marks.star(5, inner=0.45)    a star
+    marks.Picture(rgba, ...)     a picture's opaque pixels (words, a placard, a cut-out), painted by its own pixels
 
 A mark is laid in the body's own unfolding (tool/uvmap.py: each panel flat on the texture with
 almost no stretch), drawn true to the car's lengths where it lands, so it follows the panel's curve
@@ -23,13 +27,18 @@ where it's wanted, on one flat piece of the unfolding, without:
   - what isn't theirs: the parts' edges, the texture's seams;
   - hidden skin: inside an inlet, under another panel (the car map's open air, measure.OUTER);
   - creases and rolls: where the surface turns more than FOLD degrees within SPAN cm;
-  - what faces more than BEND degrees away from where it's wanted;
+  - what faces more than BEND degrees away from where it's wanted (WORD_BEND for words and a
+    placard, which read best flat: the user, 2026-10-05, of lettering along a flank's curve: "the text
+    is big for the curvature of the surface");
   - the panels the game letters and the nose fin's plate, and checks.CLEAR cm round them;
   - `margin` cm in from all of those.
 The mark goes where it's wanted if it's whole there; else to the nearest place it is, within `reach`;
 else it shrinks until one exists, down to LEAST of its size; else nothing is laid. Each of those is
 a note. Wanted on the car's middle, it stays on the middle. Its twin on the other side is its mirror
-image, at the same size.
+image, at the same size; words and a placard are laid there as they are, reading forward on each
+side. They face the free room they land on, not the texel under `at` (a lip's face, a bolt), and
+unless the design says where their top points, they're upright to someone standing beside the car
+at the side the surface faces: on the top, their top towards the car's middle (`_outward`).
 """
 
 import numpy as np
@@ -43,6 +52,9 @@ from tool.noise import smoothstep
 FOLD = 20.0   # degrees: a crease or a roll sharper than this, within SPAN cm, ends a mark's room
 SPAN = 0.5    # cm
 BEND = 30.0   # degrees: a mark's room faces within this of where it's wanted
+WORD_BEND = 20.0  # degrees: the same for words and a placard, which read best flat (the user rejected lettering over
+# a flank turning 38 degrees from its mean and kept lettering over 16, 2026-10-05)
+SIDE = 30.0   # cm from the car's middle: words on the top further out read from beside the car, nearer from its ends
 LEAST = 0.4   # the smallest share of its size a mark is shrunk to
 OFF = 5.0     # cm: `at` further than this from the panel is said
 MIDDLE = 0.5  # cm from the car's middle: a mark wanted nearer is centred, and has no twin
@@ -53,7 +65,10 @@ MIDDLE = 0.5  # cm from the car's middle: a mark wanted nearer is centred, and h
 class Shape:
     """A flat shape one unit wide, centred on its middle: sd(x, y) is the distance to its edge, positive
     inside (x to its right, y up, arrays of any shape); high: its height over its width; reach: how
-    far its edge gets from its middle."""
+    far its edge gets from its middle. kind: what it is for the notes and the checks; handed: its twin
+    on the other side is laid as it is, not mirrored (words read forward on both sides)."""
+
+    kind, handed, text = "shape", False, None
 
     def __init__(self, sd, high=1.0, label="a shape", reach=None):
         self.sd, self.high, self.label = sd, high, label
@@ -64,6 +79,19 @@ class Shape:
 
     def mirrored(self):
         return Shape(lambda x, y: self.sd(-x, y), self.high, self.label, self.reach)
+
+    def footprint(self, x, y):
+        """Which of the points (x, y), in its own units, it covers: what must lie on free room."""
+        return self.sd(x, y) >= 0
+
+    def paint(self, x, y, S, pitch, soft):
+        """Laid S cm wide, at the points (x, y) in its own units: (each one's weight, its colours (n, 3)
+        or None for one colour). pitch: the cm a texel is there."""
+        return smoothstep(-soft / 2, soft / 2, self.sd(x, y) * S), None
+
+    def said(self, S):
+        """Its size at S cm wide, in words."""
+        return f"{S:.1f} cm wide"
 
     def area(self):
         """Its area, in squares of its width."""
@@ -143,6 +171,69 @@ def star(points=5, inner=0.45):
     return polygon(np.stack([r * np.cos(a), r * np.sin(a)], 1), "star")
 
 
+class Picture(Shape):
+    """A shape cut from a picture, an RGBA float array (h, w, 4) with values 0 to 1: its opaque pixels,
+    cropped to them, one unit wide. kind: "picture", "words" or "placard"; box=True: its whole rectangle
+    must lie on free room (words, a placard), else its opaque pixels (a cut-out); tall: the capitals'
+    height over the width, for the notes. Painted by its own pixels, filtered first to the texel pitch
+    where it lands so it can't alias (tool/paint.py's fit_to_texels), sampled premultiplied so the
+    fringe takes no colour from clear pixels."""
+
+    def __init__(self, image, kind="picture", box=False, label=None, text=None, tall=None):
+        img = np.asarray(image, np.float32)
+        rows, cols = np.nonzero(img[..., 3] > 0.02)
+        if not len(rows):
+            raise ValueError("an empty picture")
+        self.image = np.ascontiguousarray(img[rows.min():rows.max() + 1, cols.min():cols.max() + 1])
+        self.ih, self.iw = self.image.shape[:2]
+        self.kind, self.text, self.box, self.tall = kind, text, box, tall
+        self.handed = kind in ("words", "placard")
+        ink = self.image[..., 3] >= 0.5
+        self._sd = (ndimage.distance_transform_edt(ink) - ndimage.distance_transform_edt(~ink)) / self.iw
+        self._filtered = {}
+        super().__init__(self._distance, self.ih / self.iw, label or kind)
+
+    def _distance(self, x, y):
+        px, py = (x + 0.5) * self.iw - 0.5, (self.high / 2 - y) * self.iw - 0.5
+        sd = ndimage.map_coordinates(self._sd, [np.ravel(py), np.ravel(px)], order=1, mode="nearest").reshape(np.shape(x))
+        out = np.hypot(np.maximum(np.abs(x) - 0.5, 0), np.maximum(np.abs(y) - self.high / 2, 0))
+        return sd - out
+
+    def footprint(self, x, y):
+        if self.box:
+            return (np.abs(x) <= 0.5) & (np.abs(y) <= self.high / 2)
+        return self.sd(x, y) >= 0
+
+    def mirrored(self):
+        return Picture(self.image[:, ::-1], self.kind, self.box, self.label, self.text, self.tall)
+
+    def _at_pitch(self, S, pitch):
+        """The picture at about a pixel per texel when it's S cm wide: (h, w, 4), premultiplied."""
+        want = S / pitch
+        w2 = self.iw if self.iw <= 1.25 * want else max(2, int(round(want)))
+        if w2 not in self._filtered:
+            from PIL import Image
+            pre = self.image * self.image[..., 3:4]
+            if w2 < self.iw:
+                h2 = max(2, int(round(self.ih * w2 / self.iw)))
+                pre = np.stack([np.asarray(Image.fromarray(np.ascontiguousarray(pre[..., k]), "F").resize((w2, h2), Image.LANCZOS), np.float32)
+                                for k in range(4)], -1)
+            self._filtered[w2] = np.clip(pre, 0, 1)
+        return self._filtered[w2]
+
+    def paint(self, x, y, S, pitch, soft):
+        pre = self._at_pitch(S, pitch)
+        ih, iw = pre.shape[:2]
+        px, py = (np.ravel(x) + 0.5) * iw - 0.5, (self.high / 2 - np.ravel(y)) * iw - 0.5
+        got = [ndimage.map_coordinates(pre[..., k], [py, px], order=1, mode="constant", cval=0.0) for k in range(4)]
+        a = got[3]
+        rgb = np.stack(got[:3], 1) / np.maximum(a, 1e-6)[:, None]
+        return a.reshape(np.shape(x)).astype(np.float32), rgb.reshape(np.shape(x) + (3,)).astype(np.float32)
+
+    def said(self, S):
+        return f"{S * self.tall:.1f} cm tall" if self.tall else f"{S:.1f} cm wide"
+
+
 # ---- where a mark landed ----
 
 class Laid:
@@ -159,10 +250,9 @@ class Laid:
     def __bool__(self):
         return self.size > 0
 
-    def spot(self, share=1.0):
-        """The place as Skin.text and Skin.decal take one, `share` of the mark's width wide."""
-        return dict(centre=self.centre, right=tuple(round(v, 4) for v in self.right), up=tuple(round(v, 4) for v in self.up),
-                    facing=tuple(round(v, 4) for v in self.facing), width=round(self.size * share, 2))
+    def spot(self):
+        """The place as Skin.text, Skin.placard and Skin.decal take one (they take the Laid itself too)."""
+        return dict(centre=self.centre, up=tuple(round(v, 4) for v in self.up))
 
 
 # ---- the panel on the texture ----
@@ -271,6 +361,19 @@ def _by_panels(skin, c, t):
     return out
 
 
+def _outward(n, at):
+    """Where the top of words points on a surface facing n at `at`, upright to someone standing beside
+    the car at the side it faces: the car's up on a side; on the top, away from them, towards the
+    car's middle, or on the middle (within SIDE cm) towards the tail at the nose and the nose at the
+    tail. Laid flat on the surface by _frame."""
+    if abs(n[1]) < 0.7:
+        return (0.0, 1.0, 0.0)
+    v = np.array([n[0], 0.0, n[2]], np.float64)
+    if np.linalg.norm(v) < 0.3:
+        v = np.array([np.sign(at[0]) or 1.0, 0.0, 0.0]) if abs(at[0]) > SIDE else np.array([0.0, 0.0, np.sign(at[2]) or 1.0])
+    return tuple(-v / np.linalg.norm(v))
+
+
 def _frame(n, up, turn):
     """A mark's right and up on a surface facing n: `up` laid flat on it (the car's up on a side,
     forward on the top), turned `turn` degrees anticlockwise as it's looked at."""
@@ -302,6 +405,26 @@ def _unfold(c, texel, island, pitch):
     return np.linalg.lstsq(D, P, rcond=None)[0][:2].T
 
 
+def _facing(panel, anchor, isl, A, radius, fold, within):
+    """Where the free room within `radius` cm of a texel faces, on its flat piece: the mean of its
+    normals; the texel's own where there is none. Words laid on it face this, not a lip's or a bolt's
+    face under `at`."""
+    c = panel.c
+    pitch = float(panel.pitch[isl])
+    look = int(np.ceil(radius / pitch)) + 2
+    a_r, a_c = divmod(anchor, c.w)
+    win, sel = panel.window(a_r - look, a_r + look + 1, a_c - look, a_c + look + 1)
+    room, island = panel.room(win, sel, fold, within)
+    room &= island == isl
+    dr, dc = np.mgrid[win[0] - a_r:win[1] - a_r, win[2] - a_c:win[3] - a_c]
+    d2 = ((A[:, 0][None, None, :] * dc[..., None] + A[:, 1][None, None, :] * dr[..., None]) ** 2).sum(-1)
+    on = room & (d2 <= radius * radius)
+    if not on.any():
+        return c.nrm[anchor].astype(np.float64)
+    n = c.bake["normal"][win[0]:win[1], win[2]:win[3]][on].astype(np.float64).mean(0)
+    return n / np.linalg.norm(n)
+
+
 def _pole(panel, fold, within, margin):
     """The named parts' roomiest spot: (its clear room in cm, the texel), the texel furthest from its
     room's edges; of those as far (within 2 %), the middle one of those on the car's middle, else of
@@ -329,17 +452,25 @@ def _pole(panel, fold, within, margin):
     return None if best is None else (best[0], best[2])
 
 
-def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, centred, least, soft, goal=None):
-    """Lay a shape as near a texel as it's whole: {texel (its middle), size, moved, idx, m, right, up,
+def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, centred, least, soft, goal=None,
+         bend=BEND, facing=None):
+    """Lay a shape as near a texel as it's whole: {texel (its middle), size, moved, idx, m, rgb, right, up,
     facing}, or None with no room for it. size None: the biggest that fits with its middle there.
     goal: the texel its middle goes to, within a centimetre (a twin's: its mirror image's middle),
-    while its room and its frame stay those of the anchor."""
+    while its room and its frame stay those of the anchor. bend: how far its room may face from its
+    facing; facing: the anchor texel's (None), or "room": the free room's round it (_facing). up:
+    where its top points, or "outward" (_outward)."""
     c = panel.c
     isl = int(panel.island[np.searchsorted(panel.texels, anchor)])
     pitch = float(panel.pitch[isl])
     a_r, a_c = divmod(anchor, c.w)
-    right, up, n = _frame(c.nrm[anchor], up, turn)
     A = _unfold(c, anchor, isl, pitch)
+    n0 = c.nrm[anchor]
+    if facing == "room":
+        n0 = _facing(panel, anchor, isl, A, (size * shape.reach if size else 10.0) + reach + margin, fold, within)
+    if isinstance(up, str):
+        up = _outward(n0, c.pos[anchor])
+    right, up, n = _frame(n0, up, turn)
     M = np.array([[right @ A[:, 0], right @ A[:, 1]], [up @ A[:, 0], up @ A[:, 1]]])  # (columns, rows) -> the shape's x, y in cm
     pitch = float(np.sqrt(abs(np.linalg.det(M))))
     span = int(np.ceil(SPAN / pitch)) + 4
@@ -347,7 +478,7 @@ def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, cent
         look = int(np.ceil(40 / pitch))
         win, sel = panel.window(a_r - look, a_r + look + 1, a_c - look, a_c + look + 1)
         room, island = panel.room(win, sel, fold, within)
-        room &= (island == isl) & ((c.bake["normal"][win[0]:win[1], win[2]:win[3]] @ n.astype(np.float32)) >= np.cos(np.radians(BEND)))
+        room &= (island == isl) & ((c.bake["normal"][win[0]:win[1], win[2]:win[3]] @ n.astype(np.float32)) >= np.cos(np.radians(bend)))
         edt = ndimage.distance_transform_edt(np.pad(room, 1))[1:-1, 1:-1]
         clear = float(edt[a_r - win[0], a_c - win[2]]) * pitch - margin
         if clear <= 0.5:
@@ -357,7 +488,7 @@ def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, cent
     win, sel = panel.window(a_r - half, a_r + half + 1, a_c - half, a_c + half + 1)
     r0, r1, c0, c1 = win
     room, island = panel.room(win, sel, fold, within)
-    room &= (island == isl) & ((c.bake["normal"][r0:r1, c0:c1] @ n.astype(np.float32)) >= np.cos(np.radians(BEND)))
+    room &= (island == isl) & ((c.bake["normal"][r0:r1, c0:c1] @ n.astype(np.float32)) >= np.cos(np.radians(bend)))
     room &= ndimage.distance_transform_edt(np.pad(room, 1))[1:-1, 1:-1] * pitch >= margin
     dr, dc = np.mgrid[r0 - a_r:r1 - a_r, c0 - a_c:c1 - a_c]
     far = (M[0, 0] * dc + M[0, 1] * dr) ** 2 + (M[1, 0] * dc + M[1, 1] * dr) ** 2  # cm² from where it's wanted
@@ -371,14 +502,16 @@ def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, cent
     wall = (~room).astype(np.float64)
 
     def foot(S, pad=0.0):
+        """The kernel round a middle for the shape S wide: its points in the shape's units, k, and the
+        rows and columns they are from the middle."""
         k = int(np.ceil((S * shape.reach + pad) / pitch)) + 1
         o = np.arange(-k, k + 1)
         kc, kr = np.meshgrid(o, o)
-        return shape.sd((M[0, 0] * kc + M[0, 1] * kr) / S, (M[1, 0] * kc + M[1, 1] * kr) / S) * S, k, kr, kc
+        return (M[0, 0] * kc + M[0, 1] * kr) / S, (M[1, 0] * kc + M[1, 1] * kr) / S, k, kr, kc
 
     def whole(S):  # the middles at which the shape, S wide, covers no texel outside the room
-        sd, k, _, _ = foot(S)
-        K = (sd >= 0).astype(np.float64)
+        x, y, k, _, _ = foot(S)
+        K = shape.footprint(x, y).astype(np.float64)
         return (fftconvolve(np.pad(wall, k, constant_values=1.0), K[::-1, ::-1], mode="valid") < 0.5) & near
 
     ok, s = whole(size), 1.0
@@ -397,9 +530,9 @@ def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, cent
     j = int(np.where(ok, aim, np.inf).argmin())
     jr, jc = divmod(j, room.shape[1])
     S = size * s
-    sd, k, kr, kc = foot(S, soft)
+    x, y, k, kr, kc = foot(S, soft)
     rows, cols = r0 + jr + kr, c0 + jc + kc
-    w = smoothstep(-soft / 2, soft / 2, sd)
+    w, rgb = shape.paint(x, y, S, pitch, soft)
     on = (w > 0.002) & (rows >= 0) & (rows < c.h) & (cols >= 0) & (cols < c.w)
     texels, w = (rows[on] * c.w + cols[on]).astype(np.int64), w[on].astype(np.float32)
     idx, m = panel.mask()
@@ -407,7 +540,8 @@ def _fit(panel, shape, size, anchor, up, turn, margin, reach, fold, within, cent
     mine = idx[at] == texels
     centre = (r0 + jr) * c.w + c0 + jc
     return {"texel": centre, "size": S, "moved": float(np.sqrt(far.reshape(-1)[j])), "idx": texels[mine],
-            "m": m[at[mine]] * w[mine], "right": right, "up": up, "facing": n}
+            "m": m[at[mine]] * w[mine], "rgb": None if rgb is None else rgb[on][mine], "right": right, "up": up, "facing": n,
+            "flat": float((w > 0.5).sum()) * pitch * pitch}  # cm² it covers in the unfolding, for the cut check
 
 
 def through(shape, size, centre, right, up, facing, soft=shapes.SOFT):
@@ -424,23 +558,91 @@ def through(shape, size, centre, right, up, facing, soft=shapes.SOFT):
     return z
 
 
-# ---- Skin.mark ----
+# ---- Skin.mark, Skin.text, Skin.placard, Skin.decal ----
 
 def _where(panel):
     names = list(dict.fromkeys(panel.skin.parts.instances[i]["name"] for i in panel.ids))
     return "the " + (names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1])
 
 
+def _stroke(at, size, reach):
+    """`at` as a point: the points of a line the user drew become its middle, and the mark may go
+    anywhere along it. (a point, reach)."""
+    if at is None or np.isscalar(at[0]) or at[0] is None:
+        return at, reach
+    P = np.asarray(at, np.float64)
+    mid = P.mean(0)
+    if reach is None:
+        reach = float(np.linalg.norm(P - mid, axis=1).max()) + (size or 0.0) / 2
+    return tuple(mid), reach
+
+
+def _frame_at(skin, c, panel, at, up, turn):
+    """A frame on the panel's texel nearest `at`: (the point on the car, right, up, facing)."""
+    texel, _ = panel.nearest(at)
+    n0 = c.nrm[texel]
+    if isinstance(up, str):
+        up = _outward(n0, c.pos[texel])
+    right, upv, n = _frame(n0, up, turn)
+    return c.pos[texel].astype(np.float64), right, upv, n
+
+
+def project(skin, shape, where, at, up, turn, size, finish, within, min_facing=0.3):
+    """A picture laid at `at` as it is, projected onto the nearest surface facing it: it crosses every
+    edge in its footprint (a sticker over a panel gap, as on a real car) and never reaches the far
+    side of the car or anything behind a panel. Said in a note: what fell in a gap or off an edge,
+    and a fold or a step under it. Returns where it landed (Laid)."""
+    from tool import finishes, paint
+    name = skin.ops[skin._op]["what"]
+    if at is None or size is None:
+        raise ValueError("a picture laid across the panels needs `at` and its width")
+    at, _ = _stroke(at, size, None)
+    c = skin.canvas("Skin")
+    panel = _Panel(skin, c, skin._ids(where, warn=False).get("Skin", []))
+    if not len(panel.texels):
+        skin.notes.append(f"{name}: pictures go on the body; nothing laid")
+        return Laid([v or 0 for v in at])
+    centre, right, upv, n = _frame_at(skin, c, panel, at, up, turn)
+    centre = np.array([c if v is None else v for v, c in zip(at, centre)], np.float64)
+    pre = shape.image * shape.image[..., 3:4]
+    alpha, info = paint.project_near(c.bake, shape.image[..., 3], centre, right, upv, size, n, min_facing)
+    idx = np.flatnonzero(alpha.reshape(-1) > 0.002)
+    if info["landed"] < 0.97:
+        skin.notes.append(f"{name}: {info['landed']:.0%} of it landed on the car; the rest falls in a gap or off an edge")
+    if info["step_cm"] > 4:
+        skin.notes.append(f"{name}: the surface under it has a fold or a step of {info['step_cm']:.0f} cm; it will look cut there")
+    if not len(idx):
+        skin.notes.append(f"{name}: nothing landed on the car")
+        return Laid(centre)
+    m = alpha.reshape(-1)[idx]
+    if within is not None:
+        m = m * within(c.pos[idx], c.nrm[idx])
+    if skin.measure:
+        on = idx[m > 0.5]
+        skin.pictures.append({"op": skin._op, "step": skin.ops[skin._op]["step"], "what": name, "idx": on,
+                              "under": c.owner[on].copy(), "pixels": shape.iw / size, "across": True})
+    fin = finishes.get(finish) if isinstance(finish, str) else finish
+    rgb = np.stack([paint.project_near(c.bake, pre[..., k], centre, right, upv, size, n, min_facing)[0].reshape(-1)[idx]
+                    for k in range(3)], 1) / np.maximum(m, 1e-6)[:, None]
+    c.blend(idx, m, np.clip(rgb, 0, 1), np.full(len(idx), fin.roughness, np.float32),
+            np.full(len(idx), fin.metalness, np.float32), np.full(len(idx), fin.varnish, np.float32))
+    return Laid(centre, size, 0.0, right, upv, n)
+
+
 def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, reach, fold, within, mirror, across, soft, params):
     if not isinstance(shape, Shape):
         raise TypeError("a mark's shape is one of tool/marks.py's: marks.disc(), marks.star(5), marks.polygon([...])")
+    from tool import finishes
     name = skin.ops[skin._op]["what"]
     flip = np.array([-1.0, 1.0, 1.0])
+    picture = isinstance(shape, Picture)
+    if across and picture:
+        return project(skin, shape, where, at, up, turn, size, finish, within)
     if across:
         if at is None or size is None:
             raise ValueError("a mark laid across the panels needs `at` and `size`")
         c = skin.canvas("Skin")
-        panel = _Panel(skin, c, skin._ids(where).get("Skin", []))
+        panel = _Panel(skin, c, skin._ids(where, warn=False).get("Skin", []))
         if not len(panel.texels):
             skin.notes.append(f"{name}: marks go on the body; nothing laid")
             return Laid([v or 0 for v in at])
@@ -455,20 +657,26 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
             laid.twin = Laid(centre * flip, size, 0.0, r2, u2, n2)
         skin.paint(where, what, colour, finish, zone=zone, across=True, **params)
         return laid
-    targets = skin._ids(where)
-    params = {"seed": skin.seed, **params}
-    col, fin, leftover = skin._resolve(what, colour, finish, "gloss", params)
-    if leftover:
-        skin.notes.append(f"{what!r}: didn't understand {' '.join(leftover)!r}")
-    skin.palette.append([float(v) for v in col])
+    targets = skin._ids(where, warn=False)
+    if picture:
+        fin, col = finishes.get(finish or "gloss") if isinstance(finish, str) else finish, None
+    else:
+        params = {"seed": skin.seed, **params}
+        col, fin, leftover = skin._resolve(what, colour, finish, "gloss", params)
+        if leftover:
+            skin.notes.append(f"{what!r}: didn't understand {' '.join(leftover)!r}")
+        skin.palette.append([float(v) for v in col])
     c = skin.canvas("Skin")
     panel = _Panel(skin, c, targets.get("Skin", []))
     if not len(panel.texels):
-        skin.notes.append(f"{name}: marks go on the body; nothing laid")
+        skin.notes.append(f"{name}: {'pictures' if picture else 'marks'} go on the body; nothing laid")
+    at, reach = _stroke(at, size, reach)
     nowhere = Laid([v or 0 for v in at] if at is not None else (0, 0, 0))
     if not len(panel.texels):
         return nowhere
     fold = FOLD if fold is None else fold
+    bend = WORD_BEND if shape.handed else BEND
+    facing = "room" if picture else None
     if at is None:
         pole = _pole(panel, fold, within, margin)
         if pole is None:
@@ -480,50 +688,61 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         if off > OFF:
             skin.notes.append(f"{name}: `at` is {off:.0f} cm off {_where(panel)}; laid at the nearest place on it")
     wanted = c.pos[anchor].astype(np.float64)
-    centred = mirror and abs(wanted[0]) <= MIDDLE
+    centred = abs(wanted[0]) <= MIDDLE
     move = (size / 2 if size is not None else 0.0) if reach is None else reach
+    if up is None and shape.handed:
+        up = "outward"
 
     def put(got, shown):
         """Paint a fitted mark, and keep what the checks read."""
-        idx, m = got["idx"], got["m"]
+        idx, m, rgb = got["idx"], got["m"], got["rgb"]
         if skin.measure:
             on = np.sort(idx[m > 0.5])
             skin.marks.append({"op": skin._op, "step": skin.ops[skin._op]["step"], "what": name, "idx": on,
-                               "under": c.owner[on].copy(), "whole": shown.area() * got["size"] ** 2})
-        skin._lay(c, "Skin", idx, m, fin, col, params, where)
+                               "under": c.owner[on].copy(), "kind": shape.kind,
+                               # a picture's whole is what its texels cover flat: its ink thins where a stroke is a texel wide
+                               "whole": got["flat"] if picture else shown.area() * got["size"] ** 2,
+                               "text": shape.text, "pixels": shape.iw / got["size"] if picture else None, "frame": (got["right"], got["up"], got["facing"])})
+        if rgb is None:
+            skin._lay(c, "Skin", idx, m, fin, col, params, where)
+        else:
+            c.blend(idx, m, np.clip(rgb, 0, 1), np.full(len(idx), fin.roughness, np.float32),
+                    np.full(len(idx), fin.metalness, np.float32), np.full(len(idx), fin.varnish, np.float32))
         return Laid(c.pos[got["texel"]], got["size"], got["moved"], got["right"], got["up"], got["facing"])
 
-    got = _fit(panel, shape, size, anchor, up, turn, margin, move, fold, within, centred, LEAST, soft)
+    got = _fit(panel, shape, size, anchor, up, turn, margin, move, fold, within, centred, LEAST, soft, bend=bend, facing=facing)
     if got is None:
         skin.notes.append(f"{name}: no room for it on {_where(panel)} at ({', '.join(f'{v:.0f}' for v in wanted)})"
-                          + (f", even at {LEAST:.0%} of its {size:g} cm" if size is not None else "") + "; nothing laid")
+                          + (f", even at {LEAST:.0%} of its {shape.said(size)}" if size is not None else "") + "; nothing laid")
         return nowhere
     laid = put(got, shape)
     said = []
     if at is None or size is None:
-        said.append(f"laid at ({', '.join(f'{v:.0f}' for v in laid.centre)}), {laid.size:.1f} cm wide")
+        said.append(f"laid at ({', '.join(f'{v:.0f}' for v in laid.centre)}), {shape.said(laid.size)}")
     if at is not None and laid.moved >= 0.5:
         said.append(f"moved {laid.moved:.1f} cm")
     if size is not None and laid.size < 0.99 * size:
-        said.append(f"shrunk to {laid.size:.1f} cm ({laid.size / size:.0%} of its {size:g})")
+        said.append(f"shrunk to {shape.said(laid.size)} ({laid.size / size:.0%} of its {shape.said(size).split(' cm')[0]})")
     if said:
         skin.notes.append(f"{name}: {', '.join(said)}" + (f", to stay whole on {_where(panel)}" if len(said) > (at is None or size is None) else ""))
     if mirror and abs(laid.centre[0]) > MIDDLE:
         other, off = panel.nearest(wanted * flip)
         goal, off2 = panel.nearest(np.asarray(laid.centre) * flip)
         if max(off, off2) <= 2.0:  # the named parts are on the other side too
-            up2 = None if up is None else np.asarray(up, np.float64) * flip
-            twin = _fit(panel, shape.mirrored(), laid.size, other, up2, -turn, margin, laid.moved + 1.5, fold, within, False,
-                        0.99, soft, goal)
+            twin_shape = shape if shape.handed else shape.mirrored()
+            up2 = up if up is None or isinstance(up, str) else np.asarray(up, np.float64) * flip
+            twin = _fit(panel, twin_shape, laid.size, other, up2, -turn, margin, laid.moved + 1.5, fold, within, False,
+                        0.99, soft, goal, bend=bend, facing=facing)
             if twin is None:
-                twin = _fit(panel, shape.mirrored(), laid.size, other, up2, -turn, margin, move, fold, within, False, LEAST, soft)
+                twin = _fit(panel, twin_shape, laid.size, other, up2, -turn, margin, move, fold, within, False, LEAST, soft,
+                            bend=bend, facing=facing)
                 if twin is not None:
                     skin.notes.append(f"{name}: its twin on the other side doesn't fit as its mirror image: laid "
-                                      f"{twin['size']:.1f} cm wide, {twin['moved']:.1f} cm from where it was wanted")
+                                      f"{shape.said(twin['size'])}, {twin['moved']:.1f} cm from where it was wanted")
             if twin is None:
                 skin.notes.append(f"{name}: no room for its twin on the other side; laid on one side only")
             else:
-                laid.twin = put(twin, shape.mirrored())
+                laid.twin = put(twin, twin_shape)
                 if abs(laid.centre[0]) < laid.size * shape.reach:
                     skin.notes.append(f"{name}: it reaches the car's middle, where its twin meets it (mirror=False for one, "
                                       f"or x = 0 in `at` for one on the middle)")

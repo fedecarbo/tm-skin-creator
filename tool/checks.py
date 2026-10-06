@@ -5,9 +5,9 @@ tool/record.py: nearly every flaw they pointed out was a graphic that didn't fit
 
 `run` gives every finding on a skin painted with Skin.measure on (tool/skin.py's show): each
 {check, kind, text, z, side, step}, kind one of tool/record.py's KINDS, z the stretch along the car in
-cm, front to back, or None. Three sources: the paint itself (Skin.findings: a picture over a fold or
-off an edge), the measures (tool/measure.py: a paint that stops short or leaves a gap; a graphic's
-cuts speak in their place) and the checks here, read off the body's texels: who painted each last
+cm, front to back, or None. Three sources: the paint itself (Skin.findings), the measures
+(tool/measure.py: a paint that stops short or leaves a gap; a graphic's cuts speak in their place)
+and the checks here, read off the body's texels: who painted each last
 (Canvas.owner), what it covered (Skin.zoned's `under`), and each zoned paint's outline, followed
 texel to texel and across the texture's seams (`_edges`), with what ends it at each step: its own
 shape (a factor the design wrote), the surface turning away (a factor read off the car,
@@ -29,7 +29,13 @@ its cuts and spills unsaid.
            graphic with NEAR of itself within CLEAR cm of one.
   edge     a zone's edge feathered wider than SOFT cm (wider than BLEND it's a blend, which is
            meant), or a picture with fewer than PIXELS pixels per cm on the car.
+  fold     the surface under words or a placard turning more than FOLD_WORDS degrees from its mean:
+           they will look bent.
+  upside down  words laid as if the surface faced one way, over a surface facing more than FLIPPED
+           degrees off it (flipped or sheared), or on a side with their top pointing down (HANG).
   spread   a scatter whose copies lie unevenly (UNEVEN) or leave BARE of the surface far from any.
+A picture laid across the panels on purpose (Skin.decal's across=True) keeps its cuts and spills
+unsaid, as a paint does.
 `seen` says how much of each graphic the driving camera sees (the car map's chase layer): not a
 flaw, something to know before the detail goes in.
 """
@@ -57,6 +63,10 @@ SPECK = 0.3     # cm² of a graphic by a panel, or three times that of a second 
 SOFT = 2 * shapes.SOFT  # cm
 BLEND = 5.0     # cm
 PIXELS = 11.0   # the body's texels per cm (tool/paint.py's TEXEL_CM)
+FOLD_WORDS = 30.0  # degrees: the surface under words turning this much from its mean is a fold under them (the
+# lettering the user rejected sat on 38)
+FLIPPED = 45.0  # degrees: words laid for a surface facing this far from the one under them look flipped or sheared
+HANG = -0.3     # words on a side whose top points down this much (their up's y) hang upside down
 UNEVEN = 0.35   # the spread of the copies' distances to their nearest neighbour, over their mean
 BARE = 0.10     # the share of a scatter's surface further than 0.75 spacings from every copy
 SEAM = 1.0      # cm: the surface goes on across a seam or a panel gap no wider than this
@@ -432,7 +442,8 @@ def _sits_on(car, later, op):
 
 
 def _pictures(car, found, seen):
-    """Each picture laid on the body: pixelated, on two pieces, across another graphic's edge."""
+    """Each picture projected onto the body (Skin.decal's across=True): pixelated; and, as it says it
+    crosses edges on purpose, nothing of its pieces or what it lies across."""
     c = car.c
     by_op = {}
     for p in car.skin.pictures:
@@ -449,16 +460,45 @@ def _pictures(car, found, seen):
             continue
         seen.append((name, S))
         car.graphics.append((op, S))
-        pixels = min(p["pixels"] for p in laid)
-        if pixels < PIXELS:
-            where, z, side = car.place(S)
-            found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "step": step,
-                          "text": f"{name}: {pixels:.0f} of the picture's pixels per cm on the car, fewer than the car's own "
-                                  f"{PIXELS:.0f}: it will show its pixels, {where}"})
+        _pixelated(car, name, step, S, min(p["pixels"] for p in laid), found)
+        if any(p.get("across") for p in laid):
+            continue
         _spill(car, name, step, S, found)
         across = {}
         _across(car, op, S, under, across)
         _say_across(car, name, step, across, found)
+
+
+def _pixelated(car, name, step, S, pixels, found):
+    if pixels < PIXELS:
+        where, z, side = car.place(S)
+        found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "step": step,
+                      "text": f"{name}: {pixels:.0f} of the picture's pixels per cm on the car, fewer than the car's own "
+                              f"{PIXELS:.0f}: it will show its pixels, {where}"})
+
+
+def _upright(car, name, step, mark, S, found):
+    """Words or a placard laid flat on the body: the surface under them turning (a fold), facing
+    elsewhere than they were laid for (flipped or sheared), or their top pointing down on a side
+    (hanging). Read off the texels' own normals; the frame is the one they were laid in."""
+    c = car.c
+    nrm = c.nrm[S].astype(np.float64)
+    mean = nrm.mean(0)
+    mean /= np.linalg.norm(mean)
+    turn = float(np.percentile(np.degrees(np.arccos(np.clip(nrm @ mean, -1, 1))), 99))
+    where, z, side = car.place(S)
+    if turn > FOLD_WORDS:
+        found.append({"check": "fold", "kind": "fold", "z": z, "side": side, "step": step,
+                      "text": f"{name}: the surface under it turns {turn:.0f}° away from flat: it will look bent, {where}"})
+    right, up, facing = (np.asarray(v, np.float64) for v in mark["frame"])
+    off = float(np.degrees(np.arccos(np.clip(mean @ facing / np.linalg.norm(facing), -1, 1))))
+    if off > FLIPPED:
+        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "step": step,
+                      "text": f"{name}: laid as if the surface faced one way, but under it the surface faces {off:.0f}° away: "
+                              f"it will look flipped or sheared, {where}"})
+    elif abs(mean[1]) < 0.7 and up[1] < HANG:
+        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "step": step,
+                      "text": f"{name}: its top points down: it hangs upside down, {where}"})
 
 
 def _area(c, texels):
@@ -478,8 +518,9 @@ def _area(c, texels):
 
 
 def _laid(car, found, seen):
-    """Each mark laid on a panel: whole, on one piece, clear of another graphic's edge. Its area is
-    measured on the car's own surface, texel by texel."""
+    """Each mark laid on a panel (a shape, words, a placard, a picture): whole, on one piece, clear of
+    another graphic's edge; a picture sharp enough; words flat and the right way up (_upright). Its
+    area is measured on the car's own surface, texel by texel."""
     c = car.c
     for mark in car.skin.marks:
         name, step = car.op(mark["op"]), mark["step"]
@@ -496,6 +537,11 @@ def _laid(car, found, seen):
             continue
         seen.append((name, S))
         car.graphics.append((mark["op"], S))
+        kind = mark.get("kind", "shape")
+        if kind != "shape":
+            _pixelated(car, name, step, S, mark["pixels"], found)
+        if kind in ("words", "placard"):
+            _upright(car, name, step, mark, S, found)
         _spill(car, name, step, S, found)
         across = {}
         _across(car, mark["op"], S, under, across)

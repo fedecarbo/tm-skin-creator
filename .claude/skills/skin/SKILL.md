@@ -65,9 +65,12 @@ game: install from the Windows PC after a push.
 - **Keep clear** of the number panel and the engine cover panel on the deck, where the game letters
   the player's number and name, and of the nose fin's plate: they aren't pieces. `show` names
   anything on them or round them.
-- **Pictures** go on the flat spots (`SPOTS` in `tool/paintbox.py`): the rear flanks and the bonnet;
-  the front flank's top strip takes lettering only. `show` reports a decal that crosses a fold.
-  Objects: `s.scatter` (whole copies). A continuous texture: a tile through `s.print`.
+- **Words and pictures** are laid as shapes are: `s.text` (words), `s.placard` (words in a thin
+  box, a small sign near a point or the line the user drew) and `s.decal` (a picture), on a named
+  panel (both sides, words reading forward on each) or at a named spot (`SPOTS` in
+  `tool/paintbox.py`, one side): whole, flat, upright to someone standing beside the car, moved or
+  shrunk until they fit. Read the notes. Objects: `s.scatter` (whole copies). A continuous texture:
+  a tile through `s.print`.
 - **Lines** are drawn on the skin (`tool/skindraw.py`): probe a route first (`PY -m tool.skindraw
   --probe "place, place"`), 3 mm or more to be seen while driving (2 mm is the thinnest that holds),
   and `PY -m tool.skincheck <name>` after painting. The cockpit leaves no skin down the top's middle

@@ -105,3 +105,9 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
 - Tool (Claude, 2026-10-05, Claude Fable 5.1): the paint box keeps a part painted by its name out of a
   later stripe or band on the whole body, so the bottom piece's second coat of black under the check
   band left the design. No picture of the car changed; 2,926 colour values along that edge did.
+- Tool (Claude, 2026-10-06, Claude Fable 5.1): the two placards are laid by the paint box's own placard
+  call (words in a thin box, laid on the body shell as a shape is: whole on the deck's free room, facing
+  outward, the deck's one reading along the seam), in place of the design's own placard code; the same
+  spots within a millimetre, the box and letters drawn a little differently at their edges. Close looks:
+  both crisp, upright to someone beside the car, reading forward on both sides; nothing cut or bent;
+  the checks name nothing on them and the driving camera sees them whole.

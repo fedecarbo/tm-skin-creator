@@ -10,7 +10,9 @@
         s.paint("inner", "dark grey satin")                   # the whole inner car
         s.paint("rim", "gunmetal")
         s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)  # a shape laid on a panel, whole
-        s.text("27", "left side", colour="black", font="russo", height=28)
+        s.text("27", "rear flank", colour="black", font="russo", height=20)  # words, laid the same way, each side
+        s.placard("NO STEP", "sidepod top", height=2.6)                    # words in a thin box
+        s.decal(s.art("tiger"), "left side", width=30)                     # a picture, at a named spot
         s.glow("sidepod frame", "electric blue")              # always on (inner car only)
         s.glow("brake caliper")                               # glow in the colour painted on it
         s.relight("speed numbers", "lime")                    # the stock glow, recoloured
@@ -66,7 +68,7 @@ import re
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import bake, colours, coverage, finishes, fonts, looks, paint, parts, paths, progress, raster, shapes
+from tool import bake, colours, coverage, finishes, fonts, looks, parts, paths, progress, raster, shapes
 from tool.dds import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
@@ -92,20 +94,21 @@ SHARED_NOTE = 0.05
 # a part painted by name that a zoned paint on a group leaves is named when the zone reaches this many of its texels
 KEPT = 100
 
-# Where lettering and pictures go: centre (cm), the image's right and up on the car, the side it's
-# seen from, the largest sensible width (cm). Measured on the model (2026-09-24).
+# Named places for words and pictures, one side each: the parts they're laid on (tool/marks.py), the
+# centre (cm), where their top points on the car and the side it's seen from (a line's route,
+# tool/skindraw.py). Measured on the model (2026-09-24).
 SPOTS = {
-    "left side": dict(centre=(70, 41, -66), right=(0, 0, -1), up=(0, 1, 0), facing=(1, 0, 0), width=34, parts=("rear flank", "sidepod inlet", "side skirt", "body shell")),
-    "right side": dict(centre=(-70, 41, -66), right=(0, 0, 1), up=(0, 1, 0), facing=(-1, 0, 0), width=34, parts=("rear flank", "sidepod inlet", "side skirt", "body shell")),
-    "left flank": dict(centre=(35, 55, 60), right=(0, 0, -1), up=(0, 1, 0), facing=(0.8, 0.3, 0.2), width=70, parts=("body shell",)),
-    "right flank": dict(centre=(-35, 55, 60), right=(0, 0, 1), up=(0, 1, 0), facing=(-0.8, 0.3, 0.2), width=70, parts=("body shell",)),
-    "nose": dict(centre=(0, 50, 180), right=(-1, 0, 0), up=(0, 0, 1), facing=(0, 0.93, 0.3), width=30, parts=("nose tip",)),
-    "bonnet": dict(centre=(0, 66, 117), right=(-1, 0, 0), up=(0, 0, 1), facing=(0, 0.95, 0.18), width=45, parts=("body shell",)),  # the free bonnet: z 91..142 (2026-09-24)
-    "left sidepod": dict(centre=(70, 61, -20), right=(-1, 0, 0), up=(0, 0, 1), facing=(0.18, 0.97, 0), width=28, parts=("sidepod top",)),
-    "right sidepod": dict(centre=(-70, 61, -20), right=(-1, 0, 0), up=(0, 0, 1), facing=(-0.18, 0.97, 0), width=28, parts=("sidepod top",)),
-    "left deck": dict(centre=(38, 69, -95), right=(0, 0, -1), up=(-0.33, 0.91, 0), facing=(0.33, 0.91, -0.1), width=45, parts=("engine cover",)),
-    "right deck": dict(centre=(-38, 69, -95), right=(0, 0, 1), up=(0.33, 0.91, 0), facing=(-0.33, 0.91, -0.1), width=45, parts=("engine cover",)),
-    "tail": dict(centre=(0, 63, -161), right=(-1, 0, 0), up=(0, 1, 0), facing=(0, -0.23, -0.94), width=50, parts=("tail panel",)),
+    "left side": dict(centre=(70, 41, -66), up=(0, 1, 0), facing=(1, 0, 0), parts=("rear flank", "sidepod inlet", "side skirt", "body shell")),
+    "right side": dict(centre=(-70, 41, -66), up=(0, 1, 0), facing=(-1, 0, 0), parts=("rear flank", "sidepod inlet", "side skirt", "body shell")),
+    "left flank": dict(centre=(35, 55, 60), up=(0, 1, 0), facing=(0.8, 0.3, 0.2), parts=("body shell",)),
+    "right flank": dict(centre=(-35, 55, 60), up=(0, 1, 0), facing=(-0.8, 0.3, 0.2), parts=("body shell",)),
+    "nose": dict(centre=(0, 50, 180), up=(0, 0, 1), facing=(0, 0.93, 0.3), parts=("nose tip",)),
+    "bonnet": dict(centre=(0, 66, 117), up=(0, 0, 1), facing=(0, 0.95, 0.18), parts=("body shell",)),  # the free bonnet: z 91..142 (2026-09-24)
+    "left sidepod": dict(centre=(70, 61, -20), up=(0, 0, 1), facing=(0.18, 0.97, 0), parts=("sidepod top",)),
+    "right sidepod": dict(centre=(-70, 61, -20), up=(0, 0, 1), facing=(-0.18, 0.97, 0), parts=("sidepod top",)),
+    "left deck": dict(centre=(38, 69, -95), up=(-0.33, 0.91, 0), facing=(0.33, 0.91, -0.1), parts=("engine cover",)),
+    "right deck": dict(centre=(-38, 69, -95), up=(0.33, 0.91, 0), facing=(-0.33, 0.91, -0.1), parts=("engine cover",)),
+    "tail": dict(centre=(0, 63, -161), up=(0, 1, 0), facing=(0, -0.23, -0.94), parts=("tail panel",)),
 }
 
 
@@ -281,10 +284,12 @@ class Skin:
         self.ops = []  # every call that laid paint: {what, step}
         self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, across (it crosses
         # edges on purpose), idx (the texels it covers), under (the call each of them showed before)}
-        self.pictures = []  # each picture laid on the body, while measuring: {op, step, what, idx, under, pixels (per cm)}
+        self.pictures = []  # each picture projected onto the body (decal's across=True), while measuring: {op, step,
+        # what, idx, under, pixels (per cm), across}
         self.by_name = {}  # the body's parts painted whole by their name -> the call that did: a later zoned
         # paint on a group leaves them (paint's `across`)
-        self.marks = []  # each mark laid on a panel, while measuring (tool/marks.py): {op, step, what, idx, under, whole (cm²)}
+        self.marks = []  # each mark laid on a panel, while measuring (tool/marks.py): {op, step, what, idx, under, whole
+        # (cm²), kind (shape, words, placard, picture), text, pixels (per cm), frame (right, up, facing)}
         self.scattered = []  # each scatter on the body, while measuring (tool/scatter.py)
         self.findings = []  # what's wrong on the car, as the paint itself knows it (tool/checks.py adds the rest)
         self._op, self._op_open = -1, False
@@ -402,8 +407,9 @@ class Skin:
         c.op = self._op
         return c
 
-    def _ids(self, where):
-        """(texture set, instance ids) pairs for a `where`."""
+    def _ids(self, where, warn=True):
+        """(texture set, instance ids) pairs for a `where`. warn: note a part the paint also lands on and
+        a name that reaches further than it seems (a mark says where it landed itself)."""
         names = [where] if isinstance(where, str) else list(where)
         paints = self._open_step()["paints"]  # what the open step paints, for the Studio
         paints += [n for n in names if n not in paints]
@@ -431,8 +437,9 @@ class Skin:
             name, ids = self._select(key)
             for i in ids:
                 out.setdefault(self.parts.instances[i]["mesh"], set()).add(i)
-            self._warn_shared(name, ids)
-            self._warn_reach(name, ids)
+            if warn:
+                self._warn_shared(name, ids)
+                self._warn_reach(name, ids)
         return {tset: sorted(ids) for tset, ids in out.items()}
 
     def _select(self, key):
@@ -648,8 +655,8 @@ class Skin:
         within: a zone the mark must also stay in. mirror: its mirror image on the car's other side
         too, when it's off the middle and the panel is there. across=True: laid at `at` as it is,
         over every edge in its footprint, which the checks then leave alone.
-        Returns where it landed (marks.Laid: centre, size, twin, spot() for text or a picture on
-        it); two marks with at=None on a panel share their middle."""
+        Returns where it landed (marks.Laid: centre, size, twin; text, a placard or a picture take
+        it as their place); two marks with at=None on a panel share their middle."""
         from tool import marks
         return marks.lay(self, where, what, shape, size, at, colour, finish, up, turn, margin, reach, fold, within,
                          mirror, across, soft, params)
@@ -932,65 +939,52 @@ class Skin:
         textures.add_file(name, self.art(picture or name), scale, about=f"{self.name}'s print {name}", wrap=wrap)
         return self
 
-    def _found(self, kind, text, c=None, texels=None, check="picture"):
-        """Something wrong on the car (tool/checks.py; kind is one of tool/record.py's KINDS): what, and
-        the stretch along the car it's on, front to back in cm, from the texels it's about."""
-        z = c.pos[texels, 2] if c is not None and texels is not None and len(texels) else None
-        self.findings.append({"check": check, "kind": kind, "text": text,
-                              "z": None if z is None else [round(float(z.max()), 1), round(float(z.min()), 1)],
-                              "step": self.steps[-1]["name"] if self.steps else None})
-
-    def _spot(self, where, at=None):
+    def _place(self, where, at, up, mirror):
+        """Where words or a picture go: (the parts, at, up, mirror) for a `where`: a panel (a part, or
+        several), a spot (SPOTS, one side) or a place (a mark's, marks.Laid, or a dict with centre and
+        up): the part under its centre."""
+        from tool import marks
+        if isinstance(where, marks.Laid):
+            where = where.spot()
         if isinstance(where, dict):
-            spec = dict(where)
-        else:
-            spec = dict(SPOTS[where.strip().lower()])
-        if at is not None:
-            spec["centre"] = at
-        return spec
+            at = where["centre"] if at is None else at
+            return [self._part_at(where["centre"])], at, where.get("up") if up is None else up, bool(mirror)
+        if isinstance(where, str) and where.strip().lower() in SPOTS:
+            spec = SPOTS[where.strip().lower()]
+            return list(spec["parts"]), spec["centre"] if at is None else at, spec["up"] if up is None else up, bool(mirror)
+        return where, at, up, mirror is None or mirror
 
-    @_op(lambda image, where, *a, **k: f"a picture at {_where(where) if not isinstance(where, dict) else 'a spot'}")
-    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None):
-        """Lay a picture (PIL RGBA, or a path) on the body at a spot (SPOTS, or a dict with
-        centre, right, up, facing). width in cm. rgb: paint every opaque pixel this colour
-        instead of the picture's own (for one-colour lettering)."""
+    def _part_at(self, point):
+        """The body part under a point: the nearest painted texel's."""
+        from scipy.spatial import cKDTree
+        c = self.canvas("Skin")
+        if not hasattr(self, "_body_tree"):
+            sub = np.flatnonzero(c.cov.reshape(-1))[::8]
+            self._body_tree = cKDTree(c.pos[sub]), coverage.load(self.parts, "Skin", c.w, c.h).owners().reshape(-1)[sub]
+        tree, owners = self._body_tree
+        return self.parts.instances[owners[tree.query(np.asarray(point, np.float64))[1]]]["name"]
+
+    @_op(lambda image, where, *a, **k: f"a picture at {_where(where) if isinstance(where, (str, list, tuple)) else 'a spot'}")
+    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None, up=None,
+              turn=0.0, margin=1.0, reach=None, mirror=None, across=False):
+        """Lay a picture (PIL RGBA, or a path) on the body as a mark is (tool/marks.py): on a panel, a
+        spot (SPOTS) or a place (a mark's), its opaque pixels whole on free room, flat (within marks.BEND
+        of one facing), off folds and clear of the game's panels, moved then shrunk until they are, each
+        move said. width in cm (None: the biggest that fits). rgb: paint every
+        opaque pixel this colour (one-colour lettering). On a panel it goes on both sides, its mirror
+        image on the other (a picture with words in it: one side at a time, mirror=False). zone: it must
+        stay in it. across=True: laid at `at` as it is, over every edge in its footprint, onto the nearest
+        surface facing it (min_facing). Returns where it landed (marks.Laid)."""
+        from tool import marks
         if isinstance(image, (str, bytes, os.PathLike)) or hasattr(image, "read"):
             image = Image.open(image)
-        image = image.convert("RGBA")
-        spec = self._spot(where, at)
-        width = width or spec["width"]
-        arr = np.asarray(image, np.float32) / 255
-        c = self.canvas("Skin")
-        b = c.bake
-        # onto the nearest surface only: the decal crosses every panel in its footprint (a
-        # sticker over a panel gap, as on a real car) and never reaches the far side
-        alpha, info = paint.project_near(b, arr[..., 3], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)
-        flat = alpha.reshape(-1)
-        idx = np.flatnonzero(flat > 0.002)
-        if info["landed"] < 0.97:
-            self._found("cut", f"decal at {where}: {info['landed']:.0%} of the picture landed on the car; the rest falls in a gap or off an edge", c, idx)
-        if info["step_cm"] > 4:
-            self._found("fold", f"decal at {where}: the surface under the picture has a fold or step of {info['step_cm']:.0f} cm; "
-                        "it will look cut there. Try a smaller picture or another spot", c, idx)
-        if not len(idx):
-            self.notes.append(f"decal at {where}: nothing landed on the car")
-            return self
-        m = flat[idx]
-        if zone is not None:
-            m = m * zone(c.pos[idx], c.nrm[idx])
-        if self.measure:
-            on = idx[m > 0.5]
-            self.pictures.append({"op": self._op, "step": self.ops[self._op]["step"], "what": self.ops[self._op]["what"],
-                                  "idx": on, "under": c.owner[on].copy(), "pixels": image.width / width})
-        fin = finishes.get(finish) if isinstance(finish, str) else finish
+        arr = np.asarray(image.convert("RGBA"), np.float32) / 255
         if rgb is not None:
-            col = np.broadcast_to(np.asarray(colours.get(rgb), np.float32), (len(idx), 3))
-        else:
-            col = np.stack([paint.project_near(b, arr[..., k], spec["centre"], spec["right"], spec["up"], width, spec["facing"], min_facing)[0].reshape(-1)[idx]
-                            for k in range(3)], 1)
-        c.blend(idx, m, col, np.full(len(idx), fin.roughness, np.float32), np.full(len(idx), fin.metalness, np.float32),
-                np.full(len(idx), fin.varnish, np.float32))
-        return self
+            arr[..., :3] = np.asarray(colours.get(rgb), np.float32)
+        parts, at, up, mirror = self._place(where, at, up, mirror)
+        shape = marks.Picture(arr, "picture", False, label="a picture")
+        return marks.lay(self, parts, None, shape, width, at, None, finish, up, turn, margin, reach, None, zone,
+                         mirror, across, 0.0, {})
 
     @_op(lambda image, where="body", *a, **k: f"copies of a picture on {_where(where)}")
     def scatter(self, image, where="body", size=8, spacing=None, turn="random", finish="gloss", zone=None, seed=None,
@@ -1010,21 +1004,46 @@ class Skin:
 
     @_op(lambda text, where, *a, **k: f"the text {text!r}")
     def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,
-             outline_width=0.08, weight=None, italic=0.0, spacing=0, zone=None):
-        """Write on the body. height in cm; outline: a colour for a border, outline_width as a
-        share of the height; italic: a slant (0.2 is a racing lean); spacing: extra letter
-        spacing in cm."""
-        img, w_cm = render_text(text, font or fonts.DEFAULT, height, outline, outline_width, weight, italic, spacing)
-        limit = self._spot(where, at)["width"]
-        if w_cm > limit:  # too wide for the spot: shrink it to fit, and say so
-            height = height * limit / w_cm
-            img, w_cm = render_text(text, font or fonts.DEFAULT, height, outline, outline_width, weight, italic, spacing)
-            self.notes.append(f"text {text!r} at {where}: shrunk to {height:.0f} cm tall to fit the spot's {limit} cm")
-        col = colours.get(colour)
-        if outline:
-            self.decal(img["outline"], where, w_cm, at, finish, zone, rgb=outline)
-        self.decal(img["fill"], where, w_cm, at, finish, zone, rgb=col)
-        return self
+             outline_width=0.08, weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0,
+             reach=None, mirror=None, across=False):
+        """Write on the body: words laid as a mark is (tool/marks.py), on a panel, a spot (SPOTS) or a
+        place (a mark's, marks.Laid): whole on free room, flat (within marks.WORD_BEND of one facing),
+        off folds and clear of the game's panels, moved then shrunk until they are, each move said;
+        upright to someone standing beside the car, unless `up` says where their top points on the
+        car, then turned `turn` degrees anticlockwise. height: the capitals', in cm; outline: a colour
+        for a border, outline_width as a share of the height; italic: a slant (0.2 is a racing lean);
+        spacing: extra letter spacing in cm. On a panel they go on both sides, reading forward on each
+        (mirror=False for one); a spot or a place is one side. at: a point (x, y, z; None for a
+        coordinate to look along), or the points of a line the user drew (its middle; an arrow: its
+        tip). zone: they must stay in it. across=True: laid at `at` as they are, over every edge in
+        their footprint. Returns where they landed (marks.Laid)."""
+        from tool import marks
+        img, w_cm, tall = lettering(text, font or fonts.DEFAULT, height, colour, outline, outline_width, weight, italic, spacing)
+        parts, at, up, mirror = self._place(where, at, up, mirror)
+        self.palette.append([float(v) for v in colours.get(colour)])
+        shape = marks.Picture(img, "words", True, label=f"the text {text!r}", text=text, tall=tall)
+        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, None, zone, mirror,
+                         across, 0.0, {})
+
+    @_op(lambda text, where, *a, **k: f"the placard {text!r}")
+    def placard(self, text, where, colour="black", fill=None, font=None, height=4.0, pad=None, frame=None, at=None,
+                finish="gloss", weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0, reach=None,
+                mirror=None):
+        """Words in a thin box, as a small sign: laid as text() is, the whole box on free room near `at`
+        (a point, or the points of a line the user drew: its middle; an arrow: its tip), facing
+        outward: upright to someone standing beside the car. height: the capitals', in cm; pad: the
+        room between the words and the box's line (a fifth of the height); frame: the line's width
+        (a twelfth); fill: a colour inside the box (none: the paint shows through). Returns where it
+        landed (marks.Laid)."""
+        from tool import marks
+        pad = 0.2 * height if pad is None else pad
+        frame = height / 12 if frame is None else frame
+        img, w_cm, tall = placard_image(text, font or fonts.DEFAULT, height, colour, fill, pad, frame, weight, italic, spacing)
+        parts, at, up, mirror = self._place(where, at, up, mirror)
+        self.palette.append([float(v) for v in colours.get(colour)])
+        shape = marks.Picture(img, "placard", True, label=f"the placard {text!r}", text=text, tall=tall)
+        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, None, zone, mirror,
+                         False, 0.0, {})
 
     # ---- output ----
 
@@ -1094,3 +1113,42 @@ def render_text(text, font_name, height_cm, outline=None, outline_width=0.08, we
         outl = outl.transform(outl.size, Image.AFFINE, shear, resample=Image.BILINEAR)
     to_rgba = lambda im: Image.merge("RGBA", (im, im, im, im))
     return {"fill": to_rgba(fill), "outline": to_rgba(outl)}, W / px_per_cm
+
+
+def lettering(text, font_name, height_cm, colour, outline=None, outline_width=0.08, weight=None, italic=0.0, spacing=0):
+    """Words as an RGBA float picture (40 px a cm, cropped to the ink, the outline's colour under the
+    fill's), their width in cm and the capitals' height over that width."""
+    img, _ = render_text(text, font_name, height_cm, outline, outline_width, weight, italic, spacing)
+    fill = np.asarray(img["fill"].getchannel("A"), np.float32) / 255
+    outl = np.asarray(img["outline"].getchannel("A"), np.float32) / 255 if outline else np.zeros_like(fill)
+    a = np.maximum(fill, outl)
+    col = np.asarray(colours.get(colour), np.float32)
+    ocol = np.asarray(colours.get(outline), np.float32) if outline else col
+    rgb = (fill[..., None] * col + np.maximum(outl - fill, 0)[..., None] * ocol) / np.maximum(a, 1e-6)[..., None]
+    rows, cols = np.nonzero(a > 0.02)
+    r0, r1, c0, c1 = rows.min(), rows.max() + 1, cols.min(), cols.max() + 1
+    out = np.concatenate([rgb, a[..., None]], -1)[r0:r1, c0:c1]
+    return out, (c1 - c0) / 40, height_cm * 40 / (c1 - c0)
+
+
+def placard_image(text, font_name, height_cm, colour, fill, pad_cm, frame_cm, weight=None, italic=0.0, spacing=0):
+    """A placard as an RGBA float picture (40 px a cm): the words, `pad_cm` of room round them, the
+    box's line `frame_cm` wide outside that, in the words' colour; `fill` inside the box, or clear.
+    Its width in cm and the capitals' height over that width."""
+    words, _, _ = lettering(text, font_name, height_cm, colour, None, 0.0, weight, italic, spacing)
+    p, f = int(round(pad_cm * 40)), max(1, int(round(frame_cm * 40)))
+    ih, iw = words.shape[:2]
+    H, W = ih + 2 * (p + f), iw + 2 * (p + f)
+    a, rgb = np.zeros((H, W), np.float32), np.zeros((H, W, 3), np.float32)
+    line = np.ones((H, W), bool)
+    line[f:-f, f:-f] = False
+    a[line], rgb[line] = 1.0, np.asarray(colours.get(colour), np.float32)
+    if fill is not None:
+        a[~line], rgb[~line] = 1.0, np.asarray(colours.get(fill), np.float32)
+    sl = slice(p + f, p + f + ih), slice(p + f, p + f + iw)
+    wa, wr = words[..., 3:4], words[..., :3]
+    under = a[sl][..., None]
+    top = wa + under * (1 - wa)
+    rgb[sl] = (wr * wa + rgb[sl] * under * (1 - wa)) / np.maximum(top, 1e-6)
+    a[sl] = top[..., 0]
+    return np.concatenate([rgb, a[..., None]], -1), W / 40, height_cm * 40 / W
