@@ -25,18 +25,21 @@ more it no longer makes).
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.
 
+- **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
+  between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
+  accurately"). `tool/meshlines.py` draws an edge along the model's own lines (the UV map's wireframe): the one where
+  the shading is halfway, one line end to end, smooth on the UV map; the shoulder and the sidepod's rear edge on
+  TSC_ModelLines ("they both seem accurate"). Next: every edge of the body's this way (the anatomy's 18: a sharp one
+  on its crease, a rounded one on its halfway line), checked close up, then shown; then the template: the model's
+  lines, panels and seams named and known in 3D and on the UV map at once, what a design picks from and the Lab's
+  UV room shows; TSC_Endurance's navy moved onto it.
+
 ## The tool
 
-- **The edge** (2026-10-06, the user on TSC_EdgeLine: "those lines are so wobbly"): `course.shadow` finds
-  it where the shading divides top from side (60 degrees from up, measured on the user's own stroke),
-  `Course.inked` and `inked_edge` draw a line or a colour's edge smooth on the flat texture (a curve on each
-  piece: "The curve follow the edges better definitely"), a line's end runs on to the fold
-  (`inked(to_fold=)`), and it is a guide, `course.top_line("edge")`, from the inlets to the tail corners ("It's
-  better, yes"); TSC_Endurance's navy stops on it, checked close up. It doesn't carry over by itself: every line
-  of the body's at once (TSC_AllLines, 2026-10-06, the shading halfway between the two surfaces) got "This is
-  terrible": low on the side the traced lines wander a centimetre, hook at their ends and run beside the features.
-  Open: tracing the other edges again, region by region with the user's eye, or the user's pen; the shoulder ahead
-  of the inlets; the underside area's edge notched on the tail corners' narrow back faces (the car map's lower line).
+- **Lines read from the texture** (2026-10-06): `course.shadow`, the edge guide (`course.top_line("edge")`, which
+  TSC_EdgeLine and TSC_Endurance's navy follow) and the anatomy's traced lines read the car through the texture's
+  texels and smooth the guess ("you are basically scribbling blindly everywhere"); they go once G covers them.
+  Open: the underside area's edge notched on the tail corners' narrow back faces (the car map's lower line).
 - **The car map differs between the Mac and the PC** (2026-10-05): its readings (the shoulder, the
   lower edge, the ridges, the areas) differ slightly (numpy and BLAS). The guides are committed data
   now; the readings are to be checked against them (`tool/carmap.py`, `car/anatomy.md`). The checks

@@ -34,3 +34,7 @@ drawn is where the shading is halfway between the two surfaces. The approved edg
 - The user, of set 1: "I see not much difference, they both seem accurate, which one is the new method?" Both are:
   the same model line, drawn straight from point to point (A) or as one smooth stroke on the UV map through the same
   points (B). Picked B (no corners at the bends, visible only close up behind the sidepod and at the inlet's end).
+- The user, 2026-10-06: "Might have to be with another agent. If this new method works, then Im expecting some sort
+  of blend between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
+  accurately". Open (next session): every edge of the body's along the model's lines on this car (the queue's G),
+  checked close up before it's shown; then the template.
