@@ -1,6 +1,7 @@
 """Rescue v2: the snow rescue car (TSC_Snow) with more detail, shaped by the car's own curvature.
 Signal orange; a black lower edge that follows the side's curve, rising with the tail; block tape of
-silver and orange round the car's contour, along its top line from the nose's tip to the tail; silver
+silver and orange round the car's contour, along its top line from the nose's tip to the tail, a piece
+on each panel; silver
 chevrons on the tail's deck; NO STEP on the deck and the side box's top, each side, as small boxed
 placards; silver hazard stripes across the rear quarter panels; studded snow tyres; amber rear lights."""
 from tool import course, levels, shapes
@@ -20,6 +21,7 @@ TAPE = ("Include a tape like pattern here (note 13, a line drawn along the top o
         "along the top line); picked block tape; Maybe include the tape around the car, you can be the judge on how to "
         "distribute it so that it looks like a hazard car")
 BAND = "Remove this one (note 1 on the block tape's take, on the side's check band)"
+SEAMS = "I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box and the rear flank)"
 
 
 def design(s):
@@ -38,10 +40,10 @@ def design(s):
     s.paint("rear quarter panel", "reflective tape", zone=shapes.stripes(4, across=SLANT, edge=2.5))
 
     s.step("The contour tape", "Block tape, two rows of silver and orange blocks 5 cm wide, round the car's contour on "
-           "its top line, as a hazard vehicle is outlined: from the nose's tip back along the nose to the air intake, "
-           "then along the side box and the rear flank, and on the tail corner. The side's big check band is off.",
-           words=TAPE + "; " + BAND)
-    s.paint("body", "reflective tape", zone=course.around("top edge").mirrored().blocks(5, 2.5))
+           "its top line, as a hazard vehicle is outlined, a piece on each panel with 3 cm bare across each seam: the "
+           "nose's tip, the nose back to the air intake, the side box, the rear flank and the tail corner. The side's "
+           "big check band is off.", words=TAPE + "; " + BAND + "; " + SEAMS)
+    s.paint("body", "reflective tape", zone=course.around("top edge").panels(3).mirrored().blocks(5, 2.5))
 
     s.step("No step", "NO STEP in black on each side, a small placard with a thin black box round the words, facing "
            "outward: on the deck beside the rear flank's seam, where the user's arrow pointed, reading along the "

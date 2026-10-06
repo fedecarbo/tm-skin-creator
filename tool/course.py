@@ -22,6 +22,8 @@ that line in one go: a strip, dashes, ticks, spots or words.
     c.then(other)                            on along another course (joined straight where they don't meet)
     c.rounded(8)                             its corners rounded over 8 cm
     c.mirrored()                             the same on both sides; c.reversed() the other way
+    c.panels(3)                              cut at each seam between the body's panels it crosses, 3 cm left
+                                             bare across each: a marking applied panel by panel, as tape is
     c.length, c.start, c.middle, c.end, c.at(z=-70), c.at(s=20)   points on it (cm)
     c.places(every=20)                       points every 20 cm along it, a whole gap at each end, for marks
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
@@ -44,6 +46,7 @@ from tool import shapes
 from tool.noise import smoothstep
 
 STEP = 0.25    # cm between a course's points
+SPECK = 1.0    # cm: a run of another part this short under a course is the mesh's noise, not a panel
 SMOOTH = 2.5   # cm: the surface's facing along a course, and a stroke's path, are averaged over this
 FACING = 0.5   # a texel takes a marking when it faces within 60 degrees of the course's surface there
 OFF = 3.0      # cm: a stroke's point further than this from the body is dropped
@@ -190,6 +193,37 @@ class Course:
 
     def reversed(self):
         return Course(self.pts[::-1], self.name, self.nrm[::-1], self.closed, self.mirror)
+
+    def panels(self, gap=3.0):
+        """The course cut at each seam between the body's panels it crosses (a change of part under it;
+        a run under SPECK cm is the next's), `gap` cm of the body left bare across each seam, half on
+        either side (where the course steps through the air from one panel to the next, that part of it
+        isn't counted): Courses, one per panel, each marked on its own (whole blocks, whole dashes)."""
+        from tool import carmap
+        m = carmap.load()
+        f, _, off = m.at(self.pts, self.nrm)
+        part = np.where(off > 0.3, -1, m.part[f])  # -1: off the body, across a step between two pieces
+        starts = np.flatnonzero(np.r_[True, part[1:] != part[:-1]])
+        runs = [[a, b, part[a]] for a, b in zip(starts, np.r_[starts[1:], len(part)])]
+        for r in runs:  # a speck of another part is the mesh's noise: the run it sits in
+            k = runs.index(r)
+            if r[2] >= 0 and self.s[r[1] - 1] - self.s[r[0]] < SPECK and 0 < k < len(runs) - 1 and runs[k - 1][2] == runs[k + 1][2]:
+                r[2] = runs[k - 1][2]
+        panels = []
+        for a, b, p in runs:
+            if panels and panels[-1][2] == p:
+                panels[-1][1] = b
+            else:
+                panels.append([a, b, p])
+        panels = [r for r in panels if r[2] >= 0]
+        out = []
+        for k, (a, b, p) in enumerate(panels):
+            s0 = self.s[a] + (gap / 2 if k > 0 else 0.0)
+            s1 = self.s[b - 1] - (gap / 2 if k < len(panels) - 1 else 0.0)
+            idx = np.flatnonzero((self.s >= s0) & (self.s <= s1))
+            if len(idx) > 1 and s1 - s0 >= max(gap, SPECK):
+                out.append(Course(self.pts[idx], f"{self.name}, on the {m.part_names[p]}", self.nrm[idx], False, self.mirror))
+        return Courses(out, f"{self.name}, panel by panel")
 
     # ---- markings ----
 
@@ -430,8 +464,23 @@ def _half(chains, sign):
     return out
 
 
+def _meet(x, y, reach):
+    """x's end and y's start trimmed to where they come nearest within `reach` cm of them: a line that
+    runs on along a piece's edge under the next one (the rear flank under the tail corner) and would
+    double back is cut where it passes the next."""
+    def tail(c):  # the indices of c's last `reach` cm
+        d = np.r_[0, np.cumsum(np.linalg.norm(np.diff(c[::-1], axis=0), axis=1))]
+        return len(c) - 1 - np.flatnonzero(d <= reach)
+    xi = tail(x)
+    yi = len(y) - 1 - tail(y[::-1])
+    d = np.linalg.norm(x[xi][:, None] - y[yi][None], axis=2)
+    a, b = np.unravel_index(int(np.argmin(d)), d.shape)
+    return x[:xi[a] + 1], y[yi[b]:]
+
+
 def _joined(chains, gap):
-    """Chains whose ends meet within `gap` cm joined into one (a seam between two pieces lying flush)."""
+    """Chains whose ends meet within `gap` cm joined into one (a seam between two pieces lying flush, or
+    one standing a step proud of the next), each trimmed to where it passes the other (_meet)."""
     chains = [c for c in chains if np.linalg.norm(np.diff(c, axis=0), axis=1).sum() >= 1.0]
     merged = True
     while merged:
@@ -441,7 +490,7 @@ def _joined(chains, gap):
                 a, b = chains[i], chains[j]
                 for x, y in ((a, b), (a, b[::-1]), (a[::-1], b), (a[::-1], b[::-1])):
                     if np.linalg.norm(x[-1] - y[0]) <= gap:
-                        chains[i] = np.vstack([x, y])
+                        chains[i] = np.vstack(_meet(x, y, 2 * gap))
                         del chains[j]
                         merged = True
                         break
@@ -503,6 +552,9 @@ class Courses:
 
     def mirrored(self):
         return Courses([c.mirrored() for c in self.courses], self.name)
+
+    def panels(self, gap=3.0):
+        return Courses([p for c in self.courses for p in c.panels(gap)], f"{self.name}, panel by panel")
 
     def _all(self, method, *a, **k):
         zones = [getattr(c, method)(*a, **k) for c in self.courses]

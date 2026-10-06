@@ -135,3 +135,9 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   intake, then along the side box and the rear flank and on over the tail corner, its blocks running in
   step across the corner's step; it ends at the tail corners, where the back is open for the lights.
   Close looks: crisp all round, whole blocks at its ends, clear of the placards and the chevrons.
+- Change 13 (user, note 15 on the seam between the side box and the rear flank, 2026-10-06, Claude Opus
+  5.5): "I wouldn't have it continuous, just leave a bit of gap between seems." The tape is a piece on
+  each panel, each with whole blocks, 3 cm of orange bare across each seam: the nose's tip and the nose
+  (their seam at z +144), the side box and the rear flank (z -48), the rear flank and the tail corner
+  (at its step, z -126). Close looks at each seam, both sides: the gap reads at the side box's and the
+  tail corner's; on the nose's straight run it reads more quietly, both rows orange across the line.
