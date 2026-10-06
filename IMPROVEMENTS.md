@@ -15,9 +15,8 @@ more it no longer makes).
 
 - **D. Lines drawn in the flat texture** (2026-10-06): measured, nothing to gain; waiting for the user's
   OK to drop it. The guides' lines are as smooth as the model allows: the corners seen close up are its
-  folds (`tool/course.py`'s docstring), and TSC_Skeleton drawn smooth looked the same. On the OK it goes,
-  and so do `tool/skindraw.py`, `tool/skinmesh.py` and `tool/skincheck.py` (the lines room's pins and the
-  tour car's sweep painted as courses).
+  folds (`tool/course.py`'s docstring), and TSC_Skeleton drawn smooth looked the same. On the OK it goes.
+  The drawing tool (`tool/skindraw.py`, the lines room) stays: the user likes it and will refine it.
 - **E. Structure for taste** (2026-10-05): a one-page anatomy written by `PY -m tool.carmap --describe`
   (the flat rooms, the chase camera's share of each part, the levels at each station, which panels are
   pieces and which are sewn, the game's panels) in place of `car/map.md`; `SPOTS` in
