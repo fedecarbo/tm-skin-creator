@@ -183,3 +183,12 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   thin dark edge; it steps down 4 cm from the bottom piece's top at the panel line behind the sidepod); a third take,
   C, has no line: only the car's own bottom piece in black, the rear flanks orange to their edge. Checks name nothing
   on either; looked at low on both sides.
+- Note 23 (user, 2026-10-06, on the car as it was, the black's top behind the sidepod): "If this is the fix, then it's
+  perfect, incredibly smooth". It was take A (the guides' flat height), said so in the Lab; asked (question 11) whether to
+  keep that black with B's tape. The user: "Oh, but I want to see your take on making a perfect paint but using the mesh
+  as guides". Take D (Claude's), the mesh as the guide rather than lines to trace: the black a band of even width, 14 cm
+  across the surface up from the body's own bottom edge along the rear flank (a line beside one of the model's lines,
+  `Course.offset`, new), so its top meets the bottom piece's top at the panel line behind the sidepod and eases from
+  26 to 23 cm up into the opening's lower edge over the rear wheel; the nose's tape lies beside the nose's crease, its
+  lower edge on it, rather than folded over it; the sides' tape as in B. Close looks: the band smooth all along, both
+  sides; the nose's rows even and flat to the intake; the checks name nothing.

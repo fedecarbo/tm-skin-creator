@@ -23,6 +23,13 @@ more it no longer makes).
   (`car/map/model.jpg`); the chase camera is out of it, of show's report and of the skill. Open: the areas
   (`shapes.area`) still split on the car map's traced lines (ask the user first); the underside area's edge notched
   on the tail corners' narrow back faces.
+- **Retire the guides; the mesh is the guide** (2026-10-06, the user: "I think we can retire the guides and the mesh
+  somehow will be improved, but I guess that would be the new "guides""). First the Rescue car's take (its set 3: A is
+  built on the guides; D, the mesh as the guide, is mine). Out then: `tool/levels.py`, `car/levels.json`,
+  `car/top_lines.json`, `course.level`, `course.around`, `course.top_line`; the paint report words a height by the guides
+  (`measure.py`, levels.where), the seams' heights lean on them (`seams.height`), and the self-test's tour paints with
+  them: each moves to the model's own lines or plain words, the tour's paint differing where meant. Built for it:
+  `Course.offset`, a line beside one of the model's lines (a band of even width, a tape beside a crease).
 - **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
   into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
   never the artwork), confirmed as a question in the Lab before any paint.

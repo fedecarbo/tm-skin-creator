@@ -23,6 +23,8 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
     c.then(other)                            on along another course (joined straight where they don't meet)
     c.rounded(8)                             its corners rounded over 8 cm
     c.extended(start=3)                      carried on straight 3 cm before its start (under a frame)
+    c.offset(14)                             a line beside it, 14 cm across the surface to its left all along (- its
+                                             right): a band of even width along one of the model's lines
     c.mirrored()                             the same on both sides; c.reversed() the other way
     c.panels(3)                              cut at each seam between the body's panels it crosses, a piece per
                                              panel stopping 1.5 cm short of each edge it ends at (a seam, an
@@ -69,6 +71,7 @@ INK_REACH = 10.0   # cm either side of a course an inked edge moves the zone's e
 # edge (area("top") stops up to 10 cm from the shoulder's own line on the flat texture; at 4 a sliver stayed unpainted
 # by the inlet's frame, the user, 2026-10-06: "There's a clear gap that is not painted here")
 INK_GAP = 4        # course points (a centimetre) a run on one piece may skip and still be one run
+OFFSET_KNOT = 6.0  # cm along a course between the knots of the smooth curve a line beside it is drawn as
 FOLD = 45.0        # degrees from a course's own facing: past its end, where the surface has turned this far is the fold
 FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
 INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
@@ -219,6 +222,26 @@ class Course:
         pts = np.vstack([before, self.pts, after])
         pts, _, _ = carmap.load().project(pts)
         return Course(pts, f"{self.name} carried on", None, self.closed, self.mirror)
+
+    def offset(self, cm, step=0.5):
+        """A line beside the course, `cm` from it across the surface all along, to its left as it runs seen from
+        outside (+) or its right (-): each point walked square to it a step at a time, laid back on the body at each,
+        then one smooth curve through them all (a knot every OFFSET_KNOT cm along the course), laid on the body: where the
+        course bends, the points walked on its inside crowd and cross, and the curve runs through them. A band of even
+        width along one of the model's lines (the user, 2026-10-06: the mesh as the guides, "you don't need to follow
+        exactly the lines"), or a tape beside a crease rather than folded over it. Not round a loop."""
+        from tool import carmap, meshlines
+        m = carmap.load()
+        P, T, N = self.pts.copy(), self.tan.copy(), self.nrm.copy()
+        n = max(1, int(np.ceil(abs(cm) / step)))
+        for _ in range(n):
+            L = np.cross(N, T)
+            L /= np.maximum(np.linalg.norm(L, axis=1, keepdims=True), 1e-9)
+            P, N, _ = m.project(P + (cm / n) * L, N)
+        knots = list(np.arange(OFFSET_KNOT, self.length - OFFSET_KNOT / 2, OFFSET_KNOT))
+        pts = np.stack([carmap._lsq(self.s, P[:, k], knots)(self.s) for k in range(3)], 1)
+        pts = np.array([meshlines._closest(p)[1] for p in pts])  # on the surface itself (a triangle's plane strays off it)
+        return Course(pts, f"{self.name}, {abs(cm):g} cm to its {'left' if cm > 0 else 'right'}", None, False, self.mirror)
 
     def mirrored(self):
         """The same on both sides of the car."""

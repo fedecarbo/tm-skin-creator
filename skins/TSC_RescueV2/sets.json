@@ -82,6 +82,11 @@
      "key": "C",
      "title": "BottomPiece",
      "skin": "TSC_RescueV2_BottomPiece"
+    },
+    {
+     "key": "D",
+     "title": "MeshGuided",
+     "skin": "TSC_RescueV2_MeshGuided"
     }
    ],
    "pick": null,
