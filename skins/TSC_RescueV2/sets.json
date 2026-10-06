@@ -60,6 +60,28 @@
    "pick": "A",
    "decision": "Block tape along the top of the rear flanks",
    "done": "2026-10-06T09:16:37"
+  },
+  {
+   "n": 3,
+   "title": "Without the guides",
+   "words": "not sure what guides you mean but show me a version without the guides and using the new approach tool",
+   "made": "2026-10-06T22:59:38",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Guides",
+     "skin": "TSC_RescueV2_Guides"
+    },
+    {
+     "key": "B",
+     "title": "ModelLines",
+     "skin": "TSC_RescueV2_ModelLines"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
   }
  ]
 }

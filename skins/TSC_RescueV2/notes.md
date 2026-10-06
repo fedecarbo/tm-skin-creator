@@ -158,3 +158,12 @@ the front flanks; a black snowflake on the rear flanks; black wheels with orange
   back to the air intake. Close looks: the tip clean, the tape starting behind its seam.
 - The user, 2026-10-06: "lets leave it there for the car for no[w]". Not installed; the game has no
   copy of it. Open: whether it's ready to install, the next time they pick it up.
+- Set 3 (user, 2026-10-06, Claude Opus 5.5): "not sure what guides you mean but show me a version without the guides
+  and using the new approach tool". Two takes: A as it is (the black lower edge below the guides' lowest side level,
+  the tape on their top line); B on the model's own lines, picked on the mesh: the tape along the nose's lower crease
+  from behind the nose tip's seam, on straight across the surface to the air intake's crisp front edge, and along the
+  shoulder's line facing 47 degrees from up from the sidepod to the tail corner's end (the top line ran within 1.5 mm
+  of it there, so those pieces don't move); the black on the bottom piece as before and on the rear flanks up to the
+  model's line where the side turns under, then up the front of the rear wheel's arch (2 to 8 cm lower than the
+  guide's level). On the nose B's tape sits on the crease itself, so it folds over it a little more than A's. Close
+  looks of both at the same eight places; the checks name nothing on B. Open in the Lab.

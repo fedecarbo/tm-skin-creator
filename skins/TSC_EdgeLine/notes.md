@@ -1,6 +1,6 @@
 # TSC_EdgeLine
 
-The user's words (2026-10-06, Claude Opus 5.5), after TSC_Endurance's split missed the edge they see
+The user's words (2026-10-06, Claude Opus 5.5), after a test car's colour split missed the edge they see
 ("YOu are so way off all around the car"): "I want you to create a car that has a black line of what
 you think is the edge.  At least from the intake around the rear reaching to the other intake".
 
@@ -17,7 +17,7 @@ tail's middle.
 - The user: "If you actually look ffrom the side, you can even see that the shadow divides the edge
   properly and your lines dont even follow", then "maybe you can figure out a shadow that will help you
   get a perfect edge to the car". Measured against their own stroke of the right rear flank's edge
-  (note 2 on TSC_Endurance): it runs within 0.26 cm (median, 0.59 for 90 %) of the line where the
+  (their note on that test car): it runs within 0.26 cm (median, 0.59 for 90 %) of the line where the
   surface, as the game shades it, faces 60 degrees from up; the shoulder's crest ran 1.4 cm off it.
   Built `course.shadow(guide)`: that line along a guide, midway between neighbouring texels either side
   of 60 degrees (so on the tail's sharp edge it is the crease), held to its neighbours so it never jumps

@@ -16,8 +16,8 @@ more it no longer makes).
 - **E. Structure for taste, from the mesh** (2026-10-06; the user: "Sure, I can do that ... make sure to change the
   chase camera"). Built, waiting for the user's OK: the lines the tool guessed from the texture's texels are out (the
   traced lines, the shading's divide, the shoulder as a line, the edge guide); a design takes the model's own lines
-  (`meshlines.line`, along a rounded edge with `kind="rounded"`, and `meshlines.picked`). TSC_EdgeLine's line and
-  TSC_Endurance's navy edge are on the model's line along the shoulder (up to 0.6 cm further down the roll). The
+  (`meshlines.line`, along a rounded edge with `kind="rounded"`, and `meshlines.picked`). TSC_EdgeLine's line is
+  on the model's line along the shoulder (up to 0.6 cm further down the roll). The
   anatomy (`car/anatomy.md`) is written from the mesh: its crisp lines, its rounded edges with the lines across each
   (`meshlines.rolls`), its panels (`meshlines.panels`), its picture the Lab's template on the bare body
   (`car/map/model.jpg`); the chase camera is out of it, of show's report and of the skill. Open: the areas
