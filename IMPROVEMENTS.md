@@ -37,6 +37,14 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   60-degree divide wandered in a zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm
   groove, not its middle.
 
+- **H. An eye for how a graphic sits** (2026-10-07, the user, of TSC_CrashTest's block scale: "if there's an improvement
+  that can be made in general ... for the AI to properly design and have the right tools to have better judgement or
+  eyes (but obviously not restrict creativity)"): the tape lay exactly on one of the model's lines, a roll the eye
+  doesn't see, its gap to the panel lines pinching and its end a centimetre off the rear quarter panel's outline.
+  Idea: after each paint, each graphic in words against the lines the eye sees (an even gap, a gap that pinches,
+  nearly parallel, an end just short of a line), and a close look at its worst spot with those lines drawn; it
+  names, never forbids. First proof: it names that tape's pinch on its own, then the record's flaws.
+
 ## The tool
 
 - **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
