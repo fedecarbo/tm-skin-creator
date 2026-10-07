@@ -50,6 +50,9 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
 - **A paint covered by the same paint is said to stop short** (2026-10-06): TSC_RescueV2's black lower
   edge "stops 40 cm short" where the side skirt, painted black by name, covers it. Idea: a later call in
   the same colour and finish leaves no shortfall (`measure._why`).
+- **A tick cut short by the body's edge goes unnamed** (2026-10-07): TSC_CrashTest's ruler, rising from the
+  sill's line, ran into the inlet's frame about 1 cm up and showed as stubs; the checks named nothing, the close
+  look found it. Idea: the checks name a tick or dash that loses most of its length to an edge.
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.
