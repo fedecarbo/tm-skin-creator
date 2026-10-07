@@ -174,6 +174,32 @@ def hub_bolt(high, soft=shapes.SOFT):
     return shapes.Zone(f, label="the bolt on each hub cap")
 
 
+def band_edge():
+    """The squadron band's lower edge, one smooth line from the tail to the intake: along the line where the rear
+    flank's shoulder turns down (one of the model's lines), then on at the same height along the sidepod's shoulder,
+    across the seam (the sidepod top is sewn on), to the intake's frame."""
+    turn = meshlines.line((66, 55, -85), kind="rounded")
+    P = turn.pts if turn.pts[0, 2] < turn.pts[-1, 2] else turn.pts[::-1]  # from the tail forward
+    rear = [tuple(P[i]) for i in np.linspace(0, len(P) - 1, 9).astype(int)]
+    pod = [(86.5, 52.6, -40.0), (86.8, 52.5, -30.0), (86.8, 52.4, -20.0), (86.4, 52.3, -10.0)]
+    return meshlines.picked(rear + pod).extended(end=4).mirrored()
+
+
+def band():
+    """The squadron band: on the rear flank from the line along its top down to the band's edge; on the sidepod from
+    a line beside the walkway (one with the rear flank's top line where they meet) down to the same edge, ending at
+    the intake's frame."""
+    flank = meshlines.panel((67, 41, -80), both=True)
+    pod = meshlines.panel((76, 60, -25), both=True)
+    inner = meshlines.line((56, 63, -20)).between((56.0, 61.9, -6.8), (55.9, 62.9, -44.0))
+    top = inner.offset(21.5).extended(start=6, end=6).mirrored()  # the walkway's outer line is 19 cm out
+    out = shapes.field(lambda p, n: np.abs(p[:, 0]) - 77.4)
+    over = shapes.field(lambda p, n: p[:, 1] - np.where(p[:, 2] < -46.1, 56.7 - 0.0534 * (p[:, 2] + 123.9), 52.55))
+    edge = band_edge()
+    under_gold = shapes.field(lambda p, n: p[:, 1] - 52.1)  # on the sidepod the band never shows below its pinstripe
+    return (flank | (pod & top.inked_edge(out) & under_gold)) & edge.inked_edge(over), edge.inked(1.0) & (flank | pod)
+
+
 def grime(seed=7):
     """Where a carrier's salt and hydraulic grime collects: a trace on top, heavier low down and behind each wheel,
     in streaks drawn out backwards along the car as the air carries it; tone on tone, never a pattern."""
@@ -230,7 +256,7 @@ def design(s):
 
     s.step("The intakes' chevrons", "A pair of red chevrons behind each intake, pointing into it: its danger "
            "marking.", words="chevrons warn around the air intakes")
-    s.mark("sidepod top", "gloss", chevrons(), size=12, at=(87, 42, -24), colour=RED)
+    s.mark("sidepod top", "gloss", chevrons(), size=12, at=(87, 44, -18), colour=RED)
 
     s.step("The walkways", "A thin black outline on each sidepod's top, where the crew steps to climb in, its long "
            "sides beside the sidepod's inner edge; inside it the walkway's dark non-skid grip.",
@@ -281,16 +307,15 @@ def design(s):
     s.paint("seat belt", "webbing", colour=HARNESS)
     s.paint("belt buckle", "polished aluminium")
 
-    s.step("The squadron", "The squadron's blue band along each rear flank, beside the line along its top, its lower "
-           "edge a gold pinstripe; its emblem on each rear quarter panel, a gold bolt on a blue disc in a thin gold "
+    s.step("The squadron", "The squadron's blue band along each rear flank's shoulder and on over the sidepod's into "
+           "the intake, as the air runs, its lower edge a gold pinstripe; its emblem on each rear quarter panel, a gold bolt on a blue disc in a thin gold "
            "ring; the bolt alone, gold, on each wheel's hub.",
            words="Squadron band: the squadron's blue along each rear flank, its lower edge a gold pinstripe: the colour "
-                 "you see from the chase camera. Squadron emblem, where the chase camera sees it. The bolt on the hubs")
-    flank = meshlines.panel((67, 41, -80), both=True)
-    turn = meshlines.line((66, 55, -85), kind="rounded").mirrored()  # where the shoulder turns down the flank
-    over = shapes.field(lambda p, n: p[:, 1] - (56.7 - 0.0534 * (p[:, 2] + 123.9)))
-    s.paint("body", "gloss", colour=BLUE, zone=turn.inked_edge(over) & flank)
-    s.paint("body", "gloss", colour=GOLD, zone=turn.inked(1.0) & flank)
+                 "you see from the chase camera; it lost its fluidity stopping at the sidepod (the user, 2026-10-07: "
+                 "\"It lost it's fluidity in the design\"). Squadron emblem, where the chase camera sees it. The bolt on the hubs")
+    blue, pinstripe = band()
+    s.paint("body", "gloss", colour=BLUE, zone=blue)
+    s.paint("body", "gloss", colour=GOLD, zone=pinstripe)
     badge = s.mark("rear quarter panel", "gloss", marks.disc(), size=14, at=(33, 75, -63.5), colour=BLUE)
     s.mark("rear quarter panel", "gloss", marks.ring(0.86), size=badge.size, at=badge.centre, colour=GOLD)
     s.mark("rear quarter panel", "gloss", BOLT, size=badge.size * 0.62 / BOLT.high, at=badge.centre, colour=GOLD)
@@ -299,8 +324,8 @@ def design(s):
     s.step("The sidepods", "Two kick-in steps up each sidepod's flank to the walkway, behind the intake's chevrons.",
            words="Kick-in steps: two footholds up the sidepod's side to the walkway")
     step_box = outline(marks.box(0.75, 0.1), 0.35 / 4, "a kick-in step")
-    s.mark("sidepod top", "gloss", step_box, size=4, at=(86.3, 40, -34), colour=BLACK)
-    s.mark("sidepod top", "gloss", step_box, size=4, at=(86.0, 48, -38), colour=BLACK)
+    s.mark("sidepod top", "gloss", step_box, size=4, at=(86.3, 38, -33), colour=BLACK)
+    s.mark("sidepod top", "gloss", step_box, size=4, at=(86.2, 46, -37.5), colour=BLACK)
 
     s.step("The deck and tail", "The panels round the exhausts in burnt titanium, fading into the grey ahead of them; "
            "the arresting hook in black and white bands under the tail; the fuel cap bare metal in a red ring; the "
@@ -331,12 +356,12 @@ def design(s):
     s.paint("front wing", "polished aluminium", zone=edge)
     s.paint(["sidepod grille", "sidepod grille plate"], "brushed steel", colour="#6b6e71")
 
-    s.step("The stencils", "A few small stencils in the squadron's stencil type, as a jet carries them: NO STEP beside "
-           "each walkway, DANGER by each intake's chevrons, RESCUE by each rescue arrow.",
+    s.step("The stencils", "A few small stencils in the squadron's stencil type, as a jet carries them: NO STEP behind "
+           "each walkway, DANGER under each intake's chevrons, RESCUE by each rescue arrow.",
            words="Sure (to small words): NO STEP just outside the walkway; DANGER beside the intake's chevrons; RESCUE "
                  "beside the rescue arrow")
-    s.text("NO STEP", "sidepod top", colour=BLACK, font="black ops", height=2, at=(79, 60, -20))
-    s.text("DANGER", "sidepod top", colour=RED, font="black ops", height=2.5, at=(87, 49, -22))
+    s.text("NO STEP", "sidepod top", colour=BLACK, font="black ops", height=2, at=(67, 62.6, -44.5), up=(0, 0, 1))
+    s.text("DANGER", "sidepod top", colour=RED, font="black ops", height=2.5, at=(87, 36, -18))
     s.text("RESCUE", "cockpit surround", colour=RED, font="black ops", height=2, at=(32, 77, -14))
 
     s.step("Carrier grime", "Salt and hydraulic grime, a trace on top, heavier low down and behind each wheel, "
