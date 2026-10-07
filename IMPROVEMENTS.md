@@ -13,21 +13,14 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 5 of 5 today; 40 more
 can't be painted again, the tool fixed or retired what made them).
 
-- **F. A visual language for an idea** (2026-10-07, the user named it: "let's just change it to visual language").
-  Waiting for the user to say what they mean by it and hope to get, before any session builds it ("I want the next
-  agent in another session to pick up the concept ... but for me to first determine what exactly I mean and I hope to
-  get"). What they've said: cars come out "designed well but very limited in details ... 2 to 3 objects ... not
-  thinking on the finishes, the texture, large, medium, small details"; of the Red Bull liveries, "everything looks as
-  part of the concept", "im sure redbull had a 'brand book'"; how much detail is the concept's call ("some concepts
-  might not require lots of details, others might have lots, and that's the whole point"); for every car ("it should
-  apply to any other car I built"); "The designing ai should have full license to pick and choose and make something
-  out of the moodboard. The moodboard shouldnt be a library of icons". Tried on TSC_Hangar (2026-10-07, its record;
-  git keeps the briefs): boards of three readings by hand, each picked at once (also TSC_CrashTest's); a book of 37
-  details placed area by area, painted by a fresh agent, kept as the car ("Definitely B is more detailed and thought
-  of") but "Everything seems clippes per object and not part of a cohesive design"; an inspiration-only brief with
-  full licence for another fresh agent, stopped part way ("It's not doing a good job"). The paint box lacked, on the
-  way: a zone inside an outline or between the model's lines, a mark on the wheel covers (shared by all four), an
-  offset across a rounded shoulder (wobbles, loops), a zone where grime collects; paints with them took 65 s.
+- **F. A visual language for an idea** (2026-10-07, the user: "one of the most important things before even
+  designing a car is to develop sort of a visual language first, kind of like a brand book ... it shouldn't really
+  indicate all the details on where to put what and how"; the car designed as a whole, not "as individual parts with
+  added details"; "I'm okay if there's a level of process or steps"; "some kind of template that can be reused but
+  ... the template should somehow give the freedom to explore the concept"). Built: the routine, the language then
+  the car in passes (`.claude/skills/skin/language.md`), and each car's page (`PY -m tool.language <name>`, the
+  layout the user picked: A, the brand book). Waiting for the user's words for a new car: its language page shown
+  for their OK, then the passes on it.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design

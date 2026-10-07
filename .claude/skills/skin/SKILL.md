@@ -10,9 +10,9 @@ The user describes a skin, sees it on the car, asks for changes, says yes, and i
 Their words, if they came with the command: $ARGUMENTS
 If they haven't said what they want yet, ask: **what skin would you like?**
 
-`RULES.md` applies throughout. In short: paint it, show it, change it from their notes. A clear idea
-gets one design; a loose one 2 or 3 takes as a set, each a different reading, painted one after the
-other. The first picture comes within minutes of their words.
+`RULES.md` applies throughout. In short: paint it, show it, change it from their notes. A new car
+starts with its visual language, its page within minutes of their words, then is built in passes:
+read `language.md`, beside this file. A change to a car edits it.
 
 ## Commands
 

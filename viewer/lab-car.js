@@ -178,8 +178,19 @@ function words(x) {  // the user's words: in the box, or an answer to a set or a
 function claude(x) {
   if (x.ask) return question(x);
   const b = el('div', 'ai');
-  b.append(who('Claude', x.made), el('p', null, x.text));
+  b.append(who('Claude', x.made), linked(x.text));
   return b;
+}
+
+function linked(text) {  // Claude's line, a link to this computer's pages in it clickable (a car's visual language)
+  const p = el('p');
+  let at = 0;
+  for (const m of text.matchAll(/https?:\/\/(?:localhost|127\.0\.0\.1):\d+\/[^\s)]*[^\s).,;:]/g)) {
+    p.append(text.slice(at, m.index), Object.assign(el('a', null, m[0]), { href: m[0], target: '_blank', rel: 'noopener' }));
+    at = m.index + m[0].length;
+  }
+  p.append(text.slice(at));
+  return p;
 }
 
 // ---- the widgets: a box for the user's own words, and Claude's questions ----
