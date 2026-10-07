@@ -1,5 +1,5 @@
 """The tool measured against the record: of the flaws the user pointed
-out on a car they were shown, how many do the tool's own checks name on that car before they would?
+out on a car they were shown, how many do the tool's own checks and its eye name on that car before they would?
 For a change to a check: the score before and after it says whether cars get better before the user
 sees them. On demand only.
 
@@ -16,9 +16,10 @@ itself, the car was never committed).
 
 Each flaw with a `before` is painted again: that commit's skins with this code (the working tree's
 tool, car and viewer, copied into the work folder), in a fresh process, and its checks run
-(tool/checks.py: the paint's own findings, the measures' and the checks'). A check catches a flaw
+(tool/checks.py: the paint's own findings, the measures' and the checks') and its eye (tool/eye.py: what it
+flags, eye.findings). A check catches a flaw
 when it names the same kind where the flaw was (their stretches along the car within SLACK cm), or
-anywhere on the car for a flaw with no place. What else the checks name on those
+anywhere on the car for a flaw with no place. What else the checks and the eye name on those
 cars is said too: warnings the user never raised. The last run's score is kept in the work folder,
 so the next says what it was.
 """
@@ -50,20 +51,22 @@ KINDS = {
     "clear": "paint on or round the game's own number and name panels",
     "upside down": "words upside down or mirrored",
     "line": "a line that isn't smooth or doesn't sit where it should",
+    "sits": "a graphic that doesn't sit with the car's lines or the graphics round it: a gap that pinches, an end just "
+            "short, a slant",
     "edge": "an edge soft, pixelated or outlined",
     "spread": "a pattern spread unevenly",
 }
-# What runs in the fresh process, from the copied tree: the car painted, what its checks name.
+# What runs in the fresh process, from the copied tree: the car painted, what its checks and its eye name.
 CHILD = r'''
 import json, sys
-from tool import checks, paintbox, skin
+from tool import checks, eye, paintbox, skin
 name, out = sys.argv[1], sys.argv[2]
 with skin.paint_slot():
     s = paintbox.Skin(name)
     s.measure = True
     skin.load_design(name)(s)
     s.end_steps()
-json.dump(checks.run(s), open(out, "w"))
+json.dump(checks.run(s) + eye.findings(eye.look(s)), open(out, "w"))
 '''
 
 

@@ -10,8 +10,8 @@ and checked by the self-test; ideas are named in plain words.
 ## Next: intent to result
 
 The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
-by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 4 of 4 today; nine
-more it no longer makes, two cars it can't repaint, built on what the tool retired).
+by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 5 of 5 today; 40 more
+can't be painted again, the tool fixed or retired what made them).
 
 - **F. A moodboard for an idea** (2026-10-07, the user: "For now I don't send pictures. Although for AI to
   produce a moodboard for an idea might be even better"): before the first paint, a board in the Lab for
@@ -43,14 +43,14 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   eyes (but obviously not restrict creativity)"): the tape lay exactly on one of the model's lines, a roll the eye
   doesn't see, its gap to the panel lines pinching and its end a centimetre off the rear quarter panel's outline.
   Built: `eye.look` (`tool/eye.py`), after each paint in `show`: each graphic in words against the lines the eye
-  sees (beside at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a SHALLOW crossing); it names,
-  never forbids. On that tape, unprompted: the gap CLOSES from 2.3 to 0.3 cm and crosses the panel line at a
-  SHALLOW 10 degrees. The user's test, more details on TSC_CrashTest placed with it: "You've done an amazing job, I
-  would drive this"; one flag wasn't a flaw to them (the ruler's front; a flag says where to look). Next, the user
-  to take them on with the next agent (2026-10-07): a close look at each spot it names, the mesh drawn (done by hand
-  for that car); graphics against each other, not only against the car's lines (the deck ruler's ends 11 cm from the
-  flank tapes' was looked at by eye); a tape of blocks crossing a seam is said to "meet" it (the nose tape over the
-  nose tip's seam); the record's flaws scored; its first run on the PC.
+  sees and against the other graphics (beside at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a
+  SHALLOW crossing, TOUCHES, how near two come; a crossing told from an end meeting a line, a tape's angle read off its
+  own run); it names, never forbids. `PY -m tool.snap <name> --eye`: a close look at each spot it names, the mesh
+  drawn. Its flags count in `tool.record`: 5 of 5, that tape unprompted and the Ladybird's grass touching the head's
+  mark, with about 25 more on the old Ladybird cars the user never raised. On TSC_CrashTest: the nose tape crosses
+  the nose tip's seam at 82 degrees; the deck ruler's ends 12 to 14 cm from the rear flank tapes'. The user, on the
+  first eye: "You've done an amazing job, I would drive this". Waiting for their OK on their next car; then its first
+  run on the PC.
 
 ## The tool
 
@@ -68,6 +68,9 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
 - **A tick cut short by the body's edge goes unnamed** (2026-10-07): TSC_CrashTest's ruler, rising from the
   sill's line, ran into the inlet's frame about 1 cm up and showed as stubs; the checks named nothing, the close
   look found it. Idea: the checks name a tick or dash that loses most of its length to an edge.
+- **A mirrored tape's carried-on end differs by side** (2026-10-07): TSC_CrashTest's nose tape (`Course.extended`,
+  mirrored) runs within half a centimetre of its mirror on the other side up to z 148, then 1 to 1.6 cm apart over
+  its last 8 cm on the nose tip. Idea: find whether the body or the zone isn't mirrored there.
 - **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
   minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
   identical.

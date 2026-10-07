@@ -62,9 +62,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   no longer exist, and keeps the server's output in the work folder's server.log. A gap in the Lab
   is a gap in the tool, to fix in the tool. Its rooms share `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
-    (`lab-car.js`); its Mesh button lays the template's mesh over the paint (`viewer.mesh`, embed only,
-    `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks (`/api/meshpath`, `meshlines.path`; the
-    note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
+    (`lab-car.js`); its Mesh button lays the template's mesh over the paint (`viewer.mesh`: embed, and the
+    snapshots of `tool.snap --eye`; `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
+    (`/api/meshpath`, `meshlines.path`; the note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
     (`view.export_steps`, `studio.json`; `install` paints without them), and drives the embedded
     viewer (`index.html?embed=1`, no car until its first `dress` or `stock()`) through
     `window.viewer`: `inset`, `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`, and the

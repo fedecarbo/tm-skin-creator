@@ -9,7 +9,8 @@ show also measures how far each zoned paint reaches on the body (tool/measure.py
 build/<name>/measured.json) and names what's wrong on the car before anyone looks (tool/checks.py:
 a paint that stops short, a graphic cut, spilled or over another, paint by the game's panels, a soft
 edge), printed after the paint's notes and kept in build/<name>/found.json, and says how each graphic sits
-against the lines the eye sees (tool/eye.py).
+against the lines the eye sees and the other graphics (tool/eye.py, kept in build/<name>/eye.json for
+tool.snap --eye).
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
@@ -125,9 +126,11 @@ def show(name, open_browser=False, snapshot=True):
                                 f"thing{'s' if len(found) > 1 else ''} to look at")
             t0 = time.time()
             progress.stage("Looking at how each graphic sits")
-            lines = eye.words(eye.look(s))
-            print(f"looked in {time.time() - t0:.1f} s at how each graphic sits against the lines the eye sees"
-                  + (":" if lines else ": no graphic near one"))
+            looks = eye.look(s)
+            eye.save(name, looks)
+            lines = eye.words(looks)
+            print(f"looked in {time.time() - t0:.1f} s at how each graphic sits against the lines the eye sees and the "
+                  "other graphics" + (":" if lines else ": no graphic near one"))
             print("\n".join(f"  {line}" for line in lines))
             t0 = time.time()
             progress.stage("Putting it on the car")

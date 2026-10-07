@@ -3,6 +3,9 @@
     python -m tool.snap <name>          -> build/<name>_views.png
     python -m tool.snap <name> --size 1280x960
     python -m tool.snap <name> --close  -> build/<name>_close.png: the close looks (CLOSE)
+    python -m tool.snap <name> --eye    -> build/<name>_eye.png: a close look at each spot the eye names on the
+                                             last show (tool/eye.py: where a graphic crosses or meets a line,
+                                             and whatever it flags), the model's mesh drawn on the paint
     python -m tool.snap <name> --before [close|views|...]  -> build/<name>_<kind>_compare.png, opened:
                                              each tile that changed since the sheet before, before
                                              beside after, the change outlined (a sheet's last one is
@@ -25,10 +28,12 @@ renderer drew the pictures.
 
 import argparse
 import io
+import json
 import re
 import time
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
@@ -72,6 +77,9 @@ BODY = (("front three-quarter", "front", False, [], NO_WHEELS), ("rear three-qua
         ("front three-quarter, low", {"dir": [0.8, 0.12, 0.6], "dist": 5.2, "target": [0, 0.4, 0.2]}, False, [], NO_WHEELS),
         ("underside", {"dir": [0.3, -1, 0.2], "dist": 7.0, "target": [0, 0.2, 0.2]}, False, [], NO_WHEELS))
 VIEW_TILES = {"front": (0, 0), "rear": (1, 0), "left": (2, 0), "right": (0, 1), "top": (1, 1), "night": (2, 1)}
+EYE_DIST = 0.8   # metres from a spot the eye names: about 50 cm of the car across
+EYE_APART = 10   # cm: spots nearer than this (or a spot's mirror on the other side) share a look
+EYE_MOST = 12    # looks at most, what the eye flags first
 
 
 def _font(px):
@@ -79,12 +87,16 @@ def _font(px):
     return fonts.font("arial bold", px)
 
 
-def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None):
+def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None, mesh=False):
     """query: extra page settings, e.g. "exposure=1.1&coat=0.5" (TUNE in viewer.js, over each look's own).
     prepare=False: the skin is already in the viewer's data (the paint box exports it itself).
-    thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture)."""
+    thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture).
+    mesh: the model's mesh drawn over the paint (view.export_template's, viewer.mesh)."""
     if prepare:
         view.prepare(name)
+    if mesh:
+        view.export_template()
+        query = "&".join(q for q in (query, "mesh=1") if q)
     httpd = server.start(0)
     url = f"http://127.0.0.1:{httpd.server_address[1]}/?skin={name}&snap=1" + (f"&{query}" if query else "")
     tiles, errors = [], []
@@ -100,6 +112,8 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
                                    timeout=180_000)
             if page.evaluate("window.viewer.error"):
                 raise RuntimeError(page.evaluate("window.viewer.error"))
+            if mesh and not page.evaluate("viewer.mesh(true)"):
+                raise RuntimeError("no mesh to draw: view.export_template")
             print(f"GPU: {page.evaluate('viewer.gpu()')}; loaded in {time.time() - start:.1f} s")
             progress.stage("Taking pictures", total=len(shots))
             for label, view_spec, night, hidden, *rest in shots:
@@ -162,6 +176,31 @@ def sheet(name, tiles, out=None, size=(960, 720), thumb=None):
 
 
 KINDS = {"views": SHOTS, "close": CLOSE, "cams": CAMS, "body": BODY}
+
+
+def eye_shots(name):
+    """A close look at each spot the eye named on the last show (build/<name>/eye.json): what it flags first, then
+    where a graphic crosses or meets a line; the camera square to the body there. Prints what each look is for."""
+    looks = json.loads((paths.BUILD / name / "eye.json").read_text())["looks"]
+    found = [(x, side, f) for x in looks for side, said in x["sides"].items() for f in said
+             if f["flag"] or f["words"].startswith(("crosses", "its edge meets"))]
+    found.sort(key=lambda t: (not t[2]["flag"], t[1] != "left"))
+    taken, shots = [], []
+    for x, side, f in found:
+        if len(shots) == EYE_MOST:
+            break
+        at = np.array(f["at"])
+        if any(min(np.linalg.norm(at - p), np.linalg.norm(at * [-1, 1, 1] - p)) < EYE_APART for p in taken):
+            continue
+        taken.append(at)
+        d = np.array(f["nrm"], float)
+        d[1] = max(d[1], 0.15)  # never from under the floor
+        k = len(shots) + 1
+        print(f"  {k}: {x['n']}. {x['step']}, {side}: {f['words']}")
+        shots.append((f"{k} {x['step']}, {side}: {f['flag'] or ('meets' if 'meets' in f['words'] else 'crosses')}",
+                      {"dir": (d / np.linalg.norm(d)).round(3).tolist(), "dist": EYE_DIST, "target": (at / 100).tolist()},
+                      False, []))
+    return shots
 
 
 def changed(ta, tb):
@@ -267,6 +306,7 @@ def main():
     ap.add_argument("more", nargs="*", help="with --picture: the other takes, in order")
     ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--close", action="store_true", help="the close looks instead of the six views")
+    ap.add_argument("--eye", action="store_true", help="a close look at each spot the eye names, the mesh drawn")
     ap.add_argument("--cams", action="store_true", help="the game's Cam 1 and 2 and their alts, day and night, at 16:9")
     ap.add_argument("--body", action="store_true", help="the body alone, no wheels, nine views")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
@@ -285,6 +325,15 @@ def main():
         ap.error("the skin's name")
     if args.before:
         compare(args.name, args.before)
+        return
+    if args.eye:
+        shots = eye_shots(args.name)
+        if not shots:
+            print("the eye names no spot to look at")
+            return
+        with progress.job(f"Photographing {progress.title_of(args.name)}: where the eye looked", skin=args.name,
+                          done="Photographed"):
+            snap(args.name, out=paths.BUILD / f"{args.name}_eye.png", shots=shots, prepare=False, mesh=True)
         return
     shots, kind = ((CLOSE, "close") if args.close else (CAMS, "cams") if args.cams
                    else (BODY, "body") if args.body else (SHOTS, "views"))

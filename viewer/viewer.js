@@ -1,6 +1,7 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
-//   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py)
+//   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py); &mesh=1 lets
+//                          them draw the model's mesh over the paint (mesh)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and hangs notes on (the Lab's stand,
@@ -1602,7 +1603,7 @@ function makeMaterials(tex) {
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name], surfaceState[name]);
-  if (embed) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
+  if (embed || params.has('mesh')) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
   addPlate(skin);
   if (tex.Details_I) addDisplays(details);
   addWing(skin);
