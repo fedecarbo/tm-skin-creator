@@ -29,3 +29,12 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   rear quarter panel's outline. Moved beside a line the eye follows: the sidepod's top edge (where the body ends round
   it), 4 cm inboard (1.5 cm clear of it), from where the edge runs straight back (z +7) to where it turns (z -39): the
   tape spans the sidepod's top as the ruler its sill, the target between them. Looked at with the mesh on.
+- Change 3 (user, 2026-10-07, in the chat): "a test would be to add more block tape and measure table around the car in
+  a way I can tell that the AI really is detail oriented and quality", then "Or whatever other details, no need to be
+  just ruler or black tape. Kind of like adding more refinements to the car, more focused on details". Placed with the
+  eye (tool/eye.py, new): the ruler, whose long ticks ran into the side skirt's crease where the sill line sweeps out
+  at the sidepod's front (the eye: a SHALLOW crossing at z +18), now hangs only from the line's straight run under the
+  sidepod (z +13 to -25, the ticks every 3 and 15 still together), under the side target; a pair of 12 cm targets on the
+  nose ahead of the cockpit and a pair of 14 cm on the tail's top, what a test's overhead camera tracks, each clear of
+  every line the eye sees by more than 5 cm (the tail pair shows from the chase camera); the car's own round fuel cap
+  in brushed steel, a joint plate. The eye names nothing now; close looks at each.
