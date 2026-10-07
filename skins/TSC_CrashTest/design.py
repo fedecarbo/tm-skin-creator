@@ -94,6 +94,12 @@ def design(s):
     nose = meshlines.line((0, 49, 187))  # round the nose tip, from z 150 (clear of the nose fin's plate) on each side
     s.paint("body", "matte", colour=BLACK, zone=ruler(nose.between(nose.at(s=7.7), nose.at(s=99.5)), side=1))
 
+    s.step("The nose's tape", "A block scale along each side of the nose, beside the model's line along its roll, from "
+           "abreast the cockpit's front (z 95) to behind the nose tip (z 143), where the user drew it.",
+           words="Add tape here")
+    roll = meshlines.line((27.2, 54.2, 120), kind="rounded")  # 49 cm; 4 cm beside it is within a cm of their stroke
+    s.paint("body", "matte", colour=BLACK, zone=roll.offset(4).mirrored().blocks(5, 2.5))
+
     s.step("The lights", "The car's own lights in the dummy's yellow: the wheel rings, the speed numbers, "
            "the rear and brake lights.", look="rear night")
     s.relight("wheel ring", SKIN, keep_level=True)

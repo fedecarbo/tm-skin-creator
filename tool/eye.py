@@ -181,6 +181,13 @@ def _beside(g, s, p, name, key, touching):
     return said
 
 
+def _crossing(g, s):
+    """Degrees between a line and a graphic's edge where it crosses, from how fast the gap changes across it."""
+    if len(g) < 3 or s[-1] - s[0] < 1.0:
+        return 90.0
+    return float(np.degrees(np.arcsin(min(1.0, abs(np.polyfit(s, g, 1)[0])))))
+
+
 def _side(shown, edge, sign):
     """What one side's lines say about one graphic: a list of (flag, words, line key)."""
     P, ids, S, kept = _lines()
@@ -207,7 +214,8 @@ def _side(shown, edge, sign):
             if s[b - 1] - s[a] < 2.0:
                 continue
             gg, ii, ss, pp = g[a:b], ins[a:b].copy(), s[a:b], pts[a:b]
-            gg = minimum_filter1d(np.where(np.isfinite(gg), gg, NEAR), int(PIECES / STEP) + 1, mode="nearest")
+            raw = np.where(np.isfinite(gg), gg, NEAR)  # the gap as measured (inside: to the edge), for a crossing
+            gg = minimum_filter1d(raw, int(PIECES / STEP) + 1, mode="nearest")
             for c0, c1 in _runs(~ii):  # a line through a graphic of pieces (dashes, ticks, blocks) runs along it
                 if 0 < c0 and c1 < len(ii) and ss[c1 - 1] - ss[c0] <= PIECES and gg[c0:c1].max() <= PIECES:
                     ii[c0:c1] = True
@@ -215,23 +223,28 @@ def _side(shown, edge, sign):
             along = np.zeros(len(ii), bool)
             for c0, c1 in _runs(ii):
                 along[c0:c1] = ss[c1 - 1] - ss[c0] >= EVEN_RUN
-            for x in np.flatnonzero(np.diff(ii.astype(np.int8)) != 0):
-                if along[x] or along[x + 1]:
+            for c0, c1 in _runs(ii):
+                if along[c0]:
                     continue
-                w = slice(max(0, x - 8), min(len(ss), x + 9))
-                th = _angle(np.where(ii[w], -gg[w], gg[w]), ss[w])
-                th = 90.0 if th > 80 else th
-                if th < LEAN:
-                    said.append(("SHALLOW", f"crosses {name} at a SHALLOW {th:.0f} degrees at {_place(pp[x])}", key))
-                else:
-                    said.append(("", f"crosses {name} at {th:.0f} degrees at {_place(pp[x])}", key))
+                if raw[c0:c1].max() <= ONE:  # no deeper into it than a groove: its edge (an end) lies on the line
+                    said.append(("", f"its edge meets {name} at {_place(pp[(c0 + c1) // 2])}", key))
+                    continue
+                for x in (c0 - 1, c1 - 1):  # where the line goes in and where it comes out
+                    if x < 0 or x + 1 >= len(ii):
+                        continue
+                    w = slice(max(0, x - 8), min(len(ss), x + 10))
+                    th = _crossing(np.where(ii[w], -raw[w], raw[w]), ss[w])
+                    if th < LEAN:
+                        said.append(("SHALLOW", f"crosses {name} at a SHALLOW {th:.0f} degrees at {_place(pp[x])}", key))
+                    else:
+                        said.append(("", f"crosses {name} at {th:.0f} degrees at {_place(pp[x])}", key))
             for c0, c1 in _runs(~ii):  # beside it, outside the graphic
                 said += _beside(gg[c0:c1], ss[c0:c1], pp[c0:c1], name, key, touching=c0 > 0 or c1 < len(ii))
             for c0, c1 in _runs(ii):  # along it inside the graphic
                 s1, p1 = ss[c0:c1], pp[c0:c1]
                 if s1[-1] - s1[0] >= EVEN_RUN:
                     said.append(("", f"lies along {name} for {s1[-1] - s1[0]:.0f} cm, {_span(p1[0], p1[-1])}", key))
-    return said
+    return list(dict.fromkeys(said))
 
 
 def look(skin):

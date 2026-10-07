@@ -47,3 +47,8 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   panel line, inside it, from z 150 on each side (clear of the nose fin's plate). Note 1 (user, in the Lab, drawn on the
   left rear flank from the sidepod's back corner towards the tail): "Maybe add tape here": the rear flank's block scale
   lies there, along the model's line beside their stroke.
+- Note 2 (user, 2026-10-07, in the Lab, drawn along the nose's left side from abreast the cockpit's front, z 93, to
+  z 154): "Add tape here". No line the eye sees runs there; the model's line along the nose side's roll from z 95 to
+  143 runs 2 to 3 degrees off their stroke, 5 cm below it: the block scale 4 cm beside it, the whole line, both sides
+  (within a cm of the stroke; it ends where the line does, on the seam where the nose tip begins: the eye, "its edge
+  meets the panel line along the body shell at z +143").
