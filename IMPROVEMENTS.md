@@ -23,7 +23,9 @@ first step below and nothing past it:
 
 Each step names its model and effort (the user, 2026-10-07: "I don't mind using opus 5.5 or fable 5.1"): Fable 5.1
 where the geometry or the design is hard and a wrong turn costs most, Opus 5.5 where the work is well bounded; xhigh
-where the step reshapes what everything else stands on. The user sets them as the session starts (typing "/model fable"
+where the step reshapes what everything else stands on. Fable 5.1 sometimes reaches its limit (the user): a step
+marked MUST waits for it, and a session on one that hits the limit stops at a clean point (what's done committed, the
+step saying where it stands) rather than going on with another model; any other Fable step may run on its "or". The user sets them as the session starts (typing "/model fable"
 or "/model opus", then "/effort xhigh" or "/effort high"); a session
 running on other settings than its step's says so before it starts.
 
@@ -44,28 +46,28 @@ after it.
      sizes. In the self-test, a dead-code tripwire and a line-count budget (a library's latest release looked up
      first). A profile of one whole-car paint, the Mac's now and the PC's when a session runs there. Retires
      `tool/record.py` and `tool/record.json` (their kinds move to `tool/checks.py`).
-  2. **The foundation** (Fable 5.1, xhigh). One repaired surface of the car (welded, duplicate faces dropped, edges split where more
+  2. **The foundation** (Fable 5.1 MUST, xhigh). One repaired surface of the car (welded, duplicate faces dropped, edges split where more
      than two faces meet, mapped back to the model's triangles), its distance and line solvers per piece (potpourri3d
      and libigl, installed, unused so far), and every texel sampled through the bake's triangle. Game files
      identical. Retires the body's other weld once its readers read this (`carmap._weld`).
-  3. **Bands along a line** (Fable 5.1, high), from the distance along the surface: wrapping an edge, on one face, stopping at a
+  3. **Bands along a line** (Fable 5.1, high; or Opus 5.5, xhigh), from the distance along the surface: wrapping an edge, on one face, stopping at a
      crease. Shown beside the tape built for TSC_StealthBomber (`Course.tape`, waiting for the user's OK) with the side flips and the width
      every half centimetre; the user's eye picks. Retires the facing filter (`FACING` in `tool/course.py`) and the
      one not picked (`Course.tape` with `TAPE_SEAM` and `TAPE_FOLD` in `tool/course.py`, or the new band).
-  4. **Lines anywhere on the mesh** (Fable 5.1, xhigh). Clicks snapped to the model's lines and its chain of edges taken whole,
+  4. **Lines anywhere on the mesh** (Fable 5.1 MUST, xhigh). Clicks snapped to the model's lines and its chain of edges taken whole,
      straightened by flipping edges, a line beside a line as a contour of the distance, carried on by the
      straightest path; strips, dashes, ticks, inked edges and fills bounded by the model's lines moved onto it. Also
      TSC_CrashTest's mirrored nose tape whose carried-on end differs by side (1 to 1.6 cm over its last 8 cm).
      Retires the smoothing and the push back onto the body (`meshlines.smooth`), the offset's walk and the
      extension's (`Course.offset`, `Course.extended`), the seam tracer (`tool/seams.py`, `course.seam`: a seam is
      one of the model's lines) and the stroke's smoothing (`course.stroke`).
-  5. **Decals, emblems and words on the surface** (Fable 5.1, high). A local map round a point for marks and decals (across a crease
+  5. **Decals, emblems and words on the surface** (Fable 5.1, high; or Opus 5.5, xhigh). A local map round a point for marks and decals (across a crease
      when the design says so, its stretch measured), coordinates along and across a line for words and patterns
      along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a
      mark's `at` seen along an axis landing on a panel's underside unnoticed. Retires the facing cone and the fold
      rule that marks, decals, words and scatter each use, and the projection's nearest-facing landing
      (`marks.project`).
-  6. **One judge** (Fable 5.1, xhigh). One list of findings (block, warn, note) carrying the design's hash; a placement check for
+  6. **One judge** (Fable 5.1 MUST, xhigh). One list of findings (block, warn, note) carrying the design's hash; a placement check for
      every graphic (lines: width, gaps, steps, kinks and face hops every 0.25 to 0.5 cm; fills: how far the edge sits
      from its line; decals and words: whole, stretch), its limits tuned on the planted-flaw pair; the reach and the
      flaw checks folded in; the eye's placement findings advisory. Also: a paint covered by the same paint said to
@@ -84,13 +86,13 @@ after it.
      freed once laid down, and only the map that changed repainted (a `show` repaints the whole car for a note on
      the tyres). Game files identical. Retires the compressed caches, their readers and the old caches in the work
      folder.
-  10. **The GPU, where step 1's profile points** (Fable 5.1, high): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
+  10. **The GPU, where step 1's profile points** (Fable 5.1, high; or Opus 5.5, xhigh): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
       needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
       part in a million).
   11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface
       (libigl); wear and dirt driven by them; anti-aliased part edges. Retires wear's direction, height and sun
       rules.
-  12. **A narrower paint box** (Fable 5.1, xhigh). One verb per intent, line ids and part names as typed values that answer "did you
+  12. **A narrower paint box** (Fable 5.1, xhigh; or Opus 5.5, xhigh). One verb per intent, line ids and part names as typed values that answer "did you
       mean", a short receipt from every verb, `Skin.text`, `Skin.placard`, `Skin.emboss` and `Skin.decal` merged;
       duplicate-code and error-hiding tripwires in the self-test. Retires every private way of placing things the
       foundation replaced, and the merged verbs.
