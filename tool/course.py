@@ -581,11 +581,17 @@ class Course:
         ends = self._ends()
 
         def along(s, b):
-            j = np.floor(s / length)
-            r = np.floor((half - b) / high)  # the row: 0 the left
+            # the block a point is in or beside: past the strip's edges and ends, the one at its edge (the strip's
+            # own edge and ends are drawn by the strip itself)
+            u = half - b  # across from the strip's left edge
+            j = np.clip(np.floor(s / length), 0, n - 1)
+            r = np.clip(np.floor(u / high), 0, rows - 1)  # the row: 0 the left
             on = (j + r) % 2 == 0
-            ds = np.minimum(s - j * length, (j + 1) * length - s)
-            db = np.minimum((half - b) - r * high, (r + 1) * high - (half - b))
+            # distances to the block's sides shared with another block: only there does a block meet a gap, so a
+            # gap at the strip's edge isn't painted half, a hairline round the tape
+            far = np.float64(1e6)
+            ds = np.minimum(np.where(j > 0, s - j * length, far), np.where(j < n - 1, (j + 1) * length - s, far))
+            db = np.minimum(np.where(r > 0, u - r * high, far), np.where(r < rows - 1, (r + 1) * high - u, far))
             return np.minimum(np.where(on, 1.0, -1.0) * np.minimum(ds, db), ends(s, b))
         return self._zone(half, along, f"{rows} rows of blocks {length:.3g} by {high:g} cm along {self.name}", soft)
 
