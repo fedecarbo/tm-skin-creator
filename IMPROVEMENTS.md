@@ -13,6 +13,29 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 5 of 5 today; 40 more
 can't be painted again, the tool fixed or retired what made them).
 
+- **H. Lines that hold, on any car: first** (2026-10-07, the user, stopping TSC_StealthBomber: "Dude, what's so hard to
+  follow the actual mesh you have as a guide ... It's obviously broken"; "Look at all these gaps. Mediocre"; "Is the
+  tool broken?"; then "This tool needs to be optimised, it cannot randomly make mistakes"; "If rules don't work, then
+  let's find another approach, if you rushed, then let's find a fix to that, either the workflow, the workload,
+  anything"). Measured: a band along a line keeps only the skin facing within 60 degrees of the line's own facing at
+  its nearest point, and on an edge that facing flips (the skirt's lower-edge tape: 20 flips over 30 degrees, up to
+  138, straight down to outward), so the band hops between the side and the underside: the gaps; `meshlines.picked`
+  smooths through the clicks and leaves the mesh where the model's short lines meet: the steps; `tool.skin show`'s
+  checks named nothing all along, and no close look ran along a line. To build, one at a time, each shown on that
+  car's tapes (its notes 1 to 9 are the test: every tape whole, even and on the face the user sees):
+  1. A tape on one face of an edge, the face chosen by the mesh's own faces beside the edge, never by a direction.
+  2. One continuous line along the mesh's own edges end to end, never smoothed off the surface; a join that would
+     leave the mesh is refused, not drawn.
+  3. A line check: every marking along a line whole, even in width and without kinks from end to end: a failure
+     that stops the work, not a note.
+  4. Close looks that travel along every line a design draws, square to its visible face, with every paint.
+  5. Gates instead of rules: `tool.notes done`, `tool.sets open` and the start of a pass refuse while a line check
+     fails or a change has no fresh close looks, and the Stop hook (`tool/guard.py`) holds a turn that would end on
+     such a car. A rule in RULES.md that a gate now enforces goes: a rule the work can break under pressure becomes a
+     gate.
+  6. The workload: one change, its close looks, then the reply; a pass of the routine starts only on a base the user
+     has OK'd up close with no notes open; a long stage in a session of its own.
+
 - **F. A visual language for an idea** (2026-10-07, the user: "one of the most important things before even
   designing a car is to develop sort of a visual language first, kind of like a brand book ... it shouldn't really
   indicate all the details on where to put what and how"; the car designed as a whole, not "as individual parts with

@@ -92,3 +92,10 @@ accent; quiet, sparse, the detail in the edges.
   details pass stopped before it changed anything. The nose's tape is stitched from the rim of the nose and the side's
   crisp edge, smoothed through picked points: the thing the mesh rule says never to do, and checked from angles that
   hid it. The car stands at the surfaces pass. Nothing more until the user says.
+- Notes 6 to 9 (user, 2026-10-07, in the Lab, on the skirt's lower-edge tape, broken into pieces with gaps and a
+  step): "I want you to think hard on why did this happen. Is the tool broken?"; "Here is also a gap"; "Look at all
+  these gaps. Mediocre"; "Same here". Why, measured: the band keeps only skin facing within 60 degrees of the line's
+  own facing, which flips on an edge (20 flips over 30 degrees along this tape), so it hops between the side and the
+  underside. Then the user: "Put a fix for the next session" (IMPROVEMENTS.md H).
+- Open (the next session): IMPROVEMENTS.md H first; then this car's tapes (notes 1 to 9) are its test, repainted
+  with it; the details pass and the art direction wait until the base is whole and the user OKs it up close.
