@@ -58,3 +58,31 @@ accent; quiet, sparse, the detail in the edges.
   right side's crisp edge, easing up from z 124 onto the nose's rounded edge, round the nose, and back down the left.
   (On the crisp edge all round, the tape fell mostly under the nose, in broken pieces: not kept.) Close looks: one
   band across the seam, no step.
+- Surfaces pass (2026-10-07, a fresh agent, Claude Opus 5.5, about 30 minutes): the composition kept as it was; four
+  steps after it (`surfaces()` in design.py). The airframe: the inner car's outside pieces (the front wing and its
+  endplates, the floor and its sill, the struts and the keel under the nose, the side vanes, the mirrors) in the skin's
+  matte bomber grey, since the language keeps black for inside the openings (the cockpit, the intakes' recesses, the
+  tail's opening stay shadow black). The gear: the suspension and the brake calipers in the wheels' gunmetal, made
+  rough, because shiny from above the front arms flashed the sky (the language never has anything shiny). The heat
+  tiles (dry chalk, the heat tile grey) on the tail's whole end cap, the tail panel and both tail corners, over the
+  exhausts' box: on the tail panel alone it read as a number plate from the chase cameras; across the cap it ends
+  where the body ends, the trailing edge to the taped leading edges, but it is the palest thing in the driver's view.
+  The tyres: plain rubber in the shadow's dark, Nadeo's lettering off (the language has no words), the tread kept.
+  The lights: every stock light of the inner car in the tape's cool grey at its own brightness (no cyan, blue or
+  orange left), the speed numbers dimmed to the tape's grey (low-vis, still readable), the wheel rings off, the rear,
+  front wing and side lenses and the glass in the nose's side slots smoked. Ageing: kept clean; the left rear quarter
+  panel recoated a shade lighter (#484c51) and the left intake's lip freshly taped a shade darker (#4d5258), both
+  only just seen in the light. Checked close up (the close looks, the chase cameras by day and night, the cockpit, the
+  nose, the tail, the intakes, the wheels): the checks name nothing, nothing left in clay. Open: the soot on the
+  tiles (the language's "soot-dark fan") is left out: a fan needs a fade or a shape the car doesn't have, both on
+  its never list, and a band along the cap's back edge lands only on its thin roll, unseen, with a speck at the
+  corner. The gear's ticks round the cockpit's front stay their stock white: they are the glass's own light, which
+  the paint box can't recolour. The game's dirt on dirt roads is as stock.
+- Note 4 (user, 2026-10-07, in the Lab, pinned on the nose's seam, before the fix above landed): "here is the step".
+  Close looks after the fix still showed a hump in the tape's top edge at the seam: the line took the nose rim's ends,
+  which turn up towards the cockpit. Now it takes the rim's middle only and eases onto the side's crisp edge between
+  z ~165 and 138: one smooth curve across the seam, both sides.
+- Note 3 (user, 2026-10-07, in the Lab, a line drawn along the body's lower edge from the sidepod's front to z -86):
+  "Also make this tape continuous until the rear". The skirt's tape now one line picked on the model: the skirt's
+  swept crisp edge, then the side skirt's and the rear flank's rounded lower edge, to where it ends by the rear wheel
+  (z -107), both sides. It sits low and mostly in shadow: a quiet line from most angles.
