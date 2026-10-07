@@ -31,7 +31,10 @@ can't be painted again, the tool fixed or retired what made them).
   from the book alone in 40 minutes, as option B beside the concept; waiting for the user's pick. What the pass
   lacked: a zone inside an outline or between the model's lines (written in the design), a mark on the wheel covers
   (shared by all four: "nothing laid"), an offset across a rounded shoulder (wobbles, loops at its ends), a zone
-  for where grime collects; and each paint took 65 s, not 30.
+  for where grime collects; and each paint took 65 s, not 30. The user, of B: "it seems each part was design in
+  separation ... Everything seems clippes per object and not part of a cohesive design" (the squadron band stopped at
+  the sidepod's seam, as the book said): the book needs the whole car's composition before its areas, one to three
+  gestures across the pieces that the details hang off, ending where the car's flow ends, never at a seam.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
