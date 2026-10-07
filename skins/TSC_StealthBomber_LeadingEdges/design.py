@@ -1,5 +1,5 @@
 """TSC_StealthBomber, take B, the leading edges: tape grey bands along the car's own leading edges (the nose's
-rounded front, the crease ahead of the cockpit, the swept edges of the skirts, the intakes' lips), each ending where
+rounded front, the whole outline round the cockpit, the swept edges of the skirts, the intakes' lips), each ending where
 its line ends (the composition, from its visual language: language.json)."""
 
 from tool import meshlines
@@ -23,10 +23,10 @@ def base(s):
 def design(s):
     base(s)
     s.step("The leading edges", "Tape grey satin, 4 cm wide, along the car's own leading edges: round the nose's "
-           "front, along the crease ahead of the cockpit, along the skirts' swept edges and round the intakes' lips.",
+           "front, all round the cockpit's outline, along the skirts' swept edges and round the intakes' lips.",
            words=WORDS)
     nose = meshlines.line((0, 40, 210), kind="rounded").strip(4)
-    crest = meshlines.line((0, 70, 92)).strip(4)
+    crest = meshlines.line((0, 83, -51)).strip(4)  # the whole outline round the cockpit, closed behind it
     skirts = meshlines.line((39, 19, 70)).mirrored().strip(4)
     s.paint("body", "satin", colour=TAPE, zone=nose | crest | skirts)
     lips = meshlines.line((75, 49, -45)).mirrored().strip(4)

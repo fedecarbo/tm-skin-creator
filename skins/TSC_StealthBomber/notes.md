@@ -32,3 +32,6 @@ accent; quiet, sparse, the detail in the edges.
   cover and the tail panel in tape grey satin, each filled to its lines); B, the leading edges (tape grey satin 4 cm
   along the nose's rounded front, the crease ahead of the cockpit, the skirts' swept edges and the intakes' lips); C,
   the sheen (the outer panels in satin, the same bomber grey).
+- Note 1 on B (user, 2026-10-07, in the Lab, a line drawn across behind the cockpit, where the tape round it stopped
+  at its back corners): "I would just make it full the outline". B's tape moved from the crease ahead of the cockpit
+  (open behind it) to the model's own closed line round the cockpit surround: one whole outline, closed behind.
