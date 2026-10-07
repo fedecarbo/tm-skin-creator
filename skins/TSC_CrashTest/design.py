@@ -51,10 +51,12 @@ def design(s):
     spot = s.mark("sidepod top", "matte", marks.disc(), size=20, at=(87, 42, -24), colour=BLACK)
     s.mark("sidepod top", "soft-touch", target(), size=0.84 * spot.size, at=spot.centre, colour=SKIN)
 
-    s.step("The measuring strips", "A black and yellow block scale along each upper flank's edge, where a test "
-           "car carries one on its roof rails; a ruler along each sill, under the side target, every 3 cm and longer "
-           "every 15, hanging from the model's line onto the strip below it.", words="Add them, we are testing that isnt it?")
-    rail = meshlines.line((44, 65, -21), kind="rounded").between(30, -75).mirrored()
+    s.step("The measuring strips", "A black and yellow block scale beside each sidepod's top edge, 1.5 cm clear "
+           "of it, from where the edge runs straight back to where it turns; a ruler along each sill, under the side "
+           "target, every 3 cm and longer every 15, hanging from the model's line onto the strip below it.",
+           words="Add them, we are testing that isnt it?")
+    edge = meshlines.line((56, 63, -20))  # where the body ends round the sidepod's top: a line the eye follows
+    rail = edge.between((54.9, 61.4, 6.9), (55.9, 62.8, -39.0)).offset(4).mirrored()
     s.paint("body", "matte", colour=BLACK, zone=rail.blocks(5, 2.5))
     sill = meshlines.line((74, 26, 21)).mirrored()  # 87.8 cm: the ticks every 3 and every 15 fall together
     s.paint("body", "matte", colour=BLACK, zone=sill.ticks(3, 2, width=0.5, side=-1) | sill.ticks(15, 4, width=0.6, side=-1))

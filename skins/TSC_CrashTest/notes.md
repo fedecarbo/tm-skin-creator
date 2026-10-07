@@ -22,3 +22,10 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   under the side target, ticks every 3 cm and 4 cm long every 15, hanging from the line onto the strip below it (rising
   from it they ran into the inlet's black frame and showed as stubs). Close up: the blocks crisp along the edge, the
   ruler even on both sides, fanning with the line round the sidepod's front.
+- Change 2 (user, 2026-10-07, in the chat): "the block scale is not a bad try to put it there but it doesn't align
+  fluently with the car ... if you look at the rear quarter panel its so close, so it looks like the tape is placed
+  without any judgement on the aesthetics". It lay exactly on one of the model's lines, but a rounded edge's (where the
+  body rolls, a line the eye doesn't see), at its own angle to the panel lines round it, and its back end ran into the
+  rear quarter panel's outline. Moved beside a line the eye follows: the sidepod's top edge (where the body ends round
+  it), 4 cm inboard (1.5 cm clear of it), from where the edge runs straight back (z +7) to where it turns (z -39): the
+  tape spans the sidepod's top as the ruler its sill, the target between them. Looked at with the mesh on.
