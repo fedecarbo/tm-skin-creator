@@ -52,3 +52,9 @@ accent; quiet, sparse, the detail in the edges.
   the lines the medium and small details hang off. Black: inside the intakes and the inner car. Gold: the canopy
   alone. The gear: dark gunmetal. Next: the surfaces pass, the details pass and the art direction, each a fresh agent
   (language.md).
+- Change (user, 2026-10-07, in the chat): "just make sure to correct the tape on the nose, half of it goes in one
+  direction and the other goes in another, creating a step". The step was at the nose's seam (z 144), where the tape
+  round the nose's rounded edge met the side's crisp edge 2 cm lower. Now one smooth line picked on the model: the
+  right side's crisp edge, easing up from z 124 onto the nose's rounded edge, round the nose, and back down the left.
+  (On the crisp edge all round, the tape fell mostly under the nose, in broken pieces: not kept.) Close looks: one
+  band across the seam, no step.

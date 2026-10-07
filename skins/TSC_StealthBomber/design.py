@@ -27,13 +27,13 @@ def design(s):
            "front and on back along the body's edge over the side openings, all round the cockpit's outline, "
            "along the skirts' swept edges and round the intakes' lips.",
            words=WORDS)
-    # one line round the nose and on along the body's edge over the side opening each side, picked on the model's
-    # own lines where the user traced it
-    edge = [(24.9, 48.8, 144.1), (25.9, 47.3, 139.8), (30.1, 49.2, 111.8), (33.4, 51.4, 89), (35.4, 53.0, 75),
-            (36.3, 52.8, 69)]
-    left = meshlines.picked(edge)
-    right = meshlines.picked([(-x, y, z) for x, y, z in edge]).reversed()
-    nose = right.then(meshlines.line((0, 40, 210), kind="rounded")).then(left).strip(4)
+    # one smooth line: over the right side opening along the body's crisp edge (the user traced it), easing up onto
+    # the nose's rounded edge, round the nose where it shows, and back down onto the left's crisp edge: no step
+    rim = meshlines.line((0, 40, 210), kind="rounded")  # round the nose, its right end first
+    side = meshlines.line((25.9, 47.3, 139.8))  # the crisp edge over the left side opening
+    back = [(36.3, 52.8, 69), (35.4, 53.0, 75), (33.4, 51.4, 89)] + [tuple(side.at(z=z)) for z in (110, 124)]
+    front = [tuple(rim.at(s=k * rim.length / 12)) for k in range(13)]
+    nose = meshlines.picked([(-x, y, z) for x, y, z in back] + front + back[::-1]).strip(4)
     crest = meshlines.line((0, 83, -51)).strip(4)  # the whole outline round the cockpit, closed behind it
     skirts = meshlines.line((39, 19, 70)).mirrored().strip(4)
     s.paint("body", "satin", colour=TAPE, zone=nose | crest | skirts)
