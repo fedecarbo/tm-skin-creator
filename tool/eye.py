@@ -9,15 +9,19 @@ while skin.show paints), its edge where it shows (the texels it covers last, Can
 on the car within a texel or two), and each of the model's lines the eye sees (meshlines.lines: its crisp lines, the
 panel lines and where the body ends; not a rounded edge's lines, nor where the map is cut) that comes within NEAR cm
 of that edge, followed along the line every STEP cm:
-  - beside it at an even gap (within EVEN cm over EVEN_RUN cm or more), or along it inside the graphic;
+  - beside it at an even gap (within EVEN cm over EVEN_RUN cm or more), or along it inside the graphic; a SLIVER when
+    that gap is under MISS cm, a thread of paint between them that reads as a miss;
   - a gap that CLOSES: one that narrows steadily (LEVEL degrees or more, by a cm or more) to under CLOSE cm, a wedge
     of body between the graphic and the line;
   - NEARLY PARALLEL: a line the edge runs beside for PARALLEL_RUN cm or more at SLANT to LEAN degrees;
   - a NEAR MISS: an edge that comes within MISS cm of a line without reaching it (an end that stops just short);
   - a crossing (the graphic on both sides of the line), its angle, and a SHALLOW one (under LEAN degrees) named, as it
-    reads as an accident; or its edge meeting the line (the graphic on one side only: an end on it).
+    reads as an accident; its edge meeting the line (the graphic on one side only: an end on it); or an edge that runs
+    JUST PAST it (by under PAST cm: an end that overshoots);
+  - PART OVER a small piece's outline (a ring under RING cm: the fuel cap's): the graphic over some of it, not all.
 And each graphic against each other graphic within NEAR_GRAPHIC cm (but one laid on another, a target's quarters on its
-disc): beside it at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, or TOUCHES; else how near they come.
+disc, and two of the same paint touching: one graphic to the eye): beside it at an even gap, a gap that CLOSES, NEARLY
+PARALLEL, a NEAR MISS, or TOUCHES; else how near they come.
 Each side of the car is measured; what both sides share is said once. Each thing said keeps where it is on the car and
 which way the body faces there, for a close look at it (tool.snap --eye, from what show saves: save).
 
@@ -49,16 +53,19 @@ NEIGHBOUR = 0.6     # cm: texels further apart on the car than this aren't neigh
 ONE = 0.6           # cm: two lines this near are one to the eye (a groove, the gap round a piece set into the body)
 PIECES = 6.0        # cm: a graphic of pieces (dashes, ticks, blocks) is read as one over gaps this long: a line out of
 # it for no longer, and no further, runs between its pieces; the gap to it is the least within half of this
-REACH = 2.5         # cm either side of a line where it goes into a graphic: the graphic beyond ONE cm on both sides
-# crosses it, on one side only its edge meets it
+REACH = 6.0         # cm round a line where it goes into a graphic: the graphic beyond ONE cm on both sides crosses it
+# (beyond PAST on the nearer: under that its edge runs just past), on one side only its edge meets it
+PAST = 3.0
+RING = 60.0         # cm: a closed line shorter than this is a small piece's outline (a cap, a hatch), named by what's in it
 SPAN = 5.0          # cm round a crossing (a soft window, this its spread: a hard one swings with where a tape's blocks
 # fall in it): a graphic LONG times longer than wide there (a tape, a ruler) crosses at the angle it runs at; another
 LONG = 2.0          # (a disc, a panel's colour) at the angle of its edge
 NEAR_GRAPHIC = 15.0  # cm: another graphic further than this isn't a neighbour
-TOUCH = meshlines.WALLS  # cm: graphics this near touch (no nearer gap shows); two calls of one step touching are one
-# graphic to the eye
+TOUCH = meshlines.WALLS  # cm: graphics this near touch (no nearer gap shows)
+SAME = 0.03         # two graphics' paints this near (colour, roughness, metalness, 0..1) are one paint to the eye
 LAID = 0.9          # a graphic whose edge is this much against another's is laid on it (one graphic to the eye)
-KIND = {"CLOSES": "sits", "NEARLY PARALLEL": "sits", "NEAR MISS": "sits", "SHALLOW": "sits", "TOUCHES": "over"}
+KIND = {"CLOSES": "sits", "NEARLY PARALLEL": "sits", "NEAR MISS": "sits", "SLIVER": "sits", "SHALLOW": "sits",
+        "JUST PAST": "sits", "PART OVER": "sits", "TOUCHES": "over"}
 # what each flag is among tool/record.py's KINDS, for the record's score
 
 
@@ -87,10 +94,21 @@ def _lines():
     other = ids[a] != ids[b]
     drop = np.zeros(len(P), bool)
     drop[np.where(ids[a] > ids[b], a, b)[other]] = True
+    e = meshlines._edges("Skin")
+    centres, names = e["P"][e["T"]].mean(1), meshlines._parts_of("Skin")
+    for L in kept:  # a small ring: the part inside it, where it isn't the ring's own
+        if L["closed"] and L["length"] < RING:
+            mid = L["pts"].mean(0)
+            r = np.linalg.norm(L["pts"] - mid, axis=1).mean()
+            inner = names[np.linalg.norm(centres - mid, axis=1) < 0.7 * r]
+            inner = [x for x in meshlines._most(inner) if x != L["parts"][0]]
+            L["inside"] = inner[0] if inner else None
     return P[~drop], N[~drop], ids[~drop], s[~drop], kept
 
 
 def _name(L):
+    if L.get("inside"):
+        return f"the outline round the {L['inside']}"
     what = "edge where the body ends" if L["kind"] == "opening" else "panel line" if L["walls"] > 1 else "crisp line"
     return f"the {what} along the {L['parts'][0]}"
 
@@ -135,7 +153,9 @@ def _edge(c, op):
         close = np.linalg.norm(c.pos[nb] - c.pos[shown], axis=1) < NEIGHBOUR
         nxt = np.where(other & close & ~edge, c.owner[nb], nxt)
         edge |= other & close
-    return {"shown": c.pos[shown], "edge": c.pos[shown[edge]], "nrm": c.nrm[shown[edge]], "next": nxt[edge]}
+    paint = np.r_[np.median(c.colour[shown], 0), np.median(c.rough[shown]), np.median(c.metal[shown])]
+    return {"shown": c.pos[shown], "edge": c.pos[shown[edge]], "nrm": c.nrm[shown[edge]], "next": nxt[edge],
+            "paint": paint}
 
 
 def _runs(mask):
@@ -195,7 +215,10 @@ def _beside(g, s, p, n, name, key, touching):
         if run < EVEN_RUN:
             continue
         mid, least = (a + b) // 2, a + int(np.argmin(g1))
-        if th < LEVEL and g1.max() - g1.min() <= EVEN:
+        if th < LEVEL and g1.max() - g1.min() <= EVEN and g1.mean() < MISS:
+            said.append(("SLIVER", f"a SLIVER of {g1.mean():.1f} cm between it and {name}, {run:.0f} cm long, {where(a, b)}",
+                         key, *_at(p[mid], n[mid], p[a:b])))
+        elif th < LEVEL and g1.max() - g1.min() <= EVEN:
             said.append(("", f"beside {name}, an even {g1.mean():.1f} cm, {run:.0f} cm long, {where(a, b)}", key,
                          *_at(p[mid], n[mid], p[a:b])))
         elif th >= LEVEL and g1.max() - g1.min() >= 1.0 and g1.min() < CLOSE:
@@ -237,16 +260,18 @@ def _runs_at(tree, shown, p, t):
 
 
 def _through(tree, shown, p, t, n):
-    """Whether a graphic lies on both sides of a stretch of line inside it (the line crosses it) rather than on one
-    side (its edge meets the line): its texels within REACH cm of the stretch, beyond ONE cm on each side. p, t, n: the
-    stretch's points, its direction and the body's normal there."""
+    """How far a graphic reaches past a stretch of line inside it, on the side it reaches least (its texels within
+    REACH cm of the stretch, across the line): under ONE cm it lies on one side only (its edge meets the line), REACH or
+    so it crosses. p, t, n: the stretch's points, its direction and the body's normal there."""
     near = sorted({i for found in tree.query_ball_point(p, REACH) for i in found})
     if not near:
-        return False
+        return 0.0
     q = shown[near]
     j = cKDTree(p).query(q)[1]
-    across = np.einsum("ij,ij->i", q - p[j], np.cross(t[j], n[j]))
-    return min((across > ONE).sum(), (across < -ONE).sum()) >= 3
+    across = np.sort(np.einsum("ij,ij->i", q - p[j], np.cross(t[j], n[j])))
+    if len(across) < 6:
+        return 0.0
+    return float(max(0.0, min(across[-3], -across[2])))  # the third furthest each way: a stray texel isn't a reach
 
 
 def _side(G, sign):
@@ -272,6 +297,16 @@ def _side(G, sign):
         g, ins, s, pts, nrm = g[order], ins[order], s[order], P[on][order], N[on][order]
         name, L = _name(kept[k]), kept[k]
         key = (name, L["kind"])
+        overs = []  # where the graphic's edge runs just past this line: (how far, where, the normal)
+        if L.get("inside") is not None and ins.any():  # a small piece's outline: the graphic over all of it, or some
+            share = ins.sum() / max(1, np.sum(ids == k))
+            mid = len(pts) // 2
+            if share < 0.95:
+                said.append(("PART OVER", f"lies PART OVER {name}, {share:.0%} of its outline, at {_place(pts[mid])}", key,
+                             *_at(pts[mid], nrm[mid], pts)))
+            else:
+                said.append(("", f"covers {name}, at {_place(pts[mid])}", key, *_at(pts[mid], nrm[mid], pts)))
+            continue
         for a, b in _runs(np.isfinite(g) | ins):
             if s[b - 1] - s[a] < 2.0:
                 continue
@@ -291,8 +326,12 @@ def _side(G, sign):
                 if along[c0]:
                     continue
                 mid = (c0 + c1) // 2
-                if not _through(tree, shown, pp[c0:c1], tan[c0:c1], nn[c0:c1]):  # on one side only: an end on the line
+                past = _through(tree, shown, pp[c0:c1], tan[c0:c1], nn[c0:c1])
+                if past <= ONE:  # on one side only: an end on the line
                     said.append(("", f"its edge meets {name} at {_place(pp[mid])}", key, *_at(pp[mid], nn[mid])))
+                    continue
+                if past < PAST:  # said once a line, below
+                    overs.append((past, pp[mid], nn[mid]))
                     continue
                 chord = pp[min(len(pp) - 1, mid + 8)] - pp[max(0, mid - 8)]  # the line's way over 4 cm, not a facet's
                 th = _runs_at(tree, shown, pp[mid], chord / max(np.linalg.norm(chord), 1e-9))
@@ -318,6 +357,13 @@ def _side(G, sign):
                     mid = (c0 + c1) // 2
                     said.append(("", f"lies along {name} for {s1[-1] - s1[0]:.0f} cm, {_span(p1[0], p1[-1])}", key,
                                  *_at(pp[mid], nn[mid], p1)))
+        if overs:
+            most, at, n = max(overs, key=lambda o: o[0])
+            where = np.array([o[1] for o in overs])
+            places = (f"at {len(overs)} places, {_span(where[np.argmax(where[:, 2])], where[np.argmin(where[:, 2])])}"
+                      if len(overs) > 1 else f"at {_place(at)}")
+            said.append(("JUST PAST", f"its edge runs JUST PAST {name}, {most:.1f} cm over it, {places}", key,
+                         *_at(at, n, where)))
     return _once(said)
 
 
@@ -332,7 +378,7 @@ def _once(said):
 def _between(A, B, name, sign):
     """What one side says about a graphic against another: beside it at an even gap, a gap that closes, nearly
     parallel, a near miss, touching, or how near they come; nothing when they're further apart than NEAR_GRAPHIC, or
-    touch within one step. A list of (flag, words, key, where, the body's normal, the stretch along the car)."""
+    touch in the same paint. A list of (flag, words, key, where, the body's normal, the stretch along the car)."""
     a, b = (A["edge"][:, 0] * sign > -0.5), (B["edge"][:, 0] * sign > -0.5)
     ea, eb = A["edge"][a], B["edge"][b]
     if len(ea) < 3 or len(eb) < 3:
@@ -345,7 +391,7 @@ def _between(A, B, name, sign):
     key, na = (name, "graphic"), A["nrm"][a]
     m = int(np.argmin(d))
     if d[m] <= TOUCH:
-        if A["step"] == B["step"]:
+        if np.abs(A["paint"] - B["paint"]).max() <= SAME:
             return []
         on = np.flatnonzero(d <= TOUCH)
         q = ea[on]
