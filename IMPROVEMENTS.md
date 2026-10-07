@@ -46,8 +46,11 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   sees (beside at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a SHALLOW crossing); it names,
   never forbids. On that tape, unprompted: the gap CLOSES from 2.3 to 0.3 cm and crosses the panel line at a
   SHALLOW 10 degrees. The user's test, more details on TSC_CrashTest placed with it: "You've done an amazing job, I
-  would drive this"; one flag wasn't a flaw to them (the ruler's front; a flag says where to look). Next: a close look at each
-  spot it names, the mesh drawn; the record's flaws scored.
+  would drive this"; one flag wasn't a flaw to them (the ruler's front; a flag says where to look). Next, the user
+  to take them on with the next agent (2026-10-07): a close look at each spot it names, the mesh drawn (done by hand
+  for that car); graphics against each other, not only against the car's lines (the deck ruler's ends 11 cm from the
+  flank tapes' was looked at by eye); a tape of blocks crossing a seam is said to "meet" it (the nose tape over the
+  nose tip's seam); the record's flaws scored; its first run on the PC.
 
 ## The tool
 
