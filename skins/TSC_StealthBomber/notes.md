@@ -19,3 +19,7 @@ accent; quiet, sparse, the detail in the edges.
   swept from the nose's foot, the back end a column of teeth by the tail); C, the trailing edge (the back of the car
   behind a W of 40 cm teeth across it, its middle point just behind the cockpit, ending down the flanks in teeth).
   All quiet, as the language asks: the greys a step apart read best from above.
+- Note 1 on C (user, 2026-10-07, in the Lab, on the left rear flank where the W's teeth met the flank's row of teeth):
+  "Don't like that you are combining two teeth, the top and the side". C keeps only the W's teeth: down the flanks the
+  lighter back ends in one level line at 55 cm, clear of the rear flank's crease (48 cm, which a line at 48 ran along
+  within 2 cm).

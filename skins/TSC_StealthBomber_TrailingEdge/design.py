@@ -60,5 +60,5 @@ def design(s):
     base(s)
     s.step("The trailing edge", "Tape grey over the back of the car, behind a W of teeth 40 cm wide across it, the "
            "middle point just behind the cockpit, its sides 35 degrees off the length; down the flanks it ends in "
-           "teeth.", words=WORDS)
-    s.paint("body", "satin", colour=TAPE, zone=behind_w(-52, 40) & above_teeth(44, 12))
+           "a level line, so the W's are the only teeth.", words=WORDS)
+    s.paint("body", "satin", colour=TAPE, zone=behind_w(-52, 40) & shapes.above(55))
