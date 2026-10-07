@@ -43,3 +43,9 @@ overhaul (the jet in the hangar: bare aluminium and yellow-green primer, red tag
   The moodboard rewritten as inspiration (`moodboard.json`, the page localhost:8765/data/board/hangar/mood.html): the
   world, its feel, colours, materials, how it ages, how its marks behave, the squadron, the licence; no items, no
   places. Option C: a fresh agent designs from the concept with it alone, the whole car's composition first.
+- Note 1 on B (user, 2026-10-07, in the Lab, on the left rear flank where the squadron band stopped at the sidepod):
+  "I'm just wondering if it was deliberate to not go past to the intake? It lost it's fluidity in the design. Was
+  that deliberate?" It was the book's wording ("from the sidepod's back corner towards the tail"). The band now runs
+  from the tail along the flank's shoulder, over the seam and along the sidepod's shoulder to the intake's frame, about
+  12 cm, its gold line one smooth line across the seam; the chevrons and DANGER under it by the intake, the kick-in
+  steps behind them, NO STEP behind the walkway, reading from the driving camera.
