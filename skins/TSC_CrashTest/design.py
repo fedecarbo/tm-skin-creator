@@ -63,10 +63,10 @@ def design(s):
     target(s, "sidepod top", (87, 42, -24), 20)
 
     s.step("The overhead targets", "A pair of smaller targets on the top, either side of the middle, on the nose "
-           "ahead of the cockpit and on the tail: what a test's overhead camera tracks.",
-           words="more refinements to the car, more focused on details")
+           "ahead of the cockpit, and one on each of the tail's corners: what a test's overhead camera tracks.",
+           words="more refinements to the car, more focused on details; Move the back icons to this side")
     target(s, "body shell", (10, None, 102), 12)
-    target(s, "tail panel", (13, None, -147), 14)
+    target(s, "tail corner", (42.8, None, -143.1), 12)  # where the user ringed it
 
     s.step("The rear quarter targets", "A target on each rear quarter panel, the flap by the cockpit's back, where the "
            "user ringed it, as large as the nose's.", words="Crash icon here maybe")

@@ -56,3 +56,6 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   cockpit's back): "Crash icon here maybe". A 12 cm target (as large as the nose's) at the ring's centre, both sides:
   laid where wanted, in the middle of the panel (the eye: 4.2 cm from its outer line, 3.4 to 3.8 from the engine
   cover's), the panel's outline round it.
+- Note 4 (user, 2026-10-07, in the Lab, a ring drawn on the left tail corner): "Move the back icons to this side". The
+  tail's pair of targets off the tail panel; one 12 cm target on each tail corner, at the ring's centre (moved 1.1 cm to
+  lie whole on the corner): from behind they frame the tail either side of the speed numbers.
