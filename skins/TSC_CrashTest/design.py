@@ -1,0 +1,58 @@
+"""TSC_CrashTest: the car as the crash test dummy behind the wheel (the moodboard's B, 2026-10-07)."""
+
+import math
+
+from tool import marks, shapes
+from tool.shapes import WHEEL_Y, WHEEL_Z
+
+SKIN = "#e3a21a"   # the dummy's warm yellow
+BLACK = "#0a0a0c"
+
+
+def quarters():
+    """Two opposite quarters round each wheel's axle, above in front and below behind: the target
+    a crash test camera tracks the wheel by."""
+    zone = None
+    for zc, end in ((WHEEL_Z[0], shapes.front_of(30)), (WHEEL_Z[1], shapes.behind(30))):
+        above = shapes.plane((0, WHEEL_Y, zc), (0, 1, 0))
+        ahead = shapes.plane((0, WHEEL_Y, zc), (0, 0, 1))
+        q = ((above & ahead) | (~above & ~ahead)) & end
+        zone = q if zone is None else zone | q
+    return zone
+
+
+def target():
+    """Two opposite quarters of a disc, the rest of the target being the disc under them."""
+    arc = lambda a0: [(0.5 * math.cos(a0 + k * math.pi / 32), 0.5 * math.sin(a0 + k * math.pi / 32)) for k in range(17)]
+    return marks.polygon([(0, 0), *arc(0), (0, 0), *arc(math.pi)], "target")
+
+
+def design(s):
+    s.clay()
+
+    s.step("The dummy's skin", "The whole body in the dummy's warm yellow, soft to the touch.",
+           words="i have an idea like one of those crash test cars")
+    s.paint("body", "soft-touch", colour=SKIN)
+
+    s.step("Black underneath, steel at the hinges", "The inner car matte black; the suspension arms, "
+           "the car's joints, in brushed steel.", words="black targets on the head and joints, steel at the hinges")
+    s.paint("inner", "matte", colour=BLACK)
+    s.paint(["front suspension", "rear suspension"], "brushed steel")
+
+    s.step("The wheels' targets", "Each wheel cover a quartered target, black and yellow, in a black ring.",
+           words="black targets on the head and joints")
+    s.paint("wheel covers", "soft-touch", colour=SKIN)
+    s.paint("wheel covers", "matte", colour=BLACK, zone=quarters())
+    s.paint(["wheel cover ring", "wheel cover hub"], "matte", colour=BLACK)
+    s.paint(["rim", "hub"], "matte", colour=BLACK)
+
+    s.step("The side targets", "A quartered target on each sidepod's flank, where a test car carries "
+           "its door targets.", words="black targets on the head and joints")
+    spot = s.mark("sidepod top", "matte", marks.disc(), size=20, at=(87, 42, -24), colour=BLACK)
+    s.mark("sidepod top", "soft-touch", target(), size=0.84 * spot.size, at=spot.centre, colour=SKIN)
+
+    s.step("The lights", "The car's own lights in the dummy's yellow: the wheel rings, the speed numbers, "
+           "the rear and brake lights.", look="rear night")
+    s.relight("wheel ring", SKIN, keep_level=True)
+    for light in ("speed numbers", "rear lights", "brake lights"):
+        s.relight(light, SKIN)

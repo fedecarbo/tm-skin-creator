@@ -16,8 +16,8 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
 - **F. A moodboard for an idea** (2026-10-07, the user: "For now I don't send pictures. Although for AI to
   produce a moodboard for an idea might be even better"): before the first paint, a board in the Lab for
   the idea: its colours, finishes from the Lab's library, a few mood pictures (the picture maker, the PC),
-  only what the paint box can do, and only when the user wants one. First one made by hand for a real
-  idea of theirs and shown, before any machinery.
+  only what the paint box can do, and only when the user wants one. The first, by hand: TSC_CrashTest's three
+  readings (2026-10-07), picked at once ("b"). Next: whether it helped, before any machinery.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
