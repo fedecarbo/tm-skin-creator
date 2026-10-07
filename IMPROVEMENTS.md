@@ -24,6 +24,8 @@ can't be painted again, the tool fixed or retired what made them).
   checks named nothing all along, and no close look ran along a line. To build, one at a time, each shown on that
   car's tapes (its notes 1 to 9 are the test: every tape whole, even and on the face the user sees):
   1. A tape on one face of an edge, the face chosen by the mesh's own faces beside the edge, never by a direction.
+     Built, waiting for the user's OK (2026-10-07): `Course.tape`, measured across the surface from the line through
+     the map's texels, never across the line; shown on that car's tapes (its nose's kink at the seam is step 2's).
   2. One continuous line along the mesh's own edges end to end, never smoothed off the surface; a join that would
      leave the mesh is refused, not drawn.
   3. A line check: every marking along a line whole, even in width and without kinks from end to end: a failure

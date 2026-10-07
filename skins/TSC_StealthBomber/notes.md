@@ -99,3 +99,10 @@ accent; quiet, sparse, the detail in the edges.
   underside. Then the user: "Put a fix for the next session" (IMPROVEMENTS.md H).
 - Open (the next session): IMPROVEMENTS.md H first; then this car's tapes (notes 1 to 9) are its test, repainted
   with it; the details pass and the art direction wait until the base is whole and the user OKs it up close.
+- IMPROVEMENTS.md H.1 (2026-10-07, Claude Opus 5.5, the user's "next"): every tape laid with the tool's new tape, on one
+  face beside its line, its edge on the line, 4 cm across the surface, the face the eye sees chosen once per line: no
+  tape can hop between the side and the underside. The skirts' tapes: on the side face above the lower edge, whole and
+  even from under the nose to the rear wheel (the gaps of notes 6 to 9 gone); the cockpit's: outside its crisp
+  outline; the intakes': round the opening at the back of each (that line's only face); the nose's: on the top, round
+  the nose and along the side openings' edges, still the stitched line, with its kink at the seam (note 5), for H.2.
+  Checked close up along every tape, painted orange on a throwaway copy (deleted).
