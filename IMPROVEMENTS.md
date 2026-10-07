@@ -13,30 +13,21 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 5 of 5 today; 40 more
 can't be painted again, the tool fixed or retired what made them).
 
-- **F. A moodboard for an idea** (2026-10-07, the user: "For now I don't send pictures. Although for AI to
-  produce a moodboard for an idea might be even better"): before the first paint, a board in the Lab for
-  the idea: its colours, finishes from the Lab's library, a few mood pictures (the picture maker, the PC),
-  only what the paint box can do, and only when the user wants one. Two by hand, each picked at once:
-  TSC_CrashTest's ("b"; the car, "I would drive this") and TSC_Hangar's (B, 2026-10-07). To discuss (the user,
-  2026-10-07, of cars "designed well but very limited in details ... 2 to 3 objects ... not thinking on the
-  finishes, the texture, large, medium, small details"; "If you look at the red bull car skins ... everything looks
-  as part of the concept"; "It's kind of like a brand book"; "But im sure redbull had a 'brand book'"): the board
-  as the car's brand book: its world and feel, its identity (colours, materials, textures, how surfaces age, its
-  visual language, a motif or two), made once and kept with the car; inspiration, never a list of items or where
-  each goes ("it should have a bit of freedom to put things cohesively"; "The designing ai should have full
-  license to pick and choose and make something out of the moodboard. The moodboard shouldnt be a library of
-  icons"): the designer composes the whole car from it and invents its own details. The work in passes, as a team does (concept, then materials,
-  then details, outside and in), perhaps a fresh agent for a pass so no session runs out of room. How much detail is
-  the concept's call ("some concepts might not require lots of details, others might have lots, and that's the whole
-  point"). For every car ("it should apply to any other car I built"). The first test, TSC_Hangar (2026-10-07): its book
-  by hand (`skins/TSC_Hangar/book.json`, a page in the work folder), then a fresh agent painted 25 of its 26 details
-  from the book alone in 40 minutes, as option B beside the concept; waiting for the user's pick. What the pass
-  lacked: a zone inside an outline or between the model's lines (written in the design), a mark on the wheel covers
-  (shared by all four: "nothing laid"), an offset across a rounded shoulder (wobbles, loops at its ends), a zone
-  for where grime collects; and each paint took 65 s, not 30. The user, of B: "it seems each part was design in
-  separation ... Everything seems clippes per object and not part of a cohesive design" (the squadron band stopped at
-  the sidepod's seam, as the book said): the book needs the whole car's composition before its areas, one to three
-  gestures across the pieces that the details hang off, ending where the car's flow ends, never at a seam.
+- **F. A visual language for an idea** (2026-10-07, the user named it: "let's just change it to visual language").
+  Waiting for the user to say what they mean by it and hope to get, before any session builds it ("I want the next
+  agent in another session to pick up the concept ... but for me to first determine what exactly I mean and I hope to
+  get"). What they've said: cars come out "designed well but very limited in details ... 2 to 3 objects ... not
+  thinking on the finishes, the texture, large, medium, small details"; of the Red Bull liveries, "everything looks as
+  part of the concept", "im sure redbull had a 'brand book'"; how much detail is the concept's call ("some concepts
+  might not require lots of details, others might have lots, and that's the whole point"); for every car ("it should
+  apply to any other car I built"); "The designing ai should have full license to pick and choose and make something
+  out of the moodboard. The moodboard shouldnt be a library of icons". Tried on TSC_Hangar (2026-10-07, its record;
+  git keeps the briefs): boards of three readings by hand, each picked at once (also TSC_CrashTest's); a book of 37
+  details placed area by area, painted by a fresh agent, kept as the car ("Definitely B is more detailed and thought
+  of") but "Everything seems clippes per object and not part of a cohesive design"; an inspiration-only brief with
+  full licence for another fresh agent, stopped part way ("It's not doing a good job"). The paint box lacked, on the
+  way: a zone inside an outline or between the model's lines, a mark on the wheel covers (shared by all four), an
+  offset across a rounded shoulder (wobbles, loops), a zone where grime collects; paints with them took 65 s.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design

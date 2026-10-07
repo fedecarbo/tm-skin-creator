@@ -6,27 +6,30 @@
    "title": "The concept against its brand book",
    "words": "Sure (to the test: the concept, then the brand book, then a fresh agent for materials and details)",
    "made": "2026-10-07T12:50:28",
-   "state": "painting",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Concept",
-     "skin": "TSC_Hangar_Concept"
+     "skin": "TSC_Hangar_Concept",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "BrandBook",
-     "skin": "TSC_Hangar_BrandBook"
+     "skin": "TSC_Hangar_BrandBook",
+     "picture": "sets/1/B.png"
     },
     {
      "key": "C",
      "title": "Moodboard",
-     "skin": "TSC_Hangar_Moodboard"
+     "skin": "TSC_Hangar_Moodboard",
+     "picture": "sets/1/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "B",
+   "decision": "B, the brand book's details (the user, in the chat: \"Definitely B is more detailed and thought of\"); the tests stopped",
+   "done": "2026-10-07T14:35:27"
   }
  ]
 }

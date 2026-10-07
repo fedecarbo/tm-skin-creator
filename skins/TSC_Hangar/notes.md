@@ -49,3 +49,8 @@ overhaul (the jet in the hangar: bare aluminium and yellow-green primer, red tag
   from the tail along the flank's shoulder, over the seam and along the sidepod's shoulder to the intake's frame, about
   12 cm, its gold line one smooth line across the seam; the chevrons and DANGER under it by the intake, the kick-in
   steps behind them, NO STEP behind the walkway, reading from the driving camera.
+- The second test stopped (user, 2026-10-07, in the chat, watching option C in the Lab): "Lets stop here. It's not
+  doing a good job. I think I want the next agent in another session to pick up the concept of moodboard but for me
+  to first determine what exactly I mean and I hope to get. And let's just change it to visual language". C stopped
+  part way (its last round in git). Set 1 picked B ("Definitely B is more detailed and thought of"): the car is B, the
+  brand book's details with the band flowing to the intakes. The briefs (book.json, moodboard.json) out, in git.
