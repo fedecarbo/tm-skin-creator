@@ -99,10 +99,11 @@ def design(s):
     s.paint("body", "matte", colour=BLACK, zone=ruler(nose.between(nose.at(s=7.7), nose.at(s=99.5)), side=1))
 
     s.step("The nose's tape", "A block scale along each side of the nose, beside the model's line along its roll, from "
-           "abreast the cockpit's front (z 95) to behind the nose tip (z 143), where the user drew it.",
+           "abreast the cockpit's front (z 95) on past the nose tip's seam to z 158, where the user drew it.",
            words="Add tape here")
     roll = meshlines.line((27.2, 54.2, 120), kind="rounded")  # 49 cm; 4 cm beside it is within a cm of their stroke
-    s.paint("body", "matte", colour=BLACK, zone=roll.offset(4).mirrored().blocks(5, 2.5))
+    # carried on 15 cm past the nose tip's seam, on over the nose ("It's ok to go past the next object")
+    s.paint("body", "matte", colour=BLACK, zone=roll.offset(4).extended(start=15).mirrored().blocks(5, 2.5))
 
     s.step("The lights", "The car's own lights in the dummy's yellow: the wheel rings, the speed numbers, "
            "the rear and brake lights.", look="rear night")

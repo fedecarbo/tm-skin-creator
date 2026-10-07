@@ -59,3 +59,6 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
 - Note 4 (user, 2026-10-07, in the Lab, a ring drawn on the left tail corner): "Move the back icons to this side". The
   tail's pair of targets off the tail panel; one 12 cm target on each tail corner, at the ring's centre (moved 1.1 cm to
   lie whole on the corner): from behind they frame the tail either side of the speed numbers.
+- Note 5 (user, 2026-10-07, in the Lab, drawn on from the nose tape's front end over the nose tip's seam to z 158):
+  "It's ok to go past the next object". The nose's block scale carried on 15 cm past its line's end, straight on and
+  laid on the nose (Course.extended), over the seam onto the nose tip, both sides: one smooth tape from z 95 to 158.
