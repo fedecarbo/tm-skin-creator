@@ -41,9 +41,11 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   that can be made in general ... for the AI to properly design and have the right tools to have better judgement or
   eyes (but obviously not restrict creativity)"): the tape lay exactly on one of the model's lines, a roll the eye
   doesn't see, its gap to the panel lines pinching and its end a centimetre off the rear quarter panel's outline.
-  Idea: after each paint, each graphic in words against the lines the eye sees (an even gap, a gap that pinches,
-  nearly parallel, an end just short of a line), and a close look at its worst spot with those lines drawn; it
-  names, never forbids. First proof: it names that tape's pinch on its own, then the record's flaws.
+  Built: `eye.look` (`tool/eye.py`), after each paint in `show`: each graphic in words against the lines the eye
+  sees (beside at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a SHALLOW crossing); it names,
+  never forbids. On that tape, unprompted: the gap CLOSES from 2.3 to 0.3 cm and crosses the panel line at a
+  SHALLOW 10 degrees. The user's test: more details on TSC_CrashTest, placed with it. Next: a close look at each
+  spot it names, the mesh drawn; the record's flaws scored.
 
 ## The tool
 
