@@ -140,7 +140,7 @@ def render(name, lang):
             + sec("Three sizes", f'<div class="sizes">{sizes}</div>' + ps(lang["fullness"]))
             + (sec("Lettering", ps(lang["lettering"])) if str(lang.get("lettering") or "").strip() else "")
             + sec("Never", f"<ul>{never}</ul>"))
-    title = e(name.removeprefix("TSC_"))
+    title = e(re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", name.removeprefix("TSC_")))  # TSC_StealthBomber: Stealth Bomber
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} · Visual language</title><link rel="icon" href="data:,">

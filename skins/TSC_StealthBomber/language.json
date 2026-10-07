@@ -1,0 +1,113 @@
+{
+ "idea": "A stealth bomber: one dark wing built so nothing sees it coming, every edge aimed the same few ways.",
+ "world": "A strategic bomber that lives in a climate-controlled hangar and flies at night. Its skin swallows radar; its edges are all aligned so what little comes back goes off in a few narrow directions; its seams are taped over by a ground crew working by hand.",
+ "is": [
+  "Silent",
+  "flat",
+  "precise",
+  "patient",
+  "heavy"
+ ],
+ "isnt": [
+  "Glossy",
+  "loud",
+  "decorative",
+  "busy"
+ ],
+ "signature": {
+  "says": "The aligned edge. Every boundary between two greys runs at the same sweep, 35° back from the car's length, mirrored left and right, so the whole car reads as one swept wing. Where a boundary has to turn or stop, it never curves: it breaks into sawtooth teeth on the same two angles.",
+  "svg": "<svg viewBox=\"0 0 580 130\"><rect width=\"580\" height=\"130\" fill=\"#3f4348\"/><polygon points=\"0.0,22.0 560.0,22.0 502.9,62.0 502.9,62.0 442.9,104.0 382.9,62.0 322.9,104.0 262.9,62.0 202.9,104.0 142.9,62.0 82.9,104.0 22.9,62.0 0.0,62.0\" fill=\"#565b61\"/></svg>"
+ },
+ "dna": {
+  "says": "Straight lines only, on two angles: the sweep and its mirror, plus the length itself. Sharp corners, never rounded. Shapes are diamonds and swept parallelograms made of those angles. Sawtooth teeth are equal, their sides on the two angles, 12, 4 or 1 cm apart. Line widths 3, 10 and 40 mm. Nothing bolted shows: a seam is a strip of tape.",
+  "svg": "<svg viewBox=\"0 0 580 236\"><rect width=\"580\" height=\"236\" fill=\"#3f4348\"/><line x1=\"26\" y1=\"62\" x2=\"122\" y2=\"62\" stroke=\"#565b61\" stroke-width=\"1.5\" stroke-dasharray=\"4 4\"/><line x1=\"26\" y1=\"62\" x2=\"102\" y2=\"8.8\" stroke=\"#d9dcdf\" stroke-width=\"2\"/><line x1=\"26\" y1=\"62\" x2=\"102\" y2=\"115.2\" stroke=\"#d9dcdf\" stroke-width=\"2\"/><text x=\"92\" y=\"54\" fill=\"#d9dcdf\" font-size=\"11\" font-family=\"system-ui, sans-serif\">35°</text><polygon points=\"188.0,70.0 240.0,33.6 292.0,70.0 240.0,106.4\" fill=\"none\" stroke=\"#d9dcdf\" stroke-width=\"3\"/><polygon points=\"318.0,100.0 403.7,40.0 493.7,40.0 408.0,100.0\" fill=\"#565b61\"/><polygon points=\"26.0,128.0 170.0,128.0 170.0,142.0 134.0,167.2 98.0,142.0 62.0,167.2 26.0,142.0\" fill=\"#565b61\"/><text x=\"26\" y=\"180\" fill=\"#d9dcdf\" opacity=\".6\" font-size=\"11\" font-family=\"system-ui, sans-serif\">teeth 12 cm</text><polygon points=\"210.0,128.0 378.0,128.0 378.0,142.0 366.0,150.4 354.0,142.0 342.0,150.4 330.0,142.0 318.0,150.4 306.0,142.0 294.0,150.4 282.0,142.0 270.0,150.4 258.0,142.0 246.0,150.4 234.0,142.0 222.0,150.4 210.0,142.0\" fill=\"#565b61\"/><text x=\"210\" y=\"180\" fill=\"#d9dcdf\" opacity=\".6\" font-size=\"11\" font-family=\"system-ui, sans-serif\">4 cm</text><polygon points=\"394.0,128.0 562.0,128.0 562.0,142.0 559.0,144.1 556.0,142.0 553.0,144.1 550.0,142.0 547.0,144.1 544.0,142.0 541.0,144.1 538.0,142.0 535.0,144.1 532.0,142.0 529.0,144.1 526.0,142.0 523.0,144.1 520.0,142.0 517.0,144.1 514.0,142.0 511.0,144.1 508.0,142.0 505.0,144.1 502.0,142.0 499.0,144.1 496.0,142.0 493.0,144.1 490.0,142.0 487.0,144.1 484.0,142.0 481.0,144.1 478.0,142.0 475.0,144.1 472.0,142.0 469.0,144.1 466.0,142.0 463.0,144.1 460.0,142.0 457.0,144.1 454.0,142.0 451.0,144.1 448.0,142.0 445.0,144.1 442.0,142.0 439.0,144.1 436.0,142.0 433.0,144.1 430.0,142.0 427.0,144.1 424.0,142.0 421.0,144.1 418.0,142.0 415.0,144.1 412.0,142.0 409.0,144.1 406.0,142.0 403.0,144.1 400.0,142.0 397.0,144.1 394.0,142.0\" fill=\"#565b61\"/><text x=\"394\" y=\"180\" fill=\"#d9dcdf\" opacity=\".6\" font-size=\"11\" font-family=\"system-ui, sans-serif\">1 cm</text><rect x=\"26\" y=\"220\" width=\"168\" height=\"2\" fill=\"#d9dcdf\"/><text x=\"158\" y=\"212\" fill=\"#d9dcdf\" opacity=\".6\" font-size=\"11\" font-family=\"system-ui, sans-serif\">3 mm</text><rect x=\"210\" y=\"215.3\" width=\"168\" height=\"6.7\" fill=\"#d9dcdf\"/><text x=\"342\" y=\"207.3\" fill=\"#d9dcdf\" opacity=\".6\" font-size=\"11\" font-family=\"system-ui, sans-serif\">10 mm</text><rect x=\"394\" y=\"195.3\" width=\"168\" height=\"26.7\" fill=\"#d9dcdf\"/><text x=\"526\" y=\"187.3\" fill=\"#d9dcdf\" opacity=\".6\" font-size=\"11\" font-family=\"system-ui, sans-serif\">40 mm</text></svg>"
+ },
+ "colours": [
+  {
+   "name": "Bomber grey",
+   "colour": "#3f4348",
+   "share": 72,
+   "job": "leads: the skin, nearly everywhere"
+  },
+  {
+   "name": "Tape grey",
+   "colour": "#565b61",
+   "share": 15,
+   "job": "the swept fields and the tape over seams, a step lighter"
+  },
+  {
+   "name": "Shadow",
+   "colour": "#1b1d20",
+   "share": 8,
+   "job": "inside every opening"
+  },
+  {
+   "name": "Low-vis grey",
+   "colour": "#2c2f33",
+   "share": 2,
+   "job": "the few small marks, a step darker"
+  },
+  {
+   "name": "Heat tile",
+   "colour": "#7a7c79",
+   "share": 2,
+   "job": "behind the heat only"
+  },
+  {
+   "name": "Canopy gold",
+   "colour": "#c9a24a",
+   "share": 1,
+   "job": "the accent: the glass's coating, nowhere else"
+  }
+ ],
+ "meet": "Greys a step apart, never a contrast: they meet on aligned edges and in teeth. Black only inside an opening, gold only in the glass.",
+ "surfaces": [
+  {
+   "finish": "PA-04",
+   "colour": "#3f4348",
+   "job": "the skin: radar-absorbing, it swallows the light"
+  },
+  {
+   "finish": "PA-03",
+   "colour": "#565b61",
+   "job": "the tape: a sheen a step apart, so the seams show only in the light"
+  },
+  {
+   "finish": "PL-03",
+   "colour": "#1b1d20",
+   "job": "inside the openings"
+  },
+  {
+   "finish": "PA-05",
+   "colour": "#7a7c79",
+   "job": "the heat tiles: dry ceramic"
+  },
+  {
+   "finish": "ME-06",
+   "job": "the gear: the only bare metal, dark"
+  }
+ ],
+ "ageing": "Kept clean in its hangar, but patched: fresh tape a shade off the old, a panel recoated in a slightly different grey, a soot-dark fan on the tiles behind the heat. No dirt, no chips, no rust.",
+ "sizes": {
+  "large": {
+   "what": "two greys in long swept fields, edges on the sweep, ending in big teeth: one dark planform",
+   "svg": "<svg viewBox=\"0 0 260 120\"><rect width=\"260\" height=\"120\" fill=\"#3f4348\"/><polygon points=\"0.0,0.0 260.0,0.0 260.0,20.0 197.2,64.0 197.2,64.0 149.2,97.6 101.2,64.0 53.2,97.6 5.2,64.0 0.0,64.0\" fill=\"#565b61\"/></svg>"
+  },
+  "medium": {
+   "what": "doors as diamonds outlined in tape; openings as swept slots, black inside, their lips in teeth",
+   "svg": "<svg viewBox=\"0 0 260 120\"><rect width=\"260\" height=\"120\" fill=\"#3f4348\"/><polygon points=\"28.0,60.0 92.0,15.2 156.0,60.0 92.0,104.8\" fill=\"none\" stroke=\"#565b61\" stroke-width=\"6\"/><polygon points=\"166.0,75.0 208.8,45.0 248.8,45.0 206.0,75.0\" fill=\"#1b1d20\"/><polygon points=\"160.0,81.0 160.0,81.0 166.0,85.2 172.0,81.0 178.0,85.2 184.0,81.0 190.0,85.2 196.0,81.0 202.0,85.2 208.0,81.0 214.0,85.2 220.0,81.0 222.0,85.2 222.0,77.0 160.0,77.0\" fill=\"#565b61\"/></svg>"
+  },
+  "small": {
+   "what": "fine teeth on the tape's ends; a few low-vis diamonds a step darker; the canopy's gold",
+   "svg": "<svg viewBox=\"0 0 260 120\"><rect width=\"260\" height=\"120\" fill=\"#3f4348\"/><polygon points=\"14.0,26.0 246.0,26.0 246.0,30.0 245.0,32.1 242.0,30.0 239.0,32.1 236.0,30.0 233.0,32.1 230.0,30.0 227.0,32.1 224.0,30.0 221.0,32.1 218.0,30.0 215.0,32.1 212.0,30.0 209.0,32.1 206.0,30.0 203.0,32.1 200.0,30.0 197.0,32.1 194.0,30.0 191.0,32.1 188.0,30.0 185.0,32.1 182.0,30.0 179.0,32.1 176.0,30.0 173.0,32.1 170.0,30.0 167.0,32.1 164.0,30.0 161.0,32.1 158.0,30.0 155.0,32.1 152.0,30.0 149.0,32.1 146.0,30.0 143.0,32.1 140.0,30.0 137.0,32.1 134.0,30.0 131.0,32.1 128.0,30.0 125.0,32.1 122.0,30.0 119.0,32.1 116.0,30.0 113.0,32.1 110.0,30.0 107.0,32.1 104.0,30.0 101.0,32.1 98.0,30.0 95.0,32.1 92.0,30.0 89.0,32.1 86.0,30.0 83.0,32.1 80.0,30.0 77.0,32.1 74.0,30.0 71.0,32.1 68.0,30.0 65.0,32.1 62.0,30.0 59.0,32.1 56.0,30.0 53.0,32.1 50.0,30.0 47.0,32.1 44.0,30.0 41.0,32.1 38.0,30.0 35.0,32.1 32.0,30.0 29.0,32.1 26.0,30.0 23.0,32.1 20.0,30.0 17.0,32.1 14.0,30.0\" fill=\"#565b61\"/><polygon points=\"24.0,72.0 34.0,65.0 44.0,72.0 34.0,79.0\" fill=\"#2c2f33\"/><polygon points=\"54.0,72.0 64.0,65.0 74.0,72.0 64.0,79.0\" fill=\"#2c2f33\"/><polygon points=\"84.0,72.0 94.0,65.0 104.0,72.0 94.0,79.0\" fill=\"#2c2f33\"/><polygon points=\"140.0,82.0 168.6,62.0 236.0,62.0 207.4,82.0\" fill=\"#2c2f33\"/><polygon points=\"150.0,104.0 167.1,92.0 226.0,92.0 208.9,104.0\" fill=\"#c9a24a\" opacity=\".85\"/></svg>"
+  }
+ },
+ "fullness": "Sparse and quiet: big uninterrupted dark fields. The detail is in the edges, not in objects; from far the car is one swept shape.",
+ "never": [
+  "A curve drawn in paint: only the body's own curves",
+  "A rounded corner",
+  "An edge on any angle but the sweep, its mirror or the length",
+  "Anything bright or shiny, except the canopy's gold",
+  "Words, numbers or insignia"
+ ]
+}
