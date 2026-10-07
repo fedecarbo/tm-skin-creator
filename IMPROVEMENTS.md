@@ -21,9 +21,10 @@ can't be painted again, the tool fixed or retired what made them).
   2026-10-07, of cars "designed well but very limited in details ... 2 to 3 objects ... not thinking on the
   finishes, the texture, large, medium, small details"; "If you look at the red bull car skins ... everything looks
   as part of the concept"; "It's kind of like a brand book"; "But im sure redbull had a 'brand book'"): the board
-  as the car's brand book, in two halves: its identity, the assets a livery designer is handed (colours, materials,
-  a texture, its own motifs at large, medium and small sizes, made once and kept with the car), and where each goes,
-  area by area; any session can pick it up and paint. The work in passes, as a team does (concept, then materials,
+  as the car's brand book: its identity, the assets a livery designer is handed (colours, materials, a texture, its
+  own motifs at large, medium and small sizes, the details its world has, each with its reason), made once and kept
+  with the car; never where each goes ("if we want the ai to design inspired by the moodboard, then it should have a
+  bit of freedom to put things cohesively"): the designer composes the whole car from it. The work in passes, as a team does (concept, then materials,
   then details, outside and in), perhaps a fresh agent for a pass so no session runs out of room. How much detail is
   the concept's call ("some concepts might not require lots of details, others might have lots, and that's the whole
   point"). For every car ("it should apply to any other car I built"). The first test, TSC_Hangar (2026-10-07): its book
