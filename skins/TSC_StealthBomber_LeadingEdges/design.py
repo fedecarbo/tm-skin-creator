@@ -1,5 +1,5 @@
 """TSC_StealthBomber, take B, the leading edges: tape grey bands along the car's own leading edges (the nose's
-rounded front and on along the body's rounded edges, the whole outline round the cockpit, the swept edges of the skirts, the intakes' lips), each ending where
+rounded front and on along the body's edge over the side openings, the whole outline round the cockpit, the swept edges of the skirts, the intakes' lips), each ending where
 its line ends (the composition, from its visual language: language.json)."""
 
 from tool import meshlines
@@ -23,11 +23,15 @@ def base(s):
 def design(s):
     base(s)
     s.step("The leading edges", "Tape grey satin, 4 cm wide, along the car's own leading edges: round the nose's "
-           "front and on back along the body's rounded edges, all round the cockpit's outline, along the skirts' swept edges and round the intakes' lips.",
+           "front and on back along the body's edge over the side openings, all round the cockpit's outline, along the skirts' swept edges and round the intakes' lips.",
            words=WORDS)
-    # one line round the nose and on along the body's rounded edge each side, to where it ends by the cockpit
-    nose = (meshlines.line((-32, 55, 95), kind="rounded").then(meshlines.line((0, 40, 210), kind="rounded"))
-            .then(meshlines.line((32, 55, 95), kind="rounded")).strip(4))
+    # one line round the nose and on along the body's edge over the side opening each side, picked on the model's
+    # own lines where the user traced it
+    edge = [(24.9, 48.8, 144.1), (25.9, 47.3, 139.8), (30.1, 49.2, 111.8), (33.4, 51.4, 89), (35.4, 53.0, 75),
+            (36.3, 52.8, 69)]
+    left = meshlines.picked(edge)
+    right = meshlines.picked([(-x, y, z) for x, y, z in edge]).reversed()
+    nose = right.then(meshlines.line((0, 40, 210), kind="rounded")).then(left).strip(4)
     crest = meshlines.line((0, 83, -51)).strip(4)  # the whole outline round the cockpit, closed behind it
     skirts = meshlines.line((39, 19, 70)).mirrored().strip(4)
     s.paint("body", "satin", colour=TAPE, zone=nose | crest | skirts)

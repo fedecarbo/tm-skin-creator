@@ -40,3 +40,7 @@ accent; quiet, sparse, the detail in the edges.
   curvature". B's nose tape now one line: up the body's rounded edge on the right, round the nose, and back along the
   left's, the model's own rounded edges (each 111 cm, from z 144 to z 34 by the cockpit), meeting the nose's within
   0.3 cm.
+- Note 3 on B (user, 2026-10-07, in the Lab, a line traced along the body's edge over the left side opening, below
+  where the tape ran): "You need it to follow the edge". The tape after the nose moved from the rounded edge above
+  onto that edge: `meshlines.picked` through the traced points (the model's own crisp lines, z 144 to 69), each side.
+  The checks: its end runs under 2 cm past a crisp line at z 68, which looks clean close up.
