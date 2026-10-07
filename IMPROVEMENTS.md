@@ -22,7 +22,7 @@ first step below and nothing past it:
   "built, waiting for the user's OK" for the next one.
 
 The self-test's own cars (the tour, the planted-flaw pair) are the tool's: painted by the self-test, never shown in
-the Lab. The PC is away until about 2026-11-07 (the user, 2026-10-07): until then every step runs on the Mac, its PC
+the Lab. The PC is away until November or December 2026 (the user, 2026-10-07): until then every step runs on the Mac, its PC
 parts (step 1's profile there, step 6's run there, step 10's kernels there) wait for its return, and step 13 comes
 after it.
 
