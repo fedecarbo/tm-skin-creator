@@ -1,0 +1,35 @@
+{
+  "car": "TSC_Hangar",
+  "title": "Carrier jet",
+  "world": "A seventies navy fighter on a carrier's deck at dawn. It lives in salt spray, jet blast and hydraulic fluid, launched and caught again and again, tended between launches by a deck crew in coloured jerseys. Everything on it was put there by someone with a job to do: masked, stencilled, touched up, worn in. A government machine that its squadron wears with pride.",
+  "feel": ["Purposeful", "Weathered, but cared for", "Precise masking, applied by hand", "A squadron's pride on a working machine"],
+  "colours": [
+    {"name": "Light gull grey", "colour": "#9a9c95", "say": "the airframe, over"},
+    {"name": "Gloss white", "colour": "#f1f1ec", "say": "under, and in the wells"},
+    {"name": "Insignia red", "colour": "#c3262c", "say": "danger"},
+    {"name": "Working black", "colour": "#16171a", "say": "the crew's marks, the radar"},
+    {"name": "Squadron blue", "colour": "#22386b", "say": "pride"},
+    {"name": "Squadron gold", "colour": "#f2b52a", "say": "pride"},
+    {"name": "Deck jerseys", "colour": "#e8c41c", "say": "the crew's own colours: yellow, green, purple, brown, blue"}
+  ],
+  "materials": [
+    {"name": "Semi-gloss gull grey, chalky where the sun hits", "ball": "B-semi-gloss"},
+    {"name": "Fresher touch-up paint", "ball": "K-touch-up"},
+    {"name": "Gloss white", "ball": "B-gloss-f1f1ec"},
+    {"name": "Insignia red", "ball": "B-gloss-c3262c"},
+    {"name": "Flat black", "ball": "K-radome"},
+    {"name": "Non-skid grit", "ball": "K-non-skid"},
+    {"name": "Heat-blued titanium", "ball": "K-titanium"},
+    {"name": "Oleo chrome", "ball": "K-chrome"},
+    {"name": "Bare aluminium", "ball": "C-polished-aluminium"},
+    {"name": "Olive webbing", "ball": "K-harness"},
+    {"name": "Deck grime", "ball": "K-grime"},
+    {"name": "Squadron blue", "ball": "K-squadron-blue"},
+    {"name": "Squadron gold", "ball": "K-squadron-gold"}
+  ],
+  "surfaces": "How it ages: paint touched up in fresher patches, panel by panel; salt and hydraulic grime collecting low and behind the wheels and running back with the air; metal near the heat turned straw, blue and bronze; the places boots go scuffed dark.",
+  "language": "How its marks behave: hard, masked edges; marks that follow the airframe's own lines and run where the air runs; small stencilled words that do a job; red where it's dangerous, black where the crew works, blue and gold where it's proud. Nothing decorative without a reason, except the squadron's colours, which are the reason.",
+  "identity": "An invented squadron in blue and gold. Its emblem: a gold lightning bolt on a blue disc in a thin gold ring. Its colours can run big; its emblem can appear at any size. Its name is never written.",
+  "words": "Small stencils are welcome where a jet would carry them (the user said yes to small words, 2026-10-07); no other lettering.",
+  "license": "Inspiration, not a list: use any of this, or none of it, and invent the car's own pieces in this language. Compose the whole car first; let the large and medium things run across the pieces and end where the car's flow ends."
+}

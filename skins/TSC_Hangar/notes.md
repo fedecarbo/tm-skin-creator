@@ -38,3 +38,8 @@ overhaul (the jet in the hangar: bare aluminium and yellow-green primer, red tag
   (the grime and the outlines' zones). Close looks: the stencils crisp and flat, the band and its pinstripe even, the
   slip mark and the hub's bolt clean; the driving camera sees the emblems, the fuel cap's ring, the bands and the
   titanium tail. Set 1 open: A, the concept; B, the brand book's car.
+- The second test (user, 2026-10-07, in the chat): "Let's run second test", after "The designing ai should have full
+  license to pick and choose and make something out of the moodboard. The moodboard shouldnt be a library of icons".
+  The moodboard rewritten as inspiration (`moodboard.json`, the page localhost:8765/data/board/hangar/mood.html): the
+  world, its feel, colours, materials, how it ages, how its marks behave, the squadron, the licence; no items, no
+  places. Option C: a fresh agent designs from the concept with it alone, the whole car's composition first.
