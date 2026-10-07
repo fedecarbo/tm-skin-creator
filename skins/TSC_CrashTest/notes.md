@@ -38,3 +38,12 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   nose ahead of the cockpit and a pair of 14 cm on the tail's top, what a test's overhead camera tracks, each clear of
   every line the eye sees by more than 5 cm (the tail pair shows from the chase camera); the car's own round fuel cap
   in brushed steel, a joint plate. The eye names nothing now; close looks at each.
+- Change 4 (user, 2026-10-07, in the chat): "Kind of, I mean adding just the crash circles doesn't tell me much, but it's
+  alright. You didn't add more table though", then "The ruler was actually fine before". The side ruler back along the
+  whole sill line (the eye's SHALLOW crossing at its front wasn't a flaw to them: the eye names, their eye decides).
+  More strips, placed with the eye: a block scale along each rear flank, 1.5 cm clear of the line along its top (the
+  eye: an even 1.5 cm, 69 to 77 cm long), from the sidepod's back corner (z -55) towards the tail (z -120); a ruler across
+  the back of the deck, hanging forward from its line (82.5 cm, the chase camera sees it); a ruler round the nose tip's
+  panel line, inside it, from z 150 on each side (clear of the nose fin's plate). Note 1 (user, in the Lab, drawn on the
+  left rear flank from the sidepod's back corner towards the tail): "Maybe add tape here": the rear flank's block scale
+  lies there, along the model's line beside their stroke.
