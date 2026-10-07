@@ -13,9 +13,11 @@ The road of 2026-10-05, in order, each step one commit under the self-test, show
 by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 4 of 4 today; nine
 more it no longer makes, two cars it can't repaint, built on what the tool retired).
 
-- **F. A picture as an entry point** (2026-10-05): a command that reads a picture the user hands over
-  into the car's own words (roles per colour, placements against the anatomy, finishes; the structure,
-  never the artwork), confirmed as a question in the Lab before any paint.
+- **F. A moodboard for an idea** (2026-10-07, the user: "For now I don't send pictures. Although for AI to
+  produce a moodboard for an idea might be even better"): before the first paint, a board in the Lab for
+  the idea: its colours, finishes from the Lab's library, a few mood pictures (the picture maker, the PC),
+  only what the paint box can do, and only when the user wants one. First one made by hand for a real
+  idea of theirs and shown, before any machinery.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
