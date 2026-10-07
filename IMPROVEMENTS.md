@@ -23,7 +23,9 @@ can't be painted again, the tool fixed or retired what made them).
   as part of the concept"; "It's kind of like a brand book"): the board as the car's brand book, its large, medium
   and small details, finishes and textures, each car's own, that any session can pick up and paint; and the work in
   passes, as a team does (concept, then materials, then details, outside and in), perhaps a fresh agent for a pass
-  so no session runs out of room. For every car, not one ("it should apply to any other car I built"); TSC_Hangar
+  so no session runs out of room. How much detail is the concept's call ("some concepts might not require lots of
+  details, others might have lots, and that's the whole point. redbull chose to really go above and beyond in
+  details, because it fits the concept"). For every car ("it should apply to any other car I built"); TSC_Hangar
   is the test car, its book drafted by hand (`skins/TSC_Hangar/book.json`).
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
