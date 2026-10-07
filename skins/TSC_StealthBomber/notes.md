@@ -35,3 +35,8 @@ accent; quiet, sparse, the detail in the edges.
 - Note 1 on B (user, 2026-10-07, in the Lab, a line drawn across behind the cockpit, where the tape round it stopped
   at its back corners): "I would just make it full the outline". B's tape moved from the crease ahead of the cockpit
   (open behind it) to the model's own closed line round the cockpit surround: one whole outline, closed behind.
+- Note 2 (user, 2026-10-07, in the Lab, looking at B, a line drawn on the left front flank from where the nose's tape
+  ended at z 144 back to z 75): "Same here, just make it longer and adjust the direction so it flows along the
+  curvature". B's nose tape now one line: up the body's rounded edge on the right, round the nose, and back along the
+  left's, the model's own rounded edges (each 111 cm, from z 144 to z 34 by the cockpit), meeting the nose's within
+  0.3 cm.
