@@ -1,0 +1,1 @@
+Option B of TSC_StealthBomber's set 2 (Composition · 3 takes, from the car's own lines), 2026-10-07: Leading edges. Made as a copy of the car's design to change; if it's picked, its design becomes the car's (tool/sets.py).

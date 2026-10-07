@@ -23,3 +23,12 @@ accent; quiet, sparse, the detail in the edges.
   "Don't like that you are combining two teeth, the top and the side". C keeps only the W's teeth: down the flanks the
   lighter back ends in one level line at 55 cm, clear of the rear flank's crease (48 cm, which a line at 48 ran along
   within 2 cm).
+- Not convinced (user, 2026-10-07, in the chat): "sometimes that approach takes it too literally. Considering a real
+  stealth bomber. But at the same time, you're putting it on a car. And it just doesn't go well with the aesthetics
+  of the car". Set 1 dropped. The language reworked (user: "sure"): the bomber's darkness, finishes and quiet kept;
+  every line and shape from the car's own form (its panels in two greys and sheens, its own leading edges taped,
+  fine teeth only where a tape meets an opening). The routine learnt it too (language.md).
+- Composition set 2 open (2026-10-07, on the Mac): A, the spine (the nose panel, the cockpit surround, the engine
+  cover and the tail panel in tape grey satin, each filled to its lines); B, the leading edges (tape grey satin 4 cm
+  along the nose's rounded front, the crease ahead of the cockpit, the skirts' swept edges and the intakes' lips); C,
+  the sheen (the outer panels in satin, the same bomber grey).

@@ -6,22 +6,52 @@
    "title": "Composition · 3 takes",
    "words": "go ahead",
    "made": "2026-10-07T17:49:54",
-   "state": "open",
+   "state": "dropped",
    "options": [
     {
      "key": "A",
      "title": "Leading edge",
-     "skin": "TSC_StealthBomber_LeadingEdge"
+     "skin": "TSC_StealthBomber_LeadingEdge",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Low edge",
-     "skin": "TSC_StealthBomber_LowEdge"
+     "skin": "TSC_StealthBomber_LowEdge",
+     "picture": "sets/1/B.png"
     },
     {
      "key": "C",
      "title": "Trailing edge",
-     "skin": "TSC_StealthBomber_TrailingEdge"
+     "skin": "TSC_StealthBomber_TrailingEdge",
+     "picture": "sets/1/C.png"
+    }
+   ],
+   "pick": null,
+   "decision": "Too literal: the bomber's own 35-degree edges and teeth fight the car's flowing lines; the language reworked to draw from the car's own lines",
+   "done": "2026-10-07T18:14:10"
+  },
+  {
+   "n": 2,
+   "title": "Composition · 3 takes, from the car's own lines",
+   "words": "sure",
+   "made": "2026-10-07T18:16:10",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Spine",
+     "skin": "TSC_StealthBomber_Spine"
+    },
+    {
+     "key": "B",
+     "title": "Leading edges",
+     "skin": "TSC_StealthBomber_LeadingEdges"
+    },
+    {
+     "key": "C",
+     "title": "Sheen",
+     "skin": "TSC_StealthBomber_Sheen"
     }
    ],
    "pick": null,

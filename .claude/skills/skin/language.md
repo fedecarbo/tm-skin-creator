@@ -16,7 +16,10 @@ for this car (`tool/language.py`'s docstring has the keys): the idea and its wor
 signature, how it behaves on a body (how it starts, follows the form, ends); the DNA; the colours, each one's job
 and share, how two meet; the surfaces, how they age; what lives large, medium and small, and how full the car gets;
 what it never does. Draw the signature, the DNA and each size flat, in its colours. It says how, never where: no
-part names, no list of items to place. `PY -m tool.language <name>` checks it and opens its page; the user changes
+list of items to place. Take the idea's feeling, materials and behaviour from its source, and its lines and shapes
+from the car's own form (its panels, creases and edges): the source's own geometry laid on the car reads too
+literal (the user, 2026-10-07, of a bomber's planform on the car: "it just doesn't go well with the aesthetics of
+the car"). `PY -m tool.language <name>` checks it and opens its page; the user changes
 it until it's right. It changes later too: when a pass finds the language missing something, the language changes
 (and its page), not only the car.
 
