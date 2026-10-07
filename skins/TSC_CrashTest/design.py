@@ -86,13 +86,14 @@ def design(s):
     sill = meshlines.line((74, 26, 21)).mirrored()  # 87.8 cm: the ticks every 3 and every 15 fall together
     s.paint("body", "matte", colour=BLACK, zone=ruler(sill, side=-1))
 
-    s.step("More measuring strips", "A block scale along each rear flank, 1.5 cm clear of the line along its top, from "
+    s.step("More measuring strips", "A block scale along each rear flank's shoulder where it faces 45 degrees, from "
            "the sidepod's back corner towards the tail; a ruler across the back of the deck, hanging forward from its "
            "line; a ruler round the nose tip's panel line, inside it, as a test car's bumper scale.",
            words="a test would be to add more block tape and measure table around the car")
-    flank = meshlines.line((58, 63, -81))  # the rear flank's top, from the tail's corner to the sidepod's back
-    s.paint("body", "matte", colour=BLACK,
-            zone=flank.between(flank.at(s=8), flank.at(s=82)).offset(4).mirrored().blocks(5, 2.5))
+    # along the rear flank's shoulder where it faces 45 degrees ("lower the angle so it's more 45 degree"): one of the
+    # model's lines along that rounded edge, from the sidepod's back corner towards the tail
+    flank = meshlines.line((64, 61, -84), kind="rounded")
+    s.paint("body", "matte", colour=BLACK, zone=flank.between(-55, -120).mirrored().blocks(5, 2.5))
     deck = meshlines.line((0, 66, -133))  # across the back of the deck; 82.5 cm, and the nose's 91.8: ticks together
     s.paint("body", "matte", colour=BLACK, zone=ruler(deck.between(deck.at(s=2), deck.at(s=84.5)), side=-1))
     nose = meshlines.line((0, 49, 187))  # round the nose tip, from z 150 (clear of the nose fin's plate) on each side

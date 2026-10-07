@@ -62,3 +62,9 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
 - Note 5 (user, 2026-10-07, in the Lab, drawn on from the nose tape's front end over the nose tip's seam to z 158):
   "It's ok to go past the next object". The nose's block scale carried on 15 cm past its line's end, straight on and
   laid on the nose (Course.extended), over the seam onto the nose tip, both sides: one smooth tape from z 95 to 158.
+- Note 6 (user, 2026-10-07, in the Lab, pinned on the left rear flank's tape; their picture caught the car in clay):
+  "Tape looks great but maybe lower the angle so it's more 45 degree". Read as: lower on the flank's rounded shoulder,
+  where it faces 45 degrees (it lay where the shoulder faces 11 to 30 degrees, nearly up). The block scale centred on
+  the model's line along that rounded edge facing 47 degrees, from z -55 to -120 (the eye: beside the panel line along
+  the flank's top at an even 4.1 cm): it shows from the side and from behind now. Open (asked in the Lab): whether that's
+  the 45 degrees they meant, or the tape turned to run at 45 degrees.
