@@ -44,3 +44,11 @@ accent; quiet, sparse, the detail in the edges.
   where the tape ran): "You need it to follow the edge". The tape after the nose moved from the rounded edge above
   onto that edge: `meshlines.picked` through the traced points (the model's own crisp lines, z 144 to 69), each side.
   The checks: its end runs under 2 cm past a crisp line at z 68, which looks clean close up.
+- Pick (user, 2026-10-07, in the chat): "It's not perfect but lets just go with the test": set 2's B, the leading
+  edges, is the car. What each big shape is for, for the passes that follow: the matte bomber grey is the skin that
+  swallows light, nearly the whole car, its calm; the tape grey satin bands (4 cm) mark where the car meets the air
+  first, all on the car's own lines: round the nose and on along the body's edge over each side opening (to z 69),
+  the whole outline round the cockpit (closed behind it), the skirts' swept outer edges, the intakes' lips. They are
+  the lines the medium and small details hang off. Black: inside the intakes and the inner car. Gold: the canopy
+  alone. The gear: dark gunmetal. Next: the surfaces pass, the details pass and the art direction, each a fresh agent
+  (language.md).

@@ -1,6 +1,7 @@
-"""TSC_StealthBomber, take B, the leading edges: tape grey bands along the car's own leading edges (the nose's
-rounded front and on along the body's edge over the side openings, the whole outline round the cockpit, the swept edges of the skirts, the intakes' lips), each ending where
-its line ends (the composition, from its visual language: language.json)."""
+"""TSC_StealthBomber: a stealth bomber's darkness, finishes and quiet, every line from the car's own form (its visual
+language: language.json). The composition, set 2's B: matte bomber grey, and tape grey bands along the car's own
+leading edges (round the nose and on along the body's edge over the side openings, all round the cockpit's outline,
+along the skirts' swept edges, round the intakes' lips), each ending where its line ends."""
 
 from tool import meshlines
 
@@ -23,7 +24,8 @@ def base(s):
 def design(s):
     base(s)
     s.step("The leading edges", "Tape grey satin, 4 cm wide, along the car's own leading edges: round the nose's "
-           "front and on back along the body's edge over the side openings, all round the cockpit's outline, along the skirts' swept edges and round the intakes' lips.",
+           "front and on back along the body's edge over the side openings, all round the cockpit's outline, "
+           "along the skirts' swept edges and round the intakes' lips.",
            words=WORDS)
     # one line round the nose and on along the body's edge over the side opening each side, picked on the model's
     # own lines where the user traced it

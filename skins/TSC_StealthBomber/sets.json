@@ -36,27 +36,30 @@
    "title": "Composition · 3 takes, from the car's own lines",
    "words": "sure",
    "made": "2026-10-07T18:16:10",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "Spine",
-     "skin": "TSC_StealthBomber_Spine"
+     "skin": "TSC_StealthBomber_Spine",
+     "picture": "sets/2/A.png"
     },
     {
      "key": "B",
      "title": "Leading edges",
-     "skin": "TSC_StealthBomber_LeadingEdges"
+     "skin": "TSC_StealthBomber_LeadingEdges",
+     "picture": "sets/2/B.png"
     },
     {
      "key": "C",
      "title": "Sheen",
-     "skin": "TSC_StealthBomber_Sheen"
+     "skin": "TSC_StealthBomber_Sheen",
+     "picture": "sets/2/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "B",
+   "decision": "Leading edges: tape along the car's own edges",
+   "done": "2026-10-07T19:39:55"
   }
  ]
 }
