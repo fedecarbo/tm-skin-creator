@@ -52,3 +52,7 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   143 runs 2 to 3 degrees off their stroke, 5 cm below it: the block scale 4 cm beside it, the whole line, both sides
   (within a cm of the stroke; it ends where the line does, on the seam where the nose tip begins: the eye, "its edge
   meets the panel line along the body shell at z +143").
+- Note 3 (user, 2026-10-07, in the Lab, a ring 9 cm across drawn on the left rear quarter panel, the flap by the
+  cockpit's back): "Crash icon here maybe". A 12 cm target (as large as the nose's) at the ring's centre, both sides:
+  laid where wanted, in the middle of the panel (the eye: 4.2 cm from its outer line, 3.4 to 3.8 from the engine
+  cover's), the panel's outline round it.

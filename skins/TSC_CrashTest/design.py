@@ -68,6 +68,10 @@ def design(s):
     target(s, "body shell", (10, None, 102), 12)
     target(s, "tail panel", (13, None, -147), 14)
 
+    s.step("The rear quarter targets", "A target on each rear quarter panel, the flap by the cockpit's back, where the "
+           "user ringed it, as large as the nose's.", words="Crash icon here maybe")
+    target(s, "rear quarter panel", (33, None, -63.4), 12)
+
     s.step("The steel joint", "The car's own round fuel cap on the deck in brushed steel, as the dummy's joints are.",
            words="steel at the hinges")
     s.paint("fuel cap", "brushed steel")
