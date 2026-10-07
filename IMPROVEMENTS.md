@@ -26,8 +26,12 @@ can't be painted again, the tool fixed or retired what made them).
   area by area; any session can pick it up and paint. The work in passes, as a team does (concept, then materials,
   then details, outside and in), perhaps a fresh agent for a pass so no session runs out of room. How much detail is
   the concept's call ("some concepts might not require lots of details, others might have lots, and that's the whole
-  point"). For every car ("it should apply to any other car I built"); TSC_Hangar is the test car, the second half
-  of its book drafted by hand (`skins/TSC_Hangar/book.json`).
+  point"). For every car ("it should apply to any other car I built"). The first test, TSC_Hangar (2026-10-07): its book
+  by hand (`skins/TSC_Hangar/book.json`, a page in the work folder), then a fresh agent painted 25 of its 26 details
+  from the book alone in 40 minutes, as option B beside the concept; waiting for the user's pick. What the pass
+  lacked: a zone inside an outline or between the model's lines (written in the design), a mark on the wheel covers
+  (shared by all four: "nothing laid"), an offset across a rounded shoulder (wobbles, loops at its ends), a zone
+  for where grime collects; and each paint took 65 s, not 30.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
@@ -75,7 +79,8 @@ can't be painted again, the tool fixed or retired what made them).
 - **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
   on the stage until the first paint.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
-  nose sensor, airbox: check them the first time a design paints them), and the fasteners have none
+  airbox: check them the first time a design paints them; 2026-10-07: the "antenna" is the probe under the nose,
+  the "nose sensor" is hidden inside it, the "sidepod grille" is the backing of the visible "sidepod grille plate"), and the fasteners have none
   (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand). The body's own bolt heads are four tiny parts with one paint for
   the whole car, which no zoned paint reaches: gold dots on every shard of TSC_Kintsugi, unasked.
   Renaming touches `tool/naming.py` and the viewer.

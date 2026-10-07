@@ -28,3 +28,13 @@ overhaul (the jet in the hangar: bare aluminium and yellow-green primer, red tag
   motif at three sizes, stencils, texture, lines, transitions) and 37 details over 8 areas, 26 to paint; shown as a
   page (localhost:8765/data/board/hangar/book.html). Set 1, the concept (A) against the car a fresh agent paints
   from the book alone (B), being painted.
+- The details pass (2026-10-07, a fresh agent, Claude Opus 5.5, from the brand book alone, on option B): 25 of the
+  26 details painted in about 40 minutes and 9 paints, each its own step, the stencils in one step of their own; the
+  anti-collision beacon left out (no part on the car's top can glow; an unlit dot isn't a light). Changed on the car:
+  the touch-ups on three whole panels (the right sidepod top, the cockpit surround, the left rear quarter panel); the
+  pitot on the probe under the nose (the parts list's "antenna"; its "nose sensor" is hidden); the squadron band from
+  the flank's shoulder line down to the model's rounded line where it turns, 9 cm, the gold pinstripe on that line; the
+  intake screens a darker steel on the visible grille plate. The hook shows only from low down. Paints take 65 s now
+  (the grime and the outlines' zones). Close looks: the stencils crisp and flat, the band and its pinstripe even, the
+  slip mark and the hub's bolt clean; the driving camera sees the emblems, the fuel cap's ring, the bands and the
+  titanium tail. Set 1 open: A, the concept; B, the brand book's car.
