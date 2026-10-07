@@ -7,40 +7,89 @@ goes into the code. It mustn't pile up or go stale: the session-start check (`to
 still in the user's words), done, or deleted (git keeps it). Things that exist are named in backticks
 and checked by the self-test; ideas are named in plain words.
 
-## Next: intent to result
+## Next: the road
 
-The road of 2026-10-05, in order, each step one commit under the self-test, shown on a new test car made for it
-and scrapped after, never a past car repainted (the user, 2026-10-07: "for any test to actually use new skins that
-could be scraped after ... unless it's really necessary").
+The research's order of work (`reports/Skin tool state of the art 2026.md`: its last table, the why and the
+sources), one step per session (the user, 2026-10-07: "I will do the plan a session each"). A session does the
+first step below and nothing past it:
+- build it under the self-test, and show its worth: on a new test car made for it when it changes what a car looks
+  like, never a past car (the user: "for any test to actually use new skins that could be scraped after ... unless
+  it's really necessary"); in plain words and numbers when it doesn't;
+- on the user's OK, remove everything it retires (the user: "I really want to make sure things that are deprecated
+  to be removed"): the code, its mentions in the instructions and docstrings, its caches in the work folder, the
+  test car; `git grep` finds none of the retired names;
+- delete the step here (git keeps it), commit, push. A session that ends before the OK leaves its step marked
+  "built, waiting for the user's OK" for the next one.
 
-- **H. Lines and graphics that hold, on any car: first** (2026-10-07, the user, stopping TSC_StealthBomber: "Dude, what's so hard to
-  follow the actual mesh you have as a guide ... It's obviously broken"; "Look at all these gaps. Mediocre"; "Is the
-  tool broken?"; then "This tool needs to be optimised, it cannot randomly make mistakes"; "If rules don't work, then
-  let's find another approach, if you rushed, then let's find a fix to that, either the workflow, the workload,
-  anything"). Measured: a band along a line keeps only the skin facing within 60 degrees of the line's own facing at
-  its nearest point, and on an edge that facing flips (the skirt's lower-edge tape: 20 flips over 30 degrees, up to
-  138, straight down to outward), so the band hops between the side and the underside: the gaps; `meshlines.picked`
-  smooths through the clicks and leaves the mesh where the model's short lines meet: the steps; `tool.skin show`'s
-  checks named nothing all along, and no close look ran along a line. Not about tapes alone (the user: "it's really
-  not about the tape ... anything like putting a line on an edge or anywhere"): the research's plan is one surface
-  foundation that places and measures every graphic (`reports/Skin tool state of the art 2026.md`, its order of work
-  waiting for the user's OK). To build, one at a time, each shown on a new test car with graphics on the car's
-  hardest spots (a rolled edge, where the model's short lines meet, a seam): every one whole, even and on the face the
-  user sees:
-  1. A tape on one face of an edge, the face chosen by the mesh's own faces beside the edge, never by a direction.
-     Built, waiting for the user's OK on a test car (2026-10-07): `Course.tape`, measured across the surface from the
-     line through the map's texels, never across the line.
-  2. One continuous line along the mesh's own edges end to end, never smoothed off the surface; a join that would
-     leave the mesh is refused, not drawn.
-  3. A line check: every marking along a line whole, even in width and without kinks from end to end: a failure
-     that stops the work, not a note.
-  4. Close looks that travel along every line a design draws, square to its visible face, with every paint.
-  5. Gates instead of rules: `tool.notes done`, `tool.sets open` and the start of a pass refuse while a line check
-     fails or a change has no fresh close looks, and the Stop hook (`tool/guard.py`) holds a turn that would end on
-     such a car. A rule in RULES.md that a gate now enforces goes: a rule the work can break under pressure becomes a
-     gate.
-  6. The workload: one change, its close looks, then the reply; a pass of the routine starts only on a base the user
-     has OK'd up close with no notes open; a long stage in a session of its own.
+The self-test's own cars (the tour, the planted-flaw pair) are the tool's: painted by the self-test, never shown in
+the Lab.
+
+- **Every graphic on the car's surface** (2026-10-07, the user, stopping TSC_StealthBomber: "This tool needs to be
+  optimised, it cannot randomly make mistakes"; "it's really not about the tape ... anything like putting a line on an
+  edge or anywhere"; "Not an external tool please ... let's stick with optimisation"). Measured: graphics are placed
+  near the body, not on it (a band keeps skin facing within 60 degrees of its line's facing, which flips on a rolled
+  edge: gaps; a picked line is smoothed in space and pushed back: steps), and no check measured a graphic where it
+  landed. The steps:
+  1. **Test cars, tripwires, a profile.** A planted-flaw pair in the self-test beside the tour: one car with every
+     kind of graphic on the hardest spots (a rolled edge, where the model's short lines meet, a seam, a decal over a
+     crease, words along a curve), one with the kinds of flaw the user has pointed out planted at known places and
+     sizes. In the self-test, a dead-code tripwire and a line-count budget (a library's latest release looked up
+     first). A profile of one whole-car paint, the Mac's now and the PC's when a session runs there. Retires
+     `tool/record.py` and `tool/record.json` (their kinds move to `tool/checks.py`).
+  2. **The foundation.** One repaired surface of the car (welded, duplicate faces dropped, edges split where more
+     than two faces meet, mapped back to the model's triangles), its distance and line solvers per piece (potpourri3d
+     and libigl, installed, unused so far), and every texel sampled through the bake's triangle. Game files
+     identical. Retires the body's other weld once its readers read this (`carmap._weld`).
+  3. **Bands along a line**, from the distance along the surface: wrapping an edge, on one face, stopping at a
+     crease. Shown beside the tape built for TSC_StealthBomber (`Course.tape`, waiting for the user's OK) with the side flips and the width
+     every half centimetre; the user's eye picks. Retires the facing filter (`FACING` in `tool/course.py`) and the
+     one not picked (`Course.tape` with `TAPE_SEAM` and `TAPE_FOLD` in `tool/course.py`, or the new band).
+  4. **Lines anywhere on the mesh.** Clicks snapped to the model's lines and its chain of edges taken whole,
+     straightened by flipping edges, a line beside a line as a contour of the distance, carried on by the
+     straightest path; strips, dashes, ticks, inked edges and fills bounded by the model's lines moved onto it. Also
+     TSC_CrashTest's mirrored nose tape whose carried-on end differs by side (1 to 1.6 cm over its last 8 cm).
+     Retires the smoothing and the push back onto the body (`meshlines.smooth`), the offset's walk and the
+     extension's (`Course.offset`, `Course.extended`), the seam tracer (`tool/seams.py`, `course.seam`: a seam is
+     one of the model's lines) and the stroke's smoothing (`course.stroke`).
+  5. **Decals, emblems and words on the surface.** A local map round a point for marks and decals (across a crease
+     when the design says so, its stretch measured), coordinates along and across a line for words and patterns
+     along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a
+     mark's `at` seen along an axis landing on a panel's underside unnoticed. Retires the facing cone and the fold
+     rule that marks, decals, words and scatter each use, and the projection's nearest-facing landing
+     (`marks.project`).
+  6. **One judge.** One list of findings (block, warn, note) carrying the design's hash; a placement check for
+     every graphic (lines: width, gaps, steps, kinks and face hops every 0.25 to 0.5 cm; fills: how far the edge sits
+     from its line; decals and words: whole, stretch), its limits tuned on the planted-flaw pair; the reach and the
+     flaw checks folded in; the eye's placement findings advisory. Also: a paint covered by the same paint said to
+     stop short (TSC_RescueV2's lower edge), a tick cut short by an edge unnamed (TSC_CrashTest's ruler), the judge
+     run on the PC once. Retires the three passes and their three files (`tool/measure.py`, `tool/checks.py`,
+     `tool/eye.py` become one module with one output), and any eye finding the pair shows is noise.
+  7. **Close looks along every line and over every decal**, square to the visible face at about 20 px per cm,
+     shaded for the eye and as a flat mask the judge measures; a pixel diff against the previous version flags
+     changes outside the area an edit meant to touch; both sides of the car seen alike. Retires the close looks they
+     replace (`PY -m tool.snap <name> --close`, `--eye`).
+  8. **Gates.** `tool.notes done`, `tool.sets open`, the start of a pass and `tool.skin install` refuse on a
+     blocking finding or a verdict older than the design; the Stop hook (`tool/guard.py`) holds a turn once with the
+     top findings. Retires each line of `RULES.md` a gate now enforces.
+  9. **Memory.** Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
+     the covered texels worked on, in chunks, float32 for the maths and smaller types stored, each part's arrays
+     freed once laid down, and only the map that changed repainted (a `show` repaints the whole car for a note on
+     the tyres). Game files identical. Retires the compressed caches, their readers and the old caches in the work
+     folder.
+  10. **The GPU, where step 1's profile points**: the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
+      needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
+      part in a million).
+  11. **Wear where real cars wear.** Curvature, occlusion and thickness baked once per car on the repaired surface
+      (libigl); wear and dirt driven by them; anti-aliased part edges. Retires wear's direction, height and sun
+      rules.
+  12. **A narrower paint box.** One verb per intent, line ids and part names as typed values that answer "did you
+      mean", a short receipt from every verb, `Skin.text`, `Skin.placard`, `Skin.emboss` and `Skin.decal` merged;
+      duplicate-code and error-hiding tripwires in the self-test. Retires every private way of placing things the
+      foundation replaced, and the merged verbs.
+  13. **Yardsticks, on the PC.** The game files encoded once by quicktex and texconv against the tool's own
+      encoder; the viewer fitted per mood to the user's F12 screenshots (FLIP: exposure, environment strength, tone
+      mapper, clearcoat), and from their videos the cameras pulling back with speed, the car number's lettering, the
+      rear wings' and air brakes' angles. Retires nothing unless another encoder wins.
 
 - **F. A visual language for an idea** (2026-10-07, the user: "one of the most important things before even
   designing a car is to develop sort of a visual language first, kind of like a brand book ... it shouldn't really
@@ -74,26 +123,6 @@ could be scraped after ... unless it's really necessary").
 - **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
   is worked out on each computer (numpy and BLAS); the checks (`tool/checks.py`) and a mark's room
   (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
-- **A mark's `at` seen along an axis** (2026-10-05, the agent's test car): `(x, None, z)` takes the panel's
-  nearest texel in x and z, which can be its underside, with no note that it faces away; a shrunk mark
-  that fills its room hugs the panel's edges, which no note says; placing a tight mark takes a paint per
-  try. Ideas: among the texels in line, the one facing the free axis, and a note when none does; a note
-  when a mark takes over 80 % of its room; a probe command for marks, as lines have one.
-- **A paint covered by the same paint is said to stop short** (2026-10-06): TSC_RescueV2's black lower
-  edge "stops 40 cm short" where the side skirt, painted black by name, covers it. Idea: a later call in
-  the same colour and finish leaves no shortfall (`measure._why`).
-- **A tick cut short by the body's edge goes unnamed** (2026-10-07): TSC_CrashTest's ruler, rising from the
-  sill's line, ran into the inlet's frame about 1 cm up and showed as stubs; the checks named nothing, the close
-  look found it. Idea: the checks name a tick or dash that loses most of its length to an edge.
-- **The eye on the PC** (2026-10-07, the user, of the eye after its test car: "it's not perfect eye test, but Im ok
-  with just moving on for now"): `eye.look` and `tool.snap --eye` have only run on the Mac. It's wordy on a ragged
-  edge (the old Ladybird's grass: each blade's tip JUST PAST a line); idea: a ragged edge's flags said once.
-- **A mirrored tape's carried-on end differs by side** (2026-10-07): TSC_CrashTest's nose tape (`Course.extended`,
-  mirrored) runs within half a centimetre of its mirror on the other side up to z 148, then 1 to 1.6 cm apart over
-  its last 8 cm on the nose tip. Idea: find whether the body or the zone isn't mirrored there.
-- **Repaint only the map that changed** (2026-10-05): every `show` paints the whole car (about a
-  minute) even when a note touched only the tyres. Idea: repaint that map alone, if the game files stay
-  identical.
 - **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
   on the stage until the first paint.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
@@ -102,18 +131,9 @@ could be scraped after ... unless it's really necessary").
   (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand). The body's own bolt heads are four tiny parts with one paint for
   the whole car, which no zoned paint reaches: gold dots on every shard of TSC_Kintsugi, unasked.
   Renaming touches `tool/naming.py` and the viewer.
-- **The pictures Claude looks at** (2026-10-05): the comparison picture's number takes 1, 2, 3 on top
-  of A, B, C, and drops a fourth view (idea: letters, and a second row); the close looks give the right
-  side one tile in ten, so a car that isn't the same on both sides goes half unseen (TSC_Kintsugi).
 - **What the Mac lacks** (2026-10-05): the picture maker (it needs the PC's card; idea: FLUX.2 [klein]
   on Metal, quantised, the latest release looked up first) and two tyre fonts (Bahnschrift, Consolas;
   idea: open look-alikes).
-## The viewer
-
-- **The viewer against the game** (2026-10-05): the game's cameras pull back with speed (fitted
-  standing still; fit Cam 1 at a few speeds from the user's videos); the car number's lettering is a
-  guess until a close-up of the engine cover; the rear wings and air brakes move at the video's pace,
-  their angles set by eye (a short side video would pin them).
 
 ## To check in the game
 

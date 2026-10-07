@@ -108,5 +108,5 @@ accent; quiet, sparse, the detail in the edges.
   Checked close up along every tape, painted orange on a throwaway copy (deleted).
 - No longer the test (the user, 2026-10-07, of the tool's work after the research on how it's done today: "I don't
   really want to use previous cars to test or evaluate ... for any test to actually use new skins that could be
-  scraped after ... unless it's really necessary"): IMPROVEMENTS.md H is shown on new test cars made for it and
-  scrapped after. This car stays stopped until the user says.
+  scraped after ... unless it's really necessary"): the road in IMPROVEMENTS.md is shown on new test cars made for it
+  and scrapped after. This car stays stopped until the user says.
