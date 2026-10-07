@@ -2,7 +2,7 @@
 
 import math
 
-from tool import marks, shapes
+from tool import marks, meshlines, shapes
 from tool.shapes import WHEEL_Y, WHEEL_Z
 
 SKIN = "#e3a21a"   # the dummy's warm yellow
@@ -50,6 +50,14 @@ def design(s):
            "its door targets.", words="black targets on the head and joints")
     spot = s.mark("sidepod top", "matte", marks.disc(), size=20, at=(87, 42, -24), colour=BLACK)
     s.mark("sidepod top", "soft-touch", target(), size=0.84 * spot.size, at=spot.centre, colour=SKIN)
+
+    s.step("The measuring strips", "A black and yellow block scale along each upper flank's edge, where a test "
+           "car carries one on its roof rails; a ruler along each sill, under the side target, every 3 cm and longer "
+           "every 15, hanging from the model's line onto the strip below it.", words="Add them, we are testing that isnt it?")
+    rail = meshlines.line((44, 65, -21), kind="rounded").between(30, -75).mirrored()
+    s.paint("body", "matte", colour=BLACK, zone=rail.blocks(5, 2.5))
+    sill = meshlines.line((74, 26, 21)).mirrored()  # 87.8 cm: the ticks every 3 and every 15 fall together
+    s.paint("body", "matte", colour=BLACK, zone=sill.ticks(3, 2, width=0.5, side=-1) | sill.ticks(15, 4, width=0.6, side=-1))
 
     s.step("The lights", "The car's own lights in the dummy's yellow: the wheel rings, the speed numbers, "
            "the rear and brake lights.", look="rear night")
