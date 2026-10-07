@@ -38,22 +38,6 @@ can't be painted again, the tool fixed or retired what made them).
   60-degree divide wandered in a zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm
   groove, not its middle.
 
-- **H. An eye for how a graphic sits** (2026-10-07, the user, of TSC_CrashTest's block scale: "if there's an improvement
-  that can be made in general ... for the AI to properly design and have the right tools to have better judgement or
-  eyes (but obviously not restrict creativity)"): the tape lay exactly on one of the model's lines, a roll the eye
-  doesn't see, its gap to the panel lines pinching and its end a centimetre off the rear quarter panel's outline.
-  Built: `eye.look` (`tool/eye.py`), after each paint in `show`: each graphic in words against the lines the eye
-  sees and against the other graphics (beside at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a
-  SLIVER, a SHALLOW crossing, an edge JUST PAST a line, PART OVER a small piece such as the fuel cap, TOUCHES, how near
-  two come; a crossing told from an end meeting a line, a tape's angle read off its own run); it names, never forbids. `PY -m tool.snap <name> --eye`: a close look at each spot it names, the mesh
-  drawn. Its flags count in `tool.record`: 5 of 5, that tape unprompted and the Ladybird's grass touching the head's
-  mark, with about 25 more on the old Ladybird cars the user never raised. On TSC_CrashTest: the nose tape crosses
-  the nose tip's seam at 82 degrees; the deck ruler's ends 12 to 14 cm from the rear flank tapes'. The user, on the
-  first eye: "You've done an amazing job, I would drive this". Its test car, TSC_EnduranceRacer (the user's pick of
-  three, "scrap it at the end of test"): four takes, each fixing what it named, to one it flags nothing on. Waiting
-  for the user's OK; then its first run on the PC. Open: it's wordy on a ragged edge (the Ladybird's grass: each
-  blade's tip JUST PAST a line); idea: a ragged edge's flags said once for the graphic.
-
 ## The tool
 
 - **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
@@ -70,6 +54,9 @@ can't be painted again, the tool fixed or retired what made them).
 - **A tick cut short by the body's edge goes unnamed** (2026-10-07): TSC_CrashTest's ruler, rising from the
   sill's line, ran into the inlet's frame about 1 cm up and showed as stubs; the checks named nothing, the close
   look found it. Idea: the checks name a tick or dash that loses most of its length to an edge.
+- **The eye on the PC** (2026-10-07, the user, of the eye after its test car: "it's not perfect eye test, but Im ok
+  with just moving on for now"): `eye.look` and `tool.snap --eye` have only run on the Mac. It's wordy on a ragged
+  edge (the old Ladybird's grass: each blade's tip JUST PAST a line); idea: a ragged edge's flags said once.
 - **A mirrored tape's carried-on end differs by side** (2026-10-07): TSC_CrashTest's nose tape (`Course.extended`,
   mirrored) runs within half a centimetre of its mirror on the other side up to z 148, then 1 to 1.6 cm apart over
   its last 8 cm on the nose tip. Idea: find whether the body or the zone isn't mirrored there.
