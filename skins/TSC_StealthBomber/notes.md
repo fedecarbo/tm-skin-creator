@@ -86,3 +86,9 @@ accent; quiet, sparse, the detail in the edges.
   "Also make this tape continuous until the rear". The skirt's tape now one line picked on the model: the skirt's
   swept crisp edge, then the side skirt's and the rear flank's rounded lower edge, to where it ends by the rear wheel
   (z -107), both sides. It sits low and mostly in shadow: a quiet line from most angles.
+- Stopped (user, 2026-10-07, in the chat and the Lab, note 5 pinned on the nose's tape, its band wandering and nicked
+  along the nose's lower edge): "Dude, what's so hard to follow the actual mesh you have as a guide. What is this kind
+  of quality of work? It's obviously broken"; "Stop the work. Nothing on this is working"; "Mediocre work". The
+  details pass stopped before it changed anything. The nose's tape is stitched from the rim of the nose and the side's
+  crisp edge, smoothed through picked points: the thing the mesh rule says never to do, and checked from angles that
+  hid it. The car stands at the surfaces pass. Nothing more until the user says.
