@@ -1,0 +1,32 @@
+{
+ "car": "TSC_StealthBomber",
+ "sets": [
+  {
+   "n": 1,
+   "title": "Composition · 3 takes",
+   "words": "go ahead",
+   "made": "2026-10-07T17:49:54",
+   "state": "open",
+   "options": [
+    {
+     "key": "A",
+     "title": "Leading edge",
+     "skin": "TSC_StealthBomber_LeadingEdge"
+    },
+    {
+     "key": "B",
+     "title": "Low edge",
+     "skin": "TSC_StealthBomber_LowEdge"
+    },
+    {
+     "key": "C",
+     "title": "Trailing edge",
+     "skin": "TSC_StealthBomber_TrailingEdge"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
+  }
+ ]
+}
