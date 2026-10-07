@@ -23,3 +23,8 @@ overhaul (the jet in the hangar: bare aluminium and yellow-green primer, red tag
   each side; the wheel rings and speed numbers in formation-light green, the rear and brake lights red. The board's
   red-and-white stripes left off for now: a few things at a time. Close looks: the triangle's border even, the
   wheels' red right up to the tyre, the intake's lip whole round the opening; the checks name nothing.
+- The test (user, 2026-10-07, in the chat): "Sure", to building the car in passes from its brand book, small stencil
+  words allowed. The brand book (`book.json`): its identity (an invented squadron, blue and gold: its emblem, one
+  motif at three sizes, stencils, texture, lines, transitions) and 37 details over 8 areas, 26 to paint; shown as a
+  page (localhost:8765/data/board/hangar/book.html). Set 1, the concept (A) against the car a fresh agent paints
+  from the book alone (B), being painted.

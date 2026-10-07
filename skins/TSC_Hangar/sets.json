@@ -1,0 +1,27 @@
+{
+ "car": "TSC_Hangar",
+ "sets": [
+  {
+   "n": 1,
+   "title": "The concept against its brand book",
+   "words": "Sure (to the test: the concept, then the brand book, then a fresh agent for materials and details)",
+   "made": "2026-10-07T12:50:28",
+   "state": "painting",
+   "options": [
+    {
+     "key": "A",
+     "title": "Concept",
+     "skin": "TSC_Hangar_Concept"
+    },
+    {
+     "key": "B",
+     "title": "BrandBook",
+     "skin": "TSC_Hangar_BrandBook"
+    }
+   ],
+   "pick": null,
+   "decision": "",
+   "done": ""
+  }
+ ]
+}
