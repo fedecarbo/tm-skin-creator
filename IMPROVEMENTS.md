@@ -9,11 +9,11 @@ and checked by the self-test; ideas are named in plain words.
 
 ## Next: intent to result
 
-The road of 2026-10-05, in order, each step one commit under the self-test, shown on a car and scored
-by `PY -m tool.record` (how many of the user's recorded flaws the tool names first: 5 of 5 today; 40 more
-can't be painted again, the tool fixed or retired what made them).
+The road of 2026-10-05, in order, each step one commit under the self-test, shown on a new test car made for it
+and scrapped after, never a past car repainted (the user, 2026-10-07: "for any test to actually use new skins that
+could be scraped after ... unless it's really necessary").
 
-- **H. Lines that hold, on any car: first** (2026-10-07, the user, stopping TSC_StealthBomber: "Dude, what's so hard to
+- **H. Lines and graphics that hold, on any car: first** (2026-10-07, the user, stopping TSC_StealthBomber: "Dude, what's so hard to
   follow the actual mesh you have as a guide ... It's obviously broken"; "Look at all these gaps. Mediocre"; "Is the
   tool broken?"; then "This tool needs to be optimised, it cannot randomly make mistakes"; "If rules don't work, then
   let's find another approach, if you rushed, then let's find a fix to that, either the workflow, the workload,
@@ -21,11 +21,15 @@ can't be painted again, the tool fixed or retired what made them).
   its nearest point, and on an edge that facing flips (the skirt's lower-edge tape: 20 flips over 30 degrees, up to
   138, straight down to outward), so the band hops between the side and the underside: the gaps; `meshlines.picked`
   smooths through the clicks and leaves the mesh where the model's short lines meet: the steps; `tool.skin show`'s
-  checks named nothing all along, and no close look ran along a line. To build, one at a time, each shown on that
-  car's tapes (its notes 1 to 9 are the test: every tape whole, even and on the face the user sees):
+  checks named nothing all along, and no close look ran along a line. Not about tapes alone (the user: "it's really
+  not about the tape ... anything like putting a line on an edge or anywhere"): the research's plan is one surface
+  foundation that places and measures every graphic (`reports/Skin tool state of the art 2026.md`, its order of work
+  waiting for the user's OK). To build, one at a time, each shown on a new test car with graphics on the car's
+  hardest spots (a rolled edge, where the model's short lines meet, a seam): every one whole, even and on the face the
+  user sees:
   1. A tape on one face of an edge, the face chosen by the mesh's own faces beside the edge, never by a direction.
-     Built, waiting for the user's OK (2026-10-07): `Course.tape`, measured across the surface from the line through
-     the map's texels, never across the line; shown on that car's tapes (its nose's kink at the seam is step 2's).
+     Built, waiting for the user's OK on a test car (2026-10-07): `Course.tape`, measured across the surface from the
+     line through the map's texels, never across the line.
   2. One continuous line along the mesh's own edges end to end, never smoothed off the surface; a join that would
      leave the mesh is refused, not drawn.
   3. A line check: every marking along a line whole, even in width and without kinks from end to end: a failure

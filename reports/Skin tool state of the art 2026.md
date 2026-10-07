@@ -8,9 +8,9 @@ The tool's overall design is what 2026 practice recommends, and nothing on the m
 
 The recommended order:
 
-1. Put the user's line complaints into the record and profile one paint.
+1. Make a new test car for the work, with flaws planted on purpose, and profile one paint.
 2. Build the foundation: one repaired surface of the car, with its distance and line solvers.
-3. Move every graphic onto it: lines and bands first (shown on the StealthBomber's tapes), then fills, decals and lettering.
+3. Move every graphic onto it: lines and bands first, then fills, decals and lettering, each shown on a new test car made for it.
 4. Add one judge that measures every graphic where it lands, close looks along lines and over decals, and gates that refuse "done".
 5. Then memory, GPU and better wear.
 6. Let the foundation replace the paint box's several hand-written ways of placing things, so the code shrinks.
@@ -100,7 +100,7 @@ So **one fix serves every graphic**. A line placed on the mesh, a band, a fill e
 
 These costs are negligible next to a paint, so **every skin pays almost nothing** for this, which satisfies the rule against steps every skin pays for.
 
-**How it relates to H.1.** H.1's `Course.tape`, built and awaiting the user's OK, already measures across the surface rather than through space. It does so through a grid of texels on the body texture only. It joins texels across seams by closeness (`TAPE_SEAM = 0.3` cm) and by facing (`TAPE_FOLD`, within 120 degrees). It is a step the right way, but it is one piece's private answer. The foundation does the same job where seams don't exist, so those two thresholds disappear. It is also identical for every texture set, and the same surface serves offsets, fills, decals and the judge. The fair test is the user's eye: paint the foundation's band beside H.1's tape on the same failing roll, with the flip count and width every half centimetre shown beside each.
+**How it relates to H.1.** H.1's `Course.tape`, built and awaiting the user's OK, already measures across the surface rather than through space. It does so through a grid of texels on the body texture only. It joins texels across seams by closeness (`TAPE_SEAM = 0.3` cm) and by facing (`TAPE_FOLD`, within 120 degrees). It is a step the right way, but it is one piece's private answer. The foundation does the same job where seams don't exist, so those two thresholds disappear. It is also identical for every texture set, and the same surface serves offsets, fills, decals and the judge. The fair test is the user's eye: on a new test car, paint the foundation's band beside H.1's tape on the same kind of rolled edge that failed, with the flip count and width every half centimetre shown beside each.
 
 **Lines placed on the mesh follow the user's own rule**: "one of the model's lines whole, or a line beside one".
 
@@ -153,18 +153,19 @@ Claude sees images in 28-pixel patches, up to 2,576 px on the long edge ([Claude
 
   The foundation from the previous section supplies "along", "across" and the local maps for free. **The same surface that places a graphic measures it.**
 - **Close looks along every line and over every decal (H.4).** Square to the visible face, at about 20 px per cm, rendered twice: shaded for the eye, and as a flat mask that the same width and gap measures run on. That catches what texel arithmetic can't, such as texture filtering in the viewer. A pixel comparison against the previous version's close looks (pixelmatch-style, threshold ~0.1) also flags changes outside the area the edit meant to touch ([pixelmatch](https://github.com/mapbox/pixelmatch)).
-- **The current checkers.** The reach measurer and flaw checks (`measure.py`, `checks.py`) keep their kinds. A deliberate crossing becomes a recorded waiver instead of silence. The placement eye (`eye.py`) stays advisory until the record shows a kind is precise.
+- **The current checkers.** The reach measurer and flaw checks (`measure.py`, `checks.py`) keep their kinds. A deliberate crossing becomes a recorded waiver instead of silence. The placement eye (`eye.py`) stays advisory until the planted-flaw test car shows a kind is precise.
 - **A vision model on crops (advisory only).** A fresh agent that never painted the car answers narrow yes/no/unknown questions with a position ("is there anywhere along this line where the body shows through?"). A "yes" triggers a measurement at that spot. It never clears a measured block.
 
 **Gates make the judge bite.** The judge writes its verdict with a hash of the design, so an old pass can't cover a new change. `tool.notes done`, `tool.sets open`, the start of a pass and `install` refuse on a block or a stale verdict (H.5). The existing Stop hook (`tool/guard.py`) holds a turn once with the top findings, and uses `stop_hook_active` to let the turn end honestly on the repeat. Claude Code caps such holds at 8 in a row ([hooks reference](https://code.claude.com/docs/en/hooks)).
 
 Each change gets a budget of about three judge-and-fix rounds. Then the best attempt is shown with the open findings named in plain words. That matches the 2–5 round budgets of current render-and-refine systems, which also "revert unsuccessful edits when visual feedback indicates a regression" ([Thinking in Blender](https://arxiv.org/html/2606.02580)).
 
-**Calibrate on the record before trusting any threshold.**
+**Calibrate on new test cars with planted flaws before trusting any threshold.** The user doesn't want past cars used to test or evaluate, unless that is really necessary, so the test set is made fresh and scrapped after.
 
-- **Positives:** add the StealthBomber notes 1–9 as repaintable flaws, pinned to the commit the user saw.
-- **Negatives:** add every region the user OK'd up close, where a blocking check must stay silent.
-- **Tuning:** set the gap, step, kink, hop and stretch limits by sweeping them on this set, not by feel.
+- **Positives:** a new test car with every kind of flaw the user has pointed out planted on purpose (a gap on a rolled edge, a step where short lines meet, a break at a seam, a decal cut by a crease), each at a known place and size.
+- **Negatives:** the same car with the same graphics laid clean, where a blocking check must stay silent.
+- **Tuning:** set the gap, step, kink, hop and stretch limits by sweeping them on this pair, not by feel. The user's past complaints say which kinds of flaw to plant; their cars are not repainted.
+- **The record goes.** `tool.record` scores the checks by repainting past cars; the planted-flaw pair replaces it.
 - **Don't adopt aesthetic reward models.** HPSv3, ImageReward and the LAION predictor score whole pictures against generic taste. They barely move for a 1 cm gap and would pull designs toward sameness ([HPSv3](https://arxiv.org/html/2508.03789v2)).
 
 **Not yet measured:** how long the placement check and the travelling close looks add to a paint. Both must be timed on the self-test car before they become part of every show.
@@ -322,12 +323,12 @@ The steps follow the project's own road (IMPROVEMENTS H first) and its rules: me
 
 | # | Step | Effort | What it fixes | Self-test effect | Cost every skin pays |
 |---|---|---|---|---|---|
-| 1 | Add StealthBomber notes 1–9 to the record as repaintable `line` flaws, plus OK'd regions as must-stay-silent cases; profile one whole-car paint on the Mac (and PC) | ~1 day | Gives the placement and speed work measured targets | No game files change; the record score drops below 5 of 5 by design | None |
+| 1 | A new test car with every kind of graphic on the car's hardest spots (rolled edges, creases, seams), and a copy with the user's kinds of flaw planted on purpose; retire the record, which repaints past cars; profile one whole-car paint of the test car on the Mac (and PC). Scrapped when the work is done | ~1 day | Gives the placement and speed work measured targets without past cars | No game files change | None |
 | 2 | The foundation: one repaired surface of the car (weld, drop duplicate faces, `igl.split_nonmanifold`, map back to the model's triangles), its distance and line solvers cached per piece, per-texel sampling through the bake | ~1 day | Prerequisite for every graphic below | Identical | About 0.05 s, once per car |
-| 3 | Bands along a line from the distance along the surface (wrap, one face, stop at a crease): the foundation's first use, shown on the StealthBomber's tapes beside H.1's, with flip counts and widths | 1–2 days | The gaps; breaks at UV seams | Changes cars with tapes, strips or bands | Milliseconds per graphic |
+| 3 | Bands along a line from the distance along the surface (wrap, one face, stop at a crease): the foundation's first use, shown on the test car beside H.1's, with flip counts and widths | 1–2 days | The gaps; breaks at UV seams | Changes cars with tapes, strips or bands | Milliseconds per graphic |
 | 4 | Lines anywhere on the mesh: snap to model lines, take chains whole, straighten with flip geodesics, offsets as contours; then move strips, dashes, ticks, inked edges and fills bounded by model lines off their private methods onto the foundation | 2–3 days | The steps; offsets crossing on bends; fill edges off their line (H.2) | Changes cars with picked lines, offsets, strips or line-bounded fills | Milliseconds per line |
 | 5 | Decals, emblems and words on the foundation: local surface maps for marks and decals (allowed across a crease when the design says so), along-and-across coordinates for words and patterns along a path, a "flat enough for words" check | 2–3 days | Decals and words that can't cross a fold or follow a curve; unmeasured stretch | Changes cars with marks, decals, text or scatter | Under 0.2 s per decal |
-| 6 | One judge: the placement check for every graphic (lines, fills, decals, words) plus the three checkers in one findings list, blocking first | 2–3 days | Checkers blind to how graphics land (H.3) | No game files change; record should name every line flaw | Seconds; time it first |
+| 6 | One judge: the placement check for every graphic (lines, fills, decals, words) plus the three checkers in one findings list, blocking first | 2–3 days | Checkers blind to how graphics land (H.3) | No game files change; the judge should name every planted flaw | Seconds; time it first |
 | 7 | Close looks travelling along every line and over every decal, a measured mask pass, a pixel diff against the previous version | ~2 days | Defects only rendering shows; unintended edits (H.4) | Snapshot sheets only | Renders per graphic; time it first |
 | 8 | Gates in `done`, `open`, the next pass and `install`, plus the Stop hook holding once | ~1 day | "Randomly makes mistakes" reaching the user (H.5) | None | None |
 | 9 | Memory: `.npy` memory-mapped caches (with a cache version bump), covered texels in chunks, float32/16, repaint only the changed map | 1–2 days | 17-minute swapping paints | Designed identical; any texel that moves is declared | Saves time |
@@ -337,10 +338,10 @@ The steps follow the project's own road (IMPROVEMENTS H first) and its rules: me
 | 13 | Yardsticks: one-off encoder comparison; viewer calibration with FLIP when the user shares F12 screenshots | Hours; ~1 day | Confidence in the game files; the viewer matching the game | Snapshot sheets only, unless an encoder wins | None |
 | 14 | Secondary: picture maker on the Mac via mflux; `vtracer` for clean decal edges | 0.5–1 day | "What the Mac lacks" | None for existing cars | Only when a design asks for art |
 
-Steps 2 to 8 build the foundation, move every kind of graphic onto it and put the judge and gates on top. They come to roughly two and a half weeks of working time. Each step is shown before the next starts: lines and bands on the StealthBomber's tapes, decals and words on a car that uses them. Steps 9 and 10 can move earlier if the profile shows paint time hurting more than placement, but not before step 1.
+Steps 2 to 8 build the foundation, move every kind of graphic onto it and put the judge and gates on top. They come to roughly two and a half weeks of working time. Each step is shown before the next starts, on a new test car made for it and scrapped after. Past cars are used only where really necessary: the self-test still compares the game files of the car in the user's game, so a tool change can't alter it by accident, and it shows nothing in the Lab. Steps 9 and 10 can move earlier if the profile shows paint time hurting more than placement, but not before step 1.
 
 ## Conclusion
 
 The common thread under all three pains is approximation where an exact answer is cheap. The tool approximates the car in several private ways (nearest point in space, a cone of facings, a curve drawn in the air and pushed back, a flat texture piece, a sticker kept off every fold). It approximates its judgement (a whole-car photo for a centimetre defect, the painter grading itself). It approximates its memory (whole canvases held at once on a 16 GB machine). In each case, the exact version is now a library call or a measurement costing milliseconds to seconds. The most valuable consequence is that **one surface foundation both places any graphic and measures it**. A line on an edge, a band, a fill, a decal and a word stop being separate problems with separate failures. The fix for the gaps and the fix for the blind checker are the same piece of work, which is also why this is the right place to start shrinking the code.
 
-The research also reframes "it cannot randomly make mistakes". A model working through a broad interface fails at some rate that instructions don't move. The rate falls when the interface allows only one way to say each thing, when every accident the tool can compute is computed, and when "done" is a verdict the tool issues rather than one the agent claims. That is the user's own "gates, not rules", now backed by Anthropic's agent guidance and by every 2025–2026 render-and-refine study. One condition goes with it: a gate is only as good as the record it was tuned on, so the record must grow with every complaint the judge misses.
+The research also reframes "it cannot randomly make mistakes". A model working through a broad interface fails at some rate that instructions don't move. The rate falls when the interface allows only one way to say each thing, when every accident the tool can compute is computed, and when "done" is a verdict the tool issues rather than one the agent claims. That is the user's own "gates, not rules", now backed by Anthropic's agent guidance and by every 2025–2026 render-and-refine study. One condition goes with it: a gate is only as good as the flaws it was tuned on, so every complaint the judge misses becomes a new kind of flaw planted on the next test car.
