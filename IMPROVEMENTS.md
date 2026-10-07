@@ -21,6 +21,12 @@ first step below and nothing past it:
 - delete the step here (git keeps it), commit, push. A session that ends before the OK leaves its step marked
   "built, waiting for the user's OK" for the next one.
 
+Each step names its model and effort (the user, 2026-10-07: "I don't mind using opus 5.5 or fable 5.1"): Fable 5.1
+where the geometry or the design is hard and a wrong turn costs most, Opus 5.5 where the work is well bounded; xhigh
+where the step reshapes what everything else stands on. The user sets them as the session starts (typing "/model fable"
+or "/model opus", then "/effort xhigh" or "/effort high"); a session
+running on other settings than its step's says so before it starts.
+
 The self-test's own cars (the tour, the planted-flaw pair) are the tool's: painted by the self-test, never shown in
 the Lab. The PC is away until November or December 2026 (the user, 2026-10-07): until then every step runs on the Mac, its PC
 parts (step 1's profile there, step 6's run there, step 10's kernels there) wait for its return, and step 13 comes
@@ -32,63 +38,63 @@ after it.
   near the body, not on it (a band keeps skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps; a picked line is smoothed in space and pushed back: steps), and no check measured a graphic where it
   landed. The steps:
-  1. **Test cars, tripwires, a profile.** A planted-flaw pair in the self-test beside the tour: one car with every
+  1. **Test cars, tripwires, a profile** (Opus 5.5, high). A planted-flaw pair in the self-test beside the tour: one car with every
      kind of graphic on the hardest spots (a rolled edge, where the model's short lines meet, a seam, a decal over a
      crease, words along a curve), one with the kinds of flaw the user has pointed out planted at known places and
      sizes. In the self-test, a dead-code tripwire and a line-count budget (a library's latest release looked up
      first). A profile of one whole-car paint, the Mac's now and the PC's when a session runs there. Retires
      `tool/record.py` and `tool/record.json` (their kinds move to `tool/checks.py`).
-  2. **The foundation.** One repaired surface of the car (welded, duplicate faces dropped, edges split where more
+  2. **The foundation** (Fable 5.1, xhigh). One repaired surface of the car (welded, duplicate faces dropped, edges split where more
      than two faces meet, mapped back to the model's triangles), its distance and line solvers per piece (potpourri3d
      and libigl, installed, unused so far), and every texel sampled through the bake's triangle. Game files
      identical. Retires the body's other weld once its readers read this (`carmap._weld`).
-  3. **Bands along a line**, from the distance along the surface: wrapping an edge, on one face, stopping at a
+  3. **Bands along a line** (Fable 5.1, high), from the distance along the surface: wrapping an edge, on one face, stopping at a
      crease. Shown beside the tape built for TSC_StealthBomber (`Course.tape`, waiting for the user's OK) with the side flips and the width
      every half centimetre; the user's eye picks. Retires the facing filter (`FACING` in `tool/course.py`) and the
      one not picked (`Course.tape` with `TAPE_SEAM` and `TAPE_FOLD` in `tool/course.py`, or the new band).
-  4. **Lines anywhere on the mesh.** Clicks snapped to the model's lines and its chain of edges taken whole,
+  4. **Lines anywhere on the mesh** (Fable 5.1, xhigh). Clicks snapped to the model's lines and its chain of edges taken whole,
      straightened by flipping edges, a line beside a line as a contour of the distance, carried on by the
      straightest path; strips, dashes, ticks, inked edges and fills bounded by the model's lines moved onto it. Also
      TSC_CrashTest's mirrored nose tape whose carried-on end differs by side (1 to 1.6 cm over its last 8 cm).
      Retires the smoothing and the push back onto the body (`meshlines.smooth`), the offset's walk and the
      extension's (`Course.offset`, `Course.extended`), the seam tracer (`tool/seams.py`, `course.seam`: a seam is
      one of the model's lines) and the stroke's smoothing (`course.stroke`).
-  5. **Decals, emblems and words on the surface.** A local map round a point for marks and decals (across a crease
+  5. **Decals, emblems and words on the surface** (Fable 5.1, high). A local map round a point for marks and decals (across a crease
      when the design says so, its stretch measured), coordinates along and across a line for words and patterns
      along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a
      mark's `at` seen along an axis landing on a panel's underside unnoticed. Retires the facing cone and the fold
      rule that marks, decals, words and scatter each use, and the projection's nearest-facing landing
      (`marks.project`).
-  6. **One judge.** One list of findings (block, warn, note) carrying the design's hash; a placement check for
+  6. **One judge** (Fable 5.1, xhigh). One list of findings (block, warn, note) carrying the design's hash; a placement check for
      every graphic (lines: width, gaps, steps, kinks and face hops every 0.25 to 0.5 cm; fills: how far the edge sits
      from its line; decals and words: whole, stretch), its limits tuned on the planted-flaw pair; the reach and the
      flaw checks folded in; the eye's placement findings advisory. Also: a paint covered by the same paint said to
      stop short (TSC_RescueV2's lower edge), a tick cut short by an edge unnamed (TSC_CrashTest's ruler), the judge
      run on the PC once. Retires the three passes and their three files (`tool/measure.py`, `tool/checks.py`,
      `tool/eye.py` become one module with one output), and any eye finding the pair shows is noise.
-  7. **Close looks along every line and over every decal**, square to the visible face at about 20 px per cm,
+  7. **Close looks along every line and over every decal** (Opus 5.5, high), square to the visible face at about 20 px per cm,
      shaded for the eye and as a flat mask the judge measures; a pixel diff against the previous version flags
      changes outside the area an edit meant to touch; both sides of the car seen alike. Retires the close looks they
      replace (`PY -m tool.snap <name> --close`, `--eye`).
-  8. **Gates.** `tool.notes done`, `tool.sets open`, the start of a pass and `tool.skin install` refuse on a
+  8. **Gates** (Opus 5.5, high). `tool.notes done`, `tool.sets open`, the start of a pass and `tool.skin install` refuse on a
      blocking finding or a verdict older than the design; the Stop hook (`tool/guard.py`) holds a turn once with the
      top findings. Retires each line of `RULES.md` a gate now enforces.
-  9. **Memory.** Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
+  9. **Memory** (Opus 5.5, xhigh). Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
      the covered texels worked on, in chunks, float32 for the maths and smaller types stored, each part's arrays
      freed once laid down, and only the map that changed repainted (a `show` repaints the whole car for a note on
      the tyres). Game files identical. Retires the compressed caches, their readers and the old caches in the work
      folder.
-  10. **The GPU, where step 1's profile points**: the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
+  10. **The GPU, where step 1's profile points** (Fable 5.1, high): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
       needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
       part in a million).
-  11. **Wear where real cars wear.** Curvature, occlusion and thickness baked once per car on the repaired surface
+  11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface
       (libigl); wear and dirt driven by them; anti-aliased part edges. Retires wear's direction, height and sun
       rules.
-  12. **A narrower paint box.** One verb per intent, line ids and part names as typed values that answer "did you
+  12. **A narrower paint box** (Fable 5.1, xhigh). One verb per intent, line ids and part names as typed values that answer "did you
       mean", a short receipt from every verb, `Skin.text`, `Skin.placard`, `Skin.emboss` and `Skin.decal` merged;
       duplicate-code and error-hiding tripwires in the self-test. Retires every private way of placing things the
       foundation replaced, and the merged verbs.
-  13. **Yardsticks, on the PC.** The game files encoded once by quicktex and texconv against the tool's own
+  13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's own
       encoder; the viewer fitted per mood to the user's F12 screenshots (FLIP: exposure, environment strength, tone
       mapper, clearcoat), and from their videos the cameras pulling back with speed, the car number's lettering, the
       rear wings' and air brakes' angles. Retires nothing unless another encoder wins.
