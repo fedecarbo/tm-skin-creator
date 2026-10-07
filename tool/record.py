@@ -36,26 +36,12 @@ from datetime import datetime
 from pathlib import Path
 
 from tool import paths, progress
+from tool.checks import KINDS
 
 TESTS = paths.REPO / "tool" / "record.json"
 HOME = paths.WORK / "record"
 SLACK = 5.0  # cm along the car
 
-KINDS = {
-    "short": "a paint stops before the surface it was meant to cover ends",
-    "gap": "a hole inside a paint's run",
-    "fold": "a picture or words over a fold or a sharp curve",
-    "cut": "a shape cut off by an edge, an opening or a join",
-    "spill": "a shape running off its panel onto the next piece",
-    "over": "a paint laid over, or touching, another that should stay clear",
-    "clear": "paint on or round the game's own number and name panels",
-    "upside down": "words upside down or mirrored",
-    "line": "a line that isn't smooth or doesn't sit where it should",
-    "sits": "a graphic that doesn't sit with the car's lines or the graphics round it: a gap that pinches, an end just "
-            "short, a slant",
-    "edge": "an edge soft, pixelated or outlined",
-    "spread": "a pattern spread unevenly",
-}
 # What runs in the fresh process, from the copied tree: the car painted, what its checks and its eye name.
 CHILD = r'''
 import json, sys

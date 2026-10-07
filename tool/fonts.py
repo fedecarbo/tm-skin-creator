@@ -3,6 +3,14 @@
     fonts.font("orbitron", 300)          -> a PIL ImageFont, 300 px tall
     fonts.font("orbitron", 300, weight=900)
 
+What each looks like, for choosing from the user's words: impact (tall, heavy, condensed: the classic loud number),
+bahnschrift (clean German road-sign lettering), arial bold (plain and safe), arial black (very heavy plain
+lettering), verdana bold (wide, friendly), georgia bold (a serif, classic), segoe bold (modern, rounded), consolas
+bold (typewriter / code look), corbel bold (soft, modern), tahoma bold (compact sans), orbitron (square futuristic,
+sci-fi), russo (wide, bold, techno racing), black ops (military stencil), bangers (comic-book shout), racing (italic
+racing script, retro motorsport), teko (tall condensed, sporty), garamond italic (an old-style serif italic, a
+naturalist's field guide; weight 400 to 800).
+
 The Google fonts are downloaded once into the work folder from the google/fonts repository at a
 pinned commit, and checked against the sha256 recorded here (2026-09-24). The OFL lets a skin
 use them freely, including skins other players see. Their licence text is saved beside them.
@@ -40,26 +48,6 @@ WINDOWS = {
 MAC = {
     "impact": "Impact.ttf", "arial bold": "Arial Bold.ttf", "arial black": "Arial Black.ttf",
     "verdana bold": "Verdana Bold.ttf", "georgia bold": "Georgia Bold.ttf", "tahoma bold": "Tahoma Bold.ttf",
-}
-# What each looks like, for choosing from the user's words.
-ABOUT = {
-    "impact": "tall, heavy, condensed: the classic loud number",
-    "bahnschrift": "clean German road-sign lettering",
-    "arial bold": "plain and safe",
-    "arial black": "very heavy plain lettering",
-    "verdana bold": "wide, friendly",
-    "georgia bold": "a serif, classic",
-    "segoe bold": "modern, rounded",
-    "consolas bold": "typewriter / code look",
-    "corbel bold": "soft, modern",
-    "tahoma bold": "compact sans",
-    "orbitron": "square futuristic, sci-fi",
-    "russo": "wide, bold, techno racing",
-    "black ops": "military stencil",
-    "bangers": "comic-book shout",
-    "racing": "italic racing script, retro motorsport",
-    "teko": "tall condensed, sporty",
-    "garamond italic": "an old-style serif italic, a naturalist's field guide (weight 400 to 800)",
 }
 DEFAULT = "russo"
 

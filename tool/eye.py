@@ -66,7 +66,7 @@ SAME = 0.03         # two graphics' paints this near (colour, roughness, metalne
 LAID = 0.9          # a graphic whose edge is this much against another's is laid on it (one graphic to the eye)
 KIND = {"CLOSES": "sits", "NEARLY PARALLEL": "sits", "NEAR MISS": "sits", "SLIVER": "sits", "SHALLOW": "sits",
         "JUST PAST": "sits", "PART OVER": "sits", "TOUCHES": "over"}
-# what each flag is among tool/record.py's KINDS, for the record's score
+# what each flag is among checks.KINDS
 
 
 @functools.lru_cache(maxsize=1)
@@ -466,8 +466,7 @@ def words(looks):
 
 
 def findings(looks):
-    """What the eye flags, as tool/checks.py's findings ({check, kind, text, z, side, step}), for the record's score:
-    what both sides say, once."""
+    """What the eye flags, as tool/checks.py's findings ({check, kind, text, z, side, step}): what both sides say, once."""
     out = {}
     for x in looks:
         for side, said in x["sides"].items():

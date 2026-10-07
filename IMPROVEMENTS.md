@@ -40,12 +40,12 @@ after it.
   near the body, not on it (a band keeps skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps; a picked line is smoothed in space and pushed back: steps), and no check measured a graphic where it
   landed. The steps:
-  1. **Test cars, tripwires, a profile** (Opus 5.5, high). A planted-flaw pair in the self-test beside the tour: one car with every
-     kind of graphic on the hardest spots (a rolled edge, where the model's short lines meet, a seam, a decal over a
-     crease, words along a curve), one with the kinds of flaw the user has pointed out planted at known places and
-     sizes. In the self-test, a dead-code tripwire and a line-count budget (a library's latest release looked up
-     first). A profile of one whole-car paint, the Mac's now and the PC's when a session runs there. Retires
-     `tool/record.py` and `tool/record.json` (their kinds move to `tool/checks.py`).
+  1. **Test cars, tripwires, a profile** (Opus 5.5, high). Built, waiting for the user's OK (2026-10-07): the planted-flaw
+     pair in the self-test beside the tour, 18 flaws of the user's kinds planted at known places and sizes (`PLANTED` in
+     `tool/selftest.py`), of which today's checks name 9 and none of the 6 on lines and tapes; the tripwires (vulture
+     2.16 for code nothing uses, `BUDGET` for lines); the profile (`PY -m tool.selftest --profile`, the Mac's under
+     steps 9 and 10). On the OK: delete `tool/record.py`, `tool/record.json` (their kinds are in `tool/checks.py`), the
+     work folder's record folder and every mention of them, then lower `BUDGET`. The PC's profile waits for the PC.
   2. **The foundation** (Fable 5.1 MUST, xhigh). One repaired surface of the car (welded, duplicate faces dropped, edges split where more
      than two faces meet, mapped back to the model's triangles), its distance and line solvers per piece (potpourri3d
      and libigl, installed, unused so far), and every texel sampled through the bake's triangle. Game files
@@ -81,12 +81,14 @@ after it.
   8. **Gates** (Opus 5.5, high). `tool.notes done`, `tool.sets open`, the start of a pass and `tool.skin install` refuse on a
      blocking finding or a verdict older than the design; the Stop hook (`tool/guard.py`) holds a turn once with the
      top findings. Retires each line of `RULES.md` a gate now enforces.
-  9. **Memory** (Opus 5.5, xhigh). Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
+  9. **Memory** (Opus 5.5, xhigh). The Mac's profile (2026-10-07): a paint holds 6.6 to 7 GB at its peak (the Mac has 16,
+     and swaps once other apps hold the rest), and unpacking the compressed caches takes 3 to 5 s of it. Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
      the covered texels worked on, in chunks, float32 for the maths and smaller types stored, each part's arrays
      freed once laid down, and only the map that changed repainted (a `show` repaints the whole car for a note on
      the tyres). Game files identical. Retires the compressed caches, their readers and the old caches in the work
      folder.
-  10. **The GPU, where step 1's profile points** (Fable 5.1, high; or Opus 5.5, xhigh): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
+  10. **The GPU, where step 1's profile points** (Fable 5.1, high; or Opus 5.5, xhigh; the Mac's: the noise 10 s of the tour's
+      59 s paint, the BC1 encoder's block search 10 s of its 19 s encode): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
       needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
       part in a million).
   11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface

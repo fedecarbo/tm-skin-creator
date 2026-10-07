@@ -276,26 +276,6 @@ def wheel_ring(r0, r1, soft=SOFT):
     return field(f, soft, g)
 
 
-def cylinder(a, b, radius, soft=SOFT):
-    """Within `radius` of the line from a to b."""
-    a, b = np.asarray(a, np.float32), np.asarray(b, np.float32)
-    d = b - a
-    L = np.linalg.norm(d)
-    d = d / L
-
-    def f(p, n):
-        rel = p - a
-        t = np.clip(rel @ d, 0, L)
-        return radius - np.linalg.norm(rel - t[:, None] * d, axis=1)
-
-    def g(p, n):
-        rel = p - a
-        t = np.clip(rel @ d, 0, L)
-        r = rel - t[:, None] * d
-        return r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)
-    return field(f, soft, g)
-
-
 def fade(axis="z", start=200.0, end=-150.0, curve=1.0):
     """0 at `start`, rising to 1 at `end` along the axis. Use as the mix weight of a blend."""
     k = "xyz".index(axis)
@@ -500,6 +480,6 @@ def _named(fn):
 
 
 for _maker in ("stripe", "stripes", "checks", "band", "front_of", "behind", "above", "below", "left", "right", "plane",
-               "sphere", "box", "wheel_ring", "cylinder", "fade", "radial", "facing", "sides", "blob", "grass", "noisy",
+               "sphere", "box", "wheel_ring", "fade", "radial", "facing", "sides", "blob", "grass", "noisy",
                "region", "outside", "along", "polyline"):
     globals()[_maker] = _named(globals()[_maker])

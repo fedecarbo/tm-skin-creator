@@ -1,10 +1,10 @@
-"""The checks: what's wrong on a painted car, named before anyone looks (the user's record,
-tool/record.py: nearly every flaw they pointed out was a graphic that didn't fit the car).
+"""The checks: what's wrong on a painted car, named before anyone looks (nearly every flaw the user has pointed out
+was a graphic that didn't fit the car).
 
     python -m tool.checks <name>      paint the skin and print what the checks name
 
 `run` gives every finding on a skin painted with Skin.measure on (tool/skin.py's show): each
-{check, kind, text, z, side, step}, kind one of tool/record.py's KINDS, z the stretch along the car in
+{check, kind, text, z, side, step}, kind one of KINDS, z the stretch along the car in
 cm, front to back, or None. Three sources: the paint itself (Skin.findings), the measures
 (tool/measure.py: a paint that stops short or leaves a gap; a graphic's cuts speak in their place)
 and the checks here, read off the body's texels: who painted each last
@@ -73,6 +73,23 @@ LOOK = 200_000  # outline steps looked at per paint; a longer outline is sampled
 PANELS = {"number panel": "the number panel (the game letters it)",
           "engine cover panel": "the engine cover panel (the game letters it)",
           "nose fin": "the nose fin's plate"}
+
+# The kinds of flaw the user has pointed out: a finding's kind, and a planted flaw's on the self-test's pair
+KINDS = {
+    "short": "a paint stops before the surface it was meant to cover ends",
+    "gap": "a hole inside a paint's run",
+    "fold": "a picture or words over a fold or a sharp curve",
+    "cut": "a shape cut off by an edge, an opening or a join",
+    "spill": "a shape running off its panel onto the next piece",
+    "over": "a paint laid over, or touching, another that should stay clear",
+    "clear": "paint on or round the game's own number and name panels",
+    "upside down": "words upside down or mirrored",
+    "line": "a line that isn't smooth or doesn't sit where it should",
+    "sits": "a graphic that doesn't sit with the car's lines or the graphics round it: a gap that pinches, an end just "
+            "short, a slant",
+    "edge": "an edge soft, pixelated or outlined",
+    "spread": "a pattern spread unevenly",
+}
 
 NATURAL, FOLD, PART, EDGE, COVERED, HOLE = range(6)
 
@@ -233,7 +250,7 @@ def _outline(car, call, shown):
         e = e[rng.choice(len(e), int(len(e) / scale), replace=False)] if len(e) else e
     every = np.concatenate([t, b, e])
     vals = np.stack([f(c.pos[every], c.nrm[every]) for f in factors]) if len(every) else np.zeros((len(factors), 0), np.float32)
-    vt, vb, ve = vals[:, :len(t)], vals[:, len(t):len(t) + len(b)], vals[:, len(t) + len(b):]
+    vt, ve = vals[:, :len(t)], vals[:, len(t) + len(b):]
     written_low = (vt[~reading] < 0.5).any(0) if (~reading).any() else np.zeros(len(t), bool)
     reading_low = (vt[reading] < 0.5).any(0) if reading.any() else np.zeros(len(t), bool)
     aimed = np.zeros(len(car.names) + 1, bool)  # the last slot: no part

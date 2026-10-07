@@ -13,9 +13,11 @@ pyee==13.0.1
 typing_extensions==4.16.0
 # scipy: connected components and nearest-neighbour lookups for taking the car apart (2026-09-24).
 scipy==1.18.1
-# libigl: its principal curvatures are a second measure in the car map's check (tool/mapcheck.py).
+# libigl: for the surface the road's foundation builds (IMPROVEMENTS.md), not used yet.
 # It has wheels for Python 3.14 on Windows x64 and macOS arm64 (cp312-abi3).
 libigl==2.6.3
+# vulture: the self-test's tripwire for code nothing uses (tool/selftest.py); 2.16 (2026-03-25), pure Python.
+vulture==2.16
 # The picture maker (checkpoint 6, 2026-09-24): FLUX.2 [klein] 4B through diffusers on the card.
 # torch comes from PyTorch's own index: the cu130 build (CUDA 13) is the one with wheels for
 # Python 3.14 and the RTX 5070 Ti (Blackwell, sm_120); the cu128 index stopped at 2.11.

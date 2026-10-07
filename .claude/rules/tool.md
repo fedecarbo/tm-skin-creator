@@ -14,12 +14,15 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
 ## Checking a change
 
 - `PY -m tool.selftest --against <commit>` checks that every command, file and name the
-  instructions give still exists (`tool/instructions.py`), then paints the user's car and the
-  self-test's own tour car (every other paint call) with this code and with that commit's, and
-  compares every texture, every DDS file, the notes and the record; `--snap` compares the
-  viewer's sheets pixel for pixel, `--at <commit>` tests a commit instead of the working tree. A
-  commit's side is kept in the work folder, so it's paid for once per computer. Run it before
-  committing a change to `tool/`.
+  instructions give still exists (`tool/instructions.py`) and trips on code nothing uses or the
+  tool grown past its budget (raise `BUDGET` only saying why), then paints the user's car and the
+  self-test's own cars (the tour, every other paint call; the planted-flaw pair, one car clean and
+  one with the user's kinds of flaw planted) with this code and with that commit's, compares every
+  texture, every DDS file, the notes and the record, and says which planted flaws the checks name:
+  for a change to a check, before and after. `--snap` compares the viewer's sheets pixel for pixel,
+  `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in the work
+  folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
+  `--profile` says where one paint's time and memory go.
 - `PY -m tool.record` scores the checks against the user's record (the test set `tool/record.json`;
   `tool/record.py`'s docstring is the key): each car they were shown before a flaw they pointed out, painted again with this
   code; how many flaws the checks name first (a few minutes). For a change to a check, before and

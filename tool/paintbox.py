@@ -950,7 +950,7 @@ class Skin:
         return self.parts.instances[owners[tree.query(np.asarray(point, np.float64))[1]]]["name"]
 
     @_op(lambda image, where, *a, **k: f"a picture at {_where(where) if isinstance(where, (str, list, tuple)) else 'a spot'}")
-    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, min_facing=0.3, rgb=None, up=None,
+    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, rgb=None, up=None,
               turn=0.0, margin=1.0, reach=None, mirror=None, across=False):
         """Lay a picture (PIL RGBA, or a path) on the body as a mark is (tool/marks.py): on a panel, a
         spot (SPOTS) or a place (a mark's), its opaque pixels whole on free room, flat (within marks.BEND
@@ -959,7 +959,7 @@ class Skin:
         opaque pixel this colour (one-colour lettering). On a panel it goes on both sides, its mirror
         image on the other (a picture with words in it: one side at a time, mirror=False). zone: it must
         stay in it. across=True: laid at `at` as it is, over every edge in its footprint, onto the nearest
-        surface facing it (min_facing). Returns where it landed (marks.Laid)."""
+        surface facing it. Returns where it landed (marks.Laid)."""
         from tool import marks
         if isinstance(image, (str, bytes, os.PathLike)) or hasattr(image, "read"):
             image = Image.open(image)
