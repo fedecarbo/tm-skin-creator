@@ -68,3 +68,7 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   the model's line along that rounded edge facing 47 degrees, from z -55 to -120 (the eye: beside the panel line along
   the flank's top at an even 4.1 cm): it shows from the side and from behind now. Open (asked in the Lab): whether that's
   the 45 degrees they meant, or the tape turned to run at 45 degrees.
+- Closed (2026-10-07): the 45 degrees, kept as it is (the user, in the chat: "You've done an amazing job, I would
+  drive this").
+- Accepted (user, 2026-10-07, Claude Opus 5.5): "You've done an amazing job, I would drive this". Not installed: the
+  Mac has no game. Open (the PC): `tool.skin install TSC_CrashTest`, then Garage, My Skins, TSC_CrashTest.

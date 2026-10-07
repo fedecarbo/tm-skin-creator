@@ -17,7 +17,8 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   produce a moodboard for an idea might be even better"): before the first paint, a board in the Lab for
   the idea: its colours, finishes from the Lab's library, a few mood pictures (the picture maker, the PC),
   only what the paint box can do, and only when the user wants one. The first, by hand: TSC_CrashTest's three
-  readings (2026-10-07), picked at once ("b"). Next: whether it helped, before any machinery.
+  readings (2026-10-07), picked at once ("b"); the car it led to, "I would drive this". Next: whether it
+  helped, before any machinery.
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
@@ -44,7 +45,8 @@ more it no longer makes, two cars it can't repaint, built on what the tool retir
   Built: `eye.look` (`tool/eye.py`), after each paint in `show`: each graphic in words against the lines the eye
   sees (beside at an even gap, a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a SHALLOW crossing); it names,
   never forbids. On that tape, unprompted: the gap CLOSES from 2.3 to 0.3 cm and crosses the panel line at a
-  SHALLOW 10 degrees. The user's test: more details on TSC_CrashTest, placed with it. Next: a close look at each
+  SHALLOW 10 degrees. The user's test, more details on TSC_CrashTest placed with it: "You've done an amazing job, I
+  would drive this"; one flag wasn't a flaw to them (the ruler's front; a flag says where to look). Next: a close look at each
   spot it names, the mesh drawn; the record's flaws scored.
 
 ## The tool
