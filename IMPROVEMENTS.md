@@ -23,7 +23,8 @@ can't be painted again, the tool fixed or retired what made them).
   as part of the concept"; "It's kind of like a brand book"): the board as the car's brand book, its large, medium
   and small details, finishes and textures, each car's own, that any session can pick up and paint; and the work in
   passes, as a team does (concept, then materials, then details, outside and in), perhaps a fresh agent for a pass
-  so no session runs out of room.
+  so no session runs out of room. For every car, not one ("it should apply to any other car I built"); TSC_Hangar
+  is the test car, its book drafted by hand (`skins/TSC_Hangar/book.json`).
 
 - **G. The model's lines, the template to design on** (2026-10-06, the user: "Im expecting some sort of blend
   between the mesh of the 3d model and the uv map, so that the ai as the ultimate uv map template to design
