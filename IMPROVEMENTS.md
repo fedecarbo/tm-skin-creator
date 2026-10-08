@@ -61,7 +61,10 @@ it.
      halves it, shrinks the placard to 58 % and moves it off its line, projects the badge through the shoulder's roll
      and sprinkles 231 copies through the air; B's words follow the edge letter by letter, FLANK sits over the turn
      (said: 21 degrees), the placard reads along its line, the badge wraps the roll as a pressed sticker, 179 copies
-     lie spaced along the surface, none across a crisp line. On the OK: delete the test car and its takes, step 5 here.
+     lie spaced along the surface, none across a crisp line. Open (the user's note 3, 2026-10-08, the badge across the
+     shoulder: "This decal looks chipped off on one part of the circle"): a notch about half a centimetre wide in the
+     ring where a crisp line crosses it, left by the step spanning or the bridging at the sidepod top's hairline; find
+     which, on a chart of that spot, before the OK. Then: delete the test car, step 5 here.
   6. **One judge** (Fable 5.1 MUST, xhigh). One list of findings (block, warn, note) carrying the design's hash; a placement check for
      every graphic (lines: width, gaps, steps, kinks and face hops every 0.25 to 0.5 cm; fills: how far the edge sits
      from its line; decals and words: whole, stretch), its limits tuned on the planted-flaw pair; the reach and the

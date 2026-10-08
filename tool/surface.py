@@ -47,7 +47,8 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
                                        centre's own panel; without, it folds over them as a pressed sticker does,
                                        spans a step flat (a wall of skin thinner than STEP cm between two skins, a
                                        raised plate's edge: the raised skin is measured as if it sat level with the
-                                       other) and bridges a gap up to BRIDGE cm between two skins facing alike. A
+                                       other, and the wall takes the sticker's edge) and bridges a gap up to BRIDGE
+                                       cm between two skins facing alike. A
                                        Chart: .at(size, lin) reads (X, Y) at texels (nan beyond the reach), .read(xy,
                                        points=) at points on the car, .stretch() how far the sticker is stretched on
                                        each face (0.05: its lengths grow or shrink 5 %; inf where it folds over itself)
@@ -472,12 +473,13 @@ class Surface:
         f, w, on = self._locate(np.asarray(pts))
         V, F, keep, _ = self._patch(on, reach)
         V2, F2, ids, parent, _ = _insert(V, F, np.searchsorted(keep, f), w, on)
+        walls, wall_parent = np.zeros((0, 3), np.int64), np.zeros(0, np.int64)
         if crease:
             Vn, Fn, back = igl.cut_mesh(V2, F2.astype(np.int64), self._sharp(F2, parent, keep))
             copies = [np.flatnonzero(np.asarray(back).reshape(-1) == i) for i in ids]
         else:
             fn = self.fine_facing()[keep]
-            Vn, Fn, parent = _spanned(V2, F2.astype(np.int64), parent, fn, np.cross(right, up), int(ids[0]))
+            Vn, Fn, parent, (walls, wall_parent) = _spanned(V2, F2.astype(np.int64), parent, fn, np.cross(right, up), int(ids[0]))
             Vn, Fn, parent = _bridged(Vn, Fn, parent, fn)
             copies = [np.array([i]) for i in ids]
         n = len(Vn)
@@ -506,7 +508,9 @@ class Surface:
         xy *= np.where(rho > 1e-9, r / np.maximum(rho, 1e-9), 1.0)[:, None]  # the direction theirs, the distance exact
         xy[~reached] = np.nan
         facing = np.cross(right, up)
-        return Chart(self, keep, parent, Vn, Fn, xy, np.where(reached, r, np.inf), p, right, up, facing / np.linalg.norm(facing))
+        # the walls spanned come after the solved faces: their texels read the rims they're collapsed onto
+        return Chart(self, keep, np.r_[parent, wall_parent], Vn, np.vstack([Fn, walls]), xy, np.where(reached, r, np.inf), p, right, up,
+                     facing / np.linalg.norm(facing), len(Fn))
 
     def fine_facing(self):
         """Each fine face's facing, outward (its winding's, as the model's)."""
@@ -566,12 +570,15 @@ def _spanned(V, F, parent, fn, facing, centre):
     """A patch's mesh with its steps spanned, as a sticker pressed over every edge spans them flat rather than running
     down and up: a wall (faces facing WALL degrees or more from the sticker's facing) thinner than STEP cm (twice its
     area over its perimeter) between the centre's skin and another is taken out, the other skin moved onto the
-    centre's by the step (the mean offset between the wall's two rims) and the rims welded; a wall between two skins
-    neither the centre's is left as it is. Faces that collapse go."""
+    centre's by the step (the mean offset between the wall's two rims) and the rims welded, each point of the raised rim
+    onto the other rim's own edge (put in as a vertex of it); a wall between two skins neither the centre's is left as
+    it is. Faces that collapse go. (V, F, parent, walls): the walls spanned, collapsed onto the welded rims, for their
+    texels to take the sticker's edge (never solved on: faces of no area)."""
     n = len(V)
+    none = (np.zeros((0, 3), np.int64), np.zeros(0, np.int64))
     wall = np.flatnonzero(fn[np.maximum(parent, 0)] @ facing < np.cos(np.radians(WALL)))
     if not len(wall):
-        return V, F, parent
+        return V, F, parent, none
     strips = _components(F[wall], n)[F[wall]].min(1)  # the walls joined edge to edge, by their lowest vertex's label
     A, B, C = (V[F[wall, k]] for k in range(3))
     area = 0.5 * np.linalg.norm(np.cross(B - A, C - A), axis=1)
@@ -583,32 +590,67 @@ def _spanned(V, F, parent, fn, facing, centre):
             thin.add(s)
     gone = wall[np.isin(strips, list(thin))]
     if not len(gone):
-        return V, F, parent
+        return V, F, parent, none
+    rest = np.setdiff1d(np.arange(len(F)), gone)
+    comp = _components(F[rest], n)
+    # a step parts two skins: a thin strip whose rims stay one skin without it (a groove's wall) is no step, and stays
+    home = comp[centre]
+    steps = [s for s in thin if len(np.unique(comp[np.unique(F[wall[strips == s]])])) >= 2]
+    gone = wall[np.isin(strips, steps)]
+    if not len(gone):
+        return V, F, parent, none
     rest = np.setdiff1d(np.arange(len(F)), gone)
     comp = _components(F[rest], n)
     rim = np.unique(F[gone])
     home = comp[centre]
+    low = rim[comp[rim] == home]
     V = V.copy()
-    weld = np.arange(n)
+    F2, par2 = F[rest], parent[rest]
+    by_edge = {}
+    for g, (x, y, z) in enumerate(F2):
+        for u, v in ((x, y), (y, z), (z, x)):
+            by_edge.setdefault((min(u, v), max(u, v)), g)
+    lows = set(low.tolist())
+    segs = np.array(sorted({(min(a, b), max(a, b)) for f in F[gone] for a, b in ((f[0], f[1]), (f[1], f[2]), (f[2], f[0]))
+                            if a in lows and b in lows and a != b}), np.int64).reshape(-1, 2)  # the lower rim's own edges
+    joins = []  # (the top vertex, the lower face, its weights there, the point): the top rim onto the lower rim's edges
     for k in np.unique(comp[rim]):
         if k == home:
             continue
         top = rim[comp[rim] == k]
-        low = rim[comp[rim] == home]
-        if not len(low) or not len(top):
+        if not len(low) or not len(top) or not len(segs):
             continue
         d, j = cKDTree(V[low]).query(V[top], distance_upper_bound=2 * STEP)
         ok = np.isfinite(d)
         if ok.sum() < 2:
             continue
-        shift = (V[low[j[ok]]] - V[top[ok]]).mean(0)
-        V[comp == k] += shift
-        d, j = cKDTree(V[low]).query(V[top], distance_upper_bound=0.3)
-        weld[top[np.isfinite(d)]] = low[j[np.isfinite(d)]]
-    F2 = weld[F[rest]]
-    keep = (F2[:, 0] != F2[:, 1]) & (F2[:, 1] != F2[:, 2]) & (F2[:, 2] != F2[:, 0])
-    keep &= ~np.array([_thin(*V[f]) for f in F2])
-    return V, F2[keep], parent[rest][keep]
+        V[comp == k] += (V[low[j[ok]]] - V[top[ok]]).mean(0)  # the raised skin level with the other
+        A, B = V[segs[:, 0]], V[segs[:, 1]]
+        AB = B - A
+        for t in top:
+            s = np.clip(((V[t] - A) * AB).sum(1) / np.maximum((AB * AB).sum(1), 1e-18), 0, 1)
+            Q = A + s[:, None] * AB
+            i = int(np.argmin(np.linalg.norm(Q - V[t], axis=1)))
+            if np.linalg.norm(Q[i] - V[t]) > STEP / 2:
+                continue
+            g = by_edge.get((int(segs[i, 0]), int(segs[i, 1])))
+            if g is None:
+                continue
+            w = np.zeros(3)
+            w[list(F2[g]).index(segs[i, 0])], w[list(F2[g]).index(segs[i, 1])] = 1 - s[i], s[i]
+            joins.append((int(t), g, w, Q[i]))
+    if not joins:
+        return V, F2, par2, (F[gone], parent[gone])
+    V3, F3, ids, par3, _ = _insert(V, F2, np.array([g for _, g, _, _ in joins]), np.array([w for _, _, w, _ in joins]),
+                                   np.array([q for _, _, _, q in joins]))
+    weld = np.arange(len(V3))
+    for (t, _, _, _), i in zip(joins, ids):
+        weld[t] = i
+    F3 = weld[F3]
+    keep = (F3[:, 0] != F3[:, 1]) & (F3[:, 1] != F3[:, 2]) & (F3[:, 2] != F3[:, 0])
+    keep &= ~np.array([_thin(*V3[f]) for f in F3])
+    walls = weld[np.r_[F[gone], np.zeros((0, 3), np.int64)]]
+    return V3, F3[keep], par2[par3][keep], (walls, parent[gone])
 
 
 def _bridged(V, F, parent, fn):
@@ -1094,10 +1136,11 @@ class Chart(_Patch):
     nan where it doesn't reach), r its distance from the centre along the surface, and the centre's frame (centre,
     right, up, facing)."""
 
-    def __init__(self, S, keep, parent, Vn, Fn, xy, r, centre, right, up, facing):
+    def __init__(self, S, keep, parent, Vn, Fn, xy, r, centre, right, up, facing, solved=None):
         super().__init__(S, keep, parent, Vn, Fn)
         self.xy, self.r = xy, r
         self.centre, self.right, self.up, self.facing = (np.asarray(v, np.float64) for v in (centre, right, up, facing))
+        self.solved = len(Fn) if solved is None else solved  # the faces from here on are steps' walls, collapsed
         self._stretch = None
 
     def at(self, size, lin=None):
@@ -1120,6 +1163,7 @@ class Chart(_Patch):
             s = np.linalg.svd(E[ok] @ inv[ok], compute_uv=False)  # how a step on the sticker comes out on the car, most and least
             out = np.full(len(self.Fn), np.inf)
             out[ok] = np.maximum(np.maximum(s[:, 0] - 1, 1 - s[:, 1]), 0)
+            out[self.solved:] = 0.0  # a step's wall takes the sticker's edge: no stretch to speak of
             self._stretch = out
         return self._stretch
 

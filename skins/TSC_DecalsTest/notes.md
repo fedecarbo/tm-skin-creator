@@ -26,3 +26,13 @@ the surface).
   step flat (`surface.Surface.chart`: the wall taken out of the solve, the raised skin measured level with the other,
   the rims welded): on the plate the ring is within 0.15 cm of flat, the rest the nose's own dome. The car repainted
   (version 4); the takes gone with the pick.
+- The user (2026-10-08, in the chat): "that front nose one is wrong. The decal in theory based on your placement, would
+  need to touch the three pieces to make it a full circle. At the moment its on the two pieces and it looks clipped ...
+  the original one had it right, the On the surface one didn't." The third skin is the step's wall between the nose's
+  top and the raised plate (two texel rows in the texture): the spanning had taken it out of the chart, so it stayed
+  bare and cut the circle from the front. The wall now takes the sticker's edge; the raised rim is welded onto the lower
+  rim's own edges; a strip that doesn't part two skins (a groove's wall) is no longer taken for a step. Versions 5 and 6.
+- Note 3 (user, 2026-10-08, on the rear flank, the badge across the shoulder): "This decal looks chipped off on one part
+  of the circle." Seen in the eye's close look at version 6: a notch about half a centimetre wide in the gold ring where a
+  crisp line crosses it. Not found today; the user asked to stop ("It's taken the entire day"). Open: which of the step
+  spanning or the bridging leaves it, on a chart of that spot.
