@@ -33,6 +33,7 @@ let optionName = (name) => name;  // an option's name as the list says it ("B ·
 let doc = null;           // steps.json: the frames of the last show, while it paints and after
 let stage = null;         // the viewer's window.viewer
 let stageLook = '';       // while Claude paints, the look of the step on the stage
+let turned = false;       // a car has been on the stage: the next keeps the camera and the mood (switching options)
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
 let notes = [], nextN = 1;  // the skin's notes not done yet (tool/notes.py), and the next one's number
 let writing = null;       // the note being written: { part, at, normal, view, picture, drawn }
@@ -423,11 +424,12 @@ async function apply(next) {
     }
     return;
   }
-  if (!before || before.painting) {  // opened, or just painted: from the front, by day
+  if ((!before && !turned) || (before && before.painting)) {  // the first car, or one just painted: from the front, by day
     await stage.show('front', false);
     moodShown('day');
     stageLook = '';
   }
+  turned = true;
 }
 
 async function load(name) {
@@ -458,7 +460,7 @@ async function openSkin(name) {
     }
     framed();
   }
-  moodShown('day');
+  if (!turned) moodShown('day');
   drawNotes();
   loadNotes(true);
   const first = await load(name);
