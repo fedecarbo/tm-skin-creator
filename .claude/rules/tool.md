@@ -18,15 +18,11 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   tool grown past its budget (raise `BUDGET` only saying why), then paints the user's car and the
   self-test's own cars (the tour, every other paint call; the planted-flaw pair, one car clean and
   one with the user's kinds of flaw planted) with this code and with that commit's, compares every
-  texture, every DDS file, the notes and the record, and says which planted flaws the checks name:
-  for a change to a check, before and after. `--snap` compares the viewer's sheets pixel for pixel,
-  `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in the work
-  folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
+  texture, every DDS file, the notes, the palette and the steps, and says which planted flaws the
+  checks name: for a change to a check, before and after. `--snap` compares the viewer's sheets pixel
+  for pixel, `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in
+  the work folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
   `--profile` says where one paint's time and memory go.
-- `PY -m tool.record` scores the checks against the user's record (the test set `tool/record.json`;
-  `tool/record.py`'s docstring is the key): each car they were shown before a flaw they pointed out, painted again with this
-  code; how many flaws the checks name first (a few minutes). For a change to a check, before and
-  after. `tool.record new` lists what the records say that the test set hasn't sorted yet.
 - A cache whose contents change must change its name or version (`coverage._key`,
   `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
 - Claude's snapshots must not change with a change made for the Lab (the embedded viewer's

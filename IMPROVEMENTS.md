@@ -31,8 +31,8 @@ running on other settings than its step's says so before it starts.
 
 The self-test's own cars (the tour, the planted-flaw pair) are the tool's: painted by the self-test, never shown in
 the Lab. The PC is away until November or December 2026 (the user, 2026-10-07): until then every step runs on the Mac, its PC
-parts (step 1's profile there, step 6's run there, step 10's kernels there) wait for its return, and step 13 comes
-after it.
+parts (step 6's run there, step 10's profile and kernels there) wait for its return, and step 13 comes after
+it.
 
 - **Every graphic on the car's surface** (2026-10-07, the user, stopping TSC_StealthBomber: "This tool needs to be
   optimised, it cannot randomly make mistakes"; "it's really not about the tape ... anything like putting a line on an
@@ -40,12 +40,6 @@ after it.
   near the body, not on it (a band keeps skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps; a picked line is smoothed in space and pushed back: steps), and no check measured a graphic where it
   landed. The steps:
-  1. **Test cars, tripwires, a profile** (Opus 5.5, high). Built, waiting for the user's OK (2026-10-07): the planted-flaw
-     pair in the self-test beside the tour, 18 flaws of the user's kinds planted at known places and sizes (`PLANTED` in
-     `tool/selftest.py`), of which today's checks name 9 and none of the 6 on lines and tapes; the tripwires (vulture
-     2.16 for code nothing uses, `BUDGET` for lines); the profile (`PY -m tool.selftest --profile`, the Mac's under
-     steps 9 and 10). On the OK: delete `tool/record.py`, `tool/record.json` (their kinds are in `tool/checks.py`), the
-     work folder's record folder and every mention of them, then lower `BUDGET`. The PC's profile waits for the PC.
   2. **The foundation** (Fable 5.1 MUST, xhigh). One repaired surface of the car (welded, duplicate faces dropped, edges split where more
      than two faces meet, mapped back to the model's triangles), its distance and line solvers per piece (potpourri3d
      and libigl, installed, unused so far), and every texel sampled through the bake's triangle. Game files
@@ -87,8 +81,9 @@ after it.
      freed once laid down, and only the map that changed repainted (a `show` repaints the whole car for a note on
      the tyres). Game files identical. Retires the compressed caches, their readers and the old caches in the work
      folder.
-  10. **The GPU, where step 1's profile points** (Fable 5.1, high; or Opus 5.5, xhigh; the Mac's: the noise 10 s of the tour's
-      59 s paint, the BC1 encoder's block search 10 s of its 19 s encode): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
+  10. **The GPU, where the profile points** (Fable 5.1, high; or Opus 5.5, xhigh; `PY -m tool.selftest --profile`, the Mac's:
+      the noise 10 s of the tour's 59 s paint, the BC1 encoder's block search 10 s of its 19 s encode; the PC's waits for
+      the PC): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
       needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
       part in a million).
   11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface
