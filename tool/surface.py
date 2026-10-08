@@ -70,6 +70,11 @@ JOIN = 12        # how many times a link of a line is halved to find the face it
 STRAY = 0.5      # cm: a line's point landing on another piece this near the line's own piece is put back on it
 HOP = 0.4        # cm: a line carried on hops a gap this wide between pieces (they're 0.05 to 0.35 apart)
 SPECK = 0.5      # cm: a piece of a contour shorter than this is the solver's noise, not a line
+HALF_TEXEL = 0.05  # cm: a contour's vertex this far off the straight line between its neighbours, where the surface
+# is flat, means the faces there are too big for the bend: a distance is read straight across a face, so a line
+# beside a bent line comes out as a polygon on big faces. Those faces are cut finer and the distance solved again
+FINEST = 0.2     # cm: a face with no edge longer than this isn't cut finer
+ROUNDS = 4       # how many times at most
 
 
 def cache_file(tset):
@@ -352,14 +357,16 @@ class Surface:
         faces = np.array([o[0] for o in out])
         return faces, np.array([o[1] for o in out]), np.array([o[2] for o in out]), gaps
 
-    def signed(self, line, reach=8.0, closed=False, crease=False):
+    def signed(self, line, reach=8.0, closed=False, crease=False, levels=()):
         """cm along the surface from a line, with a side: + to its left as it runs, seen from outside, - to its right.
         The line's points go into the fine surface as a chain of its edges (_chain), the surface is cut along them (and,
         with `crease`, along the model's crisp lines: where faces meet at meshlines.SHARP degrees or more, so nothing
         crosses one), and each side's distance is exact (libigl's exact geodesics) from its own copy of the line; a
         point reached from both sides, round an open line's end, takes the nearer. An open line's cut runs one edge on
         past each end (the edge there that carries its way on best), so each side keeps its own copy of the end and the
-        two sides meet only beyond it, not square to it. A Field, read at texels."""
+        two sides meet only beyond it, not square to it. `levels`: the distances that will be drawn as lines (a band's
+        edges, a line beside the line): where their contours bend across faces too big for them (HALF_TEXEL), those
+        faces are cut finer and the distance solved again, ROUNDS times at most. A Field, read at texels."""
         import igl
         faces, w, on, gaps = self._chain(line, closed)
         V, F, keep, verts = self._patch(on, reach)
@@ -406,19 +413,15 @@ class Surface:
                     for g, k, _ in here:
                         cuts[g, k] = True
         Vn, Fn, _ = igl.cut_mesh(V2, F2.astype(np.int64), cuts)
-        n = len(Vn)
-        comp = _components(Fn, n)
-        d = []
-        for side in (left, right):
-            src = np.unique([Fn[g, (k + j) % 3] for g, k in side for j in (0, 1)]).astype(np.int64)
-            if not len(src):
-                d.append(np.full(n, np.inf))
-                continue
-            dist = np.asarray(igl.exact_geodesic(Vn, Fn, src, np.zeros(0, np.int64), np.arange(n, dtype=np.int64),
-                                                 np.zeros(0, np.int64))).reshape(-1)
-            dist[~np.isin(comp, comp[src])] = np.inf
-            d.append(dist)
-        return Field(self, keep, parent, Vn, Fn, np.stack(d, 1), gaps)
+        src = [np.unique([Fn[g, (k + j) % 3] for g, k in side for j in (0, 1)]).astype(np.int64) for side in (left, right)]
+        field = Field(self, keep, parent, Vn, Fn, _solve(Vn, Fn, src), gaps)
+        for _ in range(ROUNDS):
+            coarse = field.too_coarse(levels)
+            if not coarse:
+                break
+            Vn, Fn, parent, src = _finer(Vn, Fn, parent, coarse, src)
+            field = Field(self, keep, parent, Vn, Fn, _solve(Vn, Fn, src), gaps)
+        return field
 
     def fine_facing(self):
         """Each fine face's facing, outward (its winding's, as the model's)."""
@@ -521,6 +524,69 @@ def _thin(a, b, c):
 def _components(F, n):
     g = coo_matrix((np.ones(3 * len(F)), (F.reshape(-1), np.roll(F, 1, 1).reshape(-1))), shape=(n, n))
     return connected_components(g, directed=False)[1]
+
+
+def _solve(Vn, Fn, src):
+    """The exact distance (libigl) over a mesh from each side's sources (vertices): (n, 2), inf where a side doesn't
+    reach (no sources, or another component)."""
+    import igl
+    n = len(Vn)
+    comp = _components(Fn, n)
+    d = []
+    for s in src:
+        if not len(s):
+            d.append(np.full(n, np.inf))
+            continue
+        dist = np.asarray(igl.exact_geodesic(Vn, Fn, s, np.zeros(0, np.int64), np.arange(n, dtype=np.int64),
+                                             np.zeros(0, np.int64))).reshape(-1)
+        dist[~np.isin(comp, comp[s])] = np.inf
+        d.append(dist)
+    return np.stack(d, 1)
+
+
+def _finer(V, F, parent, faces, src):
+    """Faces cut into four by their edges' midpoints, their neighbours cut to match (a neighbour sharing two or three
+    cut edges is cut into four too; one sharing one, into two through its midpoint), so the mesh stays whole; each
+    new face keeps its face's parent, and the midpoint of an edge between two of one side's sources is a source too
+    (the line's own edges). (V, F, parent, src)."""
+    V, F, parent = list(map(np.asarray, V)), [list(f) for f in F], list(parent)
+    red = set(int(f) for f in faces)
+    by_edge = {}
+    for g, (x, y, z) in enumerate(F):
+        for u, v in ((x, y), (y, z), (z, x)):
+            by_edge.setdefault((min(u, v), max(u, v)), []).append(g)
+    cut = set()
+    while True:  # an edge of a red face is cut; a face with two cut edges goes red, until nothing changes
+        for g in red:
+            x, y, z = F[g]
+            cut.update((min(u, v), max(u, v)) for u, v in ((x, y), (y, z), (z, x)))
+        more = {g for e in cut for g in by_edge[e] if g not in red
+                and sum((min(u, v), max(u, v)) in cut for u, v in ((F[g][0], F[g][1]), (F[g][1], F[g][2]), (F[g][2], F[g][0]))) >= 2}
+        if not more:
+            break
+        red |= more
+    sides = [set(s.tolist()) for s in src]
+    mid = {}
+    for u, v in cut:
+        V.append(0.5 * (V[u] + V[v]))
+        mid[(u, v)] = len(V) - 1
+        for s in sides:
+            if u in s and v in s:
+                s.add(len(V) - 1)
+    out, par = [], []
+    for g, (x, y, z) in enumerate(F):
+        m = [mid.get((min(u, v), max(u, v))) for u, v in ((x, y), (y, z), (z, x))]
+        if g in red:
+            kids = [(x, m[0], m[2]), (m[0], y, m[1]), (m[2], m[1], z), (m[0], m[1], m[2])]
+        elif any(k is not None for k in m):
+            k = next(i for i in range(3) if m[i] is not None)
+            a, b, c = [(x, y, z), (y, z, x), (z, x, y)][k]  # the cut edge ab, the corner c across from it
+            kids = [(a, m[k], c), (m[k], b, c)]
+        else:
+            kids = [(x, y, z)]
+        out.extend(kids)
+        par.extend([parent[g]] * len(kids))
+    return np.array(V), np.array(out), np.array(par), [np.array(sorted(s), np.int64) for s in sides]
 
 
 def _insert(V, F, face, bary, pts, chain=False):
@@ -701,15 +767,42 @@ class Field:
         it closes, in no order (round an open line's ends the pieces run on, a quarter circle, to where the two sides
         meet). Read on the cut mesh's own faces, on the level's side only (a face reached from both sides, beyond
         an end, would cross the level where the sign jumps); a piece under SPECK cm is left out."""
+        return [(pts, closed) for pts, closed, _ in self._contour(level)]
+
+    def too_coarse(self, levels):
+        """The faces too big for the lines these levels draw across them: where a contour's vertex sits more than
+        HALF_TEXEL off the straight line between its neighbours while the surface there is flat (the two faces
+        coplanar), the two faces, unless no edge of either is longer than FINEST."""
+        out = set()
+        for level in levels:
+            for pts, _, faces in self._contour(level):
+                if len(pts) < 3:
+                    continue
+                A, B, C = (self.Vn[self.Fn[faces, k]] for k in range(3))
+                n = np.cross(B - A, C - A)
+                n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+                flat = (n[1:] * n[:-1]).sum(1) > 0.9998  # under a degree between the chord's face and the next
+                big = np.maximum.reduce([np.linalg.norm(B - A, axis=1), np.linalg.norm(C - B, axis=1), np.linalg.norm(A - C, axis=1)]) > FINEST
+                p0, p1, p2 = pts[:-2], pts[1:-1], pts[2:]
+                chord = p2 - p0
+                t = np.clip(((p1 - p0) * chord).sum(1) / np.maximum((chord * chord).sum(1), 1e-12), 0, 1)
+                off = np.linalg.norm(p1 - p0 - t[:, None] * chord, axis=1)
+                for k in np.flatnonzero((off > HALF_TEXEL) & flat):
+                    out.update(int(faces[j]) for j in (k, k + 1) if big[j])
+        return out
+
+    def _contour(self, level):
+        """contour's pieces, each with the cut face each of its segments crosses: (pts, closed, faces)."""
         Vn, Fn, d = self.Vn, self.Fn, self.value
         v = np.where(d[:, 0] <= d[:, 1], d[:, 0], -d[:, 1])
         v[np.isinf(d).all(1)] = np.nan
         own = np.isfinite(v[Fn]).all(1) & (np.sign(v[Fn]) == np.sign(level)).all(1)
+        faces = np.flatnonzero(own)
         F, s = Fn[own], v[Fn[own]] - level
         pos = s > 0
         cross = pos.any(1) & ~pos.all(1)
-        F, s, pos = F[cross], s[cross], pos[cross]
-        segs = []  # per face: its two crossings, (the edge crossed, the point)
+        F, s, pos, faces = F[cross], s[cross], pos[cross], faces[cross]
+        segs, of = [], []  # per crossed face: its two crossings, (the edge crossed, the point), and the face
         for f in range(len(F)):
             got = []
             for k in range(3):
@@ -719,6 +812,7 @@ class Field:
                     got.append(((min(i, j), max(i, j)), Vn[i] + t * (Vn[j] - Vn[i])))
             if len(got) == 2:
                 segs.append(got)
+                of.append(int(faces[f]))
         nbr, where = {}, {}
         for n, (a, b) in enumerate(segs):
             nbr.setdefault(a[0], []).append(n)
@@ -726,16 +820,17 @@ class Field:
             where[a[0]], where[b[0]] = a[1], b[1]
         seen, out = set(), []
 
-        def walk(n, key):  # out of segment n through the edge `key`, on while the way goes on
-            chain = [key]
+        def walk(n, key):  # out of segment n through the edge `key`, on while the way goes on: the edges and segments
+            chain, used = [key], []
             while True:
                 seen.add(n)
+                used.append(n)
                 a, b = segs[n]
                 key = b[0] if a[0] == key else a[0]
                 chain.append(key)
                 on = [m for m in nbr[key] if m != n and m not in seen]
                 if not on:
-                    return chain
+                    return chain, used
                 n = on[0]
 
         for n in range(len(segs)):
@@ -744,14 +839,15 @@ class Field:
             a, b = segs[n]
             loose = [e for e in (a[0], b[0]) if len(nbr[e]) == 1]
             if loose:
-                chain = walk(n, loose[0])
+                chain, used = walk(n, loose[0])
             else:  # started midway: both ways from here, unless the first comes back round
-                chain = walk(n, a[0])
+                chain, used = walk(n, a[0])
                 if chain[0] != chain[-1]:
-                    chain = walk(n, b[0])[::-1] + chain[2:]
+                    back, more = walk(n, b[0])
+                    chain, used = back[::-1] + chain[2:], more[::-1] + used[1:]
             pts = np.array([where[k] for k in chain])
             if np.linalg.norm(np.diff(pts, axis=0), axis=1).sum() >= SPECK:
-                out.append((pts, not loose and chain[0] == chain[-1]))
+                out.append((pts, not loose and chain[0] == chain[-1], np.array([of[m] for m in used])))
         return out
 
 

@@ -17,3 +17,13 @@ on by the surface's straightest way).
   the nose tape's carried-on start within 0.4 cm of the old's, both sides exact mirror images. Close looks of B:
   the block scale runs on over the nose's seam, the cockpit's line is even through its bends, the flank's line
   comes down the roll without steps, the green's edge sits on its line.
+- The user (2026-10-08, in the chat, of the set): "Not sure what the green is for, but something I can tell is that
+  take A seems a little smoother. And I think the surface, the undersurface is a little jagged, just to let you
+  know. Same happens in certain areas. It doesn't mean that take A is better. But certainly there's still a bit of
+  blindness. ... I can point you where it's a little jagged from the unsurface. But I can confirm that the on the
+  surface works in terms of painting." Read as: B ("On the surface") works but is jagged in places; A's smoothing
+  hid it. Measured (Claude Fable 5.1): the distance is read straight across the fine surface's faces, up to 3.6 cm,
+  so a line beside a bent line came out as a polygon (a vertex up to 0.35 cm off the line between its neighbours
+  on a band's edge along the skirt, 0.22 beside the nose roll). The faces a band's edge or a line beside a line
+  bends across are now cut finer and the distance solved again until within half a texel (0.07 after). B repainted;
+  the user's pin, where it still looks jagged, is next.

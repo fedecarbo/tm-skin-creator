@@ -55,8 +55,13 @@ it.
      lines by the old code (painted from 8fe36c3's tree), B on the surface; measured: the picked line down the
      flank 72.6 cm (the old 83.8, a zigzag along the model's edges smoothed, up to 11 cm off), the old offset
      round the cockpit's back strayed up to 8 cm from the line 4 cm beside it, the old drawn line up to 2.9 cm from
-     the straightest way. On the OK: delete `tool/seams.py` and `course.seam` (the tour's seam dashes along the
-     model's own line instead), the test car, step 4 here.
+     the straightest way. The user (2026-10-08, of the set): B works, A looked a little smoother, B jagged in
+     places, "still a bit of blindness". Measured: a distance read straight across the fine surface's faces (up
+     to 3.6 cm) makes a line beside a bent line a polygon (a vertex up to 0.35 cm off the line between its
+     neighbours on the skirt's band edge, 0.22 beside the nose roll); now the faces a band's edge or a line beside
+     a line bends across are cut finer and the distance solved again, until within half a texel (0.07 after), a
+     third of a second to a second more per marking. On the OK: delete `tool/seams.py` and `course.seam` (the
+     tour's seam dashes along the model's own line instead), the test car, step 4 here.
   5. **Decals, emblems and words on the surface** (Fable 5.1, high; or Opus 5.5, xhigh). A local map round a point for marks and decals (across a crease
      when the design says so, its stretch measured), coordinates along and across a line for words and patterns
      along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a

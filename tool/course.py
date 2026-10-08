@@ -207,7 +207,7 @@ class Course:
         ends, round a loop a loop; with `crease`, going no further than the body's next crease. Where it reaches an
         opening or runs off the course's piece it comes in pieces, joined in order along the course. A band of even
         width along one of the model's lines, or a tape beside a crease rather than folded over it."""
-        pieces = self._signed(abs(cm) + 1.0, crease).contour(cm)
+        pieces = self._signed(abs(cm) + 1.0, crease, levels=(cm,)).contour(cm)
         tree, runs = cKDTree(self.pts), []
         for pts, closed in pieces:
             _, i = tree.query(pts)
@@ -278,29 +278,29 @@ class Course:
 
     # ---- markings ----
 
-    def _signed(self, reach, crease=False, mirrored=False):
+    def _signed(self, reach, crease=False, mirrored=False, levels=()):
         """The signed distance along the surface from the course (or its mirror image) within `reach` cm, kept on the
-        course: a Field (tool/surface.py)."""
-        key = (round(reach, 3), crease, mirrored)
+        course: a Field (tool/surface.py); `levels`, the distances drawn as lines, which it reads finely."""
+        key = (round(reach, 3), crease, mirrored, tuple(levels))
         if key not in self._fields:
             P = self.pts * MIRROR if mirrored else self.pts
-            self._fields[key] = _surface().signed(P, reach=reach, closed=self.closed, crease=crease)
+            self._fields[key] = _surface().signed(P, reach=reach, closed=self.closed, crease=crease, levels=levels)
         return self._fields[key]
 
-    def _across(self, reach, crease=False, size=4096):
+    def _across(self, reach, crease=False, size=4096, levels=()):
         """The signed distance along the surface from the course, read at the body's texels within `reach` cm of it
         (tool/surface.py: exact on each side; + to the course's left as it runs, seen from outside): one dict per copy
         (the course; its mirror image when it's on both sides, `mirrored`): the texels' flat indices on the map (lin),
         their places (pos), the distance at each (d), and the copy's points and tangents (P, T). Kept on the course."""
         from tool import bake
-        key = (round(reach, 3), crease, size)
+        key = (round(reach, 3), crease, size, tuple(levels))
         if key not in self._fields:
             b = bake.bake("Skin", size, size)
             tri, pos = b["tri"].reshape(-1), b["position"].reshape(-1, 3)
             copies = [(self.pts, self.tan, False)] + ([(self.pts * MIRROR, self.tan * MIRROR, True)] if self.mirror else [])
             out = []
             for P, T, mirrored in copies:
-                field = self._signed(reach + 1.0, crease, mirrored)
+                field = self._signed(reach + 1.0, crease, mirrored, levels)
                 lo, hi = P.min(0) - reach - 1, P.max(0) + reach + 1
                 lin = np.flatnonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=1))
                 d = field.at(size, lin)
@@ -317,7 +317,7 @@ class Course:
         from tool import bake
         reach = max(abs(lo), abs(hi)) + soft + 1.0
         lins, ws = [], []
-        for c in self._across(reach, crease):
+        for c in self._across(reach, crease, levels=tuple(v for v in (lo, hi) if v)):  # its edges, read finely
             L, H = (-hi, -lo) if c["mirrored"] else (lo, hi)
             _, i = cKDTree(c["P"]).query(c["pos"], workers=-1)
             a = ((c["pos"] - c["P"][i]) * c["T"][i]).sum(1)
