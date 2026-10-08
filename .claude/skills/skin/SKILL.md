@@ -57,9 +57,13 @@ game: install from the Windows PC after a push.
   `s.tyre_tread("TR-..")`.
 - **Shared paint.** Most inner parts share their paint with their twin on the other side, and some
   with other parts. `show` names every part a colour also lands on: read it.
-- **Shapes** (a spot, a badge, a roundel, a star) go on a named panel with `s.mark`: laid flat on it,
-  whole inside its edges, off its folds and clear of the game's panels, moved or shrunk until they
-  are. Read its notes: moved, shrunk, nothing laid. A shape or a stripe meant to cross parts says
+- **Shapes** (a spot, a badge, a roundel, a star) go on a named panel with `s.mark`: pressed onto its
+  surface as a sticker is (it follows the panel's curve and wraps a rolled edge; every distance is
+  measured along the surface), whole inside its edges, on its own panel (not across one of the
+  model's crisp lines) and clear of the game's panels, moved or shrunk until they are. Read its
+  notes: moved, shrunk, nothing laid, how it sits (stretched where the surface curves two ways; the
+  turn under words). `across=True` presses it on as it is, over every edge and crisp line in its
+  footprint, as a sticker over a panel gap. A shape or a stripe meant to cross parts says
   `across=True`; without it a zoned paint on "body" leaves a part painted by its name.
 - **Keep clear** of the number panel and the engine cover panel on the deck, where the game letters
   the player's number and name, and of the nose fin's plate: they aren't pieces. `show` names
@@ -67,13 +71,15 @@ game: install from the Windows PC after a push.
 - **Words and pictures** are laid as shapes are: `s.text` (words), `s.placard` (words in a thin
   box, a small sign near a point or the line the user drew) and `s.decal` (a picture), on a named
   panel (both sides, words reading forward on each) or at a named spot (`SPOTS` in
-  `tool/paintbox.py`, one side): whole, flat, upright to someone standing beside the car, moved or
-  shrunk until they fit. Read the notes. Objects: `s.scatter` (whole copies). A continuous texture:
-  a tile through `s.print`.
+  `tool/paintbox.py`, one side): whole, upright to someone standing beside the car, moved or
+  shrunk until they fit; the note says when the surface turns more than 20 degrees under words
+  (they read bent: smaller words, or a flatter panel). Objects: `s.scatter` (whole copies, spaced
+  along the surface). A continuous texture: a tile through `s.print`.
 - **A marking along one of the car's lines** (one of the model's lines: a crease, an edge where the body
   ends, a seam between two of its pieces, a rounded edge's; or a panel's edge) or along
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
-  places, words reading along it (`at=` a stretch of it), in one paint. The user's line: `PY -m
+  places, words reading along it (`at=` a stretch of it, each letter following the line; the
+  stretch is their room, on the panel named), in one paint. The user's line: `PY -m
   tool.notes drawn <skin> <n>` prints its points for `course.stroke`, or for a line picked on the mesh (Mesh and
   Draw on) its `meshlines.picked(...)` call: exact, use it as it is. 3 mm or more to be seen
   while driving (2 mm is the thinnest that holds). A line through points of your own is

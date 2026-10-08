@@ -13,7 +13,7 @@ pyee==13.0.1
 typing_extensions==4.16.0
 # scipy: connected components and nearest-neighbour lookups for taking the car apart (2026-09-24).
 scipy==1.18.1
-# libigl: for the surface the road's foundation builds (IMPROVEMENTS.md), not used yet.
+# libigl: the car's surface (tool/surface.py): exact geodesics, the mesh cut along lines.
 # It has wheels for Python 3.14 on Windows x64 and macOS arm64 (cp312-abi3).
 libigl==2.6.3
 # vulture: the self-test's tripwire for code nothing uses (tool/selftest.py); 2.16 (2026-03-25), pure Python.

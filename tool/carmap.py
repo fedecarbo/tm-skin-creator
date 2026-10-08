@@ -14,7 +14,7 @@ Layers (per welded vertex of the body):
     along    0 at the nose's tip to 1 at the tail
     facing_x, facing_y, facing_z   the model's normal (x: out to the car's left, y: up, z: forward)
 
-Map.at, value, level and project find the body under any point (tool/course.py lays its lines on it).
+Map.at, value and level find the body under any point (tool/course.py lays its lines on it).
 The lines on the car are the model's own (tool/meshlines.py).
 
     python -m tool.carmap            build it and print a summary
@@ -179,16 +179,6 @@ class Map:
                        "along": ((NOSE_Z - self.V[:, 2]) / (NOSE_Z - TAIL_Z)).astype(np.float32),
                        "facing_x": (self.vn[:, 0] * np.sign(self.V[:, 0] + 1e-9)).astype(np.float32),
                        "facing_y": self.vn[:, 1].astype(np.float32), "facing_z": self.vn[:, 2].astype(np.float32)}
-
-    def project(self, pos, nrm=None):
-        """The nearest points on the body (on their triangles' planes), their normals, and how far
-        the points were from it."""
-        face, _, dist = self.at(pos, nrm)
-        a = self.V[self.F[face, 0]]
-        n = self.fn[face]
-        on = pos - ((pos - a) * n).sum(1, keepdims=True) * n
-        return on, n, dist
-
 
     # ---- finding the body under a point ----
 
@@ -447,9 +437,11 @@ def describe(m=None):
          "left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).", ""]
     A += _model_lines()
     A += ["## Where it's calm", "",
-          f"The flat rooms: on each panel the biggest discs of skin that face within {marks.WORD_BEND:.0f} degrees of "
-          f"one way, off its creases and clear of the game's panels, {ROOM_LEAST:.0f} cm across or more: where a "
-          "badge, words or a picture lie flat (the left side; the right mirrors it).", "",
+          f"The flat rooms: on each panel the biggest discs of skin whose surface turns no more than {marks.WORD_TURN:.0f} "
+          f"degrees from one way, off the model's crisp lines and clear of the game's panels, {ROOM_LEAST:.0f} cm across "
+          "or more: where words read flat, and a badge or a picture sits with no stretch to speak of (the left side; the "
+          "right mirrors it). A sticker wraps a rolled edge as well as it lies on a flat panel; only where the surface "
+          "curves two ways is it stretched, and the note says by how much.", "",
           "| panel | across, cm | centre | faces |", "|---|---|---|---|"]
     big = {n: m.area[pname == n].sum() for n in np.unique(pname)}  # the panels, the biggest first
     order = [n for n in sorted(big, key=lambda n: -big[n]) if big[n] >= 50]

@@ -9,7 +9,7 @@
         s.paint(["nose tip", "wing pylon"], "matte black")
         s.paint("inner", "dark grey satin")                   # the whole inner car
         s.paint("rim", "gunmetal")
-        s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)  # a shape laid on a panel, whole
+        s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)  # a shape pressed onto a panel, whole
         s.text("27", "rear flank", colour="black", font="russo", height=20)  # words, laid the same way, each side
         s.placard("NO STEP", "sidepod top", height=2.6)                    # words in a thin box
         s.decal(s.art("tiger"), "left side", width=30)                     # a picture, at a named spot
@@ -627,23 +627,25 @@ class Skin:
     @_op(lambda where, what=None, shape=None, *a, **k:
          f"{' '.join(x for x in (what or k.get('finish'), k.get('colour')) if isinstance(x, str)) or 'paint'} {shape!r} on {_where(where)}")
     def mark(self, where, what=None, shape=None, size=None, at=None, colour=None, finish=None, up=None, turn=0.0,
-             margin=1.0, reach=None, fold=None, within=None, mirror=True, across=False, soft=shapes.SOFT, **params):
+             margin=1.0, reach=None, within=None, mirror=True, across=False, soft=shapes.SOFT, **params):
         """Lay a shape (tool/marks.py: disc, ring, blob, box, polygon, star) on a named panel of the
-        body, flat on its surface like a cut sticker and whole inside its edges: moved, then shrunk,
-        until it is, and every move said in a note. where: the panel (a part, or several whose
-        shared edges it may then lie over). size: its width in cm (None: the biggest that fits).
-        at: (x, y, z) in cm, about where its middle goes, None for a coordinate to look along
-        ((30, None, 60): seen from above); at=None: the panel's roomiest spot. up: where its top
-        points on the car (the car's up on a side, forward on the top), then `turn` degrees
-        anticlockwise. margin: cm kept clear of the panel's edges. reach: how far it may move, in cm
-        (half its width). fold: degrees; a crease or a roll sharper ends its room (marks.FOLD).
-        within: a zone the mark must also stay in. mirror: its mirror image on the car's other side
-        too, when it's off the middle and the panel is there. across=True: laid at `at` as it is,
-        over every edge in its footprint, which the checks then leave alone.
+        body, pressed onto its surface like a cut sticker (it follows the panel's curve, wraps a rolled
+        edge, every distance measured along the surface) and whole inside its edges, on its own panel
+        (not across one of the model's crisp lines): moved, then shrunk, until it is, and every move
+        said in a note, with how it sits (its stretch, where the surface curves two ways). where: the
+        panel (a part, or several whose shared edges it may then lie over). size: its width in cm
+        (None: the biggest that fits). at: (x, y, z) in cm, about where its middle goes, None for a
+        coordinate to look along, from outside ((30, None, 60): seen from above); at=None: the panel's
+        roomiest spot. up: where its top points on the car (the car's up on a side, forward on the
+        top), then `turn` degrees anticlockwise. margin: cm kept clear of the panel's edges. reach: how
+        far it may move, in cm (half its width). within: a zone the mark must also stay in. mirror:
+        its mirror image on the car's other side too, when it's off the middle and the panel is
+        there. across=True: pressed on at `at` as it is, over every edge and crisp line in its
+        footprint (a sticker over a panel gap), which the checks then leave alone.
         Returns where it landed (marks.Laid: centre, size, twin; text, a placard or a picture take
         it as their place); two marks with at=None on a panel share their middle."""
         from tool import marks
-        return marks.lay(self, where, what, shape, size, at, colour, finish, up, turn, margin, reach, fold, within,
+        return marks.lay(self, where, what, shape, size, at, colour, finish, up, turn, margin, reach, within,
                          mirror, across, soft, params)
 
     def keep(self, tset="Skin"):
@@ -953,13 +955,15 @@ class Skin:
     def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, rgb=None, up=None,
               turn=0.0, margin=1.0, reach=None, mirror=None, across=False):
         """Lay a picture (PIL RGBA, or a path) on the body as a mark is (tool/marks.py): on a panel, a
-        spot (SPOTS) or a place (a mark's), its opaque pixels whole on free room, flat (within marks.BEND
-        of one facing), off folds and clear of the game's panels, moved then shrunk until they are, each
-        move said. width in cm (None: the biggest that fits). rgb: paint every
+        spot (SPOTS) or a place (a mark's), pressed onto the surface like a sticker, its opaque pixels
+        whole on free room, on its own panel (not across one of the model's crisp lines) and clear of
+        the game's panels, moved then shrunk until they are, each move said, and its stretch where the
+        surface curves two ways. width in cm (None: the biggest that fits). rgb: paint every
         opaque pixel this colour (one-colour lettering). On a panel it goes on both sides, its mirror
         image on the other (a picture with words in it: one side at a time, mirror=False). zone: it must
-        stay in it. across=True: laid at `at` as it is, over every edge in its footprint, onto the nearest
-        surface facing it. Returns where it landed (marks.Laid)."""
+        stay in it. across=True: pressed on at `at` as it is, over every edge and crisp line in its
+        footprint (a sticker over a panel gap, as on a real car), and what fell in a gap or off an edge
+        said. Returns where it landed (marks.Laid)."""
         from tool import marks
         if isinstance(image, (str, bytes, os.PathLike)) or hasattr(image, "read"):
             image = Image.open(image)
@@ -968,23 +972,22 @@ class Skin:
             arr[..., :3] = np.asarray(colours.get(rgb), np.float32)
         parts, at, up, mirror = self._place(where, at, up, mirror)
         shape = marks.Picture(arr, "picture", False, label="a picture")
-        return marks.lay(self, parts, None, shape, width, at, None, finish, up, turn, margin, reach, None, zone,
+        return marks.lay(self, parts, None, shape, width, at, None, finish, up, turn, margin, reach, zone,
                          mirror, across, 0.0, {})
 
     @_op(lambda image, where="body", *a, **k: f"copies of a picture on {_where(where)}")
-    def scatter(self, image, where="body", size=8, spacing=None, turn="random", finish="gloss", zone=None, seed=None,
-                min_facing=0.35, step_cm=2.5, min_landed=0.98):
-        """Sprinkle copies of a picture (a cut-out, RGBA, or a path; or a list of them, mixed) over parts, each laid flat
-        on the surface as its own small sticker and always whole: a copy that would cross a fold
-        or run off a panel's edge is left out, so nothing is ever cut (user, 2026-09-24). size:
-        the copy's width in cm, or (smallest, largest); spacing: the least distance between
-        copies in cm (default: a little more than the largest size, so they never overlap);
-        turn: "random", "length" (along the car) or an angle in degrees from the car's length.
-        The spread is even: each copy takes the picture least used among its neighbours, a copy that
-        doesn't fit is nudged, turned and shrunk before it's given up, and a second pass fills
-        any patch still bare with smaller copies."""
+    def scatter(self, image, where="body", size=8, spacing=None, turn="random", finish="gloss", zone=None, seed=None):
+        """Sprinkle copies of a picture (a cut-out, RGBA, or a path; or a list of them, mixed) over parts of the body,
+        each pressed onto the surface as its own small sticker and always whole: a copy that would cross
+        one of the model's crisp lines or run off a panel's edge is left out, so nothing is ever cut
+        (user, 2026-09-24). size: the copy's width in cm, or (smallest, largest); spacing: the least
+        distance between copies in cm, measured along the surface (default: a little more than the
+        largest size, so they never overlap); turn: "random", "length" (along the car) or an angle in
+        degrees from the car's length. The spread is even: each copy takes the picture least used among
+        its neighbours, a copy that doesn't fit is moved, turned and shrunk before it's given up, and a
+        second pass fills any patch still bare with smaller copies."""
         from tool import scatter
-        scatter.scatter(self, image, where, size, spacing, turn, finish, zone, seed, min_facing, step_cm, min_landed)
+        scatter.scatter(self, image, where, size, spacing, turn, finish, zone, seed)
         return self
 
     @_op(lambda text, where, *a, **k: f"the text {text!r}")
@@ -992,10 +995,13 @@ class Skin:
              outline_width=0.08, weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0,
              reach=None, mirror=None, across=False):
         """Write on the body: words laid as a mark is (tool/marks.py), on a panel, a spot (SPOTS) or a
-        place (a mark's, marks.Laid): whole on free room, flat (within marks.WORD_BEND of one facing),
-        off folds and clear of the game's panels, moved then shrunk until they are, each move said;
-        upright to someone standing beside the car, unless `up` says where their top points on the
-        car, then turned `turn` degrees anticlockwise. height: the capitals', in cm; outline: a colour
+        place (a mark's, marks.Laid): pressed onto the surface, whole on free room, on their own panel
+        (not across one of the model's crisp lines) and clear of the game's panels, moved then shrunk
+        until they are, each move said, and the surface's turn under them when they'll read bent (more
+        than marks.WORD_TURN degrees); upright to someone standing beside the car, unless `up` says where
+        their top points on the car, then turned `turn` degrees anticlockwise. At a course (a stretch of
+        one of the car's lines, or the line the user drew): reading along it, each letter following the
+        line, the stretch their room. height: the capitals', in cm; outline: a colour
         for a border, outline_width as a share of the height; italic: a slant (0.2 is a racing lean);
         spacing: extra letter spacing in cm. On a panel they go on both sides, reading forward on each
         (mirror=False for one); a spot or a place is one side. at: a point (x, y, z; None for a
@@ -1007,7 +1013,7 @@ class Skin:
         parts, at, up, mirror = self._place(where, at, up, mirror)
         self.palette.append([float(v) for v in colours.get(colour)])
         shape = marks.Picture(img, "words", True, label=f"the text {text!r}", text=text, tall=tall)
-        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, None, zone, mirror,
+        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, zone, mirror,
                          across, 0.0, {})
 
     @_op(lambda text, where, *a, **k: f"the placard {text!r}")
@@ -1027,7 +1033,7 @@ class Skin:
         parts, at, up, mirror = self._place(where, at, up, mirror)
         self.palette.append([float(v) for v in colours.get(colour)])
         shape = marks.Picture(img, "placard", True, label=f"the placard {text!r}", text=text, tall=tall)
-        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, None, zone, mirror,
+        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, zone, mirror,
                          False, 0.0, {})
 
     # ---- output ----

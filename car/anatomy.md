@@ -77,26 +77,26 @@ The model's own panels, bounded by its crisp lines and edges, 500 cm² or more, 
 
 ## Where it's calm
 
-The flat rooms: on each panel the biggest discs of skin that face within 20 degrees of one way, off its creases and clear of the game's panels, 12 cm across or more: where a badge, words or a picture lie flat (the left side; the right mirrors it).
+The flat rooms: on each panel the biggest discs of skin whose surface turns no more than 20 degrees from one way, off the model's crisp lines and clear of the game's panels, 12 cm across or more: where words read flat, and a badge or a picture sits with no stretch to speak of (the left side; the right mirrors it). A sticker wraps a rolled edge as well as it lies on a flat panel; only where the surface curves two ways is it stretched, and the note says by how much.
 
 | panel | across, cm | centre | faces |
 |---|---|---|---|
 | rear flank | 37 | (64, 36, -80) | out and back |
 | rear flank | 28 | (81, 31, -51) | out and back |
+| sidepod top | 28 | (70, 61, -26) | up |
+| sidepod top | 24 | (87, 41, -25) | out |
 | tail panel | 27 | (13, 65, -147) | up |
-| sidepod top | 27 | (70, 61, -36) | up |
-| sidepod top | 26 | (87, 42, -24) | out |
 | body shell | 24 | (33, 69, 34) | up and out |
 | body shell | 22 | (10, 67, 102) | up |
 | engine cover | 21 | (33, 66, -119) | up |
 | engine cover | 19 | (34, 71, -97) | up and out |
-| rear quarter panel | 19 | (33, 75, -62) | up and out |
-| tail corner | 18 | (39, 64, -145) | up |
+| rear quarter panel | 19 | (33, 76, -60) | up and out |
+| tail corner | 18 | (39, 64, -148) | up |
 | nose tip | 16 | (7, 46, 194) | up |
 | side skirt | 15 | (27, 20, 84) | up |
-| sidepod inlet | 13 | (73, 46, -5) | up |
-| cockpit surround | 12 | (31, 76, -1) | up and out |
-| cockpit surround | 12 | (32, 77, -24) | up and out |
+| cockpit surround | 13 | (31, 76, 4) | up and out |
+| cockpit surround | 12 | (32, 77, -28) | up and out |
+| sidepod inlet | 13 | (73, 46, -4) | up |
 | nose panel | 12 | (6, 58, 151) | up |
 
 ## Where a graphic stops

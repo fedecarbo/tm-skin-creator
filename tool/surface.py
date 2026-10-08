@@ -37,6 +37,20 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
                                        far (the tracer), across a hairline between pieces, stopping where the body
                                        ends: (n, 3) cm
     S.facing(points)                   the surface's facing at points (outward)
+    S.chart(centre, right, up, reach, crease)   the surface round a point as a sticker pressed onto it there: for the fine
+                                       surface within `reach` cm along the surface of the centre, each vertex's place
+                                       on the sticker, X along `right` and Y along `up` (cm), exact: its distance from
+                                       the centre by exact geodesics (the centre put in as a vertex), its direction by
+                                       the law of cosines against four more sources EPS cm away along the surface,
+                                       before and behind it along right and along up (the tracer's); with crease, the
+                                       patch cut along the model's crisp lines first, so the sticker stays on the
+                                       centre's own panel; without, it folds over them as a pressed sticker does,
+                                       spans a step flat (a wall of skin thinner than STEP cm between two skins, a
+                                       raised plate's edge: the raised skin is measured as if it sat level with the
+                                       other) and bridges a gap up to BRIDGE cm between two skins facing alike. A
+                                       Chart: .at(size, lin) reads (X, Y) at texels (nan beyond the reach), .read(xy,
+                                       points=) at points on the car, .stretch() how far the sticker is stretched on
+                                       each face (0.05: its lengths grow or shrink 5 %; inf where it folds over itself)
     S.texels(size, lin)                where texels of the set's map (flat indices row * size + column; all by
                                        default) sit on the fine surface, from the bake's triangle (tool/bake.py):
                                        each one's fine face (-1 off the car) and its weights at the face's corners
@@ -45,7 +59,11 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
 The distances are exact on the surface, and within 0.05 cm between the fine surface's vertices (measured against
 the line's own points); a line of the body within 8 cm costs a tenth of a second from any points, and half a second
 to two with a side (the chain and the cut; a line's point landing beside its piece, on a sewn-on part, is put back
-on it); a path or a line carried on, milliseconds. (The heat methods and fast marching, measured on this mesh, were
+on it); a path or a line carried on, milliseconds; a chart (five solves) a quarter of a second to one. A chart's
+places are worked out at the surface's own vertices, where every distance is exact, and read between them by their
+faces: checked against rays the tracer shoots from the centre, within 0.01 cm on flat panels, the rear flank's rolled
+shoulder and the nose's roll alike (2026-10-08; a distance read between vertices would be off by up to 1.7 cm near
+the centre, where it is a cone over a 6 cm face). (The heat methods and fast marching, measured on this mesh, were
 off by 0.2 to 2 cm: the model's triangles are up to 24 cm long.) The body's skin is one piece (the body shell, the
 flanks, the skirts, the nose tip and the rest sewn with shared points); the sidepod tops, the tail's corners, the
 diffuser and the nose fin are pieces of their own, a hair apart from it (0.05 to 0.35 cm).
@@ -69,7 +87,11 @@ THIN = 1e-6      # cm: a face thinner than this isn't made (three points in a li
 JOIN = 12        # how many times a link of a line is halved to find the face it crosses, at most
 STRAY = 0.5      # cm: a line's point landing on another piece this near the line's own piece is put back on it
 HOP = 0.4        # cm: a line carried on hops a gap this wide between pieces (they're 0.05 to 0.35 apart)
+BRIDGE = 1.5     # cm: a sticker pressed over every edge bridges a gap this wide between two skins facing alike
+STEP = 1.5       # cm: a wall of skin this thin between two skins (a raised plate's edge) is a step a sticker spans flat
+WALL = 70.0      # degrees: skin facing this far from the sticker's centre is a wall, where it's thin
 SPECK = 0.5      # cm: a piece of a contour shorter than this is the solver's noise, not a line
+EPS = 0.5        # cm: how far a chart's four more sources sit from its centre along the surface
 HALF_TEXEL = 0.05  # cm: a contour's vertex this far off the straight line between its neighbours, where the surface
 # is flat, means the faces there are too big for the bend: a distance is read straight across a face, so a line
 # beside a bent line comes out as a polygon on big faces. Those faces are cut finer and the distance solved again
@@ -151,6 +173,7 @@ class Surface:
         self.points = int(d["points"])
         self.pieces = int(self.piece.max()) + 1
         self._local, self._solvers, self._trees, self._longest, self._facing = {}, {}, {}, None, None
+        self._maps = {}  # per map size: the bake's triangle per texel and the mesh's UVs, kept (the bake is 500 MB unpacked)
 
     # ---- the pieces and their solvers ----
 
@@ -405,13 +428,7 @@ class Surface:
                     for g, k, _ in slot[best[1]]:
                         cuts[g, k] = True
         if crease:
-            from tool import meshlines
-            fn = self.fine_facing()[keep]
-            cos = np.cos(np.radians(meshlines.SHARP))
-            for (u, v), here in slot.items():
-                if len(here) == 2 and fn[parent[here[0][0]]] @ fn[parent[here[1][0]]] <= cos:
-                    for g, k, _ in here:
-                        cuts[g, k] = True
+            cuts |= self._sharp(F2, parent, keep)
         Vn, Fn, _ = igl.cut_mesh(V2, F2.astype(np.int64), cuts)
         src = [np.unique([Fn[g, (k + j) % 3] for g, k in side for j in (0, 1)]).astype(np.int64) for side in (left, right)]
         field = Field(self, keep, parent, Vn, Fn, _solve(Vn, Fn, src), gaps)
@@ -422,6 +439,74 @@ class Surface:
             Vn, Fn, parent, src = _finer(Vn, Fn, parent, coarse, src)
             field = Field(self, keep, parent, Vn, Fn, _solve(Vn, Fn, src), gaps)
         return field
+
+    def _sharp(self, F2, parent, keep):
+        """The edges of a patch's mesh along the model's crisp lines (its faces meeting at meshlines.SHARP degrees or more),
+        as igl.cut_mesh takes them: (faces, 3) bool, the edge from each corner to the next."""
+        from tool import meshlines
+        fn = self.fine_facing()[keep]
+        cos = np.cos(np.radians(meshlines.SHARP))
+        slot = {}
+        for g in range(len(F2)):
+            x, y, z = F2[g]
+            for k, (u, v) in enumerate(((x, y), (y, z), (z, x))):
+                slot.setdefault((min(u, v), max(u, v)), []).append((g, k))
+        cuts = np.zeros((len(F2), 3), bool)
+        for here in slot.values():
+            if len(here) == 2 and fn[parent[here[0][0]]] @ fn[parent[here[1][0]]] <= cos:
+                for g, k in here:
+                    cuts[g, k] = True
+        return cuts
+
+    def chart(self, centre, right, up, reach=12.0, crease=False):
+        """The surface round a point as a sticker pressed onto it there (a Chart; the key above says how): right and up in
+        the surface's tangent plane at the centre, the sticker's X and Y. The distance from the centre is exact; the
+        direction comes from the law of cosines against the four sources EPS cm away (each pair's two agree on a flat
+        panel; a source that couldn't go, where the body ends or across a cut, leaves the other to tell; where neither
+        could, the direction through the air serves). Without the crease cut the patch's steps are spanned (_spanned) and
+        its gaps bridged (_bridged)."""
+        import igl
+        p = self._locate(np.asarray(centre, np.float64)[None])[2][0]
+        right, up = (np.asarray(v, np.float64) for v in (right, up))
+        pts = [p] + [self.carry(p, d, EPS)[-1] for d in (right, -right, up, -up)]
+        f, w, on = self._locate(np.asarray(pts))
+        V, F, keep, _ = self._patch(on, reach)
+        V2, F2, ids, parent, _ = _insert(V, F, np.searchsorted(keep, f), w, on)
+        if crease:
+            Vn, Fn, back = igl.cut_mesh(V2, F2.astype(np.int64), self._sharp(F2, parent, keep))
+            copies = [np.flatnonzero(np.asarray(back).reshape(-1) == i) for i in ids]
+        else:
+            fn = self.fine_facing()[keep]
+            Vn, Fn, parent = _spanned(V2, F2.astype(np.int64), parent, fn, np.cross(right, up), int(ids[0]))
+            Vn, Fn, parent = _bridged(Vn, Fn, parent, fn)
+            copies = [np.array([i]) for i in ids]
+        n = len(Vn)
+        comp = _components(Fn, n)
+        D = []
+        for src in copies:
+            d = np.asarray(igl.exact_geodesic(Vn, Fn, src.astype(np.int64), np.zeros(0, np.int64), np.arange(n, dtype=np.int64),
+                                              np.zeros(0, np.int64))).reshape(-1)
+            d[~np.isin(comp, comp[src])] = np.inf
+            D.append(d)
+        r = D[0]
+        reached = r <= reach
+        xy = np.zeros((n, 2))
+        rel = Vn - p
+        for k, (axis, plus, minus) in enumerate(((right, 1, 2), (up, 3, 4))):
+            got, count = np.zeros(n), np.zeros(n)
+            for src, sign in ((plus, 1.0), (minus, -1.0)):
+                eps = float(r[copies[src]].min()) if len(copies[src]) else np.inf
+                if not 0.1 * EPS <= eps <= 1.5 * EPS:  # it didn't go, or the surface is cut between
+                    continue
+                ok = reached & np.isfinite(D[src])
+                got[ok] += sign * (r[ok] ** 2 + eps ** 2 - D[src][ok] ** 2) / (2 * eps)
+                count[ok] += 1
+            xy[:, k] = np.where(count > 0, got / np.maximum(count, 1), rel @ axis)
+        rho = np.hypot(xy[:, 0], xy[:, 1])
+        xy *= np.where(rho > 1e-9, r / np.maximum(rho, 1e-9), 1.0)[:, None]  # the direction theirs, the distance exact
+        xy[~reached] = np.nan
+        facing = np.cross(right, up)
+        return Chart(self, keep, parent, Vn, Fn, xy, np.where(reached, r, np.inf), p, right, up, facing / np.linalg.norm(facing))
 
     def fine_facing(self):
         """Each fine face's facing, outward (its winding's, as the model's)."""
@@ -439,9 +524,10 @@ class Surface:
         """Where texels of the set's map sit on the fine surface, from the bake's triangle (tool/bake.py): each one's
         fine face (-1 off the car) and its weights at the face's corners, (n,) and (n, 3). lin: flat texel indices,
         row * size + column; all the map's when None."""
-        tri = bake.bake(self.tset, size, size)["tri"].reshape(-1)
+        if size not in self._maps:
+            self._maps[size] = (bake.bake(self.tset, size, size)["tri"].reshape(-1), fbx.meshes()[fbx.MESH_OF[self.tset]]["tri_uv"])
+        tri, uv = self._maps[size]
         lin = np.arange(tri.size) if lin is None else np.asarray(lin, np.int64)
-        uv = fbx.meshes()[fbx.MESH_OF[self.tset]]["tri_uv"]
         face = np.full(len(lin), -1, np.int32)
         bary = np.zeros((len(lin), 3), np.float32)
         for k in range(0, len(lin), CHUNK):
@@ -476,6 +562,110 @@ class Surface:
         return out
 
 
+def _spanned(V, F, parent, fn, facing, centre):
+    """A patch's mesh with its steps spanned, as a sticker pressed over every edge spans them flat rather than running
+    down and up: a wall (faces facing WALL degrees or more from the sticker's facing) thinner than STEP cm (twice its
+    area over its perimeter) between the centre's skin and another is taken out, the other skin moved onto the
+    centre's by the step (the mean offset between the wall's two rims) and the rims welded; a wall between two skins
+    neither the centre's is left as it is. Faces that collapse go."""
+    n = len(V)
+    wall = np.flatnonzero(fn[np.maximum(parent, 0)] @ facing < np.cos(np.radians(WALL)))
+    if not len(wall):
+        return V, F, parent
+    strips = _components(F[wall], n)[F[wall]].min(1)  # the walls joined edge to edge, by their lowest vertex's label
+    A, B, C = (V[F[wall, k]] for k in range(3))
+    area = 0.5 * np.linalg.norm(np.cross(B - A, C - A), axis=1)
+    per = np.linalg.norm(B - A, axis=1) + np.linalg.norm(C - B, axis=1) + np.linalg.norm(A - C, axis=1)
+    thin = set()
+    for s in np.unique(strips):
+        mine = strips == s
+        if 2 * area[mine].sum() / max(per[mine].sum() / 2, 1e-9) <= STEP:  # each inner edge counted twice: half the perimeter
+            thin.add(s)
+    gone = wall[np.isin(strips, list(thin))]
+    if not len(gone):
+        return V, F, parent
+    rest = np.setdiff1d(np.arange(len(F)), gone)
+    comp = _components(F[rest], n)
+    rim = np.unique(F[gone])
+    home = comp[centre]
+    V = V.copy()
+    weld = np.arange(n)
+    for k in np.unique(comp[rim]):
+        if k == home:
+            continue
+        top = rim[comp[rim] == k]
+        low = rim[comp[rim] == home]
+        if not len(low) or not len(top):
+            continue
+        d, j = cKDTree(V[low]).query(V[top], distance_upper_bound=2 * STEP)
+        ok = np.isfinite(d)
+        if ok.sum() < 2:
+            continue
+        shift = (V[low[j[ok]]] - V[top[ok]]).mean(0)
+        V[comp == k] += shift
+        d, j = cKDTree(V[low]).query(V[top], distance_upper_bound=0.3)
+        weld[top[np.isfinite(d)]] = low[j[np.isfinite(d)]]
+    F2 = weld[F[rest]]
+    keep = (F2[:, 0] != F2[:, 1]) & (F2[:, 1] != F2[:, 2]) & (F2[:, 2] != F2[:, 0])
+    keep &= ~np.array([_thin(*V[f]) for f in F2])
+    return V, F2[keep], parent[rest][keep]
+
+
+def _bridged(V, F, parent, fn):
+    """A patch's mesh with its gaps bridged, as a sticker pressed over every edge bridges them: where two skins facing
+    alike (within 60 degrees) end within BRIDGE cm of each other (a raised plate's step, the hairline between two
+    pieces), the edges along their ends are joined by triangles, so a distance runs straight across instead of round.
+    Each end's vertex takes the nearest vertex of another end (never one it shares an edge with), and two vertices in
+    a row along an end make two triangles with their two. The bridges' faces have no face of the patch (parent -1)."""
+    edge = {}
+    for g, (x, y, z) in enumerate(F):
+        for u, v in ((x, y), (y, z), (z, x)):
+            edge.setdefault((min(u, v), max(u, v)), []).append(g)
+    rim = [(u, v, gs[0]) for (u, v), gs in edge.items() if len(gs) == 1]
+    if len(rim) < 2:
+        return V, F, parent
+    verts = np.unique([u for u, v, _ in rim] + [v for u, v, _ in rim])
+    facing = {}
+    for u, v, g in rim:
+        for k in (u, v):
+            facing.setdefault(k, []).append(fn[parent[g]])
+    nrm = np.array([np.mean(facing[k], 0) for k in verts])
+    nrm /= np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-12)
+    tree = cKDTree(V[verts])
+    linked = set(edge)
+    match = {}
+    for i, k in enumerate(verts):
+        for d, j in zip(*tree.query(V[k], k=min(8, len(verts)), distance_upper_bound=BRIDGE)):
+            if not np.isfinite(d) or j == i or d < 1e-9:
+                continue
+            m = int(verts[j])
+            if (min(k, m), max(k, m)) in linked or nrm[i] @ nrm[j] < 0.5:
+                continue
+            match[int(k)] = m
+            break
+    if not match:
+        return V, F, parent
+    F, parent = list(map(tuple, F)), list(parent)
+    count = {e: len(gs) for e, gs in edge.items()}  # faces per edge: a bridge never gives an edge a third, nor makes a thin face
+    for u, v, _ in rim:
+        if u not in match or v not in match:
+            continue
+        a, b = match[u], match[v]
+        if min(a, b) < min(u, v):
+            continue  # the other end builds this bridge
+        for tri in (((u, v, b),) if a == b else ((u, v, b), (u, b, a))):
+            if len(set(tri)) < 3 or _thin(*(V[k] for k in tri)):
+                continue
+            es = [(min(tri[k], tri[(k + 1) % 3]), max(tri[k], tri[(k + 1) % 3])) for k in range(3)]
+            if any(count.get(e, 0) >= 2 for e in es):
+                continue
+            for e in es:
+                count[e] = count.get(e, 0) + 1
+            F.append(tri)
+            parent.append(-1)
+    return V, np.array(F, np.int64), np.array(parent)
+
+
 def _to_segment(p, a, b):
     """How far a point is from the segment ab (its ends included)."""
     ab = b - a
@@ -489,6 +679,16 @@ def _bary(p, a, b, c):
     det = max(d11 * d22 - d12 * d12, 1e-18)
     u, v = (d22 * r1 - d12 * r2) / det, (d11 * r2 - d12 * r1) / det
     return np.array([1 - u - v, u, v])
+
+
+def _bary_many(P, a, b, c):
+    """_bary for points P (m, 3) in one triangle: (m, 3)."""
+    e1, e2, d = b - a, c - a, P - a
+    d11, d12, d22 = e1 @ e1, e1 @ e2, e2 @ e2
+    r1, r2 = d @ e1, d @ e2
+    det = max(d11 * d22 - d12 * d12, 1e-18)
+    u, v = (d22 * r1 - d12 * r2) / det, (d11 * r2 - d12 * r1) / det
+    return np.stack([1 - u - v, u, v], 1)
 
 
 def _crossing(p, q, u, v):
@@ -711,52 +911,89 @@ def _insert(V, F, face, bary, pts, chain=False):
     return np.array(V), np.array([F[f] for f in live]), np.array(ids), np.array([parent[f] for f in live]), np.array(path)
 
 
-class Field:
-    """The distance from each side of a line over a patch of the fine surface, on the mesh the line was cut into: read
-    at texels of the set's map as one signed distance. keep: the patch's faces on the whole surface; parent: each cut
-    face's face of the patch; Vn, Fn: the cut mesh; value: (n, 2) per vertex of it, from the line's left and from its
-    right (inf where unreached). Each side is read on its own and the nearer takes the texel: a signed value read
-    across a face would fake a zero wherever the two sides meet round an open line's end."""
+class _Patch:
+    """A patch of the fine surface as a mesh of its own, with points put in and maybe cut or cut finer (Vn, Fn; keep: the
+    patch's faces on the whole surface; parent: each face's face of the patch), and values per vertex of it read at
+    texels of the set's map, or at points on the car, through their faces."""
 
-    def __init__(self, S, keep, parent, Vn, Fn, value, gaps):
-        self.S, self.keep, self.Vn, self.Fn, self.value, self.gaps = S, keep, Vn, Fn, value, gaps
+    def __init__(self, S, keep, parent, Vn, Fn):
+        self.S, self.keep, self.parent, self.Vn, self.Fn = S, keep, parent, Vn, Fn
         order = np.argsort(parent, kind="stable")
         starts = np.r_[0, np.flatnonzero(np.diff(parent[order])) + 1]
         self.kids = {int(parent[order[a]]): order[a:b] for a, b in zip(starts, np.r_[starts[1:], len(order)])}
 
-    def at(self, size, lin=None):
-        """The signed distance at texels of the set's map (flat indices; all by default): + to the line's left, - to its
-        right; nan off the patch or beyond its reach."""
-        face, bary = self.S.texels(size, lin)
-        out = np.full((len(face), 2), np.inf)
+    def _faces(self, face, bary):
+        """For points given by their fine face and weights there: each one's face of the mesh (-1 off the patch) and its
+        weights at that face's corners. A face kept whole keeps its corners in order; one cut, the piece the point is
+        in, by its weights there."""
+        g, wt = np.full(len(face), -1, np.int64), np.zeros((len(face), 3))
         j = np.searchsorted(self.keep, face)
         j = np.minimum(j, len(self.keep) - 1)
         on = (face >= 0) & (self.keep[j] == face)
+        on[on] = [int(k) in self.kids for k in j[on]]  # a face of the patch taken out (a step's wall) is off it
         if not on.any():
-            return np.full(len(face), np.nan)
+            return g, wt
         rows, j = np.flatnonzero(on), j[on]
         P = (self.S.FV[self.S.FF[face[on]]] * bary[on][..., None]).sum(1)
         single = np.array([len(self.kids[int(k)]) == 1 for k in j])
-        # a face kept whole: its corners' values at the texel's weights (its corners stay in order)
-        g = np.array([self.kids[int(k)][0] for k in j[single]], dtype=np.int64)
-        if len(g):
-            out[rows[single]] = _read(self.value[self.Fn[g]], bary[on][single].astype(np.float64))
-        # a face the line cut: the piece the texel is in, by its weights there
+        g[rows[single]] = [self.kids[int(k)][0] for k in j[single]]
+        wt[rows[single]] = bary[on][single]
         for k in np.unique(j[~single]):
             mine = np.flatnonzero(j == k)
-            gs = self.kids[int(k)]
-            A, B, C = (self.Vn[self.Fn[gs, c]] for c in range(3))
-            best, bw = None, None
-            for gi, (a, b, c) in enumerate(zip(A, B, C)):
-                w = np.array([_bary(p, a, b, c) for p in P[mine]])
+            best = bw = bm = None
+            for gi in self.kids[int(k)]:
+                w = _bary_many(P[mine], *(self.Vn[self.Fn[gi, c]] for c in range(3)))
                 m = w.min(1)
                 if best is None:
                     best, bw, bm = np.full(len(mine), gi), w, m
                 else:
                     better = m > bm
                     best[better], bw[better], bm[better] = gi, w[better], m[better]
-            wt = np.clip(bw, 0, None)
-            out[rows[mine]] = _read(self.value[self.Fn[gs[best]]], wt / np.maximum(wt.sum(1, keepdims=True), 1e-12))
+            w = np.clip(bw, 0, None)
+            g[rows[mine]], wt[rows[mine]] = best, w / np.maximum(w.sum(1, keepdims=True), 1e-12)
+        return g, wt
+
+    def faces_at(self, size, lin=None):
+        """Each texel's face of the mesh and its weights there (_faces), for texels of the set's map (all by default)."""
+        return self._faces(*self.S.texels(size, lin))
+
+    def read(self, value, size=None, lin=None, points=None, faces=None):
+        """A value per vertex of the mesh, (n,) or (n, k), read at texels of the set's map (size, lin), at points on
+        the car, or at faces and weights found already (faces_at's): nan off the patch, or at a face with a corner
+        the value doesn't reach (not finite)."""
+        if faces is not None:
+            g, wt = faces
+        elif points is not None:
+            g, wt = self._faces(*self.S._locate(np.asarray(points, np.float64).reshape(-1, 3))[:2])
+        else:
+            g, wt = self.faces_at(size, lin)
+        value = np.asarray(value, np.float64)
+        out = np.full((len(g),) + value.shape[1:], np.nan)
+        on = np.flatnonzero(g >= 0)
+        corners = value[self.Fn[g[on]]]
+        w = wt[on].reshape((len(on), 3) + (1,) * (value.ndim - 1))
+        ok = np.isfinite(corners).reshape(len(on), -1).all(1)
+        out[on[ok]] = (corners * w).sum(1)[ok]
+        return out
+
+
+class Field(_Patch):
+    """The distance from each side of a line over a patch of the fine surface, on the mesh the line was cut into: read
+    at texels of the set's map as one signed distance. value: (n, 2) per vertex, from the line's left and from its
+    right (inf where unreached). Each side is read on its own and the nearer takes the texel: a signed value read
+    across a face would fake a zero wherever the two sides meet round an open line's end."""
+
+    def __init__(self, S, keep, parent, Vn, Fn, value, gaps):
+        super().__init__(S, keep, parent, Vn, Fn)
+        self.value, self.gaps = value, gaps
+
+    def at(self, size, lin=None):
+        """The signed distance at texels of the set's map (flat indices; all by default): + to the line's left, - to its
+        right; nan off the patch or beyond its reach."""
+        g, wt = self.faces_at(size, lin)
+        out = np.full((len(g), 2), np.inf)
+        on = g >= 0
+        out[on] = _read(self.value[self.Fn[g[on]]], wt[on])
         value = np.where(out[:, 0] <= out[:, 1], out[:, 0], -out[:, 1])
         value[np.isinf(out).all(1)] = np.nan
         return value
@@ -849,6 +1086,42 @@ class Field:
             if np.linalg.norm(np.diff(pts, axis=0), axis=1).sum() >= SPECK:
                 out.append((pts, not loose and chain[0] == chain[-1], np.array([of[m] for m in used])))
         return out
+
+
+class Chart(_Patch):
+    """A flat map of the surface round a point, as a sticker pressed onto the car there (Surface.chart; a course's, laid
+    along it, Course.chart in tool/course.py): xy, each vertex's place on the sticker (X along right, Y along up, cm;
+    nan where it doesn't reach), r its distance from the centre along the surface, and the centre's frame (centre,
+    right, up, facing)."""
+
+    def __init__(self, S, keep, parent, Vn, Fn, xy, r, centre, right, up, facing):
+        super().__init__(S, keep, parent, Vn, Fn)
+        self.xy, self.r = xy, r
+        self.centre, self.right, self.up, self.facing = (np.asarray(v, np.float64) for v in (centre, right, up, facing))
+        self._stretch = None
+
+    def at(self, size, lin=None):
+        """(X, Y) at texels of the set's map (flat indices; all by default): (m, 2), nan where the chart doesn't reach."""
+        return self.read(self.xy, size, lin)
+
+    def stretch(self):
+        """Per face of the mesh: how far the sticker is stretched there, the most its lengths grow or shrink as a share
+        of themselves (0.05: 5 %; 0 flat); inf where the map folds over itself."""
+        if self._stretch is None:
+            A, B, C = (self.Vn[self.Fn[:, k]] for k in range(3))
+            a, b, c = (self.xy[self.Fn[:, k]] for k in range(3))
+            E = np.stack([B - A, C - A], 2)  # a step on the car for each of the face's two edges
+            e = np.stack([b - a, c - a], 2)  # the same step on the sticker
+            det = e[:, 0, 0] * e[:, 1, 1] - e[:, 0, 1] * e[:, 1, 0]
+            ok = np.isfinite(det) & (np.abs(det) > 1e-9)
+            inv = np.zeros_like(e)
+            inv[ok, 0, 0], inv[ok, 1, 1] = e[ok, 1, 1] / det[ok], e[ok, 0, 0] / det[ok]
+            inv[ok, 0, 1], inv[ok, 1, 0] = -e[ok, 0, 1] / det[ok], -e[ok, 1, 0] / det[ok]
+            s = np.linalg.svd(E[ok] @ inv[ok], compute_uv=False)  # how a step on the sticker comes out on the car, most and least
+            out = np.full(len(self.Fn), np.inf)
+            out[ok] = np.maximum(np.maximum(s[:, 0] - 1, 1 - s[:, 1]), 0)
+            self._stretch = out
+        return self._stretch
 
 
 def _read(corners, wt):

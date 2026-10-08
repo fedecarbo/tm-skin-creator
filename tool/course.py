@@ -44,7 +44,9 @@ a strip, dashes, ticks, spots or words.
     c.ticks(every=10, length=3, width=0.6, side=1)   short strokes square to it every 10 cm, to its left (+1),
                                              its right (-1) or both ways (0)
     s.text("NO STEP", "engine cover", at=c.between(-74, -62))   words (a placard, a mark) at a stretch's
-                                             middle, reading along it, upright to someone beside the car
+                                             middle, reading along it, each letter following the line (c.chart:
+                                             the surface laid flat along the course, X along it, Y across), upright
+                                             to someone beside the car; the stretch is their room along the line
 A marking's width and side are measured along the car's surface (tool/surface.py: the distance from the course exact
 on each side of it), so it lies where the surface itself joins to the course, however far the body turns, and never
 on the far side of a thin panel; along the course, by the course's nearest point. course.measure(zone) reads a
@@ -495,16 +497,41 @@ class Course:
             return width / 2 - np.abs(s - (s0 + k * every))
         return self._zone(lo, hi, along, f"ticks {length:g} cm long every {every:g} cm along {self.name}", soft)
 
-    def up_at(self, point):
-        """Where the top of words reading along the course points, at a point on it: upright to someone
-        standing beside the car at the side the surface faces (tool/marks.py's _outward)."""
-        from tool import marks
-        i = self._index(point)
-        t, n = self.tan[i], self.nrm[i]
+    def _left(self, i, mirrored=False):
+        t, n = (self.tan[i] * MIRROR, self.nrm[i] * MIRROR) if mirrored else (self.tan[i], self.nrm[i])
         up = np.cross(n, t)
-        up /= max(np.linalg.norm(up), 1e-9)
-        want = np.asarray(marks._outward(n, self.pts[i]), np.float64)
-        return tuple(-up if up @ want < 0 else up)
+        return up / max(np.linalg.norm(up), 1e-9)
+
+    def _turned(self, i, mirrored=False):
+        """Whether words reading along the course at its point i are upright with their top to the course's right
+        (then they read the other way along it), for someone beside the car (tool/marks.py's _outward)."""
+        from tool import marks
+        n, p = (self.nrm[i] * MIRROR, self.pts[i] * MIRROR) if mirrored else (self.nrm[i], self.pts[i])
+        return bool(self._left(i, mirrored) @ np.asarray(marks._outward(n, p), np.float64) < 0)
+
+    def chart(self, s0, across, mirrored=False):
+        """The surface laid flat along the course, for words and patterns reading along it (tool/marks.py): a Chart
+        (tool/surface.py) whose X runs along the course from the point s0 cm along it and whose Y runs across it,
+        the distance across the surface (exact on each side), within `across` cm of it; a texel's X is its nearest
+        point's length along the course. Words are upright to someone beside the car (_turned): where their top points
+        to the course's right, the sheet is turned over (X the other way along it, Y to its right). The frame at s0:
+        right the way the words read, up where their top points, facing the surface's. mirrored: the course's mirror
+        image's."""
+        from tool import surface
+        field = self._signed(across + 1.0, False, mirrored)
+        P, T = (self.pts * MIRROR, self.tan * MIRROR) if mirrored else (self.pts, self.tan)
+        _, i = cKDTree(P).query(field.Vn, workers=-1)
+        s = self.s[i] + ((field.Vn - P[i]) * T[i]).sum(1)
+        v = field.value
+        d = np.where(v[:, 0] <= v[:, 1], v[:, 0], -v[:, 1])
+        d[np.isinf(v).all(1)] = np.nan
+        i0 = int(np.argmin(np.abs(self.s - s0)))
+        sign = -1.0 if self._turned(i0, mirrored) else 1.0
+        xy = np.stack([sign * (s - s0), sign * d], 1)
+        xy[~np.isfinite(d) | (np.abs(d) > across) | (s < 0) | (s > self.length)] = np.nan
+        n = self.nrm[i0] * MIRROR if mirrored else self.nrm[i0]
+        return surface.Chart(field.S, field.keep, field.parent, field.Vn, field.Fn, xy, np.where(np.isfinite(d), np.abs(d), np.inf),
+                             P[i0], sign * T[i0], sign * self._left(i0, mirrored), n)
 
 
 def _said(v):

@@ -1,0 +1,29 @@
+{
+ "car": "TSC_DecalsTest",
+ "sets": [
+  {
+   "n": 1,
+   "title": "Stickers and words · 2 takes",
+   "words": "",
+   "made": "2026-10-08T14:06:56",
+   "state": "picked",
+   "options": [
+    {
+     "key": "A",
+     "title": "As it was",
+     "skin": "TSC_DecalsTest_AsItWas",
+     "picture": "sets/1/A.png"
+    },
+    {
+     "key": "B",
+     "title": "On the surface",
+     "skin": "TSC_DecalsTest_OnTheSurface",
+     "picture": "sets/1/B.png"
+    }
+   ],
+   "pick": "B",
+   "decision": "On the surface, with the nose's step spanned flat",
+   "done": "2026-10-08T15:14:34"
+  }
+ ]
+}

@@ -5,7 +5,7 @@ import zlib
 
 from PIL import Image, ImageDraw, ImageFont
 
-from tool import paint
+from tool import fonts
 
 ICON_SIZE = 256
 LEVEL = 9  # zlib's best compression
@@ -18,7 +18,7 @@ def icon(label, left, right):
     to255 = lambda c: tuple(int(v * 255) for v in c)
     d.rectangle([0, 0, ICON_SIZE // 2, ICON_SIZE], fill=to255(left))
     d.rectangle([ICON_SIZE // 2, 0, ICON_SIZE, ICON_SIZE], fill=to255(right))
-    f = ImageFont.truetype(paint.FONTS["impact"], 46)
+    f = ImageFont.truetype(fonts.path("impact"), 46)
     d.text((ICON_SIZE / 2, ICON_SIZE / 2), label, fill=(255, 255, 255), font=f, anchor="mm",
            stroke_width=4, stroke_fill=(0, 0, 0))
     return im

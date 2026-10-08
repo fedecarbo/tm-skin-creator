@@ -68,7 +68,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18069, "viewer/*.js": 4670}
+BUDGET = {"tool/*.py": 18373, "viewer/*.js": 4670}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -135,7 +135,7 @@ def tour(s):
     s.paint("body", "satin", colour="#f4f2ec", zone=meshlines.panel((25, 80, 11), both=True, border=1.5))
     drawn = course.stroke([(42.8, 64.0, -128.1), (50.0, 63.6, -100.0), (58.6, 63.0, -78.6), (76.4, 60.8, -50.0)])
     s.paint("body", "satin", colour="#111111", zone=drawn.strip(0.6))
-    s.placard("ALONG", "engine cover", at=drawn.between(-110, -90), height=2.6, colour="#111111", mirror=False)
+    s.placard("ALONG", "body", at=drawn.between(-110, -90), height=2.6, colour="#111111", mirror=False)
     s.step("Details", "The inner car, glass, dirt, glows, a light and the tyres.")
     s.paint("inner", "camo matte", palette=["charcoal", "slate", "light grey", "jet black"], scale=26)
     s.paint("seat", "cloth", colour="charcoal")

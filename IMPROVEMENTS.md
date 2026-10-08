@@ -40,12 +40,28 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  5. **Decals, emblems and words on the surface** (Fable 5.1, high; or Opus 5.5, xhigh). A local map round a point for marks and decals (across a crease
-     when the design says so, its stretch measured), coordinates along and across a line for words and patterns
-     along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a
-     mark's `at` seen along an axis landing on a panel's underside unnoticed. Retires the facing cone and the fold
-     rule that marks, decals, words and scatter each use, and the projection's nearest-facing landing
-     (`marks.project`).
+  5. **Decals, emblems and words on the surface** (Fable 5.1, high; or Opus 5.5, xhigh). Built, waiting for the user's
+     OK (2026-10-08, Fable 5.1 at high). Every mark is pressed onto the car on a chart of the surface round its point
+     (`surface.Surface.chart`: its distance from the centre by exact geodesics, its direction by the law of cosines
+     against four more sources half a centimetre away along the surface; checked against the tracer's rays within
+     0.01 cm on flat panels, the rear flank's rolled shoulder and the nose's roll; a quarter of a second to a second a
+     chart), the chart cut along the model's crisp lines unless `across=True`, which instead spans a step flat (a wall
+     of skin thinner than 1.5 cm between two skins: the raised skin measured as if level with the other; the user,
+     2026-10-08, of the emblem over the nose's raised plate, where the pressed sticker ran down the 6 mm step: "a
+     clipping happening between the two pieces") and bridges a gap up to 1.5 cm between two skins facing alike; its
+     stretch is measured face by face
+     and said from 3 %, the surface's turn under words from 20 degrees (`marks.WORD_TURN`); words at a course read along
+     the course's chart (`Course.chart`: X along it, Y across), each letter following the line, the stretch their room;
+     a scatter's copies each on a chart of their own, spaced along the surface (about a third of a second a copy); `at`
+     with a None coordinate is looked along from outside, and the note says when nothing in line faces the look. Gone:
+     the fold rule and the facing cone, the texture's unfolding as the place a mark is drawn in, the projection
+     (its module with it), scatter's facing and depth limits, `Skin.mark`'s `fold`. The test car TSC_DecalsTest, set 1 open
+     in the Lab: A the same design by the old code (painted from 2c126de's tree), B on the surface. A lays the words
+     along the nose's rounded edge straight (moved 7.5 cm off the line, their twin 8 cm off), moves FLANK 18 cm and
+     halves it, shrinks the placard to 58 % and moves it off its line, projects the badge through the shoulder's roll
+     and sprinkles 231 copies through the air; B's words follow the edge letter by letter, FLANK sits over the turn
+     (said: 21 degrees), the placard reads along its line, the badge wraps the roll as a pressed sticker, 179 copies
+     lie spaced along the surface, none across a crisp line. On the OK: delete the test car and its takes, step 5 here.
   6. **One judge** (Fable 5.1 MUST, xhigh). One list of findings (block, warn, note) carrying the design's hash; a placement check for
      every graphic (lines: width, gaps, steps, kinks and face hops every 0.25 to 0.5 cm; fills: how far the edge sits
      from its line; decals and words: whole, stretch), its limits tuned on the planted-flaw pair; the reach and the

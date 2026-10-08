@@ -60,7 +60,7 @@ NEAR = 0.10     # the share of a graphic within CLEAR cm of a panel from which i
 SPECK = 0.3     # cm² of a graphic by a panel, or three times that of a second paint on one: less is a texel's rounding
 SOFT = 2 * shapes.SOFT  # cm
 BLEND = 5.0     # cm
-PIXELS = 11.0   # the body's texels per cm (tool/paint.py's TEXEL_CM)
+PIXELS = 11.0   # the body's texels per cm (its texel pitch 0.089 cm at 4096², measured 2026-09-24)
 FOLD_WORDS = 30.0  # degrees: the surface under words turning this much from its mean is a fold under them (the
 # lettering the user rejected sat on 38)
 FLIPPED = 45.0  # degrees: words laid for a surface facing this far from the one under them look flipped or sheared
