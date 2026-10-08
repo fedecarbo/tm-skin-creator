@@ -336,15 +336,10 @@ def checked(s):
     # what the judge names on the planted-flaw pair; None on any other car
     if s.name not in ("SelfTest_Clean", "SelfTest_Flawed"):
         return None
-    try:
-        from tool import judge
-        found = judge.run(s)["findings"]
-    except ImportError:  # a commit before the judge: its three passes
-        from tool import checks, eye
-        found = checks.run(s) + eye.findings(eye.look(s))
-    return [{"kind": f["kind"], "check": f["check"], "side": f["side"], "text": f["text"], "level": f.get("level", ""),
+    from tool import judge
+    return [{"kind": f["kind"], "check": f["check"], "side": f["side"], "text": f["text"], "level": f["level"],
              "z": None if f["z"] is None else [round(float(v), 1) for v in f["z"]]}
-            for f in found]
+            for f in judge.run(s)["findings"]]
 
 
 def encoded(s, keep=False):

@@ -40,20 +40,6 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  6. **One judge** (Fable 5.1 MUST, xhigh). Built 2026-10-08, waiting for the user's OK. `tool/judge.py`: one list
-     of findings (block, warn, note) with the design's hash, kept in `build/<name>/verdict.json`, `PY -m tool.judge
-     <name>`; a placement check for every graphic (a marking read back every half centimetre along the model's line
-     it follows: gaps, a band on the line's other face, steps, kinks, wobbles, its width short, cut by the body's edge;
-     a fill's edge off its lines; a mark, words or a picture not whole or chipped, measured as it's laid); the reach and
-     the flaw checks folded in; the eye advisory, tuned on the pair (a sliver beside a tape's far edge and a near miss
-     along an edge were noise; a near miss at an end, a gap that closes, a shallow crossing, an edge just past a line
-     and touching another paint stay). The pair has two more flaws planted (a notch bitten out of a ring, ticks cut by
-     the body's edge) and a band's end covered by its own paint, which no longer reads as short. The self-test:
-     the judge names 20 of the 20 flaws planted, nothing on the clean car, in 2 to 6 s a car (the three passes
-     named 9 of 18 in 3 s, with 23 things said on the clean car); every car's game files identical. Found on the way and
-     fixed: a mark asked for from above landed on hidden skin inside the body; a picture's "landed" share was the
-     texel pitch's guess. On the OK: delete this step. The judge's run on the PC waits for the PC (the open air item
-     below).
   7. **Close looks along every line and over every decal** (Opus 5.5, high), square to the visible face at about 20 px per cm,
      shaded for the eye and as a flat mask the judge measures; a pixel diff against the previous version flags
      changes outside the area an edit meant to touch; both sides of the car seen alike. Retires the close looks they
