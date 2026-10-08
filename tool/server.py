@@ -34,14 +34,11 @@ STARTED = time.time()
 CODE = max((p.stat().st_mtime for p in (paths.REPO / "tool").glob("*.py")), default=0.0)
 
 
-MESH_STEP = 0.5  # cm between the points of a picked line sent to the Lab
-
-
 def mesh_path(q):
     """A line picked on the model's mesh: q, the query's set (Skin, Details or Wheels), at (the points clicked,
     "x,y,z;x,y,z", the car's own cm) and closed ("1": round back to the first). Where each click landed (one of the
-    model's points) and a small cross on the surface there (ticks), the line as it's painted (meshlines.picked: path,
-    smooth through the points) and how each stretch went; with no points, the model's lines made ready, so the first
+    model's points) and a small cross on the surface there (ticks), the line as it's painted (meshlines.picked: path's
+    points, as they are) and how each stretch went; with no points, the model's lines made ready, so the first
     click is quick."""
     import numpy as np
     from tool import meshlines
@@ -63,10 +60,7 @@ def mesh_path(q):
         a /= max(float(np.linalg.norm(a)), 1e-9)
         for d in (a, np.cross(n, a)):  # a cross lying on the surface
             ticks.append([(at - 0.7 * d).round(2).tolist(), (at + 0.7 * d).round(2).tolist()])
-    line = meshlines.smooth(pts, tset)
-    keep = np.r_[0, np.flatnonzero(np.diff(np.cumsum(np.r_[0.0, np.linalg.norm(np.diff(line, axis=0), axis=1)]) // MESH_STEP)) + 1]
-    line = line[np.unique(np.r_[keep, len(line) - 1])]  # every MESH_STEP cm, for the Lab to draw
-    return {"points": np.round(line, 2).tolist(), "clicks": [np.round(at, 2).tolist() for at, *_ in spots],
+    return {"points": np.round(pts, 2).tolist(), "clicks": [np.round(at, 2).tolist() for at, *_ in spots],
             "ticks": ticks, "how": how}
 
 

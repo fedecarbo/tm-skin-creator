@@ -27,13 +27,16 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
                                        as a chain of the fine surface's edges, the surface cut along it, each side
                                        measured from its own copy of the line); with crease, cut along the model's
                                        crisp lines too, so nothing crosses one. A Field: .at(size, lin) reads it
-                                       at texels of the set's map (nan beyond the reach), .gaps how many of the
-                                       line's links couldn't be cut (0)
-    S.vertex((x, y, z))                the repaired vertex nearest a point
-    S.line(a, b)                       the straightest line on the surface between two vertices: (n, 3) cm (edge
-                                       flips)
-    S.carry(t, bary, direction, cm)    the straightest way on along the surface from a point (a model triangle and
-                                       weights at its corners) in a direction, `cm` far: (n, 3) cm (the tracer)
+                                       at texels of the set's map (nan beyond the reach), .contour(cm) the line
+                                       where it is `cm` (a line beside the line), .gaps how many of the line's
+                                       links couldn't be cut (0)
+    S.path(points)                     the straightest way along the surface through points, in order: between
+                                       each two, the shortest line on the surface near the straight one (edge
+                                       flips); from one piece to another, straight across the gap: (n, 3) cm
+    S.carry(point, direction, cm)      the straightest way on along the surface from a point in a direction, `cm`
+                                       far (the tracer), across a hairline between pieces, stopping where the body
+                                       ends: (n, 3) cm
+    S.facing(points)                   the surface's facing at points (outward)
     S.texels(size, lin)                where texels of the set's map (flat indices row * size + column; all by
                                        default) sit on the fine surface, from the bake's triangle (tool/bake.py):
                                        each one's fine face (-1 off the car) and its weights at the face's corners
@@ -42,8 +45,10 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
 The distances are exact on the surface, and within 0.05 cm between the fine surface's vertices (measured against
 the line's own points); a line of the body within 8 cm costs a tenth of a second from any points, and half a second
 to two with a side (the chain and the cut; a line's point landing beside its piece, on a sewn-on part, is put back
-on it). (The heat methods and fast marching, measured on this mesh, were off by 0.2 to 2 cm: the model's triangles
-are up to 24 cm long.) Nothing crosses a gap between pieces.
+on it); a path or a line carried on, milliseconds. (The heat methods and fast marching, measured on this mesh, were
+off by 0.2 to 2 cm: the model's triangles are up to 24 cm long.) The body's skin is one piece (the body shell, the
+flanks, the skirts, the nose tip and the rest sewn with shared points); the sidepod tops, the tail's corners, the
+diffuser and the nose fin are pieces of their own, a hair apart from it (0.05 to 0.35 cm).
 """
 
 import functools
@@ -63,6 +68,8 @@ CHUNK = 1 << 21  # texels worked on at once
 THIN = 1e-6      # cm: a face thinner than this isn't made (three points in a line): the point takes the nearest corner
 JOIN = 12        # how many times a link of a line is halved to find the face it crosses, at most
 STRAY = 0.5      # cm: a line's point landing on another piece this near the line's own piece is put back on it
+HOP = 0.4        # cm: a line carried on hops a gap this wide between pieces (they're 0.05 to 0.35 apart)
+SPECK = 0.5      # cm: a piece of a contour shorter than this is the solver's noise, not a line
 
 
 def cache_file(tset):
@@ -138,9 +145,7 @@ class Surface:
         self.RV = self.V[self.welded]
         self.points = int(d["points"])
         self.pieces = int(self.piece.max()) + 1
-        self.vpiece = np.full(len(self.RV), -1, np.int64)
-        self.vpiece[self.RF.reshape(-1)] = np.repeat(self.piece, 3)
-        self._local, self._solvers, self._trees, self._near, self._longest, self._facing = {}, {}, {}, None, None, None
+        self._local, self._solvers, self._trees, self._longest, self._facing = {}, {}, {}, None, None
 
     # ---- the pieces and their solvers ----
 
@@ -156,37 +161,77 @@ class Surface:
             self._local[p] = dict(V=self.RV[verts], F=local.reshape(-1, 3), verts=verts, back=back, fback=fback)
         return self._local[p]
 
-    def _solver(self, p, kind):
+    def _tracer(self, p):
         import potpourri3d as pp3d
-        if (p, kind) not in self._solvers:
+        if p not in self._solvers:
             q = self._piece(p)
-            make = {"flip": pp3d.EdgeFlipGeodesicSolver, "trace": pp3d.GeodesicTracer}[kind]
-            self._solvers[(p, kind)] = make(q["V"], q["F"])
-        return self._solvers[(p, kind)]
+            self._solvers[p] = pp3d.GeodesicTracer(q["V"], q["F"])
+        return self._solvers[p]
 
-    def vertex(self, point):
-        """The repaired vertex nearest a point in space."""
-        if self._near is None:
-            self._near = cKDTree(self.RV)
-        return int(self._near.query(np.asarray(point, np.float64))[1])
+    def _on(self, points):
+        """Points brought onto the surface: each one's repaired face, its weights at the face's corners and the point
+        on it."""
+        f, _, on = self._locate(points)
+        f = f // 16
+        return f, np.array([_bary(p, *self.RV[self.RF[c]]) for p, c in zip(on, f)]), on
 
-    def line(self, a, b):
-        """The straightest line on the surface between two repaired vertices (edge flips): (n, 3) cm."""
-        p = np.unique(self.vpiece[[a, b]])
-        if len(p) != 1:
-            raise ValueError("the two vertices are on different pieces of the surface")
-        q = self._piece(int(p[0]))
-        return np.asarray(self._solver(int(p[0]), "flip").find_geodesic_path(int(q["back"][a]), int(q["back"][b])))
+    def path(self, points):
+        """The straightest way along the surface through points, in order: each two in a row joined by the shortest
+        line on the surface near the straight one between them (the points put into their piece as vertices of its
+        own, then edge flips), one pair at a time, so the line passes through every point; from one piece to another,
+        straight across the gap. (n, 3) cm, the points themselves among them."""
+        import potpourri3d as pp3d
+        f, w, on = self._on(np.asarray(points, np.float64).reshape(-1, 3))
+        piece = self.piece[f]
+        out, k = [on[0]], 0
+        while k < len(on) - 1:
+            j = k
+            while j + 1 < len(on) and piece[j + 1] == piece[k]:
+                j += 1
+            if j == k:  # the next point is on another piece: across the gap
+                out.append(on[k + 1])
+                k += 1
+                continue
+            q = self._piece(int(piece[k]))
+            V2, F2, ids, _, _ = _insert(q["V"], q["F"], q["fback"][f[k:j + 1]], w[k:j + 1], on[k:j + 1])
+            solver = pp3d.EdgeFlipGeodesicSolver(V2, F2)
+            for a, b in zip(ids[:-1], ids[1:]):
+                if a != b:
+                    out.extend(np.asarray(solver.find_geodesic_path(int(a), int(b)))[1:])
+            k = j
+        return np.array(out)
 
-    def carry(self, tri, bary, direction, cm):
-        """The straightest way on along the surface from a point (a model triangle and weights at its corners) in a
-        direction, `cm` far (the tracer): (n, 3) cm."""
-        f = int(self.face[tri])
-        p = int(self.piece[f])
-        q = self._piece(p)
-        d = np.asarray(direction, np.float64)
-        d = d / max(np.linalg.norm(d), 1e-12) * cm
-        return np.asarray(self._solver(p, "trace").trace_geodesic_from_face(int(q["fback"][f]), np.asarray(bary, np.float64), d))
+    def carry(self, point, direction, cm):
+        """The straightest way on along the surface from a point in a direction (its part along the surface), `cm`
+        far (the tracer): (n, 3) cm, the point first. Across a gap between pieces up to HOP cm wide it carries on;
+        where the body ends it stops."""
+        pt, d, left, out = np.asarray(point, np.float64), np.asarray(direction, np.float64), float(cm), []
+        for _ in range(8):
+            f, w, on = self._on(pt[None])
+            f, p = int(f[0]), int(self.piece[f[0]])
+            A, B, C = self.RV[self.RF[f]]
+            n = np.cross(B - A, C - A)
+            n /= max(np.linalg.norm(n), 1e-12)
+            d = d - (d @ n) * n
+            if np.linalg.norm(d) < 1e-9 or left <= 0.01:
+                break
+            way = np.asarray(self._tracer(p).trace_geodesic_from_face(int(self._piece(p)["fback"][f]), w[0], d / np.linalg.norm(d) * left))
+            out.extend(way if not out else way[1:])
+            left -= float(np.linalg.norm(np.diff(way, axis=0), axis=1).sum())
+            if left <= 0.01 or len(way) < 2:
+                break
+            d = way[-1] - way[-2]  # stopped short: the body ends here, or another piece begins a hair on
+            d /= max(np.linalg.norm(d), 1e-12)
+            probe = way[-1] + d * HOP
+            f2, _, on2 = self._locate(probe[None])
+            if self.piece[int(f2[0]) // 16] == p or np.linalg.norm(on2[0] - probe) > HOP:
+                break
+            pt = on2[0]
+        return np.array(out if out else [pt])
+
+    def facing(self, points):
+        """The surface's facing at points (their faces', outward): (n, 3)."""
+        return self.fine_facing()[self._locate(points)[0]]
 
     # ---- distances along the surface ----
 
@@ -312,7 +357,9 @@ class Surface:
         The line's points go into the fine surface as a chain of its edges (_chain), the surface is cut along them (and,
         with `crease`, along the model's crisp lines: where faces meet at meshlines.SHARP degrees or more, so nothing
         crosses one), and each side's distance is exact (libigl's exact geodesics) from its own copy of the line; a
-        point reached from both sides, round an open line's end, takes the nearer. A Field, read at texels."""
+        point reached from both sides, round an open line's end, takes the nearer. An open line's cut runs one edge on
+        past each end (the edge there that carries its way on best), so each side keeps its own copy of the end and the
+        two sides meet only beyond it, not square to it. A Field, read at texels."""
         import igl
         faces, w, on, gaps = self._chain(line, closed)
         V, F, keep, verts = self._patch(on, reach)
@@ -336,6 +383,20 @@ class Surface:
             for g, k, u in here:
                 cuts[g, k] = True
                 (left if u == a else right).add((g, k))  # the face running a to b is on the left of a to b
+        if not closed and ids[0] != ids[-1]:
+            chain = set(zip(np.minimum(ids[:-1], ids[1:]), np.maximum(ids[:-1], ids[1:])))
+            for end, prev in ((ids[0], ids[1]), (ids[-1], ids[-2])):
+                way = V2[end] - V2[prev]
+                best = None
+                for (u, v) in slot:
+                    if end in (u, v) and (u, v) not in chain:
+                        d = V2[v if u == end else u] - V2[end]
+                        score = way @ d / max(np.linalg.norm(d), 1e-12)
+                        if best is None or score > best[0]:
+                            best = (score, (u, v))
+                if best is not None:
+                    for g, k, _ in slot[best[1]]:
+                        cuts[g, k] = True
         if crease:
             from tool import meshlines
             fn = self.fine_facing()[keep]
@@ -634,6 +695,65 @@ class Field:
         value[np.isinf(out).all(1)] = np.nan
         return value
 
+    def contour(self, level):
+        """The line where the signed distance is `level` cm (+ on the line's left, - on its right): a line beside the
+        line, which never crosses itself where the line bends, as pieces, each (n, 3) cm along the surface with whether
+        it closes, in no order (round an open line's ends the pieces run on, a quarter circle, to where the two sides
+        meet). Read on the cut mesh's own faces, on the level's side only (a face reached from both sides, beyond
+        an end, would cross the level where the sign jumps); a piece under SPECK cm is left out."""
+        Vn, Fn, d = self.Vn, self.Fn, self.value
+        v = np.where(d[:, 0] <= d[:, 1], d[:, 0], -d[:, 1])
+        v[np.isinf(d).all(1)] = np.nan
+        own = np.isfinite(v[Fn]).all(1) & (np.sign(v[Fn]) == np.sign(level)).all(1)
+        F, s = Fn[own], v[Fn[own]] - level
+        pos = s > 0
+        cross = pos.any(1) & ~pos.all(1)
+        F, s, pos = F[cross], s[cross], pos[cross]
+        segs = []  # per face: its two crossings, (the edge crossed, the point)
+        for f in range(len(F)):
+            got = []
+            for k in range(3):
+                i, j = int(F[f, k]), int(F[f, (k + 1) % 3])
+                if pos[f, k] != pos[f, (k + 1) % 3]:
+                    t = s[f, k] / (s[f, k] - s[f, (k + 1) % 3])
+                    got.append(((min(i, j), max(i, j)), Vn[i] + t * (Vn[j] - Vn[i])))
+            if len(got) == 2:
+                segs.append(got)
+        nbr, where = {}, {}
+        for n, (a, b) in enumerate(segs):
+            nbr.setdefault(a[0], []).append(n)
+            nbr.setdefault(b[0], []).append(n)
+            where[a[0]], where[b[0]] = a[1], b[1]
+        seen, out = set(), []
+
+        def walk(n, key):  # out of segment n through the edge `key`, on while the way goes on
+            chain = [key]
+            while True:
+                seen.add(n)
+                a, b = segs[n]
+                key = b[0] if a[0] == key else a[0]
+                chain.append(key)
+                on = [m for m in nbr[key] if m != n and m not in seen]
+                if not on:
+                    return chain
+                n = on[0]
+
+        for n in range(len(segs)):
+            if n in seen:
+                continue
+            a, b = segs[n]
+            loose = [e for e in (a[0], b[0]) if len(nbr[e]) == 1]
+            if loose:
+                chain = walk(n, loose[0])
+            else:  # started midway: both ways from here, unless the first comes back round
+                chain = walk(n, a[0])
+                if chain[0] != chain[-1]:
+                    chain = walk(n, b[0])[::-1] + chain[2:]
+            pts = np.array([where[k] for k in chain])
+            if np.linalg.norm(np.diff(pts, axis=0), axis=1).sum() >= SPECK:
+                out.append((pts, not loose and chain[0] == chain[-1]))
+        return out
+
 
 def _read(corners, wt):
     """Corner values (m, 3, 2) at weights (m, 3): a corner out of reach (inf) counts only at weight 0."""
@@ -653,14 +773,18 @@ def main():
           f"(within {WELD:g} cm), {len(S.F) - len(S.RF)} triangles drawn twice dropped ({len(S.F)} to {len(S.RF)}), "
           f"{len(S.RV) - len(S.V)} points copied where more than two faces met; {S.pieces} pieces, the biggest of "
           f"{sizes.max()} faces, {int((sizes < 50).sum())} under 50; the fine surface {len(S.FF)} faces over {len(S.FV)} points.")
-    a, b = S.vertex((60, 16.5, -60)), S.vertex((60, 40, -60))  # the body's bottom edge, and up the side from it
+    a, b = np.array([60.0, 16.5, -60.0]), np.array([60.0, 40.0, -60.0])  # the body's bottom edge, and up the side from it
     t = time.time()
-    d = S.distance(S.RV[a], reach=40)
+    d = S.distance(a, reach=40)
     took = time.time() - t
-    path = S.line(a, b)
-    print(f"From the bottom edge at {tuple(S.RV[a].round(1).tolist())} to {tuple(S.RV[b].round(1).tolist())} up the side: "
-          f"{d[b]:.2f} cm along the surface ({took:.2f} s, within 40 cm), the straightest line between them {len(path)} points "
-          f"and {np.linalg.norm(np.diff(path, axis=0), axis=1).sum():.2f} cm long, {np.linalg.norm(S.RV[a] - S.RV[b]):.2f} cm through the air.")
+    t = time.time()
+    path = S.path([a, b])
+    walked = time.time() - t
+    j = S._locate(b[None])[0][0]
+    print(f"From the bottom edge at {tuple(a.round(1).tolist())} to {tuple(b.round(1).tolist())} up the side: "
+          f"{d[S.FF[j]].min():.2f} cm along the surface ({took:.2f} s, within 40 cm), the straightest "
+          f"line between them {len(path)} points and {np.linalg.norm(np.diff(path, axis=0), axis=1).sum():.2f} cm long "
+          f"({walked:.3f} s), {np.linalg.norm(a - b):.2f} cm through the air.")
     c = meshlines.line((39, 19, 70))
     size = 4096
     t = time.time()
@@ -682,10 +806,13 @@ def main():
           f"of the bake's, the weld's reach ({time.time() - t:.1f} s).")
     i = len(c.pts) // 2
     t = time.time()
-    f = int(S._locate(c.pts[i:i + 1])[0][0]) // 16
-    way = S.carry(int(S.model[f]), _bary(c.pts[i], *S.RV[S.RF[f]]), np.cross(c.nrm[i], c.tan[i]), 10.0)
+    way = S.carry(c.pts[i], np.cross(c.nrm[i], c.tan[i]), 10.0)
+    carried = time.time() - t
+    t = time.time()
+    beside = field.contour(3.0)
     print(f"Carried on square to it from its middle {tuple(c.pts[i].round(1).tolist())} for 10 cm: {len(way)} points, ending at "
-          f"{tuple(way[-1].round(1).tolist())} ({time.time() - t:.3f} s).")
+          f"{tuple(way[-1].round(1).tolist())} ({carried:.3f} s). The line 3 cm to its left: {len(beside)} piece(s), "
+          f"{sum(np.linalg.norm(np.diff(p, axis=0), axis=1).sum() for p, _ in beside):.1f} cm ({time.time() - t:.3f} s).")
 
 
 if __name__ == "__main__":

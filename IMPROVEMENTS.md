@@ -40,13 +40,23 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  4. **Lines anywhere on the mesh** (Fable 5.1 MUST, xhigh). Clicks snapped to the model's lines and its chain of edges taken whole,
-     straightened by flipping edges, a line beside a line as a contour of the distance, carried on by the
-     straightest path; strips, dashes, ticks, inked edges and fills bounded by the model's lines moved onto it. Also
-     TSC_CrashTest's mirrored nose tape whose carried-on end differs by side (1 to 1.6 cm over its last 8 cm).
-     Retires the smoothing and the push back onto the body (`meshlines.smooth`), the offset's walk and the
-     extension's (`Course.offset`, `Course.extended`), the seam tracer (`tool/seams.py`, `course.seam`: a seam is
-     one of the model's lines) and the stroke's smoothing (`course.stroke`).
+  4. **Lines anywhere on the mesh** (Fable 5.1 MUST, xhigh). Built, waiting for the user's OK (2026-10-08, Fable 5.1
+     at high, not xhigh: said at the start). Every line on the surface itself (`tool/surface.py`): a picked line is
+     the model's chain as it is, and between two points on no line of the model's the straightest way along the
+     surface (`S.path`: the points put into their piece as vertices, then edge flips, pair by pair: a path through
+     several points at once straightens through the middle ones, measured); a line beside a line is the line where
+     the distance along the surface is so many cm (`Field.contour`, square to the line's ends: an open line's cut
+     runs one edge on past each end, or the two sides tie square to it); a line carried on is the tracer's
+     straightest way (`S.carry`, the direction projected onto the face first, across a hairline between pieces);
+     `course.points`, `course.stroke` and `Course.then` join by the same way; `inked_edge` reads the field; the
+     stroke's smoothing, the rounding of a course's corners, the walked offset, the straight extension, the
+     smoothing of a picked line and the texture inking are gone (tool/*.py 18189 to 18092 lines). The nose tape's two sides are
+     exact mirror images now (the surface is). The test car TSC_LinesTest, set 1 open in the Lab: A the same five
+     lines by the old code (painted from 8fe36c3's tree), B on the surface; measured: the picked line down the
+     flank 72.6 cm (the old 83.8, a zigzag along the model's edges smoothed, up to 11 cm off), the old offset
+     round the cockpit's back strayed up to 8 cm from the line 4 cm beside it, the old drawn line up to 2.9 cm from
+     the straightest way. On the OK: delete `tool/seams.py` and `course.seam` (the tour's seam dashes along the
+     model's own line instead), the test car, step 4 here.
   5. **Decals, emblems and words on the surface** (Fable 5.1, high; or Opus 5.5, xhigh). A local map round a point for marks and decals (across a crease
      when the design says so, its stretch measured), coordinates along and across a line for words and patterns
      along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a

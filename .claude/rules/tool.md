@@ -99,13 +99,17 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres`
   photographs the library (`tool/tyresheet.py`).
 - A marking along the car's own lines or the user's stroke is a course (`tool/course.py`, its
-  docstring is the key: the line's points every 0.25 cm; a marking's width and side measured along the
-  surface, `course.measure` reading it back every half centimetre).
+  docstring is the key: the line's points every 0.25 cm, every one on the surface; a marking's width and
+  side measured along the surface, `course.measure` reading it back every half centimetre). A line beside a
+  line is the surface's contour of the distance, a line carried on or joined to another the surface's
+  straightest way: nothing is smoothed in the air and pushed back.
 - The car's surface (`tool/surface.py`, its docstring is the key): the mesh welded and repaired once, exact
   distances and lines along it (`S.signed`: a line put in as a chain of the surface's edges, the surface cut
-  along it, each side measured from its own copy; half a second to two a line), and every texel's face and
-  weights from the bake's triangle; the foundation every graphic on the car is laid on and measured by. It
-  rebuilds itself when the mesh changes (`PY -m tool.surface`, a tenth of a second, says what it did in numbers).
+  along it, each side measured from its own copy; half a second to two a line; `S.path`, the straightest way
+  through points, `S.carry`, a line carried on, `Field.contour`, a line beside a line: milliseconds), and
+  every texel's face and weights from the bake's triangle; the foundation every graphic on the car is laid
+  on and measured by. It rebuilds itself when the mesh changes (`PY -m tool.surface`, a tenth of a second,
+  says what it did in numbers).
 - The car map (`tool/carmap.py`: the open air each spot sees, where along the car it is) is built on the
   surface and rebuilds itself after it (`PY -m tool.carmap`, a minute). The car in words, `car/anatomy.md`,
   comes from the model's lines and the map: after a change to either, `tool.carmap --describe` again, and

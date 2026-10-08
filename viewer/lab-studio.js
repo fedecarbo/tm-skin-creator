@@ -9,7 +9,7 @@
 // UV room's template), on or off; with Mesh on, Draw picks a line on it instead (the user's idea, 2026-10-06: "click on
 // certain multiple points similar to the draw tool"): each click lands on the nearest point where its lines cross, the tool
 // runs the line between clicks (/api/meshpath, tool/meshlines.py picked: along one of the model's lines when both are
-// on it, else straight across, one smooth line through the points), and the note keeps the clicks, so Claude paints
+// on it, else the straightest way along the surface, as it is), and the note keeps the clicks, so Claude paints
 // that very line. Done, a note leaves the car and stays in the timeline
 // beside it (lab-car.js), which also puts an option on the car to look at: its notes are that option's.
 //   show(name)    a skin on the car: the car itself, or one of its options
@@ -261,8 +261,8 @@ function pickSays(trouble) {
   const length = p && p.line.length > 1 ? p.line.slice(1).reduce((t, q, k) => t + apart(q, p.line[k]), 0) : 0;
   $('stPick').querySelector('span').textContent = trouble
     || (!n ? 'Click the points your line goes through: each click lands on the nearest point where the mesh\'s lines '
-      + 'cross. Between two points on one line, your line follows it; otherwise it runs straight across; all of it one '
-      + 'smooth line through your points. Click the last point again, or Done, to finish; the first point to close a '
+      + 'cross. Between two points on one line, your line follows it; otherwise it runs the straightest way along the '
+      + 'surface, as it is. Click the last point again, or Done, to finish; the first point to close a '
       + 'ring. Drag to turn the car.'
       : `${n} click${n > 1 ? 's' : ''}${length ? ` · ${Math.round(length)} cm` : ''}${p.closed ? ' · a ring' : ''}. `
       + 'Click the last point again, or Done, to finish.');

@@ -19,10 +19,10 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
                                     edges), a zone filled right up to its lines; both=True the mirror image's too;
                                     border=1.5 only a trim that far inside its edge
     meshlines.picked([(70, 60, -70), (55, 63, -100)])   the line through points clicked on the car (the Lab: Mesh
-                                    and Draw on), a Course on the model: each click lands on the nearest of the model's
-                                    points, where its lines cross; between two joined by an edge, that edge; on one of
-                                    its lines, along it point by point; else straight across the surface; and all of
-                                    it one smooth curve through those points (smooth)
+                                    and Draw on), a Course on the model, as it is: each click lands on the nearest of
+                                    the model's points, where its lines cross; between two joined by an edge, that
+                                    edge; on one of its lines, along it, the line's own points; else the straightest
+                                    way along the surface (tool/surface.py, path)
     PY -m tool.meshlines            the body's panels, its longest lines and its rounded edges, each with a point on it
                                     and its parts
 """
@@ -325,7 +325,6 @@ FLAT = 6.0        # degrees: an edge the body bends across less than this counts
 FLAT_COST = 3.0   # how much further a flat edge counts for a click landing on it (less as it bends, to FLAT)
 SEAM = 1.0        # cm: across a seam between the model's pieces, a point joins the nearest point of another piece
 TURN = 40.0       # degrees: one of the model's lines goes on through a point along its edge turning least, if under this
-STRAIGHT = 0.5    # cm between the points of a line straight across the surface
 
 
 @functools.lru_cache(maxsize=4)
@@ -560,22 +559,24 @@ def _along(pa, pb, tset):
     return [np.array([np.interp(x % total if closed else x, cum, q[:, i]) for i in range(3)]) for x in marks]
 
 
-def _straight(A, B, tset):
-    """The way from one click (snap) to another straight across the surface: the straight line between them brought
-    onto the model every STRAIGHT cm; None where it would leave the surface (across an opening, round a corner)."""
-    pa, pb = A[0], B[0]
-    n = max(2, int(np.ceil(np.linalg.norm(pb - pa) / STRAIGHT)) + 1)
-    out = [pa]
-    for t in np.linspace(0, 1, n)[1:-1]:
-        q = pa + t * (pb - pa)
-        on = _closest(q, tset)[1]
-        if np.linalg.norm(on - q) > max(1.0, 0.1 * np.linalg.norm(pb - pa)):
-            return None
-        out.append(on)
-    out.append(pb)
-    if max(np.linalg.norm(np.diff(np.array(out), axis=0), axis=1)) > 4 * STRAIGHT:  # it jumped: an opening in between
-        return None
-    return out
+def _straightest(A, B, tset):
+    """The straightest way along the surface from one click (snap) to another (tool/surface.py, path): on one piece of
+    the surface, the shortest line near the straight one between them; across pieces that meet, the cheapest way along
+    the model's edges (_between) straightened on each piece, straight across the hairline between; across pieces that
+    don't meet, straight across the gap. (its points, how it went)."""
+    from tool import surface
+    S = surface.load(tset)
+    ends = np.array([A[0], B[0]])
+    piece = S.piece[S._locate(ends)[0] // 16]
+    if piece[0] == piece[1]:
+        return list(S.path(ends)), "straightest"
+    try:
+        chain = np.array(_between(A, B, tset))
+    except ValueError:  # on pieces of the model that don't meet
+        return [A[0], B[0]], "across"
+    piece = S.piece[S._locate(chain)[0] // 16]
+    ends = np.flatnonzero(np.r_[True, piece[1:] != piece[:-1], True])  # each run of one piece: its first and last point
+    return list(S.path(chain[np.unique(np.r_[ends[:-1], ends[1:] - 1])])), "straightest"
 
 
 def _between(A, B, tset):
@@ -605,10 +606,9 @@ def _between(A, B, tset):
 
 def path(clicks, tset="Skin", closed=False):
     """The line through points clicked on the car, each landed on the nearest of the model's points (snap): between two
-    joined by an edge, that edge; on one of the model's lines, along it (_along); else straight across the surface
-    (_straight); where that leaves the surface, the cheapest way along the model's edges (_between). Its points (n, 3)
-    cm, the model's facing at each (n, 3), where each click landed and how each stretch went ("edge", "line",
-    "straight", "edges", "across" a gap between pieces)."""
+    joined by an edge, that edge; on one of the model's lines, along it (_along); else the straightest way along the
+    surface (_straightest). Its points (n, 3) cm, the model's facing at each (n, 3), where each click landed and how
+    each stretch went ("edge", "line", "straightest", "across" a gap between pieces)."""
     spots = []
     for c in clicks:
         spots.append(snap(c, tset, after=spots[-1][1] if spots else None))
@@ -626,12 +626,7 @@ def path(clicks, tset="Skin", closed=False):
         else:
             got, kind = _along(A[0], B[0], tset), "line"
         if got is None:
-            got, kind = _straight(A, B, tset), "straight"
-        if got is None:
-            try:
-                got, kind = _between(A, B, tset), "edges"
-            except ValueError:  # on pieces of the model that don't meet: straight across the gap
-                got, kind = [A[0], B[0]], "across"
+            got, kind = _straightest(A, B, tset)
         pts += got[1:] if pts and np.linalg.norm(got[0] - pts[-1]) < 1e-6 else got
         how.append(kind)
     if not pts:
@@ -642,60 +637,15 @@ def path(clicks, tset="Skin", closed=False):
     return pts, nrm, spots, how
 
 
-CORNER = 35.0  # degrees: where a line turns this much at one point it keeps the corner; a smooth one rounds the rest
-SMOOTH_STEP = 0.25  # cm between the points of a smooth line
-
-
-def smooth(pts, tset="Skin", closed=False):
-    """A line through the model's points made one smooth curve through the same points (between them a centripetal
-    Catmull-Rom curve, which never loops or overshoots), its corners of CORNER degrees or more kept, laid back on the
-    surface: (n, 3) cm. A picked line is drawn so (the user's pick, 2026-10-06: B, "Smooth through the points", over
-    straight from point to point, which showed a small corner at each point)."""
-    q = [np.asarray(pts[0], np.float64)]
-    for p in pts[1:]:
-        if np.linalg.norm(p - q[-1]) > 0.3 or p is pts[-1]:
-            q.append(np.asarray(p, np.float64))
-    q = np.array(q)
-    if len(q) < 3:
-        return q
-    d = np.diff(q, axis=0)
-    d /= np.maximum(np.linalg.norm(d, axis=1, keepdims=True), 1e-12)
-    turn = np.degrees(np.arccos(np.clip((d[1:] * d[:-1]).sum(1), -1, 1)))
-    cuts = [0] + [i + 1 for i in np.flatnonzero(turn >= CORNER)] + [len(q) - 1]
-    out = [q[0]]
-    for a, b in zip(cuts, cuts[1:]):
-        Q = q[a:b + 1]
-        if len(Q) < 3:
-            out.append(Q[-1])
-            continue
-        Q = np.r_[[2 * Q[0] - Q[1]], Q, [2 * Q[-1] - Q[-2]]]
-        for i in range(1, len(Q) - 2):
-            P0, P1, P2, P3 = Q[i - 1], Q[i], Q[i + 1], Q[i + 2]
-            t1 = np.linalg.norm(P1 - P0) ** 0.5 + 1e-9
-            t2 = t1 + np.linalg.norm(P2 - P1) ** 0.5 + 1e-9
-            t3 = t2 + np.linalg.norm(P3 - P2) ** 0.5 + 1e-9
-            n = max(1, int(np.ceil(np.linalg.norm(P2 - P1) / SMOOTH_STEP)))
-            for t in np.linspace(t1, t2, n + 1)[1:]:
-                A1 = (t1 - t) / t1 * P0 + t / t1 * P1
-                A2 = (t2 - t) / (t2 - t1) * P1 + (t - t1) / (t2 - t1) * P2
-                A3 = (t3 - t) / (t3 - t2) * P2 + (t - t2) / (t3 - t2) * P3
-                B1 = (t2 - t) / t2 * A1 + t / t2 * A2
-                B2 = (t3 - t) / (t3 - t1) * A2 + (t - t1) / (t3 - t1) * A3
-                out.append((t2 - t) / (t2 - t1) * B1 + (t - t1) / (t2 - t1) * B2)
-    return np.array([_closest(p, tset)[1] for p in out])
-
-
 def picked(clicks, tset="Skin", closed=False):
     """The line through points clicked on the car (the Lab, with Mesh and Draw on: `PY -m tool.notes drawn` prints the
-    call), a Course on the model: path's, made smooth through the same points (smooth); closed, round back to the
-    first."""
-    from tool import course
-    pts = smooth(path(clicks, tset, closed)[0], tset)
+    call), a Course on the model: path's points as they are; closed, round back to the first."""
+    from tool import course, surface
+    pts = path(clicks, tset, closed)[0]
     if closed:
         pts = pts[:-1]
-    e = _edges(tset)
-    nrm = e["N"][cKDTree(e["P"]).query(pts)[1]]
-    return course.Course(pts, f"the line picked on the model from {course._said(pts[0])}", nrm=nrm, closed=closed)
+    return course.Course(pts, f"the line picked on the model from {course._said(pts[0])}", nrm=surface.load(tset).facing(pts),
+                         closed=closed)
 
 
 def panels(tset="Skin", least=50.0):

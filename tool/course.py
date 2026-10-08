@@ -8,19 +8,20 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
     meshlines.line(point), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py), as courses
-    course.stroke(points)                   the line the user drew (tool.notes show_drawn prints its points):
-                                             smoothed over SMOOTH cm and laid on the body
-    course.points([(x, y, z), ...])          any points on the car, joined straight
+    course.stroke(points)                   the line the user drew (tool.notes show_drawn prints its points): its
+                                             points on the body, joined by the straightest way along the surface
+    course.points([(x, y, z), ...])          any points on the car, joined the same way
     course.Courses([a, b], "the contour")    several courses marked alike: a marking is every one's, in one zone
-  Shaped:
+  Shaped (every line on the surface itself, tool/surface.py: nothing smoothed in the air and pushed back):
     c.between(-128, -50)                     the stretch between two lengths along the car, or two points
                                              (on a loop: from the first to the second the way it runs)
-    c.then(other)                            on along another course (joined straight where they don't meet: the
-                                             join shows as a step; one line whole, or one beside it, runs smooth)
-    c.rounded(8)                             its corners rounded over 8 cm
-    c.extended(start=3)                      carried on straight 3 cm before its start (under a frame)
+    c.then(other)                            on along another course, joined by the straightest way along the
+                                             surface where their ends don't meet
+    c.extended(start=3)                      carried on 3 cm before its start by the straightest way along the
+                                             surface (under a frame, on over a seam)
     c.offset(14)                             a line beside it, 14 cm across the surface to its left all along (- its
-                                             right): a band of even width along one of the model's lines
+                                             right): the line where the distance from it is 14 (never crossing
+                                             itself on a bend, square to its ends); crease=True stops at a crease
     c.mirrored()                             the same on both sides; c.reversed() the other way
     c.panels(3)                              cut at each seam between the body's panels it crosses, a piece per
                                              panel stopping 1.5 cm short of each edge it ends at (a seam, an
@@ -35,8 +36,8 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
                                              the eye sees more of from round the car and above)
     c.band(4, side=1, crease=True)           stopping where the body creases (one of the model's crisp lines) before
                                              its width is out; c.strip(1.0) a band 1 cm wide, centred, for lines
-    c.inked(0.6)                             the same drawn on the flat texture, one smooth curve per piece of it
-    c.inked_edge(shapes.below(26))           a zone whose edge is moved onto the course, drawn the same way
+    c.inked_edge(shapes.below(26))           a zone whose edge is moved onto the course: the side it covers more
+                                             of takes it, the other not, within REACH cm of the course
     c.dashes(5, gap=3, width=1)              dashes 5 cm long with 3 cm gaps, a whole dash at each end
     c.dashes(2.5, width=5, slant=45)         stripes across a 5 cm strip, slanted 45 degrees: hazard tape
     c.blocks(5, 2.5)                         two rows of blocks 5 cm long and 2.5 high, alternating: block tape
@@ -52,8 +53,7 @@ read each dash and tick as they read any small mark.
 Close up where the model's flat faces are big (the nose root, the sidepods' fronts, the tail), a line
 bends where it crosses a fold between two of them, as the body does: those corners are the model's,
 and no way of drawing the line takes them out (measured 2026-10-06: 6 to 12 degrees with the folds at
-the nose root, 1 to 5 along the surface; the texture's flat layout stretches some facets of the nose
-and the rear flank by a quarter or more, so a curve drawn smooth there comes out less smooth).
+the nose root, 1 to 5 along the surface).
 """
 
 import functools
@@ -68,19 +68,11 @@ STEP = 0.25    # cm between a course's points
 SPECK = 1.0    # cm: a run of another part this short under a course is the mesh's noise, not a panel
 MIDDLE = 1.0   # cm from the car's middle: a course's end there meets its mirror image
 CORNER = 45.0  # degrees within 2 cm: a corner of the body a marking stops short of (the tail corner's end)
-SMOOTH = 2.5   # cm: the surface's facing along a course, and a stroke's path, are averaged over this
 OFF = 3.0      # cm: a stroke's point further than this from the body is dropped
 MIRROR = np.array([-1.0, 1.0, 1.0])
-INK_KNOT = 8.0     # cm between the knots of the curve an inked strip follows on each piece of the flat texture
-INK_REACH = 10.0   # cm either side of a course an inked edge moves the zone's edge across: all the way to the zone's own
+REACH = 10.0   # cm either side of a course an inked edge moves the zone's edge across: all the way to the zone's own
 # edge (at 4 a sliver stayed unpainted by the inlet's frame, the user, 2026-10-06: "There's a clear gap that is not
 # painted here")
-INK_GAP = 4        # course points (a centimetre) a run on one piece may skip and still be one run
-OFFSET_KNOT = 6.0  # cm along a course between the knots of the smooth curve a line beside it is drawn as
-FOLD = 45.0        # degrees from a course's own facing: past its end, where the surface has turned this far is the fold
-FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
-INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
-# the body turns in to an inlet's frame) takes the nearest inked texel's side within this
 
 
 @functools.lru_cache(maxsize=1)
@@ -93,25 +85,6 @@ def _seen_by_facing():
     c = np.linspace(-1, 1, 81)
     n = np.stack([np.sqrt(1 - c * c), c, np.zeros_like(c)], 1)
     return c, np.maximum(n @ up.T, 0).mean(1)
-
-
-def _lsq(t, v, knots):
-    """v(t) as a cubic least-squares B-spline with interior knots `knots` (a straight polynomial
-    when there are too few points for the knots)."""
-    from scipy.interpolate import make_lsq_spline
-    t, v = np.asarray(t, float), np.asarray(v, float)
-    kept, prev = [], t[0]
-    for k in knots:
-        if t[0] + 1e-6 < k < t[-1] - 1e-6 and ((t >= prev) & (t < k)).any():  # a knot interval with no point makes the fit singular
-            kept.append(k)
-            prev = k
-    knots = kept if not kept or ((t >= kept[-1]) & (t <= t[-1])).any() else kept[:-1]
-    if knots and len(t) >= len(knots) + 4:
-        try:
-            return make_lsq_spline(t, v, np.r_[[t[0]] * 4, knots, [t[-1]] * 4], k=3)
-        except ValueError:
-            pass
-    return np.poly1d(np.polyfit(t, v, max(1, min(3, (len(t) - 1) // 4))))  # a short run: a straight line or a gentle bend
 
 
 def _resample(pts, step=STEP, closed=False):
@@ -132,29 +105,6 @@ def _resample(pts, step=STEP, closed=False):
     return np.stack([np.interp(u, s, pts[:, k]) for k in range(3)], 1)
 
 
-def _smooth(v, cm, closed=False):
-    """A running mean over `cm` along the points (the ends held)."""
-    k = max(1, int(round(cm / STEP)))
-    if k < 2 or len(v) < 3:
-        return v
-    if closed:
-        pad = np.concatenate([v[-k:], v, v[:k]])
-    else:
-        pad = np.concatenate([np.repeat(v[:1], k, 0), v, np.repeat(v[-1:], k, 0)])
-    out = np.stack([np.convolve(pad[:, c], np.ones(k) / k, mode="same") for c in range(v.shape[1])], 1)
-    return out[k:k + len(v)]
-
-
-def _facing(pts, closed=False):
-    """The body's facing along the points: the car map's smoothed normals, averaged over SMOOTH."""
-    from tool import carmap
-    m = carmap.load()
-    n = np.stack([m.value(f"facing_{a}", pts) for a in "xyz"], 1).astype(np.float64)
-    n[:, 0] *= np.sign(pts[:, 0] + 1e-9)  # the map keeps the left's facing_x; the right faces the other way
-    n = _smooth(n, SMOOTH, closed)
-    return n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
-
-
 def _tangent(pts, closed=False):
     if closed:
         t = np.roll(pts, -1, 0) - np.roll(pts, 1, 0)
@@ -172,7 +122,7 @@ class Course:
         self.tan = _tangent(self.pts, closed)
         if nrm is not None and len(nrm) != len(self.pts):  # facings given for the points as they came
             nrm = np.asarray(nrm)[cKDTree(given).query(self.pts)[1]]
-        self.nrm = _facing(self.pts, closed) if nrm is None else nrm
+        self.nrm = _surface().facing(self.pts) if nrm is None else nrm
         self._fields = {}
 
     def __repr__(self):
@@ -234,51 +184,48 @@ class Course:
         return self._copy(self.pts[idx], f"{self.name} between {_said(a)} and {_said(b)}", idx=idx)
 
     def then(self, other):
-        """On along another course: joined straight where their ends don't meet, the other turned round
-        when its end is the nearer."""
+        """On along another course, the other turned round when its end is the nearer: where their ends don't meet,
+        joined by the straightest way along the surface."""
         if np.linalg.norm(self.pts[-1] - other.pts[-1]) < np.linalg.norm(self.pts[-1] - other.pts[0]):
             other = other.reversed()
-        pts = np.vstack([self.pts, other.pts])
-        nrm = np.vstack([self.nrm, other.nrm])
-        return Course(pts, f"{self.name}, then {other.name}", _resample_like(pts, nrm), False, self.mirror)
-
-    def rounded(self, cm):
-        """Its corners rounded over `cm`, the path laid back on the body."""
-        from tool import carmap
-        pts = _smooth(self.pts, cm, self.closed)
-        pts, _, _ = carmap.load().project(pts, self.nrm)
-        return Course(pts, f"{self.name} rounded over {cm:g} cm", None, self.closed, self.mirror)
+        join = _surface().path([self.pts[-1], other.pts[0]])[1:-1] if np.linalg.norm(self.pts[-1] - other.pts[0]) > STEP else np.zeros((0, 3))
+        return Course(np.vstack([self.pts, join, other.pts]), f"{self.name}, then {other.name}", None, False, self.mirror)
 
     def extended(self, start=0.0, end=0.0):
-        """Carried on straight past its ends, `start` cm before its first point and `end` cm after its last,
-        laid on the body: a line that runs on under a frame (an inlet's) rather than stopping short of it."""
-        from tool import carmap
-        n = int(round(start / STEP)), int(round(end / STEP))
-        before = self.pts[0] - self.tan[0] * STEP * np.arange(n[0], 0, -1)[:, None]
-        after = self.pts[-1] + self.tan[-1] * STEP * np.arange(1, n[1] + 1)[:, None]
-        pts = np.vstack([before, self.pts, after])
-        pts, _, _ = carmap.load().project(pts)
-        return Course(pts, f"{self.name} carried on", None, self.closed, self.mirror)
+        """Carried on past its ends by the straightest way along the surface, `start` cm before its first point and
+        `end` cm after its last: a line that runs on under a frame (an inlet's) or on over a seam rather than stopping
+        short of it; where the body ends, it stops."""
+        S = _surface()
+        before = S.carry(self.pts[0], -self.tan[0], start)[:0:-1] if start > 0 else np.zeros((0, 3))
+        after = S.carry(self.pts[-1], self.tan[-1], end)[1:] if end > 0 else np.zeros((0, 3))
+        return Course(np.vstack([before, self.pts, after]), f"{self.name} carried on", None, self.closed, self.mirror)
 
-    def offset(self, cm, step=0.5):
+    def offset(self, cm, crease=False):
         """A line beside the course, `cm` from it across the surface all along, to its left as it runs seen from
-        outside (+) or its right (-): each point walked square to it a step at a time, laid back on the body at each,
-        then one smooth curve through them all (a knot every OFFSET_KNOT cm along the course), laid on the body: where the
-        course bends, the points walked on its inside crowd and cross, and the curve runs through them. A band of even
-        width along one of the model's lines (the user, 2026-10-06: the mesh as the guides, "you don't need to follow
-        exactly the lines"), or a tape beside a crease rather than folded over it. Not round a loop."""
-        from tool import carmap, meshlines
-        m = carmap.load()
-        P, T, N = self.pts.copy(), self.tan.copy(), self.nrm.copy()
-        n = max(1, int(np.ceil(abs(cm) / step)))
-        for _ in range(n):
-            L = np.cross(N, T)
-            L /= np.maximum(np.linalg.norm(L, axis=1, keepdims=True), 1e-9)
-            P, N, _ = m.project(P + (cm / n) * L, N)
-        knots = list(np.arange(OFFSET_KNOT, self.length - OFFSET_KNOT / 2, OFFSET_KNOT))
-        pts = np.stack([_lsq(self.s, P[:, k], knots)(self.s) for k in range(3)], 1)
-        pts = np.array([meshlines._closest(p)[1] for p in pts])  # on the surface itself (a triangle's plane strays off it)
-        return Course(pts, f"{self.name}, {abs(cm):g} cm to its {'left' if cm > 0 else 'right'}", None, False, self.mirror)
+        outside (+) or its right (-): the line where the distance along the surface from the course is `cm`
+        (tool/surface.py, Field.contour), which never crosses itself where the course bends; square to the course's
+        ends, round a loop a loop; with `crease`, going no further than the body's next crease. Where it reaches an
+        opening or runs off the course's piece it comes in pieces, joined in order along the course. A band of even
+        width along one of the model's lines, or a tape beside a crease rather than folded over it."""
+        pieces = self._signed(abs(cm) + 1.0, crease).contour(cm)
+        tree, runs = cKDTree(self.pts), []
+        for pts, closed in pieces:
+            _, i = tree.query(pts)
+            al = self.s[i] + ((pts - self.pts[i]) * self.tan[i]).sum(1)
+            if self.closed:
+                runs.append((float(np.median(al)), pts, closed))
+                continue
+            if al[-1] < al[0]:
+                pts, al = pts[::-1], al[::-1]
+            pts = _clip(pts, al, 0.0, self.length)
+            if len(pts) > 1:
+                runs.append((float(al[(al >= 0) & (al <= self.length)].min()), pts, False))
+        if not runs:
+            raise ValueError(f"{self.name}: no line {abs(cm):g} cm beside it")
+        runs.sort(key=lambda r: r[0])
+        many = f", in {len(runs)} pieces" if len(runs) > 1 else ""
+        return Course(np.vstack([r[1] for r in runs]), f"{self.name}, {abs(cm):g} cm to its {'left' if cm > 0 else 'right'}{many}",
+                      None, len(runs) == 1 and runs[0][2], self.mirror)
 
     def mirrored(self):
         """The same on both sides of the car."""
@@ -331,29 +278,29 @@ class Course:
 
     # ---- markings ----
 
-    def _both(self):
-        """The course's points, tangents, facings and lengths along it, with their mirror image when
-        it's on both sides."""
-        P, T, N, S = self.pts, self.tan, self.nrm, self.s
-        if self.mirror:
-            P, T, N, S = (np.vstack([P, P * MIRROR]), np.vstack([T, T * MIRROR]), np.vstack([N, N * MIRROR]), np.r_[S, S])
-        return P, T, N, S
+    def _signed(self, reach, crease=False, mirrored=False):
+        """The signed distance along the surface from the course (or its mirror image) within `reach` cm, kept on the
+        course: a Field (tool/surface.py)."""
+        key = (round(reach, 3), crease, mirrored)
+        if key not in self._fields:
+            P = self.pts * MIRROR if mirrored else self.pts
+            self._fields[key] = _surface().signed(P, reach=reach, closed=self.closed, crease=crease)
+        return self._fields[key]
 
     def _across(self, reach, crease=False, size=4096):
         """The signed distance along the surface from the course, read at the body's texels within `reach` cm of it
         (tool/surface.py: exact on each side; + to the course's left as it runs, seen from outside): one dict per copy
         (the course; its mirror image when it's on both sides, `mirrored`): the texels' flat indices on the map (lin),
         their places (pos), the distance at each (d), and the copy's points and tangents (P, T). Kept on the course."""
-        from tool import bake, surface
+        from tool import bake
         key = (round(reach, 3), crease, size)
         if key not in self._fields:
-            S = surface.load()
             b = bake.bake("Skin", size, size)
             tri, pos = b["tri"].reshape(-1), b["position"].reshape(-1, 3)
             copies = [(self.pts, self.tan, False)] + ([(self.pts * MIRROR, self.tan * MIRROR, True)] if self.mirror else [])
             out = []
             for P, T, mirrored in copies:
-                field = S.signed(P, reach=reach + 1.0, closed=self.closed, crease=crease)
+                field = self._signed(reach + 1.0, crease, mirrored)
                 lo, hi = P.min(0) - reach - 1, P.max(0) + reach + 1
                 lin = np.flatnonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=1))
                 d = field.at(size, lin)
@@ -427,47 +374,6 @@ class Course:
         """A strip `width` cm wide along the course, centred on it, its ends square to it."""
         return self.band(width, soft=soft)
 
-    def _inking(self, reach, size=4096):
-        """Where the course runs on the flat texture (the body's, Skin): for each piece of it the course
-        crosses (a run of its points whose nearest texel is on that piece), the texels of the piece within
-        `reach` cm of the course (facing its way, not the far side of a thin panel) and one smooth curve
-        (a knot every INK_KNOT cm) through where the course falls on it, in rows and columns: dicts of P and N
-        (the texels' places on the car and facings), tex (their rows and columns), line, tan, k (each texel's nearest
-        point of the line), dt (texels from it), pitch (cm per texel on the piece), first and last (whether
-        the run holds the course's own start or end), start_n and end_n (the course's facing SMOOTH cm inside the run's
-        ends, clear of a fold there). Both sides when the course is mirrored."""
-        from tool import bake, carmap, uvmap
-        b = bake.bake("Skin", size, size)
-        tri, pos, nrm = b["tri"], b["position"], b["normal"]
-        label, density, _ = uvmap.islands("Skin")
-        for c, N in zip(self._across(reach, size=size), [self.nrm] + ([self.nrm * MIRROR] if self.mirror else [])):
-            pts = c["P"]
-            rr, cc = np.divmod(c["lin"], size)
-            P = c["pos"]
-            isl = label[tri[rr, cc]]
-            j = cKDTree(P).query(pts, workers=-1)[1]
-            on, prow, pcol = isl[j], rr[j].astype(np.float64), cc[j].astype(np.float64)
-            s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))]
-            for piece in np.unique(on):
-                idx = np.flatnonzero(on == piece)
-                for run in np.split(idx, np.flatnonzero(np.diff(idx) > INK_GAP) + 1):
-                    if len(run) < 8:
-                        continue
-                    t = s[run]
-                    knots = list(np.arange(t[0] + INK_KNOT, t[-1] - INK_KNOT / 2, INK_KNOT))
-                    fr, fc = (_lsq(t, v[run], knots) for v in (prow, pcol))
-                    line = np.stack([fr(np.arange(t[0], t[-1] + 1e-9, 0.05)), fc(np.arange(t[0], t[-1] + 1e-9, 0.05))], 1)
-                    tan = np.gradient(line, axis=0)
-                    tan /= np.maximum(np.linalg.norm(tan, axis=1, keepdims=True), 1e-9)
-                    mine = np.flatnonzero(isl == piece)
-                    tex = np.stack([rr[mine], cc[mine]], 1).astype(np.float64)
-                    dt, k = cKDTree(line).query(tex, workers=-1)
-                    inset = min(int(SMOOTH / STEP), len(run) - 1)
-                    yield dict(P=P[mine], N=nrm[rr[mine], cc[mine]].astype(np.float64), tex=tex, line=line, tan=tan, k=k, dt=dt,
-                               pitch=1.0 / max(float(density[piece]) * size, 1e-9),
-                               first=run[0] == 0, last=run[-1] == len(pts) - 1,
-                               start_n=N[run[inset]], end_n=N[run[-1 - inset]])
-
     @staticmethod
     def _matched(Pk, Wk, base=None, label=""):
         """A zone that takes the values Wk at the texels at Pk (the bake's own places, matched exactly), and
@@ -487,126 +393,38 @@ class Course:
             return w
         return shapes.Zone(f, label=label)
 
-    def inked(self, width, soft=shapes.SOFT, size=4096, to_fold=None):
-        """A strip `width` cm wide along the course, drawn as a skin artist draws one: on the flat texture
-        (the Lab's UV map), one smooth curve on each piece of it the course crosses, so it runs smooth there
-        and on the car. (strip(), measured on the car, picks up a texel or two of bend wherever the flat
-        layout stretches one of the model's small flat faces differently from the next: the user, 2026-10-06,
-        "I look at the uv map and the lines are wobbly".) Its width is the piece's own texels per cm, even on
-        the texture; its ends square to it. The body's texture (Skin) only. A curve, not a straight line, on each
-        piece: the shoulder's edge bends on the texture, and a line drawn straight there strays 0.4 to 0.8 cm off it
-        on the sidepod's and the rear flank's pieces, with a 12 degree corner where they meet (measured 2026-10-06;
-        the user: "The curve follow the edges better definitely").
-        `to_fold` ("end", "start" or "both"): that end runs on straight, up to FOLD_RUN cm, to the fold where the
-        surface turns FOLD degrees from the course's own facing, and stops along the fold rather than square (the
-        user, 2026-10-06, of the edge line's end at the tail corner, half a centimetre short of the back face: "This
-        area needs to properly cover the surface.  Something we can do is to mark the fold of the surface")."""
-        half = width / 2
-        keep_p, keep_w = [], []
-        for r in self._inking(half + soft + 3.0, size):
-            line, tan, keep = self._run_on(r, to_fold)
-            dt, k = (r["dt"], r["k"]) if keep is None else cKDTree(line).query(r["tex"], workers=-1)
-            past = ((r["tex"] - line[k]) * tan[k]).sum(1) * r["pitch"]
-            inside = half - dt * r["pitch"]
-            # square ends only at the course's own ends; where a run ends at a seam the next piece goes on
-            if r["first"]:
-                inside = np.minimum(inside, np.where(k == 0, past, np.inf))
-            if r["last"]:
-                inside = np.minimum(inside, np.where(k == len(line) - 1, -past, np.inf))
-            w = smoothstep(-soft / 2, soft / 2, inside)
-            if keep is not None:  # past an end that runs on: only up to the fold
-                on = ~np.isnan(keep[k, 0])
-                c = np.cos(np.radians(FOLD))
-                w[on] *= smoothstep(c - 0.05, c + 0.05, (r["N"][on] * keep[k[on]]).sum(1))
-            keep_p.append(r["P"][w > 0])
-            keep_w.append(w[w > 0].astype(np.float32))
-        z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
-                          np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
-                          label=f"a strip {width:g} cm wide inked along {self.name}")
-        z.course = self
-        return z
+    def inked(self, width, soft=shapes.SOFT):
+        """A strip `width` cm wide along the course: strip()."""
+        return self.strip(width, soft)
 
-    @staticmethod
-    def _run_on(r, to_fold, fold=True):
-        """A run of _inking's line carried on straight on the texture past the course's own ends that `to_fold`
-        names, to half a centimetre past the fold (without `fold`, on over it: to the piece's edge, or FOLD_RUN
-        cm): the line, its tangents and, per point, the facing the surface must keep there (NaN along the course
-        itself); None for keep when no end runs on."""
-        line, tan = r["line"], r["tan"]
-        ends = [e for e, on in (("start", r["first"]), ("end", r["last"])) if on and to_fold in (e, "both")]
-        if not ends:
-            return line, tan, None
-        keep = np.full((len(line), 3), np.nan)
-        tree, step = cKDTree(r["tex"]), 0.05 / r["pitch"]  # texels between the line's points, 0.05 cm apart
-        for end in ends:
-            a, ref = (0, r["start_n"]) if end == "start" else (-1, r["end_n"])
-            more = line[a] + (-tan[a] if end == "start" else tan[a]) * step * np.arange(1, int(FOLD_RUN / 0.05) + 1)[:, None]
-            gap, j = tree.query(more, workers=-1)
-            turned = (gap > 1.5) | (((r["N"][j] @ ref) < np.cos(np.radians(FOLD))) if fold else False)
-            n = min(len(more), (int(np.argmax(turned)) if turned.any() else len(more)) + 10)
-            more, refs, tans = more[:n], np.repeat(ref[None], n, 0), np.repeat(tan[a][None], n, 0)
-            if end == "start":
-                line, tan, keep = np.vstack([more[::-1], line]), np.vstack([tans, tan]), np.vstack([refs, keep])
-            else:
-                line, tan, keep = np.vstack([line, more]), np.vstack([tan, tans]), np.vstack([keep, refs])
-        return line, tan, keep
-
-    def inked_edge(self, zone, reach=INK_REACH, soft=shapes.SOFT, size=4096, to_fold=None):
-        """`zone` with its edge moved onto the course where it runs within `reach` cm of it, drawn on the
-        flat texture as inked() is, so a colour stops on the course in one smooth curve: shapes.below(26) cut
-        along a line beside the body's bottom edge (meshlines.line(...).offset(14)). On each piece of the texture
-        the side of the course the zone covers more of within `reach` takes it, the other side not (within a
-        centimetre and a half the zone can cover neither);
-        past the course's own ends and further than `reach` from it, the zone as it is. `to_fold` as inked()'s:
-        past that end the course's side still decides, up to the fold. A texel on a piece the course doesn't cross,
-        within INK_BLEED cm of one it does, takes that one's side (the user, 2026-10-06, of a silver sliver where
-        the body turns in to the inlet's frame: "There's a clear gap that is not painted here")."""
+    def inked_edge(self, zone, reach=REACH, soft=shapes.SOFT):
+        """`zone` with its edge moved onto the course where it runs within `reach` cm of it, so a colour stops on the
+        course itself: shapes.below(26) cut along a line beside the body's bottom edge (meshlines.line(...).offset(14)).
+        On each side of the car, the side of the course the zone covers more of within `reach` takes it, the other
+        not, the edge measured along the surface; past the course's own ends and further than `reach` from it, the
+        zone as it is."""
+        from tool import bake
+        nrm = bake.bake("Skin", 4096, 4096)["normal"].reshape(-1, 3)
         keep_p, keep_w = [], []
-        for r in self._inking(reach + soft, size):
-            line, tan, keep = self._run_on(r, to_fold, fold=False)
-            dt, k = (r["dt"], r["k"]) if keep is None else cKDTree(line).query(r["tex"], workers=-1)
-            d, t = r["tex"] - line[k], tan[k]
-            signed = np.sign(d[:, 0] * t[:, 1] - d[:, 1] * t[:, 0]) * dt * r["pitch"]
-            near = dt * r["pitch"] <= reach
-            past = (d * t).sum(1) * r["pitch"]
-            if r["first"]:
-                near &= ~((k == 0) & (past < 0))
-            if r["last"]:
-                near &= ~((k == len(line) - 1) & (past > 0))
+        for c in self._across(reach):
+            _, i = cKDTree(c["P"]).query(c["pos"], workers=-1)
+            s = self.s[i] + ((c["pos"] - c["P"][i]) * c["T"][i]).sum(1)
+            near = self.closed | ((s >= 0) & (s <= self.length))
             if not near.any():
                 continue
-            P, N, signed = r["P"][near], r["N"][near], signed[near]
-            zv = zone(P, N)
-            share = [float(zv[signed * sign > 0].mean()) if (signed * sign > 0).any() else 0.0 for sign in (1.0, -1.0)]
+            P, d = c["pos"][near], c["d"][near]
+            zv = zone(P, nrm[c["lin"][near]].astype(np.float64))
+            share = [float(zv[d * sign > 0].mean()) if (d * sign > 0).any() else 0.0 for sign in (1.0, -1.0)]
             if max(share) == 0.0:  # the zone isn't here: nothing to move
                 continue
             side = 1.0 if share[0] >= share[1] else -1.0
             keep_p.append(P)
-            keep_w.append(smoothstep(-soft / 2, soft / 2, side * signed).astype(np.float32))
-        if keep_p:
-            keep_p, keep_w = self._bled(np.concatenate(keep_p), np.concatenate(keep_w), reach, size)
+            keep_w.append(smoothstep(-soft / 2, soft / 2, side * d).astype(np.float32))
         z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
                           np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
-                          base=zone, label=f"{zone!r} with its edge inked along {self.name}")
+                          base=zone, label=f"{zone!r} with its edge on {self.name}")
         z.course = self
         return z
-
-    def _bled(self, Pk, Wk, reach, size):
-        """The inked texels (places Pk, values Wk) with the body's texels within `reach` of the course that they
-        leave out (pieces of the texture the course doesn't cross) and within INK_BLEED cm of one of them, each
-        taking its nearest one's value: lists of places and values."""
-        from tool import bake
-        b = bake.bake("Skin", size, size)
-        tri, pos = b["tri"], b["position"]
-        P = self._both()[0]
-        lo, hi = P.min(0) - reach, P.max(0) + reach
-        rr, cc = np.nonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=-1))
-        Q = pos[rr, cc].astype(np.float64)
-        Q = Q[np.isfinite(cKDTree(P).query(Q, distance_upper_bound=reach, workers=-1)[0])]
-        Q = Q[~np.isfinite(cKDTree(Pk).query(Q, distance_upper_bound=1e-3, workers=-1)[0])]  # not inked already
-        d, i = cKDTree(Pk).query(Q, distance_upper_bound=INK_BLEED, workers=-1)
-        hit = np.isfinite(d)
-        return [Pk, Q[hit]], [Wk, Wk[i[hit]]]
 
     def _ends(self):
         """The marking's ends, square to the course: cm inside them (a loop has none)."""
@@ -693,11 +511,26 @@ def _said(v):
     return f"z {v:+g}" if np.isscalar(v) else "(" + ", ".join(f"{float(c):.0f}" for c in v) + ")"
 
 
-def _resample_like(pts, nrm):
-    """Normals for `pts` resampled every STEP: the nearest given point's."""
-    new = _resample(pts, STEP)
-    _, i = cKDTree(pts).query(new)
-    return nrm[i]
+def _surface():
+    from tool import surface
+    return surface.load()
+
+
+def _clip(pts, al, lo, hi):
+    """The run of a polyline where `al` (a value per point) lies between lo and hi, its ends put where it crosses
+    them (al taken as running straight from point to point)."""
+    inside = np.flatnonzero((al >= lo) & (al <= hi))
+    if not len(inside):
+        return pts[:0]
+    a, b = int(inside[0]), int(inside[-1])
+    out = [pts[a:b + 1]]
+    if a > 0:  # the point before is outside: where the way in crosses the bound
+        bound = lo if al[a - 1] < lo else hi
+        out.insert(0, (pts[a] + (al[a] - bound) / (al[a] - al[a - 1]) * (pts[a - 1] - pts[a]))[None])
+    if b < len(pts) - 1:
+        bound = lo if al[b + 1] < lo else hi
+        out.append((pts[b] + (al[b] - bound) / (al[b] - al[b + 1]) * (pts[b + 1] - pts[b]))[None])
+    return np.vstack(out)
 
 
 # ---- the car's lines as courses ----
@@ -804,22 +637,21 @@ def seam(name, side="left"):
     return c if side == "left" else _flip(c)
 
 
-def stroke(points):
-    """The line the user drew with the Lab's pen: its points smoothed over SMOOTH cm, laid on the body
-    (a point further than OFF cm from it is dropped)."""
-    from tool import carmap
-    pts = _resample(np.asarray(points, np.float64))
-    pts = _smooth(pts, SMOOTH)
-    on, _, far = carmap.load().project(pts)
-    on = on[far <= OFF]
+def stroke(pts):
+    """The line the user drew with the Lab's pen: its points on the body (one further than OFF cm from it is
+    dropped), joined by the straightest way along the surface between them, as they are."""
+    pts = np.asarray(pts, np.float64).reshape(-1, 3)
+    on = _surface()._locate(pts)[2]
+    on = on[np.linalg.norm(on - pts, axis=1) <= OFF]
     if len(on) < 2:
         raise ValueError("the drawn line isn't on the body")
-    return Course(on, "the line drawn")
+    return points(on, "the line drawn")
 
 
 def points(pts, name="the points given"):
-    """Any points on the car, joined straight."""
-    return Course(np.asarray(pts, np.float64), name)
+    """Any points on the car, each brought onto the surface and joined to the next by the straightest way along it
+    (tool/surface.py, path)."""
+    return Course(_surface().path(np.asarray(pts, np.float64)), name)
 
 
 def edge(part, side=None, near=None):

@@ -76,13 +76,15 @@ game: install from the Windows PC after a push.
   tool.notes drawn <skin> <n>` prints its points for `course.stroke`, or for a line picked on the mesh (Mesh and
   Draw on) its `meshlines.picked(...)` call: exact, use it as it is. 3 mm or more to be seen
   while driving (2 mm is the thinnest that holds). A line through points of your own is
-  `course.points(...)`, `.rounded(cm)` for its corners. The cockpit leaves no skin down the top's
+  `course.points(...)`: the straightest way along the surface from each to the next, corners at the
+  points. The cockpit leaves no skin down the top's
   middle from z +70 to -45. The model's own crisp lines and panels (the Lab's UV map template, `PY
   -m tool.meshlines` lists them with a point on each) are exact: `meshlines.line(point)` a course
   along one, `meshlines.panel(point)` a zone filling one right up to its lines (`border=` a trim);
   `.band(cm, side="seen")` a band of even width on one face beside one, its edge on the line, measured
   along the surface (`.band(cm)` centred, wrapping the edge; `crease=True` stopping at the body's next
-  crease); `.offset(cm)` a line beside one.
+  crease); `.offset(cm)` a line beside one, `.extended(start=cm)` one carried on along the surface
+  (over a seam, under a frame), `.then(other)` one joined to another.
 - **Edges are crisp** (a zone's edge is 0.2 cm). Paint can't fake big 3D shapes; a painted shadow
   must be even all round. Fine grain goes in the sheen, not the colour (compression flattens it).
 - **Glows light the inner car only**: `s.glow(part, colour, kind)`: always on, night only, front
