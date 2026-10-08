@@ -29,7 +29,7 @@ import os
 import sys
 import time
 
-from tool import build, checks, eye, gallery, install, measure, paintbox, paths, progress, snap, view
+from tool import build, checks, course, eye, gallery, install, measure, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -114,6 +114,10 @@ def show(name, open_browser=False, snapshot=True):
             lines = measure.words(found)
             print(f"measured in {time.time() - t0:.1f} s" + (":" if lines else ": nothing zoned on the body"))
             print("\n".join(f"  {line}" for line in lines))
+            for call in s.zoned:  # a marking along a course, read back off the body (tool/course.py)
+                if getattr(call["zone"], "course", None) is not None:
+                    for line in course.measure(call["zone"])[1]:
+                        print(f"  {call['what']}: {line}")
             t0 = time.time()
             progress.stage("Checking the car")
             found = checks.run(s, found)

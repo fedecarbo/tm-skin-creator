@@ -40,10 +40,13 @@ it.
   near the body, not on it (a band keeps skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps; a picked line is smoothed in space and pushed back: steps), and no check measured a graphic where it
   landed. The steps:
-  3. **Bands along a line** (Fable 5.1, high; or Opus 5.5, xhigh), from the distance along the surface (its side from
-     the surface's faces either side of the line): wrapping an edge, on one face, stopping at a crease. Shown beside the tape built for TSC_StealthBomber (`Course.tape`, waiting for the user's OK) with the side flips and the width
-     every half centimetre; the user's eye picks. Retires the facing filter (`FACING` in `tool/course.py`) and the
-     one not picked (`Course.tape` with `TAPE_SEAM` and `TAPE_FOLD` in `tool/course.py`, or the new band).
+  3. **Bands along a line** (Fable 5.1, high; or Opus 5.5, xhigh). Built 2026-10-08, waiting for the user's OK: the
+     set on TSC_BandTest (A the tool's tape, B the band, `Course.band` in `tool/course.py`: wrapping an edge, on one
+     face, stopping at a crease, from `Surface.signed` in `tool/surface.py`, the distance along the surface exact on each side of the line);
+     the facing filter is gone, and strips, dashes, blocks and ticks measure along the surface too; `course.measure`
+     reads a marking back every half centimetre (its side flips, reach and gaps), printed by `show`. At the OK: delete
+     the one not picked (`Course.tape` with `_taped`, `TAPE_SEED`, `TAPE_SEAM`, `TAPE_FOLD`, `GRID`, `GRID_LONG`, or
+     `Course.band`), its uses in the self-test's pair, and TSC_BandTest with its takes; lower `BUDGET`.
   4. **Lines anywhere on the mesh** (Fable 5.1 MUST, xhigh). Clicks snapped to the model's lines and its chain of edges taken whole,
      straightened by flipping edges, a line beside a line as a contour of the distance, carried on by the
      straightest path; strips, dashes, ticks, inked edges and fills bounded by the model's lines moved onto it. Also

@@ -18,10 +18,17 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
     S.FV, S.FF                         the fine surface: the same, every face cut into 16 (its edges halved twice),
                                        for values between the model's own points: its face j lies in face j // 16,
                                        its first vertices are RV's, the rest the midpoints
-    S.distance(points, reach)          cm along the surface from a line (its points in order on the surface, every
-                                       quarter centimetre or so) or from any points, per fine vertex within `reach`
-                                       cm of them: exact (the points put into the fine surface as vertices of its
-                                       own, then libigl's exact geodesics); inf beyond the reach and on other pieces
+    S.distance(points, reach)          cm along the surface from any points, per fine vertex within `reach` cm of
+                                       them: exact (the points put into the fine surface as vertices of its own,
+                                       then libigl's exact geodesics); inf beyond the reach and on other pieces
+    S.signed(line, reach, closed, crease)   cm along the surface from a line (its points in order on the surface,
+                                       every quarter centimetre or so), with a side: + to the line's left as it
+                                       runs, seen from outside, - to its right, exact on each side (the line put in
+                                       as a chain of the fine surface's edges, the surface cut along it, each side
+                                       measured from its own copy of the line); with crease, cut along the model's
+                                       crisp lines too, so nothing crosses one. A Field: .at(size, lin) reads it
+                                       at texels of the set's map (nan beyond the reach), .gaps how many of the
+                                       line's links couldn't be cut (0)
     S.vertex((x, y, z))                the repaired vertex nearest a point
     S.line(a, b)                       the straightest line on the surface between two vertices: (n, 3) cm (edge
                                        flips)
@@ -33,9 +40,10 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
     S.sample(values, size, lin)        a value per fine vertex read at those texels through their faces
 
 The distances are exact on the surface, and within 0.05 cm between the fine surface's vertices (measured against
-the line's own points); a line of the body within 8 cm costs a tenth of a second. (The heat methods and fast
-marching, measured on this mesh, were off by 0.2 to 2 cm: the model's triangles are up to 24 cm long.) Nothing
-crosses a gap between pieces.
+the line's own points); a line of the body within 8 cm costs a tenth of a second from any points, and half a second
+to two with a side (the chain and the cut; a line's point landing beside its piece, on a sewn-on part, is put back
+on it). (The heat methods and fast marching, measured on this mesh, were off by 0.2 to 2 cm: the model's triangles
+are up to 24 cm long.) Nothing crosses a gap between pieces.
 """
 
 import functools
@@ -52,6 +60,9 @@ VERSION = 1
 WELD = 0.01      # cm: the model's points this close are one point (a texel is 0.05 to 0.09 cm)
 SNAP = 0.02      # cm: a line's point this near one of the fine surface's vertices is it; this near an edge, on it
 CHUNK = 1 << 21  # texels worked on at once
+THIN = 1e-6      # cm: a face thinner than this isn't made (three points in a line): the point takes the nearest corner
+JOIN = 12        # how many times a link of a line is halved to find the face it crosses, at most
+STRAY = 0.5      # cm: a line's point landing on another piece this near the line's own piece is put back on it
 
 
 def cache_file(tset):
@@ -129,7 +140,7 @@ class Surface:
         self.pieces = int(self.piece.max()) + 1
         self.vpiece = np.full(len(self.RV), -1, np.int64)
         self.vpiece[self.RF.reshape(-1)] = np.repeat(self.piece, 3)
-        self._local, self._solvers, self._tree, self._centres = {}, {}, None, None
+        self._local, self._solvers, self._trees, self._near, self._longest, self._facing = {}, {}, {}, None, None, None
 
     # ---- the pieces and their solvers ----
 
@@ -155,9 +166,9 @@ class Surface:
 
     def vertex(self, point):
         """The repaired vertex nearest a point in space."""
-        if self._tree is None:
-            self._tree = cKDTree(self.RV)
-        return int(self._tree.query(np.asarray(point, np.float64))[1])
+        if self._near is None:
+            self._near = cKDTree(self.RV)
+        return int(self._near.query(np.asarray(point, np.float64))[1])
 
     def line(self, a, b):
         """The straightest line on the surface between two repaired vertices (edge flips): (n, 3) cm."""
@@ -179,48 +190,184 @@ class Surface:
 
     # ---- distances along the surface ----
 
-    def _locate(self, pts):
-        """Each point's fine face, its weights at the face's corners and the point on it: the nearest of the faces round it."""
-        if self._centres is None:
-            self._centres = cKDTree(self.FV[self.FF].mean(1))
-        _, cand = self._centres.query(pts, k=24)
-        A, B, C = (self.FV[self.FF[cand, k]] for k in range(3))
-        e1, e2, d = B - A, C - A, pts[:, None, :] - A
-        d11, d12, d22 = (e1 * e1).sum(2), (e1 * e2).sum(2), (e2 * e2).sum(2)
-        r1, r2 = (e1 * d).sum(2), (e2 * d).sum(2)
+    def _locate(self, pts, piece=None):
+        """Each point's fine face, its weights at the face's corners and the point on it: the nearest point of the
+        surface (or of one piece of it), exactly (libigl's tree over the fine faces), and never a face it isn't in."""
+        import igl
+        if piece not in self._trees:
+            faces = np.arange(len(self.FF)) if piece is None else np.flatnonzero(self.piece[np.arange(len(self.FF)) // 16] == piece)
+            tree = igl.AABB()
+            tree.init(self.FV, self.FF[faces].astype(np.int64))
+            self._trees[piece] = (tree, faces)
+        tree, faces = self._trees[piece]
+        pts = np.ascontiguousarray(pts, np.float64).reshape(-1, 3)
+        _, f, on = tree.squared_distance(self.FV, self.FF[faces].astype(np.int64), pts)
+        f = faces[f]
+        A, B, C = (self.FV[self.FF[f, k]] for k in range(3))
+        e1, e2, d = B - A, C - A, on - A
+        d11, d12, d22 = (e1 * e1).sum(1), (e1 * e2).sum(1), (e2 * e2).sum(1)
+        r1, r2 = (e1 * d).sum(1), (e2 * d).sum(1)
         det = np.maximum(d11 * d22 - d12 * d12, 1e-18)
         u, v = np.clip((d22 * r1 - d12 * r2) / det, 0, 1), np.clip((d11 * r2 - d12 * r1) / det, 0, 1)
         s = np.maximum(u + v, 1)
         u, v = u / s, v / s
-        on = A + u[..., None] * e1 + v[..., None] * e2
-        best = np.linalg.norm(on - pts[:, None, :], axis=2).argmin(1)
-        r = np.arange(len(pts))
-        u, v = u[r, best], v[r, best]
-        return cand[r, best], np.stack([1 - u - v, u, v], 1), on[r, best]
+        return f, np.stack([1 - u - v, u, v], 1), on
+
+    def _patch(self, on, reach):
+        """The fine faces within `reach` of points on the surface as a mesh of their own: V, F, and each face's and
+        vertex's number on the whole surface."""
+        if self._longest is None:
+            self._longest = max(np.linalg.norm(self.FV[self.FF[:, k]] - self.FV[self.FF[:, k - 1]], axis=1).max() for k in range(3))
+        near = cKDTree(on).query(self.FV, distance_upper_bound=reach + 2 * self._longest)[0]
+        keep = np.flatnonzero(np.isfinite(near[self.FF]).any(1))
+        verts, local = np.unique(self.FF[keep], return_inverse=True)
+        return self.FV[verts], local.reshape(-1, 3), keep, verts
 
     def distance(self, points, reach=8.0):
-        """cm along the surface from a line (its points in order on the surface, every quarter centimetre or so) or from
-        any points, per fine vertex within `reach` cm of them: the points put into the fine surface as vertices of its
-        own, the distances then exact (libigl's exact geodesics) on a patch of the surface within the reach; inf beyond
-        it, and on pieces holding none of the points."""
+        """cm along the surface from any points, per fine vertex within `reach` cm of them: the points put into the fine
+        surface as vertices of its own, the distances then exact (libigl's exact geodesics) on a patch of the surface
+        within the reach; inf beyond it, and on pieces holding none of the points."""
         import igl
         pts = np.asarray(points, np.float64).reshape(-1, 3)
         f, w, on = self._locate(pts)
-        longest = max(np.linalg.norm(self.FV[self.FF[:, k]] - self.FV[self.FF[:, k - 1]], axis=1).max() for k in range(3))
-        near = cKDTree(on).query(self.FV, distance_upper_bound=reach + 2 * longest)[0]
-        keep = np.flatnonzero(np.isfinite(near[self.FF]).any(1))
-        verts, local = np.unique(self.FF[keep], return_inverse=True)
-        V, F = self.FV[verts], local.reshape(-1, 3)
-        V2, F2, src = _insert(V, F, np.searchsorted(keep, f), w, on)
+        V, F, keep, verts = self._patch(on, reach)
+        V2, F2, src, _, _ = _insert(V, F, np.searchsorted(keep, f), w, on)
         n = len(V2)
-        g = coo_matrix((np.ones(3 * len(F2)), (F2.reshape(-1), np.roll(F2, 1, 1).reshape(-1))), shape=(n, n))
-        comp = connected_components(g, directed=False)[1]
+        comp = _components(F2, n)
         d = np.asarray(igl.exact_geodesic(V2, F2.astype(np.int64), np.unique(src).astype(np.int64), np.zeros(0, np.int64),
                                           np.arange(n, dtype=np.int64), np.zeros(0, np.int64))).reshape(-1)[:len(V)]
         ok = np.isin(comp[:len(V)], comp[src]) & (d <= reach)
         out = np.full(len(self.FV), np.inf)
         out[verts[ok]] = d[ok]
         return out
+
+    def _chain(self, pts, closed):
+        """A line's points on the fine surface (the piece most of them are on: a point landing on another piece within
+        STRAY cm of it is put back), each joined to the next across one face or one edge: where two in a row sit in
+        faces sharing no edge, the point where their link crosses the edge between them is added, or its midway,
+        again and again (JOIN times at most; past four, through the one corner the faces share). (faces, weights,
+        points), and how many links stayed unjoined."""
+        pts = np.asarray(pts, np.float64).reshape(-1, 3)
+        if closed and len(pts) > 1:
+            pts = np.vstack([pts, pts[:1]])
+        f, w, on = self._locate(pts)
+        piece = int(np.bincount(self.piece[f // 16]).argmax())
+        stray = np.flatnonzero(self.piece[f // 16] != piece)
+        if len(stray):
+            f2, w2, on2 = self._locate(pts[stray], piece)
+            back = stray[np.linalg.norm(on2 - pts[stray], axis=1) <= STRAY]
+            sel = np.isin(stray, back)
+            f[back], w[back], on[back] = f2[sel], w2[sel], on2[sel]
+        out, gaps = [(int(f[0]), w[0], on[0])], 0
+
+        def inside(point, face):
+            A, B, C = self.FV[self.FF[face]]
+            n = np.cross(B - A, C - A)
+            if abs((point - A) @ n) > SNAP * max(np.linalg.norm(n), 1e-18):
+                return None
+            bw = _bary(point, A, B, C)
+            return bw if bw.min() >= -1e-6 else None
+
+        def join(a, b, depth):
+            nonlocal gaps
+            fa, fb = a[0], b[0]
+            if fa == fb:
+                out.append(b)
+                return
+            bw = inside(b[2], fa)
+            if bw is not None:  # on an edge or a corner of a's face: in it too
+                out.append((fa, np.clip(bw, 0, 1), b[2]))
+                return
+            shared = np.intersect1d(self.FF[fa], self.FF[fb])
+            if len(shared) == 2:
+                u, v = self.FV[shared[0]], self.FV[shared[1]]
+                x = _crossing(a[2], b[2], u, v)
+                A, B, C = self.FV[self.FF[fa]]
+                out.append((fa, np.clip(_bary(x, A, B, C), 0, 1), x))
+                out.append(b)
+                return
+            if len(shared) == 1 and depth >= 4:
+                corner = self.FV[shared[0]]
+                A, B, C = self.FV[self.FF[fa]]
+                out.append((fa, np.clip(_bary(corner, A, B, C), 0, 1), corner))
+                out.append(b)
+                return
+            if depth >= JOIN:
+                gaps += 1
+                out.append(b)
+                return
+            mid = 0.5 * (a[2] + b[2])
+            fm, wm, om = self._locate(mid[None], piece)
+            m = (int(fm[0]), wm[0], om[0])
+            join(a, m, depth + 1)
+            join(m, b, depth + 1)
+
+        for k in range(1, len(on)):
+            join(out[-1], (int(f[k]), w[k], on[k]), 0)
+        faces = np.array([o[0] for o in out])
+        return faces, np.array([o[1] for o in out]), np.array([o[2] for o in out]), gaps
+
+    def signed(self, line, reach=8.0, closed=False, crease=False):
+        """cm along the surface from a line, with a side: + to its left as it runs, seen from outside, - to its right.
+        The line's points go into the fine surface as a chain of its edges (_chain), the surface is cut along them (and,
+        with `crease`, along the model's crisp lines: where faces meet at meshlines.SHARP degrees or more, so nothing
+        crosses one), and each side's distance is exact (libigl's exact geodesics) from its own copy of the line; a
+        point reached from both sides, round an open line's end, takes the nearer. A Field, read at texels."""
+        import igl
+        faces, w, on, gaps = self._chain(line, closed)
+        V, F, keep, verts = self._patch(on, reach)
+        V2, F2, _, parent, ids = _insert(V, F, np.searchsorted(keep, faces), w, on, chain=True)
+        n2 = len(F2)
+        # every edge of the patch: its faces and the corner it starts from in each
+        slot = {}
+        for g in range(n2):
+            x, y, z = F2[g]
+            for k, (u, v) in enumerate(((x, y), (y, z), (z, x))):
+                slot.setdefault((min(u, v), max(u, v)), []).append((g, k, u))
+        cuts = np.zeros((n2, 3), bool)
+        left, right = set(), set()
+        for a, b in zip(ids[:-1], ids[1:]):
+            if a == b:
+                continue
+            here = slot.get((min(a, b), max(a, b)), [])
+            if not here:
+                gaps += 1
+                continue
+            for g, k, u in here:
+                cuts[g, k] = True
+                (left if u == a else right).add((g, k))  # the face running a to b is on the left of a to b
+        if crease:
+            from tool import meshlines
+            fn = self.fine_facing()[keep]
+            cos = np.cos(np.radians(meshlines.SHARP))
+            for (u, v), here in slot.items():
+                if len(here) == 2 and fn[parent[here[0][0]]] @ fn[parent[here[1][0]]] <= cos:
+                    for g, k, _ in here:
+                        cuts[g, k] = True
+        Vn, Fn, _ = igl.cut_mesh(V2, F2.astype(np.int64), cuts)
+        n = len(Vn)
+        comp = _components(Fn, n)
+        d = []
+        for side in (left, right):
+            src = np.unique([Fn[g, (k + j) % 3] for g, k in side for j in (0, 1)]).astype(np.int64)
+            if not len(src):
+                d.append(np.full(n, np.inf))
+                continue
+            dist = np.asarray(igl.exact_geodesic(Vn, Fn, src, np.zeros(0, np.int64), np.arange(n, dtype=np.int64),
+                                                 np.zeros(0, np.int64))).reshape(-1)
+            dist[~np.isin(comp, comp[src])] = np.inf
+            d.append(dist)
+        return Field(self, keep, parent, Vn, Fn, np.stack(d, 1), gaps)
+
+    def fine_facing(self):
+        """Each fine face's facing, outward (its winding's, as the model's)."""
+        if self._facing is None:
+            A, B, C = (self.FV[self.FF[:, k]] for k in range(3))
+            n = np.cross(B - A, C - A)
+            n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+            n *= np.where((n * self.fn[self.model[np.arange(len(self.FF)) // 16]]).sum(1) < 0, -1.0, 1.0)[:, None]
+            self._facing = n
+        return self._facing
 
     # ---- the texels ----
 
@@ -265,6 +412,13 @@ class Surface:
         return out
 
 
+def _to_segment(p, a, b):
+    """How far a point is from the segment ab (its ends included)."""
+    ab = b - a
+    t = np.clip((p - a) @ ab / max(ab @ ab, 1e-18), 0.0, 1.0)
+    return float(np.linalg.norm(p - (a + t * ab)))
+
+
 def _bary(p, a, b, c):
     e1, e2, d = b - a, c - a, p - a
     d11, d12, d22, r1, r2 = e1 @ e1, e1 @ e2, e2 @ e2, e1 @ d, e2 @ d
@@ -273,32 +427,124 @@ def _bary(p, a, b, c):
     return np.array([1 - u - v, u, v])
 
 
-def _insert(V, F, face, bary, pts):
-    """Points put into a mesh as vertices of its own, each from its face and the point on it: the mesh with them, and
-    each point's vertex. A point within SNAP of a vertex is that vertex; within SNAP of an edge, the edge is split
-    there (on both its faces); else its face is cut in three. A face split keeps its corners' order."""
-    V, F, alive, kids, by_edge, ids = list(V), [list(f) for f in F], [], {}, {}, []
+def _crossing(p, q, u, v):
+    """Where the link pq crosses the edge uv: the point of the edge nearest the link."""
+    d1, d2, r = q - p, v - u, p - u
+    a, b, c, d, e = d1 @ d1, d1 @ d2, d2 @ d2, d1 @ r, d2 @ r
+    den = a * c - b * b
+    t = np.clip((a * e - b * d) / den, 0, 1) if den > 1e-18 else 0.5  # along the edge
+    s = np.clip((b * t - d) / max(a, 1e-18), 0, 1)                   # along the link, nearest that
+    t = np.clip((b * s + e) / max(c, 1e-18), 0, 1)
+    return u + t * d2
+
+
+def _nearest_on(p, a, b, c):
+    """The point of the triangle abc nearest p."""
+    best, near = None, np.inf
+    for u, v in ((a, b), (b, c), (c, a)):
+        uv = v - u
+        t = np.clip((p - u) @ uv / max(uv @ uv, 1e-18), 0.0, 1.0)
+        q = u + t * uv
+        d = np.linalg.norm(p - q)
+        if d < near:
+            best, near = q, d
+    return best
+
+
+def _thin(a, b, c):
+    """Whether a triangle is thinner than THIN: its smallest height."""
+    e = max(np.linalg.norm(b - a), np.linalg.norm(c - b), np.linalg.norm(a - c))
+    return np.linalg.norm(np.cross(b - a, c - a)) / max(e, 1e-18) < THIN
+
+
+def _components(F, n):
+    g = coo_matrix((np.ones(3 * len(F)), (F.reshape(-1), np.roll(F, 1, 1).reshape(-1))), shape=(n, n))
+    return connected_components(g, directed=False)[1]
+
+
+def _insert(V, F, face, bary, pts, chain=False):
+    """Points put into a mesh as vertices of its own, each from its face and the point on it: the mesh with them, each
+    point's vertex, each face's parent (the face of F it was cut from) and the chain of vertices the points make
+    (with the crossings walked between them). A point within SNAP of a vertex is that
+    vertex; within SNAP of an edge (the edge itself, not its line carried on), the edge is split there (on both its
+    faces); else its face is cut in three. A split that would make a face thinner than THIN (three points in a line,
+    beside the model's needle-thin faces: the exact solver never returns on a face of no area) isn't made: the point
+    takes the nearest corner. A face split keeps its corners' order. With `chain`, each point is joined to the one
+    before by edges: where their link crosses the faces between them (the pieces of one face, in one plane), the
+    crossings are put in too, so the chain is a chain of the mesh's edges and the mesh can be cut along it."""
+    V, F, alive, kids, by_edge, by_vertex, ids = list(V), [list(f) for f in F], [], {}, {}, {}, []
+    parent = list(range(len(F)))
 
     def key(u, v):
         return (min(u, v), max(u, v))
 
-    def add(corners):
+    def add(corners, of):
         F.append(list(corners))
         alive.append(True)
+        parent.append(of)
         f = len(F) - 1
         for k in range(3):
             by_edge.setdefault(key(corners[k], corners[(k + 1) % 3]), set()).add(f)
+            by_vertex.setdefault(corners[k], set()).add(f)
         return f
 
     def drop(f):
         alive[f] = False
         for k in range(3):
             by_edge[key(F[f][k], F[f][(k + 1) % 3])].discard(f)
+            by_vertex[F[f][k]].discard(f)
+
+    def split_edge(u, v, p):
+        """The edge uv split at p on each of its faces: p's vertex, or None when a face would come out thin."""
+        plan = []
+        for g in list(by_edge[key(u, v)]):
+            x, y, z = F[g]
+            while z in (u, v):
+                x, y, z = y, z, x
+            plan.append((g, x, y, z))
+        if any(_thin(V[x], p, V[z]) or _thin(p, V[y], V[z]) for _, x, y, z in plan):
+            return None
+        V.append(p)
+        new = len(V) - 1
+        for g, x, y, z in plan:
+            drop(g)
+            kids[g] = [add((x, new, z), parent[g]), add((new, y, z), parent[g])]
+        return new
+
+    def link(a, b):
+        """Edges from a to b across the faces their link crosses, a crossing put on each edge in the way: the vertices
+        walked, a to b (b missing when the way was lost)."""
+        walked = [a]
+        for _ in range(64):
+            if a == b or key(a, b) in by_edge:
+                return walked + [b]
+            P, Q = np.asarray(V[a]), np.asarray(V[b])
+            hit = None
+            for g in list(by_vertex.get(a, ())):
+                x, y, z = F[g]
+                while x != a:
+                    x, y, z = y, z, x
+                U, W = np.asarray(V[y]) - P, np.asarray(V[z]) - P
+                st = np.linalg.lstsq(np.stack([U, W], 1), Q - P, rcond=None)[0]
+                if st[0] >= -1e-9 and st[1] >= -1e-9 and st.sum() > 1e-9:
+                    hit = (y, z, float(st.sum()))
+                    break
+            if hit is None or hit[2] <= 1 + 1e-9:
+                return walked
+            y, z, reach = hit
+            x = P + (Q - P) / reach
+            off = [np.linalg.norm(x - np.asarray(V[y])), np.linalg.norm(x - np.asarray(V[z]))]
+            new = None if min(off) <= SNAP else split_edge(y, z, x)
+            a = new if new is not None else (y if off[0] <= off[1] else z)
+            walked.append(a)
+        return walked
 
     for f in range(len(F)):
         alive.append(True)
         for k in range(3):
             by_edge.setdefault(key(F[f][k], F[f][(k + 1) % 3]), set()).add(f)
+            by_vertex.setdefault(F[f][k], set()).add(f)
+    path = []  # the chain: each point's vertex, and the vertices walked between it and the one before
     for f0, p in zip(face, pts):
         stack, found = [int(f0)], None  # the live face holding the point, among those its face was cut into
         while stack:
@@ -312,27 +558,88 @@ def _insert(V, F, face, bary, pts):
         f, w = found
         a, b, c = F[f]
         corners = np.array([V[a], V[b], V[c]])
+        if w.min() < -1e-9:  # outside every face it could be in (rounding): onto the nearest one's edge
+            p = _nearest_on(p, *corners)
         off = np.linalg.norm(corners - p, axis=1)
         if off.min() <= SNAP:
             ids.append(F[f][int(off.argmin())])
-            continue
-        sides = np.array([np.linalg.norm(np.cross(p - corners[k], corners[(k + 1) % 3] - corners[k])) /
-                          np.linalg.norm(corners[(k + 1) % 3] - corners[k]) for k in range(3)])
-        V.append(p)
-        ids.append(len(V) - 1)
-        if sides.min() <= SNAP:  # on an edge: split it on both its faces
-            k = int(sides.argmin())
-            u, v = F[f][k], F[f][(k + 1) % 3]
-            for g in list(by_edge[key(u, v)]):
-                x, y, z = F[g]
-                while z in (u, v):
-                    x, y, z = y, z, x
-                drop(g)
-                kids[g] = [add((x, ids[-1], z)), add((ids[-1], y, z))]
         else:
-            drop(f)
-            kids[f] = [add((a, b, ids[-1])), add((b, c, ids[-1])), add((c, a, ids[-1]))]
-    return np.array(V), np.array([F[f] for f in range(len(F)) if alive[f]]), np.array(ids)
+            sides = np.array([_to_segment(p, corners[k], corners[(k + 1) % 3]) for k in range(3)])
+            if sides.min() <= SNAP:  # on an edge: split it on both its faces
+                k = int(sides.argmin())
+                new = split_edge(F[f][k], F[f][(k + 1) % 3], p)
+                ids.append(F[f][int(off.argmin())] if new is None else new)
+            elif _thin(V[a], V[b], p) or _thin(V[b], V[c], p) or _thin(V[c], V[a], p):
+                ids.append(F[f][int(off.argmin())])
+            else:
+                V.append(p)
+                ids.append(len(V) - 1)
+                drop(f)
+                kids[f] = [add((a, b, ids[-1]), parent[f]), add((b, c, ids[-1]), parent[f]), add((c, a, ids[-1]), parent[f])]
+        if chain and len(ids) > 1:
+            path += link(ids[-2], ids[-1])[1:]
+        else:
+            path.append(ids[-1])
+    live = [f for f in range(len(F)) if alive[f]]
+    return np.array(V), np.array([F[f] for f in live]), np.array(ids), np.array([parent[f] for f in live]), np.array(path)
+
+
+class Field:
+    """The distance from each side of a line over a patch of the fine surface, on the mesh the line was cut into: read
+    at texels of the set's map as one signed distance. keep: the patch's faces on the whole surface; parent: each cut
+    face's face of the patch; Vn, Fn: the cut mesh; value: (n, 2) per vertex of it, from the line's left and from its
+    right (inf where unreached). Each side is read on its own and the nearer takes the texel: a signed value read
+    across a face would fake a zero wherever the two sides meet round an open line's end."""
+
+    def __init__(self, S, keep, parent, Vn, Fn, value, gaps):
+        self.S, self.keep, self.Vn, self.Fn, self.value, self.gaps = S, keep, Vn, Fn, value, gaps
+        order = np.argsort(parent, kind="stable")
+        starts = np.r_[0, np.flatnonzero(np.diff(parent[order])) + 1]
+        self.kids = {int(parent[order[a]]): order[a:b] for a, b in zip(starts, np.r_[starts[1:], len(order)])}
+
+    def at(self, size, lin=None):
+        """The signed distance at texels of the set's map (flat indices; all by default): + to the line's left, - to its
+        right; nan off the patch or beyond its reach."""
+        face, bary = self.S.texels(size, lin)
+        out = np.full((len(face), 2), np.inf)
+        j = np.searchsorted(self.keep, face)
+        j = np.minimum(j, len(self.keep) - 1)
+        on = (face >= 0) & (self.keep[j] == face)
+        if not on.any():
+            return np.full(len(face), np.nan)
+        rows, j = np.flatnonzero(on), j[on]
+        P = (self.S.FV[self.S.FF[face[on]]] * bary[on][..., None]).sum(1)
+        single = np.array([len(self.kids[int(k)]) == 1 for k in j])
+        # a face kept whole: its corners' values at the texel's weights (its corners stay in order)
+        g = np.array([self.kids[int(k)][0] for k in j[single]], dtype=np.int64)
+        if len(g):
+            out[rows[single]] = _read(self.value[self.Fn[g]], bary[on][single].astype(np.float64))
+        # a face the line cut: the piece the texel is in, by its weights there
+        for k in np.unique(j[~single]):
+            mine = np.flatnonzero(j == k)
+            gs = self.kids[int(k)]
+            A, B, C = (self.Vn[self.Fn[gs, c]] for c in range(3))
+            best, bw = None, None
+            for gi, (a, b, c) in enumerate(zip(A, B, C)):
+                w = np.array([_bary(p, a, b, c) for p in P[mine]])
+                m = w.min(1)
+                if best is None:
+                    best, bw, bm = np.full(len(mine), gi), w, m
+                else:
+                    better = m > bm
+                    best[better], bw[better], bm[better] = gi, w[better], m[better]
+            wt = np.clip(bw, 0, None)
+            out[rows[mine]] = _read(self.value[self.Fn[gs[best]]], wt / np.maximum(wt.sum(1, keepdims=True), 1e-12))
+        value = np.where(out[:, 0] <= out[:, 1], out[:, 0], -out[:, 1])
+        value[np.isinf(out).all(1)] = np.nan
+        return value
+
+
+def _read(corners, wt):
+    """Corner values (m, 3, 2) at weights (m, 3): a corner out of reach (inf) counts only at weight 0."""
+    wt = wt[..., None]
+    with np.errstate(invalid="ignore"):  # inf times 0 at a corner out of reach, which the weight then drops
+        return np.where(wt > 0, corners * wt, 0.0).sum(1)
 
 
 def main():
@@ -357,16 +664,17 @@ def main():
     c = meshlines.line((39, 19, 70))
     size = 4096
     t = time.time()
-    d = S.distance(c.pts, reach=5)
+    field = S.signed(c.pts, reach=5)
     took = time.time() - t
     t = time.time()
     face, bary = S.texels(size)
     on = face >= 0
-    at = S.sample(d, size)[on]
+    at = field.at(size)[on]
     sampled = time.time() - t
-    print(f"From {c.name} ({c.length:.0f} cm, {len(c.pts)} points): the distance along the surface at {int(np.isfinite(d).sum())} "
-          f"fine vertices within 5 cm in {took:.2f} s; read at every texel of the {size} map in {sampled:.1f} s: {int((at <= 3).sum())} "
-          f"texels within 3 cm of it, {int((at <= 0.3).sum())} within 0.3.")
+    print(f"From {c.name} ({c.length:.0f} cm, {len(c.pts)} points): the signed distance along the surface, exact on each side "
+          f"({field.gaps} links uncut), in {took:.2f} s; read at every texel of the {size} map in {sampled:.1f} s: "
+          f"{int((np.abs(at) <= 3).sum())} texels within 3 cm of it, {int(((at > 0) & (at <= 3)).sum())} on its left, "
+          f"{int((np.abs(at) <= 0.3).sum())} within 0.3.")
     t = time.time()
     width = np.linalg.norm(S.sample(S.FV, size)[on] - bake.bake("Skin", size, size)["position"].reshape(-1, 3)[on], axis=1)
     print(f"Every texel of the {size} map: {int(on.sum())} on the body, each on a face of the fine surface, its weights between "
