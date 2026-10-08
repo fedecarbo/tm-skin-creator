@@ -40,28 +40,6 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  4. **Lines anywhere on the mesh** (Fable 5.1 MUST, xhigh). Built, waiting for the user's OK (2026-10-08, Fable 5.1
-     at high, not xhigh: said at the start). Every line on the surface itself (`tool/surface.py`): a picked line is
-     the model's chain as it is, and between two points on no line of the model's the straightest way along the
-     surface (`S.path`: the points put into their piece as vertices, then edge flips, pair by pair: a path through
-     several points at once straightens through the middle ones, measured); a line beside a line is the line where
-     the distance along the surface is so many cm (`Field.contour`, square to the line's ends: an open line's cut
-     runs one edge on past each end, or the two sides tie square to it); a line carried on is the tracer's
-     straightest way (`S.carry`, the direction projected onto the face first, across a hairline between pieces);
-     `course.points`, `course.stroke` and `Course.then` join by the same way; `inked_edge` reads the field; the
-     stroke's smoothing, the rounding of a course's corners, the walked offset, the straight extension, the
-     smoothing of a picked line and the texture inking are gone (tool/*.py 18189 to 18092 lines). The nose tape's two sides are
-     exact mirror images now (the surface is). The test car TSC_LinesTest, set 1 open in the Lab: A the same five
-     lines by the old code (painted from 8fe36c3's tree), B on the surface; measured: the picked line down the
-     flank 72.6 cm (the old 83.8, a zigzag along the model's edges smoothed, up to 11 cm off), the old offset
-     round the cockpit's back strayed up to 8 cm from the line 4 cm beside it, the old drawn line up to 2.9 cm from
-     the straightest way. The user (2026-10-08, of the set): B works, A looked a little smoother, B jagged in
-     places, "still a bit of blindness". Measured: a distance read straight across the fine surface's faces (up
-     to 3.6 cm) makes a line beside a bent line a polygon (a vertex up to 0.35 cm off the line between its
-     neighbours on the skirt's band edge, 0.22 beside the nose roll); now the faces a band's edge or a line beside
-     a line bends across are cut finer and the distance solved again, until within half a texel (0.07 after), a
-     third of a second to a second more per marking. On the OK: delete `tool/seams.py` and `course.seam` (the
-     tour's seam dashes along the model's own line instead), the test car, step 4 here.
   5. **Decals, emblems and words on the surface** (Fable 5.1, high; or Opus 5.5, xhigh). A local map round a point for marks and decals (across a crease
      when the design says so, its stretch measured), coordinates along and across a line for words and patterns
      along it, a "flat enough for words" measure per panel, spacing along the surface for scattered stickers. Also a
@@ -125,8 +103,8 @@ it.
   `view.export_template` on the maps and on the car (the Lab's UV map room, Show, Template; the user: "I want to see
   the mesh reflected in the car"); a design picks `meshlines.line` (exactly along a template line) and
   `meshlines.panel` (filled to its lines, or a trim). The Lab's Mesh button lays the mesh over any car, and with it
-  Draw picks a line by points where the mesh's lines cross (`meshlines.picked`, one smooth curve through them, the
-  user's pick). The user, 2026-10-06: "Its ok, there's improvements to make but for now let's keep it that way until I
+  Draw picks a line by points where the mesh's lines cross (`meshlines.picked`: along the model's lines where both
+  points are on one, else the straightest way along the surface, as it is). The user, 2026-10-06: "Its ok, there's improvements to make but for now let's keep it that way until I
   actually start building a car"; "the mesh somehow will be improved". Next: their improvements, when they
   start a car. Not: a line from a light rule alone (the
   60-degree divide wandered in a zigzag before each inlet); a line on a panel line sits on one wall of its 0.36 cm

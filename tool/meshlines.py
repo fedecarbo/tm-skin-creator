@@ -14,6 +14,8 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
                                     the line is on one of its walls); along where the body ends a strip is half on it
     meshlines.line((65, 59, -85), kind="rounded")   one of the model's lines along a rounded edge, the one nearest a
                                     point of those side by side across it (one every 1 to 2 cm, each facing its own way)
+    meshlines.line((74, 26, 7), kind="seam")   a seam: a piece's edge sewn to another piece's (the side skirt's top
+                                    edge against the body shell)
     meshlines.rolls()               the body's rounded edges, each its lines side by side across it, facing up first
     meshlines.panel((25, 80, 11))        the model's own panel under a point (bounded by its creases and the body's
                                     edges), a zone filled right up to its lines; both=True the mirror image's too;
@@ -160,17 +162,23 @@ def _most(names):
 
 @functools.lru_cache(maxsize=8)
 def lines(tset="Skin", fold=True):
-    """The model's lines (template's creases and openings) joined end to end into lines: a list of dicts, the longest
-    first: kind ("crease", "opening"), pts (on the car, cm, in order), closed (a loop), length (cm), parts (those it runs
-    along, most first), walls (a panel line drawn as a groove is two or three creases WALLS apart: the shorter ones are
-    folded into the longest, counted here; fold=False keeps each)."""
+    """The model's lines (template's creases and openings, and its seams: where two parts meet, as the side skirt's
+    top edge meets the body shell, creased there or not, and a piece's edge sewn to another piece's) joined end to
+    end into lines: a list of dicts, the longest first: kind ("crease", "opening", "seam"), pts (on the car, cm, in
+    order), closed (a loop), length (cm), parts (those it runs along, most first), walls (a panel line drawn as a
+    groove is two or three creases WALLS apart: the shorter ones are folded into the longest, counted here;
+    fold=False keeps each). A seam along a crease is in both kinds."""
     e = _edges(tset)
     names = _parts_of(tset)
+    t1, t2, tb = e["tri"][e["h1"]], e["tri"][e["h2"]], e["tri"][e["hb"]]
+    parting, sewn = names[t1] != names[t2], e["sewn"]
     out = []
     for kind, (a, b, tris) in (("crease", (e["a"][e["h1"]][e["crease"]], e["b"][e["h1"]][e["crease"]],
-                                           np.c_[e["tri"][e["h1"]], e["tri"][e["h2"]]][e["crease"]])),
-                               ("opening", (e["a"][e["hb"]][~e["sewn"]], e["b"][e["hb"]][~e["sewn"]],
-                                            e["tri"][e["hb"]][~e["sewn"]][:, None]))):
+                                           np.c_[t1, t2][e["crease"]])),
+                               ("opening", (e["a"][e["hb"]][~sewn], e["b"][e["hb"]][~sewn], tb[~sewn][:, None])),
+                               ("seam", (np.r_[e["a"][e["h1"]][parting], e["a"][e["hb"]][sewn]],
+                                         np.r_[e["b"][e["h1"]][parting], e["b"][e["hb"]][sewn]],
+                                         np.vstack([np.c_[t1, t2][parting], np.c_[tb, tb][sewn]])))):
         nbr, by = {}, {}
         for k, (u, v) in enumerate(zip(a, b)):
             nbr.setdefault(u, []).append(v)
@@ -222,15 +230,16 @@ def lines(tset="Skin", fold=True):
 
 
 def line(near, kind=None, least=3.0, tset="Skin"):
-    """The model's line nearest a point (x, y, z) on the car, of `kind` ("crease" or "opening") or either, `least` cm
-    long or more: a Course along it, exactly through the model's points (closed round a loop). kind="rounded": one of
-    the lines along a rounded edge (strips), the one nearest the point of those side by side across it."""
+    """The model's line nearest a point (x, y, z) on the car, of `kind` ("crease", "opening" or "seam") or any,
+    `least` cm long or more: a Course along it, exactly through the model's points (closed round a loop).
+    kind="rounded": one of the lines along a rounded edge (strips), the one nearest the point of those side by side
+    across it."""
     from tool import course
     at = np.asarray(near, np.float64)
     pool = [L for L in (strips(tset) if kind == "rounded" else lines(tset))
             if L["length"] >= least and (kind is None or L["kind"] == kind)]
     L = min(pool, key=lambda L: float(np.linalg.norm(L["pts"] - at, axis=1).min()))
-    words = {"crease": "crisp line", "opening": "edge where the body ends", "rounded": "line along a rounded edge"}[L["kind"]]
+    words = {"crease": "crisp line", "opening": "edge where the body ends", "seam": "seam", "rounded": "line along a rounded edge"}[L["kind"]]
     k = slice(0, -1) if L["closed"] else slice(None)
     c = course.Course(L["pts"][k], f"the model's {words} along the {L['parts'][0]} near {course._said(at)}", nrm=L["nrm"][k],
                       closed=L["closed"])

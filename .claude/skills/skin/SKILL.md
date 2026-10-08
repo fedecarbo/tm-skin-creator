@@ -70,7 +70,8 @@ game: install from the Windows PC after a push.
   `tool/paintbox.py`, one side): whole, flat, upright to someone standing beside the car, moved or
   shrunk until they fit. Read the notes. Objects: `s.scatter` (whole copies). A continuous texture:
   a tile through `s.print`.
-- **A marking along one of the car's lines** (one of the model's lines, a seam, a panel's edge) or along
+- **A marking along one of the car's lines** (one of the model's lines: a crease, an edge where the body
+  ends, a seam between two of its pieces, a rounded edge's; or a panel's edge) or along
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
   places, words reading along it (`at=` a stretch of it), in one paint. The user's line: `PY -m
   tool.notes drawn <skin> <n>` prints its points for `course.stroke`, or for a line picked on the mesh (Mesh and

@@ -1,6 +1,6 @@
 # The car's anatomy
 
-Written by `python -m tool.carmap --describe` from the car's own shape (2026-10-07): how the body is built, where it's calm and where a graphic stops. Read it before a design, and follow these lines and rooms where the idea needs them, never by rule. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
+Written by `python -m tool.carmap --describe` from the car's own shape (2026-10-08): how the body is built, where it's calm and where a graphic stops. Read it before a design, and follow these lines and rooms where the idea needs them, never by rule. Lengths in cm: x out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).
 
 ## How the body is built
 
@@ -8,7 +8,7 @@ The model's own lines, read off its triangles (`tool/meshlines.py`): exact on th
 
 ### Its crisp lines and edges
 
-Panel lines, crisp folds and where the body ends, 80 cm or longer, the longest first. A marking along one: `meshlines.line(point)`, the point given.
+Panel lines, crisp folds, where the body ends and the seams between its parts, 80 cm or longer, the longest first. A marking along one: `meshlines.line(point)`, the point given.
 
 - **a panel line, a groove of 9**, 378 cm, along the cockpit surround, at (23, 77, 33): round, z 91 to -52.
 - **a crisp line**, 333 cm, along the body shell, at (0, 70, 92): (-23, 84, -51) → (-36, 73, -37) turning 48° → (-36, 71, 5) turning 29° → (-18, 77, 41) turning 25° → (-12, 70, 88) turning 63° → (0, 70, 92) turning 39° → (12, 70, 88) turning 63° → (18, 77, 41) turning 25° → (36, 71, 5) turning 29° → (36, 73, -37) turning 48° → (23, 84, -51).
@@ -18,11 +18,15 @@ Panel lines, crisp folds and where the body ends, 80 cm or longer, the longest f
 - **where the body ends**, 231 cm, along the body shell, side skirt and nose tip, at (22, 43, 75): round, z 172 to 69.
 - **where the body ends**, 222 cm, along the sidepod top, at (85, 31, -32): round, z 12 to -50.
 - **where the body ends**, 182 cm, along the sidepod inlet, at (75, 49, -45): round, z 19 to -51.
+- **a seam**, 161 cm, along the engine cover and engine cover panel, at (20, 79, -81): round, z -81 to -120.
 - **a panel line, a groove of 5**, 155 cm, along the side skirt, at (0, 18, 215): (-24, 18, 149) → (-16, 18, 205) turning 28° → (-10, 18, 214) turning 45° → (0, 18, 215) turning 17° → (10, 18, 214) turning 45° → (16, 18, 205) turning 28° → (24, 18, 149).
+- **a seam**, 153 cm, along the body shell and cockpit surround, at (30, 74, 21): (11, 70, 89) → (18, 77, 41) turning 24° → (36, 71, 5) turning 29° → (36, 73, -37) turning 46° → (24, 83, -50).
 - **a panel line, a groove of 4**, 153 cm, along the sidepod top, at (82, 59, -49): (55, 61, 11) → (56, 63, -45) turning 45° → (61, 63, -50) turning 45° → (81, 60, -49) turning 48° → (86, 53, -46) turning 38° → (85, 30, -31) turning 54° → (83, 28, 0).
 - **a crisp line**, 146 cm, along the side skirt, at (39, 19, 70): (24, 18, 149) → (39, 19, 70) turning 25° → (77, 22, 17).
 - **where the body ends**, 120 cm, along the rear flank, at (52, 45, -104): round, z -94 to -140.
+- **a seam**, 113 cm, along the engine cover and number panel, at (18, 83, -62): round, z -62 to -78.
 - **a panel line, a groove of 7**, 107 cm, along the nose tip, at (0, 49, 187): (-13, 59, 143) → (-10, 49, 184) turning 72° → (0, 49, 187) turning 28° → (10, 49, 184) turning 72° → (13, 59, 143).
+- **a seam**, 107 cm, along the nose panel and nose tip, at (0, 49, 187): (-13, 59, 142) → (-10, 49, 184) turning 72° → (0, 49, 187) turning 28° → (10, 49, 184) turning 72° → (13, 59, 142).
 - **a crisp line**, 98 cm, along the rear flank, at (51, 29, -133): (53, 24, -94) → (50, 26, -130) turning 52° → (51, 38, -137) turning 20° → (51, 49, -140) turning 107° → (54, 48, -106).
 - **a panel line, a groove of 4**, 88 cm, along the side skirt, at (74, 26, 21): (44, 29, 44) → (49, 26, 42) turning 40° → (78, 26, 16) turning 40° → (84, 26, -25).
 - **a panel line, a groove of 12**, 88 cm, along the rear flank, at (58, 63, -81): (77, 61, -49) → (50, 64, -94) turning 20° → (43, 64, -128).

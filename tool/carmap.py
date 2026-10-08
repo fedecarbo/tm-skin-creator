@@ -342,9 +342,9 @@ def _model_lines():
          "flat texture is cut. The left side and the middle (the right mirrors the left); every line and panel, with "
          "a point on each: `PY -m tool.meshlines`.", "",
          "### Its crisp lines and edges", "",
-         f"Panel lines, crisp folds and where the body ends, {LINE_LEAST:.0f} cm or longer, the longest first. A marking "
-         "along one: `meshlines.line(point)`, the point given.", ""]
-    words = lambda L: ("where the body ends" if L["kind"] == "opening" else
+         f"Panel lines, crisp folds, where the body ends and the seams between its parts, {LINE_LEAST:.0f} cm or longer, "
+         "the longest first. A marking along one: `meshlines.line(point)`, the point given.", ""]
+    words = lambda L: ("where the body ends" if L["kind"] == "opening" else "a seam" if L["kind"] == "seam" else
                        f"a panel line, a groove of {L['walls']}" if L["walls"] > 1 else "a crisp line")
     for L in meshlines.lines("Skin"):
         if L["length"] < LINE_LEAST:

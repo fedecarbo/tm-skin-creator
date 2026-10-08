@@ -1,9 +1,9 @@
 """A course: a path along one of the car's own lines, and markings laid along it. The user, 2026-10-05,
 drawing with the Lab's pen: "Do an interval lines with DO NOT STEP text." A marking belongs to a line
-of the car (one of its own creases or rolled edges, a seam, a panel's edge) or to the line
-the user drew, and the tool lays it along that line in one go: a strip, dashes, ticks, spots or words.
+of the car (one of the model's own lines: a crease, a rolled edge's, an edge where the body ends, a seam between
+two of its parts; or a panel's edge) or to the line the user drew, and the tool lays it along that line in one go:
+a strip, dashes, ticks, spots or words.
 
-    course.seam("side skirt")                a seam (tool/seams.py), the left side
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
@@ -623,18 +623,6 @@ def measure(zone, every=0.5, size=4096):
             words.append(f"{name}: {len(rows)} stations every {every:g} cm, {flips} side flip{'s' if flips != 1 else ''}, "
                          f"reaching {min(reach):.2f} to {max(reach):.2f} cm across the surface, {empty} empty")
     return out, words
-
-
-def _flip(c):
-    return Course(c.pts * MIRROR, c.name.replace("left", "right"), c.nrm * MIRROR, c.closed, c.mirror)
-
-
-def seam(name, side="left"):
-    """A seam (tool/seams.py) as a course, tail to nose on one side."""
-    from tool import seams
-    path = np.asarray(seams.traced()[name]["path"], np.float64)
-    c = Course(path, f"the seam {name!r} on the {side}")
-    return c if side == "left" else _flip(c)
 
 
 def stroke(pts):
