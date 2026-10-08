@@ -68,7 +68,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 17576, "viewer/*.js": 4668}
+BUDGET = {"tool/*.py": 17941, "viewer/*.js": 4668}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,

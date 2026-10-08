@@ -1,7 +1,7 @@
-"""The car map: the body as one surface, worked out once from its mesh, so every design knows the car.
+"""The car map: the open air each spot of the body sees, and where along the car it is, so every design knows the car.
 
-The map is built from the body's mesh (Skin_01, welded into one surface), is cached in the work folder
-(`python -m tool.carmap` rebuilds it, about a minute), and answers for any point on the car. In a design,
+The map is built on the body's surface (tool/surface.py: its welded points and triangles), is cached in the work
+folder (`python -m tool.carmap` rebuilds it, about a minute), and answers for any point on the car. In a design,
 through `tool.shapes`:
 
     shapes.outside(0.4)           the outer body: spots that see at least 40 % of the open air
@@ -27,33 +27,14 @@ import functools
 import numpy as np
 from scipy.spatial import cKDTree
 
-from tool import fbx, parts, paths, progress
+from tool import fbx, parts, paths, progress, surface
 
-CACHE = paths.CACHE / "carmap_mesh.npz"
-VERSION = 1
+VERSION = 2
+CACHE = paths.CACHE / f"carmap_v{VERSION}.npz"
 N_DIRS = 200
 PIXEL = 1.0      # cm, the depth maps' pixel when testing what each spot sees
 NOSE_Z, TAIL_Z = 215.0, -162.0
 WHEEL_COVERS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
-
-
-# ---- the body as one surface ----
-
-def _weld():
-    """Skin_01 welded by position (0.01 cm): vertices V, triangles F over them (Skin_01's order),
-    each triangle's normal from the model's own normals (so the outside is known), and its part."""
-    m = fbx.meshes()["Skin_01"]
-    pos = m["positions"].astype(np.float64)
-    _, first, inv = np.unique(np.round(pos, 2), axis=0, return_index=True, return_inverse=True)
-    V = pos[first]
-    F = inv.reshape(-1)[m["tri_vertex"]]
-    fn = m["tri_normal"].astype(np.float64).mean(1)
-    fn /= np.maximum(np.linalg.norm(fn, axis=1, keepdims=True), 1e-12)
-    P = parts.load()
-    off = P.mesh_offset["Skin"]
-    part = P.tri_part[off:off + len(F)].astype(np.int32)
-    names = np.array([inst["name"] for inst in P.instances])
-    return V, F.astype(np.int32), fn, part, names
 
 
 def _vertex_normals(V, F, fn):
@@ -160,13 +141,13 @@ def _seen(points, normals, dirs, tris):
 
 def build():
     progress.detail("Rebuilding the car map")
-    V, F, fn, part, names = _weld()
-    vn, area = _vertex_normals(V, F, fn)
+    S = surface.load("Skin")
+    vn, area = _vertex_normals(S.V, S.F, S.fn)
     dirs = directions()
-    seen = _seen(V, vn, dirs, _occluders())
+    seen = _seen(S.V, vn, dirs, _occluders())
     w = np.maximum(vn @ dirs.T, 0)
     open_ = (seen * w).sum(1) / np.maximum(w.sum(1), 1e-9)
-    data = dict(version=VERSION, V=V, F=F, fn=fn, part=part, vn=vn, area=area, open=open_.astype(np.float32))
+    data = dict(version=VERSION, vn=vn, area=area, open=open_.astype(np.float32))
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(CACHE, **data)
     load.cache_clear()
@@ -187,7 +168,8 @@ def _same(a, b):
 
 class Map:
     def __init__(self, data):
-        self.V, self.F, self.fn, self.part = data["V"], data["F"], data["fn"], data["part"]
+        S = surface.load("Skin")
+        self.V, self.F, self.fn, self.part = S.V, S.F, S.fn, S.part
         self.vn, self.area = data["vn"], data["area"]
         self.part_names = np.array([inst["name"] for inst in parts.load().instances])
         self._tree = None
@@ -296,12 +278,11 @@ class Map:
 
 @functools.lru_cache(maxsize=1)
 def load():
-    if not CACHE.exists():
+    """The map, built again when the surface is newer than it (the mesh changed, or the surface's code)."""
+    surface.load("Skin")
+    if not CACHE.exists() or CACHE.stat().st_mtime < surface.cache_file("Skin").stat().st_mtime:
         return build()
-    data = np.load(CACHE)
-    if int(data["version"]) != VERSION or CACHE.stat().st_mtime < fbx.CACHE.stat().st_mtime:
-        return build()
-    return Map(dict(data))
+    return Map(dict(np.load(CACHE)))
 
 
 

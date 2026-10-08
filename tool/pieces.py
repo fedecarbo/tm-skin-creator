@@ -4,8 +4,8 @@
 
 `labels` gives each triangle's piece, for the checks (tool/checks.py: a graphic on two pieces).
 
-A piece is a run of the welded body's triangles joined across shared edges (carmap._weld, the
-wheel covers left out). For each: its parts, area, boundary length, the nearest other piece and
+A piece is a run of the welded body's triangles joined across shared edges (the car map's, from
+tool/surface.py, the wheel covers left out). For each: its parts, area, boundary length, the nearest other piece and
 the gap to it (the smallest distance between its boundary vertices and the other's boundary
 edges), how much of its boundary lies within 1 cm of another piece (sewn-tight), and the skin it
 covers: the area of other pieces' triangles that face the same way within 1 cm behind it (hidden
