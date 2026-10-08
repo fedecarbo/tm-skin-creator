@@ -21,7 +21,7 @@ game: install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints, its measures (how far each zoned paint on the body reaches), how each graphic sits against the lines the eye sees and the other graphics (a gap that CLOSES, NEARLY PARALLEL, a NEAR MISS, a SHALLOW crossing, TOUCHES: look there close up, `PY -m tool.snap <name> --eye`, the mesh drawn; it names, never forbids) and what its checks name: a paint that stops short or leaves a gap, a graphic cut by an edge, on two pieces or over another, anything by the game's panels, a soft edge. |
+| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict: what BLOCKS (a gap, a step, a kink or a wobble in a line, a band on its edge's other face, a line cut by the body's edge, a fill short of its line, a mark or a picture not whole, a paint stopping short, anything on the game's panels, words bent or upside down), what it warns of (a soft edge, a spill onto a second piece, a paint over another, a picture that will show its pixels, a scatter uneven) and the eye's notes (how a graphic sits against the lines the eye sees: a gap that CLOSES, a SLIVER, a NEAR MISS, a SHALLOW crossing, JUST PAST a line, TOUCHES another paint: look there close up, `PY -m tool.snap <name> --eye`, the mesh drawn; it names, never forbids). |
 | `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
@@ -126,8 +126,8 @@ game: install from the Windows PC after a push.
 
 ## Before showing
 
-1. Fix what show's checks name, or know why it's meant, then look at the six views. For a set's
-   takes, that's enough.
+1. Fix what the judge blocks (or know why it's meant and say so), look at what it warns of, then look
+   at the six views. For a set's takes, that's enough.
 2. A design shown alone, or a pick: `tool.snap <name> --close`, and look where graphics meet a
    join, fold, hole or edge: nothing cut, sunk, stretched or soft.
 3. The whole car: every visible part serves the idea, the lights at night (none left in a stock

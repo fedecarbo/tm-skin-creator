@@ -49,9 +49,8 @@ a strip, dashes, ticks, spots or words.
                                              to someone beside the car; the stretch is their room along the line
 A marking's width and side are measured along the car's surface (tool/surface.py: the distance from the course exact
 on each side of it), so it lies where the surface itself joins to the course, however far the body turns, and never
-on the far side of a thin panel; along the course, by the course's nearest point. course.measure(zone) reads a
-marking back off the body every half centimetre: its side, its reach and its gaps. The checks (tool/checks.py)
-read each dash and tick as they read any small mark.
+on the far side of a thin panel; along the course, by the course's nearest point. The judge (tool/judge.py) reads every
+marking back station by station along the model's line it follows: its width, gaps, steps, kinks and hops.
 Close up where the model's flat faces are big (the nose root, the sidepods' fronts, the tail), a line
 bends where it crosses a fold between two of them, as the body does: those corners are the model's,
 and no way of drawing the line takes them out (measured 2026-10-06: 6 to 12 degrees with the folds at
@@ -315,7 +314,7 @@ class Course:
         """A zone: the texels whose distance across the surface from the course, b (+ to its left seen from outside),
         lies between `lo` and `hi` cm (for the mirror image, between -hi and -lo: the mirror image of the marking)
         where `along` (s, b -> cm inside the marking, negative outside: s how far along the course, by its nearest
-        point) says so."""
+        point) says so. The texels are the 4096² map's, matched by their places: a smaller canvas gets none of it."""
         from tool import bake
         reach = max(abs(lo), abs(hi)) + soft + 1.0
         lins, ws = [], []
@@ -335,7 +334,7 @@ class Course:
         lin, w = lin[order][first], w[order][first]
         pos = bake.bake("Skin", 4096, 4096)["position"].reshape(-1, 3)[lin].astype(np.float64)
         z = self._matched(pos, w, label=label)
-        z.course = self
+        z.course, z.lo, z.hi, z.along, z.crease = self, lo, hi, along, crease  # what the judge reads it back by
         return z
 
     def band(self, width, side=0, crease=False, soft=shapes.SOFT):
@@ -425,7 +424,7 @@ class Course:
         z = self._matched(np.concatenate(keep_p) if keep_p else np.zeros((0, 3)),
                           np.concatenate(keep_w) if keep_w else np.zeros(0, np.float32),
                           base=zone, label=f"{zone!r} with its edge on {self.name}")
-        z.course = self
+        z.course, z.inked = self, True  # the judge measures its edge against the course
         return z
 
     def _ends(self):
@@ -592,7 +591,7 @@ class Courses:
         fns = [z.fn for z in zones]
         label = zones[0].label.replace(self.courses[0].name, self.name) if zones else self.name
         z = shapes.Zone(lambda p, n: np.max([fn(p, n) for fn in fns], axis=0), label=label)
-        z.course = self
+        z.course, z.pieces = self, zones  # the judge reads each piece back along its own course
         return z
 
     def strip(self, *a, **k):
@@ -609,47 +608,6 @@ class Courses:
 
     def ticks(self, *a, **k):
         return self._all("ticks", *a, **k)
-
-
-def measure(zone, every=0.5, size=4096):
-    """A marking read back off the body along its course (zone.course), station by station every `every` cm: on each
-    copy of the course (its mirror image too), per station the side its texels lie on (+ the course's left, - its
-    right; 0 both, when the lesser side holds a quarter or more), how far across the surface they reach from the
-    course (the marking's far edge, cm) and how many there are. {copy: [(side, reach, count), ...]} and its words: the
-    side flips (left to right or back), the reach's range and the empty stations."""
-    from tool import bake
-    courses = list(zone.course) if isinstance(zone.course, Courses) else [zone.course]
-    b = bake.bake("Skin", size, size)
-    nrm = b["normal"].reshape(-1, 3)
-    out, words = {}, []
-    for c in courses:
-        for k, copy in enumerate(c._across(8.0, size=size)):
-            w = zone(copy["pos"], nrm[copy["lin"]])
-            on = w >= 0.5
-            _, i = cKDTree(copy["P"]).query(copy["pos"][on], workers=-1)
-            s = c.s[i] + ((copy["pos"][on] - copy["P"][i]) * copy["T"][i]).sum(1)
-            n = max(1, int(round(c.length / every)))  # the last station takes the course's tail
-            st = np.clip(np.floor(s / every).astype(int), 0, n - 1)
-            d = copy["d"][on]
-            rows = []
-            for j in range(n):
-                mine = st == j
-                if not mine.any():
-                    rows.append((0, 0.0, 0))
-                    continue
-                left = int((d[mine] > 0).sum())
-                side = 0 if min(left, mine.sum() - left) * 4 >= mine.sum() else (1 if left * 2 >= mine.sum() else -1)
-                here = d[mine] if side == 0 else d[mine][np.sign(d[mine]) == side]
-                rows.append((side, float(np.abs(here).max()) if len(here) else 0.0, int(mine.sum())))
-            name = f"{c.name}{' (mirror image)' if copy['mirrored'] else ''}"
-            out[name] = rows
-            sides = [r[0] for r in rows if r[2] and r[0]]
-            flips = int(sum(1 for a, b in zip(sides[:-1], sides[1:]) if a != b))
-            reach = [r[1] for r in rows if r[2]]
-            empty = sum(1 for r in rows if not r[2])
-            words.append(f"{name}: {len(rows)} stations every {every:g} cm, {flips} side flip{'s' if flips != 1 else ''}, "
-                         f"reaching {min(reach):.2f} to {max(reach):.2f} cm across the surface, {empty} empty")
-    return out, words
 
 
 def stroke(pts):

@@ -37,7 +37,7 @@ because it's drawn in 3D, not on the flat texture.
   model's own panels (tool/meshlines.py) give zones like these.
     zone_a & zone_b, zone_a | zone_b, ~zone_a   combine them
 Each zone keeps how the design wrote it (`label`, "behind(40)") and the zones an & joined
-(`parts()`), so tool/measure.py can say which of them ends a paint where it ends.
+(`parts()`), so the judge (tool/judge.py) can say which of them ends a paint where it ends.
 Lengths: the car runs from z = -162 (tail) to 215 (nose tip); the wheels sit at z = 179 and
 -120, the cockpit opening at about z = -50 .. 90, the deck behind it to z = -133. Its width is
 about 175 cm over the wheels, 110 at the sidepods. Top of the body: y = 84.
@@ -78,7 +78,9 @@ class Zone:
         return Zone(lambda p, n: self(p, n) * other(p, n), factors=self.parts() + other.parts())
 
     def __or__(self, other):
-        return Zone(lambda p, n: 1 - (1 - self(p, n)) * (1 - other(p, n)), label=f"({self!r} | {other!r})")
+        z = Zone(lambda p, n: 1 - (1 - self(p, n)) * (1 - other(p, n)), label=f"({self!r} | {other!r})")
+        z.either = (self, other)  # the judge finds the markings inside
+        return z
 
     def __invert__(self):
         return Zone(lambda p, n: 1 - self(p, n), label=f"~{self!r}")

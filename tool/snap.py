@@ -3,9 +3,9 @@
     python -m tool.snap <name>          -> build/<name>_views.png
     python -m tool.snap <name> --size 1280x960
     python -m tool.snap <name> --close  -> build/<name>_close.png: the close looks (CLOSE)
-    python -m tool.snap <name> --eye    -> build/<name>_eye.png: a close look at each spot the eye names on the
-                                             last show (tool/eye.py: where a graphic crosses or meets a line,
-                                             and whatever it flags), the model's mesh drawn on the paint
+    python -m tool.snap <name> --eye    -> build/<name>_eye.png: a close look at each spot the judge's eye names on
+                                             the last show (tool/judge.py: how a graphic sits against the lines the
+                                             eye sees), the model's mesh drawn on the paint
     python -m tool.snap <name> --before [close|views|...]  -> build/<name>_<kind>_compare.png, opened:
                                              each tile that changed since the sheet before, before
                                              beside after, the change outlined (a sheet's last one is
@@ -179,14 +179,12 @@ KINDS = {"views": SHOTS, "close": CLOSE, "cams": CAMS, "body": BODY}
 
 
 def eye_shots(name):
-    """A close look at each spot the eye named on the last show (build/<name>/eye.json): what it flags first, then
-    where a graphic crosses or meets a line; the camera square to the body there. Prints what each look is for."""
-    looks = json.loads((paths.BUILD / name / "eye.json").read_text())["looks"]
-    found = [(x, side, f) for x in looks for side, said in x["sides"].items() for f in said
-             if f["flag"] or f["words"].startswith(("crosses", "its edge meets"))]
-    found.sort(key=lambda t: (not t[2]["flag"], t[1] != "left"))
+    """A close look at each spot the judge's eye named on the last show (build/<name>/verdict.json: its notes carry
+    where to look); the camera square to the body there. Prints what each look is for."""
+    verdict = json.loads((paths.BUILD / name / "verdict.json").read_text())
+    found = sorted((f for f in verdict["findings"] if f.get("at")), key=lambda f: f["side"] != "left")
     taken, shots = [], []
-    for x, side, f in found:
+    for f in found:
         if len(shots) == EYE_MOST:
             break
         at = np.array(f["at"])
@@ -196,8 +194,8 @@ def eye_shots(name):
         d = np.array(f["nrm"], float)
         d[1] = max(d[1], 0.15)  # never from under the floor
         k = len(shots) + 1
-        print(f"  {k}: {x['n']}. {x['step']}, {side}: {f['words']}")
-        shots.append((f"{k} {x['step']}, {side}: {f['flag'] or ('meets' if 'meets' in f['words'] else 'crosses')}",
+        print(f"  {k}: {f['text']}")
+        shots.append((f"{k} {f['step']}{', ' + f['side'] if f['side'] else ''}: {f['kind']}",
                       {"dir": (d / np.linalg.norm(d)).round(3).tolist(), "dist": EYE_DIST, "target": (at / 100).tolist()},
                       False, []))
     return shots

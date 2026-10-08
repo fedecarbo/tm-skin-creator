@@ -325,8 +325,10 @@ def panel(near, both=False, border=None, soft=None, size=4096):
         w = w * smoothstep(-soft / 2, soft / 2, border - signed)
     keep = w > 0.002
     words = "panel" if border is None else f"{border:g} cm border inside the panel"
-    return course.Course._matched(pos[idx[keep]].astype(np.float64), w[keep].astype(np.float32),
-                                  label=f"the model's {words} at {course._said(np.asarray(near, np.float64))}" + (", both sides" if both else ""))
+    z = course.Course._matched(pos[idx[keep]].astype(np.float64), w[keep].astype(np.float32),
+                               label=f"the model's {words} at {course._said(np.asarray(near, np.float64))}" + (", both sides" if both else ""))
+    z.lines, z.border = edge, border  # the judge measures the fill's edge against its lines
+    return z
 
 
 FLAT = 6.0        # degrees: an edge the body bends across less than this counts as more or less flat: on a panel the

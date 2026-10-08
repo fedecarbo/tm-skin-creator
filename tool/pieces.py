@@ -2,7 +2,7 @@
 
     python -m tool.pieces          the table (and car/pieces.json)
 
-`labels` gives each triangle's piece, for the checks (tool/checks.py: a graphic on two pieces).
+`labels` gives each triangle's piece, for the judge (tool/judge.py: a graphic on two pieces).
 
 A piece is a run of the welded body's triangles joined across shared edges (the car map's, from
 tool/surface.py, the wheel covers left out). For each: its parts, area, boundary length, the nearest other piece and

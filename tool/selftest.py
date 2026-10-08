@@ -1,5 +1,5 @@
-"""The tool's self-test: does this code still paint every skin exactly as an earlier commit did, and which flaws do its
-checks name on a car where they were planted?
+"""The tool's self-test: does this code still paint every skin exactly as an earlier commit did, and which flaws does
+its judge name on a car where they were planted?
 
     python -m tool.selftest --against <ref>             the representative set (SET), old and new
     python -m tool.selftest --against <ref> SelfTest_Tour   only the skins named
@@ -24,11 +24,12 @@ that skin again on both sides.
 The self-test's own cars, painted only here and never shown in the Lab: the tour makes every paint call the user's car
 doesn't, once. The planted-flaw pair lays graphics of every kind on the car's hardest spots (tape along a crisp edge and
 across a seam where the map is cut, strips along a rolled edge, across where the model's short lines meet and on a
-crisp line, a band to the tail, a fill to the model's lines, discs, pictures across a rolled edge and on a panel, words
-on a side, over a fold and along a curve): SelfTest_Clean as the tool lays them, SelfTest_Flawed with the kinds of
-flaw the user has pointed out planted on its left side (PLANTED: what, where and how big). Both are painted with the
-checks on (tool/checks.py, tool/eye.py), whose findings are compared as the notes are; then it says which planted flaws
-they name, and what they name on the clean car and besides on the flawed one: for a change to a check, before and after.
+crisp line, ticks towards an opening, a band to the tail, a fill to the model's lines, discs, a ring, pictures across a
+rolled edge and on a panel, words on a side, over a fold and along a curve): SelfTest_Clean as the tool lays them,
+SelfTest_Flawed with the kinds of flaw the user has pointed out planted on its left side (PLANTED: what, where and how
+big). Both are judged (tool/judge.py), the findings compared as the notes are; then it says which planted flaws the
+judge names, and what it names on the clean car and besides on the flawed one: for a change to a check, before and
+after.
 
 The self-test's cars are compared only with commits whose paint box has every call they make. A commit's results
 are kept in the work folder (selftest/<commit>/), so each side is paid for once per computer: a
@@ -68,7 +69,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18417, "viewer/*.js": 4670}
+BUDGET = {"tool/*.py": 18700, "viewer/*.js": 4670}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -227,15 +228,24 @@ def pair(s, flawed):
     s.paint("body", "satin", colour=GOLD,
             zone=planted(beside(sill, -2.0).mirrored().strip(0.6), beside(sill, closes).strip(0.6)))
 
+    cock = meshlines.line((0, 70, 92)).between((30, 76, 33), (33, 72, 15))  # the opening 6 to 12 cm to its left
+    s.paint("body", "satin", colour=INK, zone=planted(cock.mirrored().ticks(every=6, length=4, width=0.6, side=1),
+                                                      cock.ticks(every=6, length=12, width=0.6, side=1)))
+
     s.step("Fills", "A band along the side to the tail, the tail corner's panel filled to its lines, stripes on the "
            "bonnet.")
     s.paint("body", "satin", colour=INK,
             zone=shapes.sides(0.5) & shapes.outside(0.4) & shapes.above(40) & shapes.below(44) & shapes.behind(-45))
-    if flawed:  # the band's last 4 cm painted over
-        s.paint("body", "satin", colour=BASE, zone=shapes.behind(-144) & shapes.left() & shapes.above(38) & shapes.below(46))
+    cover = shapes.behind(-144) & shapes.above(38) & shapes.below(46)  # the band's last 4 cm painted over, wider
+    if flawed:  # on the left by the base colour: short; on the right by the same ink, which goes on to the eye
+        s.paint("body", "satin", colour=BASE, zone=cover & shapes.left())
+        s.paint("body", "satin", colour=INK, zone=cover & shapes.right())
+    else:
+        s.paint("body", "satin", colour=INK, zone=cover)
     corner = meshlines.panel((44, 64, -138), both=True)
     sliver = meshlines.panel((44, 64, -138), border=1.0) & shapes.sphere(on((45, 63.3, -128)), 7.5)
     short = shapes.Zone(lambda p, n: np.clip(corner(p, n) - sliver(p, n), 0, 1))  # 1 cm short of its line, no hairline
+    short.lines = corner.lines  # a fill to the panel's lines, as the tool lays one, that falls short
     s.paint("body", "satin", colour=RED, zone=planted(corner, short))
     s.paint("body", "satin", colour=RED, zone=planted(shapes.stripe(3, at=13) | shapes.stripe(3, at=-13),
                                                       shapes.stripe(3, at=13, soft=2.5)) & shapes.band(98, 114) & shapes.above(60))
@@ -267,8 +277,10 @@ def pair(s, flawed):
     both(lambda height=5, **k: s.text("FLANK", "body shell", colour=INK, height=height, **k), on((37, 58, 68)),
          left=dict(across=True, height=8))
     s.placard("ALONG", "body shell", colour=INK, height=2.6, at=meshlines.line((40, 58, 38), kind="rounded").between(20, -40))
+    s.mark("body", "satin", marks.ring(0.6), size=10, at=on((20, 66, 120)), colour=INK, across=True,
+           **(dict(within=~shapes.sphere(on((25, 65, 120)), 0.5)) if flawed else {}))  # a notch bitten out of its left
 '''
-# The flaws planted on FLAWED's left side, each of the kinds the user has pointed out (checks.KINDS): where along the
+# The flaws planted on FLAWED's left side, each of the kinds the user has pointed out (judge.KINDS): where along the
 # car it is (z, cm), and what and how big. A finding names the nearest one of its kind on its side, within NEAR cm.
 PLANTED = (
     ("gap", (59, 61), "a 1.5 cm gap in the tape along the skirt's crisp edge"),
@@ -292,6 +304,8 @@ PLANTED = (
     ("edge", (-101, -109), "the picture on the deck 16 pixels across its 8 cm"),
     ("upside down", (-70, -84), "SIDE hanging upside down on the rear flank"),
     ("fold", (49, 87), "FLANK laid over the front flank's turn, 42 degrees under it"),
+    ("cut", (33, 15), "ticks 12 cm long from the cockpit's groove towards its opening, cut by the edge where the body ends"),
+    ("cut", (115, 125), "a notch a centimetre wide bitten out of the ring on the bonnet, where the skin is bare"),
 )
 NEAR = 5.0  # cm along the car: a finding this near a planted flaw names it
 # A kept result of the self-test's own car is the car's as it was then: its file is named by the car's code.
@@ -319,13 +333,18 @@ def paint_car(name):
 
 
 def checked(s):
-    # what the checks name on the planted-flaw pair; None on any other car
+    # what the judge names on the planted-flaw pair; None on any other car
     if s.name not in ("SelfTest_Clean", "SelfTest_Flawed"):
         return None
-    from tool import checks, eye
-    return [{"kind": f["kind"], "check": f["check"], "side": f["side"], "text": f["text"],
+    try:
+        from tool import judge
+        found = judge.run(s)["findings"]
+    except ImportError:  # a commit before the judge: its three passes
+        from tool import checks, eye
+        found = checks.run(s) + eye.findings(eye.look(s))
+    return [{"kind": f["kind"], "check": f["check"], "side": f["side"], "text": f["text"], "level": f.get("level", ""),
              "z": None if f["z"] is None else [round(float(v), 1) for v in f["z"]]}
-            for f in checks.run(s) + eye.findings(eye.look(s))]
+            for f in found]
 
 
 def encoded(s, keep=False):
@@ -365,7 +384,7 @@ record = {"palette": s.palette, "icon": s.icon_colours,
           "clay": s.clay_left}
 notes = [re.sub(r"\(\d+ s\)", "(… s)", n) for n in s.notes]  # how long a step took isn't the paint
 notes += [f["text"] for f in getattr(s, "findings", ())]  # what the paint itself knows is wrong
-notes += [f"{f['kind']}: {f['text']}" for f in found or ()]  # and what the checks name on the planted-flaw pair
+notes += [f"{f['kind']}: {f['text']}" for f in found or ()]  # and what the judge names on the planted-flaw pair
 sha = lambda b: hashlib.sha256(b).hexdigest()[:20]
 json.dump({"textures": textures, "record": sha(json.dumps(record, sort_keys=True, default=str).encode()),
            "notes": notes, "found": found,
@@ -616,7 +635,7 @@ def score(clean, flawed):
             continue
         near = [(gap, k) for k, flaw in enumerate(PLANTED) if (gap := _gap(f, flaw)) is not None]
         if near:
-            named.setdefault(min(near)[1], set()).add(f["check"])
+            named.setdefault(min(near)[1], set()).add(f"{f['check']}, {f['level']}" if f.get("level") else f["check"])
         else:
             rest.append(f)
     lines = [f"  {'named ' if k in named else 'missed'} {kind:<11} z {where[0]:+g} to {where[1]:+g}: {what}"

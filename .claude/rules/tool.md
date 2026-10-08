@@ -19,7 +19,7 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   self-test's own cars (the tour, every other paint call; the planted-flaw pair, one car clean and
   one with the user's kinds of flaw planted) with this code and with that commit's, compares every
   texture, every DDS file, the notes, the palette and the steps, and says which planted flaws the
-  checks name: for a change to a check, before and after. `--snap` compares the viewer's sheets pixel
+  judge names: for a change to a check, before and after. `--snap` compares the viewer's sheets pixel
   for pixel, `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in
   the work folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
   `--profile` says where one paint's time and memory go.
@@ -42,8 +42,10 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks
   them; the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
   (the picture maker's 16 GB of weights).
-- A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/checks.py` names what's
-  wrong on it (`PY -m tool.checks <name>`; its docstring is the key), `tool/build.py` puts it in the
+- A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/judge.py` names what's
+  wrong on it (`PY -m tool.judge <name>`; its docstring is the key: every graphic measured where it landed,
+  one list of findings, block, warn and note, kept with the design's hash in `build/<name>/verdict.json`;
+  a kind of flaw it misses is planted on the self-test's pair next), `tool/build.py` puts it in the
   viewer and builds the zip (`PY -m tool.build <name>`: a trial build of the last show's zip, to
   see its size), `tool/install.py` puts it in the game (`PY -m tool.install <name> ...` installs
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in
@@ -100,7 +102,7 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   photographs the library (`tool/tyresheet.py`).
 - A marking along the car's own lines or the user's stroke is a course (`tool/course.py`, its
   docstring is the key: the line's points every 0.25 cm, every one on the surface; a marking's width and
-  side measured along the surface, `course.measure` reading it back every half centimetre). A line beside a
+  side measured along the surface, the judge reading it back every half centimetre). A line beside a
   line is the surface's contour of the distance, a line carried on or joined to another the surface's
   straightest way: nothing is smoothed in the air and pushed back.
 - The car's surface (`tool/surface.py`, its docstring is the key): the mesh welded and repaired once, exact

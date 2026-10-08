@@ -40,14 +40,20 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  6. **One judge** (Fable 5.1 MUST, xhigh). One list of findings (block, warn, note) carrying the design's hash; a placement check for
-     every graphic (lines: width, gaps, steps, kinks and face hops every 0.25 to 0.5 cm; fills: how far the edge sits
-     from its line; decals and words: whole (a chipped one planted in the pair: the tool's first item), stretch), its
-     limits tuned on the planted-flaw pair; the reach and the flaw checks folded in; the eye's placement findings
-     advisory. Also: a paint covered by the same paint said to
-     stop short (TSC_RescueV2's lower edge), a tick cut short by an edge unnamed (TSC_CrashTest's ruler), the judge
-     run on the PC once. Retires the three passes and their three files (`tool/measure.py`, `tool/checks.py`,
-     `tool/eye.py` become one module with one output), and any eye finding the pair shows is noise.
+  6. **One judge** (Fable 5.1 MUST, xhigh). Built 2026-10-08, waiting for the user's OK. `tool/judge.py`: one list
+     of findings (block, warn, note) with the design's hash, kept in `build/<name>/verdict.json`, `PY -m tool.judge
+     <name>`; a placement check for every graphic (a marking read back every half centimetre along the model's line
+     it follows: gaps, a band on the line's other face, steps, kinks, wobbles, its width short, cut by the body's edge;
+     a fill's edge off its lines; a mark, words or a picture not whole or chipped, measured as it's laid); the reach and
+     the flaw checks folded in; the eye advisory, tuned on the pair (a sliver beside a tape's far edge and a near miss
+     along an edge were noise; a near miss at an end, a gap that closes, a shallow crossing, an edge just past a line
+     and touching another paint stay). The pair has two more flaws planted (a notch bitten out of a ring, ticks cut by
+     the body's edge) and a band's end covered by its own paint, which no longer reads as short. The self-test:
+     the judge names 20 of the 20 flaws planted, nothing on the clean car, in 2 to 6 s a car (the three passes
+     named 9 of 18 in 3 s, with 23 things said on the clean car); every car's game files identical. Found on the way and
+     fixed: a mark asked for from above landed on hidden skin inside the body; a picture's "landed" share was the
+     texel pitch's guess. On the OK: delete this step. The judge's run on the PC waits for the PC (the open air item
+     below).
   7. **Close looks along every line and over every decal** (Opus 5.5, high), square to the visible face at about 20 px per cm,
      shaded for the eye and as a flat mask the judge measures; a pixel diff against the previous version flags
      changes outside the area an edit meant to touch; both sides of the car seen alike. Retires the close looks they
@@ -113,7 +119,7 @@ it.
   by `surface.Surface.chart`'s step spanning or its bridging at the sidepod top's hairline; find which on a chart of that
   spot (the test car TSC_DecalsTest is in git at 3fac0d5). Step 6's judge names a decal not whole.
 - **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
-  is worked out on each computer (numpy and BLAS); the checks (`tool/checks.py`) and a mark's room
+  is worked out on each computer (numpy and BLAS); the judge (`tool/judge.py`) and a mark's room
   (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
 - **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
   on the stage until the first paint.

@@ -152,7 +152,7 @@ def scatter(skin, image, where="body", size=8, spacing=None, turn="random", fini
 
 
 def _spread(pos, covered, centres, spacing):
-    """How evenly the copies lie, for tool/checks.py: `uneven`, the spread of each copy's distance to
+    """How evenly the copies lie, for the judge (tool/judge.py): `uneven`, the spread of each copy's distance to
     its nearest neighbour over their mean; `bare`, the share of the surface further than 0.75
     spacings from every copy (the middle of a gap 1.5 spacings wide), and where along the car (z).
     With its own dice: the scatter's stay as they were."""

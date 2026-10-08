@@ -423,7 +423,7 @@ def describe(m=None):
     """car/anatomy.md, the car in one page for Claude to read before a design: every number comes from the
     model and the map, so it's redone with them."""
     import datetime
-    from tool import checks, marks, pieces as pieces_mod
+    from tool import judge, marks, pieces as pieces_mod
     m = m or load()
     names = np.array([inst["name"] for inst in parts.load().instances])
     plist, nm = pieces_mod.write()
@@ -445,7 +445,7 @@ def describe(m=None):
           "| panel | across, cm | centre | faces |", "|---|---|---|---|"]
     big = {n: m.area[pname == n].sum() for n in np.unique(pname)}  # the panels, the biggest first
     order = [n for n in sorted(big, key=lambda n: -big[n]) if big[n] >= 50]
-    for name, found in sorted(marks.rooms([n for n in order if n not in checks.PANELS], ROOM_LEAST).items(),
+    for name, found in sorted(marks.rooms([n for n in order if n not in judge.PANELS], ROOM_LEAST).items(),
                               key=lambda kv: -kv[1][0][0]):
         for across, centre, facing in found:
             if facing[1] < -0.5:
@@ -460,23 +460,23 @@ def describe(m=None):
         seen.add(key)
         twin = sum(tuple(o["parts"]) == key for o in plist) > 1
         what = f"the {_listed(q['parts'])}" + (" (each side)" if twin else "")
-        (sewn if q["gap_cm"] is not None and q["gap_cm"] <= checks.SEAM else own).append(f"{what}, {q['gap_cm']:.2g} cm")
+        (sewn if q["gap_cm"] is not None and q["gap_cm"] <= judge.SEAM else own).append(f"{what}, {q['gap_cm']:.2g} cm")
     cockpit = next((g for g in _opening_groups(m) if np.bincount(g["parts"]).argmax() in
                     [i for i, n in enumerate(names) if n == "cockpit surround"]), None)
     A += [f"- One skin, sewn, over most of the body: the {_listed(plist[0]['parts'])}. A band or a line runs on across "
           "the seams between them.",
-          f"- Pieces of their own, a gap of more than {checks.SEAM:.0f} cm round them: {'; '.join(own)}. A line stops "
+          f"- Pieces of their own, a gap of more than {judge.SEAM:.0f} cm round them: {'; '.join(own)}. A line stops "
           "there, as a wrap would.",
-          f"- Pieces sewn on, {checks.SEAM:.0f} cm or less from the skin: {'; '.join(sewn)}. A line may run on.",
+          f"- Pieces sewn on, {judge.SEAM:.0f} cm or less from the skin: {'; '.join(sewn)}. A line may run on.",
           "- A graphic laid whole (a badge, words, a picture) stays on one piece, and off a fold."]
     if cockpit is not None:
         c = cockpit["pts"]
         A.append(f"- The cockpit leaves no skin down the top's middle from z {c[:, 2].max():.0f} to {c[:, 2].min():.0f}, "
                  f"{c[:, 0].max():.0f} cm out each side.")
-    lettered = [p for p, words in checks.PANELS.items() if "letters" in words]
+    lettered = [p for p, words in judge.PANELS.items() if "letters" in words]
     A += [f"- Keep clear: {_listed(f'the {p} ({zr(p)})' for p in lettered)}, which the game letters, and "
-          f"{_listed(f'{words} ({zr(p)})' for p, words in checks.PANELS.items() if p not in lettered)}: nothing on "
-          f"them or within {checks.CLEAR:.0f} cm (`show` names anything there).", ""]
+          f"{_listed(f'{words} ({zr(p)})' for p, words in judge.PANELS.items() if p not in lettered)}: nothing on "
+          f"them or within {judge.CLEAR:.0f} cm (`show` names anything there).", ""]
     ANATOMY_MD.write_text("\n".join(A))
     return ANATOMY_MD
 

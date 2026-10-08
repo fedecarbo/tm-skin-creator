@@ -5,12 +5,9 @@
     python -m tool.skin install <name>         paint it, build the zip, install it (the PC)
     python -m tool.skin list                   every skin, newest first
 
-show also measures how far each zoned paint reaches on the body (tool/measure.py, kept in
-build/<name>/measured.json) and names what's wrong on the car before anyone looks (tool/checks.py:
-a paint that stops short, a graphic cut, spilled or over another, paint by the game's panels, a soft
-edge), printed after the paint's notes and kept in build/<name>/found.json, and says how each graphic sits
-against the lines the eye sees and the other graphics (tool/eye.py, kept in build/<name>/eye.json for
-tool.snap --eye).
+show also judges the car before anyone looks (tool/judge.py: every graphic measured where it landed, one list
+of findings, block, warn and note, with the design's hash), printed after the paint's notes and kept in
+build/<name>/verdict.json (tool.snap --eye looks at the spots the eye's notes name).
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
@@ -29,7 +26,7 @@ import os
 import sys
 import time
 
-from tool import build, checks, course, eye, gallery, install, measure, paintbox, paths, progress, snap, view
+from tool import build, gallery, install, judge, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -107,35 +104,17 @@ def show(name, open_browser=False, snapshot=True):
                       done="Painted and photographed" if snapshot else "Painted"):
         with paint_slot():
             s = paint(name, frames=True)
-            t0 = time.time()
-            progress.stage("Measuring where the paint reaches")
-            found = measure.measure(s)
-            measure.save(name, found)
-            lines = measure.words(found)
-            print(f"measured in {time.time() - t0:.1f} s" + (":" if lines else ": nothing zoned on the body"))
+            progress.stage("Judging the car")
+            verdict = judge.run(s)
+            judge.save(name, verdict)
+            lines = judge.words(verdict)
+            blocks = sum(f["level"] == "block" for f in verdict["findings"])
+            print(f"judged in {verdict['seconds']} s: " + (f"{len(lines)} finding{'s' if len(lines) > 1 else ''}, "
+                                                           f"{blocks} blocking" if lines else "nothing to name"))
             print("\n".join(f"  {line}" for line in lines))
-            for call in s.zoned:  # a marking along a course, read back off the body (tool/course.py)
-                if getattr(call["zone"], "course", None) is not None:
-                    for line in course.measure(call["zone"])[1]:
-                        print(f"  {call['what']}: {line}")
-            t0 = time.time()
-            progress.stage("Checking the car")
-            found = checks.run(s, found)
-            checks.save(name, found)
-            lines = checks.words(found)
-            print(f"checked in {time.time() - t0:.1f} s: " + (f"the checks name {len(found)}" if found else "the checks name nothing"))
-            print("\n".join(f"  {line}" for line in lines))
-            if found:  # the Lab's chat says it under the job
-                progress.result(f"{'Painted and photographed' if snapshot else 'Painted'}; the checks name {len(found)} "
-                                f"thing{'s' if len(found) > 1 else ''} to look at")
-            t0 = time.time()
-            progress.stage("Looking at how each graphic sits")
-            looks = eye.look(s)
-            eye.save(name, looks)
-            lines = eye.words(looks)
-            print(f"looked in {time.time() - t0:.1f} s at how each graphic sits against the lines the eye sees and the "
-                  "other graphics" + (":" if lines else ": no graphic near one"))
-            print("\n".join(f"  {line}" for line in lines))
+            if lines:  # the Lab's chat says it under the job
+                progress.result(f"{'Painted and photographed' if snapshot else 'Painted'}; the judge names {len(lines)} "
+                                f"thing{'s' if len(lines) > 1 else ''} to look at, {blocks} blocking")
             t0 = time.time()
             progress.stage("Putting it on the car")
             build.export_to_viewer(s)

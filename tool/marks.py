@@ -26,8 +26,8 @@ edge as a cut sticker does, never reaches the far side of a thin panel and never
 room is the named parts' skin round where it's wanted, without:
   - what isn't theirs: the parts' edges;
   - the model's crisp lines (tool/meshlines.py): the sticker stays on its own panel, as the chart is cut along them;
-  - hidden skin: inside an inlet, under another panel (the car map's open air, measure.OUTER);
-  - the panels the game letters and the nose fin's plate, and checks.CLEAR cm round them;
+  - hidden skin: inside an inlet, under another panel (the car map's open air, judge.OUTER);
+  - the panels the game letters and the nose fin's plate, and judge.CLEAR cm round them;
   - `margin` cm in from all of those.
 The mark goes where it's wanted if it's whole there; else to the nearest place it is, within `reach` (then pressed on
 afresh there, its own chart); else it shrinks until one exists, down to LEAST of its size; else nothing is laid. Each
@@ -36,7 +36,9 @@ STRETCH; a flat panel and a rolled edge stretch it not at all, a doubly curved o
 placard, how far the surface turns from flat (from WORD_TURN degrees, when they read bent: the user, 2026-10-05, of
 lettering along a flank's curve, "the text is big for the curvature of the surface"). `across=True` presses it on at
 `at` as it is, over every edge and crisp line in its footprint (a sticker over a panel gap, as on a real car), and
-says what fell in a gap or off an edge. Wanted at a course (tool/course.py, a stretch of one of the car's lines or of
+says what fell in a gap or off an edge. Whether it's whole is measured as it's laid (`_missing`, a finding for the
+judge, tool/judge.py): chipped where its ink found no paint though the skin is there (the sticker's surface dropped
+or folded there), or kept off by its zone. Wanted at a course (tool/course.py, a stretch of one of the car's lines or of
 the line the user drew), it reads along it, each letter following the line (the course's chart), anywhere along the
 stretch, which is its room. Wanted on the car's middle, it stays on the middle. Its twin on the other side is its
 mirror image, at the same size; words and a placard are laid there as they are, reading forward on each side. Unless
@@ -51,13 +53,16 @@ from scipy import ndimage
 from scipy.signal import fftconvolve
 from scipy.spatial import cKDTree
 
-from tool import carmap, coverage, measure, shapes, uvmap
+from tool import carmap, coverage, judge, shapes, uvmap
 from tool.noise import smoothstep
 
 WORD_TURN = 20.0  # degrees: words read flat on a surface turning no more than this under them (the user kept lettering
 # over a flank turning 16 degrees and rejected it over 38, 2026-10-05)
 STRETCH = 0.03  # the share of its lengths a sticker is stretched by from which it's said
 TORN = 0.5      # stretched by this much the sticker is torn or folded over itself: counted, never painted as whole
+CHIP = 0.4      # cm: a bite out of a mark's ink narrower than twice this is closed over in space, to find what's missing
+CHIP_AREA = 0.25  # cm² of its ink missing where the skin is bare, from which a mark is chipped
+BITE = 0.3      # cm² of its ink kept off by its zone, from which a mark is said not whole, however big it is
 SIDE = 30.0   # cm from the car's middle: words on the top further out read from beside the car, nearer from its ends
 LEAST = 0.4   # the smallest share of its size a mark is shrunk to
 OFF = 5.0     # cm: `at` further than this from the panel is said
@@ -73,7 +78,7 @@ LOOK = 0.3    # how much a texel must face the look along an axis (`at` with a N
 class Shape:
     """A flat shape one unit wide, centred on its middle: sd(x, y) is the distance to its edge, positive
     inside (x to its right, y up, arrays of any shape); high: its height over its width; reach: how
-    far its edge gets from its middle. kind: what it is for the notes and the checks; handed: its twin
+    far its edge gets from its middle. kind: what it is for the notes and the judge; handed: its twin
     on the other side is laid as it is, not mirrored (words read forward on both sides)."""
 
     kind, handed, text = "shape", False, None
@@ -215,6 +220,11 @@ class Picture(Shape):
     def mirrored(self):
         return Picture(self.image[:, ::-1], self.kind, self.box, self.label, self.text, self.tall)
 
+    def area(self):
+        """Its ink's area, in squares of its width (its distance field runs on past its edge where the ink fills the
+        picture, so the pixels say)."""
+        return float((self.image[..., 3] >= 0.5).mean()) * self.high
+
     def _at_pitch(self, S, pitch):
         """The picture at about a pixel per texel when it's S cm wide: (h, w, 4), premultiplied."""
         want = S / pitch
@@ -307,10 +317,10 @@ class _Panel:
         return float(np.median(steps))
 
     def free(self, t, within=None, panels=True):
-        """Which of the texels t are free room: in the open air (measure.OUTER), in `within` when given, and (panels) off
-        the panels the game letters and the nose fin's plate and checks.CLEAR cm round them."""
+        """Which of the texels t are free room: in the open air (judge.OUTER), in `within` when given, and (panels) off
+        the panels the game letters and the nose fin's plate and judge.CLEAR cm round them."""
         pos, nrm = self.c.pos[t], self.c.nrm[t]
-        keep = carmap.load().value("open", pos, nrm) >= measure.OUTER
+        keep = carmap.load().value("open", pos, nrm) >= judge.OUTER
         if within is not None:
             keep &= within(pos, nrm) > 0.5
         if panels:
@@ -321,8 +331,8 @@ class _Panel:
         """The parts' texel nearest a point, how far off it is, and a word when the point was looked along an axis (a None
         coordinate) and nothing in line faced the look: the look comes from outside (along y from above, unless the
         parts face down; along x from the texel's own side; along z from the nearer end), and of the texels in line the
-        one facing it most is taken; when none does (LOOK), the nearest that does, within OFF cm, else the one facing
-        it most, said."""
+        one facing it most is taken (of the skin in the open air: not the inside of the body facing up); when none
+        does (LOOK), the nearest that does, within OFF cm, else the one facing it most, said."""
         given = [k for k in range(3) if at[k] is not None]
         free = [k for k in range(3) if at[k] is None]
         p = self.c.pos[self.texels]
@@ -340,6 +350,8 @@ class _Panel:
         facing = nrm[:, k] * look
         for width in (0.5, 2.0, OFF):
             line = np.flatnonzero((d <= d[j] + width) & (facing >= LOOK))
+            if len(line):  # the skin seen from outside, not hidden skin facing the look from inside the body
+                line = line[carmap.load().value("open", p[line], nrm[line]) >= judge.OUTER]
             if len(line):
                 i = int(line[facing[line].argmax()]) if width <= 0.5 else int(line[d[line].argmin()])
                 return int(self.texels[i]), float(d[i]), None
@@ -394,25 +406,24 @@ def _creases(c):
 
 def _by_panels(skin, c, t):
     """Which of the texels t lie on a panel the game letters or the nose fin's plate, or within
-    checks.CLEAR cm of one on its face of the body."""
-    from tool import checks
+    judge.CLEAR cm of one on its face of the body."""
     cov = coverage.load(skin.parts, "Skin", c.w, c.h)
     out = np.zeros(len(t), bool)
     p = c.pos[t]
     for i, inst in enumerate(skin.parts.instances):
-        if inst["name"] not in checks.PANELS or i not in cov.sparse:
+        if inst["name"] not in judge.PANELS or i not in cov.sparse:
             continue
         panel = cov.sparse[i][0][cov.sparse[i][1] >= 128].astype(np.int64)
         if not len(panel):
             continue
         q = c.pos[panel]
-        box = np.flatnonzero(((p >= q.min(0) - checks.CLEAR) & (p <= q.max(0) + checks.CLEAR)).all(1))
+        box = np.flatnonzero(((p >= q.min(0) - judge.CLEAR) & (p <= q.max(0) + judge.CLEAR)).all(1))
         if not len(box):
             continue
         thin = q[np.unique(np.floor(q / 0.3).astype(np.int64), axis=0, return_index=True)[1]]
-        d = cKDTree(thin).query(p[box], distance_upper_bound=checks.CLEAR, workers=-1)[0]
+        d = cKDTree(thin).query(p[box], distance_upper_bound=judge.CLEAR, workers=-1)[0]
         facing = c.nrm[panel].mean(0)
-        out[box[(d <= checks.CLEAR) & (c.nrm[t[box]] @ (facing / np.linalg.norm(facing)) > 0.3)]] = True
+        out[box[(d <= judge.CLEAR) & (c.nrm[t[box]] @ (facing / np.linalg.norm(facing)) > 0.3)]] = True
     return out
 
 
@@ -550,6 +561,7 @@ class _Sheet:
         xy = chart.read(chart.xy, faces=(g, wt))
         ok = np.isfinite(xy).all(1) & (np.abs(xy) <= reach).all(1)
         self.t, self.xy, self.stretch = t[ok], xy[ok], chart.stretch()[np.maximum(g[ok], 0)]
+        self.lost = t[~ok]  # the panel's texels round the centre with no place on the sticker (_missing)
         self.free = panel.free(self.t, within, panels)
         k = self.k = int(np.ceil(reach / pitch)) + 2
         n = 2 * k + 1
@@ -665,11 +677,59 @@ def _sits(sheet, sel, w):
     return stretch, float(torn.mean()), turn
 
 
+def _missing(sheet, sel, w, within):
+    """What of a laid shape's ink found no paint: (chipped: (cm², how wide, where) or None; kept off: {why: cm²}).
+    Kept off: the sheet's texels inside the ink that aren't free room (its zone; hidden skin and the game's panels,
+    which a sticker pressed over every edge covers as it is). Chipped: the panel's texels round the centre with no
+    place on the sticker (the chart dropped or folded there) that lie inside the painted ink in space (within CHIP cm
+    of the painted texels all round: a closing), facing as the sticker does, free and bare."""
+    c, panel, pitch = sheet.panel.c, sheet.panel, sheet.pitch
+    ink = w > 0.5
+    off = sel[ink & ~sheet.free[sel]]
+    kept = {}
+    if len(off):
+        t = sheet.t[off]
+        pos, nrm = c.pos[t], c.nrm[t]
+        hidden = carmap.load().value("open", pos, nrm) < judge.OUTER
+        zoned = np.zeros(len(t), bool) if within is None else within(pos, nrm) <= 0.5
+        for why, m in (("hidden skin", hidden), ("its zone", zoned & ~hidden), ("the game's panels", ~hidden & ~zoned)):
+            if m.any():
+                kept[why] = float(m.sum()) * pitch * pitch
+    painted = sheet.t[sel[ink & sheet.free[sel]]]
+    lost = sheet.lost
+    if len(painted) < 20 or not len(lost):
+        return None, kept
+    P = c.pos[painted].astype(np.float64)
+    L = c.pos[lost].astype(np.float64)
+    near = np.all((L >= P.min(0) - CHIP) & (L <= P.max(0) + CHIP), axis=1)
+    lost, L = lost[near], L[near]
+    if len(lost):
+        keep = (c.nrm[lost] @ sheet.chart.facing > 0.3) & panel.free(lost, within, False)
+        lost, L = lost[keep], L[keep]
+    if not len(lost):
+        return None, kept
+    V = max(0.15, pitch)
+    lo = P.min(0) - 2 * CHIP
+    dims = np.ceil((P.max(0) + 2 * CHIP - lo) / V).astype(int) + 1
+    grid = np.zeros(dims, bool)
+    grid[tuple(((P - lo) / V).astype(int).T)] = True
+    r = CHIP / V
+    dilated = ndimage.distance_transform_edt(~grid) <= r
+    closed = ndimage.distance_transform_edt(dilated) > r
+    hit = (closed & ~grid)[tuple(np.clip(((L - lo) / V).astype(int), 0, dims - 1).T)]
+    if hit.sum() * pitch * pitch < CHIP_AREA:
+        return None, kept
+    Q = L[hit]
+    return (float(hit.sum()) * pitch * pitch, float(np.ptp(Q, axis=0).max()) if len(Q) > 1 else pitch, Q), kept
+
+
 def _laid(sheet, shape, S, X0, Y0, soft, moved, within=None):
     """A shape painted on a sheet, as `put` takes it: {texel (its middle), size, moved, idx, m, rgb, right, up, facing,
-    flat (cm² its ink covers), stretch, torn, turn, landed (the share of its footprint that found free skin)}."""
+    flat (cm² its ink covers), stretch, torn, turn, landed (the share of its footprint that found free skin), chips and
+    kept (_missing)}."""
     c, panel = sheet.panel.c, sheet.panel
     sel, w, rgb = sheet.paint(shape, S, X0, Y0, soft)
+    chips, kept = _missing(sheet, sel, w, within)
     if within is not None:
         w = w * within(c.pos[sheet.t[sel]], c.nrm[sheet.t[sel]]).astype(np.float32)
     keep = sheet.free[sel] & (w > 0.002)
@@ -679,10 +739,11 @@ def _laid(sheet, shape, S, X0, Y0, soft, moved, within=None):
     idx, m = panel.mask()
     at = np.minimum(np.searchsorted(idx, texels), len(idx) - 1)
     mine = idx[at] == texels
-    ink = float((w > 0.5).sum()) * sheet.pitch ** 2
+    ink = judge.area(c, texels[w > 0.5]) if (w > 0.5).any() else 0.0  # cm² its ink covers, from the texels' places
     return {"texel": int(sheet.t[sheet.texel_at(X0, Y0)]), "size": S, "moved": moved, "idx": texels[mine], "m": m[at[mine]] * w[mine],
             "rgb": None if rgb is None else rgb[mine], "right": sheet.chart.right, "up": sheet.chart.up, "facing": sheet.chart.facing,
-            "flat": ink, "stretch": stretch, "torn": torn, "turn": turn, "landed": ink / max(shape.area() * S * S, 1e-9)}
+            "flat": ink, "stretch": stretch, "torn": torn, "turn": turn, "landed": ink / max(shape.area() * S * S, 1e-9),
+            "chips": chips, "kept": kept}
 
 
 def _fit(c, panel, shape, size, anchor, up, turn, margin, reach, within, centred, least, soft):
@@ -812,8 +873,25 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         up = "outward"
 
     def put(got, shown):
-        """Paint a fitted shape, and keep what the checks read."""
+        """Paint a fitted shape, keep what the judge reads, and say when it isn't whole (a finding)."""
         idx, m, rgb = got["idx"], got["m"], got["rgb"]
+        step = skin.ops[skin._op]["step"]
+        if got["chips"]:
+            area, wide, Q = got["chips"]
+            where_, z, side = judge._where(Q)
+            skin.findings.append({"check": "whole", "kind": "cut", "z": z, "side": side, "step": step,
+                                  "text": f"{name}: chipped: {area:.1f} cm² of it missing where the skin is bare, a bite "
+                                          f"{wide:.1f} cm wide, {where_}"})
+        on = idx[m > 0.5]
+        expected = shown.area() * got["size"] ** 2
+        share = judge.area(c, on) / expected if len(on) and expected > 0 else 0.0
+        kept = {k: v for k, v in got["kept"].items() if k == "its zone" or not across}
+        if share < judge.WHOLE or sum(kept.values()) >= BITE:
+            why = ", ".join(f"{a:.1f} cm² kept off by {k}" for k, a in sorted(kept.items(), key=lambda kv: -kv[1]))
+            where_, z, side = judge._where(c.pos[on]) if len(on) else ("", None, None)
+            skin.findings.append({"check": "whole", "kind": "cut", "z": z, "side": side, "step": step,
+                                  "text": f"{name}: not whole: {share:.0%} of its {expected:.0f} cm² is on the car"
+                                          f"{' (' + why + ')' if why else ''}, {where_}"})
         if skin.measure:
             on = np.sort(idx[m > 0.5])
             rec = {"op": skin._op, "step": skin.ops[skin._op]["step"], "what": name, "idx": on, "under": c.owner[on].copy(),

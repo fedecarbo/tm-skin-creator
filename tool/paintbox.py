@@ -80,7 +80,7 @@ SET_WORDS = {"skin": "Skin", "inner": "Details", "details": "Details", "inside":
 WHEEL_COVER_PARTS = ("wheel cover disc", "wheel cover hub", "wheel cover ring")
 WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "brake light", "wheel ring")
 # the words that name a group of parts, not a part: paint on one that runs over a part painted by
-# name is said (tool/checks.py)
+# name is said (tool/judge.py)
 GROUP_WORDS = frozenset(("everything", "body", "wheels", "wheel", "wheel covers", "wheel cover", *SET_WORDS))
 # the lights a skin can recolour, in plain words (the lights test, 2026-09-25), for relight()
 LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display", "speedometer": "digit display",
@@ -230,7 +230,7 @@ def dark_take_codes(rgb, code, w, h, reach=3):
 
 
 def _op(describe):
-    """A call that lays paint on the body, named for tool/measure.py: while Skin.measure is on,
+    """A call that lays paint on the body, named for the judge (tool/judge.py): while Skin.measure is on,
     each body texel keeps the call that covered it last (Canvas.owner), so a paint cut short by a
     later one can say which. A call inside another (text, through decal) takes the outer one's name."""
     def wrap(method):
@@ -279,7 +279,7 @@ class Skin:
         self._touched = set()  # the texture sets reached (Skin.canvas) since the last frame
         self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
         self._final = None  # the finished textures, built once when the design is done (end_steps)
-        self.measure = False  # skin.show sets it: keep what tool/measure.py reads (the calls, who covered what)
+        self.measure = False  # skin.show sets it: keep what the judge reads (the calls, who covered what)
         self.ops = []  # every call that laid paint: {what, step}
         self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, across (it crosses
         # edges on purpose), idx (the texels it covers), under (the call each of them showed before)}
@@ -290,7 +290,7 @@ class Skin:
         self.marks = []  # each mark laid on a panel, while measuring (tool/marks.py): {op, step, what, idx, under, whole
         # (cm²), kind (shape, words, placard, picture), text, pixels (per cm), frame (right, up, facing)}
         self.scattered = []  # each scatter on the body, while measuring (tool/scatter.py)
-        self.findings = []  # what's wrong on the car, as the paint itself knows it (tool/checks.py adds the rest)
+        self.findings = []  # what's wrong on the car, as the paint itself knows it (tool/judge.py adds the rest)
         self._op, self._op_open = -1, False
 
     # ---- steps: the Lab draws the car at the end of each ----
@@ -554,7 +554,7 @@ class Skin:
         scale, seed, palette, line, amount, direction, texture.
         A zoned paint on a group ("body") leaves the body's parts an earlier call painted whole by
         their name, and says so. across=True: its shape crosses the car's parts on purpose, so it
-        paints those too and the checks leave its cuts alone. A fade crosses everything as it is."""
+        paints those too and the judge leaves its cuts alone. A fade crosses everything as it is."""
         targets = self._ids(where)
         default_finish = "rubber" if list(targets) == ["Wheels"] else "gloss"
         params = {"seed": self.seed, **params}
@@ -565,7 +565,7 @@ class Skin:
                 leftover.remove(word)
         if leftover:
             self.notes.append(f"{what!r}: didn't understand {' '.join(leftover)!r}")
-        self.palette.append([float(v) for v in col])   # every colour laid on the car, for the checks
+        self.palette.append([float(v) for v in col])   # every colour laid on the car, for the judge
         # the parts this call names itself, apart from the groups' words
         keys = [n.strip().lower() for n in ([where] if isinstance(where, str) else where)]
         own = {i for key in keys if key not in GROUP_WORDS for i in self._select(key)[1]}
@@ -641,7 +641,7 @@ class Skin:
         far it may move, in cm (half its width). within: a zone the mark must also stay in. mirror:
         its mirror image on the car's other side too, when it's off the middle and the panel is
         there. across=True: pressed on at `at` as it is, over every edge and crisp line in its
-        footprint (a sticker over a panel gap), which the checks then leave alone.
+        footprint (a sticker over a panel gap), which the judge then leaves alone.
         Returns where it landed (marks.Laid: centre, size, twin; text, a placard or a picture take
         it as their place); two marks with at=None on a panel share their middle."""
         from tool import marks
