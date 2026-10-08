@@ -40,17 +40,6 @@ it.
   near the body, not on it (a band keeps skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps; a picked line is smoothed in space and pushed back: steps), and no check measured a graphic where it
   landed. The steps:
-  2. **The foundation** (Fable 5.1 MUST, xhigh). Built, waiting for the user's OK (2026-10-08, Fable 5.1): `tool/surface.py`,
-     the mesh welded and repaired once (156 triangles drawn twice dropped, 3 points copied where more than two faces
-     met, 39 pieces), a fine surface over it (every face cut into 16) for values between the model's own points, every
-     texel's face and weights from the bake's triangle, and the solvers: the distance along the surface from a line or
-     any points, exact (libigl's exact geodesics on a patch within reach, a tenth to half a second a line; measured
-     against exact geodesics from the line's own points every quarter centimetre: within 0.016 cm on the skirt's crisp
-     edge, the rear flank's rolled shoulder and the nose's rim), the straightest line between two points and a line
-     carried on (potpourri3d's edge flips and tracer). Not the heat methods the research named: measured on this mesh
-     (triangles up to 24 cm) they were off by 0.2 to 2 cm, fast marching by up to 1.5 cm beyond 2 cm, and the signed one
-     fails on the fine surface. The car map is built on the surface, its own weld gone, its layers identical. On the OK:
-     the old car map's caches in the work folder (carmap.npz and carmap_mesh.npz) and this step go.
   3. **Bands along a line** (Fable 5.1, high; or Opus 5.5, xhigh), from the distance along the surface (its side from
      the surface's faces either side of the line): wrapping an edge, on one face, stopping at a crease. Shown beside the tape built for TSC_StealthBomber (`Course.tape`, waiting for the user's OK) with the side flips and the width
      every half centimetre; the user's eye picks. Retires the facing filter (`FACING` in `tool/course.py`) and the
