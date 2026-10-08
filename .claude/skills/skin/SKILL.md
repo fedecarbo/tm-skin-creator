@@ -126,11 +126,16 @@ game: install from the Windows PC after a push.
 
 ## Before showing
 
-1. Fix what the judge blocks (or know why it's meant and say so), look at what it warns of, then look
-   at the six views. For a set's takes, that's enough.
+1. Fix what the judge blocks, look at what it warns of, then look at the six views. For a set's
+   takes, that's enough.
 2. A design shown alone, or a pick: `tool.close <name>`; fix what it blocks, and look at every
    sheet: nothing cut, sunk, stretched or soft, the two sides alike, nothing changed that the edit
    didn't mean.
+
+The gates hold you to both (`tool/gate.py`): `tool.notes done`, `tool.sets open`, a pass's agent and
+`install` refuse a car the judge hasn't passed as it is, and a turn is held once with what's wrong. What's
+meant, or still there after about three rounds: `PY -m tool.gate <name> --despite "<why, in plain
+words>"`, which tells the user in the Lab.
 3. The whole car: every visible part serves the idea, the lights at night (none left in a stock
    colour), no paint left from an earlier version, no part left in clay by accident (`show` names
    them). Fix and look again.

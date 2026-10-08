@@ -5,7 +5,7 @@
     python -m tool.judge <name>      paint the skin and print its verdict
 
 `run` judges a skin painted with Skin.measure on (tool/skin.py's show): the verdict {design: the design's hash
-(`design_hash`: design.py, the designs it borrows, its art), findings, seconds}, kept by show in
+(tool/gate.py's `design_hash`: design.py, the designs it borrows, its art), findings, seconds}, kept by show in
 build/<name>/verdict.json (`save`); `words` says it for Claude, the blocks first. Each finding: {level, kind, check,
 text, z, side, step}: z the stretch along the car in cm, front to back, or None; side where one side alone; the eye's
 carry `at` and `nrm` too, for a close look square to the body there (tool/close.py, which adds its own findings, check
@@ -61,7 +61,6 @@ under; where each is on the car, the bake; its area from the map's density):
 import functools
 import hashlib
 import json
-import re
 import sys
 import time
 
@@ -72,7 +71,7 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
-from tool import carmap, coverage, fbx, paths, pieces, shapes, uvmap
+from tool import carmap, coverage, fbx, gate, paths, pieces, shapes, uvmap
 
 # ---- the kinds and the levels ----
 KINDS = {
@@ -1745,29 +1744,6 @@ def _look_marks(car):
 
 # ---- the verdict ----
 
-def design_hash(name):
-    """The design's hash: design.py, the designs it borrows (borrow("...")), its art."""
-    h, seen = hashlib.sha256(), set()
-
-    def add(n):
-        if n in seen:
-            return
-        seen.add(n)
-        p = paths.SKINS / n / "design.py"
-        if not p.exists():
-            return
-        src = p.read_bytes()
-        h.update(src)
-        for m in re.findall(rb'borrow\("([^"]+)"\)', src):
-            add(m.decode())
-        for f in sorted((paths.SKINS / n / "art").glob("*")):
-            if f.is_file():
-                h.update(f.name.encode())
-                h.update(f.read_bytes())
-    add(name)
-    return h.hexdigest()[:16] if seen and (paths.SKINS / name / "design.py").exists() else ""
-
-
 def run(skin):
     """The verdict on a skin painted with Skin.measure on: {design, findings, seconds}."""
     t0 = time.time()
@@ -1807,7 +1783,7 @@ def run(skin):
             once[f["text"]] = f
     rank = {"block": 0, "warn": 1, "note": 2}
     findings = sorted(once.values(), key=lambda f: (rank[f["level"]], -(f["z"][0] if f["z"] else -1e9), f["text"]))
-    return {"design": design_hash(skin.name), "findings": findings, "seconds": round(time.time() - t0, 1),
+    return {"design": gate.design_hash(skin.name), "findings": findings, "seconds": round(time.time() - t0, 1),
             "graphics": car.looks if "Skin" in skin.canvases and skin.canvases["Skin"].owner is not None else []}
 
 

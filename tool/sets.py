@@ -19,7 +19,8 @@ it's about ("Wheels · 3 ideas", "3 takes"); its words are the user's, when they
 
 Options. An option is a skin beside the car, skins/<car>_<Title>/: `option` makes it as a copy of the
 car's design.py and art/ to change, or an empty folder while the car has no design yet (a new car's
-first takes); --skin takes one that exists. `open` wants two or more, each with a design. A pick is final
+first takes); --skin takes one that exists. `open` wants two or more, each judged as it is with nothing
+blocking (tool/gate.py). A pick is final
 (the user, 2026-09-28: "I dont think we can keep on maintaining options that I don't like"): the
 picked option's design.py, art/ and thumb.png become the car's, each option's picture is kept for the
 Lab's "Earlier picks" (skins/<car>/sets/<n>/<letter>.png), and every option's folder goes (git's
@@ -52,7 +53,7 @@ from pathlib import Path
 
 if str(Path(__file__).resolve().parents[1]) not in sys.path:  # runnable as a file too
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tool import progress  # noqa: E402  (standard library only, as this file)
+from tool import gate, progress  # noqa: E402  (standard library only, as this file)
 
 REPO = Path(__file__).resolve().parents[1]
 SKINS = Path(os.environ.get("TSC_SKINS_HOME") or REPO / "skins")
@@ -215,6 +216,9 @@ def open_(car, n):
     for o in s["options"]:
         if not (SKINS / o["skin"] / "design.py").exists():
             raise SetsError(f"option {o['key']} ({o['skin']}) has no design yet")
+    refused = gate.refusal([o["skin"] for o in s["options"]], f"opening set {n}", looks=False)
+    if refused:
+        raise SetsError(refused)
     s["state"] = "open"
     save(doc)
     return doc, repainted(s["options"])

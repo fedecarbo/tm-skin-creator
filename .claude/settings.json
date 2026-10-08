@@ -26,6 +26,11 @@
             "type": "command",
             "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/notes.py\" --hook 2>/dev/null || true",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" turn 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" turn 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" turn 2>/dev/null || true",
+            "timeout": 10
           }
         ]
       }
@@ -40,6 +45,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" agent 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" agent 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" agent 2>/dev/null || true",
+            "timeout": 20
+          }
+        ]
       }
     ],
     "Stop": [
@@ -47,8 +62,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" pushed 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" pushed 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" pushed 2>/dev/null || true",
-            "timeout": 30
+            "command": "\"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" stop 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" stop 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" stop 2>/dev/null || true",
+            "timeout": 60
           }
         ]
       }

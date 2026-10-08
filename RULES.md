@@ -36,8 +36,7 @@ game or the code goes into the code (a warning, a check, a docstring).
   close up before there are more: bolts round every panel by a rule were "one of the biggest failures"
   (the user, 2026-10-05).
 - **Don't trade quality for speed, and don't confuse checks with quality.** A better game file is
-  worth a slower build. But one paint and a look per take is enough; the close looks are for what's
-  shown alone or picked. A check names an accident, never a design: a shape that crosses parts on
+  worth a slower build. A check names an accident, never a design: a shape that crosses parts on
   purpose stays (the user, 2026-10-05: "would a check ruin the creative approach?").
 - **Don't leave any part as it came because it's hidden.** The user judges the whole car, close up.
 - **Don't call something done because a number passed.** The user's eye decides. Show it close up,

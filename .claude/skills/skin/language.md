@@ -35,8 +35,8 @@ it.
 
 Start each with the Agent tool. Its brief: the car's name, this file's section for its pass, and to read
 `language.json`, the record (`notes.md`) and `design.py` first, then the skin skill's Designing section. Each adds
-its own steps (`s.step`), paints with `tool.skin show`, fixes what the checks name, and ends with a line in the
-record: what it added and why.
+its own steps (`s.step`), paints with `tool.skin show`, ends on a car `PY -m tool.gate <name>` passes (no pass
+starts before), and with a line in the record: what it added and why.
 
 3. **Surfaces**: every part's finish, from the language's surfaces (the inner car, the wheels, the tyres, the
    glass, the lights by day and night), and the texture layer: how it ages, or stays new on purpose.

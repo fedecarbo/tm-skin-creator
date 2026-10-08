@@ -8,6 +8,7 @@
 show also judges the car before anyone looks (tool/judge.py: every graphic measured where it landed, one list
 of findings, block, warn and note, with the design's hash), printed after the paint's notes and kept in
 build/<name>/verdict.json, with what the close looks read (tool/close.py: along every line and over every decal).
+install judges the paint it puts in the game, and stops at what blocks (tool/gate.py).
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
@@ -26,7 +27,7 @@ import os
 import sys
 import time
 
-from tool import build, gallery, install, judge, paintbox, paths, progress, snap, view
+from tool import build, gallery, gate, install, judge, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -84,19 +85,34 @@ def paint_slot():
         time.sleep(1)
 
 
-def paint(name, frames=False):
-    """frames: also draw the car at the end of each step, for the Lab (show does)."""
+def paint(name, frames=False, judged=False):
+    """frames: also draw the car at the end of each step, for the Lab (show does); judged: keep what the judge
+    reads (show and install do)."""
     t0 = time.time()
     progress.stage("Painting")
     s = paintbox.Skin(name)
+    s.measure = frames or judged
     if frames:
         view.start_steps(name)
-        s.frames = s.measure = True
+        s.frames = True
     load_design(name)(s)
     s.end_steps()
     print(f"painted in {time.time() - t0:.0f} s")
-    print(s.summary(found=not frames))  # show's checks say the paint's own findings with the rest
+    print(s.summary(found=not s.measure))  # the judge says the paint's own findings with the rest
     return s
+
+
+def judge_it(name, s):
+    """Judge the painted car, keep its verdict and say it: (its lines, how many block)."""
+    progress.stage("Judging the car")
+    verdict = judge.run(s)
+    judge.save(name, verdict, s)
+    lines = judge.words(verdict)
+    blocks = sum(f["level"] == "block" for f in verdict["findings"])
+    print(f"judged in {verdict['seconds']} s: " + (f"{len(lines)} finding{'s' if len(lines) > 1 else ''}, "
+                                                   f"{blocks} blocking" if lines else "nothing to name"))
+    print("\n".join(f"  {line}" for line in lines))
+    return lines, blocks
 
 
 def show(name, open_browser=False, snapshot=True):
@@ -104,14 +120,7 @@ def show(name, open_browser=False, snapshot=True):
                       done="Painted and photographed" if snapshot else "Painted"):
         with paint_slot():
             s = paint(name, frames=True)
-            progress.stage("Judging the car")
-            verdict = judge.run(s)
-            judge.save(name, verdict, s)
-            lines = judge.words(verdict)
-            blocks = sum(f["level"] == "block" for f in verdict["findings"])
-            print(f"judged in {verdict['seconds']} s: " + (f"{len(lines)} finding{'s' if len(lines) > 1 else ''}, "
-                                                           f"{blocks} blocking" if lines else "nothing to name"))
-            print("\n".join(f"  {line}" for line in lines))
+            lines, blocks = judge_it(name, s)
             if lines:  # the Lab's chat says it under the job
                 progress.result(f"{'Painted and photographed' if snapshot else 'Painted'}; the judge names {len(lines)} "
                                 f"thing{'s' if len(lines) > 1 else ''} to look at, {blocks} blocking")
@@ -148,15 +157,20 @@ def keep_version(name, thumb):
 
 
 def do_install(name):
-    """Paint the skin, build its zip, put it in the game.
+    """Paint the skin, judge it, build its zip, put it in the game.
     Always painted afresh: a paint kept from an earlier show can't know whether a design it
     borrows, its pictures or the tool changed since (and a skin shown on the other computer has
-    none here)."""
+    none here). What the judge blocks in that paint stops it, but what was let go (tool/gate.py)."""
     install.game_folder()  # before painting: only the PC has the game
     t0 = time.time()
     with progress.job(f"Putting {progress.title_of(name)} in the game", skin=name, done="In the game"):
         with paint_slot():
-            s = paint(name)
+            s = paint(name, judged=True)
+            judge_it(name, s)
+            refused = gate.refusal([name], "putting it in the game", looks=False)
+            if refused:
+                print(refused)
+                raise SystemExit("Not put in the game: something on the car still blocks")
             build.save_painted(s)
             build.export_to_viewer(s)  # this computer's viewer shows the car as installed
             zip_path = build.build_zip(name)

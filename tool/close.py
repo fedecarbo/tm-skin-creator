@@ -41,7 +41,7 @@ from PIL import Image, ImageDraw
 from scipy import ndimage
 from scipy.spatial import ConvexHull
 
-from tool import bake, fonts, judge, paths, progress, server, view
+from tool import bake, fonts, gate, judge, paths, progress, server, view
 
 PX_CM = 20.0       # pixels a centimetre on the face looked at
 TILE = 480         # each look's picture, square: 24 cm across at PX_CM
@@ -544,7 +544,7 @@ def run(name):
     if not (build / "graphics.json").exists():
         raise SystemExit(f"{name} has no graphics kept: tool.skin show {name} first")
     gfx = json.loads((build / "graphics.json").read_text())
-    if gfx["design"] != judge.design_hash(name):
+    if gfx["design"] != gate.design_hash(name):
         raise SystemExit(f"{name}'s design changed since its last show: tool.skin show {name} first")
     verdict = json.loads((build / "verdict.json").read_text())
     lift = json.loads((view.DATA / "car.json").read_text())["lift_cm"]

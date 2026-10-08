@@ -45,7 +45,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
 - A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/judge.py` names what's
   wrong on it (`PY -m tool.judge <name>`; its docstring is the key: every graphic measured where it landed,
   one list of findings, block, warn and note, kept with the design's hash in `build/<name>/verdict.json`;
-  a kind of flaw it misses is planted on the self-test's pair next), `tool/build.py` puts it in the
+  a kind of flaw it misses is planted on the self-test's pair next), `tool/gate.py` makes the verdict
+  bite (its docstring is the key: the commands that wait for it, and the hooks in `tool/guard.py`
+  that refuse a pass's agent and hold a turn), `tool/build.py` puts it in the
   viewer and builds the zip (`PY -m tool.build <name>`: a trial build of the last show's zip, to
   see its size), `tool/install.py` puts it in the game (`PY -m tool.install <name> ...` installs
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in

@@ -15,7 +15,8 @@ of what the user asked for is its notes.md.
 
 They reach Claude with the user's next message: a UserPromptSubmit hook (.claude/settings.json) runs
 this file with --hook, which prints the new ones and marks them sent. Claude marks a note done once
-it's handled: its pin leaves the car, and the note stays in the timeline, picture and all:
+it's handled and the judge passes the car (tool/gate.py): its pin leaves the car, and the note stays
+in the timeline, picture and all:
 
     python -m tool.notes                                    the notes not done yet, every skin
     python -m tool.notes drawn <skin> <N>                   the lines a note drew, in cm, for a zone
@@ -666,6 +667,12 @@ def main(args):
             if k + 1 >= len(rest):
                 sys.exit("--say what?")
             said, rest = rest[k + 1], rest[:k] + rest[k + 2:]
+        if str(REPO) not in sys.path:  # runnable as a file
+            sys.path.insert(0, str(REPO))
+        from tool import gate  # standard library only, as this file
+        refused = gate.refusal([args[1]], "marking a note done")
+        if refused:
+            sys.exit(refused)
         hit = done(args[1], rest, said)
         print((f"{len(hit)} note(s) done" if hit else "no open notes matched") + (", and said in the Lab" if said else ""))
         return

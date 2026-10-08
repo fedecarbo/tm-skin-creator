@@ -43,6 +43,9 @@ it.
   8. **Gates** (Opus 5.5, high). `tool.notes done`, `tool.sets open`, the start of a pass and `tool.skin install` refuse on a
      blocking finding or a verdict older than the design; the Stop hook (`tool/guard.py`) holds a turn once with the
      top findings. Retires each line of `RULES.md` a gate now enforces.
+     Built (2026-10-08), waiting for the user's OK: `tool/gate.py`, its hooks in `tool/guard.py`; `RULES.md`'s "one
+     paint and a look per take" retired (the gates say what a take and a car shown alone need). On the OK: delete the
+     test car TSC_GateTest and its lines in the Lab's notes. Waits for the PC: the gate in `install` run there.
   9. **Memory** (Opus 5.5, xhigh). The Mac's profile (2026-10-07): a paint holds 6.6 to 7 GB at its peak (the Mac has 16,
      and swaps once other apps hold the rest), and unpacking the compressed caches takes 3 to 5 s of it. Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
      the covered texels worked on, in chunks, float32 for the maths and smaller types stored, each part's arrays
