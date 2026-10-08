@@ -13,6 +13,7 @@ The looks (`plan`):
   along a line   one every ALONG cm, centred on the line, the camera square to the surface there;
   over a mark    one, framed to it whole (fewer than PX_CM pixels a cm when it's too big for the frame);
   at a spot      one at each spot the judge's eye names that no look shows already.
+  Not looked along: a paint zoned by a height or a reading of the car that runs along it (a band by shapes.above).
 What the masks measure, as findings added to the verdict (check "close", `measure` and `changes`):
   gap      a line's paint drawn under half its width over GAP_RUN cm or more where the judge read its texels whole:
            what the texels hold and what the viewer draws differ;
