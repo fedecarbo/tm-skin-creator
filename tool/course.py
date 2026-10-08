@@ -35,8 +35,6 @@ the user drew, and the tool lays it along that line in one go: a strip, dashes, 
                                              the eye sees more of from round the car and above)
     c.band(4, side=1, crease=True)           stopping where the body creases (one of the model's crisp lines) before
                                              its width is out; c.strip(1.0) a band 1 cm wide, centred, for lines
-    c.tape(4)                                a tape 4 cm wide on one face beside it, its edge on the course: on an
-                                             edge, the face the eye sees (side=1 its left, -1 its right)
     c.inked(0.6)                             the same drawn on the flat texture, one smooth curve per piece of it
     c.inked_edge(shapes.below(26))           a zone whose edge is moved onto the course, drawn the same way
     c.dashes(5, gap=3, width=1)              dashes 5 cm long with 3 cm gaps, a whole dash at each end
@@ -83,12 +81,6 @@ FOLD = 45.0        # degrees from a course's own facing: past its end, where the
 FOLD_RUN = 3.0     # cm past a course's end an inked strip looks for the fold
 INK_BLEED = 3.0    # cm: a texel near an inked edge on a piece of the texture the course doesn't cross (the sliver where
 # the body turns in to an inlet's frame) takes the nearest inked texel's side within this
-GRID = ((0, 1), (1, 0), (1, 1), (1, -1), (1, 2), (2, 1), (1, -2), (2, -1))  # a tape's texel joins these beside it on the
-# map (and they it): the 16 round it, so a way across the texels is at most GRID_LONG longer than straight
-GRID_LONG = 1.0275
-TAPE_SEED = 0.5    # cm: a tape starts from the texels this near its course, each on the side its own face says
-TAPE_SEAM = 0.3    # cm: across a seam of the map, texels this near on the car are joined (a texel is 0.05 to 0.09 cm)
-TAPE_FOLD = -0.5   # and only if they face within 120 degrees of each other: never the two sides of a thin panel
 
 
 @functools.lru_cache(maxsize=1)
@@ -616,122 +608,6 @@ class Course:
         hit = np.isfinite(d)
         return [Pk, Q[hit]], [Wk, Wk[i[hit]]]
 
-    def tape(self, width, side=None, soft=shapes.SOFT, size=4096):
-        """A tape `width` cm wide on one face beside the course, as tape is laid along an edge: its one edge on the
-        course, its other `width` cm from it across the surface; on the course's left as it runs, seen from outside
-        (side=1), or its right (-1); None: the side the eye sees more of from round the car and above (its faces up to
-        the width, by how much open air they see and how far they face up). Which face a texel is on is the model's
-        own: each texel joins the texels beside it on the flat texture and, across a seam of the map, on the car, never
-        across the course, and the tape takes those it reaches within `width`, so it never hops onto the face on the
-        other side of an edge however far the faces turn. Its ends square. The body's texture (Skin) only."""
-        from tool import bake
-        sides = self._taped(width, soft, size)
-        if side is None:
-            side = 1 if sides[1][2] >= sides[-1][2] else -1
-        lin, w, _ = sides[side]
-        b = bake.bake("Skin", size, size)
-        z = self._matched(b["position"].reshape(-1, 3)[lin].astype(np.float64), w,
-                          label=f"a tape {width:g} cm wide on the {'left' if side > 0 else 'right'} of {self.name}")
-        z.course, z.side = self, side
-        return z
-
-    def _taped(self, width, soft, size):
-        """Both of tape()'s choices: {side: (the texels (flat indices into the map), their weights, how much the eye
-        sees of it)}, side 1 the course's left. Each texel's distance from the course across the surface: the shortest
-        way to it through texels joined to those beside them (GRID on the map, within a piece of it; across a seam,
-        TAPE_SEAM apart on the car and facing within TAPE_FOLD of each other), starting from the texels within
-        TAPE_SEED of the course on that side (their own distance from it on the car), with no join across the course:
-        near it each texel's side is the surface's own (the way from the course to it, square to the course within its
-        own face's plane), and past an open course's ends no texel is joined at all."""
-        from scipy.sparse import coo_matrix
-        from scipy.sparse.csgraph import dijkstra
-        from tool import bake, carmap, uvmap
-        b = bake.bake("Skin", size, size)
-        tri, pos, nrm = b["tri"], b["position"], b["normal"]
-        label, density, _ = uvmap.islands("Skin")
-        reach = width + soft + TAPE_SEED
-        got = {1: [], -1: []}
-        copies = [(self.pts, self.tan, self.nrm, 1)]
-        if self.mirror:  # the mirror image's left is the course's right
-            copies.append((self.pts * MIRROR, self.tan * MIRROR, self.nrm * MIRROR, -1))
-        for P, T, N, flip in copies:
-            lo, hi = P.min(0) - reach, P.max(0) + reach
-            rr, cc = np.nonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=-1))
-            Q = pos[rr, cc].astype(np.float64)
-            d, i = cKDTree(P).query(Q, distance_upper_bound=reach, workers=-1)
-            ok = np.isfinite(d)
-            rr, cc, Q, d, i = rr[ok], cc[ok], Q[ok], d[ok], i[ok]
-            Nq = nrm[rr, cc].astype(np.float64)
-            rel = Q - P[i]
-            a = (rel * T[i]).sum(1)
-            across = np.sqrt(np.maximum(d * d - a * a, 0.0))
-            along = self.s[i] + a
-            if not self.closed:  # nothing past the ends: the sides can't meet round them
-                keep = (along >= -soft) & (along <= self.length + soft)
-                rr, cc, Q, Nq, rel, across, along, i = (v[keep] for v in (rr, cc, Q, Nq, rel, across, along, i))
-            n = len(Q)
-            if not n:
-                continue
-            side = np.where((rel * np.cross(Nq, T[i])).sum(1) >= 0, 1, -1)
-            near = across <= TAPE_SEED
-            lin = rr.astype(np.int64) * size + cc
-            isl = label[tri[rr, cc]]
-            pitch = 1.0 / np.maximum(density[isl] * size, 1e-9)
-            # joins on the map, within a piece of it (lin is in order: np.nonzero's)
-            A, B, border = [], [], np.zeros(n, bool)
-            for dr, dc in GRID + tuple((-r, -c) for r, c in GRID if abs(r) <= 1 and abs(c) <= 1):
-                c2 = cc + dc
-                j = np.searchsorted(lin, lin + dr * size + dc)
-                j = np.minimum(j, n - 1)
-                hit = (c2 >= 0) & (c2 < size) & (lin[j] == lin + dr * size + dc) & (isl[j] == isl)
-                if abs(dr) <= 1 and abs(dc) <= 1:
-                    border |= ~hit
-                if (dr, dc) in GRID:
-                    hit &= np.linalg.norm(Q[j] - Q, axis=1) <= TAPE_SEAM * 2
-                    A.append(np.flatnonzero(hit))
-                    B.append(j[hit])
-            # joins across the map's seams: texels on a piece's edge this near another's on the car, facing alike
-            e = np.flatnonzero(border)
-            pairs = cKDTree(Q[e]).query_pairs(TAPE_SEAM, output_type="ndarray")
-            if len(pairs):
-                pa, pb = e[pairs[:, 0]], e[pairs[:, 1]]
-                apart = np.abs(rr[pa] - rr[pb]) + np.abs(cc[pa] - cc[pb]) > 3
-                good = ((isl[pa] != isl[pb]) | apart) & ((Nq[pa] * Nq[pb]).sum(1) > TAPE_FOLD)
-                A.append(pa[good])
-                B.append(pb[good])
-            A, B = np.concatenate(A), np.concatenate(B)
-            keep = ~(near[A] & near[B] & (side[A] != side[B]))  # never across the course
-            A, B = A[keep], B[keep]
-            wt = np.maximum(np.linalg.norm(Q[A] - Q[B], axis=1), 1e-6)
-            # a start for each side, joined to its texels near the course by their distance from it
-            starts = [np.flatnonzero(near & (side == s)) for s in (1, -1)]
-            rows = np.r_[A, B, np.full(len(starts[0]), n), np.full(len(starts[1]), n + 1)]
-            cols = np.r_[B, A, starts[0], starts[1]]
-            vals = np.r_[wt, wt, np.maximum(across[starts[0]], 1e-6), np.maximum(across[starts[1]], 1e-6)]
-            M = coo_matrix((vals, (rows, cols)), shape=(n + 2, n + 2)).tocsr()
-            D = dijkstra(M, directed=True, indices=[n, n + 1], limit=width + soft + 1.0)[:, :n]
-            ends = np.full(n, np.inf) if self.closed else np.minimum(along, self.length - along)
-            # how much the eye sees of each texel: the open air it sees, by how far it faces up (round the car and above)
-            seen = np.interp(Nq[:, 1], *_seen_by_facing())
-            seen *= carmap.load().value("open", Q, Nq)
-            for k, s in enumerate((1, -1)):
-                reached = np.isfinite(D[k])
-                # on a flat face the way across the texels is up to GRID_LONG longer than straight across
-                dist = np.where(reached, np.maximum(across, D[k] / GRID_LONG), np.where(near, across, np.inf))
-                edge = np.where(near, np.where(side == s, across, -across), np.inf)
-                inside = np.minimum(np.minimum(width - dist, edge), ends)
-                w = smoothstep(-soft / 2, soft / 2, inside).astype(np.float32)
-                on = w > 0.002
-                got[s * flip].append((lin[on], w[on], float((w[on] * seen[on] * pitch[on] ** 2).sum())))
-        out = {}
-        for s in (1, -1):
-            lin = np.concatenate([g[0] for g in got[s]]) if got[s] else np.zeros(0, np.int64)
-            w = np.concatenate([g[1] for g in got[s]]) if got[s] else np.zeros(0, np.float32)
-            order = np.lexsort((-w, lin))  # a texel both copies reach takes the higher weight
-            first = np.r_[True, np.diff(lin[order]) != 0] if len(lin) else np.zeros(0, bool)
-            out[s] = (lin[order][first], w[order][first], sum(g[2] for g in got[s]))
-        return out
-
     def _ends(self):
         """The marking's ends, square to the course: cm inside them (a loop has none)."""
         L = self.length
@@ -864,9 +740,6 @@ class Courses:
 
     def band(self, *a, **k):
         return self._all("band", *a, **k)
-
-    def tape(self, *a, **k):
-        return self._all("tape", *a, **k)
 
     def dashes(self, *a, **k):
         return self._all("dashes", *a, **k)

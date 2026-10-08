@@ -38,15 +38,15 @@ def design(s):
     back = [(36.3, 52.8, 69), (35.4, 53.0, 75), (33.4, 51.4, 89)] + [tuple(side.at(z=z)) for z in (110, 124, 138)]
     # the rim's middle only: its ends turn up towards the cockpit, and taking them made a hump at the seam
     front = [tuple(rim.at(s=k * rim.length / 12)) for k in range(2, 11)]
-    nose = meshlines.picked([(-x, y, z) for x, y, z in back] + front + back[::-1]).tape(4)
-    crest = meshlines.line((0, 83, -51)).tape(4)  # the whole outline round the cockpit, closed behind it
+    nose = meshlines.picked([(-x, y, z) for x, y, z in back] + front + back[::-1]).band(4, side="seen")
+    crest = meshlines.line((0, 83, -51)).band(4, side="seen")  # the whole outline round the cockpit, closed behind it
     # the skirts' swept edge and on along the body's lower edge under the sidepod to the rear (the user: "make this
     # tape continuous until the rear"), to where the rear flank's rounded edge ends by the rear wheel
     low = [(23.9, 17.9, 148.6), (39, 19, 70), (77.3, 21.8, 17.1), (81, 22.1, 4.8), (82.3, 22.4, -11),
            (81.9, 21.6, -24.8), (66, 19.1, -63.9), (53, 20, -86), (49.1, 18.3, -107.4)]
-    skirts = meshlines.picked(low).tape(4) | meshlines.picked([(-x, y, z) for x, y, z in low]).tape(4)
+    skirts = meshlines.picked(low).band(4, side="seen") | meshlines.picked([(-x, y, z) for x, y, z in low]).band(4, side="seen")
     s.paint("body", "satin", colour=TAPE, zone=nose | crest | skirts)
-    lips = meshlines.line((75, 49, -45)).mirrored().tape(4)
+    lips = meshlines.line((75, 49, -45)).mirrored().band(4, side="seen")
     s.paint("body", "satin", colour=TAPE, zone=lips, across=True)
     surfaces(s)
 
@@ -80,4 +80,4 @@ def surfaces(s):
     s.step("Kept, patched", "Kept clean in its hangar: one rear quarter panel recoated a shade off the rest, and "
            "the left intake's lip freshly taped, a shade off the old.", words=WORDS)
     s.paint("rear quarter panel|left", "matte", colour=RECOAT)
-    s.paint("body", "satin", colour=FRESH, zone=meshlines.line((75, 49, -45)).tape(4), across=True)
+    s.paint("body", "satin", colour=FRESH, zone=meshlines.line((75, 49, -45)).band(4, side="seen"), across=True)

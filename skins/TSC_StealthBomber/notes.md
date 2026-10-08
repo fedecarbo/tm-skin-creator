@@ -110,3 +110,6 @@ accent; quiet, sparse, the detail in the edges.
   really want to use previous cars to test or evaluate ... for any test to actually use new skins that could be
   scraped after ... unless it's really necessary"): the road in IMPROVEMENTS.md is shown on new test cars made for it
   and scrapped after. This car stays stopped until the user says.
+- Tool change (2026-10-08, the road's step 3, Claude Fable 5.1): the tool's tape is gone; this design's five tapes are
+  written as bands measured along the car's surface (`.band(4, side="seen")`), the same lines and faces. Not
+  repainted: the car stays stopped until the user says.

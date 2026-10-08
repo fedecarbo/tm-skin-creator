@@ -68,7 +68,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18350, "viewer/*.js": 4670}
+BUDGET = {"tool/*.py": 18189, "viewer/*.js": 4670}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -198,12 +198,12 @@ def pair(s, flawed):
            "rolled edge, across where the model's lines meet and on a crisp line; a strip at an even gap beside a panel "
            "line.")
     skirt = meshlines.line((39, 19, 70)).between(140, 25)
-    tape = skirt.mirrored().tape(3)
-    hop = skirt.between(95, 101).tape(3, side=-tape.side)
+    tape = skirt.mirrored().band(3, side="seen")
+    hop = skirt.between(95, 101).band(3, side=-tape.side)
     s.paint("body", "satin", colour=INK, zone=planted(
         tape, (tape & ~shapes.band(59.25, 60.75) & ~shapes.band(95, 101)) | hop))
     low = meshlines.line((60, 16.5, -60), kind="opening").between((80, 22, 5), (45, 17, -105))
-    tape = low.mirrored().tape(3)
+    tape = low.mirrored().band(3, side="seen")
     s.paint("body", "satin", colour=INK, zone=planted(tape, tape & ~shapes.band(-24.25, -25.75)))
     shoulder = meshlines.line((64, 61, -84), kind="rounded")
     front = shoulder.between(-52, -84)
