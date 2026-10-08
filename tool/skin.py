@@ -7,7 +7,7 @@
 
 show also judges the car before anyone looks (tool/judge.py: every graphic measured where it landed, one list
 of findings, block, warn and note, with the design's hash), printed after the paint's notes and kept in
-build/<name>/verdict.json (tool.snap --eye looks at the spots the eye's notes name).
+build/<name>/verdict.json, with what the close looks read (tool/close.py: along every line and over every decal).
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
 GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
@@ -106,7 +106,7 @@ def show(name, open_browser=False, snapshot=True):
             s = paint(name, frames=True)
             progress.stage("Judging the car")
             verdict = judge.run(s)
-            judge.save(name, verdict)
+            judge.save(name, verdict, s)
             lines = judge.words(verdict)
             blocks = sum(f["level"] == "block" for f in verdict["findings"])
             print(f"judged in {verdict['seconds']} s: " + (f"{len(lines)} finding{'s' if len(lines) > 1 else ''}, "

@@ -69,7 +69,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18700, "viewer/*.js": 4670}
+BUDGET = {"tool/*.py": 19350, "viewer/*.js": 4720}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -446,8 +446,7 @@ from pathlib import Path
 from tool import snap, view
 name, folder = sys.argv[1], Path(sys.argv[2])
 view.prepare(name)
-for kind, shots, size, query in (("views", snap.SHOTS, (960, 720), ""), ("close", snap.CLOSE, (960, 720), ""),
-                                 ("cams", snap.CAMS, (1280, 720), "lens=game")):
+for kind, shots, size, query in (("views", snap.SHOTS, (960, 720), ""), ("cams", snap.CAMS, (1280, 720), "lens=game")):
     snap.snap(name, out=folder / f"{name}_{kind}.png", size=size, shots=shots, prepare=False, query=query)
 '''
 

@@ -7,7 +7,7 @@ The self-test runs it on the working tree. The instructions are what a session r
 RULES.md, the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car in words
 (car/anatomy.md), and the hooks in .claude/settings.json. What each names, in backticks:
 
-- a command (`PY -m tool.snap <name> --close`, `tool.notes say`): its module, and the word after
+- a command (`PY -m tool.snap <name> --cams`, `tool.notes say`): its module, and the word after
   it and every flag as strings in the module's code. A flag alone (`--before`), or a word and what
   it takes (`tile "<words>"`), belongs to the last command named in the same paragraph, list item
   or table row.

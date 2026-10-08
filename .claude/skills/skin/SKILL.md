@@ -21,10 +21,10 @@ game: install from the Windows PC after a push.
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict: what BLOCKS (a gap, a step, a kink or a wobble in a line, a band on its edge's other face, a line cut by the body's edge, a fill short of its line, a mark or a picture not whole, a paint stopping short, anything on the game's panels, words bent or upside down), what it warns of (a soft edge, a spill onto a second piece, a paint over another, a picture that will show its pixels, a scatter uneven) and the eye's notes (how a graphic sits against the lines the eye sees: a gap that CLOSES, a SLIVER, a NEAR MISS, a SHALLOW crossing, JUST PAST a line, TOUCHES another paint: look there close up, `PY -m tool.snap <name> --eye`, the mesh drawn; it names, never forbids). |
-| `PY -m tool.snap <name> --close` | Ten close looks → `build/<name>_close.png` (bonnet, nose, front flank fold, sidepod, rear flank, deck and tail, right side, front wheel, driving camera, tail corner). `--before`: each tile that changed since the last sheet, before beside after. |
+| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer and the Lab, saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict: what BLOCKS (a gap, a step, a kink or a wobble in a line, a band on its edge's other face, a line cut by the body's edge, a fill short of its line, a mark or a picture not whole, a paint stopping short, anything on the game's panels, words bent or upside down), what it warns of (a soft edge, a spill onto a second piece, a paint over another, a picture that will show its pixels, a scatter uneven) and the eye's notes (how a graphic sits against the lines the eye sees: a gap that CLOSES, a SLIVER, a NEAR MISS, a SHALLOW crossing, JUST PAST a line, TOUCHES another paint: the close looks look there; it names, never forbids). |
+| `PY -m tool.close <name>` | After a show: close looks along every line and over every decal, square to its face, 20 pixels a cm, both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. About 20 s for a busy car. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
-| `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take; opens on their screen. |
+| `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number); opens on their screen. |
 | `PY -m tool.doctor server` | Starts the Lab's server (or restarts it after a change to the tool), http://localhost:8765/lab.html: the car, the user's notes on it, the chat beside it, the materials and the UV map. The session-start hook does the same. |
 | `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
 | `PY -m tool.skin list` / `PY -m tool.sets <car>` | Every skin / a car's sets of options. |
@@ -115,8 +115,8 @@ game: install from the Windows PC after a push.
 - **Sets of options** (painted takes): `tool.sets new <car> "<what>" --words "<their words>"`,
   `tool.sets option <car> <n> "<Title>"` for each (a copy of the design to change), paint each and
   look at its views, then `tool.sets open <car> <n>` with a line (`tool.notes say`). The pick:
-  `tool.sets pick <car> <n> <letter> "<what>"` (the others go), then `tool.skin show <car>` and its close
-  looks. "None of these" or a mix in their words: change an option, then pick it, or `tool.sets drop`.
+  `tool.sets pick <car> <n> <letter> "<what>"` (the others go), then `tool.skin show <car>` and `tool.close
+  <car>`. "None of these" or a mix in their words: change an option, then pick it, or `tool.sets drop`.
 - **Questions** (anything else to pick or confirm): `PY -m tool.notes ask <car> "<question>"
   --choice "<label>" [--colour "#rrggbb"] [--picture <png>] --choice … [--several]`, or `--yes` for
   yes or no. Ask the same in one bold line in the reply. Answered in the chat instead: `tool.notes
@@ -128,8 +128,9 @@ game: install from the Windows PC after a push.
 
 1. Fix what the judge blocks (or know why it's meant and say so), look at what it warns of, then look
    at the six views. For a set's takes, that's enough.
-2. A design shown alone, or a pick: `tool.snap <name> --close`, and look where graphics meet a
-   join, fold, hole or edge: nothing cut, sunk, stretched or soft.
+2. A design shown alone, or a pick: `tool.close <name>`; fix what it blocks, and look at every
+   sheet: nothing cut, sunk, stretched or soft, the two sides alike, nothing changed that the edit
+   didn't mean.
 3. The whole car: every visible part serves the idea, the lights at night (none left in a stock
    colour), no paint left from an earlier version, no part left in clay by accident (`show` names
    them). Fix and look again.

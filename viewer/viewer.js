@@ -1,7 +1,7 @@
 // The skin viewer: the car in a photo studio, wearing one skin, by day or night.
 //   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
-//   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py); &mesh=1 lets
-//                          them draw the model's mesh over the paint (mesh)
+//   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py) and close looks
+//                          (tool/close.py: the texel pass, uvs)
 //   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
 //                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
 //                          or dresses step by step and hangs notes on (the Lab's stand,
@@ -188,6 +188,7 @@ controls.target.copy(CENTRE);
 controls.enableDamping = true;
 controls.minDistance = 1;
 const DRIVING_MIN = 0.2;  // closer, with a Driving camera picked
+if (snap) controls.minDistance = DRIVING_MIN;  // the close looks (tool/close.py) stand 42 cm from the face
 controls.maxDistance = 18;
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
 
@@ -695,6 +696,29 @@ async function showMesh(on) {
   meshUniforms.meshOn.value = on && ready ? 1 : 0;
   rouse();
   return ready;
+}
+
+// The texel pass of the close looks (tool/close.py; snapshots only): each pixel of the body says which texel of the
+// 4096² map it shows (column and row, 12 bits each, in R, G and B; A 255), any other part A 128, nothing A 0. Drawn
+// with the car's own materials, so the wing and the airbrakes stand as in the picture.
+const uvUniforms = { uvPass: { value: 0 } };
+function addUvPass(material, set) {
+  const previous = material.onBeforeCompile;
+  const previousKey = material.customProgramCacheKey ? material.customProgramCacheKey.bind(material) : () => '';
+  material.onBeforeCompile = (shader) => {
+    if (previous) previous(shader);
+    Object.assign(shader.uniforms, uvUniforms);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
+        uniform float uvPass;`)
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+        if ( uvPass > 0.5 ) {
+          ${set === 'Skin' ? `vec2 t = clamp( floor( vec2( vMapUv.x, 1.0 - vMapUv.y ) * 4096.0 ), 0.0, 4095.0 );
+          vec2 hi = floor( t / 256.0 );
+          gl_FragColor = vec4( t - hi * 256.0, hi.x + 16.0 * hi.y, 255.0 ) / 255.0;` : 'gl_FragColor = vec4( 0.0, 0.0, 0.0, 128.0 / 255.0 );'}
+        }`);
+  };
+  material.customProgramCacheKey = () => `${previousKey()}|uv`;
 }
 
 // ---- The game's number. The game writes the player's initials and number on two engine-cover
@@ -1603,7 +1627,8 @@ function makeMaterials(tex) {
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name], surfaceState[name]);
-  if (embed || params.has('mesh')) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
+  if (embed) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
+  if (snap) for (const name of ['Skin', 'Details', 'Wheels']) addUvPass(out[name], name);
   addPlate(skin);
   if (tex.Details_I) addDisplays(details);
   addWing(skin);
@@ -1623,6 +1648,7 @@ function dressCar(geoms, tex) {
       mesh.castShadow = name !== 'Glass';
       mesh.receiveShadow = true;
       if (name !== 'Glass') mesh.customDepthMaterial = wingDepthMaterial();  // its shadow follows the wing
+      if (name !== 'Glass') mesh.layers.enable(1);  // the texel pass draws layer 1 alone
       parts[name] = mesh;
       car.add(mesh);
     }
@@ -1988,6 +2014,26 @@ Object.assign(window.viewer, {
       src.getContext('2d').drawImage(canvas, b.left * k, b.top * k, w, h, 0, 0, w, h);
     }
     return new Promise((resolve) => src.toBlob((b) => resolve(URL.createObjectURL(b)), 'image/jpeg', 0.88));
+  },
+  // The texel pass (addUvPass) of what's on screen, base64, its rows from the bottom up: one texel a pixel, never a blend.
+  uvs() {
+    const w = canvas.width, h = canvas.height, target = new THREE.WebGLRenderTarget(w, h);
+    const colour = renderer.getClearColor(new THREE.Color()), alpha = renderer.getClearAlpha(), mask = camera.layers.mask;
+    renderer.setClearColor(0x000000, 0);
+    renderer.setRenderTarget(target);
+    camera.layers.set(1);
+    uvUniforms.uvPass.value = 1;
+    renderer.render(scene, camera);
+    uvUniforms.uvPass.value = 0;
+    camera.layers.mask = mask;
+    const px = new Uint8Array(w * h * 4);
+    renderer.readRenderTargetPixels(target, 0, 0, w, h, px);
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(colour, alpha);
+    target.dispose();
+    let s = '';
+    for (let i = 0; i < px.length; i += 0x8000) s += String.fromCharCode.apply(null, px.subarray(i, i + 0x8000));
+    return btoa(s);
   },
   gpu() {
     const gl = renderer.getContext();

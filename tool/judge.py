@@ -8,7 +8,8 @@
 (`design_hash`: design.py, the designs it borrows, its art), findings, seconds}, kept by show in
 build/<name>/verdict.json (`save`); `words` says it for Claude, the blocks first. Each finding: {level, kind, check,
 text, z, side, step}: z the stretch along the car in cm, front to back, or None; side where one side alone; the eye's
-carry `at` and `nrm` too, for a close look square to the body there (tool.snap --eye). The levels (LEVELS, by kind):
+carry `at` and `nrm` too, for a close look square to the body there (tool/close.py, which adds its own findings, check
+"close"). The levels (LEVELS, by kind):
   block   an accident, to fix before the car is shown as done, the tool's or the design's;
   warn    to look at close up, then fix or know why it's meant;
   note    how a graphic sits against the car's lines and the graphics round it: it names, never forbids.
@@ -283,6 +284,7 @@ class _Car:
         self.bodies = {}  # the parts a paint was aimed at -> their body (reach)
         self.paints = {}  # a call -> its paint (colour, roughness, metalness), to tell the same paint going on
         self.followed = {}  # a call -> the points of the lines its markings follow (the eye leaves them out)
+        self.looks = []  # every graphic, for the close looks along and over it (tool/close.py): `graphics`
 
     def open(self, texels):
         return carmap.load().value("open", self.c.pos[texels], self.c.nrm[texels])
@@ -1191,10 +1193,11 @@ def _stations(car, call, z, c, R, mark, reached, ends, span=None):
         for k in range(3):
             nrm[:, k] = np.bincount(st[mine], weights=nrm_all[lin[mine], k], minlength=n)
         nrm /= np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-9)
-        pos = Rpts * (np.array([-1.0, 1.0, 1.0]) if copy["mirrored"] else 1.0)
+        flip = np.array([-1.0, 1.0, 1.0]) if copy["mirrored"] else 1.0
+        pos, facing = Rpts * flip, R.nrm[np.clip(np.searchsorted(R.s, centres), 0, len(R.s) - 1)] * flip
         out.append(dict(expected=expected, n=count, lo=lo_j, hi=hi_j, other=other, skin=skin, bare=bare,
                         skin_lo=skin_lo, skin_hi=skin_hi, beyond_lo=beyond_lo, beyond_hi=beyond_hi, nrm=nrm, pos=pos,
-                        lo_e=lo_e, hi_e=hi_e, W=W, sign=sign, mirrored=copy["mirrored"], ends=ends))
+                        facing=facing, lo_e=lo_e, hi_e=hi_e, W=W, sign=sign, mirrored=copy["mirrored"], ends=ends))
     return out
 
 
@@ -1230,6 +1233,11 @@ def _marking(car, call, z, found):
     for R, kind, (a, b), span in refs:
         for st in _stations(car, call, z, c, R, mark, reached, (a == 0, b == len(c.pts)), span):
             _station_findings(name, label, call, st, kind, mine)
+            painted = np.linalg.norm(st["nrm"], axis=1, keepdims=True) > 0.5  # the face its paint is on, else the line's
+            car.looks.append({"kind": "line", "op": call["op"], "what": f"{name}: {label}", "step": call["step"],
+                              "pos": st["pos"].round(2).tolist(),
+                              "facing": np.where(painted, st["nrm"], st["facing"]).round(3).tolist(),
+                              "expected": st["expected"].tolist(), "lo": float(st["lo_e"]), "hi": float(st["hi_e"])})
             stretches.setdefault(st["mirrored"], []).append((st, kind, a, b))
     # a step at the join of two lines the course follows in turn: the marking's centre jumps from one to the next
     for runs_ in stretches.values():
@@ -1700,6 +1708,41 @@ def _eye(car, calls, found):
     found += list(out.values())
 
 
+# ---- what the close looks travel along and look over (tool/close.py) ----
+
+def _look_edges(car, call, fills):
+    """A fill's lines, for the close looks along its edge: each line a station every STATION cm, the surface's facing."""
+    from tool import surface
+    for _, lines, what in fills:
+        breaks = np.flatnonzero(np.linalg.norm(np.diff(lines, axis=0), axis=1) > 2.0) + 1
+        for P in np.split(lines, breaks):
+            seg = np.linalg.norm(np.diff(P, axis=0), axis=1)
+            at = np.r_[0, np.cumsum(seg)]
+            if len(P) < 2 or at[-1] < LEAST_RUN:
+                continue
+            t = np.arange(STATION / 2, at[-1], STATION)
+            pos = np.stack([np.interp(t, at, P[:, i]) for i in range(3)], 1)
+            car.looks.append({"kind": "edge", "op": call["op"], "what": f"{car.op(call['op'])}: its edge on {what}",
+                              "step": call["step"], "pos": pos.round(2).tolist(),
+                              "facing": surface.load().facing(pos).round(3).tolist()})
+
+
+def _look_marks(car):
+    """Each mark, words and picture, for a close look over it: its middle, the way it faces, how far it reaches."""
+    c = car.c
+    for rec in car.skin.marks + car.skin.pictures:
+        if not len(rec["idx"]):
+            continue
+        pos = c.pos[rec["idx"]].astype(np.float64)
+        middle = pos[np.argmin(np.linalg.norm(pos - pos.mean(0), axis=1))]
+        facing = np.asarray(rec["frame"][2], np.float64)
+        some = rec["idx"][:: max(1, len(rec["idx"]) // 300)]  # its texels' places, to see what hides it
+        car.looks.append({"kind": "mark", "op": rec["op"], "what": rec["what"], "step": rec["step"], "shape": rec["kind"],
+                          "at": middle.round(2).tolist(), "facing": (facing / np.linalg.norm(facing)).round(3).tolist(),
+                          "reach": round(float(np.linalg.norm(pos - middle, axis=1).max()), 1),
+                          "pts": c.pos[some].round(2).tolist(), "nrm": c.nrm[some].round(3).tolist()})
+
+
 # ---- the verdict ----
 
 def design_hash(name):
@@ -1742,6 +1785,7 @@ def run(skin):
             found += _merged(mine)
             if fills:
                 _fills(car, call, o, fills, found)
+                _look_edges(car, call, fills)
             if not graphic and not pieces_ and not fills and call["op"] not in car.blends:
                 _reach(car, call, found)
             if not graphic and call["op"] not in car.blends:
@@ -1751,6 +1795,7 @@ def run(skin):
         _clear(car, found)
         _scattered(car, found)
         _eye(car, plain, found)
+        _look_marks(car)
     once = {}
     for f in found:  # a side's twin once
         f.setdefault("side", None)
@@ -1762,7 +1807,8 @@ def run(skin):
             once[f["text"]] = f
     rank = {"block": 0, "warn": 1, "note": 2}
     findings = sorted(once.values(), key=lambda f: (rank[f["level"]], -(f["z"][0] if f["z"] else -1e9), f["text"]))
-    return {"design": design_hash(skin.name), "findings": findings, "seconds": round(time.time() - t0, 1)}
+    return {"design": design_hash(skin.name), "findings": findings, "seconds": round(time.time() - t0, 1),
+            "graphics": car.looks if "Skin" in skin.canvases and skin.canvases["Skin"].owner is not None else []}
 
 
 def words(verdict):
@@ -1770,9 +1816,57 @@ def words(verdict):
     return [f"{f['level'].upper() if f['level'] == 'block' else f['level']}: {f['kind']}: {f['text']}" for f in verdict["findings"]]
 
 
-def save(name, verdict):
+def step_hashes(name):
+    """Each step's hash, from its code in design.py (its s.step(...) to the next, as parsed: comments and spacing
+    don't count) and the code of the design's own functions and names it uses: an edit changes the hashes of the steps
+    it edits, and no other's (tool/close.py's diff of the close looks)."""
+    import ast
+    tree = ast.parse((paths.SKINS / name / "design.py").read_text())
+    own = {}
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            own[node.name] = node
+        elif isinstance(node, ast.Assign):
+            for t in node.targets:
+                for n in ast.walk(t):
+                    if isinstance(n, ast.Name):
+                        own[n.id] = node
+    body = own["design"].body if isinstance(own.get("design"), ast.FunctionDef) else []
+    steps, now = {}, "The design"
+    for stmt in body:
+        for n in ast.walk(stmt):
+            if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "step" and n.args
+                    and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str)):
+                now = n.args[0].value
+        steps.setdefault(now, []).append(stmt)
+    out = {}
+    for step, stmts in steps.items():
+        used, todo = set(), [n.id for s_ in stmts for n in ast.walk(s_) if isinstance(n, ast.Name)]
+        while todo:
+            k = todo.pop()
+            if k in own and k != "design" and k not in used:
+                used.add(k)
+                todo += [n.id for n in ast.walk(own[k]) if isinstance(n, ast.Name)]
+        code = [ast.unparse(s_) for s_ in stmts] + [ast.unparse(own[k]) for k in sorted(used)]
+        out[step] = hashlib.sha256("\n".join(code).encode()).hexdigest()[:16]
+    return out
+
+
+def save(name, verdict, skin=None):
+    """The verdict in build/<name>/verdict.json; with the skin painted, what its close looks read (tool/close.py):
+    graphics.json (the graphics, each call's step and paint, each step's hash) and owner.npy (the call that covered each texel of
+    the body's map last)."""
     out = paths.BUILD / name
     out.mkdir(parents=True, exist_ok=True)
+    graphics = verdict.pop("graphics", [])
+    if skin is not None and skin.canvases.get("Skin") is not None and skin.canvases["Skin"].owner is not None:
+        c = skin.canvases["Skin"]
+        np.save(out / "owner.tmp.npy", c.owner.reshape(c.h, c.w).astype(np.int16))
+        (out / "owner.tmp.npy").replace(out / "owner.npy")
+        steps = step_hashes(name) if (paths.SKINS / name / "design.py").exists() else {}
+        paths.write(out / "graphics.json", json.dumps({"design": verdict["design"], "steps": steps,
+                                                       "ops": [o["step"] for o in skin.ops],
+                                                       "paints": [o["what"] for o in skin.ops], "graphics": graphics}))
     paths.write(out / "verdict.json", json.dumps(verdict, indent=1))
 
 
@@ -1785,7 +1879,7 @@ def main():
         skin_mod.load_design(name)(s)
         s.end_steps()
     verdict = run(s)
-    save(name, verdict)
+    save(name, verdict, s)
     print("\n".join(words(verdict)) or "the judge names nothing")
     print(f"judged in {verdict['seconds']} s")
 

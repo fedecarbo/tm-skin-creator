@@ -63,8 +63,8 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   no longer exist, and keeps the server's output in the work folder's server.log. A gap in the Lab
   is a gap in the tool, to fix in the tool. Its rooms share `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
-    (`lab-car.js`); its Mesh button lays the template's mesh over the paint (`viewer.mesh`: embed, and the
-    snapshots of `tool.snap --eye`; `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
+    (`lab-car.js`); its Mesh button lays the template's mesh over the paint (`viewer.mesh`, embed only;
+    `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
     (`/api/meshpath`, `meshlines.path`; the note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
     (`view.export_steps`, `studio.json`; `install` paints without them), and drives the embedded
     viewer (`index.html?embed=1`, no car until its first `dress` or `stock()`) through
@@ -95,6 +95,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
   `lab-car.js` keeps a widget's typed words and ticks by widget (`drafts`, `chosen`) and gives the
   focus back.
 - `PY -m tool.snap --page "<page>"` photographs any page of the viewer's whole, e.g. a Lab room.
+- The close looks (`tool/close.py`, its docstring is the key) read what show keeps (`judge.save`: `graphics.json`,
+  every graphic's stations or middle; `owner.npy`, whose paint each texel holds) through the viewer's texel pass
+  (`viewer.uvs`, snapshots only: which texel each pixel shows, never a blend).
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
   (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn

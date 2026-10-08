@@ -42,9 +42,9 @@ record: what it added and why.
    glass, the lights by day and night), and the texture layer: how it ages, or stays new on purpose.
 4. **Details**: large, then medium, then small, each made from the DNA and built off the composition's shapes, as
    many as the language's fullness asks; a quiet area is a choice. Large and medium cross pieces; only small marks
-   stay on one. `tool.snap <name> --close` after each size.
-5. **Art direction**, by an agent that made none of it: the whole car against the language, from `tool.snap
-   <name> --close`, `--cams` and the views. It changes nothing; it lists what reads as a sticker, is cut where it
+   stay on one. `tool.close <name>` after each size.
+5. **Art direction**, by an agent that made none of it: the whole car against the language, from `tool.close
+   <name>`'s sheets, `tool.snap <name> --cams` and the views. It changes nothing; it lists what reads as a sticker, is cut where it
    shouldn't be, doesn't belong to the language, or is missing at a size, with where. A fresh agent fixes the
    list, then the art director looks once more.
 

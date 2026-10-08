@@ -40,10 +40,10 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  7. **Close looks along every line and over every decal** (Opus 5.5, high), square to the visible face at about 20 px per cm,
-     shaded for the eye and as a flat mask the judge measures; a pixel diff against the previous version flags
-     changes outside the area an edit meant to touch; both sides of the car seen alike. Retires the close looks they
-     replace (`PY -m tool.snap <name> --close`, `--eye`).
+  7. **Close looks along every line and over every decal** (Opus 5.5, high). Built, waiting for the user's OK:
+     `PY -m tool.close <name>` (the fixed close looks and the eye's snapshots are gone). On the OK: the throwaway car
+     TSC_CloseTest goes (its folder, its data in the work folder), and the old close sheets in the work folder's
+     build/. Not looked along: a paint zoned by height or reading that runs along the car (a band by `shapes.above`).
   8. **Gates** (Opus 5.5, high). `tool.notes done`, `tool.sets open`, the start of a pass and `tool.skin install` refuse on a
      blocking finding or a verdict older than the design; the Stop hook (`tool/guard.py`) holds a turn once with the
      top findings. Retires each line of `RULES.md` a gate now enforces.
@@ -103,7 +103,11 @@ it.
   chipped or slightly clipped"; their note on the test car's badge across the rear shoulder: "This decal looks chipped
   off on one part of the circle"): a notch about half a centimetre wide in the ring where a crisp line crosses it, left
   by `surface.Surface.chart`'s step spanning or its bridging at the sidepod top's hairline; find which on a chart of that
-  spot (the test car TSC_DecalsTest is in git at 3fac0d5). Step 6's judge names a decal not whole.
+  spot (the test car TSC_DecalsTest is in git at 3fac0d5). Step 6's judge names a decal not whole; a 5 cm disc on the
+  body across=True near z -84 (TSC_CloseTest) has a 0.6 cm² notch on both sides that only the close looks name.
+- **A mark on both sides fitted on each alone** (2026-10-08, found by the close looks): the planted-flaw pair's clean car
+  lays its deck picture (one call, both sides) with 7,505 texels on the left and 2,947 on the right, shrunk to fit on
+  one side only; nothing else says so. Idea: fit it once, for both sides, and say what kept it small.
 - **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
   is worked out on each computer (numpy and BLAS); the judge (`tool/judge.py`) and a mark's room
   (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
