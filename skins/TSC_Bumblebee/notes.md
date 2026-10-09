@@ -25,3 +25,11 @@ composition in three takes, then surfaces, details and art direction.
 - Change 1 (user, 2026-10-09, in the chat): "Maybe yello": the tail yellow. Closed: the tail band is yellow, the
   language has no white (its page rewritten), repainted, the close looks find nothing. Next: the passes, surfaces,
   details, art direction, each by a fresh agent.
+- Surfaces pass (2026-10-09, Claude Fable 5.1): the fur's lay, a thin grain along the car over the suede in each
+  band's own colour (suede alone reads as a cloudy mottle with no direction; the grain gives the coat a nap that
+  lies nose to tail and catches the light along it), the coat pressed to a soft velvet sheen where it brushes the
+  flowers (the top's front, the flanks' widest point), the game's dirt off (a bee is never dirty); every light on
+  the legs in honey amber, the wings' colour lit, by day and at night (the speed digits, the rear lights, the brake
+  slots, the wheel rings, the headlights, the cockpit's and floor's faint glows). The legs, feet and wings stay as
+  the composition set them. The judge's three notes (the yellow collar's fur 1.3 cm over the side skirt's panel
+  line; the tail's fur over the diffuser's outline) are the fur crossing the car's lines on purpose.

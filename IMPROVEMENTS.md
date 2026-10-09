@@ -74,6 +74,11 @@ it.
 
 ## The tool
 
+- **No fur finish** (2026-10-09, TSC_Bumblebee's surfaces pass): the suede look takes only a seed (no direction, no hair
+  length), the brushed look is the only nap with a direction and lies along the world's z, its streaks 7 cm long and
+  0.4 mm wide. Idea: a fur look in `tool/looks.py`: hairs of a length and a lay that follows the surface's flow.
+- **A thin paint's receipt says "nothing painted"** (2026-10-09): the receipt counts only texels covered by half or more,
+  so a paint with blend under 0.5 reads as nothing in the Lab though it lands. Idea: count any weight, say the blend.
 - **Raised lettering on the inner car is laid flat** (2026-10-09, step 12): `Skin.decal` with `depth=` lays a picture's
   heights on the plane of the surface nearest `at` (`relief.picture`), not pressed onto the surface as the body's
   graphics are (`surface.Surface.chart`). Idea: a chart of the inner car's surface there, the heights read through it.
