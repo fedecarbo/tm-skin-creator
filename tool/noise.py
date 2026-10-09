@@ -1,7 +1,8 @@
 """Noise in 3D, for patterns drawn straight on the car's surface (no seams, no stretching).
 
 Every function takes points p as an (n, 3) float array in cm and returns (n,) floats. They're
-plain numpy, so a whole texture's worth of points (millions) goes through in seconds.
+plain numpy, so a whole texture's worth of points (millions) goes through in seconds, CHUNK points at a
+time (`chunked`): each point's value is its own, so the chunks change nothing but the memory.
 
     value(p, seed)          smooth value noise, 0..1, one cycle per ~1 cm
     value(p, seed, smooth=False)  the same, straight between the lattice points: faceted,
@@ -12,7 +13,23 @@ plain numpy, so a whole texture's worth of points (millions) goes through in sec
 Scale the points to change the size: fbm(p / 20) has features about 20 cm across.
 """
 
+import functools
+
 import numpy as np
+
+CHUNK = 1 << 20  # points at a time: a whole map's 16 million at once held gigabytes of temporaries
+
+
+def chunked(fn):
+    """fn(p, ...), a function of each point alone, worked CHUNK points at a time."""
+    @functools.wraps(fn)
+    def run(p, *a, **k):
+        p = np.asarray(p, np.float32)
+        if len(p) <= CHUNK:
+            return fn(p, *a, **k)
+        out = [fn(p[i:i + CHUNK], *a, **k) for i in range(0, len(p), CHUNK)]
+        return tuple(map(np.concatenate, zip(*out))) if isinstance(out[0], tuple) else np.concatenate(out)
+    return run
 
 
 def _hash(ix, iy, iz, seed):
@@ -26,6 +43,7 @@ def _hash(ix, iy, iz, seed):
     return (h & u(0xFFFFFF)).astype(np.float32) / 0xFFFFFF
 
 
+@chunked
 def value(p, seed=0, smooth=True):
     p = np.asarray(p, np.float32)
     i = np.floor(p)
@@ -45,6 +63,7 @@ def value(p, seed=0, smooth=True):
     return out
 
 
+@chunked
 def fbm(p, octaves=4, seed=0, gain=0.5, lacunarity=2.0):
     p = np.asarray(p, np.float32)
     out = np.zeros(len(p), np.float32)
@@ -56,6 +75,7 @@ def fbm(p, octaves=4, seed=0, gain=0.5, lacunarity=2.0):
     return out / total
 
 
+@chunked
 def worley(p, seed=0, second=False):
     """Distance to the nearest random point (one per unit cell). second=True gives the second
     nearest too: (f1, f2). f2 - f1 outlines the cells."""
@@ -77,6 +97,7 @@ def worley(p, seed=0, second=False):
     return (f1, f2) if second else f1
 
 
+@chunked
 def cell_id(p, seed=0):
     """A 0..1 random value per Voronoi cell (the cell of the nearest random point)."""
     p = np.asarray(p, np.float32)

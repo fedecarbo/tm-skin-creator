@@ -45,9 +45,16 @@ def tears(p, amount, scale, seed, stretch=0.5, jag=0.07):
 
 def gradient(F, idx, P, w, n):
     """The size of F's gradient per cm at texels idx, from the texel grid (neighbours more
-    than 0.6 cm apart are across an island border and ignored), and the texel pitch in cm."""
+    than 0.6 cm apart are across an island border and ignored), and the texel pitch in cm.
+    Worked noise.CHUNK texels at a time: each texel's is its own."""
     full = np.full(n, np.nan, np.float32)
     full[idx] = F
+    out = [_gradient(full, F[a:a + noise.CHUNK], idx[a:a + noise.CHUNK], P, w, n)
+           for a in range(0, max(len(idx), 1), noise.CHUNK)]
+    return np.concatenate([g for g, _ in out]), np.concatenate([p for _, p in out])
+
+
+def _gradient(full, F, idx, P, w, n):
     g2 = np.zeros(len(idx), np.float32)
     pitch = np.full(len(idx), 9.0, np.float32)
     for step in (1, w):

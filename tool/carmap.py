@@ -27,7 +27,7 @@ import functools
 import numpy as np
 from scipy.spatial import cKDTree
 
-from tool import fbx, parts, paths, progress, surface
+from tool import fbx, noise, parts, paths, progress, surface
 
 VERSION = 2
 CACHE = paths.CACHE / f"carmap_v{VERSION}.npz"
@@ -220,15 +220,17 @@ class Map:
         if self._last is not None and _same(self._last[0], asked):  # zones ask again for the same points
             return self._last[1]
         tree = self._lookup()
-        d, i = tree.query(pos, k=k, workers=-1)
-        pick = np.zeros(len(pos), np.int64)
-        if nrm is not None:
-            agree = (self.fn[self._sf[i]] * nrm[:, None, :]).sum(2) > 0.2
-            first = np.argmax(agree, axis=1)
-            pick = np.where(agree.any(1), first, 0)
-        r = np.arange(len(pos))
-        s = i[r, pick]
-        out = (self._sf[s], self._sb[s], d[r, pick])
+        s, dist = np.zeros(len(pos), np.int64), np.zeros(len(pos))
+        for a in range(0, len(pos), noise.CHUNK):  # the k nearest of a whole map's points at once held gigabytes
+            d, i = tree.query(pos[a:a + noise.CHUNK], k=k, workers=-1)
+            pick = np.zeros(len(d), np.int64)
+            if nrm is not None:
+                agree = (self.fn[self._sf[i]] * nrm[a:a + noise.CHUNK, None, :]).sum(2) > 0.2
+                first = np.argmax(agree, axis=1)
+                pick = np.where(agree.any(1), first, 0)
+            r = np.arange(len(d))
+            s[a:a + noise.CHUNK], dist[a:a + noise.CHUNK] = i[r, pick], d[r, pick]
+        out = (self._sf[s], self._sb[s], dist)
         self._last = ((pos.copy(), None if nrm is None else nrm.copy(), k), out)
         return out
 

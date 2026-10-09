@@ -70,11 +70,14 @@ def build_mips(image, srgb=False, normal=False, codes_in_alpha=False):
     (Details_I glow behaviours), so it is point-sampled, never averaged into another code.
     """
     level = srgb_to_linear(image) if srgb else image.astype(np.float64)
-    levels = [level]
-    while levels[-1].shape[:2] != (1, 1):
-        nxt = halve(levels[-1])
+    out = []
+    while True:  # each level to bytes as it's made, only the one before kept in floats
+        out.append(np.clip(np.rint((linear_to_srgb(level) if srgb else level) * 255), 0, 255).astype(np.uint8))
+        if level.shape[:2] == (1, 1):
+            return out
+        nxt = halve(level)
         if codes_in_alpha:
-            prev = levels[-1][..., 3]
+            prev = level[..., 3]
             nxt[..., 3] = prev[:: 2 if prev.shape[0] > 1 else 1, :: 2 if prev.shape[1] > 1 else 1][
                 : nxt.shape[0], : nxt.shape[1]
             ]
@@ -85,13 +88,7 @@ def build_mips(image, srgb=False, normal=False, codes_in_alpha=False):
             n /= np.linalg.norm(n, axis=-1, keepdims=True)
             nxt = nxt.copy()
             nxt[..., :2] = n[..., :2] * 0.5 + 0.5
-        levels.append(nxt)
-    out = []
-    for lv in levels:
-        if srgb:
-            lv = linear_to_srgb(lv)
-        out.append(np.clip(np.rint(lv * 255), 0, 255).astype(np.uint8))
-    return out
+        level = nxt
 
 
 def _to565(c):

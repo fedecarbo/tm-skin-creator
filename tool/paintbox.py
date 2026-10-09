@@ -68,7 +68,7 @@ import re
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import bake, colours, coverage, finishes, fonts, looks, parts, paths, progress, raster, shapes
+from tool import bake, colours, coverage, finishes, fonts, looks, noise, parts, paths, progress, raster, shapes
 from tool.dds import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
@@ -117,15 +117,13 @@ class Canvas:
 
     def __init__(self, tset, w, h):
         self.set, self.w, self.h = tset, w, h
-        self.bake = bake.bake(tset, w, h)
+        self.bake = bake.bake(tset, w, h)  # mapped from the disk: read, never copied
         self.cov = self.bake["tri"] >= 0
         # a texel on an island's edge can be partly covered by a part (coverage samples 2x2)
         # while its centre misses every triangle, so the bake left it at the origin and a
         # pattern drawn there came out as a speck along the seam: it takes the nearest texel's.
         # The same nearest texels fill the gaps between islands in textures() (raster.fill_holes).
-        self.near = raster.nearest(self.cov)
-        self.pos = self.bake["position"].reshape(-1, 3)[self.near]
-        self.nrm = self.bake["normal"].reshape(-1, 3)[self.near]
+        self.near, self.pos, self.nrm = self.bake["near"], self.bake["pos"], self.bake["nrm"]
         self._uv_cm = None
         n = w * h
         b = stock(f"{tset}_B" if tset != "Glass" else "Glass_T", (w, h))
@@ -178,6 +176,12 @@ class Canvas:
             self.clay[idx[m > 0.5]] = False
         if self.owner is not None:
             self.owner[idx[m > 0.5]] = self.op
+
+    def free(self):
+        """Let the layers go once the game's textures are made from them (Skin.end_steps); where each texel sits on
+        the car stays, mapped from the disk."""
+        self.colour = self.alpha = self.rough = self.metal = self.coat = self.touched = self.clay = self.owner = None
+        self.glow_rgb = self.glow_code = self.slope = self.keep_stock = self.normal = self._uv_cm = None
 
     def textures(self):
         """The game's textures for this set, or {} when the design never touched it."""
@@ -354,6 +358,9 @@ class Skin:
         # take these rather than each building them again (15 to 25 s a show)
         self._final = self.textures()
         self._end_step(done=True)
+        for tset, c in self.canvases.items():  # the layers go, but the body's while the judge reads it (skin.judge_it)
+            if tset != "Skin" or c.owner is None:
+                c.free()
 
     def _end_step(self, done=False):
         """The car as it is now becomes the open step's frame: its pictures in the viewer's data at
@@ -513,8 +520,9 @@ class Skin:
         cov = coverage.load(self.parts, tset, canvas.w, canvas.h).share(ids).reshape(-1)
         idx = np.flatnonzero(cov > 0.002)
         m = cov[idx]
-        if zone is not None:
-            m = m * zone(canvas.pos[idx], canvas.nrm[idx])
+        if zone is not None:  # a zone weighs each point alone: worked a chunk at a time
+            chunks = [idx[a:a + noise.CHUNK] for a in range(0, max(len(idx), 1), noise.CHUNK)]
+            m = m * np.concatenate([zone(canvas.pos[k], canvas.nrm[k]) for k in chunks])
             keep = m > 0.002
             idx, m = idx[keep], m[keep]
         return idx, m

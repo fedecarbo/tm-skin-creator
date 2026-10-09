@@ -107,6 +107,8 @@ def judge_it(name, s):
     progress.stage("Judging the car")
     verdict = judge.run(s)
     judge.save(name, verdict, s)
+    if "Skin" in s.canvases:  # the judge was the last to read the body's layers
+        s.canvases["Skin"].free()
     lines = judge.words(verdict)
     blocks = sum(f["level"] == "block" for f in verdict["findings"])
     print(f"judged in {verdict['seconds']} s: " + (f"{len(lines)} finding{'s' if len(lines) > 1 else ''}, "

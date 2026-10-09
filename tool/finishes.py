@@ -377,10 +377,12 @@ GLOW_ALIASES = {"always": "always on", "on": "always on", "neon": "always on", "
 
 
 def glow_codes(alpha):
-    """Each value of a Details_I alpha (0..255) as the nearest of the game's glow codes (GLOWS), uint8."""
+    """Each value of a Details_I alpha (whole numbers 0..255) as the nearest of the game's glow codes (GLOWS), uint8:
+    looked up in a table of the 256, a byte a texel."""
     import numpy as np
     codes = np.array(sorted(g["code"] for g in GLOWS.values()))
-    return codes[np.digitize(alpha, (codes[1:] + codes[:-1]) / 2)].astype(np.uint8)
+    nearest = codes[np.digitize(np.arange(256), (codes[1:] + codes[:-1]) / 2)].astype(np.uint8)
+    return nearest[np.asarray(alpha).astype(np.uint8)]
 
 
 def glow(kind):

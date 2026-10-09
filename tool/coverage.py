@@ -3,9 +3,10 @@
 parts.Parts.coverage() rasterises a part's triangles with 2x2 samples per texel, which takes
 about a second per part at 4096: painting a whole car would spend minutes on it. This stores
 every part's coverage once, sparsely (most texels are 0, and most covered ones are exactly 1),
-in the work folder, with which parts share paint (twins), and builds it again when anything it's
-made from changes: car/parts.json, the code that cuts and rasterises the parts, the mesh. Building
-a new one keeps only the one before it (which the self-test's earlier commit may still read).
+in the work folder as plain arrays mapped from the disk (bake.save, bake.load), with which parts share
+paint (twins), and builds it again when anything it's made from changes: car/parts.json, the code that
+cuts and rasterises the parts, the mesh. Building a new one keeps only the one before it (which the
+self-test's earlier commit may still read).
 
     cov = coverage.load(p, "Skin", 4096, 4096)
     cov.get([id, id, ...])   -> float32 (h, w), 0..1, the parts' coverage added up (clipped to 1)
@@ -17,6 +18,7 @@ a new one keeps only the one before it (which the self-test's earlier commit may
 
 import hashlib
 import json
+import shutil
 
 import numpy as np
 
@@ -39,19 +41,20 @@ class Coverage:
     def __init__(self, p, texture_set, width, height):
         self.p, self.set, self.w, self.h = p, texture_set, width, height
         self.ids = [i for i, inst in enumerate(p.instances) if inst["mesh"] == texture_set]
-        self.file = paths.CACHE / f"coverage_{texture_set}_{width}x{height}_{_key()}.npz"
+        self.folder = paths.CACHE / f"coverage_{texture_set}_{width}x{height}_{_key()}"
         self._all = None
         self._twins = None
         if not self._load():
             self._build()
 
     def _load(self):
-        if not self.file.exists():
+        if not (self.folder / "twins.npy").exists():
             return False
-        d = np.load(self.file)
-        self.sparse = {i: (d[f"idx_{i}"], d[f"val_{i}"]) for i in self.ids if f"idx_{i}" in d.files}
+        d = bake.load(self.folder)
+        start = d["start"].tolist()
+        self.sparse = {i: (d["idx"][a:b], d["val"][a:b]) for i, a, b in zip(d["part"].tolist(), start, start[1:])}
         self._twins = {int(i): (t, s, {int(j): c for j, c in o.items()})
-                       for i, (t, s, o) in json.loads(str(d["twins"])).items()}
+                       for i, (t, s, o) in json.loads(bytes(d["twins"]).decode()).items()}
         return True
 
     def _build(self):
@@ -63,18 +66,15 @@ class Coverage:
             idx = np.flatnonzero(c > 0).astype(np.uint32)
             self.sparse[i] = (idx, np.rint(c.reshape(-1)[idx] * 255).astype(np.uint8))
         self._twins = self._find_twins()
-        arrays = {"twins": np.array(json.dumps(self._twins))}
-        for i, (idx, val) in self.sparse.items():
-            arrays[f"idx_{i}"] = idx
-            arrays[f"val_{i}"] = val
-        self.file.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.file.with_name(self.file.stem + ".tmp.npz")
-        np.savez_compressed(tmp, **arrays)
-        tmp.replace(self.file)
-        kin = [f for f in self.file.parent.glob(f"coverage_{self.set}_{self.w}x{self.h}_*.npz") if ".tmp" not in f.name]
-        kept = sorted(kin, key=lambda f: f.stat().st_mtime)
-        for old in kept[:-2]:
-            old.unlink(missing_ok=True)
+        sizes = [len(idx) for idx, _ in self.sparse.values()]
+        bake.save(self.folder, {"part": np.array(list(self.sparse), np.int32), "start": np.r_[0, np.cumsum(sizes)],
+                                "idx": np.concatenate([idx for idx, _ in self.sparse.values()]),
+                                "val": np.concatenate([val for _, val in self.sparse.values()]),
+                                "twins": np.frombuffer(json.dumps(self._twins).encode(), np.uint8)})
+        self._load()  # mapped from the disk, as the next paint reads it
+        kin = [f for f in self.folder.parent.glob(f"coverage_{self.set}_{self.w}x{self.h}_*") if f.is_dir() and "." not in f.name]
+        for old in sorted(kin, key=lambda f: f.stat().st_mtime)[:-2]:
+            shutil.rmtree(old, ignore_errors=True)
 
     def get(self, ids):
         """The parts' coverage added up and clipped to 1. Added, not the largest: where two

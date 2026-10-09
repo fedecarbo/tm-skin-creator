@@ -38,8 +38,9 @@ every run. Both sides share the work folder's caches, so a change to what a cach
 holds must change the cache's name or version, or the old side reads the new cache and agrees.
 
 --profile paints each skin once in a fresh process under cProfile: the time to paint and to encode, the functions
-that take it, the most memory the paint held and how often it waited for the disk (page-ins: swapping). The whole
-profile is kept in the work folder (selftest/profile/<name>.prof).
+that take it, the most memory of its own the paint held (its footprint: the caches mapped from the disk don't count)
+and how often it read from the disk (page-ins: the mapped caches the first time, or swapping; the swap before and
+after says which). The whole profile is kept in the work folder (selftest/profile/<name>.prof).
 """
 
 import argparse
@@ -69,7 +70,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 19580, "viewer/*.js": 4720}
+BUDGET = {"tool/*.py": 19660, "viewer/*.js": 4720}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -392,8 +393,9 @@ import cProfile, os, pstats
 
 
 def memory():
-    # the most memory this process has held (bytes), and how often it waited for the disk (None on Windows, which
-    # counts every fault)
+    # the most memory of its own this process has held (bytes: what makes a computer swap; the caches it maps from the
+    # disk, which the system drops for free, aren't counted), and how often it read from the disk (None on Windows,
+    # which counts every fault)
     if os.name == "nt":
         import ctypes
         from ctypes import wintypes
@@ -408,10 +410,15 @@ def memory():
         c.cb = ctypes.sizeof(c)
         if not k32.K32GetProcessMemoryInfo(k32.GetCurrentProcess(), ctypes.byref(c), c.cb):
             raise ctypes.WinError()
-        return c.peak, None
+        return c.n6, None  # PeakPagefileUsage: the most private memory
     import resource
     r = resource.getrusage(resource.RUSAGE_SELF)
-    return r.ru_maxrss * (1 if sys.platform == "darwin" else 1024), r.ru_majflt
+    if sys.platform != "darwin":
+        return r.ru_maxrss * 1024, r.ru_majflt
+    import ctypes
+    info = (ctypes.c_uint64 * 40)()  # proc_pid_rusage's rusage_info_v4: a 16-byte uuid, then 64-bit fields
+    ctypes.CDLL("/usr/lib/libSystem.B.dylib").proc_pid_rusage(os.getpid(), 4, ctypes.byref(info))
+    return info[2 + 28], r.ru_majflt  # ri_lifetime_max_phys_footprint
 
 
 name, out = sys.argv[1], sys.argv[2]
@@ -650,7 +657,8 @@ def _swap():
 
 
 def profile(names):
-    """One paint of each skin profiled: where its time goes, the most memory it held, how often it waited for the disk."""
+    """One paint of each skin profiled: where its time goes, the most memory of its own it held, how often it read from
+    the disk."""
     folder = HOME / "profile"
     folder.mkdir(parents=True, exist_ok=True)
     for name in names:
@@ -661,7 +669,7 @@ def profile(names):
             print(f"{name}: FAILED {failed['error']}")
             continue
         r = json.loads(out.with_suffix(".prof.json").read_text())
-        waits = "" if r["waits"] is None else f", waited for the disk {r['waits']} times"
+        waits = "" if r["waits"] is None else f", read from the disk {r['waits']} times (the mapped caches, or swap)"
         print(f"{name}: painted in {r['paint']:.0f} s, encoded in {r['encode']:.0f} s, profiled (slower than a plain paint); "
               f"held at most {r['peak'] / 2 ** 30:.1f} GB{waits}" + (f"; swap {before} before, {_swap()} after" if before else ""))
         print("  the most time spent in:")

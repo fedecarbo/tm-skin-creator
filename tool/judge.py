@@ -947,7 +947,7 @@ def _panels(car):
     of the body (not what lies under it). Kept in the work folder."""
     c = car.c
     cache = paths.CACHE / f"panels_Skin_{c.w}x{c.h}_v1.npz"
-    if cache.exists() and cache.stat().st_mtime > max(fbx.CACHE.stat().st_mtime, coverage.load(car.skin.parts, "Skin", c.w, c.h).file.stat().st_mtime):
+    if cache.exists() and cache.stat().st_mtime > max(fbx.CACHE.stat().st_mtime, coverage.load(car.skin.parts, "Skin", c.w, c.h).folder.stat().st_mtime):
         d = np.load(cache)
         return {part: (d[f"{part} on"], d[f"{part} near"]) for part in PANELS if f"{part} on" in d.files}
     out = {}

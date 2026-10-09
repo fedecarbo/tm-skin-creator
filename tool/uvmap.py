@@ -160,7 +160,7 @@ def uv_cm(texture_set, width, height):
     mesh_file = paths.CACHE / "mesh.npz"
     isl_file = paths.CACHE / f"uvislands_{texture_set}.npz"
     if cache.exists() and cache.stat().st_mtime > mesh_file.stat().st_mtime and isl_file.exists()             and cache.stat().st_mtime > isl_file.stat().st_mtime and "offset" in np.load(isl_file):
-        return np.load(cache)
+        return np.load(cache, mmap_mode="r").view(np.ndarray)  # read where a paint reads it
     label, density, angle = islands(texture_set)
     offset = np.load(paths.CACHE / f"uvislands_{texture_set}.npz")["offset"]
     b = bake.bake(texture_set, width, height)
