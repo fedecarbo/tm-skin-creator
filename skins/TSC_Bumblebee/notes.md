@@ -73,3 +73,5 @@ composition in three takes, then surfaces, details and art direction.
   try" evening it): the black's lit streaks halved, 8 to 4 cm, and their sheen weakened (roughness 0.85 to 0.93, the
   pressed coat 0.7 to 0.82). Closed: on the deck's slope and its top the nap reads alike, short and even; the close
   looks find nothing changed outside the edit.
+- Accepted again (user, 2026-10-09, in the chat, after change 2): "Sure. I would drive." Open (the PC): `tool.skin install
+  TSC_Bumblebee`.
