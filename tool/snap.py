@@ -10,7 +10,7 @@
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
     python -m tool.snap <name> --body   -> build/<name>_body.png: the body alone, no wheels, nine views
-    python -m tool.snap --page "lab.html?room=uv" [--size 1600x1000]
+    python -m tool.snap --page "?room=uv" [--size 1600x1000]
                                           -> build/lab_room_uv.png: any page of the viewer's, whole
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
                                              [--close-row <name> 2 5 9 [--close-row <other> 2 5 9]]
@@ -101,10 +101,10 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
 
 
 def page(path, size=(1600, 1000)):
-    """Any page of the viewer's, e.g. "lab.html?room=uv", photographed whole once it says it's
+    """The Lab's page, e.g. "?room=uv" ("" for the car), photographed whole once it says it's
     ready (window.lab), into build/<page>.png."""
     httpd = server.start(0)
-    out = paths.BUILD / (re.sub(r"[^\w-]+", "_", path.replace(".html", "")).strip("_") + ".png")
+    out = paths.BUILD / ((re.sub(r"[^\w-]+", "_", path).strip("_") or "lab") + ".png")
     try:
         with sync_playwright() as p:
             browser = paths.launch(p)
@@ -258,7 +258,7 @@ def main():
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
     ap.add_argument("--close-row", nargs="+", action="append", metavar="NAME N",
                     help="a skin, then numbers of its close looks, tool.close's (again for another skin)")
-    ap.add_argument("--page", metavar="PAGE", help='any page of the viewer\'s, whole, e.g. "lab.html" (no name)')
+    ap.add_argument("--page", metavar="PAGE", help='the Lab\'s page, whole, e.g. "?room=uv" or "" for the car (no name)')
     ap.add_argument("--before", nargs="?", const="views", choices=list(KINDS),
                     help="the tiles that changed since the sheet before, before beside after")
     args = ap.parse_args()

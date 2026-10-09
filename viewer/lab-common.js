@@ -1,6 +1,6 @@
 // What the Lab's rooms share: the page's elements, the skin in the address (?skin=, which the car
-// and the UV map room open) and the way back to the viewer, the car in each room (the viewer
-// itself, embedded), the skin Claude painted last, and a few words.
+// and the UV map room open), the page's own car (viewer.js's window.viewer) and the one the UV map
+// room embeds, the skin Claude painted last, and a few words.
 
 export const $ = (id) => document.getElementById(id);
 
@@ -22,7 +22,7 @@ export async function post(body) {
   }
 }
 
-// The banner when Claude's server is off (lab.html, #offline): a heartbeat asks the server every
+// The banner when Claude's server is off (index.html, #offline): a heartbeat asks the server every
 // 2 s (its /api/health); three misses in a row show it, one answer hides it. The rooms' own polls
 // handle their errors as they like. Claude starts the server back (tool/doctor.py).
 export const OFF = "Claude's server is off";
@@ -47,16 +47,26 @@ setInterval(heartbeat, 2000);
 // The skin the address names.
 export const wanted = () => new URLSearchParams(location.search).get('skin');
 
-// Put the skin in the address, and point the way back to the viewer at it.
+// Put the skin in the address.
 export function note(name) {
   const u = new URL(location.href);
   u.searchParams.set('skin', name);
   history.replaceState(null, '', u);
-  const back = document.getElementById('back');
-  if (back) back.href = `./index.html?skin=${encodeURIComponent(name)}`;
 }
 
-// The viewer in an iframe (index.html?embed=1, no skin: no car until its first dress), once it
+// The page's own car (viewer.js loads these modules once it's up): its window.viewer, or null if it failed.
+export function viewer() {
+  return new Promise((resolve) => {
+    const wait = setInterval(() => {
+      const v = window.viewer;
+      if (!(v && (v.ready || v.error))) return;
+      clearInterval(wait);
+      resolve(v.error ? null : v);
+    }, 50);
+  });
+}
+
+// The car in an iframe (index.html?embed=1, no skin: no car until its first dress), once it
 // says it's ready: its window.viewer, or null if it failed or said nothing within 20 s. Its credit
 // line goes into `credit`: the car model's licence asks for it.
 export function embedViewer(frame, credit) {

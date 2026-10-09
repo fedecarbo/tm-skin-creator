@@ -75,7 +75,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 20446, "viewer/*.js": 4720}
+BUDGET = {"tool/*.py": 20446, "viewer/*.js": 4655}
 SLACK = 100
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice

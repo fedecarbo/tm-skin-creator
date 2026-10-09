@@ -1,5 +1,5 @@
-// The Lab's car (the user's pick of the fresh layouts, A, 2026-09-28): the car being built fills the
-// page, turned by a drag, by day or night or from the game's own camera, with the user's notes hanging on it as tags (lab-tags.js). Click the car where you mean and
+// The Lab's car: the car being built fills the page (the viewer's own, index.html, with its views, moods and
+// buttons), with the user's notes hanging on it as tags (lab-tags.js). Click the car where you mean and
 // write what you want there, or draw on it with the pen (Draw: a strip where you'd want one, a ring
 // round something; the user's idea, 2026-10-05), a line or several: the note keeps the point, the
 // part under it, the lines drawn (in the paint box's cm, the car's own: tool/notes.py), the view (a
@@ -19,19 +19,19 @@
 // the skin it painted last. The page asks for both every 1.5 s: while Claude paints, the car shows
 // each step as it's done, and it follows Claude to the skin it paints unless a note is being written
 // or a tag is open. It says which skin it shows ('lab:stand') and what Claude is doing ('lab:status').
-// The car is the viewer itself (index.html?embed=1).
+// The car is the page's own (viewer.js's window.viewer), which also hears the user pick a skin in the list (onSkin).
 
-import { $, ago, embedViewer, every, followed, note, post, titleOf } from './lab-common.js';
+import { $, ago, every, followed, note, post, titleOf, viewer } from './lab-common.js';
 import { createTags } from './lab-tags.js';
 
 const POLL = 1500;
-let HINT = '';  // the hint over the car without the pen (lab.html's)
+let HINT = '';  // the hint over the car without the pen (index.html's)
 
 let skin = null;          // { name, title, entry: gallery.json's }: on the car
 let carName = null;       // the car (lab-car.js), when the car shows one of its options
 let optionName = (name) => name;  // an option's name as the list says it ("B · Magenta")
 let doc = null;           // steps.json: the frames of the last show, while it paints and after
-let stage = null;         // the viewer's window.viewer
+let stage = null;         // the page's window.viewer
 let stageLook = '';       // while Claude paints, the look of the step on the stage
 let turned = false;       // a car has been on the stage: the next keeps the camera and the mood (switching options)
 let following = null;     // studio.json's stamp when last read: a new one means Claude started a skin
@@ -62,23 +62,22 @@ const lookOf = (step) => {
 
 // ---- the stage: the car framed between the gutters where its tags hang ----
 
-// the gutters a fifth of the stage each, 200 to 300 px; none under 1000 px, where the tags are a list
-const gutter = () => (matchMedia('(max-width: 1000px)').matches ? 0
-  : Math.round(Math.min(300, Math.max(200, $('stStage').clientWidth * 0.2))));
-const box = () => ({ left: gutter(), right: gutter(), top: 56, bottom: 10 });  // the top: the buttons over the car
+// The overlay the tags hang in is the page short of the chat (index.html, #stOverlay); the gutters a fifth of it
+// each, 200 to 300 px. The box: between the gutters, under the skin's name, above the buttons (its top and
+// bottom crop the notes' pictures; the viewer frames the car between the name and the buttons itself).
+const gutter = () => Math.round(Math.min(300, Math.max(200, $('stOverlay').clientWidth * 0.2)));
+const nameBottom = () => Math.max(0, $('name').getBoundingClientRect().bottom);
+const dockTop = () => innerHeight - $('dock').getBoundingClientRect().top;
+const box = () => ({ left: gutter(), right: innerWidth - $('stOverlay').clientWidth + gutter(), top: nameBottom(), bottom: dockTop() });
+const clear = () => ({ top: nameBottom() + 12, foot: dockTop() + 12 });  // kept clear of the tags
 
 function framed() {  // the box the car frames itself in, after a resize
-  if (!$('stStage').clientWidth) return;
+  if (!$('stOverlay').clientWidth) return;
   if (stage) stage.inset(box());
   if (tags) tags.restack();
 }
 
 const lastFrame = () => doc && [...doc.steps].reverse().find((s) => s.textures);
-
-function moodShown(m) {
-  $('stand').classList.toggle('night', m === 'night');
-  for (const b of $('stMood').querySelectorAll('[data-mood]')) b.setAttribute('aria-pressed', String(b.dataset.mood === m));
-}
 
 async function loadNotes(force = false) {
   if (!skin) return;
@@ -164,7 +163,6 @@ export function look(x) {
   if (!x.view || !stage) return;
   const { mood, framing, ...view } = x.view;
   stage.mood(mood || 'day');
-  moodShown(mood || 'day');
   stage.go(view);
 }
 
@@ -357,7 +355,7 @@ async function notePicture(at, n) {
     const g = c.getContext('2d');
     g.drawImage(img, 0, 0);
     const b = box(), [p] = stage.project([at]);
-    const k = img.width / ($('stStage').clientWidth - b.left - b.right);
+    const k = img.width / (innerWidth - b.left - b.right);
     if (p.shown) {
       const x = (p.x - b.left) * k, y = (p.y - b.top) * k, r = 12 * k;
       g.beginPath();
@@ -420,13 +418,11 @@ async function apply(next) {
       const l = lookOf(step);
       await stage.show(l.view, l.night);
       stageLook = step.look || '';
-      moodShown(l.night ? 'night' : 'day');
     }
     return;
   }
   if ((!before && !turned) || (before && before.painting)) {  // the first car, or one just painted: from the front, by day
     await stage.show('front', false);
-    moodShown('day');
     stageLook = '';
   }
   turned = true;
@@ -450,17 +446,17 @@ async function openSkin(name) {
   doc = null; stageLook = '';
   notes = []; nextN = 1; writing = null;
   if (!stage) {
-    stage = await embedViewer($('stCar'), $('stCredit'));
+    stage = await viewer();
     if (stage) {
       stage.onPick = (id, hit) => (picks() ? pick(id, hit) : startNote(id, hit));
       stage.onStroke = drew;
+      stage.onSkin = show;
       stage.pen(pen && !meshOn);
       if (meshOn) stage.mesh(true);
-      $('stCar').contentWindow.addEventListener('keydown', keys);  // a click on the car gives it the keys
     }
     framed();
   }
-  if (!turned) moodShown('day');
+  if (stage) stage.shown(name);
   drawNotes();
   loadNotes(true);
   const first = await load(name);
@@ -521,14 +517,7 @@ let opened = false;
 export async function open() {
   if (opened) return;
   opened = true;
-  tags = createTags({ stage: $('stStage'), lines: $('stLines'), dots: $('stDots'), tags: $('stTags'), list: $('stList'), gutter, onOpen: goToNote });
-  for (const b of $('stMood').querySelectorAll('[data-mood]')) {
-    b.addEventListener('click', () => { if (stage) { stage.mood(b.dataset.mood); moodShown(b.dataset.mood); } });
-  }
-  $('stGame').addEventListener('click', () => {  // the game's own chase camera (the viewer's Cam 1, as you drive)
-    const cam = stage && stage.views()[0];
-    if (cam) stage.go(cam.view);
-  });
+  tags = createTags({ stage: $('stOverlay'), lines: $('stLines'), dots: $('stDots'), tags: $('stTags'), gutter, clear, onOpen: goToNote });
   HINT = $('stHint').textContent;
   $('stPen').addEventListener('click', () => setPen(!pen));
   $('stMesh').addEventListener('click', () => setMesh(!meshOn));
@@ -536,7 +525,8 @@ export async function open() {
   $('stPickUndo').addEventListener('click', undoPick);
   $('stPickDrop').addEventListener('click', dropPick);
   addEventListener('keydown', keys);
-  new ResizeObserver(framed).observe($('stStage'));
+  addEventListener('resize', framed);
+  for (const id of ['name', 'picks']) new ResizeObserver(framed).observe($(id));  // the name wraps; the chat's width follows the window
   const uv = await fetch('data/uvmap.json').then((r) => r.json()).catch(() => ({}));
   partInfo = new Map((uv.parts || []).map((p) => [p.id, p]));
   lift = (await fetch('data/car.json').then((r) => r.json()).catch(() => ({}))).lift_cm || 0;
@@ -544,11 +534,11 @@ export async function open() {
   following = now.stamp;
   let name = new URLSearchParams(location.search).get('skin') || now.skin;
   try { name ||= localStorage.getItem('tsc-viewer-skin'); } catch { /* no storage */ }
-  try {
-    if (name) await openSkin(name);
-    else live();
-  } finally {
-    $('stCover').classList.add('off');  // the car dressed, framed and turned (or failed): shown
+  if (!name) {  // none anywhere: the newest painted
+    const list = await fetch('data/gallery.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []);
+    name = (list.find((s) => s.viewable) || {}).name;
   }
+  if (name) await openSkin(name);
+  else live();
   every(POLL, poll);  // follows Claude's painting, from the first skin painted
 }

@@ -341,7 +341,7 @@ def server():
         time.sleep(0.5)
         h = _health()
         if h and h.get("ok"):
-            print(f"the Lab: http://localhost:{PORT}/lab.html (pid {h['pid']}; its log: {LOG})")
+            print(f"the Lab: http://localhost:{PORT}/ (pid {h['pid']}; its log: {LOG})")
             return
     sys.exit(f"the Lab's server hasn't answered after a minute: see {LOG}")
 

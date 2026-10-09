@@ -4,14 +4,14 @@
 // the car, and click to pick it; on the car, click a part to pick it; copy the line for Claude. A
 // day and night picker. It was four rooms, one per map, each with a camera on its area, until the
 // user found them not much help (2026-09-27).
-//   /lab.html?room=uv[&tab=car][&map=<set>][&part=<id>][&skin=<name>]
+//   /?room=uv[&tab=car][&map=<set>][&part=<id>][&skin=<name>]
 // Everything comes from the tool (tool/view.py, export_uvmap): uvmap.json (each map; each part in
 // words and numbers; the rooms, each with its parts and camera), <Set>_Parts.png (the part covering
 // each texel: R + 256 G = id + 1) and <Set>_Shared.png (texels several parts share). The skin is
-// the one in the address (the viewer's "The Lab" link), else the one Claude painted last
+// the one in the address, else the one Claude painted last
 // (studio.json), else the one the viewer showed last; as in the Studio, when Claude starts painting
 // another, the rooms follow it, and they show each step as it lands (steps.json).
-// The car is the viewer itself (?embed=1).
+// The car is the viewer embedded (?embed=1).
 // Show: the paint, or the template (tool/view.py, export_template): the model's mesh and its own lines, on the maps
 // and on the car, from the mesh alone (tool/meshlines.py, mesh and template): every edge of its triangles, coloured
 // where the body bends across it, outward or inward, its crisp lines and panel lines, where the body ends, where the
@@ -508,7 +508,7 @@ async function begin(helpers) {
     const [first] = await Promise.all([name ? readSkin(name) : null, embedCar()]);
     await wear(first);
   } finally {
-    $('prCover').classList.add('off');  // the car dressed: shown (lab.html, #stCover)
+    $('prCover').classList.add('off');  // the car dressed: shown
   }
   const frame = $('prMap');
   frame.addEventListener('pointermove', (e) => point(hit(e), e));

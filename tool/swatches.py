@@ -6,7 +6,7 @@
     python -m tool.swatches --no-tab   paint and serve, no tab opened (a restart after a server
                                        change, with the Lab already open)
 
-The Lab (viewer/lab.html) shows only what this writes, and this writes only what the tool has:
+The Lab (viewer/index.html) shows only what this writes, and this writes only what the tool has:
 each finish in tool/finishes.py, in `CATALOGUE` order, each photographed surface named in
 tool/textures.py that no finish uses yet, and each tread in tool/tyres.py's TREAD_LIBRARY (the
 user, 2026-09-27: "In the material library, can we add a tread library as well?"). So the Lab is the tool's own list: a finish added to
@@ -264,7 +264,7 @@ def main():
     view.export_mesh()  # the car, and the Lab's rooms' data (view.export_uvmap)
     if not args.no_open:
         from tool import server
-        server.serve("lab.html", "the Lab", open_tab=not args.no_tab)
+        server.serve("", "the Lab", open_tab=not args.no_tab)
 
 
 if __name__ == "__main__":

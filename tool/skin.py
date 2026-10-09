@@ -17,7 +17,7 @@ that finds another painting waits for it, and says so.
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),
 notes.md (the user's words and each change they asked for), thumb.png (the latest picture),
 versions/<n>.png (a picture of every round shown).
-show() also refreshes the gallery page's list (tool/gallery.py).
+show() also refreshes the Lab's list of skins (tool/gallery.py).
 """
 
 import argparse

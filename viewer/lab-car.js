@@ -1,5 +1,4 @@
-// The Lab's car room: the car fills it (lab-studio.js: the car and the user's notes on it), and beside
-// it "With Claude", the car's timeline (the user's pick of the timeline's mockups, A, 2026-09-28:
+// The Lab's chat: beside the car (lab-studio.js: the car and the user's notes on it), "With Claude", the car's timeline (the user's pick of the timeline's mockups, A, 2026-09-28:
 // https://claude.ai/artifact/6nKpAWW1VFPfbrAZTfVZWM). Like an AI
 // chat, newest at the bottom: the user's notes on the car and their words on the right, Claude's lines
 // on the left, each set of options Claude offers as Claude's (a click puts an option on the car, a Pick
@@ -12,14 +11,14 @@
 // channel (/api/notes, tool/notes.py) and reach Claude at once while it waits (tool.notes wait), else
 // with the user's next message. At its foot, what the tool is doing: a widget per job, its stage and
 // count, settling into a line when it ends (/api/progress, tool/progress.py; the user, 2026-10-04: "it
-// would be nice to have progress indicators when it's doing something"). Over the page: the car's name
-// (a menu of the cars, the materials, the UV map), whether it's in the game, and what Claude is doing. Everything comes from the tool:
+// would be nice to have progress indicators when it's doing something"). Under the car's name, what
+// Claude is doing. Everything comes from the tool:
 // /api/sets?skin=<name> (tool/view.py): the car the skin is, or is an option of, its sets
 // (skins/<car>/sets.json, tool/sets.py its only writer) and everything said about it (`said`:
 // tool/notes.py's timeline(), Claude's lines by `tool.notes say` and `done --say`); an option's picture
 // its gallery thumb, a decided set's the ones the pick kept (/sets/<car>/<n>/<letter>.png), a note's
 // the one taken when it was written (/notes/<file>).
-//   /lab.html?skin=<name>    the car <name> is or is an option of, <name> on the car
+//   /?skin=<name>    the car <name> is or is an option of, <name> on the car
 
 import { $, every, post } from './lab-common.js';
 
@@ -27,7 +26,6 @@ const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? 
 const POLL = 2000;
 const STUCK = 40;  // px from the bottom that still counts as at the bottom
 
-let lab = null;           // lab.js: open another room
 let stand = null;         // lab-studio.js
 let car = null;           // /api/sets: { car, title, skin, sets (newest first), said (in order) }
 let carSig = '';
@@ -59,14 +57,10 @@ const working = () => jobs.jobs.some((j) => j.state === 'running' && ours(j));
 const took = (s) => { s = Math.max(0, Math.round(s)); return s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`; };
 const running = (s) => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
-// ---- over the page: the car, in the game, Claude ----
+// ---- under the car's name: what Claude is doing ----
 
 function top() {
   if (!car) return;
-  $('carName').querySelector('span').textContent = car.title;
-  const e = gallery.get(car.car);
-  $('gameLabel').querySelector('span').textContent = e && e.installed
-    ? (e.installed_at ? `In the game since ${when(e.installed_at)}` : 'In the game') : 'Not in the game yet';
   const painting = status && status.painting;
   const open = waiting().some((s) => s.state === 'open');
   const busy = waiting().some((s) => s.state === 'painting');
@@ -76,25 +70,6 @@ function top() {
   $('statusLabel').querySelector('span').textContent = painting ? status.text
     : busy ? 'Claude is painting your options' : open ? 'Waiting for your pick' : asked ? 'Waiting for your answer'
       : (status && status.text) || '';
-}
-
-function menu() {  // the cars, newest first, then the other rooms
-  const list = $('carList');
-  list.replaceChildren();
-  const cars = [...gallery.values()].filter((e) => !optionOf(e.name) || e.name === (car && car.car))
-    .sort((a, b) => (b.made || 0) - (a.made || 0));
-  for (const e of cars) {
-    const b = el('button', null, e.title);
-    b.setAttribute('role', 'menuitem');
-    b.setAttribute('aria-current', String(car && e.name === car.car));
-    b.addEventListener('click', () => { closeMenu(); stand.show(e.name); });
-    list.append(b);
-  }
-}
-
-function closeMenu() {
-  $('carMenu').hidden = true;
-  $('carName').setAttribute('aria-expanded', 'false');
 }
 
 // ---- the option on the car, and what the box says it's about ----
@@ -535,14 +510,12 @@ async function refresh() {
     carSig = sig;
     car = got;
     stand.car(car.car, (n) => optionName(n) || n);
-    menu();
     draw();
   } catch { /* the server busy: the next poll */ }
 }
 
 let opened = false;
-export async function open(from) {
-  lab = from;
+export async function open() {
   if (opened) return refresh();
   opened = true;
   addEventListener('lab:stand', (e) => { onCar = e.detail; if (car) { onTheCar(); timeline(); } refresh(); });
@@ -555,15 +528,6 @@ export async function open(from) {
   $('saySend').addEventListener('click', say);
   $('sayText').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
   $('stBack').addEventListener('click', () => { if (car) stand.show(car.car); });
-  $('carName').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const open = $('carMenu').hidden;
-    $('carMenu').hidden = !open;
-    $('carName').setAttribute('aria-expanded', String(open));
-  });
-  addEventListener('click', (e) => { if (!$('carMenu').hidden && !$('carMenu').contains(e.target)) closeMenu(); });
-  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
-  for (const b of $('carMenu').querySelectorAll('[data-go]')) b.addEventListener('click', () => { closeMenu(); lab.room(b.dataset.go); });
   stand = await import('./lab-studio.js');
   await stand.open();
   await refresh();

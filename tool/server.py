@@ -1,6 +1,6 @@
-"""The viewer's web server: Python's own, on this computer only (ES modules don't load from file://).
+"""The Lab's web server: Python's own, on this computer only (ES modules don't load from file://).
 
-  /        the repo's viewer/ folder: the pages and three.js
+  /        the repo's viewer/ folder: the Lab's page (index.html, ?skin=<name>, ?room=materials|uv) and three.js
   /data/   the work folder's viewer/ folder: the car, the lighting, the skins (tool/view.py)
   /api/notes   the Lab's notes on the car (tool/notes.py)
   /api/sets    each car's sets of options and what was said about them (tool/sets.py)
@@ -129,6 +129,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
+            return
+        if url.path in ("/lab.html", "/gallery.html"):  # the page's earlier addresses, in links written before
+            self.send_response(301)
+            self.send_header("Location", "/" + (f"?{url.query}" if url.query else ""))
+            self.end_headers()
             return
         if url.path not in ("/api/notes", "/api/sets", "/api/progress", "/api/health", "/api/meshpath"):
             return super().do_GET()

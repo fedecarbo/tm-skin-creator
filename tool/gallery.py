@@ -1,11 +1,8 @@
-"""The page of all skins: one picture per skin, newest first, the installed ones marked.
+"""The list of skins, newest first, the installed ones marked: "My skins" on the Lab's page.
 
-    python -m tool.gallery          refresh the list, serve, open http://localhost:8765/gallery.html
-
-The page (viewer/gallery.html) reads /data/gallery.json, written here from skins/*/ and
-skins/installed.json, and shows each skin's thumb.png (copied to the work folder's viewer
-data). Clicking a picture opens the skin in the 3D viewer. The viewer's list of skins reads the
-same file.
+The page (viewer/index.html) reads /data/gallery.json, written here (refresh, which `tool.skin show`
+calls) from skins/*/ and skins/installed.json, and shows each skin's thumb.png (copied to the work
+folder's viewer data).
 
 Newest first means by when a skin was made: the commit that added its design.py, which every
 copy of the repo agrees on (a fresh clone gives every file the same modified time, so file times
@@ -81,13 +78,3 @@ def refresh():
     DATA.mkdir(parents=True, exist_ok=True)
     paths.write(DATA / "gallery.json", json.dumps(entries, indent=1))
     return entries
-
-
-def main():
-    from tool import server
-    refresh()
-    server.serve("gallery.html", "gallery")
-
-
-if __name__ == "__main__":
-    main()

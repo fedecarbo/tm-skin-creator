@@ -105,6 +105,9 @@ it.
   (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
 - **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
   on the stage until the first paint.
+- **The UV map room's Car tab is a second car** (2026-10-09, the one page): it embeds the viewer in an iframe
+  (`index.html?embed=1`) while the page's own car sits under the room. Idea: the tab shows the page's car,
+  framed in the room's stage (`viewer.inset`), and `embed` goes.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
   airbox: check them the first time a design paints them; 2026-10-07: the "antenna" is the probe under the nose,
   the "nose sensor" is hidden inside it, the "sidepod grille" is the backing of the visible "sidepod grille plate"), and the fasteners have none

@@ -10,7 +10,7 @@ carbon" tints the weave). A stated shine overrides the default ("scratched matte
     finishes.resolve("dark red carbon, glossy")
         -> (colour (r, g, b) or None, Finish with the look "carbon" and gloss shine, leftover words)
 
-The Lab (viewer/lab.html, tool/swatches.py) shows every finish here on a ball, grouped by
+The Lab (viewer/index.html, tool/swatches.py) shows every finish here on a ball, grouped by
 `CATALOGUE`, with its code and numbers, so the user sees what the tool can do. They copy a line
 like "ME-07 Gold (matte 28%, metal 100%, varnish 0%)" and paste it in the chat: the code is the
 finish, exactly (`get(code)`, or the code inside a phrase: "ME-07 matte").

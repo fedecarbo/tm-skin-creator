@@ -1,4 +1,4 @@
-"""The 3D viewer's data: prepares what the page in viewer/ loads (tool/server.py serves it).
+"""The 3D viewer's data: prepares what the Lab's page in viewer/ loads (tool/server.py serves it).
 
     python -m tool.view <name>                the skin as last shown (else its last build), serve, open
                                               the browser

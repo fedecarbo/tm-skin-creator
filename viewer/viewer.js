@@ -1,17 +1,17 @@
-// The skin viewer: the car in a photo studio, wearing one skin, by day or night.
-//   /?skin=<name>          the skin prepared by `python -m tool.view <name>`
+// The car in a photo studio, wearing one skin, by day or night: the Lab's page (index.html).
+//   /?skin=<name>          the Lab: this renderer with its own controls, and the Lab's modules over it
+//                          (lab.js, loaded once the car is up), which dress the car step by step as Claude
+//                          paints, hang notes on it and draw on it, through window.viewer: dress, shown,
+//                          show, go, mood, picture, onPick, onSkin, inset, track, project, camera, pen,
+//                          onStroke, drawings, mesh
 //   /?skin=<name>&snap=1   no controls on screen, for Claude's snapshots (tool/snap.py) and close looks
 //                          (tool/close.py: the texel pass, uvs)
-//   /?skin=<name>&embed=1  just the car, which another page lights, turns and takes parts off (the
-//                          Lab's UV map room, viewer/lab-rooms.js: show, hide, light, onPick)
-//                          or dresses step by step and hangs notes on (the Lab's stand,
-//                          viewer/lab-studio.js: dress, picture, onPick, inset, track, camera, go)
-//                          and lets the user draw on (pen, onStroke, drawings) and see the model's mesh
-//                          over the paint (mesh)
+//   /?embed=1              just the car, which the Lab's UV map room (viewer/lab-rooms.js) lights, turns
+//                          and takes parts off in an iframe: show, hide, light, lightSurface, onPick
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
-// gallery.json (tool/gallery.py), the list of skins down the left.
+// gallery.json (tool/gallery.py), the list of skins behind "My skins".
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -22,6 +22,7 @@ const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || '';
 const snap = params.has('snap');
 const embed = params.has('embed');
+const lab = !snap && !embed;  // the page itself, the Lab's modules over it
 document.body.classList.toggle('snap', snap || embed);
 const statusBox = document.getElementById('status');
 
@@ -306,13 +307,10 @@ const FRAMED = { zoom: 0.92, fill: 0.9, tall: 0.8, closer: 2.7, run: 1.55 };
 // A Driving camera: the car as big as on the game's screen, lifted clear of the pad (the game's
 // picture has the car's tail at 89 % of the height, where the pad sits).
 const GAME_FRAMED = { up: 0.12, zoom: 1 };
-function railWidth() {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rail')) || 0;
-}
 // Where the car is framed from: the pose the view last set puts the camera in (while it glides
 // there, the end of the glide), or where the user left it.
 let framedFrom = null;
-// The Lab's stand (embed) leaves the car a box between its tags and its strip: viewer.inset.
+// The Lab leaves the car a box between its tags and its chat (and, embedded, under its strip): viewer.inset.
 let embedBox = null;
 function frame(w, h, plain) {
   if (plain && !(embed && embedBox)) {
@@ -322,24 +320,25 @@ function frame(w, h, plain) {
     camera.updateProjectionMatrix();
     return;
   }
-  framedTo = framing(w, h, embed ? embedBox : null);
+  framedTo = framing(w, h, embedBox);
   if (!glide) showFraming(framedTo);
 }
 // The zoom, and the view offset (x, y) that moves the picture's centre, for a window w x h. box: the
-// space the Lab leaves the car ({ left, right, top, bottom } in pixels); else beside the list, between
-// the name and the buttons.
+// space the Lab leaves the car ({ left, right, top, bottom } in pixels: its sides; embedded, its top and
+// bottom too), the page's own between the name and the buttons.
 function framing(w, h, box = null) {
-  const left = box ? box.left : railWidth(), right = box ? box.right : 0;
+  const left = box ? box.left : 0, right = box ? box.right : 0;
+  const strip = embed && box;  // the box's top and bottom count only embedded: the page measures its own
   const pos = framedFrom?.pos || camera.position, target = framedFrom?.target || controls.target;
   const own = !camPicked && outline(pos, target), round = own && outline(pos, target, true);
   if (!own) {  // a Driving camera, or the car not loaded yet: fits across as on the game's 16:9
     const f = camPicked ? GAME_FRAMED : { up: 0.05, zoom: FRAMED.zoom };
-    const top = box ? box.top : 0, bottom = box ? box.bottom : 0, freeH = h - top - bottom;
+    const top = strip ? box.top : 0, bottom = strip ? box.bottom : 0, freeH = h - top - bottom;
     return { w, h, x: -(left - right) / 2, y: f.up * freeH - (top - bottom) / 2,
       zoom: f.zoom * Math.min(freeH / h, (w - left - right) / h / (camPicked ? 16 / 9 : 1.3)) };
   }
   let top, bottom;
-  if (box) [top, bottom] = [box.top, h - box.bottom];
+  if (strip) [top, bottom] = [box.top, h - box.bottom];
   else {
     const name = byId('name').getBoundingClientRect(), dock = byId('dock').getBoundingClientRect();
     [top, bottom] = [Math.max(0, name.bottom), dock.top];
@@ -649,7 +648,7 @@ function addParts(material, sharedMap, surface) {
   material.customProgramCacheKey = () => 'parts';
 }
 
-// ---- The model's mesh over the paint (the Lab's Mesh button, embed only; the user, 2026-10-06: "Is there anyway
+// ---- The model's mesh over the paint (the Lab's Mesh button; the user, 2026-10-06: "Is there anyway
 // that this mesh can be toggled on or off when viewing a car?"): the template's mesh and lines alone (tool/view.py,
 // export_template: template/<Set>_Mesh.png, its colour premultiplied), laid over the paint, lit with it. Its grey
 // turns light over dark paint, so the flat mesh shows on any colour.
@@ -1332,19 +1331,15 @@ function turbo() {
   pressed(byId('padTurbo'), true);
 }
 document.getElementById('padTurbo').addEventListener('click', turbo);
-// The pedal keys drive the viewer's own page only: embedded in the Lab nothing counts the turbo down
-// (stepDrive doesn't run there), so T left the car glowing for good (2026-09-27).
-if (!snap && !embed) {
-  addEventListener('keydown', (e) => { if (e.code === 'KeyT' && !e.repeat) turbo(); });
+// The pedal keys drive the page only (embedded, nothing counts the turbo down: stepDrive doesn't run
+// there, so T left the car glowing for good, 2026-09-27), and never while the user types to Claude.
+const typing = (e) => /^(INPUT|TEXTAREA)$/.test(e.target && e.target.tagName || '');
+if (lab) {
+  addEventListener('keydown', (e) => { if (e.code === 'KeyT' && !e.repeat && !typing(e)) turbo(); });
   const PEDAL_KEYS = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake' };
-  addEventListener('keydown', (e) => { if (PEDAL_KEYS[e.code] && !e.repeat) { hold(PEDAL_KEYS[e.code], true); e.preventDefault(); } });
+  addEventListener('keydown', (e) => { if (PEDAL_KEYS[e.code] && !e.repeat && !typing(e)) { hold(PEDAL_KEYS[e.code], true); e.preventDefault(); } });
   addEventListener('keyup', (e) => { if (PEDAL_KEYS[e.code]) hold(PEDAL_KEYS[e.code], false); });
   addEventListener('blur', () => { hold('gas', false); hold('brake', false); });
-}
-
-function partLabel(p) {
-  const tag = [p.end, p.side === 'centre' ? '' : p.side].filter(Boolean).join(' ');
-  return tag ? `${p.name} (${tag})` : p.name;
 }
 
 // The list: the car's groups (the game's maps: Body, Details, Tyres, Glass), their assemblies, then
@@ -1439,9 +1434,8 @@ function highlight(ids, row) {
   }
 }
 
-// Clicking the car names the part under the pointer.
+// A click on the car: the Lab pins a note to the point (onPick); the UV map room picks the part.
 const raycaster = new THREE.Raycaster();
-const tip = document.getElementById('tip');
 const partOfHit = (hit) => hit.object.geometry.getAttribute('part').getX(hit.face.a);
 // The car under a point of the page: { at, normal, part, distance } (metres; the surface's facing),
 // or null. Only the parts shown count.
@@ -1457,18 +1451,7 @@ canvas.addEventListener('pointerdown', (e) => { pressAt = [e.clientX, e.clientY]
 canvas.addEventListener('pointerup', (e) => {
   if (!pressAt || Math.hypot(e.clientX - pressAt[0], e.clientY - pressAt[1]) > 4 || !partsState.doc) return;
   const hit = carAt(e.clientX, e.clientY);
-  if (embed) {  // the page around it picks the part; the Studio pins a note to the point
-    if (hit && window.viewer.onPick) window.viewer.onPick(hit.part, { at: hit.at, normal: hit.normal });
-    return;
-  }
-  tip.textContent = '';
-  if (!hit) { highlight([]); return; }
-  const id = hit.part;
-  const p = partsState.doc.parts[id];
-  highlight([id]);
-  tip.textContent = `${partLabel(p)} · ${p.mesh}${p.shared > 0.5 ? ' · shared with its twin' : ''}`;
-  tip.style.left = `${Math.min(e.clientX + 14, innerWidth - 260)}px`;
-  tip.style.top = `${e.clientY + 14}px`;
+  if (hit && !snap && window.viewer.onPick) window.viewer.onPick(hit.part, { at: hit.at, normal: hit.normal });
 });
 
 // The Lab's pen (viewer.pen, the stand's Draw): a drag that starts on the car draws on it, one that
@@ -1559,7 +1542,7 @@ function penMove() {  // the moves since the last frame, a ray every PEN_PX pixe
   rouse();
 }
 
-if (embed) {  // on the window, ahead of the controls: a drag that starts on the car isn't theirs
+if (!snap) {  // on the window, ahead of the controls: a drag that starts on the car isn't theirs
   addEventListener('pointerdown', (e) => {
     if (!penOn || stroke || e.button !== 0 || e.target !== canvas || !partsState.doc) return;
     const hit = carAt(e.clientX, e.clientY);
@@ -1627,7 +1610,7 @@ function makeMaterials(tex) {
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name], surfaceState[name]);
-  if (embed) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
+  if (!snap) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
   if (snap) for (const name of ['Skin', 'Details', 'Wheels']) addUvPass(out[name], name);
   addPlate(skin);
   if (tex.Details_I) addDisplays(details);
@@ -1716,11 +1699,14 @@ async function loadSkin(name) {
   if (ticket !== loading) return;
   dressCar(geometries, tex);
   freeTexturesExcept(skin.textures);
-  skinName = name;
+  shown(name);
+}
+
+// The skin on the car: its name over it, its place in the list, and remembered for the next visit.
+function shown(name) {
+  skinName = wanted = name;
   showSkinName();
-  const lab = document.querySelector('#railFoot a[href*="lab.html"]');  // the Lab shows this skin's paint
-  if (lab) lab.href = `./lab.html?skin=${encodeURIComponent(name)}`;
-  if (!snap && !embed) try { localStorage.setItem('tsc-viewer-skin', name); } catch {}
+  if (lab) try { localStorage.setItem('tsc-viewer-skin', name); } catch {}
 }
 
 function markSkin(name) {
@@ -1731,10 +1717,10 @@ function markSkin(name) {
 
 function showSkinName() {
   const entry = gallery.find((s) => s.name === skinName);
-  const title = entry?.title || titleOf(skinName);
+  const title = entry?.title || titleOf(skinName) || 'The Lab';
   document.getElementById('title').textContent = title;
   document.getElementById('tag').hidden = !entry?.installed;
-  document.title = `${title} · Skin viewer`;
+  document.title = skinName ? `${title} · The Lab` : 'The Lab';
   markSkin(skinName);
   reframe();  // the name may take another line
 }
@@ -1770,6 +1756,7 @@ async function switchSkin(name) {
   p.set('skin', name);
   history.replaceState(null, '', `?${p}`);
   markSkin(name);
+  if (lab && window.viewer.onSkin) { window.viewer.onSkin(name); return; }  // the Lab dresses it, step by step
   const ticket = loading + 1;
   const slow = setTimeout(() => { if (loading === ticket) statusBox.textContent = `Loading ${titleOf(name)}…`; }, 250);
   try {
@@ -1831,7 +1818,7 @@ byId('togglePartsPanel').onclick = () => {
   panel.hidden = !panel.hidden;
   pressed(byId('togglePartsPanel'), !panel.hidden);
 };
-byId('showAll').onclick = () => { for (const r of partsState.rows) r.setVisible(true); highlight([]); tip.textContent = ''; };
+byId('showAll').onclick = () => { for (const r of partsState.rows) r.setVisible(true); highlight([]); };
 byId('show').onclick = (e) => {
   e.stopPropagation();
   const menu = byId('showMenu');
@@ -1876,7 +1863,6 @@ controls.addEventListener('start', () => {  // the user took the camera
 });
 byId('save').onclick = savePicture;
 byId('railToggle').onclick = () => document.body.classList.toggle('railOpen');
-matchMedia('(max-width: 1280px)').addEventListener('change', resize);  // the list folds (index.html)
 
 // ---- Start ----
 
@@ -1894,9 +1880,10 @@ Object.assign(window.viewer, {
   },
   async show(view, night = false, hidden = []) {  // night: true, false or a mood's name
     setMood(night);
-    if (embed) pickCam(view);
+    if (!snap) { pickCam(view); markView(typeof view === 'string' ? view : null); }
     setView(view);
     for (const [name, mesh] of Object.entries(parts)) mesh.visible = !hidden.includes(name);
+    for (const b of document.querySelectorAll('#showMenu [data-part]')) pressed(b, !hidden.includes(b.dataset.part));
     await frames(3);
   },
   // Parts settings: { colourBy, shared, hidden: [part names], only: [part names], highlight: [part names] }.
@@ -1936,9 +1923,13 @@ Object.assign(window.viewer, {
     if (s && id >= 0 && !s.map.value) s.map.value = await loadTexture(`${set}_Surfaces`, `${set}_Surfaces.png`);
   },
   onPick: null,
-  // The Lab's stand (viewer/lab-studio.js, ?embed=1), which draws its own tags over this page.
+  // The Lab's car (viewer/lab-studio.js), which draws its own tags over this page.
   // inset: the box the car is framed in, the rest of the page left to the tags ({ left, right, top,
   // bottom } in pixels, or null for the whole page).
+  // shown(name): the skin the Lab put on the car, named over it and marked in the list; onSkin(name):
+  // the user picked another in the list, for the Lab to dress.
+  shown,
+  onSkin: null,
   inset(box) {
     embedBox = box && { left: box.left || 0, right: box.right || 0, top: box.top || 0, bottom: box.bottom || 0 };
     resize();
@@ -1983,18 +1974,19 @@ Object.assign(window.viewer, {
   },
   go(view) {  // glide there; the game's cameras frame the car as the game does
     pickCam(view);
+    markView(typeof view === 'string' ? view : null);
     setView(view, true);
   },
   mood(m) { setMood(m); },  // day or night, the camera left where it is
   views() {  // the game's cameras, as the viewer's own buttons name them
     return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
   },
-  // The stock car, for a Lab with no skin to show (it builds the car only when it dresses it).
+  // The stock car, for the UV map room with no skin to show (it builds the car only when it dresses it).
   async stock() {
     const slots = await (await fetch('data/stock/stock.json')).json();
     await window.viewer.dress(Object.fromEntries(slots.filter((s) => s !== 'Skin_Coat').map((s) => [s, `stock/${s}.png`])));
   },
-  // The Lab's stand: dress the car in one step's textures ({slot: url}, as skin.json's).
+  // The Lab: dress the car in one step's textures ({slot: url}, as skin.json's).
   async dress(urls) {
     const ticket = ++loading;  // a later dress or skin wins, whichever finishes first
     const tex = await loadTextures(urls);
@@ -2041,7 +2033,7 @@ Object.assign(window.viewer, {
     return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
   },
 });
-if (embed) {  // whatever the Lab asks for is drawn, when it's asked and when it's done
+if (!snap) {  // whatever the Lab asks for is drawn, when it's asked and when it's done
   const reads = new Set(['project', 'camera', 'views', 'gpu']);
   for (const [k, f] of Object.entries(window.viewer)) {
     if (typeof f !== 'function' || reads.has(k)) continue;
@@ -2107,15 +2099,7 @@ function fail(err) {
 }
 
 async function start() {
-  if (!skinName && !embed) {  // none named: the one this browser showed last, else the newest painted
-    try { skinName = localStorage.getItem('tsc-viewer-skin') || ''; } catch { /* no storage */ }
-    if (!skinName) {
-      const list = await fetch('data/gallery.json').then((r) => (r.ok ? r.json() : [])).catch(() => []);
-      skinName = (list.find((s) => s.viewable) || {}).name || '';
-    }
-  }
-  document.getElementById('title').textContent = titleOf(skinName);
-  document.title = `${titleOf(skinName)} · Skin viewer`;
+  showSkinName();
   resize();
   setView('front');
   const [geoms, , doc] = await Promise.all([loadMeshes(), loadLighting(),
@@ -2131,12 +2115,11 @@ async function start() {
   setupAirbrakes(geoms);
   setupSpin();
   showAirbrakes(drive.airbrake);
-  // The Lab (embed, no skin) dresses the car itself, and its first dress builds it: no stock car
-  // loaded first and thrown away (a second or more of the Lab's load, 2026-09-28).
-  if (skinName && (!embed || params.has('skin'))) await loadSkin(skinName);
-  else if (!embed) await window.viewer.stock();  // no skin painted yet: the stock car
+  // The Lab (the page, and the UV map room's frame) dresses the car itself, and its first dress builds
+  // it: no stock car loaded first and thrown away (a second or more of the Lab's load, 2026-09-28).
+  if (snap) await loadSkin(skinName);
   setMood('day');
-  if (!snap && !embed) {  // on unless this browser turned it off last time
+  if (lab) {  // on unless this browser turned it off last time
     let on = true;
     try { on = localStorage.getItem('tsc-viewer-number') !== '0'; } catch {}
     setPlate(on);
@@ -2144,7 +2127,7 @@ async function start() {
   renderer.setAnimationLoop((now) => {
     const gliding = !!glide;
     stepGlide();
-    if (!snap && !embed && stepDrive(now)) rouse(1);
+    if (lab && stepDrive(now)) rouse(1);
     controls.update();
     let draw = true;
     if (!snap) {
@@ -2164,7 +2147,11 @@ async function start() {
   statusBox.textContent = '';
   window.viewer.ready = true;
   if (!snap) for (const id of Object.keys(LOOKS)) loadSky(id).catch((err) => console.error(err));
-  if (!snap && !embed) buildSkinList().catch((err) => console.error(err));
+  if (lab) {
+    buildSkinList().catch((err) => console.error(err));
+    // the Lab's modules: a failure past this point is theirs to say (tool/snap.py --page waits on window.lab)
+    import('./lab.js').catch((err) => { window.lab = { ready: false, error: String(err && err.stack || err) }; console.error(err); });
+  }
 }
 
 start().catch(fail);

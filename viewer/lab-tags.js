@@ -1,29 +1,27 @@
-// The stand's tags (viewer/lab-studio.js; the user's pick, B, 2026-09-27). Each tag hangs beside the car in one of two gutters, the car framed between them
+// The car's tags (viewer/lab-studio.js; the user's pick, B, 2026-09-27). Each tag hangs beside the car in one of two gutters, the car framed between them
 // (viewer.inset), and a line joins it to a dot on its point on the car. The viewer reports where the
 // points are at the end of every frame it moves them (viewer.track), and the dots and lines are drawn
 // from that in the same frame. The tags themselves stay put while the car turns, and settle into
 // order (by their points' heights, each on its point's side) once it stops. One tag is open at a
-// time; the others are one-line chips. Under 1000 px wide there are no gutters: the tags are a list
-// under the car, and the dots stay on it.
+// time; the others are one-line chips.
 //
-//   const t = createTags({ stage, lines, dots, tags, list, gutter, onOpen });
+//   const t = createTags({ stage, lines, dots, tags, gutter, clear, onOpen });
 //   t.set([{ key, dot, dotClass, sig, render(el, open), open? }])   what hangs on the car
 //   viewer.track(points, t.place)                                   where their points are
 //   t.close()                                                       the open one shut (one at a time)
+// stage: the overlay the tags hang in; gutter(): its width; clear(): { top, foot }, px kept clear of
+// the tags at its top (the skin's name) and bottom (the buttons under the car).
 
 const SVG = 'http://www.w3.org/2000/svg';
 const SETTLE = 160;  // ms without a move before the tags re-order
 const SWAP = 48;     // px a point must cross past the middle before its tag changes side
 const GAP = 8;       // px between two tags
-const TOP = 12, FOOT = 40;  // px kept clear above the tags and under them (the credit)
-const narrowQuery = matchMedia('(max-width: 1000px)');
 
-export function createTags({ stage, lines, dots, tags, list, gutter, onOpen }) {
+export function createTags({ stage, lines, dots, tags, gutter, clear, onOpen }) {
   const items = new Map();  // key -> { key, entry, tag, dot, line, side, top, drawn }
   const where = new Map();  // key -> { x, y, shown, away }, the viewer's last word
   let openKey = null;
   let timer = null;
-  let narrow = narrowQuery.matches;
 
   function draw(it) {
     const open = it.key === openKey;
@@ -67,7 +65,7 @@ export function createTags({ stage, lines, dots, tags, list, gutter, onOpen }) {
       it.dot.className = `pinDot tagDot ${e.dotClass || ''}`;
       it.dot.textContent = e.dot;
       it.dot.title = e.title || '';
-      (narrow ? list : tags).append(it.tag);
+      tags.append(it.tag);
       draw(it);
     }
     restack();
@@ -105,7 +103,7 @@ export function createTags({ stage, lines, dots, tags, list, gutter, onOpen }) {
     const w = stage.clientWidth, g = gutter();
     for (const it of items.values()) {
       const p = where.get(it.key);
-      const on = !narrow && p && p.shown && it.top !== null;
+      const on = p && p.shown && it.top !== null;
       it.line.style.display = on ? '' : 'none';
       if (!on) continue;
       const x2 = it.side === 'left' ? g - 6 : w - g + 6;
@@ -117,8 +115,8 @@ export function createTags({ stage, lines, dots, tags, list, gutter, onOpen }) {
 
   // Each tag on its point's side, in order of its point's height, clear of the others.
   function restack() {
-    if (narrow) { drawLines(); return; }
     const w = stage.clientWidth, h = stage.clientHeight, g = gutter(), mid = w / 2;
+    const { top: TOP, foot: FOOT } = clear();
     const sides = { left: [], right: [] };
     for (const it of items.values()) {
       const p = where.get(it.key);
@@ -152,12 +150,6 @@ export function createTags({ stage, lines, dots, tags, list, gutter, onOpen }) {
     }
     drawLines();
   }
-
-  narrowQuery.addEventListener('change', () => {
-    narrow = narrowQuery.matches;
-    for (const it of items.values()) (narrow ? list : tags).append(it.tag);
-    restack();
-  });
 
   return { set, place, close, restack, get openKey() { return openKey; } };
 }

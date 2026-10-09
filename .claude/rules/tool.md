@@ -26,10 +26,10 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   `--profile` says where one paint's time and memory go.
 - A cache whose contents change must change its name or version (`coverage._key`,
   `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
-- Claude's snapshots must not change with a change made for the Lab (the embedded viewer's
-  features are `embed`-only). Every page draws only when something changed
-  (`rouse` in `viewer/viewer.js`): anything new that changes the picture on its own must call it.
-  Snapshots (`?snap=1`) draw every frame and load every mood first.
+- Claude's snapshots must not change with a change made for the Lab (snapshots, `?snap=1`, never
+  load the Lab's modules, and the viewer's own Lab features are off under `snap`). The page draws
+  only when something changed (`rouse` in `viewer/viewer.js`): anything new that changes the
+  picture on its own must call it. Snapshots draw every frame and load every mood first.
 
 ## Commands for the machinery
 
@@ -55,30 +55,33 @@ graphics chip's, the Mac only).
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in
   the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in the
-  background. `tool/server.py` is the server: the pages, the work folder's data, and the Lab's
+  background. `tool/server.py` is the server: the page, the work folder's data, and the Lab's
   `/api/notes`, `/api/sets` and `/api/progress` (what the tool is doing,
   `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
   computer's pages only.
-- The Lab (`viewer/lab.html`, http://localhost:8765/lab.html): `PY -m tool.swatches` paints a ball
-  for every finish in `finishes.CATALOGUE` and serves it; `PY -m tool.doctor server` starts it
-  detached (a background task is stopped at its time limit, and the Lab with it) and restarts it
-  after a change to the tool; the session-start hook (`PY -m tool.doctor session`) does the same when
-  the server's code is older than the tool's (`/api/health`), prunes the work folder of skins that
-  no longer exist, and keeps the server's output in the work folder's server.log. A gap in the Lab
-  is a gap in the tool, to fix in the tool. Its rooms share `viewer/lab-common.js`:
+- The Lab is the one page (`viewer/index.html`, http://localhost:8765/): the car in its studio
+  (`viewer/viewer.js`: the views and the game's cameras, the moods, Show, Parts, the pedals, "My skins"
+  behind its button), and over it the Lab's modules, loaded once the car is up. `PY -m tool.swatches`
+  paints a ball for every finish in `finishes.CATALOGUE` and serves the page; `PY -m tool.doctor server`
+  starts it detached (a background task is stopped at its time limit, and the Lab with it) and
+  restarts it after a change to the tool; the session-start hook (`PY -m tool.doctor session`) does
+  the same when the server's code is older than the tool's (`/api/health`), prunes the work folder of
+  skins that no longer exist, and keeps the server's output in the work folder's server.log. A gap in
+  the Lab is a gap in the tool, to fix in the tool. Its modules share `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
-    (`lab-car.js`); its Mesh button lays the template's mesh over the paint (`viewer.mesh`, embed only;
+    (`lab-car.js`); Mesh lays the template's mesh over the paint (`viewer.mesh`;
     `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
     (`/api/meshpath`, `meshlines.path`; the note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
-    (`view.export_steps`, `studio.json`; `install` paints without them), and drives the embedded
-    viewer (`index.html?embed=1`, no car until its first `dress` or `stock()`) through
-    `window.viewer`: `inset`, `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`, and the
-    pen: `pen`, `onStroke`, `drawings`.
-  - the UV map room (`lab.html?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
+    (`view.export_steps`, `studio.json`; `install` paints without them), and drives the page's own
+    car (no car until its first `dress`) through `window.viewer`: `dress`, `shown`, `onSkin`, `inset`,
+    `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`, and the pen: `pen`, `onStroke`,
+    `drawings`.
+  - the UV map room (`?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
     in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
     their code change; its Template (`view.export_template`, the model's own lines from
     `meshlines.template`) on the maps and on the car, rebuilt when the mesh or `meshlines.py` change.
-  - the materials (`lab.js`; the balls by `balls.js`).
+    Its Car tab embeds the viewer (`index.html?embed=1`), a second car.
+  - the materials (`?room=materials`, `lab.js`; the balls by `balls.js`).
   - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
     writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)
     or at once through `tool.notes wait` in the background. The hook runs `notes.py` as a script,
@@ -98,7 +101,7 @@ graphics chip's, the Mac only).
   checked in `notes.add` against its question. The timeline redraws whole on every change, so
   `lab-car.js` keeps a widget's typed words and ticks by widget (`drafts`, `chosen`) and gives the
   focus back.
-- `PY -m tool.snap --page "<page>"` photographs any page of the viewer's whole, e.g. a Lab room.
+- `PY -m tool.snap --page "<query>"` photographs the Lab's page whole, e.g. a room (`"?room=uv"`).
 - The close looks (`tool/close.py`, its docstring is the key) read what show keeps (`judge.save`: `graphics.json`,
   every graphic's stations or middle; `owner.npy`, whose paint each texel holds) through the viewer's texel pass
   (`viewer.uvs`, snapshots only: which texel each pixel shows, never a blend).

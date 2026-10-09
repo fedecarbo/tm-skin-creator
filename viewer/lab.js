@@ -1,12 +1,12 @@
-// The Lab: its rooms, and the materials room: every finish the tool knows (tool/swatches.py writes
-// the list and each ball's textures from tool/finishes.py), drawn on a ball with the viewer's
-// lighting, with its code and numbers and a line to copy for Claude.
-//   /lab.html                 the car's room: the skin Claude painted last on the car (lab-studio.js),
-//                             the list of options beside it (lab-car.js)
-//   /lab.html?room=materials  the materials room, the first family
-//   /lab.html?m=<slug>        that material picked (e.g. ?m=gold)
-//   /lab.html?room=uv         the UV map room (lab-rooms.js, from tool/rooms.py): the game's four
-//                             flat maps; &tab=car for the car
+// The Lab's modules, loaded by the page's own car once it's up (viewer.js): its rooms, and the materials
+// room: every finish the tool knows (tool/swatches.py writes the list and each ball's textures from
+// tool/finishes.py), drawn on a ball with the viewer's lighting, with its code and numbers and a line to
+// copy for Claude.
+//   /                  the car: the skin Claude painted last (lab-studio.js), the chat beside it (lab-car.js)
+//   /?room=materials   the materials room, the first family
+//   /?m=<slug>         that material picked (e.g. ?m=gold)
+//   /?room=uv          the UV map room (lab-rooms.js, from tool/rooms.py): the game's four flat maps;
+//                      &tab=car for the car
 // Data: /data/materials/materials.json and /data/materials/<slug>/{B,RM,Coat}.png. A tread (the
 // Treads family, shape "tyre") goes on the car's own tyre instead of a ball: tyre.json's
 // cross-section on a lathe, with {B,RM,N,AO}.png (tool/swatches.py: write_tread).
@@ -178,13 +178,6 @@ async function copy(m, button) {
 }
 $('copy').addEventListener('click', (e) => picked && copy(picked, e.currentTarget));
 
-// Back to the viewer on the skin it came from, if it came from the viewer.
-if (params.get('skin')) $('back').href = `./index.html?skin=${encodeURIComponent(params.get('skin'))}`;
-try {
-  const from = document.referrer && new URL(document.referrer);
-  if (from && from.origin === location.origin && /\/(index\.html)?$/.test(from.pathname)) $('back').href = from.pathname + from.search;
-} catch { /* no referrer */ }
-
 // ---- start ----
 
 async function start() {
@@ -192,7 +185,7 @@ async function start() {
   if (!res.ok) throw new Error('The materials aren\'t painted on this computer yet: ask Claude to start the Lab\'s server (PY -m tool.doctor server paints them first).');
   items = await res.json();
   families = familiesOf(items);
-  $('count').textContent = items.length;
+  $('materialCount').textContent = items.length;
   await daySky([shelf, big]);
   $('status').textContent = '';
   const want = items.find((m) => m.slug === params.get('m')) || items[0];
@@ -221,9 +214,7 @@ const begun = {};
 function openRoom(name) {
   for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
   $('roomPaint').hidden = !painting.has(name);
-  // the car's room has its own header (the car's name and its menu); the others a way back to it
-  $('labTop').classList.toggle('inRoom', name !== 'studio');
-  $('rooms').hidden = name === 'studio';
+  $('labTop').hidden = name === 'studio';  // the rooms' header: the way between them, and back to the car
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);
   if (name === 'studio') u.searchParams.delete('room');
@@ -232,11 +223,11 @@ function openRoom(name) {
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
-  // the car's room: the car (lab-studio.js) and the list beside it (lab-car.js)
-  if (name === 'studio') import('./lab-car.js').then((room) => room.open({ room: openRoom })).catch(failed);
+  // the car: the car itself (lab-studio.js) and the chat beside it (lab-car.js)
+  if (name === 'studio') import('./lab-car.js').then((room) => room.open()).catch(failed);
 }
 
-async function rooms() {
+async function rooms() {  // the rooms' header, and the way to them at the foot of the skin list
   const list = await (await import('./lab-rooms.js')).list();
   const materials = document.querySelector('#rooms [data-room="materials"]');
   for (const r of list) {
@@ -250,6 +241,11 @@ async function rooms() {
     materials.before(b);
   }
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.addEventListener('click', () => openRoom(b.dataset.room));
+  for (const b of document.querySelectorAll('#rooms [data-room]:not([data-room="studio"])')) {
+    const foot = Object.assign(document.createElement('button'), { textContent: b.textContent.trim() });
+    foot.addEventListener('click', () => { document.body.classList.remove('railOpen'); openRoom(b.dataset.room); });
+    $('railFoot').append(foot);
+  }
   const want = params.get('room');
   openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
 }
