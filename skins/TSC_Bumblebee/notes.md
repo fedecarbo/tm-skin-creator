@@ -44,3 +44,10 @@ composition in three takes, then surfaces, details and art direction.
   hairs and clumps over the fur's teeth, the strip along each edge painted again with its nap and pressed coat);
   the legs' glint was already there. The judge blocks nothing; its notes are the fur crossing the car's lines on
   purpose and the dust lying where the body ends.
+- Art direction (2026-10-09, a fresh agent that made none of it): far and at the chase camera the car is a bee and one
+  idea; the composition, the colours, the legs and the edges at 2 m are right. To fix: (1) the pollen traces the cockpit
+  surround's groove and the sidepods' top grooves as dotted lines (an outline, a stripe: on the never list); (2) on the
+  lower black it reads as mud, a flat stipple with an abrupt start, and it vanishes on the yellow; (3) close up every
+  edge is a saw of 1 cm teeth, nothing crossing into the other colour; (4) on the flanks and the diffuser strip the
+  clumps stretch 4 to 6 cm, claw marks; (5) the black fur reads as flat paint, the nap shows only on the yellow; (6) the
+  glass reads black, not smoky amber. Next: a fresh agent fixes the list, then the art director looks once more.
