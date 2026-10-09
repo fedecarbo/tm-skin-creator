@@ -57,7 +57,7 @@ def walkway(inset, width, corner=2.5):
     """A walkway's outline on each sidepod's top, where the crew steps to climb in, as on a jet's wing root:
     its long sides beside the sidepod top's inner edge (one of the model's lines), `inset` and `inset + width` cm
     from it, from where the edge runs straight back (z +7) to where it turns (z -39); its ends joined across."""
-    edge = meshlines.line((56, 63, -20)).between((54.9, 61.4, 6.9), (55.9, 62.8, -39.0))
+    edge = meshlines.line("body shell edge 1").between((54.9, 61.4, 6.9), (55.9, 62.8, -39.0))
     a, b = edge.offset(inset), edge.offset(inset + width)
     pts = np.vstack([a.pts, b.pts[::-1]])
     return course.Course(pts, "the walkway", closed=True).rounded(corner).mirrored()
@@ -126,10 +126,10 @@ def from_above(points, side=None, facing_up=0.3, above=0.0, soft=shapes.SOFT):
 def antiglare():
     """The top of the nose ahead of the cockpit: from the cockpit surround's front (one of the model's lines) to
     z +114, clear of the nose fin's plate, between the nose's rolled edges (the line facing 17 degrees)."""
-    groove = meshlines.line((23, 77, 33))
+    groove = meshlines.line("body shell seam 1")
     front = groove.pts[(groove.pts[:, 2] > 84.5)]
     front = front[np.argsort(np.arctan2(front[:, 0], front[:, 2] - 70))]  # round the front, right to left
-    roll = meshlines.line((18, 65, 108), kind="rounded").pts
+    roll = meshlines.line("body shell roll 6").pts
     roll = roll[(roll[:, 2] > 89) & (roll[:, 2] < 115)]
     roll = roll[np.argsort(roll[:, 2])]
     left = [(x, z) for x, _, z in roll]
@@ -178,7 +178,7 @@ def band_edge():
     """The squadron band's lower edge, one smooth line from the tail to the intake: along the line where the rear
     flank's shoulder turns down (one of the model's lines), then on at the same height along the sidepod's shoulder,
     across the seam (the sidepod top is sewn on), to the intake's frame."""
-    turn = meshlines.line((66, 55, -85), kind="rounded")
+    turn = meshlines.line("rear flank roll 2", tilt=85)
     P = turn.pts if turn.pts[0, 2] < turn.pts[-1, 2] else turn.pts[::-1]  # from the tail forward
     rear = [tuple(P[i]) for i in np.linspace(0, len(P) - 1, 9).astype(int)]
     pod = [(86.5, 52.6, -40.0), (86.8, 52.5, -30.0), (86.8, 52.4, -20.0), (86.4, 52.3, -10.0)]
@@ -189,15 +189,15 @@ def band():
     """The squadron band: on the rear flank from the line along its top down to the band's edge; on the sidepod from
     a line beside the walkway (one with the rear flank's top line where they meet) down to the same edge, ending at
     the intake's frame."""
-    flank = meshlines.panel((67, 41, -80), both=True)
-    pod = meshlines.panel((76, 60, -25), both=True)
-    inner = meshlines.line((56, 63, -20)).between((56.0, 61.9, -6.8), (55.9, 62.9, -44.0))
+    flank = meshlines.panel("rear flank panel 1", both=True)
+    pod = meshlines.panel("sidepod top panel 1", both=True)
+    inner = meshlines.line("body shell edge 1").between((56.0, 61.9, -6.8), (55.9, 62.9, -44.0))
     top = inner.offset(21.5).extended(start=6, end=6).mirrored()  # the walkway's outer line is 19 cm out
     out = shapes.field(lambda p, n: np.abs(p[:, 0]) - 77.4)
     over = shapes.field(lambda p, n: p[:, 1] - np.where(p[:, 2] < -46.1, 56.7 - 0.0534 * (p[:, 2] + 123.9), 52.55))
     edge = band_edge()
     under_gold = shapes.field(lambda p, n: p[:, 1] - 52.1)  # on the sidepod the band never shows below its pinstripe
-    return (flank | (pod & top.inked_edge(out) & under_gold)) & edge.inked_edge(over), edge.inked(1.0) & (flank | pod)
+    return (flank | (pod & top.inked_edge(out) & under_gold)) & edge.inked_edge(over), edge.strip(1.0) & (flank | pod)
 
 
 def grime(seed=7):
@@ -222,8 +222,8 @@ def design(s):
     s.step("Gull grey over white", "The body in light gull grey, semi-gloss; the side skirts, the car's belly, in "
            "gloss white, filled to the model's own lines.", words="hangar; light gull grey over gloss white")
     s.paint("body", "semi-gloss", colour=GULL)
-    belly = (meshlines.panel((42, 19, 63), both=True) | meshlines.panel((13, 20, 183), both=True)
-             | meshlines.panel((2, 18, -130)))
+    belly = (meshlines.panel("side skirt panel 1", both=True) | meshlines.panel("wing pylon panel 1", both=True)
+             | meshlines.panel("diffuser panel 1"))
     s.paint("body", "gloss", colour=WHITE, zone=belly)
 
     s.step("Touch-up panels", "A few whole panels in a fresher touch-up grey, satin against the old semi-gloss, one "
@@ -231,7 +231,7 @@ def design(s):
            "badge put back on after).",
            words="Touch-up panels: corrosion touch-ups in a fresher grey on a few whole panels, one side more than the "
                  "other: tone on tone, never flat")
-    touched = meshlines.panel((-76, 60, -25)) | meshlines.panel((-25, 80, 11)) | meshlines.panel((35, 73, -64))
+    touched = meshlines.panel("sidepod top panel 1", side="right") | meshlines.panel("cockpit surround panel 1") | meshlines.panel("rear quarter panel panel 1")
     s.paint("body", "satin", colour=TOUCHUP, zone=touched)
 
     s.step("The wheel wells and the gear", "The inner car gloss white, as a navy jet's wheel wells and gear legs are; "
@@ -251,7 +251,7 @@ def design(s):
 
     s.step("The intakes' red lips", "A red band round each sidepod's inlet, along where the body ends round it.",
            words="red danger edges round the intakes")
-    lip = meshlines.line((75, 49, -45)).mirrored()
+    lip = meshlines.line("sidepod inlet edge 1").mirrored()
     s.paint("body", "gloss", colour=RED, zone=lip.strip(5))
 
     s.step("The intakes' chevrons", "A pair of red chevrons behind each intake, pointing into it: its danger "
@@ -289,7 +289,7 @@ def design(s):
                  "radar bay's access door")
     s.paint(["nose tip", "nose panel"], "matte", colour=RADOME)
     s.paint("body", "matte", colour=RADOME, zone=antiglare())
-    strip = meshlines.line((30, 50, 117)).between((31.6, 51.0, 104.0), (28.5, 48.7, 124.0)).offset(3.25).mirrored()
+    strip = meshlines.line("body shell crease 3").between((31.6, 51.0, 104.0), (28.5, 48.7, 124.0)).offset(3.25).mirrored()
     s.paint("body", "matte", colour=FORMATION, zone=strip.strip(2.5))
     s.paint(["antenna", "nose sensor"], "polished aluminium")  # the probe pointing forward under the nose's tip
     s.paint("antenna", "gloss", colour=RED, zone=shapes.front_of(204.0))
@@ -360,9 +360,9 @@ def design(s):
            "each walkway, DANGER under each intake's chevrons, RESCUE by each rescue arrow.",
            words="Sure (to small words): NO STEP just outside the walkway; DANGER beside the intake's chevrons; RESCUE "
                  "beside the rescue arrow")
-    s.text("NO STEP", "sidepod top", colour=BLACK, font="black ops", height=2, at=(67, 62.6, -44.5), up=(0, 0, 1))
-    s.text("DANGER", "sidepod top", colour=RED, font="black ops", height=2.5, at=(87, 36, -18))
-    s.text("RESCUE", "cockpit surround", colour=RED, font="black ops", height=2, at=(32, 77, -14))
+    s.decal("NO STEP", "sidepod top", colour=BLACK, font="black ops", height=2, at=(67, 62.6, -44.5), up=(0, 0, 1))
+    s.decal("DANGER", "sidepod top", colour=RED, font="black ops", height=2.5, at=(87, 36, -18))
+    s.decal("RESCUE", "cockpit surround", colour=RED, font="black ops", height=2, at=(32, 77, -14))
 
     s.step("Carrier grime", "Salt and hydraulic grime, a trace on top, heavier low down and behind each wheel, "
            "streaked back along the car.", words="Carrier grime: salt and hydraulic grime, faint on top, heavier low "

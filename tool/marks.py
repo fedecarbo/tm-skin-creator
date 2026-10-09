@@ -5,10 +5,10 @@ place".
     s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)     # each side, its roomiest spot
     spot = s.mark("body shell", "racing red", marks.star(5), size=16, at=(0, None, 117))
     s.mark("body shell", "gloss white", marks.disc(), size=0.4 * spot.size, at=spot.centre)
-    s.text("7", spot, colour="black", height=0.3 * spot.size)      # on the star, upright as it is
+    s.decal("7", spot, colour="black", height=0.3 * spot.size)     # on the star, upright as it is
     s.mark("body", "gloss black", marks.box(0.25), size=40, at=(0, None, 100), across=True)
-    s.text("27", "rear flank", colour="black", height=20)                 # words, laid the same way
-    s.placard("NO STEP", "body shell", at=(63, None, -68), height=2.6)   # words in a thin box
+    s.decal("27", "rear flank", colour="black", height=20)                # words, laid the same way
+    s.decal("NO STEP", "body shell", box=True, at=(63, None, -68), height=2.6)   # words in a thin box
     s.decal(s.art("tiger"), "rear flank", width=30)                       # a picture
 
 The shapes, each one unit wide and scaled by the mark's `size` (its width in cm):

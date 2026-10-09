@@ -11,6 +11,7 @@ mark landed, what it refused and any accident it found.
 import numpy as np
 
 MOST = 4  # parts named in a line before "and n more"
+SAMPLE = 400_000  # texels a big paint's area is read from
 
 
 class Receipt:
@@ -77,14 +78,18 @@ class Receipt:
 
 def areas(canvas, parts, texels):
     """What texels hold on a canvas: (the part names reached, the cm² on each), by the part that covers each texel
-    most and the texel's size on the car, from its flat piece's density (tool/uvmap.py)."""
+    most and the texel's size on the car, from its flat piece's density (tool/uvmap.py). A big paint is read at every
+    k-th texel (SAMPLE of them at least): within a per cent, for a tenth of the time."""
     if not len(texels):
         return [], []
+    step = max(1, len(texels) // SAMPLE)
+    if step > 1:
+        texels = texels[::step]
     owner = canvas.owners[texels]
     on = owner >= 0
     if not on.any():
         return [], []
-    cm2 = np.bincount(owner[on], weights=canvas.texel_area[texels[on]], minlength=len(parts.instances))
+    cm2 = np.bincount(owner[on], weights=canvas.texel_area[texels[on]], minlength=len(parts.instances)) * step
     ids = np.flatnonzero(cm2 > 0)
     by_name = {}
     for i in ids:

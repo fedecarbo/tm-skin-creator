@@ -4,8 +4,7 @@ game's normal map (Details_N). The body gets no normal map in the game, so it ta
     s.relief("seat", "quilted", depth=0.5, scale=7)                  diamond quilting
     s.relief("sidepod frame", "rivets", spacing=4, inset=1.0)        rivets along its edges
     s.relief("floor plank", "ribs", scale=2.5, direction="z")        raised ribs across it
-    s.emboss("CMYK", "tail frame|centre", at=(0, 32, -171), right=(-1, 0, 0), up=(0, 1, 0),
-             height=3.5, depth=0.12)                                 raised lettering
+    s.decal("CMYK", "tail frame|centre", at=(0, 32, -171), depth=0.12, height=3.5)   raised lettering
 
 A height is a function h(pos, nrm) -> cm, drawn on each part's own positions (a local bake, so a
 shared texel gets the part's own shape). Its slope along the texture's u and v is measured in 3D:

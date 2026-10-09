@@ -231,7 +231,8 @@ def design(s):
     s.paint("airbox", "matte", colour=SHADE)
     # relief: a quilted seat, and a registration mark raised at each end of the tail's top band
     s.relief("seat", "quilted", depth=0.5, scale=7, replace=True)
-    s.emboss(None, "tail frame", at=(38, 56, -157), right=(-1, 0, 0), picture=registration_mark(), width=5.5, depth=0.15)
+    # up: the frame the mark was first laid in (2026-10-02), kept so the game's file stays as the user saw it
+    s.decal(registration_mark(), "tail frame", at=(38, 56, -157), up=(0.00000, 0.94449, -0.32853), width=5.5, depth=0.15)
 
     s.step("In the body's run", "The mirrors, sidepod grilles, cockpit rim, belts and the floor's edges in the body's colour "
            "where they sit; the floor's edges glow at night.", words=ACCENT_WORDS, look="night")

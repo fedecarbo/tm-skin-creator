@@ -10,8 +10,8 @@
         s.paint("inner", "dark grey satin")                   # the whole inner car
         s.paint("rim", "gunmetal")
         s.mark("rear quarter panel", "gloss white", marks.disc(), size=12)  # a shape pressed onto a panel, whole
-        s.text("27", "rear flank", colour="black", font="russo", height=20)  # words, laid the same way, each side
-        s.placard("NO STEP", "sidepod top", height=2.6)                    # words in a thin box
+        s.decal("27", "rear flank", colour="black", font="russo", height=20)  # words, laid the same way, each side
+        s.decal("NO STEP", "sidepod top", box=True, height=2.6)             # words in a thin box
         s.decal(s.art("tiger"), "left side", width=30)                     # a picture, at a named spot
         s.glow("sidepod frame", "electric blue")              # always on (inner car only)
         s.glow("brake caliper")                               # glow in the colour painted on it
@@ -23,6 +23,10 @@
         s.paint("body", "matte black")                        # ... under a wrap ...
         s.peel(under, amount=0.2)                             # ... torn open (tool/peel.py)
         s.wear(under, fade=0.3, chips=0.3)                    # or aged: faded, chipped (tool/wear.py)
+
+Every verb returns a receipt (tool/receipt.py): what it painted and how much, where a mark landed, the notes and
+findings it made; `tool.skin show` prints each as the paint goes. A part's name, a word after |, a finish, a colour,
+a font or a relief pattern that isn't one fails at once, with "did you mean".
 
 Words: `what` is a phrase the tool sorts into a colour, a finish and (optionally) a region:
 "dark red carbon, glossy", "brushed steel", "olive camo" (see tool/colours.py, tool/finishes.py,
@@ -696,6 +700,7 @@ class Skin:
         if tset == "Glass":
             c.colour[idx] = c.colour[idx] * (1 - m[:, None]) + colour_v * m[:, None]
             c.touched[idx] = True
+            c.took(idx, m)
         else:
             c.blend(idx, m, colour_v, rough, metal, varnish)
         if fin.glow and tset == "Details":
@@ -970,40 +975,21 @@ class Skin:
             make = lambda tris, pos, nrm: h
         self._relief(where, make, zone, replace, what=f"relief {pattern!r}")
 
-    def _raise(self, alpha, where, at, up, w_cm, depth, bevel, zone, mirror, what, right=None):
+    def _raise(self, alpha, where, at, up, w_cm, depth, bevel, zone, mirror, what):
         """A picture's alpha raised `depth` cm on inner-car parts, `w_cm` wide, centred on the parts' surface nearest
         `at` (cm), laid flat there with its top towards `up` (None: upright to someone beside the car, as words on the
-        body are, tool/marks.py's frame; or read along `right`) (tool/relief.py, picture). mirror: its mirror image on
-        the car's other side too. Most inner parts share their texels with their mirror twin, which shows it there
-        anyway (backwards, for words): centre parts for words, or marks that read the same both ways."""
+        body are: tool/marks.py's frame) (tool/relief.py, picture). mirror: its mirror image on the car's other side
+        too. Most inner parts share their texels with their mirror twin, which shows it there anyway (backwards, for
+        words): centre parts for words, or marks that read the same both ways."""
         from tool import marks, relief
 
         def make(tris, pos, nrm):
             k = int(np.argmin(np.linalg.norm(pos - np.asarray(at, np.float32), axis=1)))
             f = nrm[k] / np.linalg.norm(nrm[k])
-            if right is not None:
-                r = np.asarray(right, np.float64)
-                r = r - f * (r @ f)
-                r, u = r, np.cross(f, r)
-            else:
-                r, u, _ = marks._frame(f, marks._outward(f, pos[k]) if up is None else up, 0.0)
+            r, u, _ = marks._frame(f, marks._outward(f, pos[k]) if up is None else up, 0.0)
             h = relief.picture(alpha, pos[k], r, u, w_cm, depth, bevel)
             return relief.mirrored(h) if mirror else h
         self._relief(where, make, zone, what=what)
-
-    @_verb(lambda text, where, *a, **k: f"emboss {text or 'a picture'!r}")
-    def emboss(self, text, where, at, right, height=4.0, depth=0.12, font=None, weight=None, spacing=0,
-               bevel=0.15, zone=None, picture=None, width=None, mirror=True):
-        """Raised (depth > 0) or sunk lettering on inner-car parts: decal(text or picture, where, at=at, depth=depth,
-        up=the frame's up for `right`)."""
-        if picture is not None:
-            im = Image.open(picture) if not isinstance(picture, Image.Image) else picture
-            alpha = np.asarray(im.convert("RGBA"), np.float32)[..., 3] / 255
-            w_cm = width or 10.0
-        else:
-            img, w_cm = render_text(text, font or fonts.DEFAULT, height, weight=weight, spacing=spacing)
-            alpha = np.asarray(img["fill"], np.float32)[..., 3] / 255
-        self._raise(alpha, where, at, None, w_cm, depth, bevel, zone, mirror, f"emboss {text or 'a picture'!r}", right=right)
 
     # ---- lettering and pictures ----
 
@@ -1131,24 +1117,6 @@ class Skin:
         second pass fills any patch still bare with smaller copies."""
         from tool import scatter
         scatter.scatter(self, image, where, size, spacing, turn, finish, zone, seed)
-
-    @_verb(lambda text, where, *a, **k: f"the text {text!r}")
-    def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,
-             outline_width=0.08, weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0,
-             reach=None, mirror=None, across=False):
-        """Words on the body: decal(text, where, height=...)."""
-        self.decal(text, where, height=height, at=at, colour=colour, finish=finish, font=font, outline=outline,
-                   outline_width=outline_width, weight=weight, italic=italic, spacing=spacing, zone=zone, up=up, turn=turn,
-                   margin=margin, reach=reach, mirror=mirror, across=across)
-
-    @_verb(lambda text, where, *a, **k: f"the placard {text!r}")
-    def placard(self, text, where, colour="black", fill=None, font=None, height=4.0, pad=None, frame=None, at=None,
-                finish="gloss", weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0, reach=None,
-                mirror=None):
-        """Words in a thin box: decal(text, where, box=True, height=...)."""
-        self.decal(text, where, height=height, at=at, colour=colour, finish=finish, font=font, box=True, fill=fill, pad=pad,
-                   frame=frame, weight=weight, italic=italic, spacing=spacing, zone=zone, up=up, turn=turn, margin=margin,
-                   reach=reach, mirror=mirror)
 
     # ---- output ----
 

@@ -35,7 +35,7 @@ NOSE = [(25.5, 46.7, 142.3), (35.0, 53.4, 81.3), (36.4, 52.8, 67.5), (38.9, 54.7
         (47.9, 54.3, 28.2)]
 SHOULDER = [(84.4, 57.0, -11.6), (83.7, 57.9, -48.3), (83.6, 57.9, -48.4), (49.6, 61.5, -126.1), (49.7, 61.6, -126.2),
             (47.6, 60.9, -155.1)]
-BOTTOM = (60, 16.5, -60), (74.1, 17.9, -25.0), (41.8, 15.2, -97.2)  # a point on the edge, and where the band runs
+BOTTOM = "rear flank edge 1", (74.1, 17.9, -25.0), (41.8, 15.2, -97.2)  # the body's bottom edge, and where the band runs
 SEAMS = ("I wouldn't have it continuous, just leave a bit of gap between seems. (note 15, on the seam between the side box "
          "and the rear flank); Can't see gap here (note 17, at the intake's frame); Very little gap here; Same here very "
          "little gap (notes 19 and 20, at the side box's and the tail corner's seams); In this part remove the tape. "
@@ -48,7 +48,7 @@ def design(s):
            "a band of even width along the body's bottom edge.", words=WORDS + "; " + WITHOUT)
     s.paint("body", "gloss", colour=ORANGE)
     at, start, end = BOTTOM
-    band = meshlines.line(at, kind="opening").between(start, end).offset(14).mirrored()
+    band = meshlines.line(at).between(start, end).offset(14).mirrored()
     s.paint("rear flank", "gloss black", zone=band.inked_edge(shapes.below(26)))
     s.paint("side skirt", "gloss black")  # on round the nose, under the front flank and the nose
 
@@ -73,8 +73,8 @@ def design(s):
            "seam; and on the side box's top beside its inner edge, where the user drew the line.",
            words=NOTES + "; NO STEP as a small placard ... Try it?: yes (note 9)")
     for (x, z), slant in SIGNS:
-        s.placard("NO STEP", "body shell", at=(x, None, z), colour="black", font="teko", weight=600, height=2.6,
-                  pad=0.3, frame=0.2, turn=slant)
+        s.decal("NO STEP", "body shell", box=True, at=(x, None, z), colour="black", font="teko", weight=600, height=2.6,
+                pad=0.3, frame=0.2, turn=slant)
 
     s.step("Wheels and inner car", "Black wheels with orange rings, studded snow tyres, the inner car and the inlets' "
            "insides dark grey, black frames round the inlets.", words=WORDS)

@@ -7,7 +7,7 @@ a strip, dashes, ticks, spots or words.
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
-    meshlines.line(point), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py), as courses
+    meshlines.line(name), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py), as courses
     course.stroke(points)                   the line the user drew (tool.notes show_drawn prints its points): its
                                              points on the body, joined by the straightest way along the surface
     course.points([(x, y, z), ...])          any points on the car, joined the same way
@@ -43,7 +43,7 @@ a strip, dashes, ticks, spots or words.
     c.blocks(5, 2.5)                         two rows of blocks 5 cm long and 2.5 high, alternating: block tape
     c.ticks(every=10, length=3, width=0.6, side=1)   short strokes square to it every 10 cm, to its left (+1),
                                              its right (-1) or both ways (0)
-    s.text("NO STEP", "engine cover", at=c.between(-74, -62))   words (a placard, a mark) at a stretch's
+    s.decal("NO STEP", "engine cover", at=c.between(-74, -62))  words (a placard, a mark) at a stretch's
                                              middle, reading along it, each letter following the line (c.chart:
                                              the surface laid flat along the course, X along it, Y across), upright
                                              to someone beside the car; the stretch is their room along the line
@@ -89,7 +89,7 @@ def _seen_by_facing():
 
 
 def _resample(pts, step=STEP, closed=False):
-    """Points every `step` cm along a polyline (the last point kept)."""
+    """Points every `step` cm along a chain of points (the last point kept)."""
     pts = np.asarray(pts, np.float64)
     if closed and len(pts) > 1 and np.linalg.norm(pts[0] - pts[-1]) > 1e-6:
         pts = np.vstack([pts, pts[:1]])
@@ -394,10 +394,6 @@ class Course:
             return w
         return shapes.Zone(f, label=label)
 
-    def inked(self, width, soft=shapes.SOFT):
-        """A strip `width` cm wide along the course: strip()."""
-        return self.strip(width, soft)
-
     def inked_edge(self, zone, reach=REACH, soft=shapes.SOFT):
         """`zone` with its edge moved onto the course where it runs within `reach` cm of it, so a colour stops on the
         course itself: shapes.below(26) cut along a line beside the body's bottom edge (meshlines.line(...).offset(14)).
@@ -543,7 +539,7 @@ def _surface():
 
 
 def _clip(pts, al, lo, hi):
-    """The run of a polyline where `al` (a value per point) lies between lo and hi, its ends put where it crosses
+    """The run of a chain of points where `al` (a value per point) lies between lo and hi, its ends put where it crosses
     them (al taken as running straight from point to point)."""
     inside = np.flatnonzero((al >= lo) & (al <= hi))
     if not len(inside):

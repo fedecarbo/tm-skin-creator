@@ -294,7 +294,7 @@ ROOM_LEAST = 12.0   # cm across: a flat room this big is in the anatomy
 
 
 def _corners(p, tol):
-    """The indices of a polyline's corners: where it strays more than tol cm from a straight run
+    """The indices of a line's corners: where it strays more than tol cm from a straight run
     (Douglas and Peucker), its ends included."""
     a, b = p[0], p[-1]
     ab = b - a
@@ -335,10 +335,15 @@ def _model_lines():
          "a point on each: `PY -m tool.meshlines`.", "",
          "### Its crisp lines and edges", "",
          f"Panel lines, crisp folds, where the body ends and the seams between its parts, {LINE_LEAST:.0f} cm or longer, "
-         "the longest first. A marking along one: `meshlines.line(point)`, the point given.", ""]
+         "the longest first, each by its name. A marking along one: `meshlines.line(name)` (`side=\"right\"` its mirror "
+         "image; `.mirrored()` both).", ""]
     words = lambda L: ("where the body ends" if L["kind"] == "opening" else "a seam" if L["kind"] == "seam" else
                        f"a panel line, a groove of {L['walls']}" if L["walls"] > 1 else "a crisp line")
-    for L in meshlines.lines("Skin"):
+    every = meshlines.named("Skin")
+    kind = lambda name: name.rsplit(" ", 2)[-2]
+    lines = sorted((n for n in every if kind(n) in ("crease", "edge", "seam")), key=lambda n: -every[n]["length"])
+    for name in lines:
+        L = every[name]
         if L["length"] < LINE_LEAST:
             break
         if not _outside(L):
@@ -346,34 +351,32 @@ def _model_lines():
         p, at = L["pts"], L["pts"][len(L["pts"]) // 2]
         run = (f"round, z {p[:, 2].max():.0f} to {p[:, 2].min():.0f}" if L["closed"] else
                _way(p if p[0, 2] >= p[-1, 2] else p[::-1]))
-        A.append(f"- **{words(L)}**, {L['length']:.0f} cm, along the {_listed(L['parts'][:3])}, at {_cm(at)}: {run}.")
+        A.append(f"- **{name}**: {words(L)}, {L['length']:.0f} cm, along the {_listed(L['parts'][:3])}, at {_cm(at)}: {run}.")
     A += ["", "### Its rounded edges", "",
           "Where the body rolls from facing one way to another, the model's lines run side by side across the roll, one "
-          f"every 1 to 2 cm, each facing its own way (degrees from facing up). Those {LINE_LEAST:.0f} cm or longer, the "
-          "longest first. A marking along one: `meshlines.line(point, kind=\"rounded\")`, the point given; along "
+          f"every 1 to 2 cm, each facing its own way (degrees from facing up): a roll. Those {LINE_LEAST:.0f} cm or longer, "
+          "the longest first. A marking along one of a roll's lines: `meshlines.line(name, tilt=<degrees>)`; along "
           "several end to end, or across: `meshlines.picked(points)`.", ""]
-    for g in meshlines.rolls("Skin"):
-        if max(L["length"] for L in g) < LINE_LEAST:
-            break
-        g = [L for L in g if _outside(L)]
-        if not g:
+    rolls = sorted((n for n in every if kind(n) == "roll"), key=lambda n: -max(L["length"] for L in every[n]))
+    for name in rolls:
+        g = [L for L in every[name] if _outside(L)]
+        if not g or max(L["length"] for L in every[name]) < LINE_LEAST:
             continue
         long = max(g, key=lambda L: L["length"])
         p = long["pts"] if long["pts"][0, 2] >= long["pts"][-1, 2] else long["pts"][::-1]
         across = "; ".join(f"{L['tilt']:.0f}° at {_cm(L['pts'][len(L['pts']) // 2])}" for L in g)
-        many = f"{len(g)} lines across it, facing" if len(g) > 1 else "One line, facing"
-        A.append(f"- {long['length']:.0f} cm along the {_listed(long['parts'][:3])}: {_way(p)}. {many} {across}.")
+        many = f"{len(g)} lines across it, tilted" if len(g) > 1 else "One line, tilted"
+        A.append(f"- **{name}**: {long['length']:.0f} cm along the {_listed(long['parts'][:3])}: {_way(p)}. {many} {across}.")
     A += ["", "### Its panels", "",
           f"The model's own panels, bounded by its crisp lines and edges, {PANEL_LEAST:.0f} cm² or more, the biggest "
-          "first. A colour filling one right up to its lines: `meshlines.panel(point)`, the point given.", "",
-          "| panel | cm² | a point |", "|---|---|---|"]
-    twins = {}  # a panel and its mirror image, as alike as two panels are: the left one's point
-    for area, at, parts in meshlines.panels("Skin", PANEL_LEAST):
-        if parts[0] not in WHEEL_COVERS:
-            twins.setdefault((round(area), parts[0]), []).append((area, at, parts))
-    for pair in twins.values():
-        area, at, parts = max(pair, key=lambda r: r[1][0])
-        A.append(f"| {_listed(parts[:2])} | {area:.0f} | {_cm(at)} |")
+          "first, each by its name (the left side's and the middle's; the right side mirrors them). A colour filling one "
+          "right up to its lines: `meshlines.panel(name)` (`both=True` its mirror image too).", "",
+          "| panel | parts | cm² | a point |", "|---|---|---|---|"]
+    panels = sorted((n for n in every if kind(n) == "panel"), key=lambda n: -every[n]["area"])
+    for name in panels:
+        d = every[name]
+        if d["area"] >= PANEL_LEAST and d["parts"][0] not in WHEEL_COVERS:
+            A.append(f"| {name} | {_listed(d['parts'][:2])} | {d['area']:.0f} | {_cm(d['at'])} |")
     return A + [""]
 
 

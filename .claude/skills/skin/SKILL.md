@@ -68,13 +68,16 @@ game: install from the Windows PC after a push.
 - **Keep clear** of the number panel and the engine cover panel on the deck, where the game letters
   the player's number and name, and of the nose fin's plate: they aren't pieces. `show` names
   anything on them or round them.
-- **Words and pictures** are laid as shapes are: `s.text` (words), `s.placard` (words in a thin
-  box, a small sign near a point or the line the user drew) and `s.decal` (a picture), on a named
-  panel (both sides, words reading forward on each) or at a named spot (`SPOTS` in
-  `tool/paintbox.py`, one side): whole, upright to someone standing beside the car, moved or
-  shrunk until they fit; the note says when the surface turns more than 20 degrees under words
-  (they read bent: smaller words, or a flatter panel). Objects: `s.scatter` (whole copies, spaced
-  along the surface). A continuous texture: a tile through `s.print`.
+- **Words and pictures** are one verb, `s.decal`, laid as shapes are: words (`height=` the capitals'), words in
+  a thin box as a small sign (`box=True`, near a point or the line the user drew) or a picture (`width=`), on a
+  named panel (both sides, words reading forward on each) or at a named spot (`SPOTS` in `tool/paintbox.py`, one
+  side): whole, upright to someone standing beside the car, moved or shrunk until they fit; the receipt says when
+  the surface turns more than 20 degrees under words (they read bent: smaller words, or a flatter panel). On an
+  inner-car part, `depth=` raises them in its relief instead. Objects: `s.scatter` (whole copies, spaced along the
+  surface). A continuous texture: a tile through `s.print`.
+- **Every call returns a receipt**, and `show` prints each as the paint goes: what it painted and how much, where a
+  mark landed, what it refused, what it found wrong. A part's name or a line's name that isn't one stops the paint
+  at once with "did you mean": fix the name, never guess round it.
 - **A marking along one of the car's lines** (one of the model's lines: a crease, an edge where the body
   ends, a seam between two of its pieces, a rounded edge's; or a panel's edge) or along
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
@@ -85,9 +88,12 @@ game: install from the Windows PC after a push.
   while driving (2 mm is the thinnest that holds). A line through points of your own is
   `course.points(...)`: the straightest way along the surface from each to the next, corners at the
   points. The cockpit leaves no skin down the top's
-  middle from z +70 to -45. The model's own crisp lines and panels (the Lab's UV map template, `PY
-  -m tool.meshlines` lists them with a point on each) are exact: `meshlines.line(point)` a course
-  along one, `meshlines.panel(point)` a zone filling one right up to its lines (`border=` a trim);
+  middle from z +70 to -45. The model's own crisp lines and panels (the Lab's UV map template) are exact and
+  named (`car/anatomy.md`; `PY -m tool.meshlines` lists every name, `at x y z` names what lies near a point):
+  `meshlines.line("side skirt crease 2")` a course along one (a rounded edge's `("rear flank roll 2", tilt=47)`,
+  the tilt picking its line), `meshlines.panel("tail corner panel 1")` a zone filling one right up to its lines
+  (`border=` a trim); the names are the left side's, `.mirrored()` or `both=True` for both sides, `side="right"`
+  for the right alone;
   `.band(cm, side="seen")` a band of even width on one face beside one, its edge on the line, measured
   along the surface (`.band(cm)` centred, wrapping the edge; `crease=True` stopping at the body's next
   crease); `.offset(cm)` a line beside one, `.extended(start=cm)` one carried on along the surface

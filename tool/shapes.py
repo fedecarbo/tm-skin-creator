@@ -28,7 +28,6 @@ because it's drawn in 3D, not on the flat texture.
     shapes.region("nose")                  a named region of the body (REGIONS)
     shapes.noisy(zone, amount=6)           a zone's edge roughened: torn, ragged, hand-painted
     shapes.sides(0.5)                      the flanks: surfaces facing left or right
-    shapes.polyline([points, ...], 1.5)    a line 1.5 cm wide along points on the body
   The car map's (tool/carmap.py: the body's own open air and length):
     shapes.outside(0.4)                    the outer body only: never inside an inlet or under a panel
     shapes.along(0.2, 0.4)                 a band from the nose's tip (0) to the tail (1)
@@ -425,41 +424,6 @@ def along(a0, a1, soft=SOFT):
     return field(lambda p, n: np.minimum(_map().level("along", a0, p, n), -_map().level("along", a1, p, n)), soft)
 
 
-def _spaced(lines, spacing=0.25):
-    """Points every `spacing` cm along polylines, for the distance trees."""
-    out = []
-    for l in lines:
-        seg = np.linalg.norm(np.diff(l, axis=0), axis=1)
-        s = np.r_[0, np.cumsum(seg)]
-        u = np.arange(0, s[-1], spacing)
-        out.append(np.stack([np.interp(u, s, l[:, k]) for k in range(3)], 1))
-    return np.concatenate(out).astype(np.float32) if out else np.zeros((0, 3), np.float32)
-
-
-def polyline(lines, width=1.5, soft=SOFT, spacing=0.25):
-    """Lines `width` cm wide along polylines on the body: one (n, 3) array of points in cm, or a
-    list of them (a line the user drew, say). spacing: cm between the points the distance is taken
-    to (a quarter of the width or less: no beads)."""
-    from scipy.spatial import cKDTree
-    lines = [np.asarray(l, np.float64) for l in lines] if isinstance(lines, (list, tuple)) else [np.asarray(lines, np.float64)]
-    pts = _spaced([l for l in lines if len(l) > 1], spacing)
-    tree = cKDTree(pts) if len(pts) else None
-
-    def dist(p, n):
-        if tree is None:
-            return np.full(len(p), -1.0, np.float32)
-        d, _ = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
-        return (width / 2 - np.minimum(d, width * 2)).astype(np.float32)
-
-    def grad(p, n):
-        if tree is None:
-            return np.broadcast_to(_unit(1), p.shape)
-        d, i = tree.query(p.astype(np.float64), workers=-1, distance_upper_bound=width * 2)
-        r = p - pts[np.minimum(i, len(pts) - 1)]
-        return (r / np.maximum(np.linalg.norm(r, axis=1, keepdims=True), 1e-6)).astype(np.float32)
-    return field(dist, soft, grad)
-
-
 def _word(v):
     if isinstance(v, (bool, np.bool_)) or v is None:
         return repr(v)
@@ -483,5 +447,5 @@ def _named(fn):
 
 for _maker in ("stripe", "stripes", "checks", "band", "front_of", "behind", "above", "below", "left", "right", "plane",
                "sphere", "box", "wheel_ring", "fade", "radial", "facing", "sides", "blob", "grass", "noisy",
-               "region", "outside", "along", "polyline"):
+               "region", "outside", "along"):
     globals()[_maker] = _named(globals()[_maker])

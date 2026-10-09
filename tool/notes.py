@@ -564,8 +564,8 @@ def show_drawn(skin, n):
             print(f"meshlines.picked([{clicks}], tset={m['set']!r}" + (", closed=True)" if m["closed"] else ")"))
         else:
             print("[" + ", ".join(f"({a:g}, {b:g}, {c:g})" for a, b, c in pts) + "]")
-    print("# shapes.polyline([line, ...], width=<cm>): a strip along the points; meshlines.picked(...) is a Course on "
-          "the model (.strip(cm)); (-x, y, z): the same on the other side.")
+    print("# course.stroke([...]) is the line drawn, a Course (.strip(cm) a strip along it); meshlines.picked(...) the same "
+          "on the model; .mirrored(): the same on the other side.")
 
 
 def events(record):

@@ -61,7 +61,7 @@ import tokenize
 
 from tool import instructions, paths, progress
 
-# Together they use every part of the paint box: the user's car (peel, relief, emboss, glows, relit
+# Together they use every part of the paint box: the user's car (peel, relief, raised lettering, glows, relit
 # lights, a library finish, the canvas by hand) and TOUR, a test car of the self-test's own that
 # makes every other call once; and the planted-flaw pair, CLEAN and FLAWED.
 TOUR, CLEAN, FLAWED = "SelfTest_Tour", "SelfTest_Clean", "SelfTest_Flawed"
@@ -75,7 +75,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 20102, "viewer/*.js": 4720}
+BUDGET = {"tool/*.py": 20446, "viewer/*.js": 4720}
 SLACK = 100
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice
@@ -114,7 +114,7 @@ def tour(s):
     s.wear(under, fade=0.3, chips=0.3, scrapes=0.05, clearcoat=0.2, grime=0.4)
     s.step("The map", "The flanks on the outer body, a line through points, grass and a blob.")
     s.paint("body", "satin", colour="#f4f2ec", zone=shapes.sides(0.5) & shapes.outside(0.4) & shapes.along(0.2, 0.4))
-    s.paint("body", "satin", colour="#9fc3e6", zone=shapes.polyline([[(86.0, 41.6, -6.1), (86.9, 42.0, -20.0), (86.8, 42.0, -35.0)]], 1.2))
+    s.paint("body", "satin", colour="#9fc3e6", zone=course.points([(86.0, 41.6, -6.1), (86.9, 42.0, -20.0), (86.8, 42.0, -35.0)]).strip(1.2))
     s.paint("body", "satin", colour="#2e7d32", zone=shapes.grass(base=6, height=(18, 30), every=3.0, seed=7))
     s.paint("body", "gloss", colour="#111111", zone=shapes.blob((30, 0, 60), 9, seed=1))
     s.step("Pictures", "A decal, a scatter, a print, lettering and marks.")
@@ -122,30 +122,30 @@ def tour(s):
     s.scatter(pic, "engine cover", size=6, seed=3)
     textures.add_file("selftest tile", tile, 20, about="the self-test's tile")
     s.paint("rear flank", "selftest tile")
-    s.text("TOUR 7", "left side", colour="black", font="russo", height=10, outline="white")
+    s.decal("TOUR 7", "left side", colour="black", font="russo", height=10, outline="white")
     s.paint("body", "gloss", colour="#111111", zone=shapes.band(-70, -66))
     spot = s.mark("sidepod top", "gloss", marks.star(5), size=14, colour="#f4f2ec")
     s.mark("sidepod top", "gloss", marks.disc(), size=0.3 * spot.size, colour="#111111")
     s.mark("rear quarter panel", "satin", marks.box(0.5, corner=0.1), size=40, at=(30, None, -60), colour="#e0a82e", turn=20)
     s.mark("body", "satin", marks.ring(0.7), size=22, at=(0, None, 150), colour="#e8601c", across=True)
     s.step("The model's lines", "A band beside the body's bottom edge, stripes, checks, and markings along the car's lines.")
-    bottom = meshlines.line((60, 16.5, -60), kind="opening").between((74.1, 17.9, -25.0), (41.8, 15.2, -97.2))
+    bottom = meshlines.line("rear flank edge 1").between((74.1, 17.9, -25.0), (41.8, 15.2, -97.2))
     s.paint("rear flank", "satin", colour="#1f8f3a", zone=bottom.offset(14).mirrored().inked_edge(shapes.below(26)))
     s.paint("tail panel", "satin", colour="#f4f2ec", zone=shapes.stripes(3, across=(0.75, 0, 1), edge=-132))
     s.paint("sidepod top", "satin", colour="#111111", zone=shapes.checks(6, across=("z", "x")))
-    sill = meshlines.line((74, 26, 7), kind="opening").between((83.6, 26.0, -24.8), (50.9, 25.9, 39.8))  # the inlet's lower rim
+    sill = meshlines.line("body shell edge 1").between((83.6, 26.0, -24.8), (50.9, 25.9, 39.8))  # the inlet's lower rim
     s.paint("body", "satin", colour="#111111", zone=sill.mirrored().dashes(5, gap=3, width=1))
     s.paint("rear quarter panel", "satin", colour="#e0a82e", zone=course.edge("rear quarter panel", side="left").mirrored().strip(0.8))
-    s.paint("body", "satin", colour="#d0208e", zone=meshlines.line((65, 59, -85), kind="rounded").ticks(every=12, length=3, width=0.6, side=1))
+    s.paint("body", "satin", colour="#d0208e", zone=meshlines.line("rear flank roll 2", tilt=63).ticks(every=12, length=3, width=0.6, side=1))
     nose = meshlines.picked([(25.5, 46.7, 142.3), (35.0, 53.4, 81.3), (36.4, 52.8, 67.5)]).offset(2.5)
     s.paint("body", "satin", colour="#e0a82e", zone=course.Courses([nose], "the nose").panels(6).mirrored().blocks(5, 2.5))
-    low = meshlines.line((60, 16.5, -60), kind="opening").between((80, 22, 5), (45, 17, -105))
+    low = meshlines.line("rear flank edge 1").between((80, 22, 5), (45, 17, -105))
     s.paint("body", "satin", colour="#e0a82e", zone=course.Courses([low], "the lower edge").panels(3).without("rear flank")
             .mirrored().dashes(3, gap=2, width=0.6))
-    s.paint("body", "satin", colour="#f4f2ec", zone=meshlines.panel((25, 80, 11), both=True, border=1.5))
+    s.paint("body", "satin", colour="#f4f2ec", zone=meshlines.panel("cockpit surround panel 1", both=True, border=1.5))
     drawn = course.stroke([(42.8, 64.0, -128.1), (50.0, 63.6, -100.0), (58.6, 63.0, -78.6), (76.4, 60.8, -50.0)])
     s.paint("body", "satin", colour="#111111", zone=drawn.strip(0.6))
-    s.placard("ALONG", "body", at=drawn.between(-110, -90), height=2.6, colour="#111111", mirror=False)
+    s.decal("ALONG", "body", box=True, at=drawn.between(-110, -90), height=2.6, colour="#111111", mirror=False)
     s.step("Details", "The inner car, glass, dirt, glows, a light and the tyres.")
     s.paint("inner", "camo matte", palette=["charcoal", "slate", "light grey", "jet black"], scale=26)
     s.paint("seat", "cloth", colour="charcoal")
@@ -208,36 +208,36 @@ def pair(s, flawed):
     s.step("Lines", "Tape along the skirt's crisp edge and along the body's lower edge across a seam; strips along a "
            "rolled edge, across where the model's lines meet and on a crisp line; a strip at an even gap beside a panel "
            "line.")
-    skirt = meshlines.line((39, 19, 70)).between(140, 25)
+    skirt = meshlines.line("side skirt crease 2").between(140, 25)
     tape = skirt.mirrored().band(3, side="seen")
     hop = skirt.between(95, 101).band(3, side=-tape.side)
     s.paint("body", "satin", colour=INK, zone=planted(
         tape, (tape & ~shapes.band(59.25, 60.75) & ~shapes.band(95, 101)) | hop))
-    low = meshlines.line((60, 16.5, -60), kind="opening").between((80, 22, 5), (45, 17, -105))
+    low = meshlines.line("rear flank edge 1").between((80, 22, 5), (45, 17, -105))
     tape = low.mirrored().band(3, side="seen")
     s.paint("body", "satin", colour=INK, zone=planted(tape, tape & ~shapes.band(-24.25, -25.75)))
-    shoulder = meshlines.line((64, 61, -84), kind="rounded")
+    shoulder = meshlines.line("rear flank roll 2", tilt=47)
     front = shoulder.between(-52, -84)
     wob = front.between(-60, -76)
     s.paint("body", "satin", colour=RED, zone=planted(
         front.mirrored().strip(0.8),
         (front.strip(0.8) & ~shapes.band(-60, -76)) | beside(wob, 0.3 * np.sin(8 * np.pi * wob.s / wob.length)).strip(0.8)))
-    rim = meshlines.line((14, 41, 204), kind="rounded")
+    rim = meshlines.line("nose tip roll 1", tilt=79)
     half = rim.between((0, 40, 210), rim.end)
-    nose = meshlines.line((32, 55, 95), kind="rounded").between(143.8, 100)
+    nose = meshlines.line("body shell roll 4").between(143.8, 100)
     s.paint("body", "satin", colour=INK, zone=planted(half.then(nose).mirrored().strip(0.8),
                                                       half.then(beside(nose, 0.6)).strip(0.8)))
-    side = meshlines.line((0, 70, 92)).between((36, 71, 8), (35, 74, -36))
+    side = meshlines.line("body shell crease 1").between((36, 71, 8), (35, 74, -36))
     kink = side.between(-5, -25)
     tent = 1.2 * (1 - np.abs(kink.s - kink.length / 2) / (kink.length / 2))
     s.paint("body", "satin", colour=INK, zone=planted(
         side.mirrored().strip(0.6), (side.strip(0.6) & ~shapes.band(-5, -25)) | beside(kink, tent).strip(0.6)))
-    sill = meshlines.line((74, 26, 21)).between(10, -22)
+    sill = meshlines.line("side skirt crease 4").between(10, -22)
     closes = np.interp(sill.s, [0, 0.3 * sill.length, sill.length], [-2.0, -2.0, -0.3])
     s.paint("body", "satin", colour=GOLD,
             zone=planted(beside(sill, -2.0).mirrored().strip(0.6), beside(sill, closes).strip(0.6)))
 
-    cock = meshlines.line((0, 70, 92)).between((30, 76, 33), (33, 72, 15))  # the opening 6 to 12 cm to its left
+    cock = meshlines.line("body shell crease 1").between((30, 76, 33), (33, 72, 15))  # the opening 6 to 12 cm to its left
     s.paint("body", "satin", colour=INK, zone=planted(cock.mirrored().ticks(every=6, length=4, width=0.6, side=1),
                                                       cock.ticks(every=6, length=12, width=0.6, side=1)))
 
@@ -251,8 +251,8 @@ def pair(s, flawed):
         s.paint("body", "satin", colour=INK, zone=cover & shapes.right())
     else:
         s.paint("body", "satin", colour=INK, zone=cover)
-    corner = meshlines.panel((44, 64, -138), both=True)
-    sliver = meshlines.panel((44, 64, -138), border=1.0) & shapes.sphere(on((45, 63.3, -128)), 7.5)
+    corner = meshlines.panel("tail corner panel 1", both=True)
+    sliver = meshlines.panel("tail corner panel 1", border=1.0) & shapes.sphere(on((45, 63.3, -128)), 7.5)
     short = shapes.Zone(lambda p, n: np.clip(corner(p, n) - sliver(p, n), 0, 1))  # 1 cm short of its line, no hairline
     short.lines = corner.lines  # a fill to the panel's lines, as the tool lays one, that falls short
     s.paint("body", "satin", colour=RED, zone=planted(corner, short))
@@ -282,10 +282,10 @@ def pair(s, flawed):
     both(lambda **k: s.decal(pic, "rear flank", width=14, across=True, **k), roll,
          left=dict(zone=shapes.facing(facing, 0.94, soft=0.01)))
     both(lambda image=pic, **k: s.decal(image, "engine cover", width=8, **k), (32, None, -105), left=dict(image=picture(16)))
-    both(lambda **k: s.text("SIDE", "rear flank", colour=INK, height=5, **k), (67, 50, -75), left=dict(up=(0, -1, 0)))
-    both(lambda height=5, **k: s.text("FLANK", "body shell", colour=INK, height=height, **k), on((37, 58, 68)),
+    both(lambda **k: s.decal("SIDE", "rear flank", colour=INK, height=5, **k), (67, 50, -75), left=dict(up=(0, -1, 0)))
+    both(lambda height=5, **k: s.decal("FLANK", "body shell", colour=INK, height=height, **k), on((37, 58, 68)),
          left=dict(across=True, height=8))
-    s.placard("ALONG", "body shell", colour=INK, height=2.6, at=meshlines.line((40, 58, 38), kind="rounded").between(20, -40))
+    s.decal("ALONG", "body shell", box=True, colour=INK, height=2.6, at=meshlines.line("body shell roll 2").between(20, -40))
     s.mark("body", "satin", marks.ring(0.6), size=10, at=on((20, 66, 120)), colour=INK, across=True,
            **(dict(within=~shapes.sphere(on((25, 65, 120)), 0.5)) if flawed else {}))  # a notch bitten out of its left
 '''

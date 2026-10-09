@@ -80,10 +80,10 @@ def design(s):
            "of it, from where the edge runs straight back to where it turns; a ruler along each sill, under the side "
            "target, every 3 cm and longer every 15, hanging from the model's line onto the strip below it.",
            words="Add them, we are testing that isnt it?")
-    edge = meshlines.line((56, 63, -20))  # where the body ends round the sidepod's top: a line the eye follows
+    edge = meshlines.line("body shell edge 1")  # where the body ends round the sidepod's top: a line the eye follows
     rail = edge.between((54.9, 61.4, 6.9), (55.9, 62.8, -39.0)).offset(4).mirrored()
     s.paint("body", "matte", colour=BLACK, zone=rail.blocks(5, 2.5))
-    sill = meshlines.line((74, 26, 21)).mirrored()  # 87.8 cm: the ticks every 3 and every 15 fall together
+    sill = meshlines.line("side skirt crease 4").mirrored()  # 87.8 cm: the ticks every 3 and every 15 fall together
     s.paint("body", "matte", colour=BLACK, zone=ruler(sill, side=-1))
 
     s.step("More measuring strips", "A block scale along each rear flank's shoulder where it faces 45 degrees, from "
@@ -92,17 +92,17 @@ def design(s):
            words="a test would be to add more block tape and measure table around the car")
     # along the rear flank's shoulder where it faces 45 degrees ("lower the angle so it's more 45 degree"): one of the
     # model's lines along that rounded edge, from the sidepod's back corner towards the tail
-    flank = meshlines.line((64, 61, -84), kind="rounded")
+    flank = meshlines.line("rear flank roll 2", tilt=47)
     s.paint("body", "matte", colour=BLACK, zone=flank.between(-55, -120).mirrored().blocks(5, 2.5))
-    deck = meshlines.line((0, 66, -133))  # across the back of the deck; 82.5 cm, and the nose's 91.8: ticks together
+    deck = meshlines.line("engine cover crease 1")  # across the back of the deck; 82.5 cm, and the nose's 91.8: ticks together
     s.paint("body", "matte", colour=BLACK, zone=ruler(deck.between(deck.at(s=2), deck.at(s=84.5)), side=-1))
-    nose = meshlines.line((0, 49, 187))  # round the nose tip, from z 150 (clear of the nose fin's plate) on each side
+    nose = meshlines.line("nose tip crease 1")  # round the nose tip, from z 150 (clear of the nose fin's plate) on each side
     s.paint("body", "matte", colour=BLACK, zone=ruler(nose.between(nose.at(s=7.7), nose.at(s=99.5)), side=1))
 
     s.step("The nose's tape", "A block scale along each side of the nose, beside the model's line along its roll, from "
            "abreast the cockpit's front (z 95) on past the nose tip's seam to z 158, where the user drew it.",
            words="Add tape here")
-    roll = meshlines.line((27.2, 54.2, 120), kind="rounded")  # 49 cm; 4 cm beside it is within a cm of their stroke
+    roll = meshlines.line("body shell roll 12")  # 49 cm; 4 cm beside it is within a cm of their stroke
     # carried on 15 cm past the nose tip's seam, on over the nose ("It's ok to go past the next object")
     s.paint("body", "matte", colour=BLACK, zone=roll.offset(4).extended(start=15).mirrored().blocks(5, 2.5))
 

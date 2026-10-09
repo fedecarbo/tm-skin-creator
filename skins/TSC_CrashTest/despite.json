@@ -1,0 +1,9 @@
+{
+ "design": "ebd657a42f73caf3",
+ "why": "The paint is byte for byte the car you accepted on 2026-10-07; nothing on it changed today, only how its lines are written in the design. The judge has since learned to see two small sideways steps in its tick runs (0.7 cm at the nose, 0.5 cm at the tail), which were there then. Fixing them is a design change for a session on this car.",
+ "blocks": [
+  "matte #0a0a0c on body (More measuring strips): ticks 2 cm long every 3 cm along the model's crisp line 'nose tip crease 1' between (-12, 58, 150) and (12, 58, 150): a step of 0.7 cm sideways, on the left, z +186 (the nose, over the front wing)",
+  "matte #0a0a0c on body (More measuring strips): ticks 2 cm long every 3 cm along the model's crisp line 'engine cover crease 1' between (-41, 64, -129) and (41, 64, -129): a step of 0.5 cm sideways, z -133 (the tail)"
+ ],
+ "when": "2026-10-09 10:26"
+}

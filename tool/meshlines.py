@@ -9,15 +9,18 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
     meshlines.mesh("Skin")               every edge of the model's triangles on the car and on the map, with how much the
                                     body bends across it (+ outward: a rounded edge is a run of them; - inward); the
                                     template draws the mesh by it, on the maps and on the car
-    meshlines.line((35, 71, 9), least=100)   the template's line nearest a point, a Course exactly through the model's
+    meshlines.line("side skirt crease 2")   one of the model's lines by its name (named: the part it mostly runs along,
+                                    its kind and its number among that part's lines of the kind, the longest first;
+                                    "crease", "edge" where the body ends, "seam"), a Course exactly through the model's
                                     points: .strip(0.6) a line on it (a panel line's groove is 0.3 to 0.4 cm wide, and
                                     the line is on one of its walls); along where the body ends a strip is half on it
-    meshlines.line((65, 59, -85), kind="rounded")   one of the model's lines along a rounded edge, the one nearest a
-                                    point of those side by side across it (one every 1 to 2 cm, each facing its own way)
-    meshlines.line((74, 26, 7), kind="seam")   a seam: a piece's edge sewn to another piece's (the side skirt's top
-                                    edge against the body shell)
+    meshlines.line("rear flank roll 2", tilt=47)   a rounded edge's line: a "roll" is the model's lines side by side
+                                    across a rounded edge (one every 1 to 2 cm, each facing its own way); tilt, degrees
+                                    from facing up, says which (the listing gives each roll's)
+    meshlines.line(name, side="right")   its mirror image on the other side (the names are the left side's and the
+                                    middle's; .mirrored() marks both)
     meshlines.rolls()               the body's rounded edges, each its lines side by side across it, facing up first
-    meshlines.panel((25, 80, 11))        the model's own panel under a point (bounded by its creases and the body's
+    meshlines.panel("tail corner panel 1")   the model's own panel by its name (bounded by its creases and the body's
                                     edges), a zone filled right up to its lines; both=True the mirror image's too;
                                     border=1.5 only a trim that far inside its edge
     meshlines.picked([(70, 60, -70), (55, 63, -100)])   the line through points clicked on the car (the Lab: Mesh
@@ -25,8 +28,8 @@ the model had all along"; "Your new method ... shouldnt be needing shadows anywa
                                     the model's points, where its lines cross; between two joined by an edge, that
                                     edge; on one of its lines, along it, the line's own points; else the straightest
                                     way along the surface (tool/surface.py, path)
-    PY -m tool.meshlines            the body's panels, its longest lines and its rounded edges, each with a point on it
-                                    and its parts
+    PY -m tool.meshlines            the body's panels, its longest lines and its rounded edges by name, each with a point
+                                    on it and its parts; `at x y z` what lies within 5 cm of a point, by name
 """
 
 import functools
@@ -313,34 +316,27 @@ def _twin(L, pool):
     return None
 
 
-def line(near, kind=None, least=3.0, tset="Skin", tilt=None, side=None):
+def line(name, tilt=None, side=None, tset="Skin"):
     """One of the model's lines by its name (named: "side skirt crease 2", "sidepod inlet edge 1", "body shell seam
     1"; a rounded edge's "rear flank roll 2" with `tilt`, degrees from facing up, picking the line of those side by
     side across it, when it has more than one): a Course along it, exactly through the model's points (closed round a
-    loop). side="right": its mirror image on the car's other side. Or the line nearest a point (x, y, z) on the car, of
-    `kind` ("crease", "opening", "seam" or "rounded") or any, `least` cm long or more."""
+    loop). side="right": its mirror image on the car's other side. A name that isn't one fails, saying the near ones;
+    PY -m tool.meshlines lists them all, and `at x y z` names what lies near a point."""
     from tool import course
-    if isinstance(near, str):
-        L = _named(near, "line", tset)
-        if isinstance(L, list):  # a roll: its lines side by side across the edge
-            tilts = [round(x["tilt"]) for x in L]
-            if tilt is None and len(L) > 1:
-                raise ValueError(f"{near!r} has {len(L)} lines side by side across it, tilted {', '.join(map(str, tilts))} degrees "
-                                 f"from facing up: say which, tilt=<degrees>")
-            L = L[0] if tilt is None else min(L, key=lambda x: abs(x["tilt"] - tilt))
-        if side == "right":
-            twin = _twin(L, strips(tset) if L["kind"] == "rounded" else lines(tset))
-            if twin is None:
-                raise ValueError(f"{near!r} has no mirror image on the right")
-            L = twin
-        words = f"the model's {WORDS[L['kind']]} {near!r}" + (f" tilted {L['tilt']:.0f} degrees" if "tilt" in L else "") \
-            + (" on the right" if side == "right" else "")
-    else:
-        at = np.asarray(near, np.float64)
-        pool = [L for L in (strips(tset) if kind == "rounded" else lines(tset))
-                if L["length"] >= least and (kind is None or L["kind"] == kind)]
-        L = min(pool, key=lambda L: float(np.linalg.norm(L["pts"] - at, axis=1).min()))
-        words = f"the model's {WORDS[L['kind']]} along the {L['parts'][0]} near {course._said(at)}"
+    L = _named(name, "line", tset)
+    if isinstance(L, list):  # a roll: its lines side by side across the edge
+        tilts = [round(x["tilt"]) for x in L]
+        if tilt is None and len(L) > 1:
+            raise ValueError(f"{name!r} has {len(L)} lines side by side across it, tilted {', '.join(map(str, tilts))} degrees "
+                             f"from facing up: say which, tilt=<degrees>")
+        L = L[0] if tilt is None else min(L, key=lambda x: abs(x["tilt"] - tilt))
+    if side == "right":
+        twin = _twin(L, strips(tset) if L["kind"] == "rounded" else lines(tset))
+        if twin is None:
+            raise ValueError(f"{name!r} has no mirror image on the right")
+        L = twin
+    words = f"the model's {WORDS[L['kind']]} {name!r}" + (f" tilted {L['tilt']:.0f} degrees" if "tilt" in L else "") \
+        + (" on the right" if side == "right" else "")
     k = slice(0, -1) if L["closed"] else slice(None)
     c = course.Course(L["pts"][k], words, nrm=L["nrm"][k], closed=L["closed"])
     c.model = L
@@ -392,22 +388,18 @@ def _centres(tset):
     return cKDTree(e["P"][e["T"]].mean(1))
 
 
-def panel(near, both=False, border=None, soft=None, size=4096, side=None):
-    """The model's own panel by its name (named: "tail corner panel 1"; side="right": its mirror image on the other
-    side) or under a point (x, y, z) on the body: every triangle reached from it without crossing a crease, painted
-    right up to its creases and the body's edges, as a zone for s.paint(..., zone=); `both`: and its mirror image's on
-    the other side; `border`: only the band that many cm inside its edge (a trim round an opening, a panel's outline).
-    Its edge is the model's line itself, feathered over `soft` cm (shapes.SOFT). The body (Skin)."""
+def panel(name, both=False, border=None, soft=None, size=4096, side=None):
+    """The model's own panel by its name (named: "tail corner panel 1"; PY -m tool.meshlines lists them): every
+    triangle reached from one of its own without crossing a crease, painted right up to its creases and the body's
+    edges, as a zone for s.paint(..., zone=); `both`: and its mirror image's on the other side (side="right": the
+    mirror image alone); `border`: only the band that many cm inside its edge (a trim round an opening, a panel's
+    outline). Its edge is the model's line itself, feathered over `soft` cm (shapes.SOFT). The body (Skin)."""
     from tool import bake, course, shapes
     soft = shapes.SOFT if soft is None else soft
     e, lab = _edges("Skin"), _panels("Skin")
-    if isinstance(near, str):
-        d = _named(near, "panel", "Skin")
-        at = np.asarray(d["at"], np.float64) * ([-1, 1, 1] if side == "right" else 1)
-        label = f"the model's {{words}} {near!r}" + (" on the right" if side == "right" else "")
-    else:
-        at = np.asarray(near, np.float64)
-        label = f"the model's {{words}} at {course._said(at)}"
+    d = _named(name, "panel", "Skin")
+    at = np.asarray(d["at"], np.float64) * ([-1, 1, 1] if side == "right" else 1)
+    label = f"the model's {{words}} {name!r}" + (" on the right" if side == "right" else "")
     pts = [at] + ([at * [-1, 1, 1]] if both else [])
     sel = np.zeros(lab.max() + 1, bool)
     for p in pts:
@@ -765,24 +757,6 @@ def picked(clicks, tset="Skin", closed=False):
         pts = pts[:-1]
     return course.Course(pts, f"the line picked on the model from {course._said(pts[0])}", nrm=surface.load(tset).facing(pts),
                          closed=closed)
-
-
-def panels(tset="Skin", least=50.0):
-    """The model's panels (bounded by its creases and the body's edges) of `least` cm2 or more, the biggest first: (cm2,
-    a point on one of its own triangles near its middle, its parts, most first)."""
-    e, lab, names = _edges(tset), _panels(tset), _parts_of(tset)
-    X = e["P"][e["T"]]
-    area = 0.5 * np.linalg.norm(np.cross(X[:, 1] - X[:, 0], X[:, 2] - X[:, 0]), axis=1)
-    A = np.bincount(lab, weights=area)
-    C = X.mean(1)
-    out = []
-    for p in np.argsort(-A):
-        if A[p] < least:
-            break
-        mine = np.flatnonzero(lab == p)
-        mid = np.average(C[mine], axis=0, weights=area[mine])
-        out.append((float(A[p]), C[mine[np.argmin(np.linalg.norm(C[mine] - mid, axis=1))]], _most(names[mine])))
-    return out
 
 
 def _at(p):

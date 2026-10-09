@@ -1103,11 +1103,14 @@ def _run_values(v):
 
 def _stretch(L, c, a, b):
     """A model line's stretch alongside a course's run from its point a to its point b, as a Course the course's way,
-    on both sides when the course is (on a loop, the shorter way round)."""
+    on both sides when the course is (on a loop, the shorter way round); None when the run's two ends meet the line at
+    one point (a run across a short line's end), so there's no stretch to read it along."""
     from tool import course
     k = slice(0, -1) if L["closed"] else slice(None)
     R = course.Course(L["pts"][k], "the line", nrm=L["nrm"][k], closed=L["closed"], mirror=c.mirror)
     pa, pb = c.pts[a], c.pts[b - 1]
+    if R._index(tuple(pa)) == R._index(tuple(pb)):
+        return None
     S = R.between(tuple(pa), tuple(pb))
     if L["closed"]:
         other = R.between(tuple(pb), tuple(pa)).reversed()
@@ -1221,6 +1224,9 @@ def _marking(car, call, z, found):
             refs.append((c, None, (a, b), (float(c.s[a]), float(c.s[b - 1]))))
             continue
         R = _stretch(kept[v], c, a, b)
+        if R is None:  # no stretch of the line alongside this run: read along the course itself
+            refs.append((c, None, (a, b), (float(c.s[a]), float(c.s[b - 1]))))
+            continue
         d = cKDTree(R.pts).query(c.pts[a:b], workers=-1)[0]
         if d.max() <= ON_LINE:  # the course is the line itself: read while painting
             refs.append((c, kept[v]["kind"], (a, b), (float(c.s[a]), float(c.s[b - 1]))))

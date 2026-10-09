@@ -40,10 +40,14 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  12. **A narrower paint box** (Fable 5.1, xhigh; or Opus 5.5, xhigh). One verb per intent, line ids and part names as typed values that answer "did you
-      mean", a short receipt from every verb, `Skin.text`, `Skin.placard`, `Skin.emboss` and `Skin.decal` merged;
-      duplicate-code and error-hiding tripwires in the self-test. Retires every private way of placing things the
-      foundation replaced, and the merged verbs.
+  12. **A narrower paint box** (Fable 5.1, xhigh; or Opus 5.5, xhigh). Built 2026-10-09 (Fable 5.1), waiting for the
+      user's OK: every verb returns a receipt (`tool/receipt.py`; `show` prints each as the paint goes); the model's lines
+      and panels have names (`meshlines.named`, "side skirt crease 2", "rear flank roll 2" with its tilt, "tail corner
+      panel 1"; `PY -m tool.meshlines` lists them, `at x y z` names what lies near a point) and a name or a part that
+      isn't one fails with "did you mean"; words, a placard, a picture and raised lettering are one verb, `Skin.decal`;
+      the self-test trips on code written twice and on errors hidden. Retired with it: the verbs text, placard and
+      emboss, a line through the air (shapes' polyline), a line picked by a point near it, a panel by a point, a
+      strip's second name (inked). On the OK: delete this step.
   13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's own
       encoder; the viewer fitted per mood to the user's F12 screenshots (FLIP: exposure, environment strength, tone
       mapper, clearcoat), and from their videos the cameras pulling back with speed, the car number's lettering, the
