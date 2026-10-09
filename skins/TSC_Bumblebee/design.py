@@ -1,11 +1,12 @@
 """Bumblebee, the composition (set 1, the pick of A, "True bee"): the bee's own banding read along the car, nose to tail: black head (the nose),
 a yellow collar at the front of the thorax (the nose root, over the front wheels), black thorax (the cockpit),
-the abdomen's yellow at the car's fattest (the sidepods), black, and the white tail behind the deck's crease.
+the abdomen's yellow at the car's fattest (the sidepods), and a yellow tail behind the deck's crease (the user's
+change, 2026-10-09: 'Maybe yello').
 Every edge furred. Base finishes only (its visual language: the car's language.json)."""
 
 from tool import shapes
 
-Y, K, W, A = "#e8b61a", "#1a1612", "#f1ebdc", "#8a5a1c"  # bee yellow, velvet black, tail white, wing amber
+Y, K, A = "#e8b61a", "#1a1612", "#8a5a1c"  # bee yellow, velvet black, wing amber
 LEGS = "#0d0b09"
 WORDS = "Bumblebee"
 
@@ -29,10 +30,10 @@ def legs(s):
 def design(s):
     s.clay()
     s.step("The bands", "Six bands of fur along the car: black nose, a yellow collar behind the nose, black "
-           "over the cockpit, yellow over the sidepods, black over the deck, the white tail behind the deck's crease.",
+           "over the cockpit, yellow over the sidepods, black over the deck, a yellow tail behind the deck's crease.",
            words=WORDS)
     s.paint("body", "suede", colour=K)
     s.paint("body", "suede", colour=Y, zone=fur(shapes.band(110, 150), 1), across=True)
     s.paint("body", "suede", colour=Y, zone=fur(shapes.band(-55, 20), 2), across=True)
-    s.paint("body", "suede", colour=W, zone=fur(shapes.behind(-128), 3), across=True)
+    s.paint("body", "suede", colour=Y, zone=fur(shapes.behind(-128), 3), across=True)
     legs(s)

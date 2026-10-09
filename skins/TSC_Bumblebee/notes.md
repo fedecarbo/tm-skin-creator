@@ -22,3 +22,6 @@ composition in three takes, then surfaces, details and art direction.
   the details pass gives it hairs of many lengths.
 - Question 1 (2026-10-09, the user in the chat: "Any reason why the tail is white?"): the common garden bumblebee's
   white tip; asked in the Lab whether to keep it, or a yellow or black tail. Open: their answer.
+- Change 1 (user, 2026-10-09, in the chat): "Maybe yello": the tail yellow. Closed: the tail band is yellow, the
+  language has no white (its page rewritten), repainted, the close looks find nothing. Next: the passes, surfaces,
+  details, art direction, each by a fresh agent.
