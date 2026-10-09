@@ -51,3 +51,16 @@ composition in three takes, then surfaces, details and art direction.
   edge is a saw of 1 cm teeth, nothing crossing into the other colour; (4) on the flanks and the diffuser strip the
   clumps stretch 4 to 6 cm, claw marks; (5) the black fur reads as flat paint, the nap shows only on the yellow; (6) the
   glass reads black, not smoky amber. Next: a fresh agent fixes the list, then the art director looks once more.
+- Fixes from the art direction (2026-10-09, Claude Fable 5.1): (1) the pollen no longer traces the grooves: along the
+  cockpit surround's and the sidepods' top grooves it pools at a few places (a slow noise keeps about a quarter of
+  each groove, uneven); (2) the pollen as dust: thickest only deep in the hollows (open air under 0.3, fading over
+  12 cm), a thin haze fading over 36 cm round them, sparser everywhere (fewer grains per cell), uneven under a
+  mottle, and a paler, chalkier grain so it shows on the yellow too; (3) each band's edge as a fringe of hairs: in
+  every hair-wide lane (0.24 cm) the edge moves along the car its own way, most hairs 0.4 to 1.8 cm, one in ten to
+  about 3, each tapering to a rounded tip, the fringe clumped by a slow wander, and stray single hairs of each colour
+  reaching 1 to 2 cm further as a thin paint at half strength; (4) the clumps are gone with it (the longest reach is
+  a stray hair at about 4 cm, translucent); (5) the black fur's nap as lit hairs: thin streaks of a lighter
+  brown-black (a fifth of the coat, 2 mm wide, a few cm long, a touch less matte), lighter again where the coat
+  is pressed, in the surfaces step and on the hairs' strips; (6) the glass tinted a brighter amber at full strength:
+  it reads smoky amber from above and at the chase cameras now, but what lies behind it is the black cockpit, and
+  a tint can't be brighter than what it covers. The judge blocks nothing; the close looks find nothing to name.
