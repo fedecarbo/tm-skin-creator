@@ -48,6 +48,47 @@ def rasterise(xy, width, height, depth=None):
     return tri, bary
 
 
+def area(xy, width, height, n=8):
+    """How much of each pixel the triangles cover together, 0..1, (h, w) float32. A pixel no triangle's edge
+    crosses counts by its centre; one an edge crosses, by n x n samples, so an edge is anti-aliased to within
+    about 1/(2n) wherever it runs. Overlapping triangles count once."""
+    full = np.zeros(height * width, bool)
+    bits = np.zeros(height * width, np.uint64)
+    offs = (np.arange(n) + 0.5) / n - 0.5
+    ox, oy = (o.ravel() for o in np.meshgrid(offs, offs))
+    weight = np.left_shift(np.uint64(1), np.arange(n * n, dtype=np.uint64))
+    lo = np.maximum(np.floor(xy.min(1) - 0.5).astype(np.int64), 0)
+    hi = np.ceil(xy.max(1) - 0.5).astype(np.int64)
+    hi[:, 0] = np.minimum(hi[:, 0], width - 1)
+    hi[:, 1] = np.minimum(hi[:, 1], height - 1)
+    a, b, c = xy[:, 0], xy[:, 1], xy[:, 2]
+    turn = (b[:, 0] - a[:, 0]) * (c[:, 1] - a[:, 1]) - (b[:, 1] - a[:, 1]) * (c[:, 0] - a[:, 0])
+    for t in np.flatnonzero((np.abs(turn) > 1e-12) & (hi[:, 0] >= lo[:, 0]) & (hi[:, 1] >= lo[:, 1])):
+        (x0, y0), (x1, y1) = lo[t], hi[t]
+        px, py = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+        px, py = px.ravel(), py.ravel()
+        corner = xy[t]
+        e, nrm = [], []
+        for k in range(3):  # each edge's inward unit normal, and the pixels' centres' distance in from it
+            p, q = corner[k], corner[(k + 1) % 3]
+            d = (q - p) / np.linalg.norm(q - p)
+            nk = np.array([-d[1], d[0]]) * np.sign(turn[t])
+            nrm.append(nk)
+            e.append((px - p[0]) * nk[0] + (py - p[1]) * nk[1])
+        e = np.stack(e, 1)
+        crossed = (np.abs(e) < 0.7072).any(1) & (e > -0.7072).all(1)  # an edge's line passes through the pixel
+        rows = (py - 0.5).astype(np.int64) * width + (px - 0.5).astype(np.int64)
+        full[rows[(e >= 0).all(1) & ~crossed]] = True
+        if crossed.any():
+            nrm = np.stack(nrm)
+            at = e[crossed][:, :, None] + (nrm[:, 0, None] * ox + nrm[:, 1, None] * oy)[None]
+            inside = (at >= 0).all(1)
+            bits[rows[crossed]] |= (inside * weight).sum(1, dtype=np.uint64)
+    out = np.bitwise_count(bits).astype(np.float32) / (n * n)
+    out[full] = 1
+    return out.reshape(height, width)
+
+
 def coverage(xy, width, height, flags):
     """How many triangles cover each pixel centre, and the OR of their flags.
 

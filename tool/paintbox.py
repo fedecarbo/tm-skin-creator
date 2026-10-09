@@ -22,7 +22,7 @@
         under = s.keep()                                      # the paint so far, as a layer...
         s.paint("body", "matte black")                        # ... under a wrap ...
         s.peel(under, amount=0.2)                             # ... torn open (tool/peel.py)
-        s.wear(under, fade=0.3, chips=0.05)                   # or aged: faded, chipped (tool/wear.py)
+        s.wear(under, fade=0.3, chips=0.3)                    # or aged: faded, chipped (tool/wear.py)
 
 Words: `what` is a phrase the tool sorts into a colour, a finish and (optionally) a region:
 "dark red carbon, glossy", "brushed steel", "olive camo" (see tool/colours.py, tool/finishes.py,
@@ -671,8 +671,8 @@ class Skin:
         return self
 
     def wear(self, under, where="body", **params):
-        """Age the paint as it stands: faded by the sun, chipped down to `under` (from keep())
-        where stones hit (tool/wear.py has the parameters)."""
+        """Age the paint as it stands, where the car's own shape says real paint ages: faded under the open sky,
+        chipped down to `under` (from keep()) along its edges (tool/wear.py has the parameters)."""
         from tool import wear
         wear.wear(self, under, where, **params)
         return self

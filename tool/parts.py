@@ -319,24 +319,16 @@ class Parts:
         n = MESH_TRIS[texture_set]
         return np.isin(self.tri_part[off:off + n], ids)
 
-    def _rasterise(self, bake, texture_set, tri_mask, samples=1):
-        """The texels the triangles cover. samples=2 takes 2x2 samples per texel and returns
-        the covered share 0..1, so a seam between two parts that share a texel is mixed by
-        area instead of decided by the texel's centre."""
+    def _rasterise(self, bake, texture_set, tri_mask, share=False):
+        """The texels the triangles cover. share: the covered share 0..1 instead (raster.area), so a seam
+        between two parts that share a texel is mixed by area instead of decided by the texel's centre."""
         from tool import fbx, raster
         h, w = bake["tri"].shape
         if not hasattr(self, "_meshes"):
             self._meshes = fbx.meshes()
         uv = self._meshes[fbx.MESH_OF[texture_set]]["tri_uv"][tri_mask].astype(np.float64)
         xy = np.stack([uv[..., 0] * w, (1 - uv[..., 1]) * h], -1)
-        if samples == 1:
-            return raster.rasterise(xy, w, h)[0] >= 0
-        offsets = (np.arange(samples) + 0.5) / samples - 0.5
-        cov = np.zeros((h, w), np.float32)
-        for dx in offsets:
-            for dy in offsets:
-                cov += raster.rasterise(xy - [dx, dy], w, h)[0] >= 0
-        return cov / (samples * samples)
+        return raster.area(xy, w, h) if share else raster.rasterise(xy, w, h)[0] >= 0
 
     def _cut_coverage(self, bake, texture_set, cut):
         """Coverage 0..1 of a cut (both sides, both ends): the field's sign, anti-aliased over
@@ -375,7 +367,7 @@ class Parts:
         between UV islands takes care of their edges."""
         ids = self.select(name, side, end) if ids is None else ids
         plain = [i for i in ids if "cut" not in self.instances[i]]
-        out = self._rasterise(bake, texture_set, self.tri_mask(texture_set, None, ids=plain), samples=2) \
+        out = self._rasterise(bake, texture_set, self.tri_mask(texture_set, None, ids=plain), share=True) \
             if plain else np.zeros(bake["tri"].shape, np.float32)
         for i in ids:
             inst = self.instances[i]

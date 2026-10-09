@@ -70,7 +70,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 19935, "viewer/*.js": 4720}
+BUDGET = {"tool/*.py": 20102, "viewer/*.js": 4720}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -103,7 +103,7 @@ def tour(s):
     s.paint("nose fin", "satin", colour="#e02020", zone=shapes.stripe(4))
     s.paint("body", "satin", colour="#f4f2ec", blend=0.6, zone=shapes.radial((0, 84, -60), 40))
     s.paint("body", "matte black", zone=shapes.noisy(shapes.band(150, 165), amount=3, seed=2))
-    s.wear(under, fade=0.3, chips=0.08, scrapes=0.05, clearcoat=0.2)
+    s.wear(under, fade=0.3, chips=0.3, scrapes=0.05, clearcoat=0.2, grime=0.4)
     s.step("The map", "The flanks on the outer body, a line through points, grass and a blob.")
     s.paint("body", "satin", colour="#f4f2ec", zone=shapes.sides(0.5) & shapes.outside(0.4) & shapes.along(0.2, 0.4))
     s.paint("body", "satin", colour="#9fc3e6", zone=shapes.polyline([[(86.0, 41.6, -6.1), (86.9, 42.0, -20.0), (86.8, 42.0, -35.0)]], 1.2))
