@@ -40,23 +40,9 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  9. **Memory** (Opus 5.5, xhigh). The Mac's profile (2026-10-07): a paint holds 6.6 to 7 GB at its peak (the Mac has 16,
-     and swaps once other apps hold the rest), and unpacking the compressed caches takes 3 to 5 s of it. Bake and coverage caches as plain arrays read from disk on demand (the cache version bumped), only
-     the covered texels worked on, in chunks, float32 for the maths and smaller types stored, each part's arrays
-     freed once laid down, and only the map that changed repainted (a `show` repaints the whole car for a note on
-     the tyres). Game files identical. Retires the compressed caches, their readers and the old caches in the work
-     folder.
-     Built (2026-10-09), waiting for the user's OK: the bake and coverage caches as plain arrays mapped from the disk
-     (`bake.save`, `bake.load`, `bake.VERSION` 3), with the filled places the paint box copied for itself; zones, noise,
-     the car map's lookups and the tear gradient worked `noise.CHUNK` texels at a time; each map's layers let go once
-     its textures are made (`Canvas.free`); mip levels made one at a time; the profile reports the paint's own memory
-     (its footprint). Kept as it was: the maths' precision (a change there moves texels). Not built: repainting only
-     the map that changed (knowing a map is unchanged before painting it needs every call's inputs fingerprinted, the
-     designs' own zones among them, and a wrong match would show a car that isn't the one painted). On the OK: delete
-     the work folder's `bake2_*.npz` and `coverage_*.npz`.
-  10. **The GPU, where the profile points** (Fable 5.1, high; or Opus 5.5, xhigh; `PY -m tool.selftest --profile`, the Mac's:
-      the noise 10 s of the tour's 59 s paint, the BC1 encoder's block search 10 s of its 19 s encode; the PC's waits for
-      the PC): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
+  10. **The GPU, where the profile points** (Fable 5.1, high; or Opus 5.5, xhigh; `PY -m tool.selftest --profile`, the Mac's on
+      2026-10-09: the noise 13 s of the tour's 94 s paint under the profiler, the surface's charts for its scatter 18 s,
+      the BC1 encoder 15 s of its 19 s encode; the PC's waits for the PC): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
       needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
       part in a million).
   11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface
