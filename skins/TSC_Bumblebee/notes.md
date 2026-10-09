@@ -64,3 +64,6 @@ composition in three takes, then surfaces, details and art direction.
   is pressed, in the surfaces step and on the hairs' strips; (6) the glass tinted a brighter amber at full strength:
   it reads smoky amber from above and at the chase cameras now, but what lies behind it is the black cockpit, and
   a tint can't be brighter than what it covers. The judge blocks nothing; the close looks find nothing to name.
+- Art direction, second look (2026-10-09): the six fixed (the pollen on the skirt's lowest 10 cm, z +20 to +110, still the
+  densest patch: taste, not a fault; the black a shade lighter and more mottled from far). Finished at all three
+  distances. Shown (2026-10-09, in the Lab) for the user's yes. Open (the PC): `tool.skin install TSC_Bumblebee` on their yes.
