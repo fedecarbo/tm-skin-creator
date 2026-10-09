@@ -74,6 +74,12 @@ it.
 
 ## The tool
 
+- **A nap can't turn with the surface** (2026-10-09, TSC_Bumblebee's details pass): the brushed look takes one direction
+  per call (x, y or z), so a grain can't follow the body's own flow round its nose, tail and lips. Idea: a per-point
+  direction in `tool/looks.py`, from the surface's flow (the mesh's own lines).
+- **The judge reads a thin paint zoned by a reading of the car as one gappy run** (2026-10-09): a blend 0.55 paint zoned by
+  `shapes.facing` was blocked with thirty "gap" findings, its patches read as gaps along the car. Idea: a paint under
+  half weight, or zoned by facing or open air, is a wash, not a run: no gaps to read.
 - **No fur finish** (2026-10-09, TSC_Bumblebee's surfaces pass): the suede look takes only a seed (no direction, no hair
   length), the brushed look is the only nap with a direction and lies along the world's z, its streaks 7 cm long and
   0.4 mm wide. Idea: a fur look in `tool/looks.py`: hairs of a length and a lay that follows the surface's flow.
@@ -113,6 +119,8 @@ it.
 
 Settled when the user drives a skin that uses it and says or shows what they saw; never ask them.
 
+- **Pollen grains of 2 mm** (2026-10-09, TSC_Bumblebee): pale specks two texels wide on black fur; the game's colour
+  compression may flatten single grains, a haze should survive.
 - **Never seen in the game yet** (2026-10-05): the finishes candy, chrome rims, rust, leather,
   metallic flake, and the viewer's matte, satin, gloss and chrome against the game's; the exhaust heat
   and boost glows (TSC_CMYK_EndsInK carries exhaust heat); whether the wheel covers turn; how

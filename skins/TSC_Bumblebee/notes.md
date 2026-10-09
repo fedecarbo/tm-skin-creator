@@ -33,3 +33,14 @@ composition in three takes, then surfaces, details and art direction.
   slots, the wheel rings, the headlights, the cockpit's and floor's faint glows). The legs, feet and wings stay as
   the composition set them. The judge's three notes (the yellow collar's fur 1.3 cm over the side skirt's panel
   line; the tail's fur over the diffuser's outline) are the fur crossing the car's lines on purpose.
+- Details pass (2026-10-09, Claude Fable 5.1): at the large size nothing added, four bands and nothing else drawn.
+  At the medium size the pollen: a dust of pale grains about 2 mm, no shine, where the car's own form makes a hollow
+  (the inlets' throats, under the body's edge along the lower flanks, the pocket between sidepod and rear wheel, the
+  nose's underside, the tail's lower corners) and at the foot of the groove round the cockpit and of the groove along
+  each sidepod's top, thicker low down, thinning to nothing on the open skin, clear of the nose fin's plate; the nap
+  left along the car over every bend, a choice: the car's rolls run along it as a bee's hairs lie along its body, and
+  on the two faces square to the car (the nose's front, the tail's) a turned nap painted and looked at close did not
+  read, and the judge read it as a gappy run. At the small size each band's edge as hairs of many lengths (finer
+  hairs and clumps over the fur's teeth, the strip along each edge painted again with its nap and pressed coat);
+  the legs' glint was already there. The judge blocks nothing; its notes are the fur crossing the car's lines on
+  purpose and the dust lying where the body ends.
