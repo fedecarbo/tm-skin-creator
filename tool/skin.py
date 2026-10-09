@@ -57,7 +57,7 @@ def _try_lock(f):
             import fcntl
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return True
-    except OSError:
+    except OSError:  # another paint holds it
         return False
 
 
@@ -95,6 +95,7 @@ def paint(name, frames=False, judged=False):
     if frames:
         view.start_steps(name)
         s.frames = True
+    s.say = lambda rec: print(f"  {rec}".replace("\n", "\n  "), flush=True)  # each call's receipt as it ends
     load_design(name)(s)
     s.end_steps()
     print(f"painted in {time.time() - t0:.0f} s")

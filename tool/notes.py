@@ -107,7 +107,7 @@ def _locked(wait=3.0, stale=10.0):
             try:
                 os.rmdir(LOCK)
                 break
-            except FileNotFoundError:
+            except FileNotFoundError:  # freed already
                 break
             except OSError:
                 time.sleep(0.05)
@@ -204,7 +204,7 @@ def _view(v):
         if isinstance(f, dict):
             out["framing"] = {k: round(num(f[k]), 4) for k in ("x", "y", "zoom")}
         return out
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, TypeError, ValueError):  # a view that isn't one
         return None
 
 
@@ -593,7 +593,7 @@ def _changed(skins, name):
         r = subprocess.run(["git", "-C", str(skins), "log", "-1", "--format=%cs", "--", name],
                            capture_output=True, text=True, timeout=10)
         return r.stdout.strip() if r.returncode == 0 else ""
-    except (OSError, subprocess.SubprocessError):
+    except (OSError, subprocess.SubprocessError):  # no git here
         return ""
 
 

@@ -256,7 +256,10 @@ class Parts:
         'centre') and end ('front'/'rear'). exact: only parts called that, not the assembly of the
         same name ("floor", "front wing" and "engine cover" are both)."""
         if name not in self.by_name:
-            raise KeyError(f"no part called {name!r}; see car/parts.json")
+            import difflib
+            close = difflib.get_close_matches(name.strip().lower(), list(self.by_name), n=4, cutoff=0.5)
+            raise KeyError(f"no part called {name!r}" + (f"; did you mean {', '.join(map(repr, close))}?" if close else "")
+                           + "; car/parts.json has every name")
         ids = sorted(set(self.by_name[name]))
         if exact:
             ids = [i for i in ids if self.instances[i]["name"] == name]
@@ -264,6 +267,10 @@ class Parts:
             ids = [i for i in ids if self.instances[i]["side"] == side]
         if end:
             ids = [i for i in ids if self.instances[i]["end"] == end]
+        if not ids:  # the name is right, the narrowing isn't: say what there is
+            has = sorted({f"{self.instances[i]['side']}" + (f" {self.instances[i]['end']}" if self.instances[i]["end"] else "")
+                          for i in self.by_name[name]})
+            raise KeyError(f"no {name} on the {' '.join(w for w in (side, end) if w)}; there is {', '.join(has)}")
         return ids
 
     # ---- a part in words: the Lab's rooms show these, and copies line() for Claude ----

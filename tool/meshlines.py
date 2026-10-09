@@ -229,20 +229,120 @@ def lines(tset="Skin", fold=True):
     return kept
 
 
-def line(near, kind=None, least=3.0, tset="Skin"):
-    """The model's line nearest a point (x, y, z) on the car, of `kind` ("crease", "opening" or "seam") or any,
-    `least` cm long or more: a Course along it, exactly through the model's points (closed round a loop).
-    kind="rounded": one of the lines along a rounded edge (strips), the one nearest the point of those side by side
-    across it."""
+MIDDLE = 1.0  # cm: a line or panel whose middle lies further right than this is the right side's, named by its left twin
+WORDS = {"crease": "crisp line", "opening": "edge where the body ends", "seam": "seam", "rounded": "line along a rounded edge"}
+KIND_WORD = {"crease": "crease", "opening": "edge", "seam": "seam"}
+
+
+def _middle(pts):
+    return pts[len(pts) // 2]
+
+
+@functools.lru_cache(maxsize=4)
+def named(tset="Skin"):
+    """Every line, rounded edge and panel of the model by its name, {name: record}: the lines of the left side and
+    the middle (the right side's are their mirror images: line(..., side="right")). A line's name is the part it
+    mostly runs along, its kind ("crease", "edge" where the body ends, "seam") and its number among that part's lines
+    of the kind, the longest first: "side skirt crease 2". A rounded edge's is "roll": its lines side by side across
+    it (rolls; one of them by its tilt, degrees from facing up): "rear flank roll 2". A panel's is "panel", by area:
+    "tail corner panel 1". The record: a line's dict (lines), a roll's list of them, a panel's dict (label: its
+    triangles' panel, area, at: a point on it, parts). PY -m tool.meshlines lists them."""
+    out = {}
+    groups = {}
+    for L in lines(tset):
+        m = _middle(L["pts"])
+        if m[0] >= -MIDDLE:
+            groups.setdefault((L["parts"][0], KIND_WORD[L["kind"]]), []).append(L)
+    for g in rolls(tset):
+        longest = max(g, key=lambda L: L["length"])
+        if _middle(longest["pts"])[0] >= -MIDDLE:
+            groups.setdefault((longest["parts"][0], "roll"), []).append(g)
+    for (part, word), items in groups.items():
+        if word == "roll":
+            items.sort(key=lambda g: (-round(max(L["length"] for L in g), 2), -round(_middle(g[0]["pts"])[2], 1)))
+        else:
+            items.sort(key=lambda L: (-round(L["length"], 2), -round(_middle(L["pts"])[2], 1), round(_middle(L["pts"])[1], 1)))
+        for k, item in enumerate(items, 1):
+            out[f"{part} {word} {k}"] = item
+    e, lab, names = _edges(tset), _panels(tset), _parts_of(tset)
+    X = e["P"][e["T"]]
+    area = 0.5 * np.linalg.norm(np.cross(X[:, 1] - X[:, 0], X[:, 2] - X[:, 0]), axis=1)
+    A, C = np.bincount(lab, weights=area), X.mean(1)
+    panels_by = {}
+    for p in range(lab.max() + 1):
+        mine = np.flatnonzero(lab == p)
+        if not len(mine):
+            continue
+        mid = np.average(C[mine], axis=0, weights=area[mine])
+        at = C[mine[np.argmin(np.linalg.norm(C[mine] - mid, axis=1))]]
+        if mid[0] >= -MIDDLE:
+            parts = _most(names[mine])
+            panels_by.setdefault(parts[0], []).append(dict(label=int(p), area=float(A[p]), at=at, parts=parts))
+    for part, items in panels_by.items():
+        items.sort(key=lambda d: (-round(d["area"], 1), -round(d["at"][2], 1), round(d["at"][1], 1)))
+        for k, d in enumerate(items, 1):
+            out[f"{part} panel {k}"] = d
+    return out
+
+
+def _named(name, word, tset):
+    """The record called `name` of the kind `word` ("line", "roll" or "panel"), or a ValueError saying what's near it."""
+    import difflib
+    every = named(tset)
+    key = " ".join(name.strip().lower().split())
+    kinds = {"line": ("crease", "edge", "seam", "roll"), "roll": ("roll",), "panel": ("panel",)}[word]
+    mine = [n for n in every if n.rsplit(" ", 2)[-2] in kinds]
+    if key in mine:
+        return every[key]
+    close = difflib.get_close_matches(key, mine, n=5, cutoff=0.5)
+    part = " ".join(key.split()[:-2])
+    same = [n for n in mine if n.startswith(part + " ")][:8] if part else []
+    hint = f"; did you mean {', '.join(map(repr, dict.fromkeys(close + same)))}?" if close or same else ""
+    raise ValueError(f"no {word} of the model called {name!r}{hint}; PY -m tool.meshlines lists them")
+
+
+def _twin(L, pool):
+    """A line's mirror image on the car's other side: the line of the pool whose points mirror its, or None."""
+    M = L["pts"] * np.array([-1.0, 1.0, 1.0])
+    mid = _middle(M)
+    for K in pool:
+        if abs(K["length"] - L["length"]) > 0.01 * L["length"] + 0.5 or np.linalg.norm(_middle(K["pts"]) - mid) > 2.0:
+            continue
+        if cKDTree(K["pts"]).query(M)[0].max() <= 1.0:
+            return K
+    return None
+
+
+def line(near, kind=None, least=3.0, tset="Skin", tilt=None, side=None):
+    """One of the model's lines by its name (named: "side skirt crease 2", "sidepod inlet edge 1", "body shell seam
+    1"; a rounded edge's "rear flank roll 2" with `tilt`, degrees from facing up, picking the line of those side by
+    side across it, when it has more than one): a Course along it, exactly through the model's points (closed round a
+    loop). side="right": its mirror image on the car's other side. Or the line nearest a point (x, y, z) on the car, of
+    `kind` ("crease", "opening", "seam" or "rounded") or any, `least` cm long or more."""
     from tool import course
-    at = np.asarray(near, np.float64)
-    pool = [L for L in (strips(tset) if kind == "rounded" else lines(tset))
-            if L["length"] >= least and (kind is None or L["kind"] == kind)]
-    L = min(pool, key=lambda L: float(np.linalg.norm(L["pts"] - at, axis=1).min()))
-    words = {"crease": "crisp line", "opening": "edge where the body ends", "seam": "seam", "rounded": "line along a rounded edge"}[L["kind"]]
+    if isinstance(near, str):
+        L = _named(near, "line", tset)
+        if isinstance(L, list):  # a roll: its lines side by side across the edge
+            tilts = [round(x["tilt"]) for x in L]
+            if tilt is None and len(L) > 1:
+                raise ValueError(f"{near!r} has {len(L)} lines side by side across it, tilted {', '.join(map(str, tilts))} degrees "
+                                 f"from facing up: say which, tilt=<degrees>")
+            L = L[0] if tilt is None else min(L, key=lambda x: abs(x["tilt"] - tilt))
+        if side == "right":
+            twin = _twin(L, strips(tset) if L["kind"] == "rounded" else lines(tset))
+            if twin is None:
+                raise ValueError(f"{near!r} has no mirror image on the right")
+            L = twin
+        words = f"the model's {WORDS[L['kind']]} {near!r}" + (f" tilted {L['tilt']:.0f} degrees" if "tilt" in L else "") \
+            + (" on the right" if side == "right" else "")
+    else:
+        at = np.asarray(near, np.float64)
+        pool = [L for L in (strips(tset) if kind == "rounded" else lines(tset))
+                if L["length"] >= least and (kind is None or L["kind"] == kind)]
+        L = min(pool, key=lambda L: float(np.linalg.norm(L["pts"] - at, axis=1).min()))
+        words = f"the model's {WORDS[L['kind']]} along the {L['parts'][0]} near {course._said(at)}"
     k = slice(0, -1) if L["closed"] else slice(None)
-    c = course.Course(L["pts"][k], f"the model's {words} along the {L['parts'][0]} near {course._said(at)}", nrm=L["nrm"][k],
-                      closed=L["closed"])
+    c = course.Course(L["pts"][k], words, nrm=L["nrm"][k], closed=L["closed"])
     c.model = L
     return c
 
@@ -292,15 +392,23 @@ def _centres(tset):
     return cKDTree(e["P"][e["T"]].mean(1))
 
 
-def panel(near, both=False, border=None, soft=None, size=4096):
-    """The model's own panel under a point (x, y, z) on the body: every triangle reached from it without crossing a
-    crease, painted right up to its creases and the body's edges, as a zone for s.paint(..., zone=); `both`: and its
-    mirror image's on the other side; `border`: only the band that many cm inside its edge (a trim round an opening,
-    a panel's outline). Its edge is the model's line itself, feathered over `soft` cm (shapes.SOFT). The body (Skin)."""
+def panel(near, both=False, border=None, soft=None, size=4096, side=None):
+    """The model's own panel by its name (named: "tail corner panel 1"; side="right": its mirror image on the other
+    side) or under a point (x, y, z) on the body: every triangle reached from it without crossing a crease, painted
+    right up to its creases and the body's edges, as a zone for s.paint(..., zone=); `both`: and its mirror image's on
+    the other side; `border`: only the band that many cm inside its edge (a trim round an opening, a panel's outline).
+    Its edge is the model's line itself, feathered over `soft` cm (shapes.SOFT). The body (Skin)."""
     from tool import bake, course, shapes
     soft = shapes.SOFT if soft is None else soft
     e, lab = _edges("Skin"), _panels("Skin")
-    pts = [np.asarray(near, np.float64)] + ([np.asarray(near, np.float64) * [-1, 1, 1]] if both else [])
+    if isinstance(near, str):
+        d = _named(near, "panel", "Skin")
+        at = np.asarray(d["at"], np.float64) * ([-1, 1, 1] if side == "right" else 1)
+        label = f"the model's {{words}} {near!r}" + (" on the right" if side == "right" else "")
+    else:
+        at = np.asarray(near, np.float64)
+        label = f"the model's {{words}} at {course._said(at)}"
+    pts = [at] + ([at * [-1, 1, 1]] if both else [])
     sel = np.zeros(lab.max() + 1, bool)
     for p in pts:
         sel[lab[_triangle_at(p)]] = True
@@ -326,7 +434,7 @@ def panel(near, both=False, border=None, soft=None, size=4096):
     keep = w > 0.002
     words = "panel" if border is None else f"{border:g} cm border inside the panel"
     z = course.Course._matched(pos[idx[keep]].astype(np.float64), w[keep].astype(np.float32),
-                               label=f"the model's {words} at {course._said(np.asarray(near, np.float64))}" + (", both sides" if both else ""))
+                               label=label.format(words=words) + (", both sides" if both else ""))
     z.lines, z.border = edge, border  # the judge measures the fill's edge against its lines
     return z
 
@@ -677,24 +785,76 @@ def panels(tset="Skin", least=50.0):
     return out
 
 
-def main():
-    """The body's panels, the biggest first, and its longest lines: a point on each to pick it by, and its parts."""
-    print("The body's panels (meshlines.panel(point)), 50 cm2 or more, the biggest first:")
-    for A, at, parts in panels("Skin"):
-        print(f"  {A:7.0f} cm2  at ({at[0]:.0f}, {at[1]:.0f}, {at[2]:.0f})  {', '.join(parts[:3])}")
-    print("Its lines (meshlines.line(point)), 40 cm or more, the longest first:")
-    for L in lines("Skin"):
-        if L["length"] < 40:
-            break
-        at = L["pts"][len(L["pts"]) // 2]
-        groove = f", a groove of {L['walls']}" if L["walls"] > 1 else ""
-        print(f"  {L['kind']:7s} {L['length']:6.0f} cm{' loop' if L['closed'] else ''}  at ({at[0]:.0f}, {at[1]:.0f}, {at[2]:.0f})"
-              f"  {', '.join(L['parts'][:3])}{groove}")
-    print("Its rounded edges (meshlines.line(point, kind=\"rounded\")), 40 cm or more: the lines across each, facing up first:")
-    for g in rolls("Skin"):
-        print("  " + "; ".join(f"{L['tilt']:.0f} deg {L['length']:.0f} cm at ({q[0]:.0f}, {q[1]:.0f}, {q[2]:.0f})"
-                               for L in g for q in [L["pts"][len(L["pts"]) // 2]]) + f"  {', '.join(g[0]['parts'][:3])}")
+def _at(p):
+    return f"({p[0]:.0f}, {p[1]:.0f}, {p[2]:.0f})"
+
+
+def listing(least_line=40.0, least_area=50.0, tset="Skin"):
+    """The model's named panels, lines and rounded edges (named), the left side and the middle, each with a point on it
+    and its parts: {"panels": [...], "lines": [...], "rolls": [...]} of (name, size, at, parts, more)."""
+    out = {"panels": [], "lines": [], "rolls": []}
+    for name, rec in named(tset).items():
+        word = name.rsplit(" ", 2)[-2]
+        if word == "panel" and rec["area"] >= least_area:
+            out["panels"].append((name, rec["area"], rec["at"], rec["parts"][:3], ""))
+        elif word == "roll" and max(L["length"] for L in rec) >= least_line:
+            more = ", ".join(f"{L['tilt']:.0f}" for L in rec)
+            out["rolls"].append((name, max(L["length"] for L in rec), _middle(rec[0]["pts"]), rec[0]["parts"][:3], f"tilts {more}"))
+        elif word in KIND_WORD.values() and rec["length"] >= least_line:
+            more = (" loop" if rec["closed"] else "") + (f", a groove of {rec['walls']}" if rec["walls"] > 1 else "")
+            out["lines"].append((name, rec["length"], _middle(rec["pts"]), rec["parts"][:3], more))
+    for k in out:
+        out[k].sort(key=lambda r: (-round(r[1]), r[0]))
+    return out
+
+
+def near(point, reach=5.0, tset="Skin"):
+    """What of the model lies within `reach` cm of a point: [(how far, the name, a word)] for its lines and rounded
+    edges, nearest first, and the name of the panel under it."""
+    p = np.asarray(point, np.float64)
+    found = []
+    for name, rec in named(tset).items():
+        word = name.rsplit(" ", 2)[-2]
+        if word == "panel":
+            continue
+        for L in (rec if word == "roll" else [rec]):
+            d = float(np.linalg.norm(L["pts"] - p, axis=1).min())
+            if d <= reach:
+                found.append((d, name, f"{WORDS[L['kind']]}, {L['length']:.0f} cm" + (f", tilt {L['tilt']:.0f}" if "tilt" in L else "")))
+    found.sort()
+    panels_named = {r["label"]: n for n, r in named(tset).items() if n.rsplit(" ", 2)[-2] == "panel"}
+    under = panels_named.get(_panels(tset)[_triangle_at(p, tset)])
+    if under is None:  # the right side: its twin's name
+        twin = panels_named.get(_panels(tset)[_triangle_at(p * [-1, 1, 1], tset)])
+        under = f"{twin} (its mirror image: side=\"right\")" if twin else None
+    return found, under
+
+
+def main(argv):
+    """The body's named panels, lines and rounded edges, 50 cm2 or 40 cm and more, each with a point on it and its
+    parts; `at x y z`: what lies within 5 cm of a point, by name."""
+    if argv[:1] == ["at"]:
+        p = [float(v) for v in argv[1:4]]
+        found, under = near(p)
+        print(f"Within 5 cm of {_at(p)}:" + ("" if found else " none of the model's lines"))
+        for d, name, what in found:
+            print(f"  {d:4.1f} cm  {name:<30} {what}")
+        print(f"The panel under it: {under or 'none (the point is off the body)'}")
+        return
+    L = listing()
+    print("The body's panels (meshlines.panel(name)), 50 cm2 or more, the biggest first; the right side is each one's "
+          "mirror image (both=True, or side=\"right\"):")
+    for name, area, at, parts, _ in L["panels"]:
+        print(f"  {name:<30} {area:7.0f} cm2  at {_at(at)}  {', '.join(parts)}")
+    print("Its lines (meshlines.line(name)), 40 cm or more, the longest first:")
+    for name, length, at, parts, more in L["lines"]:
+        print(f"  {name:<30} {length:6.0f} cm{more}  at {_at(at)}  {', '.join(parts)}")
+    print("Its rounded edges (meshlines.line(name, tilt=<degrees from facing up>)), 40 cm or more: each one's lines side by "
+          "side across it, by tilt:")
+    for name, length, at, parts, more in L["rolls"]:
+        print(f"  {name:<30} {length:6.0f} cm  {more}  at {_at(at)}  {', '.join(parts)}")
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    main(sys.argv[1:])

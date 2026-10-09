@@ -197,7 +197,7 @@ def repainted(options):
     for o in options:
         try:
             mine = layout((SKINS / o["skin"] / "design.py").read_text("utf-8"))
-        except (OSError, SyntaxError):
+        except (OSError, SyntaxError):  # a design gone, or broken
             continue
         same = next((k for k, other in seen if other == mine), None)
         if same:

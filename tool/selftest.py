@@ -12,7 +12,10 @@ its judge name on a car where they were planted?
 Run it before and after any change to the tool. It first checks that every command, file and name
 the instructions give still exists (tool/instructions.py, the working tree's), and its tripwires (`tripwires`): code
 nothing uses (vulture: a name in tool/ that no code calls, the tool's, the designs' or the self-test's cars'; UNSEEN
-are the names the standard library or a decorator calls), and the tool past its size (BUDGET: lines a commit may not
+are the names the standard library or a decorator calls); code written twice (`duplicates`: DUPLICATE lines or more
+of tool/*.py, stripped of blanks, comments and docstrings, the same in two places: make one of them, or a call);
+errors hidden (`hiding`: an `except` that catches everything and says nothing, or that only passes, continues or
+returns with no comment on it saying why); and the tool past its size (BUDGET: lines a commit may not
 grow past without raising it here and saying why; when they shrink by more than SLACK, the budget comes down with
 them); and that the graphics chip's kernels give their numpy twins' bits (`chip`, tool/gpu.py). Each skin is painted
 in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
@@ -44,6 +47,7 @@ after says which). The whole profile is kept in the work folder (selftest/profil
 """
 
 import argparse
+import ast
 import hashlib
 import io
 import json
@@ -53,6 +57,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tokenize
 
 from tool import instructions, paths, progress
 
@@ -72,6 +77,9 @@ UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", 
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
 BUDGET = {"tool/*.py": 20102, "viewer/*.js": 4720}
 SLACK = 100
+DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
+# lines that say nothing on their own, left out when looking for code written twice
+PLAIN = {"", "else:", "try:", "finally:", "return", "continue", "break", "pass", ")", "]", "}", "))", "])", "},", "),", "],"}
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
 # the flanks, the car map's open air and length, a drawn line, grass, a blob, a decal, a scatter, a print,
@@ -579,8 +587,81 @@ def snapshots(names, old_cwd, new_cwd, commit):
     return ok
 
 
+def _code_lines(path):
+    """A module's lines of code, (line number, the line stripped of its spaces and comment): no blanks, comments,
+    docstrings, imports or lines that say nothing on their own (PLAIN)."""
+    src = path.read_text(encoding="utf-8")
+    doc = set()
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.body \
+                and isinstance(node.body[0], ast.Expr) and isinstance(getattr(node.body[0], "value", None), ast.Constant) \
+                and isinstance(node.body[0].value.value, str):
+            doc.update(range(node.body[0].lineno, node.body[0].end_lineno + 1))
+    out = []
+    for i, raw in enumerate(src.splitlines(), 1):
+        s = raw.strip()
+        if i in doc or s.startswith(("#", "import ", "from ")) or s in PLAIN:
+            continue
+        s = re.sub(r"\s+", " ", re.sub(r"\s#.*$", "", s)).strip()
+        if s and s not in PLAIN:
+            out.append((i, s))
+    return out
+
+
+def duplicates():
+    """Code written twice: runs of DUPLICATE lines or more the same in two places of tool/*.py, a line each."""
+    seen = {}
+    for f in sorted(paths.REPO.glob("tool/*.py")):
+        L = _code_lines(f)
+        for k in range(len(L) - DUPLICATE + 1):
+            key = "\n".join(s for _, s in L[k:k + DUPLICATE])
+            seen.setdefault(key, []).append((f.relative_to(paths.REPO).as_posix(), L[k][0], L[k + DUPLICATE - 1][0]))
+    pairs = {}
+    for places in seen.values():
+        for a in places:
+            for b in places:
+                if a < b:
+                    pairs.setdefault((a[0], b[0]), []).append((a[1], a[2], b[1], b[2]))
+    caught = []
+    for (fa, fb), runs in sorted(pairs.items()):
+        merged = []
+        for r in sorted(runs):  # windows that overlap are one run
+            if merged and r[0] <= merged[-1][1] + 1 and r[2] <= merged[-1][3] + 1:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], r[1]), merged[-1][2], max(merged[-1][3], r[3]))
+            else:
+                merged.append(r)
+        for a0, a1, b0, b1 in merged:
+            caught.append(f"{fa}:{a0}-{a1} is written again at {fb}:{b0}-{b1} ({a1 - a0 + 1} lines): make it one, or a call")
+    return caught
+
+
+def hiding():
+    """Errors hidden, a line each: an `except` that catches everything (bare, Exception or BaseException) and does
+    nothing but pass or return, or any `except` that only passes, continues or returns with no comment on it (on its
+    line, or its body's first) saying why that's right."""
+    caught = []
+    for f in sorted(paths.REPO.glob("tool/*.py")):
+        src = f.read_text(encoding="utf-8")
+        with tokenize.open(f) as fh:
+            commented = {t.start[0] for t in tokenize.generate_tokens(fh.readline) if t.type == tokenize.COMMENT}
+        where = f.relative_to(paths.REPO).as_posix()
+        for node in ast.walk(ast.parse(src)):
+            if not isinstance(node, ast.ExceptHandler):
+                continue
+            names = {n.id for n in ast.walk(node.type) if isinstance(n, ast.Name)} if node.type is not None else set()
+            broad = node.type is None or names & {"Exception", "BaseException"}
+            quiet = all(isinstance(s, (ast.Pass, ast.Continue, ast.Break)) or (isinstance(s, ast.Return) and
+                        (s.value is None or isinstance(s.value, ast.Constant))) for s in node.body)
+            if broad and quiet:
+                caught.append(f"{where}:{node.lineno}: catches every error and says nothing: catch what can happen, or say it")
+            elif quiet and not ({node.lineno, node.body[0].lineno} & commented):
+                caught.append(f"{where}:{node.lineno}: swallows the error without a comment saying why that's right")
+    return caught
+
+
 def tripwires():
-    """What the tripwires catch, a line each: code nothing uses, and code past its budget; then the line counts."""
+    """What the tripwires catch, a line each: code nothing uses, code written twice, errors hidden, and code past its
+    budget; then the line counts."""
     import vulture
     v = vulture.Vulture(ignore_names=list(UNSEEN), ignore_decorators=["@look"])
     v.scavenge([paths.REPO / "tool", *sorted(paths.SKINS.glob("*/design.py"))])
@@ -593,6 +674,7 @@ def tripwires():
         else:
             where = f"tool/selftest.py, the cars' code, at {cars.splitlines()[item.first_lineno - 1].strip()!r}"
         caught.append(f"{where}: {item.message}: delete it, or use it")
+    caught += duplicates() + hiding()
     counts = []
     for pattern, budget in BUDGET.items():
         n = sum(len(f.read_text(encoding="utf-8").splitlines()) for f in paths.REPO.glob(pattern))
@@ -734,7 +816,7 @@ def run(args, names):
         if missing:
             differing.append("instructions")
         caught, counts = tripwires()
-        print("tripwires: " + ("nothing unused; " if not caught else "") + "; ".join(counts), flush=True)
+        print("tripwires: " + ("nothing unused, written twice or hidden; " if not caught else "") + "; ".join(counts), flush=True)
         print("\n".join(f"  {c}" for c in caught))
         if caught:
             differing.append("tripwires")

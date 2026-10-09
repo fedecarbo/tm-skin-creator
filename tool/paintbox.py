@@ -60,6 +60,7 @@ the viewer and builds the game's DDS files and the zip. Sets the design never to
 shipped, so they keep the stock look.
 """
 
+import difflib
 import functools
 import hashlib
 import os
@@ -68,7 +69,7 @@ import re
 import numpy as np
 from PIL import Image, ImageDraw
 
-from tool import bake, colours, coverage, finishes, fonts, looks, noise, parts, paths, progress, raster, shapes
+from tool import bake, colours, coverage, finishes, fonts, looks, noise, parts, paths, progress, raster, receipt, shapes
 from tool.dds import stock
 
 SIZES = {"Skin": (4096, 4096), "Details": (4096, 4096), "Wheels": (1024, 2048), "Glass": (1024, 1024)}
@@ -82,6 +83,16 @@ WHEEL_PARTS = WHEEL_COVER_PARTS + ("rim", "hub", "brake light", "wheel ring")
 # the words that name a group of parts, not a part: paint on one that runs over a part painted by
 # name is said (tool/judge.py)
 GROUP_WORDS = frozenset(("everything", "body", "wheels", "wheel", "wheel covers", "wheel cover", *SET_WORDS))
+# the words after | that narrow a part's name: "brake caliper|left|front", "floor|left|part"
+NARROWING = ("left", "right", "centre", "front", "rear", "part")
+
+
+def suggest(word, known):
+    """"; did you mean ...?" for a word that isn't one of the known, from the nearest of them, or ""."""
+    close = difflib.get_close_matches(word.strip().lower(), list(known), n=4, cutoff=0.5)
+    return f"; did you mean {', '.join(repr(c) for c in close)}?" if close else ""
+
+
 # the lights a skin can recolour, in plain words (the lights test, 2026-09-25), for relight()
 LIGHT_WORDS = {"speed numbers": "digit display", "speed digits": "digit display", "speedometer": "digit display",
                "digits": "digit display", "brake lights": "brake light", "rear lights": "rear light",
@@ -115,8 +126,10 @@ SPOTS = {
 class Canvas:
     """One texture set's layers, starting from the stock textures."""
 
-    def __init__(self, tset, w, h):
-        self.set, self.w, self.h = tset, w, h
+    def __init__(self, tset, w, h, parts=None):
+        self.set, self.w, self.h, self.parts = tset, w, h, parts
+        self.receipt = None  # the call painting now takes what blend lays (tool/receipt.py)
+        self._owners = self._texel_area = None
         self.bake = bake.bake(tset, w, h)  # mapped from the disk: read, never copied
         self.cov = self.bake["tri"] >= 0
         # a texel on an island's edge can be partly covered by a part (coverage samples 2x2)
@@ -160,8 +173,35 @@ class Canvas:
             self._uv_cm = uvmap.uv_cm(self.set, self.w, self.h).reshape(-1, 2)
         return self._uv_cm
 
+    @property
+    def owners(self):
+        """Per texel, the part that covers it most (-1: none), for the receipts."""
+        if self._owners is None:
+            self._owners = coverage.load(self.parts, self.set, self.w, self.h).owners().reshape(-1)
+        return self._owners
+
+    @property
+    def texel_area(self):
+        """Each texel's size on the car in cm², from its flat piece's density (tool/uvmap.py), for the receipts."""
+        if self._texel_area is None:
+            from tool import uvmap
+            label, density, _ = uvmap.islands(self.set)  # each triangle's flat piece, and each piece's density
+            tri = self.bake["tri"].reshape(-1)
+            pitch = np.zeros(len(tri), np.float32)
+            on = tri >= 0
+            pitch[on] = 1.0 / np.maximum(density[label[tri[on]]] * self.w, 1e-9)
+            self._texel_area = pitch * pitch
+        return self._texel_area
+
+    def took(self, idx, m=None):
+        """The call painting now took these texels (those m covers by half or more): the receipt says which parts and
+        how much."""
+        if self.receipt is not None and len(idx):
+            self.receipt.add(self.set, *receipt.areas(self, self.parts, idx if m is None else idx[m > 0.5]))
+
     def blend(self, idx, m, colour, rough=None, metal=None, varnish=None):
         """Mix new values into the layers at flat indices idx, by weight m (n,)."""
+        self.took(idx, m)
         mm = m[:, None]
         self.colour[idx] = self.colour[idx] * (1 - mm) + colour * mm
         if self.rough is not None:
@@ -182,6 +222,7 @@ class Canvas:
         the car stays, mapped from the disk."""
         self.colour = self.alpha = self.rough = self.metal = self.coat = self.touched = self.clay = self.owner = None
         self.glow_rgb = self.glow_code = self.slope = self.keep_stock = self.normal = self._uv_cm = None
+        self._owners = self._texel_area = None
 
     def textures(self):
         """The game's textures for this set, or {} when the design never touched it."""
@@ -233,27 +274,46 @@ def dark_take_codes(rgb, code, w, h, reach=3):
     return out
 
 
-def _op(describe):
-    """A call that lays paint on the body, named for the judge (tool/judge.py): while Skin.measure is on,
-    each body texel keeps the call that covered it last (Canvas.owner), so a paint cut short by a
-    later one can say which. A call inside another (text, through decal) takes the outer one's name."""
+def _verb(describe):
+    """A verb of the paint box: named by `describe` from its arguments, it returns a receipt (tool/receipt.py) of what
+    it painted, the notes it made and what it found wrong, said as it closes (Skin.say). The judge reads the same list
+    (tool/judge.py): while Skin.measure is on, each body texel keeps the call that covered it last (Canvas.owner), so a
+    paint cut short by a later one can say which. A call inside another (the clay's paints) adds to the outer one."""
     def wrap(method):
         @functools.wraps(method)
         def run(self, *args, **kw):
             if self._op_open:
-                return method(self, *args, **kw)
-            self.ops.append({"what": describe(*args, **kw), "step": self.steps[-1]["name"] if self.steps else "The design"})
-            self._op, self._op_open = len(self.ops) - 1, True
+                method(self, *args, **kw)
+                return self.receipt
+            rec = receipt.Receipt(describe(*args, **kw), self.steps[-1]["name"] if self.steps else "The design")
+            self.ops.append({"what": rec.what, "step": rec.step})
+            self.receipts.append(rec)
+            self._op, self._op_open, self.receipt = len(self.ops) - 1, True, rec
+            n0, f0 = len(self.notes), len(self.findings)
+            for c in self.canvases.values():
+                c.receipt = rec
             try:
-                return method(self, *args, **kw)
+                method(self, *args, **kw)
             finally:
-                self._op_open = False
+                self._op_open, self.receipt = False, None
+                for c in self.canvases.values():
+                    c.receipt = None
+                rec.notes, rec.findings = self.notes[n0:], self.findings[f0:]
+                if self.say:
+                    self.say(rec)
+            return rec
         return run
     return wrap
 
 
 def _where(where):
     return where if isinstance(where, str) else ", ".join(where)
+
+
+def _decal_name(what, where, box=False):
+    if isinstance(what, str):
+        return f"the {'placard' if box else 'text'} {what!r}"
+    return f"a picture at {_where(where) if isinstance(where, (str, list, tuple)) else 'a spot'}"
 
 
 def _blends(zone):
@@ -295,6 +355,9 @@ class Skin:
         # (cm²), kind (shape, words, placard, picture), text, pixels (per cm), frame (right, up, facing)}
         self.scattered = []  # each scatter on the body, while measuring (tool/scatter.py)
         self.findings = []  # what's wrong on the car, as the paint itself knows it (tool/judge.py adds the rest)
+        self.receipts = []  # every call's receipt (tool/receipt.py), one per op
+        self.receipt = None  # the call running now
+        self.say = None  # skin.paint sets it: a function told each receipt as its call ends
         self._op, self._op_open = -1, False
 
     # ---- steps: the Lab draws the car at the end of each ----
@@ -311,7 +374,7 @@ class Skin:
             view.export_steps(self.name, self.steps, painting=True)
         return self
 
-    @_op(lambda: "the clay")
+    @_verb(lambda: "the clay")
     def clay(self):
         """The first step of a design made in the Studio: the body, wheel covers and inner car in
         the Studio's clay, a neutral white (the user's pick, 2026-09-26). What no later step
@@ -406,11 +469,11 @@ class Skin:
         self._touched.add(tset)
         if tset not in self.canvases:
             w, h = self.sizes[tset]
-            self.canvases[tset] = Canvas(tset, w, h)
+            self.canvases[tset] = Canvas(tset, w, h, self.parts)
             if self.measure and tset == "Skin":
                 self.canvases[tset].owner = np.full(w * h, -1, np.int16)
         c = self.canvases[tset]
-        c.op = self._op
+        c.op, c.receipt = self._op, self.receipt
         return c
 
     def _ids(self, where, warn=True):
@@ -449,9 +512,16 @@ class Skin:
         return {tset: sorted(ids) for tset, ids in out.items()}
 
     def _select(self, key):
-        """A part, assembly or light by its phrase ("brake caliper|left|front"): (its name, the instance ids)."""
+        """A part, assembly or light by its phrase ("brake caliper|left|front"): (its name, the instance ids). A name
+        or a word after | that isn't one fails, saying what was meant, perhaps (did you mean)."""
         bits = [b.strip() for b in key.split("|")]
         bits[0] = LIGHT_WORDS.get(bits[0], bits[0])
+        for b in bits[1:]:
+            if b not in NARROWING:
+                raise KeyError(f"{key!r}: after | comes {', '.join(NARROWING)}, not {b!r}{suggest(b, NARROWING)}")
+        if bits[0] not in self.parts.by_name:
+            known = list(self.parts.by_name) + sorted(GROUP_WORDS) + list(LIGHT_WORDS)
+            raise KeyError(f"no part called {bits[0]!r}{suggest(bits[0], known)}; car/parts.json has every name")
         side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
         end = next((b for b in bits[1:] if b in ("front", "rear")), None)
         ids = self.parts.select(bits[0], side=side, end=end, exact="part" in bits[1:])
@@ -553,8 +623,8 @@ class Skin:
                 raise ValueError(f"{what!r}: no colour given and the finish {fin.name!r} has none of its own")
         return np.asarray(col, np.float32), fin, leftover
 
-    @_op(lambda where, what=None, colour=None, finish=None, *a, **k:
-         f"{' '.join(x for x in (what or finish, colour) if isinstance(x, str)) or 'paint'} on {_where(where)}")
+    @_verb(lambda where, what=None, colour=None, finish=None, *a, **k:
+           f"{' '.join(x for x in (what or finish, colour) if isinstance(x, str)) or 'paint'} on {_where(where)}")
     def paint(self, where, what=None, colour=None, finish=None, zone=None, blend=1.0, across=False, **params):
         """Paint parts with a colour and a finish. `what` is a phrase; `colour` and `finish`
         override it. `zone` limits it (tool/shapes.py); leftover words that name a region
@@ -607,7 +677,8 @@ class Skin:
             self._lay(c, tset, idx, m, fin, col, params, where)
         if len(self.icon_colours) < 2 and "Skin" in targets:
             self.icon_colours.append(tuple(float(v) for v in col))
-        return self
+        if not self.receipt.painted:
+            self.receipt.empty = "nothing painted: its zone reaches none of the parts named"
 
     def _lay(self, c, tset, idx, m, fin, col, params, where):
         """A finish in a colour onto a canvas's texels idx, by weight m."""
@@ -632,8 +703,8 @@ class Skin:
         elif fin.glow:
             self.notes.append(f"{fin.name} on {where}: only the inner car can glow; painted it bright instead")
 
-    @_op(lambda where, what=None, shape=None, *a, **k:
-         f"{' '.join(x for x in (what or k.get('finish'), k.get('colour')) if isinstance(x, str)) or 'paint'} {shape!r} on {_where(where)}")
+    @_verb(lambda where, what=None, shape=None, *a, **k:
+           f"{' '.join(x for x in (what or k.get('finish'), k.get('colour')) if isinstance(x, str)) or 'paint'} {shape!r} on {_where(where)}")
     def mark(self, where, what=None, shape=None, size=None, at=None, colour=None, finish=None, up=None, turn=0.0,
              margin=1.0, reach=None, within=None, mirror=True, across=False, soft=shapes.SOFT, **params):
         """Lay a shape (tool/marks.py: disc, ring, blob, box, polygon, star) on a named panel of the
@@ -650,11 +721,11 @@ class Skin:
         its mirror image on the car's other side too, when it's off the middle and the panel is
         there. across=True: pressed on at `at` as it is, over every edge and crisp line in its
         footprint (a sticker over a panel gap), which the judge then leaves alone.
-        Returns where it landed (marks.Laid: centre, size, twin; text, a placard or a picture take
-        it as their place); two marks with at=None on a panel share their middle."""
+        Returns its receipt, where it landed (centre, size, twin: words or a picture take it as their place); two
+        marks with at=None on a panel share their middle."""
         from tool import marks
-        return marks.lay(self, where, what, shape, size, at, colour, finish, up, turn, margin, reach, within,
-                         mirror, across, soft, params)
+        marks.lay(self, where, what, shape, size, at, colour, finish, up, turn, margin, reach, within, mirror, across,
+                  soft, params)
 
     def keep(self, tset="Skin"):
         """A copy of a texture set's paint so far: the layer a peel reveals (tool/peel.py)."""
@@ -662,20 +733,20 @@ class Skin:
         kept = {k: None if getattr(c, k) is None else getattr(c, k).copy() for k in ("colour", "rough", "metal", "coat", "clay")}
         return {**kept, "set": tset}
 
+    @_verb(lambda under, where="body", **k: f"peel on {_where(where)}")
     def peel(self, under, where="body", **params):
         """Tear the paint open, as a wrap ripped off, to show `under` (from keep()): on the
         body, or on inner parts with an `under` kept from "Details" (tool/peel.py has the
         parameters)."""
         from tool import peel
         peel.peel(self, under, where, **params)
-        return self
 
+    @_verb(lambda under, where="body", **k: f"wear on {_where(where)}")
     def wear(self, under, where="body", **params):
         """Age the paint as it stands, where the car's own shape says real paint ages: faded under the open sky,
         chipped down to `under` (from keep()) along its edges (tool/wear.py has the parameters)."""
         from tool import wear
         wear.wear(self, under, where, **params)
-        return self
 
     def _glow(self, c, idx, m, col, kind):
         """col: one colour (3,), or a colour per texel (n, 3)."""
@@ -690,6 +761,7 @@ class Skin:
         c.glow_code[idx[on]] = g["code"]
         c.glow_touched = True
 
+    @_verb(lambda where, colour=None, kind="always on", *a, **k: f"glow {kind} on {_where(where)}")
     def glow(self, where, colour=None, kind="always on", zone=None, replacing=None, keep_level=False):
         """Make inner-car parts glow: kind is one of finishes.GLOWS ("always on", "night only",
         "brake lights", "front lights", "energy", ...). The body can't glow. colour None: the
@@ -711,15 +783,17 @@ class Skin:
             if keep_level and col is not None:
                 level = c.glow_rgb[idx].max(1)
                 self._glow(c, idx, m, col / max(float(col.max()), 1e-6) * level[:, None], kind)
+                c.took(idx, m)
                 continue
             if col is None:
                 self._glow(c, idx, m, c.colour[idx], kind)
+                c.took(idx, m)
                 continue
             self._glow(c, idx, m, col, kind)
             # the lit colour also goes in the base colour, so it reads the same by day
             c.blend(idx, m, np.broadcast_to(col, (len(idx), 3)), np.full(len(idx), 0.4, np.float32), np.zeros(len(idx), np.float32), np.zeros(len(idx), np.float32))
-        return self
 
+    @_verb(lambda where, colour, *a, **k: f"relight {_where(where)}")
     def relight(self, where, colour, zone=None, keep_level=False):
         """Give the stock glow on parts a new colour. Each texel keeps its kind of glow and its
         brightness, so the pattern stays: the speed digits' segments with their dark backing, the
@@ -772,8 +846,9 @@ class Skin:
                 new = c.glow_rgb[idx] * (1 - w) + new * w
             c.glow_rgb[idx] = new
             c.glow_touched = True
-        return self
+            c.took(idx)
 
+    @_verb(lambda where: f"no glow on {_where(where)}")
     def no_glow(self, where):
         """Switch the stock glow off on parts (paint them dark)."""
         for tset, ids in self._ids(where).items():
@@ -784,8 +859,9 @@ class Skin:
             on = m > 0.5
             c.glow_rgb[idx[on]] = 0
             c.glow_touched = True
-        return self
+            c.took(idx, m)
 
+    @_verb(lambda colour, strength=1.0: f"glass tinted {colour}")
     def glass(self, colour, strength=1.0):
         """Tint the glass. strength 1 is the full colour, less keeps some of the stock tint."""
         c = self.canvas("Glass")
@@ -793,15 +869,16 @@ class Skin:
         idx = np.flatnonzero(c.cov.reshape(-1))
         c.colour[idx] = c.colour[idx] * (1 - strength) + col * strength
         c.touched[idx] = True
-        return self
+        c.took(idx)
 
+    @_verb(lambda amount, where="body": f"dirt {amount:g} on {_where(where)}")
     def dirt(self, amount, where="body"):
         """How dirty the car gets on dirt: 1 is the stock amount, 0 never dirty, 2 twice."""
         for tset in self._ids(where):
             if tset != "Glass":
                 self.canvas(tset).dirt = float(amount)
-        return self
 
+    @_verb(lambda marking, *a, **k: f"the tyre marking {marking}")
     def tyre_marks(self, marking, reads="left", **options):
         """A tyre marking from the library (tool/tyres.py): "TY-07" or its name ("ring soft"), on
         all four tyres' sidewalls and tread, over the tyres' paint so far. options reach its layout
@@ -812,8 +889,8 @@ class Skin:
         code, entry, art = tyres.draw(marking, **options)
         self._open_step()["paints"].append(f"tyres: {code} {entry['name']}")
         self.notes += tyres.apply(self.canvas("Wheels"), art, reads)
-        return self
 
+    @_verb(lambda tread: f"the tread {tread}")
     def tyre_tread(self, tread):
         """A tread from the tread library (tool/tyres.py; the Lab's Treads): "TR-04" or its name
         ("wet"), on all four tyres in place of Nadeo's grooves. The sidewalls go plain (Nadeo's
@@ -824,7 +901,6 @@ class Skin:
         entry["fn"](art)
         self._open_step()["paints"].append(f"tyres: {code} {entry['name']} tread")
         self.notes += tyres.apply(self.canvas("Wheels"), art)
-        return self
 
     # ---- relief (the inner car only: the game's normal map, tool/relief.py) ----
 
@@ -861,8 +937,9 @@ class Skin:
             c.slope[idx] += s * m[:, None]
             if replace:
                 c.keep_stock[idx] *= 1 - m
-        return self
+            c.took(idx, m)
 
+    @_verb(lambda where, pattern, *a, **k: f"relief {pattern if isinstance(pattern, str) else 'of its own'!r} on {_where(where)}")
     def relief(self, where, pattern, depth=0.2, zone=None, replace=False, **params):
         """Raised (depth > 0, cm) or sunk detail on inner-car parts, in the game's normal map.
         pattern: "ribs" (scale apart, width, direction), "studs" (scale apart, size), "quilted"
@@ -886,19 +963,39 @@ class Skin:
                     self.notes.append(f"rivets on {where}: no edge long enough for them")
                 return relief.points(pts if len(pts) else np.zeros((1, 3)) + 1e6, depth, params.get("size", 1.0), params.get("bevel", 0.2))
         else:
+            if pattern not in relief.PATTERNS and pattern != "rivets":
+                known = [*relief.PATTERNS, "rivets"]
+                raise KeyError(f"no relief pattern called {pattern!r}{suggest(pattern, known)}; the patterns: {', '.join(known)}")
             h = relief.PATTERNS[pattern](depth=depth, **params)
             make = lambda tris, pos, nrm: h
-        return self._relief(where, make, zone, replace, what=f"relief {pattern!r}")
+        self._relief(where, make, zone, replace, what=f"relief {pattern!r}")
 
+    def _raise(self, alpha, where, at, up, w_cm, depth, bevel, zone, mirror, what, right=None):
+        """A picture's alpha raised `depth` cm on inner-car parts, `w_cm` wide, centred on the parts' surface nearest
+        `at` (cm), laid flat there with its top towards `up` (None: upright to someone beside the car, as words on the
+        body are, tool/marks.py's frame; or read along `right`) (tool/relief.py, picture). mirror: its mirror image on
+        the car's other side too. Most inner parts share their texels with their mirror twin, which shows it there
+        anyway (backwards, for words): centre parts for words, or marks that read the same both ways."""
+        from tool import marks, relief
+
+        def make(tris, pos, nrm):
+            k = int(np.argmin(np.linalg.norm(pos - np.asarray(at, np.float32), axis=1)))
+            f = nrm[k] / np.linalg.norm(nrm[k])
+            if right is not None:
+                r = np.asarray(right, np.float64)
+                r = r - f * (r @ f)
+                r, u = r, np.cross(f, r)
+            else:
+                r, u, _ = marks._frame(f, marks._outward(f, pos[k]) if up is None else up, 0.0)
+            h = relief.picture(alpha, pos[k], r, u, w_cm, depth, bevel)
+            return relief.mirrored(h) if mirror else h
+        self._relief(where, make, zone, what=what)
+
+    @_verb(lambda text, where, *a, **k: f"emboss {text or 'a picture'!r}")
     def emboss(self, text, where, at, right, height=4.0, depth=0.12, font=None, weight=None, spacing=0,
                bevel=0.15, zone=None, picture=None, width=None, mirror=True):
-        """Raised (depth > 0) or sunk lettering on inner-car parts, `height` cm tall, centred on
-        the parts' surface nearest `at` (cm), laid flat there and read along `right`. picture: a
-        PIL image or path instead of text, `width` cm wide (its alpha is raised). mirror: its
-        mirror image on the car's other side too. Most inner parts share their texels with their
-        mirror twin, which shows it there anyway (backwards, for words): use centre parts for
-        words, or marks that read the same both ways."""
-        from tool import relief
+        """Raised (depth > 0) or sunk lettering on inner-car parts: decal(text or picture, where, at=at, depth=depth,
+        up=the frame's up for `right`)."""
         if picture is not None:
             im = Image.open(picture) if not isinstance(picture, Image.Image) else picture
             alpha = np.asarray(im.convert("RGBA"), np.float32)[..., 3] / 255
@@ -906,14 +1003,7 @@ class Skin:
         else:
             img, w_cm = render_text(text, font or fonts.DEFAULT, height, weight=weight, spacing=spacing)
             alpha = np.asarray(img["fill"], np.float32)[..., 3] / 255
-        def make(tris, pos, nrm):
-            k = int(np.argmin(np.linalg.norm(pos - np.asarray(at, np.float32), axis=1)))
-            f = nrm[k] / np.linalg.norm(nrm[k])
-            r = np.asarray(right, np.float64)
-            r = r - f * (r @ f)
-            h = relief.picture(alpha, pos[k], r, np.cross(f, r), w_cm, depth, bevel)
-            return relief.mirrored(h) if mirror else h
-        return self._relief(where, make, zone, what=f"emboss {text or 'a picture'!r}")
+        self._raise(alpha, where, at, None, w_cm, depth, bevel, zone, mirror, f"emboss {text or 'a picture'!r}", right=right)
 
     # ---- lettering and pictures ----
 
@@ -924,6 +1014,7 @@ class Skin:
             raise FileNotFoundError(f"no picture {name!r} for {self.name}: make one with `python -m tool.pictures`")
         return p
 
+    @_verb(lambda name, *a, **k: f"the print {name}")
     def print(self, name, scale=30, picture=None, wrap="uv"):
         """Make a kept tile usable as a finish: after s.print("bananas", scale=25),
         s.paint("body", "bananas") lays it on with 25 cm per repeat. wrap: "facing" (one
@@ -932,14 +1023,12 @@ class Skin:
         starts the pattern afresh) or "planes" (blended projections)."""
         from tool import textures
         textures.add_file(name, self.art(picture or name), scale, about=f"{self.name}'s print {name}", wrap=wrap)
-        return self
 
     def _place(self, where, at, up, mirror):
         """Where words or a picture go: (the parts, at, up, mirror) for a `where`: a panel (a part, or
-        several), a spot (SPOTS, one side) or a place (a mark's, marks.Laid, or a dict with centre and
+        several), a spot (SPOTS, one side) or a place (a mark's receipt, or a dict with centre and
         up): the part under its centre."""
-        from tool import marks
-        if isinstance(where, marks.Laid):
+        if isinstance(where, receipt.Receipt):
             where = where.spot()
         if isinstance(where, dict):
             at = where["centre"] if at is None else at
@@ -959,31 +1048,77 @@ class Skin:
         tree, owners = self._body_tree
         return self.parts.instances[owners[tree.query(np.asarray(point, np.float64))[1]]]["name"]
 
-    @_op(lambda image, where, *a, **k: f"a picture at {_where(where) if isinstance(where, (str, list, tuple)) else 'a spot'}")
-    def decal(self, image, where, width=None, at=None, finish="gloss", zone=None, rgb=None, up=None,
-              turn=0.0, margin=1.0, reach=None, mirror=None, across=False):
-        """Lay a picture (PIL RGBA, or a path) on the body as a mark is (tool/marks.py): on a panel, a
-        spot (SPOTS) or a place (a mark's), pressed onto the surface like a sticker, its opaque pixels
-        whole on free room, on its own panel (not across one of the model's crisp lines) and clear of
-        the game's panels, moved then shrunk until they are, each move said, and its stretch where the
-        surface curves two ways. width in cm (None: the biggest that fits). rgb: paint every
-        opaque pixel this colour (one-colour lettering). On a panel it goes on both sides, its mirror
-        image on the other (a picture with words in it: one side at a time, mirror=False). zone: it must
-        stay in it. across=True: pressed on at `at` as it is, over every edge and crisp line in its
-        footprint (a sticker over a panel gap, as on a real car), and what fell in a gap or off an edge
-        said. Returns where it landed (marks.Laid)."""
+    @_verb(lambda what, where, *a, **k: _decal_name(what, where, k.get("box", False)))
+    def decal(self, what, where, width=None, height=None, at=None, colour=None, finish="gloss", font=None, box=False,
+              fill=None, pad=None, frame=None, outline=None, outline_width=0.08, weight=None, italic=0.0, spacing=0,
+              zone=None, up=None, turn=0.0, margin=1.0, reach=None, mirror=None, across=False, depth=None, bevel=0.15):
+        """Words or a picture on the car. `what`: the words (a str), or a picture (PIL RGBA, a path, or an RGBA array).
+        On the body they're laid as a mark is (tool/marks.py): on a panel (a part, or several), a spot (SPOTS, one
+        side) or a place (a mark's receipt), pressed onto the surface like a sticker, whole on free room, on their
+        own panel (not across one of the model's crisp lines) and clear of the game's panels, moved then shrunk until
+        they are, each move in the receipt, with the stretch where the surface curves two ways and, under words, the
+        surface's turn when they'll read bent (more than marks.WORD_TURN degrees). On inner-car parts they're raised
+        `depth` cm (or sunk, depth < 0) in the game's relief instead, laid flat on the surface nearest `at` (tool/relief.py).
+          words     height: the capitals', in cm (20; a placard's 4); colour (white; a placard's black); font (fonts.DEFAULT);
+                    outline: a colour for a border, outline_width as a share of the height; italic: a slant (0.2 is a
+                    racing lean); spacing: extra letter spacing in cm. Upright to someone standing beside the car,
+                    unless `up` says where their top points on the car, then turned `turn` degrees anticlockwise. At a
+                    course (a stretch of one of the car's lines, or the line the user drew): reading along it, each
+                    letter following the line, the stretch their room.
+          box=True  a placard: the words in a thin box, as a small sign; pad: the room between the words and the box's
+                    line (a fifth of the height); frame: the line's width (a twelfth); fill: a colour inside the box
+                    (none: the paint shows through).
+          picture   width in cm (None: the biggest that fits); colour: paint every opaque pixel this colour
+                    (one-colour lettering); the picture's own colours otherwise.
+        at: a point (x, y, z; None for a coordinate to look along), or the points of a line the user drew (its middle;
+        an arrow: its tip). On a panel it goes on both sides, words reading forward on each and a picture's mirror
+        image on the other (a picture with words in it: one side at a time, mirror=False); a spot or a place is one
+        side. zone: it must stay in it. across=True: laid at `at` as it is, over every edge and crisp line in its
+        footprint (a sticker over a panel gap, as on a real car), and what fell in a gap or off an edge said. Returns
+        its receipt: where it landed (centre, size, twin)."""
         from tool import marks
-        if isinstance(image, (str, bytes, os.PathLike)) or hasattr(image, "read"):
-            image = Image.open(image)
-        arr = np.asarray(image.convert("RGBA"), np.float32) / 255
-        if rgb is not None:
-            arr[..., :3] = np.asarray(colours.get(rgb), np.float32)
+        words = isinstance(what, str)
+        if words:
+            height = (4.0 if box else 20.0) if height is None else height
+            colour = ("black" if box else "white") if colour is None else colour
+        if depth is not None:  # raised on the inner car
+            if words:
+                img, w_cm = render_text(what, font or fonts.DEFAULT, height, weight=weight, spacing=spacing)
+                alpha = np.asarray(img["fill"], np.float32)[..., 3] / 255
+            else:
+                im = Image.open(what) if isinstance(what, (str, bytes, os.PathLike)) or hasattr(what, "read") else what
+                alpha = np.asarray(im.convert("RGBA") if isinstance(im, Image.Image) else im, np.float32)[..., 3]
+                alpha = alpha / 255 if alpha.max() > 1 else alpha
+                w_cm = width or 10.0
+            if at is None:
+                raise ValueError(f"{self.ops[self._op]['what']}: raised on the inner car, it needs `at`, the point it's centred on")
+            self._raise(alpha, where, at, up, width or w_cm, depth, bevel, zone, mirror is None or mirror,
+                        self.ops[self._op]["what"])
+            return
+        if words:
+            font = font or fonts.DEFAULT
+            if box:
+                pad = 0.2 * height if pad is None else pad
+                frame = height / 12 if frame is None else frame
+                img, w_cm, tall = placard_image(what, font, height, colour, fill, pad, frame, weight, italic, spacing)
+            else:
+                img, w_cm, tall = lettering(what, font, height, colour, outline, outline_width, weight, italic, spacing)
+            self.palette.append([float(v) for v in colours.get(colour)])
+            shape = marks.Picture(img, "placard" if box else "words", True, label=self.ops[self._op]["what"], text=what, tall=tall)
+            size = w_cm if width is None else width
+        else:
+            if isinstance(what, (str, bytes, os.PathLike)) or hasattr(what, "read"):
+                what = Image.open(what)
+            arr = np.asarray(what.convert("RGBA"), np.float32) / 255 if isinstance(what, Image.Image) else np.asarray(what, np.float32)
+            if colour is not None:
+                arr = arr.copy()
+                arr[..., :3] = np.asarray(colours.get(colour), np.float32)
+            shape = marks.Picture(arr, "picture", False, label="a picture")
+            size = width
         parts, at, up, mirror = self._place(where, at, up, mirror)
-        shape = marks.Picture(arr, "picture", False, label="a picture")
-        return marks.lay(self, parts, None, shape, width, at, None, finish, up, turn, margin, reach, zone,
-                         mirror, across, 0.0, {})
+        marks.lay(self, parts, None, shape, size, at, None, finish, up, turn, margin, reach, zone, mirror, across, 0.0, {})
 
-    @_op(lambda image, where="body", *a, **k: f"copies of a picture on {_where(where)}")
+    @_verb(lambda image, where="body", *a, **k: f"copies of a picture on {_where(where)}")
     def scatter(self, image, where="body", size=8, spacing=None, turn="random", finish="gloss", zone=None, seed=None):
         """Sprinkle copies of a picture (a cut-out, RGBA, or a path; or a list of them, mixed) over parts of the body,
         each pressed onto the surface as its own small sticker and always whole: a copy that would cross
@@ -996,53 +1131,24 @@ class Skin:
         second pass fills any patch still bare with smaller copies."""
         from tool import scatter
         scatter.scatter(self, image, where, size, spacing, turn, finish, zone, seed)
-        return self
 
-    @_op(lambda text, where, *a, **k: f"the text {text!r}")
+    @_verb(lambda text, where, *a, **k: f"the text {text!r}")
     def text(self, text, where, colour="white", font=None, height=20, at=None, finish="gloss", outline=None,
              outline_width=0.08, weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0,
              reach=None, mirror=None, across=False):
-        """Write on the body: words laid as a mark is (tool/marks.py), on a panel, a spot (SPOTS) or a
-        place (a mark's, marks.Laid): pressed onto the surface, whole on free room, on their own panel
-        (not across one of the model's crisp lines) and clear of the game's panels, moved then shrunk
-        until they are, each move said, and the surface's turn under them when they'll read bent (more
-        than marks.WORD_TURN degrees); upright to someone standing beside the car, unless `up` says where
-        their top points on the car, then turned `turn` degrees anticlockwise. At a course (a stretch of
-        one of the car's lines, or the line the user drew): reading along it, each letter following the
-        line, the stretch their room. height: the capitals', in cm; outline: a colour
-        for a border, outline_width as a share of the height; italic: a slant (0.2 is a racing lean);
-        spacing: extra letter spacing in cm. On a panel they go on both sides, reading forward on each
-        (mirror=False for one); a spot or a place is one side. at: a point (x, y, z; None for a
-        coordinate to look along), or the points of a line the user drew (its middle; an arrow: its
-        tip). zone: they must stay in it. across=True: laid at `at` as they are, over every edge in
-        their footprint. Returns where they landed (marks.Laid)."""
-        from tool import marks
-        img, w_cm, tall = lettering(text, font or fonts.DEFAULT, height, colour, outline, outline_width, weight, italic, spacing)
-        parts, at, up, mirror = self._place(where, at, up, mirror)
-        self.palette.append([float(v) for v in colours.get(colour)])
-        shape = marks.Picture(img, "words", True, label=f"the text {text!r}", text=text, tall=tall)
-        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, zone, mirror,
-                         across, 0.0, {})
+        """Words on the body: decal(text, where, height=...)."""
+        self.decal(text, where, height=height, at=at, colour=colour, finish=finish, font=font, outline=outline,
+                   outline_width=outline_width, weight=weight, italic=italic, spacing=spacing, zone=zone, up=up, turn=turn,
+                   margin=margin, reach=reach, mirror=mirror, across=across)
 
-    @_op(lambda text, where, *a, **k: f"the placard {text!r}")
+    @_verb(lambda text, where, *a, **k: f"the placard {text!r}")
     def placard(self, text, where, colour="black", fill=None, font=None, height=4.0, pad=None, frame=None, at=None,
                 finish="gloss", weight=None, italic=0.0, spacing=0, zone=None, up=None, turn=0.0, margin=1.0, reach=None,
                 mirror=None):
-        """Words in a thin box, as a small sign: laid as text() is, the whole box on free room near `at`
-        (a point, or the points of a line the user drew: its middle; an arrow: its tip), facing
-        outward: upright to someone standing beside the car. height: the capitals', in cm; pad: the
-        room between the words and the box's line (a fifth of the height); frame: the line's width
-        (a twelfth); fill: a colour inside the box (none: the paint shows through). Returns where it
-        landed (marks.Laid)."""
-        from tool import marks
-        pad = 0.2 * height if pad is None else pad
-        frame = height / 12 if frame is None else frame
-        img, w_cm, tall = placard_image(text, font or fonts.DEFAULT, height, colour, fill, pad, frame, weight, italic, spacing)
-        parts, at, up, mirror = self._place(where, at, up, mirror)
-        self.palette.append([float(v) for v in colours.get(colour)])
-        shape = marks.Picture(img, "placard", True, label=f"the placard {text!r}", text=text, tall=tall)
-        return marks.lay(self, parts, None, shape, w_cm, at, None, finish, up, turn, margin, reach, zone, mirror,
-                         False, 0.0, {})
+        """Words in a thin box: decal(text, where, box=True, height=...)."""
+        self.decal(text, where, height=height, at=at, colour=colour, finish=finish, font=font, box=True, fill=fill, pad=pad,
+                   frame=frame, weight=weight, italic=italic, spacing=spacing, zone=zone, up=up, turn=turn, margin=margin,
+                   reach=reach, mirror=mirror)
 
     # ---- output ----
 

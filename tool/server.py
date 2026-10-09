@@ -201,7 +201,7 @@ def ours():
     try:
         with urllib.request.urlopen(f"http://127.0.0.1:{PORT}/api/health", timeout=1) as r:
             return r.status == 200
-    except OSError:
+    except OSError:  # nothing answers
         return False
 
 

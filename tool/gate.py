@@ -61,7 +61,7 @@ def design_hash(name):
 def _read(p):
     try:
         return json.loads(p.read_text("utf-8"))
-    except (OSError, ValueError):
+    except (OSError, ValueError):  # no verdict yet, or not JSON
         return None
 
 

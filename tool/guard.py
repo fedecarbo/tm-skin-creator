@@ -186,10 +186,21 @@ def main(args):
     try:
         event = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace") or "{}")
         answer = {"folder": folder, "agent": agent, "turn": turn, "stop": stop}[args[0]](event)
-    except Exception:
+    except Exception as e:  # a hook that fails must not hold the user's turn: the error goes to the work folder's log
+        _log(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {args[0] if args else '?'}: {type(e).__name__}: {e}")
         return
     if answer:
         print(json.dumps(answer))
+
+
+def _log(line):
+    """A line into the work folder's guard.log (tool.doctor says where the work folder is)."""
+    from tool import paths
+    try:
+        with open(paths.WORK / "guard.log", "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except OSError:  # no work folder yet: the hook still mustn't fail
+        pass
 
 
 if __name__ == "__main__":

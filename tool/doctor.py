@@ -110,7 +110,7 @@ def _health():
             return json.loads(r.read().decode("utf-8", "replace"))
     except urllib.error.HTTPError as e:
         return {"status": e.code}
-    except (OSError, ValueError):
+    except (OSError, ValueError):  # nothing answers, or not JSON
         return None
 
 
@@ -153,7 +153,7 @@ def _kill(pid):
             if not _port_held():
                 return True
             time.sleep(0.25)
-    except (OSError, subprocess.SubprocessError):
+    except (OSError, subprocess.SubprocessError):  # gone already
         pass
     return not _port_held()
 
@@ -206,7 +206,7 @@ def _size(path):
         for f in files:
             try:
                 total += os.path.getsize(os.path.join(root, f))
-            except OSError:
+            except OSError:  # a file deleted while counting
                 pass
     return total
 
@@ -349,7 +349,7 @@ def server():
 def with_stdout_utf8():
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # the PC's pipes aren't UTF-8 otherwise
-    except (AttributeError, ValueError):
+    except (AttributeError, ValueError):  # stdout isn't a console
         pass
 
 

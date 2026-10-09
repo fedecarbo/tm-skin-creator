@@ -53,7 +53,7 @@ from scipy import ndimage
 from scipy.signal import fftconvolve
 from scipy.spatial import cKDTree
 
-from tool import carmap, coverage, judge, shapes, uvmap
+from tool import carmap, coverage, judge, receipt, shapes, uvmap
 from tool.noise import smoothstep
 
 WORD_TURN = 20.0  # degrees: words read flat on a surface turning no more than this under them (the user kept lettering
@@ -250,29 +250,6 @@ class Picture(Shape):
 
     def said(self, S):
         return f"{S * self.tall:.1f} cm tall" if self.tall else f"{S:.1f} cm wide"
-
-
-# ---- where a mark landed ----
-
-class Laid:
-    """Where a mark landed: centre (x, y, z in cm, on the car), size (its width in cm as laid; 0 when nothing was),
-    moved (cm from where it was wanted), right, up and facing (the frame it lies in at its centre), stretch (how far
-    the sticker is stretched under it, a share of its lengths: 0.05 is 5 %), turn (degrees the surface turns under it
-    from its centre's facing), twin (the same for its mirror image on the other side, or None)."""
-
-    def __init__(self, centre, size=0.0, moved=0.0, right=(0, 0, -1), up=(0, 1, 0), facing=(1, 0, 0), stretch=0.0, turn=0.0):
-        self.centre = tuple(round(float(v), 2) for v in centre)
-        self.size, self.moved = float(size), float(moved)
-        self.right, self.up, self.facing = (tuple(float(v) for v in d) for d in (right, up, facing))
-        self.stretch, self.turn = float(stretch), float(turn)
-        self.twin = None
-
-    def __bool__(self):
-        return self.size > 0
-
-    def spot(self):
-        """The place as Skin.text, Skin.placard and Skin.decal take one (they take the Laid itself too)."""
-        return dict(centre=self.centre, up=tuple(round(v, 4) for v in self.up))
 
 
 # ---- the panel ----
@@ -809,7 +786,7 @@ def _press(c, panel, shape, size, anchor, up, turn, within, soft):
     return _laid(sheet, shape, size, 0.0, 0.0, soft, 0.0, within)
 
 
-# ---- Skin.mark, Skin.text, Skin.placard, Skin.decal ----
+# ---- Skin.mark and Skin.decal ----
 
 def _where(panel):
     names = list(dict.fromkeys(panel.skin.parts.instances[i]["name"] for i in panel.ids))
@@ -865,15 +842,17 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
     panel = _Panel(skin, c, targets.get("Skin", []))
     course = at if hasattr(at, "pts") else None
     at, reach = _stroke(at, size, reach)
-    nowhere = Laid([v or 0 for v in at] if at is not None else (0, 0, 0))
+    rec = skin.receipt  # the verb's receipt: where the mark lands (tool/receipt.py)
+    nowhere = rec.landed([v or 0 for v in at] if at is not None else (0, 0, 0))
     if not len(panel.texels):
         skin.notes.append(f"{name}: {'pictures' if picture else 'marks'} go on the body; nothing laid")
         return nowhere
     if up is None and shape.handed:
         up = "outward"
 
-    def put(got, shown):
-        """Paint a fitted shape, keep what the judge reads, and say when it isn't whole (a finding)."""
+    def put(got, shown, place=None):
+        """Paint a fitted shape, keep what the judge reads, and say when it isn't whole (a finding): where it landed,
+        on `place` (the verb's receipt) or a place of its own (a twin's)."""
         idx, m, rgb = got["idx"], got["m"], got["rgb"]
         step = skin.ops[skin._op]["step"]
         if got["chips"]:
@@ -908,7 +887,9 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         else:
             c.blend(idx, m, np.clip(rgb, 0, 1), np.full(len(idx), fin.roughness, np.float32),
                     np.full(len(idx), fin.metalness, np.float32), np.full(len(idx), fin.varnish, np.float32))
-        return Laid(c.pos[got["texel"]], got["size"], got["moved"], got["right"], got["up"], got["facing"], got["stretch"], got["turn"])
+        place = receipt.Receipt(name, step) if place is None else place
+        return place.landed(c.pos[got["texel"]], got["size"], got["moved"], got["right"], got["up"], got["facing"], got["stretch"],
+                            got["turn"], shown.said(got["size"]))
 
     def place(point):
         """The panel's texel for a point wanted, with its notes."""
@@ -927,7 +908,7 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         if not len(got["idx"]):
             skin.notes.append(f"{name}: nothing landed on the car")
             return nowhere
-        laid = put(got, shape)
+        laid = put(got, shape, rec)
         said = _how(got, shape)
         if got["landed"] < 0.97:
             said.insert(0, f"{got['landed']:.0%} of it landed on the car; the rest falls in a gap or off an edge")
@@ -966,7 +947,7 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         skin.notes.append(f"{name}: no room for it {where_}" + (f", even at {LEAST:.0%} of its {shape.said(size)}" if size is not None else "")
                           + "; nothing laid")
         return nowhere
-    laid = put(got, shape)
+    laid = put(got, shape, rec)
     said = []
     if at is None or size is None:
         said.append(f"laid at ({', '.join(f'{v:.0f}' for v in laid.centre)}), {shape.said(laid.size)}")

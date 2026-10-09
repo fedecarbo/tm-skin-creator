@@ -79,7 +79,7 @@ def search(words, n=12, sheet=None):
         for k, (asset, _) in enumerate(found):
             try:
                 thumb = Image.open(io.BytesIO(_get(THUMB.format(asset=asset)))).convert("RGB").resize((128, 128))
-            except Exception:
+            except (OSError, ValueError):  # a thumbnail that didn't come
                 continue
             x, y = (k % cols) * 140 + 6, (k // cols) * 150 + 4
             im.paste(thumb, (x, y))
