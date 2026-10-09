@@ -69,3 +69,7 @@ composition in three takes, then surfaces, details and art direction.
   distances. Shown (2026-10-09, in the Lab) for the user's yes. Open (the PC): `tool.skin install TSC_Bumblebee` on their yes.
 - Accepted (user, 2026-10-09, in the Lab): "yes". Not installed: the Mac has no game. Open (the PC): `tool.skin install
   TSC_Bumblebee`, then Garage, My Skins, Bumblebee.
+- Change 2 (user, 2026-10-09, note 3 on the engine cover: "the fur tends to be more dragged" on the angled surface; "Lets
+  try" evening it): the black's lit streaks halved, 8 to 4 cm, and their sheen weakened (roughness 0.85 to 0.93, the
+  pressed coat 0.7 to 0.82). Closed: on the deck's slope and its top the nap reads alike, short and even; the close
+  looks find nothing changed outside the edit.

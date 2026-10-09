@@ -100,7 +100,7 @@ def hairs(zone, seed, sparse=0.0):
     return shapes.noisy(fringe, amount=(0.3, 0.3, 1.0), scale=(2.5, 2.5, 30.0), seed=seed)
 
 
-def streaks(seed, width=0.18, length=8.0):
+def streaks(seed, width=0.18, length=4.0):
     """The nap's lit hairs: thin streaks along the car, about a fifth of the coat, no two alike."""
     cell = np.array([width, width, length], np.float32)
     return shapes.Zone(lambda p, n: noise.smoothstep(0.56, 0.66, noise.fbm(p / cell, 2, seed)), label="the nap's streaks")
@@ -109,8 +109,8 @@ def streaks(seed, width=0.18, length=8.0):
 def velvet(s, zone, flowers, seed=5):
     """The black fur's nap: its lit hairs as streaks of a lighter brown-black, a touch less matte than the coat,
     and lighter again where the coat is pressed."""
-    nap = replace(finishes.get("matte"), name="velvet nap", roughness=0.85)
-    pressed = replace(finishes.get("matte"), name="pressed velvet", roughness=0.7)
+    nap = replace(finishes.get("matte"), name="velvet nap", roughness=0.93)
+    pressed = replace(finishes.get("matte"), name="pressed velvet", roughness=0.82)
     lit = streaks(seed) & zone
     s.paint("body", finish=nap, colour=LIT, zone=lit & ~flowers, blend=0.5, across=True)
     s.paint("body", finish=pressed, colour=PRESSED, zone=lit & flowers, blend=0.5, across=True)
