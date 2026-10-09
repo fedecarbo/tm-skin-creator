@@ -369,16 +369,16 @@ def grass(base=10.0, height=(14.0, 30.0), width=(4.0, 8.0), lean=0.4, every=3.0,
 
 
 def noisy(zone, amount=6.0, scale=15.0, seed=0):
-    """Roughen a zone's edge with noise: the border wanders by about `amount` cm, in wobbles
-    about `scale` cm long. For torn, ragged or hand-painted looks."""
+    """Roughen a zone's edge: the skin is read at a point moved by noise, so every border wanders by about
+    `amount` cm in wobbles `scale` cm long, whatever the zone's shape (torn, ragged, hand-painted); each a number
+    or one per axis (x, y, z): fur across the car is amount=(0.3, 0.3, 2), scale=(1.5, 1.5, 25), 2 cm hairs."""
     from tool import noise
+    amount, scale = (np.broadcast_to(np.asarray(v, np.float32), 3) for v in (amount, scale))
 
     def f(p, n):
-        w = zone(p, n)
-        shift = (noise.fbm(p / scale, 3, seed) - 0.5) * 2 * amount
-        # push the weight by the noise: 0.5 stays a border, inside/outside move by the shift
-        return np.clip(w + shift / (2 * SOFT) * 0.5, 0, 1)
-    return Zone(f)
+        shift = [(noise.fbm(p / scale, 3, seed + 100 * k) - 0.5) * 2 * amount[k] for k in range(3)]
+        return zone(p + np.stack(shift, -1), n)
+    return Zone(f, label=f"noisy({zone!r}, {amount.max():g})")
 
 
 # Named regions of the body, in plain words. Measured on the model (2026-09-24).
