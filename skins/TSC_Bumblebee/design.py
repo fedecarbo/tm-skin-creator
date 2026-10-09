@@ -1,7 +1,7 @@
-"""TSC_Bumblebee, take A, "True bee": the bee's own banding read along the car, nose to tail: black head (the nose),
+"""Bumblebee, the composition (set 1, the pick of A, "True bee"): the bee's own banding read along the car, nose to tail: black head (the nose),
 a yellow collar at the front of the thorax (the nose root, over the front wheels), black thorax (the cockpit),
 the abdomen's yellow at the car's fattest (the sidepods), black, and the white tail behind the deck's crease.
-Every edge furred. Base finishes only (its visual language: ../TSC_Bumblebee/language.json)."""
+Every edge furred. Base finishes only (its visual language: the car's language.json)."""
 
 from tool import shapes
 

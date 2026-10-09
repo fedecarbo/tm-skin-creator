@@ -6,27 +6,30 @@
    "title": "Composition · 3 takes",
    "words": "Bumblebee",
    "made": "2026-10-09T11:39:52",
-   "state": "open",
+   "state": "picked",
    "options": [
     {
      "key": "A",
      "title": "True bee",
-     "skin": "TSC_Bumblebee_TrueBee"
+     "skin": "TSC_Bumblebee_TrueBee",
+     "picture": "sets/1/A.png"
     },
     {
      "key": "B",
      "title": "Four bands",
-     "skin": "TSC_Bumblebee_FourBands"
+     "skin": "TSC_Bumblebee_FourBands",
+     "picture": "sets/1/B.png"
     },
     {
      "key": "C",
      "title": "Chevron",
-     "skin": "TSC_Bumblebee_Chevron"
+     "skin": "TSC_Bumblebee_Chevron",
+     "picture": "sets/1/C.png"
     }
    ],
-   "pick": null,
-   "decision": "",
-   "done": ""
+   "pick": "A",
+   "decision": "True bee: the bee's own six bands along the car",
+   "done": "2026-10-09T12:13:00"
   }
  ]
 }
