@@ -1,0 +1,116 @@
+{
+  "idea": "A working boat's hull: thick white paint laid on by hand every spring, a red waterline, and rust running down from every fitting.",
+  "world": "A small fishing boat on a slipway in a cold harbour. Nobody designs it; it gets painted because the sea eats it. The topsides are chalk white because white paint is cheap and shows the rot; below the waterline is antifouling, a dull oxide red; the boot-top between them is one clean red stripe cut with masking tape, the only careful thing on the boat. Every iron fitting bleeds rust straight down. Salt dulls everything.",
+  "is": [
+    "Honest",
+    "heavy",
+    "hand-painted",
+    "salt-dried",
+    "patched",
+    "level"
+  ],
+  "isnt": [
+    "Sleek",
+    "racing",
+    "decorative",
+    "glossy",
+    "nautical-themed",
+    "clean"
+  ],
+  "signature": {
+    "says": "The waterline. One red band of even width runs round the whole car at the hull's lowest clean line, the skirt's crease, where water would sit. Above it everything is chalk white; below it everything is dull oxide red, the antifouling. It starts where the nose first meets the water, follows the car's own lowest crease along both flanks and across the tail, and ends only where the hull ends. It never climbs a panel and never bends for a shape: water finds its level.",
+    "svg": "<svg viewBox=\"0 0 320 130\"><path d=\"M14,18 L306,18 Q314,18 312,30 L300,96 Q296,112 280,112 L40,112 Q24,112 20,96 L8,30 Q6,18 14,18 Z\" fill=\"#ece8dc\" stroke=\"#1e1e1c\" stroke-width=\"2\"/><path d=\"M18,84 L302,84 L296,96 Q292,112 280,112 L40,112 Q24,112 20,96 Z\" fill=\"#6e3a2e\"/><rect x=\"16\" y=\"74\" width=\"288\" height=\"10\" fill=\"#b8352a\"/><g fill=\"#1e1e1c\"><circle cx=\"70\" cy=\"34\" r=\"3\"/><circle cx=\"160\" cy=\"34\" r=\"3\"/><circle cx=\"250\" cy=\"34\" r=\"3\"/></g><g fill=\"#8a4a1e\" opacity=\"0.85\"><path d=\"M68,37 L72,37 L73,62 L71,66 L69,60 Z\"/><path d=\"M158,37 L162,37 L163,52 L160,56 L158,50 Z\"/><path d=\"M248,37 L252,37 L254,70 L251,74 L249,64 Z\"/></g></svg>"
+  },
+  "dna": {
+    "says": "Everything is put on by a brush or runs down by gravity. Bands are level and of one width along their whole length, their edges hard as a masked line. Rust is a streak: it starts at a point (a fastener, a seam's end, a hinge) and runs straight down the surface, 2 to 4 times longer than it is wide, widest at its source, fading at its tail; several from one row of fittings run parallel, never joining. Shapes are bands, dots and streaks; nothing is drawn as an outline, nothing curves of its own accord. Widths: the waterline 4 cm; a repaint patch 20 to 40 cm; a rust streak 0.6 to 1.2 cm wide; a fitting 1 to 2 cm across. Rhythm: fittings sit in rows along the car's own seams, at a hand's uneven spacing.",
+    "svg": "<svg viewBox=\"0 0 320 120\"><rect width=\"320\" height=\"120\" fill=\"#ece8dc\"/><rect x=\"0\" y=\"52\" width=\"120\" height=\"12\" fill=\"#b8352a\"/><text x=\"6\" y=\"46\" font-family=\"sans-serif\" font-size=\"9\" fill=\"#1e1e1c\">a band: level, one width, hard edges</text><g fill=\"#1e1e1c\"><circle cx=\"170\" cy=\"22\" r=\"3.5\"/><circle cx=\"196\" cy=\"22\" r=\"3.5\"/><circle cx=\"228\" cy=\"22\" r=\"3.5\"/><circle cx=\"251\" cy=\"22\" r=\"3.5\"/></g><g fill=\"#8a4a1e\" opacity=\"0.85\"><path d=\"M167,26 L173,26 L174,70 L170,78 L167,66 Z\"/><path d=\"M194,26 L198,26 L199,48 L196,54 L194,46 Z\"/><path d=\"M225,26 L231,26 L233,90 L229,100 L226,84 Z\"/><path d=\"M249,26 L253,26 L254,60 L251,66 L249,56 Z\"/></g><text x=\"130\" y=\"112\" font-family=\"sans-serif\" font-size=\"9\" fill=\"#1e1e1c\">rust: from a point, straight down, never joining</text><rect x=\"10\" y=\"80\" width=\"60\" height=\"28\" fill=\"#7a4234\"/><rect x=\"20\" y=\"72\" width=\"34\" height=\"36\" fill=\"#6e3a2e\"/><text x=\"80\" y=\"96\" font-family=\"sans-serif\" font-size=\"9\" fill=\"#1e1e1c\">a patch: one shade off</text></svg>"
+  },
+  "colours": [
+    {
+      "name": "Chalk white",
+      "colour": "#ece8dc",
+      "share": 52,
+      "job": "the topsides: everything above the waterline, warm and dry"
+    },
+    {
+      "name": "Antifouling",
+      "colour": "#6e3a2e",
+      "share": 28,
+      "job": "everything below the waterline: dull, heavy, the colour of old brick"
+    },
+    {
+      "name": "Boot-top red",
+      "colour": "#b8352a",
+      "share": 6,
+      "job": "the waterline only: the one bright, careful thing"
+    },
+    {
+      "name": "Rust",
+      "colour": "#8a4a1e",
+      "share": 5,
+      "job": "streaks from the fittings, and a bloom round each"
+    },
+    {
+      "name": "Tar black",
+      "colour": "#1e1e1c",
+      "share": 9,
+      "job": "iron: the fittings, the inner car, the tyres, the openings"
+    }
+  ],
+  "meet": "White and antifouling never touch: the boot-top red always lies between them, one hard masked edge on each side. Rust lies over white or over antifouling, soft at its tail. Tar black meets the rest only where a fitting or an opening is.",
+  "surfaces": [
+    {
+      "finish": "chalk",
+      "colour": "#ece8dc",
+      "job": "the topsides: bone-dry, flatter than matte, the brush left in it"
+    },
+    {
+      "finish": "matte",
+      "colour": "#6e3a2e",
+      "job": "the antifouling: dead flat, soft underfoot"
+    },
+    {
+      "finish": "semi-gloss",
+      "colour": "#b8352a",
+      "job": "the boot-top: enamel, the only shine on the hull"
+    },
+    {
+      "finish": "rusted",
+      "colour": "#8a4a1e",
+      "job": "the streaks and blooms from every fitting"
+    },
+    {
+      "finish": "raw cast",
+      "colour": "#1e1e1c",
+      "job": "the inner car's iron, tarred: rough and dark"
+    },
+    {
+      "finish": "worn rubber",
+      "job": "the tyres: old fenders, greyed by salt"
+    }
+  ],
+  "ageing": "Painted last spring, a season at sea since. The white has gone chalky and shows the brush; it's whiter where a patch was redone. The antifouling has a patch one shade off where it was touched up on the slipway. Rust runs from every iron fitting, longest where the water drains. No chips, no scratches, no dirt: salt and rust are the only wear, and they come from the fittings, never from nowhere.",
+  "sizes": {
+    "large": {
+      "what": "the hull in two halves, white over oxide red, split by the level red waterline round the whole car",
+      "svg": "<svg viewBox=\"0 0 260 120\"><rect width=\"260\" height=\"120\" fill=\"#ece8dc\"/><rect x=\"0\" y=\"78\" width=\"260\" height=\"42\" fill=\"#6e3a2e\"/><rect x=\"0\" y=\"70\" width=\"260\" height=\"8\" fill=\"#b8352a\"/></svg>"
+    },
+    "medium": {
+      "what": "rust streaks running down from the car's own rows of fittings and seam ends, and a repaint patch one shade off in the antifouling",
+      "svg": "<svg viewBox=\"0 0 260 120\"><rect width=\"260\" height=\"120\" fill=\"#ece8dc\"/><rect x=\"0\" y=\"78\" width=\"260\" height=\"42\" fill=\"#6e3a2e\"/><rect x=\"150\" y=\"86\" width=\"70\" height=\"34\" fill=\"#7a4234\"/><rect x=\"0\" y=\"70\" width=\"260\" height=\"8\" fill=\"#b8352a\"/><g fill=\"#1e1e1c\"><circle cx=\"40\" cy=\"20\" r=\"3\"/><circle cx=\"66\" cy=\"20\" r=\"3\"/><circle cx=\"98\" cy=\"20\" r=\"3\"/><circle cx=\"200\" cy=\"30\" r=\"3\"/></g><g fill=\"#8a4a1e\" opacity=\"0.85\"><path d=\"M37,23 L43,23 L44,58 L40,66 L37,52 Z\"/><path d=\"M64,23 L68,23 L69,40 L66,46 L64,38 Z\"/><path d=\"M95,23 L101,23 L102,70 L98,70 L95,60 Z\"/><path d=\"M197,33 L203,33 L204,66 L200,70 L197,58 Z\"/></g></svg>"
+    },
+    "small": {
+      "what": "the fittings themselves in tar black, a rust bloom round each, the brush's drag in the white, and drips under the waterline's lower edge",
+      "svg": "<svg viewBox=\"0 0 260 120\"><rect width=\"260\" height=\"120\" fill=\"#ece8dc\"/><g stroke=\"#e2ded0\" stroke-width=\"1.5\" opacity=\"0.9\"><path d=\"M10,14 L250,12\"/><path d=\"M12,26 L248,25\"/><path d=\"M8,38 L252,36\"/><path d=\"M10,50 L250,49\"/></g><rect x=\"0\" y=\"96\" width=\"260\" height=\"24\" fill=\"#6e3a2e\"/><rect x=\"0\" y=\"86\" width=\"260\" height=\"10\" fill=\"#b8352a\"/><g fill=\"#b8352a\"><path d=\"M60,96 L64,96 L63,106 Z\"/><path d=\"M150,96 L153,96 L152,102 Z\"/></g><circle cx=\"130\" cy=\"40\" r=\"9\" fill=\"#8a4a1e\" opacity=\"0.5\"/><circle cx=\"130\" cy=\"40\" r=\"5\" fill=\"#1e1e1c\"/><path d=\"M127,45 L133,45 L134,76 L130,82 L127,72 Z\" fill=\"#8a4a1e\" opacity=\"0.85\"/></svg>"
+    }
+  },
+  "fullness": "Mostly empty: big flat white and big flat red, the waterline between. The detail is rust, and rust only lives where there's iron: a dozen streaks on the whole car, a few blooms, one patch. Nothing is added to fill a space.",
+  "never": [
+    "A line that isn't the car's own or the waterline",
+    "Anchors, ropes, flags, fish or any nautical picture",
+    "Words, numbers or a registration",
+    "Gloss anywhere but the boot-top",
+    "Rust that doesn't start at a fitting or a seam",
+    "A stripe, a shape or a sticker for decoration"
+  ]
+}
