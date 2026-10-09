@@ -31,7 +31,7 @@ running on other settings than its step's says so before it starts.
 
 The self-test's own cars (the tour, the planted-flaw pair) are the tool's: painted by the self-test, never shown in
 the Lab. The PC is away until November or December 2026 (the user, 2026-10-07): until then every step runs on the Mac, its PC
-parts (step 6's run there, step 8's gate in `tool.skin install`, step 10's profile and kernels there) wait for its return, and step 13 comes after
+parts (step 6's run there, step 8's gate in `tool.skin install`, the PC's profile, and its graphics chip if the profile points there) wait for its return, and step 13 comes after
 it.
 
 - **Every graphic on the car's surface** (2026-10-07, the user, stopping TSC_StealthBomber: "This tool needs to be
@@ -40,16 +40,6 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  10. **The GPU, where the profile points** (Fable 5.1, high; or Opus 5.5, xhigh; `PY -m tool.selftest --profile`, the Mac's on
-      2026-10-09: the noise 13 s of the tour's 94 s paint under the profiler, the surface's charts for its scatter 18 s,
-      the BC1 encoder 15 s of its 19 s encode; the PC's waits for the PC): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
-      needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
-      part in a million). Built, waiting for the user's OK (2026-10-09, Opus 5.5): `tool/gpu.py`, MLX's Metal kernels,
-      each repeating its numpy twin's arithmetic in order, the same bits (`selftest.chip` checks it every run): the
-      noise and the BC1 colour blocks. The tour paints in 71 s (84), encodes in 5 s (19); its noise 0.4 s (12.6), BC1
-      0.6 s (14.6); memory the same. The declared change: BC1's sums block by block in order, a few hundred blocks in a
-      million, the same quality (TSC_CMYK_EndsInK's Skin_B 48.1366 dB, 48.1361); worley and cell_id in float32 from the
-      cell's corner (no texture changed). Not moved: blurs (under 2 s: no PyTorch); the scatter's charts (below).
   11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface
       (libigl); wear and dirt driven by them; anti-aliased part edges. Retires wear's direction, height and sun
       rules.
