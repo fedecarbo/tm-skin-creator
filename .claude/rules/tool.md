@@ -15,7 +15,8 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
 
 - `PY -m tool.selftest --against <commit>` checks that every command, file and name the
   instructions give still exists (`tool/instructions.py`) and trips on code nothing uses or the
-  tool grown past its budget (raise `BUDGET` only saying why), then paints the user's car and the
+  tool grown past its budget (raise `BUDGET` only saying why) or a graphics-chip kernel giving other
+  bits than its numpy twin (`tool/gpu.py`), then paints the user's car and the
   self-test's own cars (the tour, every other paint call; the planted-flaw pair, one car clean and
   one with the user's kinds of flaw planted) with this code and with that commit's, compares every
   texture, every DDS file, the notes, the palette and the steps, and says which planted flaws the
@@ -34,7 +35,8 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
 
 `PY` is the tool's Python, one for each computer (`CLAUDE.md`), from the repo root. The two
 computers' differences live in `tool/paths.py` (the work folder, the snapshots' browser, opening a
-picture, writing a file whole) and `requirements.txt` (the picture maker's packages, the PC only).
+picture, writing a file whole) and `requirements.txt` (the picture maker's packages, the PC only; MLX, the
+graphics chip's, the Mac only).
 
 - Set up a fresh clone: Python 3.14 (on the Mac Homebrew's `python@3.14`), `python -m venv <the
   work folder>/venv`, `PY -m pip install -r requirements.txt`, on the Mac `PY -m playwright install

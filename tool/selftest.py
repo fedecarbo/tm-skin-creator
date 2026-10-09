@@ -14,7 +14,7 @@ the instructions give still exists (tool/instructions.py, the working tree's), a
 nothing uses (vulture: a name in tool/ that no code calls, the tool's, the designs' or the self-test's cars'; UNSEEN
 are the names the standard library or a decorator calls), and the tool past its size (BUDGET: lines a commit may not
 grow past without raising it here and saying why; when they shrink by more than SLACK, the budget comes down with
-them). Each skin is painted
+them); and that the graphics chip's kernels give their numpy twins' bits (`chip`, tool/gpu.py). Each skin is painted
 in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
 `git archive` into the work folder (never the repo: the PC's is in OneDrive). Per texture it compares
 the painted floats, the uint8 image the viewer and install take, and the whole DDS file the game
@@ -70,7 +70,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 19660, "viewer/*.js": 4720}
+BUDGET = {"tool/*.py": 19935, "viewer/*.js": 4720}
 SLACK = 100
 
 # The tour: clay, steps, a fade, zones by facing and height, a noise pattern, a blend round a point, a torn edge, wear,
@@ -605,6 +605,32 @@ def tripwires():
     return caught, counts
 
 
+def chip():
+    """Whether the graphics chip's kernels give their numpy twins' bits (tool/gpu.py), on points spread like a car's
+    and on blocks of noise and of a few colours: a line, and whether they do."""
+    import numpy as np
+    from tool import dds, gpu, noise
+    if not gpu.ON:
+        return "graphics chip: none here, numpy alone", True
+    rng = np.random.default_rng(0)
+    p = (rng.random((1 << 18, 3), np.float32) - 0.5) * np.float32([200, 120, 450])
+    img = rng.integers(0, 256, (512, 512, 3), np.uint8)
+    img[256:] = img[256:] // 64 * 64
+    calls = {"fbm": lambda: noise.fbm(p / 9, 4, 3), "value": lambda: noise.value(p * 3, 5),
+             "faceted value": lambda: noise.value(p / 4, 7, smooth=False), "worley": lambda: noise.worley(p / 0.35, 2, True),
+             "cell_id": lambda: noise.cell_id(p / 0.1, 1), "BC1": lambda: dds.bc1_blocks(img)}
+    differ = []
+    for name, call in calls.items():
+        a = call()
+        with gpu.off():
+            b = call()
+        if not all(map(np.array_equal, *((a, b) if isinstance(a, tuple) else ((a,), (b,))))):
+            differ.append(name)
+    if differ:
+        return f"graphics chip: DIFFERENT from numpy: {', '.join(differ)}", False
+    return f"graphics chip: {', '.join(calls)} give numpy's bits ({len(p):,} points, {len(img) ** 2 // 16:,} blocks)", True
+
+
 def _same(f, g):
     """Two findings of one kind in one place (their ends within a cm), one side's and both sides' alike."""
     if f["kind"] != g["kind"] or (f["side"] and g["side"] and f["side"] != g["side"]):
@@ -712,6 +738,10 @@ def run(args, names):
         print("\n".join(f"  {c}" for c in caught))
         if caught:
             differing.append("tripwires")
+        line, agree = chip()
+        print(line, flush=True)
+        if not agree:
+            differing.append("graphics chip")
     old_cwd = commit = None
     if args.against:
         commit, old_cwd = tree(args.against)

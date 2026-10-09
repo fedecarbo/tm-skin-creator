@@ -20,7 +20,7 @@ import struct
 import numpy as np
 from PIL import Image
 
-from tool import paths
+from tool import gpu, paths
 
 # FourCC -> bytes per 4x4 block
 BLOCK_BYTES = {
@@ -110,9 +110,23 @@ def _palette(q0, q1):
     return np.stack([e0, e1, (2 * e0 + e1) / 3, (e0 + 2 * e1) / 3], 1)
 
 
+def _sum16(a):
+    """a's 16 texels (axis 1) summed one by one, in order: the kernel's order (BC1)."""
+    s = a[:, 0]
+    for k in range(1, 16):
+        s = s + a[:, k]
+    return s
+
+
+def _errors(px, pal):
+    """Each texel's squared error against each palette colour, (n, 16, 4)."""
+    d = px[:, :, None, :] - pal[:, None, :, :]
+    d = d * d
+    return (d[..., 0] + d[..., 1]) + d[..., 2]
+
+
 def _block_error(px, q0, q1):
-    pal = _palette(q0, q1)
-    return ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).min(-1).sum(1)
+    return _sum16(_errors(px, _palette(q0, q1)).min(-1))
 
 
 def _local_search(px, q0, q1, rounds=1):
@@ -167,31 +181,40 @@ def bc1_blocks(rgb, iters=3, search=1):
     transparent. Endpoints start at the ends of each block's principal axis, are refined by
     least squares against the chosen indices (3 passes: more don't help), then a local search
     nudges them a step at a time (`search` rounds). Quality over build time: the user's call
-    (2026-09-24)."""
-    return _each_distinct(_blocks(rgb), lambda b: _bc1(b.reshape(-1, 16, 3).astype(np.float32), iters, search))
+    (2026-09-24). On the graphics chip (tool/gpu.py) where the computer has one: BC1, below, the
+    same arithmetic in the same order, the same bytes."""
+    def encode(b):
+        if gpu.ON:
+            return gpu.run("bc1", BC1_HEADER, BC1, {"blocks": b, "n": np.uint32([len(b), iters, search])},
+                           {"out": ((len(b), 8), np.uint8)}, len(b))[0]
+        return _bc1(b.reshape(-1, 16, 3).astype(np.float32), iters, search)
+    return _each_distinct(_blocks(rgb), encode)
+
+
+WEIGHTS = np.array([1, 0, 2 / 3, 1 / 3], np.float32)  # each index's share of color0
 
 
 def _bc1(px, iters, search):
-    """BC1 blocks (n, 8) for the blocks' texels, px (n, 16, 3) float."""
+    """BC1 blocks (n, 8) for the blocks' texels, px (n, 16, 3) float32. Every sum over a block's texels is _sum16's."""
     n = len(px)
-    mean = px.mean(1, keepdims=True)
-    cen = px - mean
-    cov = np.einsum("bki,bkj->bij", cen, cen)
-    v = np.ones((n, 3), np.float32) / np.sqrt(3)
+    mean = _sum16(px) / np.float32(16)
+    cen = px - mean[:, None]
+    cov = {(i, j): _sum16(cen[..., i] * cen[..., j]) for i in range(3) for j in range(i, 3)}
+    c = [[cov[min(i, j), max(i, j)] for j in range(3)] for i in range(3)]
+    v = [np.full(n, 1 / np.sqrt(3), np.float32)] * 3
     for _ in range(8):  # power iteration: the principal axis
-        v = np.einsum("bij,bj->bi", cov, v)
-        v /= np.maximum(np.linalg.norm(v, axis=1, keepdims=True), 1e-6)
-    proj = np.einsum("bki,bi->bk", cen, v)
-    c0 = mean[:, 0] + v * proj.min(1, keepdims=True)
-    c1 = mean[:, 0] + v * proj.max(1, keepdims=True)
-    weights = np.array([1, 0, 2 / 3, 1 / 3], np.float32)
+        w = [(c[i][0] * v[0] + c[i][1] * v[1]) + c[i][2] * v[2] for i in range(3)]
+        norm = np.maximum(np.sqrt((w[0] * w[0] + w[1] * w[1]) + w[2] * w[2]), np.float32(1e-6))
+        v = [x / norm for x in w]
+    proj = (cen[..., 0] * v[0][:, None] + cen[..., 1] * v[1][:, None]) + cen[..., 2] * v[2][:, None]
+    v = np.stack(v, 1)
+    c0 = mean + v * proj.min(1)[:, None]
+    c1 = mean + v * proj.max(1)[:, None]
     for _ in range(iters):
-        pal = _palette(_to565(c0), _to565(c1))
-        idx = ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).argmin(-1)
-        wa = weights[idx]
+        wa = WEIGHTS[_errors(px, _palette(_to565(c0), _to565(c1))).argmin(-1)]
         wb = 1 - wa
-        aa, ab, bb = (wa * wa).sum(1), (wa * wb).sum(1), (wb * wb).sum(1)
-        ra, rb = np.einsum("bk,bkc->bc", wa, px), np.einsum("bk,bkc->bc", wb, px)
+        aa, ab, bb = _sum16(wa * wa), _sum16(wa * wb), _sum16(wb * wb)
+        ra, rb = _sum16(wa[..., None] * px), _sum16(wb[..., None] * px)
         det = aa * bb - ab * ab
         good = np.abs(det) > 1e-3
         d = np.where(good, det, 1)[:, None]
@@ -204,8 +227,7 @@ def _bc1(px, iters, search):
     q0, q1 = np.where(swap, q1, q0), np.where(swap, q0, q1)
     if search:
         q0, q1 = _local_search(px, q0, q1, search)
-    pal = _palette(q0, q1)
-    idx = ((px[:, :, None, :] - pal[:, None, :, :]) ** 2).sum(-1).argmin(-1).astype(np.uint32)
+    idx = _errors(px, _palette(q0, q1)).argmin(-1).astype(np.uint32)
     idx[q0 == q1] = 0
     bits = np.zeros(n, np.uint32)
     for k in range(16):
@@ -217,6 +239,99 @@ def _bc1(px, iters, search):
     blocks[:, 3] = q1 >> 8
     blocks[:, 4:] = bits.astype("<u4").view(np.uint8).reshape(n, 4)
     return blocks
+
+
+# _bc1 and the functions it calls, operation for operation, on the graphics chip: one block a thread
+BC1_HEADER = r'''
+inline uint to565(float3 c) {
+    float r = clamp(rint(c.x / 255.0f * 31.0f), 0.0f, 31.0f), g = clamp(rint(c.y / 255.0f * 63.0f), 0.0f, 63.0f);
+    return (uint(r) << 11) | (uint(g) << 5) | uint(clamp(rint(c.z / 255.0f * 31.0f), 0.0f, 31.0f));
+}
+inline float3 from565(uint v) {
+    return float3(float((v >> 11) & 31u) * 255.0f / 31.0f, float((v >> 5) & 63u) * 255.0f / 63.0f, float(v & 31u) * 255.0f / 31.0f);
+}
+inline void palette(uint q0, uint q1, thread float3 *pal) {
+    float3 e0 = from565(q0), e1 = from565(q1);
+    pal[0] = e0; pal[1] = e1; pal[2] = (2.0f * e0 + e1) / 3.0f; pal[3] = (e0 + 2.0f * e1) / 3.0f;
+}
+inline uint nearest(float3 p, thread const float3 *pal, thread float &best) {  // the first of the least errors
+    uint j = 0;
+    for (uint k = 0; k < 4; k++) {
+        float3 d = p - pal[k];
+        d = d * d;
+        float e = (d.x + d.y) + d.z;
+        if (k == 0 || e < best) { best = e; j = k; }
+    }
+    return j;
+}
+inline float block_error(thread const float3 *px, uint q0, uint q1) {
+    float3 pal[4];
+    palette(q0, q1, pal);
+    float s = 0.0f, e;
+    for (uint k = 0; k < 16; k++) { nearest(px[k], pal, e); s = k ? s + e : e; }
+    return s;
+}
+'''
+BC1 = r'''
+if (i >= n[0]) return;
+const float W[4] = {1.0f, 0.0f, %W2, %W3};
+float3 px[16], cen[16], mean;
+for (uint k = 0; k < 16; k++) {
+    px[k] = float3(float(blocks[48 * i + 3 * k]), float(blocks[48 * i + 3 * k + 1]), float(blocks[48 * i + 3 * k + 2]));
+    mean = k ? mean + px[k] : px[k];
+}
+mean = mean / 16.0f;
+float c00, c01, c02, c11, c12, c22;
+for (uint k = 0; k < 16; k++) {
+    float3 c = cen[k] = px[k] - mean;
+    c00 = k ? c00 + c.x * c.x : c.x * c.x; c01 = k ? c01 + c.x * c.y : c.x * c.y; c02 = k ? c02 + c.x * c.z : c.x * c.z;
+    c11 = k ? c11 + c.y * c.y : c.y * c.y; c12 = k ? c12 + c.y * c.z : c.y * c.z; c22 = k ? c22 + c.z * c.z : c.z * c.z;
+}
+float3 v = float3(%R3);
+for (uint it = 0; it < 8; it++) {
+    float3 w = float3((c00 * v.x + c01 * v.y) + c02 * v.z, (c01 * v.x + c11 * v.y) + c12 * v.z, (c02 * v.x + c12 * v.y) + c22 * v.z);
+    v = w / max(precise::sqrt((w.x * w.x + w.y * w.y) + w.z * w.z), %EPS);
+}
+float lo = INFINITY, hi = -INFINITY;
+for (uint k = 0; k < 16; k++) { float p = (cen[k].x * v.x + cen[k].y * v.y) + cen[k].z * v.z; lo = min(lo, p); hi = max(hi, p); }
+float3 c0 = mean + v * lo, c1 = mean + v * hi, pal[4];
+for (uint it = 0; it < n[1]; it++) {
+    palette(to565(c0), to565(c1), pal);
+    float aa, ab, bb, e;
+    float3 ra, rb;
+    for (uint k = 0; k < 16; k++) {
+        float wa = W[nearest(px[k], pal, e)], wb = 1.0f - wa;
+        aa = k ? aa + wa * wa : wa * wa; ab = k ? ab + wa * wb : wa * wb; bb = k ? bb + wb * wb : wb * wb;
+        ra = k ? ra + wa * px[k] : wa * px[k]; rb = k ? rb + wb * px[k] : wb * px[k];
+    }
+    float det = aa * bb - ab * ab;
+    if (fabs(det) > %DET) {
+        c0 = clamp((bb * ra - ab * rb) / det, 0.0f, 255.0f);
+        c1 = clamp((aa * rb - ab * ra) / det, 0.0f, 255.0f);
+    }
+}
+uint q0 = to565(c0), q1 = to565(c1);
+if (q0 < q1) { uint t = q0; q0 = q1; q1 = t; }
+for (uint r = 0; r < n[2]; r++) {
+    float err = block_error(px, q0, q1);
+    for (uint which = 0; which < 2; which++) for (uint s = 0; s < 3; s++) for (int sign = 1; sign >= -1; sign -= 2) {
+        uint step = s == 0 ? 2048u : (s == 1 ? 32u : 1u), top = s == 1 ? 63u : 31u;
+        uint q = which ? q1 : q0, chan = (q / step) % (top + 1);
+        if (sign > 0 ? chan < top : chan > 0) q = sign > 0 ? q + step : q - step;
+        uint t0 = which ? q0 : q, t1 = which ? q : q1;
+        float e = block_error(px, t0, t1);
+        if (t0 >= t1 && e < err) { q0 = t0; q1 = t1; err = e; }
+    }
+}
+palette(q0, q1, pal);
+uint bits = 0;
+float e;
+if (q0 != q1) for (uint k = 0; k < 16; k++) bits |= nearest(px[k], pal, e) << (2 * k);
+uint4 word = uint4(q0 | (q1 << 16), bits, 0, 0);
+for (uint k = 0; k < 8; k++) out[8 * i + k] = uchar((word[k / 4] >> (8 * (k % 4))) & 255);
+'''
+BC1 = BC1.replace("%W2", gpu.f32(2 / 3)).replace("%W3", gpu.f32(1 / 3)).replace("%R3", gpu.f32(1 / np.sqrt(3)))
+BC1 = BC1.replace("%EPS", gpu.f32(1e-6)).replace("%DET", gpu.f32(1e-3))
 
 
 def bc4_blocks(channel):

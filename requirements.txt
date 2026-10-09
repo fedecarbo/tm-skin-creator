@@ -16,6 +16,8 @@ scipy==1.18.1
 # libigl: the car's surface (tool/surface.py): exact geodesics, the mesh cut along lines.
 # It has wheels for Python 3.14 on Windows x64 and macOS arm64 (cp312-abi3).
 libigl==2.6.3
+# mlx: the Mac's graphics chip (tool/gpu.py): 0.32.3 (2026-10-09), Metal kernels from Python; the PC runs numpy.
+mlx==0.32.3 ; sys_platform == "darwin"
 # vulture: the self-test's tripwire for code nothing uses (tool/selftest.py); 2.16 (2026-03-25), pure Python.
 vulture==2.16
 # The picture maker (checkpoint 6, 2026-09-24): FLUX.2 [klein] 4B through diffusers on the card.

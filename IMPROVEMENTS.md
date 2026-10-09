@@ -44,7 +44,12 @@ it.
       2026-10-09: the noise 13 s of the tour's 94 s paint under the profiler, the surface's charts for its scatter 18 s,
       the BC1 encoder 15 s of its 19 s encode; the PC's waits for the PC): the noise as one fused kernel (MLX on the Mac; wgpu-py if the PC
       needs it), blurs on PyTorch; numpy stays the reference. One declared change of every car's files (about one
-      part in a million).
+      part in a million). Built, waiting for the user's OK (2026-10-09, Opus 5.5): `tool/gpu.py`, MLX's Metal kernels,
+      each repeating its numpy twin's arithmetic in order, the same bits (`selftest.chip` checks it every run): the
+      noise and the BC1 colour blocks. The tour paints in 71 s (84), encodes in 5 s (19); its noise 0.4 s (12.6), BC1
+      0.6 s (14.6); memory the same. The declared change: BC1's sums block by block in order, a few hundred blocks in a
+      million, the same quality (TSC_CMYK_EndsInK's Skin_B 48.1366 dB, 48.1361); worley and cell_id in float32 from the
+      cell's corner (no texture changed). Not moved: blurs (under 2 s: no PyTorch); the scatter's charts (below).
   11. **Wear where real cars wear** (Opus 5.5, high). Curvature, occlusion and thickness baked once per car on the repaired surface
       (libigl); wear and dirt driven by them; anti-aliased part edges. Retires wear's direction, height and sun
       rules.
@@ -86,6 +91,9 @@ it.
 
 ## The tool
 
+- **The scatter's charts are the paint's slowest part** (2026-10-09, step 10's profile): 18 of the tour's 82 s under the
+  profiler, five exact solves a copy on the processor (`surface.Surface.chart`), and the marks' sheet 5 s more in
+  np.unique. Idea: a chart's five solves on the processor's cores at once; profile the sheet's bookkeeping.
 - **Decals chipped where a crisp line crosses them** (2026-10-08, the user, giving step 5 its OK: "certain decals where
   chipped or slightly clipped"; their note on the test car's badge across the rear shoulder: "This decal looks chipped
   off on one part of the circle"): a notch about half a centimetre wide in the ring where a crisp line crosses it, left
