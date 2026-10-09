@@ -40,15 +40,6 @@ it.
   near the body, not on it (a band kept skin facing within 60 degrees of its line's facing, which flips on a rolled
   edge: gaps, until step 3; a picked line is smoothed in space and pushed back: steps), and no check measured a
   graphic where it landed. The steps:
-  11. **Wear where real cars wear** (Opus 5.5, high). Built, waiting for the user's OK (2026-10-09): the wear maps
-      (`wear.maps`: how sharply the body bends within half a centimetre and within 2, the open air with the road in the
-      way, thickness, how far in from the body's outline seen from above), baked once per car on the repaired surface;
-      chips along the edges, shoulders and lips, fading and the clear coat's failing under the open sky, scrapes on the
-      outline, grime (new) where the air doesn't reach and down the grooves; a part's edges anti-aliased by 64 samples
-      on the texels they cross (`raster.area`: within a sixteenth, was a quarter). The game's dirt mask stays Nadeo's:
-      the viewer doesn't show it and the game can't be checked until the PC is back. Shown on the test car
-      TSC_WearTest, set 1: A as it was, B on the maps. On the OK: delete the test car. Retires wear's direction, height
-      and sun rules (gone with the build: the exposure, up, high, side and band rules).
   12. **A narrower paint box** (Fable 5.1, xhigh; or Opus 5.5, xhigh). One verb per intent, line ids and part names as typed values that answer "did you
       mean", a short receipt from every verb, `Skin.text`, `Skin.placard`, `Skin.emboss` and `Skin.decal` merged;
       duplicate-code and error-hiding tripwires in the self-test. Retires every private way of placing things the
