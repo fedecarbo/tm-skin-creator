@@ -67,3 +67,5 @@ composition in three takes, then surfaces, details and art direction.
 - Art direction, second look (2026-10-09): the six fixed (the pollen on the skirt's lowest 10 cm, z +20 to +110, still the
   densest patch: taste, not a fault; the black a shade lighter and more mottled from far). Finished at all three
   distances. Shown (2026-10-09, in the Lab) for the user's yes. Open (the PC): `tool.skin install TSC_Bumblebee` on their yes.
+- Accepted (user, 2026-10-09, in the Lab): "yes". Not installed: the Mac has no game. Open (the PC): `tool.skin install
+  TSC_Bumblebee`, then Garage, My Skins, Bumblebee.
