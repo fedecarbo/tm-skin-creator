@@ -105,9 +105,14 @@ it.
   (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
 - **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
   on the stage until the first paint.
-- **The UV map room's Car tab is a second car** (2026-10-09, the one page): it embeds the viewer in an iframe
-  (`index.html?embed=1`) while the page's own car sits under the room. Idea: the tab shows the page's car,
-  framed in the room's stage (`viewer.inset`), and `embed` goes.
+- **The Lab's front end, refined as a whole** (2026-10-10, the user, after the one page: "Can we leave some
+  frontend refinements to the queue. Ill work on it some other time"; "Is there a chance to actually see things a
+  bit away from what it is now?"). What's grown by accretion: the conversation in two places (this chat and the
+  Lab's chat, with the polling and the "Claude has it" states that bridge them); two rooms the car page now
+  covers (the materials, which a question's swatches can bring into the chat; the UV map, which a click on the car
+  and the Mesh button cover); the UV map room's Car tab a second car in its own frame (`index.html?embed=1`).
+  Idea: two or three directions rendered on a sheet first (the visual-plan way the layout was picked), the
+  simplest being one page, one conversation, no rooms; whichever is picked, retire what it replaces.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
   airbox: check them the first time a design paints them; 2026-10-07: the "antenna" is the probe under the nose,
   the "nose sensor" is hidden inside it, the "sidepod grille" is the backing of the visible "sidepod grille plate"), and the fasteners have none
