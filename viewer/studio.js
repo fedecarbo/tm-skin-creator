@@ -80,8 +80,23 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
         float vignette = smoothstep( 0.5, 1.4, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
         gl_FragColor.rgb *= mix( 1.0, 0.6, vignette * vignetteStrength ) * studioTint;`);
     if (grain) {
-      frag = frag.replace('#include <map_fragment>', `#include <map_fragment>
-        float grainRatio = dot( texture2D( map, vMapUv ).rgb / grainMean, vec3( 0.2126, 0.7152, 0.0722 ) );
+      // the picture without its repeat (the user, 2026-10-11, of the ice's cracks: "more spread out instead of
+      // tiles"): each cell of the floor, one repeat square, shows its own random window of the picture,
+      // blended into its neighbours' over the middle half of the cell
+      frag = frag.replace('#include <map_pars_fragment>', `#include <map_pars_fragment>
+        vec2 studioCellShift( vec2 cell ) {
+          return fract( sin( vec2( dot( cell, vec2( 127.1, 311.7 ) ), dot( cell, vec2( 269.5, 183.3 ) ) ) ) * 43758.5453 );
+        }
+        vec3 studioNoTile( sampler2D picture, vec2 uv ) {
+          vec2 cell = floor( uv ), f = fract( uv ), b = smoothstep( 0.25, 0.75, f );
+          vec3 a = texture2D( picture, uv + studioCellShift( cell ) ).rgb;
+          vec3 c = texture2D( picture, uv + studioCellShift( cell + vec2( 1.0, 0.0 ) ) ).rgb;
+          vec3 d = texture2D( picture, uv + studioCellShift( cell + vec2( 0.0, 1.0 ) ) ).rgb;
+          vec3 e = texture2D( picture, uv + studioCellShift( cell + vec2( 1.0, 1.0 ) ) ).rgb;
+          return mix( mix( a, c, b.x ), mix( d, e, b.x ), b.y );
+        }`)
+        .replace('#include <map_fragment>', `#include <map_fragment>
+        float grainRatio = dot( studioNoTile( map, vMapUv ).rgb / grainMean, vec3( 0.2126, 0.7152, 0.0722 ) );
         diffuseColor.rgb = floorGrey * pow( max( grainRatio, 0.0 ), grainPower );`);
     }
     if (fade) {
