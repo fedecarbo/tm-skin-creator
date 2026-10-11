@@ -49,7 +49,7 @@ export const GROUNDS = {
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
   // tool/view.py, draw_rink), and its grid drawn as the rink's paint, faint ("the paint is the actual grid")
   // the sky in its sheen and the car mirrored in it, faintly, more at a low angle (the user: "a bit more reflective")
-  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink', shine: 0.3, mirror: 0.22,
+  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink', shine: 0.3, mirror: 0.11,  // half of 0.22 (the user: "less mirrory like half")
     grain: { asset: 'Rink', mean: [0.6033, 0.6033, 0.6033], power: 0.8, metres: 1.5, relief: 0 } },
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
@@ -328,7 +328,7 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
         vec4 seen = texture2DProj( tDiffuse, vUv );
         vec3 v = normalize( cameraPosition - vWorld );
         float low = pow( 1.0 - clamp( v.y, 0.0, 1.0 ), 4.0 );
-        float a = seen.a * clamp( strength + ( 1.0 - strength ) * 0.8 * low, 0.0, 1.0 );
+        float a = seen.a * clamp( strength + ( 1.0 - strength ) * 0.4 * low, 0.0, 1.0 );
         a *= 1.0 - smoothstep( fadeRange.x, fadeRange.y, length( vWorld.xz - fadeCentre ) );
         gl_FragColor = vec4( seen.rgb, a );
         #include <tonemapping_fragment>
