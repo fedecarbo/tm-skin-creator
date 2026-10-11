@@ -187,6 +187,7 @@ const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 400);
 const controls = new OrbitControls(camera, canvas);
 controls.target.copy(CENTRE);
 controls.enableDamping = true;
+controls.dampingFactor = 0.3;  // the damping is a lag, the car trailing the hand: kept short; the coast is the hand's (below)
 controls.minDistance = 1;
 const DRIVING_MIN = 0.2;  // closer, with a Driving camera picked
 if (snap) controls.minDistance = DRIVING_MIN;  // the close looks (tool/close.py) stand 42 cm from the face
@@ -290,6 +291,81 @@ function stepGlide() {
     showFraming({ w: f1.w, h: f1.h, x: f0.x + (f1.x - f0.x) * e, y: f0.y + (f1.y - f0.y) * e, zoom: f0.zoom + (f1.zoom - f0.zoom) * e });
   } else if (f1) showFraming(f1);
   if (t >= 1) glide = null;
+}
+
+// ---- The hand (the user, 2026-10-11: "feels more like apple"). The car turns under the finger and,
+// flicked, coasts to rest; the wheel, the trackpad and a pinch zoom in a glide, not in steps. Both move
+// the camera round controls.target before controls.update() reads it, as the view glides do. A touch
+// stops a coast; a pinch on a phone is the controls' own (two fingers, continuous already). ----
+const HAND = { coast: 180, zoom: 110, fling: 120, wheel: 0.0009, pinch: 0.01, top: 0.0126 };
+// coast, zoom: ms for a flick's spin and a zoom's glide to lose 63 %; fling: the drag's last ms that set
+// the flick's speed; top: the spin's most, rad/ms (two turns a second: a hard flick, half a turn); wheel, pinch: the distance's log change per px of deltaY (a wheel's notch, 100 px,
+// 9 %; a trackpad pinch comes as a wheel with ctrlKey, finer)
+let spin = null;      // { theta, phi } rad/ms: the coast after a flick
+let turning = null;   // { id, alone, moves: [[t, x, y]] } while a drag turns the car
+let zoomTo = null;    // the distance the zoom glides to
+const clampDist = (d) => Math.min(controls.maxDistance, Math.max(controls.minDistance, d));
+function zoomBy(factor) {
+  if (glide) { glide.to.radius = clampDist(glide.to.radius * factor); return; }  // lands farther or nearer
+  zoomTo = clampDist((zoomTo ?? camera.position.distanceTo(controls.target)) * factor);
+}
+let handAt = 0;
+function stepHand(now) {
+  const dt = Math.min(50, now - handAt);  // ms; a tab asleep doesn't leap
+  handAt = now;
+  if (spin) {
+    const s = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
+    s.theta -= spin.theta * dt;  // the controls' own sense: a drag right turns theta down
+    s.phi = Math.max(1e-4, Math.min(Math.PI - 1e-4, s.phi - spin.phi * dt));
+    camera.position.setFromSpherical(s).add(controls.target);
+    const k = Math.exp(-dt / HAND.coast);
+    spin.theta *= k; spin.phi *= k;
+    if (Math.hypot(spin.theta, spin.phi) < 0.00002) spin = null;
+  }
+  if (zoomTo !== null) {
+    const off = camera.position.clone().sub(controls.target), dist = off.length();
+    let next = zoomTo + (dist - zoomTo) * Math.exp(-dt / HAND.zoom);
+    if (Math.abs(next - zoomTo) < 0.0005) { next = zoomTo; zoomTo = null; }
+    camera.position.copy(controls.target).addScaledVector(off, next / dist);
+  }
+}
+if (!snap) {
+  canvas.addEventListener('pointerdown', (e) => {
+    spin = null; zoomTo = null;
+    if (turning) { turning.alone = false; return; }
+    if (e.button === 0) turning = { id: e.pointerId, alone: true, moves: [[e.timeStamp, e.clientX, e.clientY]] };
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (turning && e.pointerId === turning.id) turning.moves.push([e.timeStamp, e.clientX, e.clientY]);
+  });
+  const letGo = (e) => {
+    if (!turning || e.pointerId !== turning.id) return;
+    const m = turning.moves, t1 = m[m.length - 1][0], recent = m.filter((p) => p[0] >= t1 - HAND.fling);
+    if (turning.alone && recent.length > 1 && t1 > e.timeStamp - 60) {  // still moving when let go
+      const [t0, x0, y0] = recent[0], [, x1, y1] = recent[recent.length - 1];
+      const perPx = (2 * Math.PI) / canvas.clientHeight * controls.rotateSpeed / (t1 - t0);  // the controls' px -> rad, per ms
+      spin = { theta: (x1 - x0) * perPx, phi: (y1 - y0) * perPx };
+      const speed = Math.hypot(spin.theta, spin.phi);
+      if (speed < 0.0003) spin = null;
+      else if (speed > HAND.top) { spin.theta *= HAND.top / speed; spin.phi *= HAND.top / speed; }
+    }
+    turning = null;
+  };
+  canvas.addEventListener('pointerup', letGo);
+  canvas.addEventListener('pointercancel', letGo);
+  // the wheel, on the window ahead of the controls (theirs steps): a glide, and a trackpad's pinch with it
+  addEventListener('wheel', (e) => {
+    if (e.target !== canvas || !controls.enabled || !controls.enableZoom) return;
+    e.preventDefault(); e.stopPropagation();
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * 100 : e.deltaY;
+    zoomBy(Math.exp(dy * (e.ctrlKey ? HAND.pinch : HAND.wheel)));
+  }, { capture: true, passive: false });
+  let pinched = 1;  // Safari's pinch comes as gesture events, with the scale so far
+  addEventListener('gesturestart', (e) => { if (e.target === canvas) { e.preventDefault(); pinched = 1; } }, { passive: false });
+  addEventListener('gesturechange', (e) => {
+    if (e.target !== canvas) return;
+    e.preventDefault(); zoomBy(pinched / e.scale); pinched = e.scale;
+  }, { passive: false });
 }
 
 // The car is framed by its own outline in the space the page leaves it: beside the list, between
@@ -2151,6 +2227,7 @@ async function start() {
   renderer.setAnimationLoop((now) => {
     const gliding = !!glide;
     stepGlide();
+    stepHand(now);
     if (lab && stepDrive(now)) rouse(1);
     controls.update();
     let draw = true;

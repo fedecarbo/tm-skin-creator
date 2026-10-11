@@ -55,6 +55,7 @@ const controls = new OrbitControls(big.camera, big.renderer.domElement);
 controls.enablePan = false;
 controls.enableZoom = false;
 controls.enableDamping = true;
+controls.dampingFactor = 0.3;  // as the car's: a short lag behind the hand
 let bigTex = null;
 
 // ---- the page ----
