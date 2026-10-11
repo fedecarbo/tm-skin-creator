@@ -43,18 +43,16 @@ export const GROUNDS = {
   dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
-  // tool/view.py, draw_rink), and the rink's paint under it as its grid, faint ("the paint is the actual grid")
+  // tool/view.py, draw_rink), and its grid drawn as the rink's paint, faint ("the paint is the actual grid")
   ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink',
     grain: { asset: 'Rink', mean: [0.6033, 0.6033, 0.6033], power: 0.8, metres: 1.5, relief: 0 } },
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
 const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user, "maybe 100cm")
-// A hockey rink's paint under the ice (NHL measures, metres from the car's middle, the rink's length along the car's):
-// the centre red line and the two blue lines 7.62 m out, 30 cm wide, across the whole floor; the centre face-off
-// circle, radius 4.57 m, a 5 cm blue line round a 30 cm dot; the four neutral-zone face-off dots, red, 60 cm, 1.52 m
-// inside the blue lines and 6.7 m out from the middle. Faint, as the grid's lines are: the markings are the ice's grid.
-const RINK = { red: 'rgba(206, 52, 66, 0.3)', blue: 'rgba(38, 78, 170, 0.3)', line: 0.3, blueAt: 7.62, circle: 4.57, ring: 0.05,
-  dot: 0.15, faceoff: 0.3, faceoffAt: [6.7, 6.1] };
+// The ice's grid as a rink's paint (the user, 2026-10-11: "instead of the lines of the grid, you replace it with the
+// paint"): the same lines every metre, drawn as hockey lines under the ice, blue, the two through the car's middle
+// red, 3 cm wide and faint.
+const RINK = { red: 'rgba(206, 52, 66, 0.35)', blue: 'rgba(38, 78, 170, 0.35)', line: 0.03 };
 const FADE = { r0: 8, r1: 13.8 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
 // picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
@@ -279,27 +277,14 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   gridMesh.position.y = 0.001;
   gridMesh.visible = !spec.markings;
   scene.add(gridMesh);
-  // the rink's paint: one picture of the whole floor (28 m, 2048 px: 1.4 cm a pixel), the car's middle at its centre
+  // the ice's grid: one picture of the whole floor (28 m, 4096 px: 7 mm a pixel), the car's middle at its centre
   const rc = document.createElement('canvas');
-  rc.width = rc.height = 2048;
-  const rg = rc.getContext('2d'), ppm = 2048 / (RADIUS * 2), at = (m) => 1024 + m * ppm;
-  rg.fillStyle = RINK.red;
-  rg.fillRect(0, at(-RINK.line / 2), 2048, RINK.line * ppm);
-  rg.fillStyle = RINK.blue;
-  for (const sgn of [1, -1]) rg.fillRect(0, at(sgn * RINK.blueAt - RINK.line / 2), 2048, RINK.line * ppm);
-  rg.strokeStyle = RINK.blue;
-  rg.lineWidth = RINK.ring * ppm;
-  rg.beginPath();
-  rg.arc(at(0), at(0), RINK.circle * ppm, 0, Math.PI * 2);
-  rg.stroke();
-  rg.beginPath();
-  rg.arc(at(0), at(0), RINK.dot * ppm, 0, Math.PI * 2);
-  rg.fill();
-  rg.fillStyle = RINK.red;
-  for (const sx of [1, -1]) for (const sz of [1, -1]) {
-    rg.beginPath();
-    rg.arc(at(sx * RINK.faceoffAt[0]), at(sz * RINK.faceoffAt[1]), RINK.faceoff * ppm, 0, Math.PI * 2);
-    rg.fill();
+  rc.width = rc.height = 4096;
+  const rg = rc.getContext('2d'), ppm = 4096 / (RADIUS * 2), at = (m) => 2048 + m * ppm, w = RINK.line * ppm;
+  for (let k = -Math.floor(RADIUS / GRID); k <= Math.floor(RADIUS / GRID); k++) {
+    rg.fillStyle = k === 0 ? RINK.red : RINK.blue;
+    rg.fillRect(0, at(k * GRID) - w / 2, 4096, w);
+    rg.fillRect(at(k * GRID) - w / 2, 0, w, 4096);
   }
   const paint = new THREE.CanvasTexture(rc);
   paint.colorSpace = THREE.SRGBColorSpace;
