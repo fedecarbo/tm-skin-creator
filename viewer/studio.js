@@ -13,7 +13,7 @@
 //     curve 6 m, 14 m high), lit as if it were all flat floor (the normal straight up, no shine), so
 //     it's one even colour with no line where the floor bends, in every mood.
 //   The floor: a fine, even matte grain in the ground's colour (an ambientCG set, CC0, downloaded by
-//     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every metre (on the ice, a rink's paint), one under
+//     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every metre (on the ice, the ice road's lines), one under
 //     the car's middle; both fade out between 8 and 13.8 m.
 //   The mirror (the ice): the car reflected in the floor (three.js's Reflector, the scene drawn again from
 //     under the floor), laid over the grain at a ground's `mirror` strength, stronger towards a low angle
@@ -47,7 +47,7 @@ export const GROUNDS = {
   dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
-  // tool/view.py, draw_rink), and its grid drawn as the rink's paint, faint ("the paint is the actual grid")
+  // tool/view.py, draw_rink), laid out as the game's ice road (ROAD) in place of the grid
   // the sky in its sheen and the car mirrored in it, faintly, more at a low angle (the user: "a bit more reflective")
   // a softened shadow on it, as ice scatters light (the user: "shadow does not make sense in ice", then "more faint
   // not off", then "whatever you think will look real")
@@ -56,10 +56,13 @@ export const GROUNDS = {
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
 const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user, "maybe 100cm")
-// The ice's grid as a rink's paint (the user, 2026-10-11: "instead of the lines of the grid, you replace it with the
-// paint"): the same lines every metre, drawn as hockey lines under the ice, blue, the two through the car's middle
-// red, 3 cm wide and faint.
-const RINK = { red: 'rgba(206, 52, 66, 0.35)', blue: 'rgba(38, 78, 170, 0.35)', line: 0.03 };
+// The ice as the game's ice road (the user, 2026-10-11, from their screenshot: "the center is more whitish ice, then
+// a blue line, then more bluish ice then a red line, then blueish ice again", the other side the same), along the
+// car's length, measured off the picture: the road 16 m wide, its middle the ice's own white, a thin blue line
+// 1.9 m out, bluish ice to a thin red line 6.9 m out, bluish ice on beyond. The bands are a blue-grey laid thinly
+// over the white; the lines the picture's blue and red.
+const ROAD = { tint: 'rgba(120, 135, 175, 0.4)', blue: 'rgba(90, 110, 170, 0.8)', red: 'rgba(200, 80, 100, 0.75)',
+  blueAt: 1.9, redAt: 6.9, line: 0.1 };
 const FADE = { r0: 8, r1: 13.8 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
 // picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
@@ -288,21 +291,26 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   gridMesh.position.y = 0.001;
   gridMesh.visible = !spec.markings;
   scene.add(gridMesh);
-  // the ice's grid: one picture of the whole floor (28 m, 4096 px: 7 mm a pixel), the car's middle at its centre
+  // the ice road: one picture of the whole floor (28 m, 4096 px: 7 mm a pixel), the car's middle at its centre, the
+  // road along the car (a column of the picture is a line along the car's length)
   const rc = document.createElement('canvas');
   rc.width = rc.height = 4096;
-  const rg = rc.getContext('2d'), ppm = 4096 / (RADIUS * 2), at = (m) => 2048 + m * ppm, w = RINK.line * ppm;
-  for (let k = -Math.floor(RADIUS / GRID); k <= Math.floor(RADIUS / GRID); k++) {
-    rg.fillStyle = k === 0 ? RINK.red : RINK.blue;
-    rg.fillRect(0, at(k * GRID) - w / 2, 4096, w);
-    rg.fillRect(at(k * GRID) - w / 2, 0, w, 4096);
+  const rg = rc.getContext('2d'), ppm = 4096 / (RADIUS * 2), at = (m) => 2048 + m * ppm, w = ROAD.line * ppm;
+  rg.fillStyle = ROAD.tint;
+  rg.fillRect(0, 0, at(-ROAD.blueAt), 4096);
+  rg.fillRect(at(ROAD.blueAt), 0, 4096 - at(ROAD.blueAt), 4096);
+  for (const sgn of [1, -1]) {
+    rg.fillStyle = ROAD.blue;
+    rg.fillRect(at(sgn * ROAD.blueAt) - w / 2, 0, w, 4096);
+    rg.fillStyle = ROAD.red;
+    rg.fillRect(at(sgn * ROAD.redAt) - w / 2, 0, w, 4096);
   }
   const paint = new THREE.CanvasTexture(rc);
   paint.colorSpace = THREE.SRGBColorSpace;
   paint.anisotropy = aniso;
-  const rink = fadeFrom(studio(new THREE.MeshStandardMaterial({ map: paint, transparent: true, roughness: 1, metalness: 0,
+  const road = fadeFrom(studio(new THREE.MeshStandardMaterial({ map: paint, transparent: true, roughness: 1, metalness: 0,
     depthWrite: false }), { flat: true, fade: FADE }));
-  const rinkMesh = new THREE.Mesh(disc(), rink);
+  const rinkMesh = new THREE.Mesh(disc(), road);
   rinkMesh.renderOrder = 1;
   rinkMesh.position.y = 0.001;
   rinkMesh.visible = spec.markings === 'rink';
@@ -369,7 +377,7 @@ function shadowed(strength) {
 }
 
 // Another of the game's surfaces under the car: the room's colour, the floor's grain, its grid (the lines, or
-// on the ice the rink's paint), its mirror and whether the car shadows it change; the vignette stays. The pictures load as the floor is already drawn, so the colour
+// on the ice the road's), its mirror and whether the car shadows it change; the vignette stays. The pictures load as the floor is already drawn, so the colour
 // shows at once and the grain a moment later.
 export function setGround(name) {
   if (!studioNow || !GROUNDS[name]) return;
