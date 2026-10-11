@@ -9,12 +9,12 @@
 // the track's (205, 200, 204) by day and its (124, 123, 128) at sunrise from Cam 2; each mood's `studio`
 // in viewer.js's LOOKS corrects the rest (setStudioTint). The other grounds are read off the user's
 // screenshots by day the same way.
-//   The room: a seamless cove, the floor curving up into the walls and a ceiling (floor radius 14 m,
+//   The room: a seamless cove, the floor curving up into the walls and a ceiling (floor radius 30 m,
 //     curve 6 m, 14 m high), lit as if it were all flat floor (the normal straight up, no shine), so
 //     it's one even colour with no line where the floor bends, in every mood.
 //   The floor: a fine, even matte grain in the ground's colour (an ambientCG set, CC0, downloaded by
 //     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every metre (on the ice, the ice road's lines), one under
-//     the car's middle; both fade out between 8 and 13.8 m.
+//     the car's middle; both fade out between 16 and 29.5 m (the user, 2026-10-11, of the ice road: "little range in distance").
 //   The mirror (the ice): the car reflected in the floor (three.js's Reflector, the scene drawn again from
 //     under the floor), laid over the grain at a ground's `mirror` strength, stronger towards a low angle
 //     as on real ice, and only what the mirror sees: nothing behind it darkens the floor.
@@ -31,7 +31,7 @@ import { Reflector } from 'three/addons/objects/Reflector.js';
 import { HorizontalBlurShader } from 'three/addons/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 
-const RADIUS = 14;  // the room's flat floor: the cove curves up from here
+const RADIUS = 30;  // the room's flat floor: the cove curves up from here (14 until 2026-10-11: the ice road ran out too soon)
 // The grounds: the game's surfaces, each its colour (linear; by day the light alone makes it read as
 // the screenshot's) and its grain (an ambientCG set: its colour picture's mean, the power the grain shows
 // at, the metres one repeat covers, how much of its relief). The concrete's grain repeats every 40 cm,
@@ -63,7 +63,7 @@ const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user
 // over the white; the lines the picture's blue and red.
 const ROAD = { tint: 'rgba(120, 135, 175, 0.4)', blue: 'rgba(90, 110, 170, 0.8)', red: 'rgba(200, 80, 100, 0.75)',
   blueAt: 1.9, redAt: 6.9, line: 0.1 };
-const FADE = { r0: 8, r1: 13.8 };
+const FADE = { r0: 16, r1: 29.5 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
 // picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
 // strong"): the studio keeps its grey within about half the picture's height of the car and is down to
