@@ -63,7 +63,7 @@ HDRI_URL = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/{res}/{name}_{res}
 # The studio's grounds' grain (viewer/studio.js, GROUNDS: the concrete, grass, dirt and ice): ambientCG
 # sets (CC0), the 1K JPG zips (each a metre a repeat), of which the viewer reads the colour and the
 # relief, unpacked into DATA/floor/<asset>/.
-FLOOR_SETS = ("Rubber004", "Grass005", "Ground104", "Snow014")
+FLOOR_SETS = ("Rubber004", "Grass005", "Ground104", "Ice003")
 FLOOR_MAPS = ("Color", "NormalGL")
 FLOOR_URL = "https://ambientcg.com/get?file={asset}_1K-JPG.zip"
 SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO",

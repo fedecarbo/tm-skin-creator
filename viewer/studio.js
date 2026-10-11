@@ -34,7 +34,7 @@ const RADIUS = 14;  // the room's flat floor: the cove curves up from here
 // grey only (the rubber's lilac and beige blotches gone), at power 0.7 so it still shows as the viewer
 // opens; finer melts into plain grey on the screen (the user's pick from renders, 2026-09-27: "make the
 // floor grain a bit smaller"). The grass is the stadium's mown lawn, the dirt its terracotta, the ice its
-// pale blue-white; their grains are the real surfaces at about their real size.
+// pale blue-white with a frozen lake's cracks; the grains are the real surfaces at about their real size.
 export const GROUNDS = {
   concrete: { label: 'Concrete', colour: [0.353, 0.329, 0.349], swatch: '#cdc8cc',
     grain: { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.7, metres: 0.4, relief: 0.3 } },
@@ -42,8 +42,8 @@ export const GROUNDS = {
     grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
   dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
-  ice: { label: 'Ice', colour: [0.357, 0.381, 0.414], swatch: '#ced4dc',
-    grain: { asset: 'Snow014', mean: [0.4233, 0.4561, 0.5309], power: 0.5, metres: 1.0, relief: 0.2 } },
+  ice: { label: 'Ice', colour: [0.357, 0.381, 0.414], swatch: '#ced4dc',  // a frozen lake's cracks (the user, 2026-10-11: 'prefer maybe cracked'; a snow picture's blotches read as spots)
+    grain: { asset: 'Ice003', mean: [0.0775, 0.1092, 0.1108], power: 0.22, metres: 2.5, relief: 0.15 } },  // faint: at 0.6 the cracks were a white web
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
 const GRID = 0.5;  // metres between the lines
