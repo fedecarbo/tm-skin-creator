@@ -14,7 +14,7 @@
 //     it's one even colour with no line where the floor bends, in every mood.
 //   The floor: a fine, even matte grain in the ground's colour (an ambientCG set, CC0, downloaded by
 //     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every metre (on the ice, the ice road's lines), one under
-//     the car's middle; both fade out between 16 and 29.5 m (the user, 2026-10-11, of the ice road: "little range in distance").
+//     the car's middle; both fade out between 23 and 30 m (the user, 2026-10-11, of the ice road: "little range in distance").
 //   The mirror (the ice): the car reflected in the floor (three.js's Reflector, the scene drawn again from
 //     under the floor), laid over the grain at a ground's `mirror` strength, stronger towards a low angle
 //     as on real ice, and only what the mirror sees: nothing behind it darkens the floor.
@@ -63,7 +63,7 @@ const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user
 // over the white; the lines the picture's blue and red.
 const ROAD = { tint: 'rgba(120, 135, 175, 0.4)', blue: 'rgba(90, 110, 170, 0.8)', red: 'rgba(200, 80, 100, 0.75)',
   blueAt: 1.9, redAt: 6.9, line: 0.1 };
-const FADE = { r0: 16, r1: 29.5 };
+const FADE = { r0: 23, r1: 30 };  // late and short (the user, 2026-10-11: "the fading is too intense")
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
 // picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
 // strong"): the studio keeps its grey within about half the picture's height of the car and is down to
