@@ -74,15 +74,17 @@ it.
 
 ## The tool
 
-- **A nap can't turn with the surface** (2026-10-09, TSC_Bumblebee's details pass): the brushed look takes one direction
-  per call (x, y or z), so a grain can't follow the body's own flow round its nose, tail and lips. Idea: a per-point
-  direction in `tool/looks.py`, from the surface's flow (the mesh's own lines).
+- **Fur made by the tool, with a lay that follows the car** (2026-10-09, TSC_Bumblebee's surfaces pass; 2026-10-11): the
+  photographed piles (fur, teddy fur, plaid fur, plush, velvet, fleece: `tool/textures.py`, the Lab's LF-08 to LF-13) lay
+  their nap along each panel of the car's unfolding, fixed in the photo, so a photo's hairs can't sweep round the nose
+  and tail; the suede look takes only a seed, and the brushed look, the only nap with a direction, lies along the
+  world's z (one direction per call). Idea: a lay per texel (the car's long axis on the surface, the vector
+  `carmap.Map.gradient` already computes per triangle; toward the nearest model line's tangent where the body faces
+  the ends), passed by `paintbox.Skin` to a fur look in `tool/looks.py` (hairs of a length, clumps, dark roots) and
+  to `brushed`.
 - **The judge reads a thin paint zoned by a reading of the car as one gappy run** (2026-10-09): a blend 0.55 paint zoned by
   `shapes.facing` was blocked with thirty "gap" findings, its patches read as gaps along the car. Idea: a paint under
   half weight, or zoned by facing or open air, is a wash, not a run: no gaps to read.
-- **No fur finish** (2026-10-09, TSC_Bumblebee's surfaces pass): the suede look takes only a seed (no direction, no hair
-  length), the brushed look is the only nap with a direction and lies along the world's z, its streaks 7 cm long and
-  0.4 mm wide. Idea: a fur look in `tool/looks.py`: hairs of a length and a lay that follows the surface's flow.
 - **A thin paint's receipt says "nothing painted"** (2026-10-09): the receipt counts only texels covered by half or more,
   so a paint with blend under 0.5 reads as nothing in the Lab though it lands. Idea: count any weight, say the blend.
 - **Raised lettering on the inner car is laid flat** (2026-10-09, step 12): `Skin.decal` with `depth=` lays a picture's

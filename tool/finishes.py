@@ -128,6 +128,13 @@ LIBRARY = {
                              about="leather with rows of small holes, like a race seat", source="eye"),
     "suede": _f("suede", 1.0, 0.0, 0.0, (0.2, 0.2, 0.22), look="suede", about="soft napped suede or alcantara, no shine at all", source="eye"),
     "denim": _f("denim", 0.9, 0.0, 0.0, (0.2, 0.3, 0.45), look="denim", about="blue twill cotton", source="eye"),
+    # the pile surfaces (photos, tool/textures.py): the photo's own colours unless a colour is given
+    "fur": _f("fur", 1.0, 0.0, 0.0, look="texture", about="animal fur: short straight hair combed along the car (photo)", source="eye"),
+    "teddy fur": _f("teddy fur", 1.0, 0.0, 0.0, look="texture", about="curly sherpa, a teddy bear's coat (photo)", source="eye"),
+    "plaid fur": _f("plaid fur", 1.0, 0.0, 0.0, look="texture", about="shaggy fleece in a teal, cream and brown plaid (photo)", source="eye"),
+    "plush": _f("plush", 1.0, 0.0, 0.0, look="texture", about="faux fur with a diamond quilting pressed into its pile (photo)", source="eye"),
+    "velvet": _f("velvet", 0.9, 0.0, 0.0, look="texture", about="velour: a short dense pile with a soft sheen (photo)", source="eye"),
+    "fleece": _f("fleece", 1.0, 0.0, 0.0, look="texture", about="polar fleece, soft and fuzzy (photo)", source="eye"),
     # wear: a look laid over the colour; the shine is what's left under the wear
     "scratched": _f("scratched", 0.55, 0.0, 0.0, look="scratched", about="fine scratches showing lighter"),
     "chipped": _f("chipped", 0.45, 0.0, 0.3, look="texture", about="paint flaked off in spots, bare metal showing (photo)"),
@@ -181,6 +188,10 @@ ALIASES = {
     "perforated": "perforated leather", "nubuck": "suede", "microsuede": "suede", "jeans": "denim",
     "satin wrap": "vinyl", "shiny wrap": "gloss wrap", "mirror wrap": "chrome wrap", "brushed vinyl": "brushed wrap",
     "mud": "muddy", "mud splashed": "muddy", "glow at night": "night glow", "night light": "night glow",
+    # the pile surfaces (2026-10-11)
+    "furry": "fur", "animal fur": "fur", "faux fur": "fur", "fake fur": "fur", "hair": "fur", "sherpa": "teddy fur",
+    "teddy": "teddy fur", "curly fur": "teddy fur", "shaggy fur": "plaid fur", "velour": "velvet", "velveteen": "velvet",
+    "polar fleece": "fleece", "fluffy": "fleece", "fuzzy": "fleece",
 }
 
 # ---- The Lab's catalogue: each family's two letters, its name, and its finishes in order. A
@@ -195,7 +206,8 @@ CATALOGUE = {
                        "sparkle plastic"]),
     "RU": ("Rubber", ["rubber", "soft rubber", "silicone", "knurled grip", "worn rubber"]),
     "CF": ("Carbon & fibre", ["carbon", "gloss carbon", "plain-weave carbon", "forged carbon", "kevlar", "fibreglass"]),
-    "LF": ("Leather & fabric", ["leather", "quilted leather", "perforated leather", "suede", "cloth", "webbing", "denim"]),
+    "LF": ("Leather & fabric", ["leather", "quilted leather", "perforated leather", "suede", "cloth", "webbing", "denim",
+                                "fur", "teddy fur", "plaid fur", "plush", "velvet", "fleece"]),
     "WT": ("Wraps & tape", ["vinyl", "gloss wrap", "matte wrap", "chrome wrap", "brushed wrap", "reflective tape", "textured wrap"]),
     "WE": ("Wear", ["scratched", "chipped", "dusty", "faded", "rusted", "greasy", "race-worn", "muddy"]),
     "PT": ("Patterns", ["camo", "hexagons", "checks", "splatter", "polka dots", "pinstripes"]),

@@ -1,8 +1,10 @@
 """Photographed surfaces for the wear and material finishes, wrapped onto the car in 3D.
 
-The pictures are tileable PBR texture sets from ambientCG (https://ambientcg.com), released
-under CC0 (public domain): free for any use, no credit required. Each set is downloaded once
-(the 1K JPG zip, about 5 MB) into the work folder and unpacked there.
+The pictures are tileable PBR texture sets, all CC0 (public domain: free for any use, no credit
+required), from ambientCG (https://ambientcg.com; the 1K JPG zip, about 5 MB), Poly Haven
+(https://polyhaven.com, photographed by colormass, processed by Rico Cilliers; the pile surfaces:
+fur, plush, velvet, fleece, each with its tile's measured size) and TextureCan
+(https://texturecan.com; the animal fur). Each set is downloaded once into the work folder.
 
     textures.wrap("rust", pos, nrm, colour, finish, params)   -> the look dict (tool/looks.py)
 
@@ -33,7 +35,18 @@ from tool import paths
 from tool.noise import smoothstep
 
 FOLDER = paths.WORK / "textures"
-URL = "https://ambientcg.com/get?file={asset}_1K-JPG.zip"
+# where a set's pictures come from: its files by kind ("files": one URL each), or its zip ("zip": each
+# picture's file named by a word in its name; a set's own "url" replaces the zip's)
+SOURCES = {
+    "ambientcg": {"name": "ambientCG", "url": "https://ambientcg.com/get?file={asset}_1K-JPG.zip",
+                  "zip": {"Color": "_color.", "Roughness": "_roughness.", "Metalness": "_metalness.",
+                          "NormalGL": "_normalgl.", "Displacement": "_displacement."}},
+    "polyhaven": {"name": "Poly Haven",
+                  "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/{asset}/{asset}_{kind}_1k.jpg",
+                  "files": {"Color": "diff", "Roughness": "rough"}},
+    "texturecan": {"name": "TextureCan", "zip": {"Color": "_color_", "Roughness": "_roughness_"}},
+}
+TEXEL = 0.07  # cm: the body's texel; a picture finer than it is averaged down to it, or a texel picks one hair of several
 
 # name -> asset id, and how the picture is used
 SETS = {
@@ -45,6 +58,20 @@ SETS = {
     "cast": {"asset": "Metal052C", "mode": "overlay", "scale": 60, "about": "rough cast iron"},
     "leather": {"asset": "Leather026", "mode": "overlay", "scale": 50, "about": "smooth black leather"},
     "quilted leather": {"asset": "Leather034A", "mode": "overlay", "scale": 60, "about": "diamond-stitched leather"},
+    # the pile surfaces, laid in the car's own unfolding so the nap lies along the car; scale: the tile's measured size
+    "fur": {"asset": "fabrics_0037", "source": "texturecan", "mode": "overlay", "scale": 30, "wrap": "uv",
+            "url": "https://www.texturecan.com/downloads/fabrics_0037/fabrics_0037_1k_T39Myf.zip",
+            "about": "animal fur: short straight brown hair, combed one way"},
+    "teddy fur": {"asset": "curly_teddy_natural", "source": "polyhaven", "mode": "overlay", "scale": 33.6, "wrap": "uv",
+                  "about": "cream curly sherpa, like a teddy bear's coat"},
+    "plaid fur": {"asset": "curly_teddy_checkered", "source": "polyhaven", "mode": "overlay", "scale": 56.2, "wrap": "uv",
+                  "about": "shaggy teddy fleece in a teal, cream and brown plaid"},
+    "plush": {"asset": "faux_fur_geometric", "source": "polyhaven", "mode": "overlay", "scale": 30.2, "wrap": "uv",
+              "about": "mauve faux fur with a diamond quilting pressed into its pile"},
+    "velvet": {"asset": "velour_velvet", "source": "polyhaven", "mode": "overlay", "scale": 28.4, "wrap": "uv",
+               "about": "red velour: a short dense pile with a soft sheen"},
+    "fleece": {"asset": "polar_fleece", "source": "polyhaven", "mode": "overlay", "scale": 27.3, "wrap": "uv",
+               "about": "beige polar fleece, soft and fuzzy"},
 }
 LIBRARY_FILE = FOLDER / "library.json"
 API = "https://ambientcg.com/api/v2/full_json?type=Material&limit={n}&include=previewData,tagData&q={q}"
@@ -115,18 +142,25 @@ def add_file(name, file, scale=30, about="", wrap="uv"):
     return key
 
 
-def fetch(asset):
+def fetch(asset, source="ambientcg", url=None):
     folder = FOLDER / asset
     if not (folder / "Color.jpg").exists():
+        src = SOURCES[source]
         FOLDER.mkdir(parents=True, exist_ok=True)
-        print(f"textures: downloading {asset} from ambientCG (CC0)...", flush=True)
-        data = _get(URL.format(asset=asset))
+        print(f"textures: downloading {asset} from {src['name']} (CC0)...", flush=True)
         folder.mkdir(exist_ok=True)
+        if "files" in src:
+            for kind, word in src["files"].items():
+                (folder / (kind + ".jpg")).write_bytes(_get(src["url"].format(asset=asset, kind=word)))
+            return folder
+        data = _get((url or src["url"]).format(asset=asset))
         with zipfile.ZipFile(io.BytesIO(data)) as z:
             for info in z.infolist():
                 name = info.filename.rsplit("/", 1)[-1]
-                for kind in ("Color", "Roughness", "Metalness", "NormalGL", "Displacement"):
-                    if f"_{kind}." in name:
+                if name.startswith("."):  # a Mac's bookkeeping copies in the zip
+                    continue
+                for kind, word in src["zip"].items():
+                    if word in name.lower():
                         (folder / (kind + name[name.rfind("."):])).write_bytes(z.read(info))
     return folder
 
@@ -140,7 +174,7 @@ def load(name):
         _cache[name] = {"colour": np.asarray(Image.open(spec["file"]).convert("RGB"), np.float32) / 255,
                         "roughness": None, "metalness": None}
         return _cache[name]
-    folder = fetch(spec["asset"])
+    folder = fetch(spec["asset"], spec.get("source", "ambientcg"), spec.get("url"))
 
     def read(kind):
         for ext in (".jpg", ".png"):
@@ -153,11 +187,28 @@ def load(name):
 
 
 def sample(image, u, v):
-    """Tiled nearest sample of image (h, w[, c]) at u, v in 0..1 repeats."""
+    """Tiled nearest sample of image (h, w[, c]) at u, v in repeats of its width (a tile taller than
+    wide keeps its pixels square)."""
     h, w = image.shape[:2]
     x = (np.floor(u * w).astype(np.int64)) % w
-    y = (np.floor(v * h).astype(np.int64)) % h
+    y = (np.floor(v * w).astype(np.int64)) % h
     return image[y, x]
+
+
+def _to_texel(tex, scale):
+    """The set's pictures averaged down (each n×n block one pixel) until a pixel is about a texel:
+    a tile finer than the car's texels would otherwise show a hair in one texel of several."""
+    n = int(TEXEL // (scale / tex["colour"].shape[1]))
+    if n < 2:
+        return tex
+
+    def down(a):
+        if a is None:
+            return None
+        h, w = (a.shape[0] // n) * n, (a.shape[1] // n) * n
+        a = a[:h, :w].reshape(h // n, n, w // n, n, *a.shape[2:])
+        return a.mean((1, 3), dtype=np.float32)
+    return {k: down(v) for k, v in tex.items()}
 
 
 def triplanar_sample(image, pos, nrm, scale, power=6):
@@ -179,8 +230,8 @@ def triplanar_sample(image, pos, nrm, scale, power=6):
 
 def wrap(name, pos, nrm, colour, finish, params):
     spec = SETS[name]
-    tex = load(name)
     scale = params.get("scale", spec["scale"])
+    tex = _to_texel(load(name), scale)
     amount = float(params.get("amount", 0.5))
     n = len(pos)
     colour = np.asarray(colour, np.float32)
