@@ -15,6 +15,9 @@
 //   The floor: a fine, even matte grain in the ground's colour (an ambientCG set, CC0, downloaded by
 //     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every metre (on the ice, a rink's paint), one under
 //     the car's middle; both fade out between 8 and 13.8 m.
+//   The mirror (the ice): the car reflected in the floor (three.js's Reflector, the scene drawn again from
+//     under the floor), laid over the grain at a ground's `mirror` strength, stronger towards a low angle
+//     as on real ice, and only what the mirror sees: nothing behind it darkens the floor.
 //   The ground shadow: a soft shadow right under the car (KeyShot's ground occlusion), drawn again
 //     only when the car's parts come or go.
 //   The vignette: the studio, never the car, darkening gently towards the picture's corners, around
@@ -24,6 +27,7 @@
 
 import * as THREE from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
 import { HorizontalBlurShader } from 'three/addons/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 
@@ -44,7 +48,8 @@ export const GROUNDS = {
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
   // tool/view.py, draw_rink), and its grid drawn as the rink's paint, faint ("the paint is the actual grid")
-  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink',
+  // the sky in its sheen and the car mirrored in it, faintly, more at a low angle (the user: "a bit more reflective")
+  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink', shine: 0.3, mirror: 0.22,
     grain: { asset: 'Rink', mean: [0.6033, 0.6033, 0.6033], power: 0.8, metres: 1.5, relief: 0 } },
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
@@ -65,7 +70,8 @@ const VIGNETTE = { vignetteAt: { value: new THREE.Vector3(0, 0, 1) }, vignetteSt
 export function setStudioTint(rgb) { VIGNETTE.studioTint.value.set(...rgb); }
 
 // A studio surface. flat: lit as flat floor wherever it is (the normal straight up); matte: no shine
-// at all (a satin floor catches the sky's bright spots as blotches the grey room doesn't have); fade:
+// at all (a satin floor catches the sky's bright spots as blotches the grey room doesn't have; a ground's
+// `shine` turns it back on, studioMatte, with that roughness); fade:
 // the alpha going from 1 to 0 between r0 and r1 metres from the car; grain: the colour picture as
 // colour * (the texel's lightness against the mean)^power, "a tiny bit grainy".
 function studio(material, { flat = false, matte = flat, fade = null, grain = null } = {}) {
@@ -75,12 +81,13 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
     floorGrey: { value: new THREE.Vector3(...(grain ? grain.colour : [0, 0, 0])) },
     grainMean: { value: new THREE.Vector3(...(grain ? grain.mean : [1, 1, 1])) },
     grainPower: { value: grain ? grain.power : 1 },
+    studioMatte: { value: matte ? 1 : 0 },
   };
   material.userData.studio = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, VIGNETTE);
     let frag = shader.fragmentShader.replace('#include <common>', `#include <common>
-      varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange; uniform vec3 floorGrey; uniform float grainPower; uniform vec3 grainMean;
+      varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange; uniform vec3 floorGrey; uniform float grainPower, studioMatte; uniform vec3 grainMean;
       uniform vec3 vignetteAt, studioTint; uniform float vignetteStrength;`)
       .replace('#include <opaque_fragment>', `#include <opaque_fragment>
         float vignette = smoothstep( 0.5, 1.4, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
@@ -115,7 +122,7 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
     }
     if (matte) {
       frag = frag.replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>
-        material.specularColor = vec3( 0.0 ); material.specularColorBlended = vec3( 0.0 ); material.specularF90 = 0.0;`);
+        material.specularColor *= 1.0 - studioMatte; material.specularColorBlended *= 1.0 - studioMatte; material.specularF90 *= 1.0 - studioMatte;`);
     }
     shader.fragmentShader = frag;
     shader.vertexShader = shader.vertexShader
@@ -251,8 +258,9 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   const G = spec.grain, base = `data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
   const grain = fadeFrom(studio(new THREE.MeshStandardMaterial({
     map: load(`${base}_Color.jpg`, n, true), normalMap: load(`${base}_NormalGL.jpg`, n, false),
-    normalScale: new THREE.Vector2(G.relief, G.relief), roughness: 1, metalness: 0, transparent: true,
+    normalScale: new THREE.Vector2(G.relief, G.relief), roughness: spec.shine || 1, metalness: 0, transparent: true,
   }), { matte: true, fade: FADE, grain: { colour, mean: G.mean, power: G.power } }));
+  grain.userData.studio.studioMatte.value = spec.shine ? 0 : 1;
   const floor = new THREE.Mesh(disc(), grain);
   floor.receiveShadow = true;
   floor.renderOrder = 1;
@@ -296,12 +304,56 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   rinkMesh.position.y = 0.001;
   rinkMesh.visible = spec.markings === 'rink';
   scene.add(rinkMesh);
+  // the mirror: a flat disc at the floor (the Reflector's own normal is its +z, so the mesh is turned, not the geometry)
+  const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+  const mirror = new Reflector(new THREE.CircleGeometry(RADIUS, 160), { clipBias: 0.003, textureWidth: size.x, textureHeight: size.y });
+  mirror.rotation.x = -Math.PI / 2;
+  mirror.position.set(0, 0.0007, z);
+  mirror.renderOrder = 1;
+  const seen = mirror.material;  // the Reflector's own: its texture and matrix are what the blend reads
+  mirror.material = new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: seen.uniforms.tDiffuse, textureMatrix: seen.uniforms.textureMatrix, strength: { value: spec.mirror || 0 },
+      fadeCentre: { value: new THREE.Vector2(centre.x, z) }, fadeRange: { value: new THREE.Vector2(FADE.r0, FADE.r1) } },
+    transparent: true, depthWrite: false,
+    vertexShader: `uniform mat4 textureMatrix; varying vec4 vUv; varying vec3 vWorld;
+      void main() {
+        vec4 w = modelMatrix * vec4( position, 1.0 );
+        vWorld = w.xyz;
+        vUv = textureMatrix * vec4( position, 1.0 );
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }`,
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float strength; uniform vec2 fadeCentre, fadeRange;
+      varying vec4 vUv; varying vec3 vWorld;
+      void main() {
+        vec4 seen = texture2DProj( tDiffuse, vUv );
+        vec3 v = normalize( cameraPosition - vWorld );
+        float low = pow( 1.0 - clamp( v.y, 0.0, 1.0 ), 4.0 );
+        float a = seen.a * clamp( strength + ( 1.0 - strength ) * 0.8 * low, 0.0, 1.0 );
+        a *= 1.0 - smoothstep( fadeRange.x, fadeRange.y, length( vWorld.xz - fadeCentre ) );
+        gl_FragColor = vec4( seen.rgb, a );
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+  });
+  // the mirror's picture: cleared to nothing, not to the scene's black, so only what it sees is laid over the floor
+  const draw = mirror.onBeforeRender, clear = new THREE.Color();
+  mirror.onBeforeRender = function (r, sc, cam) {
+    const bg = sc.background, alpha = r.getClearAlpha();
+    r.getClearColor(clear);
+    sc.background = null;
+    r.setClearColor(0x000000, 0);
+    draw.call(this, r, sc, cam);
+    r.setClearColor(clear, alpha);
+    sc.background = bg;
+  };
+  mirror.visible = Boolean(spec.mirror);
+  scene.add(mirror);
   // two layers of ground shadow, as KeyShot's ground occlusion looks: a wide soft one from
   // everything within 90 cm of the floor, a tight dark one where the tyres and the plank come nearest
   const isCar = (o) => Boolean(o.geometry.getAttribute('part'));
   groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
   groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
-  studioNow = { cove, grain, grid, gridMesh, rinkMesh, load, light };
+  studioNow = { cove, grain, grid, gridMesh, rinkMesh, mirror, load, light };
 }
 
 // Another of the game's surfaces under the car: the room's colour, the floor's grain and its grid (the lines, or
@@ -309,7 +361,9 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
 // shows at once and the grain a moment later.
 export function setGround(name) {
   if (!studioNow || !GROUNDS[name]) return;
-  const spec = GROUNDS[name], { cove, grain, grid, gridMesh, rinkMesh, load, light } = studioNow;
+  const spec = GROUNDS[name], { cove, grain, grid, gridMesh, rinkMesh, mirror, load, light } = studioNow;
+  mirror.visible = Boolean(spec.mirror);
+  mirror.material.uniforms.strength.value = spec.mirror || 0;
   gridMesh.visible = !spec.markings;
   rinkMesh.visible = spec.markings === 'rink';
   const colour = spec.colour.map((c) => c * light);
@@ -320,6 +374,8 @@ export function setGround(name) {
   u.floorGrey.value.set(...colour);
   u.grainMean.value.set(...G.mean);
   u.grainPower.value = G.power;
+  u.studioMatte.value = spec.shine ? 0 : 1;
+  grain.roughness = spec.shine || 1;
   for (const t of [grain.map, grain.normalMap]) if (t) t.dispose();
   grain.map = load(`${base}_Color.jpg`, n, true);
   grain.normalMap = load(`${base}_NormalGL.jpg`, n, false);
