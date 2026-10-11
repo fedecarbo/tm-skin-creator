@@ -60,10 +60,10 @@ HDRIS = {
     "qwantani_dusk_2_puresky": ("1k", "d400530e33f683654e70b4a087b6fe8d"),
 }
 HDRI_URL = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/{res}/{name}_{res}.hdr"
-# The studio's grounds' grain (viewer/studio.js, GROUNDS: the concrete, grass, dirt and ice): ambientCG
-# sets (CC0), the 1K JPG zips (each a metre a repeat), of which the viewer reads the colour and the
-# relief, unpacked into DATA/floor/<asset>/.
-FLOOR_SETS = ("Rubber004", "Grass005", "Ground104", "Ice003")
+# The studio's grounds' grain (viewer/studio.js, GROUNDS: the concrete, grass and dirt; the rink's ice is
+# drawn, draw_rink): ambientCG sets (CC0), the 1K JPG zips (each a metre a repeat), of which the viewer
+# reads the colour and the relief, unpacked into DATA/floor/<asset>/.
+FLOOR_SETS = ("Rubber004", "Grass005", "Ground104")
 FLOOR_MAPS = ("Color", "NormalGL")
 FLOOR_URL = "https://ambientcg.com/get?file={asset}_1K-JPG.zip"
 SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO",
@@ -371,6 +371,55 @@ def ensure_floor():
             folder.mkdir(parents=True, exist_ok=True)
             for w in wanted:
                 (folder / w).write_bytes(z.read(w))
+    draw_rink()
+
+
+RINK_VERSION = 1  # bump when the drawing changes: the picture is drawn once
+
+
+def draw_rink():
+    """The skating rink's ice (viewer/studio.js, GROUNDS.ice; the user, 2026-10-11: "ice skating ice"), drawn, not
+    downloaded, as the floor sets are laid out: skate scratches, thin light arcs every way on an even grey, a metre
+    and a half a repeat, the odd darker gouge; its relief flat. Seeded, so every computer draws the same."""
+    import random
+    from PIL import ImageDraw
+    folder = DATA / "floor" / "Rink"
+    stamp = folder / f"v{RINK_VERSION}"
+    if stamp.exists():
+        return
+    folder.mkdir(parents=True, exist_ok=True)
+    n = 1024
+    im = Image.new("L", (n, n), 200)
+    d = ImageDraw.Draw(im)
+    rng = random.Random(7)
+    for k in range(900):
+        x, y = rng.uniform(-n, 2 * n), rng.uniform(-n, 2 * n)  # starts off the picture too, so the edges match
+        a = rng.uniform(0, 6.2832)
+        length = rng.uniform(40, 420)
+        bend = rng.uniform(-0.0025, 0.0025)  # a skate's arc
+        dark = rng.random() < 0.12
+        shade = rng.randint(180, 190) if dark else rng.randint(214, 236)
+        width = 2 if dark or rng.random() < 0.2 else 1
+        pts = []
+        for i in range(int(length / 6) + 1):
+            t = i * 6
+            pts.append(((x + t * __import__("math").cos(a + bend * t)) % n, (y + t * __import__("math").sin(a + bend * t)) % n))
+        # drawn in runs that don't wrap round the picture's edge
+        run = [pts[0]]
+        for p0, p1 in zip(pts, pts[1:]):
+            if abs(p1[0] - p0[0]) > n / 2 or abs(p1[1] - p0[1]) > n / 2:
+                if len(run) > 1:
+                    d.line(run, fill=shade, width=width)
+                run = [p1]
+            else:
+                run.append(p1)
+        if len(run) > 1:
+            d.line(run, fill=shade, width=width)
+    im.convert("RGB").save(folder / "Rink_1K-JPG_Color.jpg", quality=92)
+    Image.new("RGB", (n, n), (128, 128, 255)).save(folder / "Rink_1K-JPG_NormalGL.jpg", quality=92)
+    for old in folder.glob("v*"):
+        old.unlink()
+    stamp.touch()
 
 
 # ---- Textures ----

@@ -34,7 +34,7 @@ const RADIUS = 14;  // the room's flat floor: the cove curves up from here
 // grey only (the rubber's lilac and beige blotches gone), at power 0.7 so it still shows as the viewer
 // opens; finer melts into plain grey on the screen (the user's pick from renders, 2026-09-27: "make the
 // floor grain a bit smaller"). The grass is the stadium's mown lawn, the dirt its terracotta, the ice its
-// pale blue-white with a frozen lake's cracks; the grains are the real surfaces at about their real size.
+// rink's white-blue; the grass's and the dirt's grains are the real surfaces at about their real size.
 export const GROUNDS = {
   concrete: { label: 'Concrete', colour: [0.353, 0.329, 0.349], swatch: '#cdc8cc',
     grain: { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.7, metres: 0.4, relief: 0.3 } },
@@ -42,11 +42,19 @@ export const GROUNDS = {
     grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
   dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
-  ice: { label: 'Ice', colour: [0.357, 0.381, 0.414], swatch: '#ced4dc',  // a frozen lake's cracks (the user, 2026-10-11: 'prefer maybe cracked'; a snow picture's blotches read as spots)
-    grain: { asset: 'Ice003', mean: [0.0775, 0.1092, 0.1108], power: 0.22, metres: 2.5, relief: 0.15 } },  // faint: at 0.6 the cracks were a white web
+  // a skating rink (the user, 2026-10-11: "ice skating ice", the hockey rink's paint under it in place of the grid):
+  // white-blue ice with skate scratches (drawn by tool/view.py, draw_rink), the car at the centre face-off circle
+  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink',
+    grain: { asset: 'Rink', mean: [0.6033, 0.6033, 0.6033], power: 0.8, metres: 1.5, relief: 0 } },
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
 const GRID = 0.5;  // metres between the lines
+// A hockey rink's paint under the ice (NHL measures, metres from the car's middle, the rink's length along the car's):
+// the centre red line and the two blue lines 7.62 m out, 30 cm wide, across the whole floor; the centre face-off
+// circle, radius 4.57 m, a 5 cm blue line round a 30 cm dot; the four neutral-zone face-off dots, red, 60 cm, 1.52 m
+// inside the blue lines and 6.7 m out from the middle. Seen through the ice: a little milky.
+const RINK = { red: 'rgba(206, 52, 66, 0.82)', blue: 'rgba(38, 78, 170, 0.82)', line: 0.3, blueAt: 7.62, circle: 4.57, ring: 0.05,
+  dot: 0.15, faceoff: 0.3, faceoffAt: [6.7, 6.1] };
 const FADE = { r0: 8, r1: 13.8 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
 // picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
@@ -269,21 +277,56 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   const gridMesh = new THREE.Mesh(disc(), grid);
   gridMesh.renderOrder = 1;
   gridMesh.position.y = 0.001;
+  gridMesh.visible = !spec.markings;
   scene.add(gridMesh);
+  // the rink's paint: one picture of the whole floor (28 m, 2048 px: 1.4 cm a pixel), the car's middle at its centre
+  const rc = document.createElement('canvas');
+  rc.width = rc.height = 2048;
+  const rg = rc.getContext('2d'), ppm = 2048 / (RADIUS * 2), at = (m) => 1024 + m * ppm;
+  rg.fillStyle = RINK.red;
+  rg.fillRect(0, at(-RINK.line / 2), 2048, RINK.line * ppm);
+  rg.fillStyle = RINK.blue;
+  for (const sgn of [1, -1]) rg.fillRect(0, at(sgn * RINK.blueAt - RINK.line / 2), 2048, RINK.line * ppm);
+  rg.strokeStyle = RINK.blue;
+  rg.lineWidth = RINK.ring * ppm;
+  rg.beginPath();
+  rg.arc(at(0), at(0), RINK.circle * ppm, 0, Math.PI * 2);
+  rg.stroke();
+  rg.beginPath();
+  rg.arc(at(0), at(0), RINK.dot * ppm, 0, Math.PI * 2);
+  rg.fill();
+  rg.fillStyle = RINK.red;
+  for (const sx of [1, -1]) for (const sz of [1, -1]) {
+    rg.beginPath();
+    rg.arc(at(sx * RINK.faceoffAt[0]), at(sz * RINK.faceoffAt[1]), RINK.faceoff * ppm, 0, Math.PI * 2);
+    rg.fill();
+  }
+  const paint = new THREE.CanvasTexture(rc);
+  paint.colorSpace = THREE.SRGBColorSpace;
+  paint.anisotropy = aniso;
+  const rink = fadeFrom(studio(new THREE.MeshStandardMaterial({ map: paint, transparent: true, roughness: 1, metalness: 0,
+    depthWrite: false }), { flat: true, fade: FADE }));
+  const rinkMesh = new THREE.Mesh(disc(), rink);
+  rinkMesh.renderOrder = 1;
+  rinkMesh.position.y = 0.001;
+  rinkMesh.visible = spec.markings === 'rink';
+  scene.add(rinkMesh);
   // two layers of ground shadow, as KeyShot's ground occlusion looks: a wide soft one from
   // everything within 90 cm of the floor, a tight dark one where the tyres and the plank come nearest
   const isCar = (o) => Boolean(o.geometry.getAttribute('part'));
   groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
   groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
-  studioNow = { cove, grain, grid, load, light };
+  studioNow = { cove, grain, grid, gridMesh, rinkMesh, load, light };
 }
 
-// Another of the game's surfaces under the car: the room's colour, the floor's grain and the grid's lines
-// change; the shadows and the vignette stay. The pictures load as the floor is already drawn, so the colour
+// Another of the game's surfaces under the car: the room's colour, the floor's grain and what's painted on it (the
+// grid's lines, or the rink's paint) change; the shadows and the vignette stay. The pictures load as the floor is already drawn, so the colour
 // shows at once and the grain a moment later.
 export function setGround(name) {
   if (!studioNow || !GROUNDS[name]) return;
-  const spec = GROUNDS[name], { cove, grain, grid, load, light } = studioNow;
+  const spec = GROUNDS[name], { cove, grain, grid, gridMesh, rinkMesh, load, light } = studioNow;
+  gridMesh.visible = !spec.markings;
+  rinkMesh.visible = spec.markings === 'rink';
   const colour = spec.colour.map((c) => c * light);
   cove.color.setRGB(...colour);
   grid.color.setRGB(...colour.map((c) => c * 0.6));
