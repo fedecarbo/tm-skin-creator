@@ -13,7 +13,7 @@
 //     curve 6 m, 14 m high), lit as if it were all flat floor (the normal straight up, no shine), so
 //     it's one even colour with no line where the floor bends, in every mood.
 //   The floor: a fine, even matte grain in the ground's colour (an ambientCG set, CC0, downloaded by
-//     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every 50 cm, one under
+//     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every metre, one under
 //     the car's middle; both fade out between 8 and 13.8 m.
 //   The ground shadow: a soft shadow right under the car (KeyShot's ground occlusion), drawn again
 //     only when the car's parts come or go.
@@ -42,19 +42,13 @@ export const GROUNDS = {
     grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
   dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
-  // a skating rink (the user, 2026-10-11: "ice skating ice", the hockey rink's paint under it in place of the grid):
-  // white-blue ice with skate scratches (drawn by tool/view.py, draw_rink), the car at the centre face-off circle
-  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink',
+  // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
+  // tool/view.py, draw_rink)
+  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee',
     grain: { asset: 'Rink', mean: [0.6033, 0.6033, 0.6033], power: 0.8, metres: 1.5, relief: 0 } },
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
-const GRID = 0.5;  // metres between the lines
-// A hockey rink's paint under the ice (NHL measures, metres from the car's middle, the rink's length along the car's):
-// the centre red line and the two blue lines 7.62 m out, 30 cm wide, across the whole floor; the centre face-off
-// circle, radius 4.57 m, a 5 cm blue line round a 30 cm dot; the four neutral-zone face-off dots, red, 60 cm, 1.52 m
-// inside the blue lines and 6.7 m out from the middle. Seen through the ice: a little milky.
-const RINK = { red: 'rgba(206, 52, 66, 0.82)', blue: 'rgba(38, 78, 170, 0.82)', line: 0.3, blueAt: 7.62, circle: 4.57, ring: 0.05,
-  dot: 0.15, faceoff: 0.3, faceoffAt: [6.7, 6.1] };
+const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user, "maybe 100cm")
 const FADE = { r0: 8, r1: 13.8 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
 // picture's height (pixels), set as each frame is drawn. Gentle (the user: "the vignette is very
@@ -259,13 +253,13 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   floor.receiveShadow = true;
   floor.renderOrder = 1;
   scene.add(floor);
-  // the grid: a line 7/512 of a square wide (7 mm at 50 cm), nothing between: the grain shows through
+  // the grid: a line 7/1024 of a square wide (7 mm at 1 m), nothing between: the grain shows through
   const c = document.createElement('canvas');
-  c.width = c.height = 512;
+  c.width = c.height = 1024;
   const g = c.getContext('2d');
   g.fillStyle = '#ffffff';
-  g.fillRect(0, 0, 512, 7);
-  g.fillRect(0, 0, 7, 512);
+  g.fillRect(0, 0, 1024, 7);
+  g.fillRect(0, 0, 7, 1024);
   const lines = new THREE.CanvasTexture(c);
   lines.wrapS = lines.wrapT = THREE.RepeatWrapping;
   lines.repeat.setScalar(RADIUS * 2 / GRID);
@@ -277,56 +271,21 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   const gridMesh = new THREE.Mesh(disc(), grid);
   gridMesh.renderOrder = 1;
   gridMesh.position.y = 0.001;
-  gridMesh.visible = !spec.markings;
   scene.add(gridMesh);
-  // the rink's paint: one picture of the whole floor (28 m, 2048 px: 1.4 cm a pixel), the car's middle at its centre
-  const rc = document.createElement('canvas');
-  rc.width = rc.height = 2048;
-  const rg = rc.getContext('2d'), ppm = 2048 / (RADIUS * 2), at = (m) => 1024 + m * ppm;
-  rg.fillStyle = RINK.red;
-  rg.fillRect(0, at(-RINK.line / 2), 2048, RINK.line * ppm);
-  rg.fillStyle = RINK.blue;
-  for (const sgn of [1, -1]) rg.fillRect(0, at(sgn * RINK.blueAt - RINK.line / 2), 2048, RINK.line * ppm);
-  rg.strokeStyle = RINK.blue;
-  rg.lineWidth = RINK.ring * ppm;
-  rg.beginPath();
-  rg.arc(at(0), at(0), RINK.circle * ppm, 0, Math.PI * 2);
-  rg.stroke();
-  rg.beginPath();
-  rg.arc(at(0), at(0), RINK.dot * ppm, 0, Math.PI * 2);
-  rg.fill();
-  rg.fillStyle = RINK.red;
-  for (const sx of [1, -1]) for (const sz of [1, -1]) {
-    rg.beginPath();
-    rg.arc(at(sx * RINK.faceoffAt[0]), at(sz * RINK.faceoffAt[1]), RINK.faceoff * ppm, 0, Math.PI * 2);
-    rg.fill();
-  }
-  const paint = new THREE.CanvasTexture(rc);
-  paint.colorSpace = THREE.SRGBColorSpace;
-  paint.anisotropy = aniso;
-  const rink = fadeFrom(studio(new THREE.MeshStandardMaterial({ map: paint, transparent: true, roughness: 1, metalness: 0,
-    depthWrite: false }), { flat: true, fade: FADE }));
-  const rinkMesh = new THREE.Mesh(disc(), rink);
-  rinkMesh.renderOrder = 1;
-  rinkMesh.position.y = 0.001;
-  rinkMesh.visible = spec.markings === 'rink';
-  scene.add(rinkMesh);
   // two layers of ground shadow, as KeyShot's ground occlusion looks: a wide soft one from
   // everything within 90 cm of the floor, a tight dark one where the tyres and the plank come nearest
   const isCar = (o) => Boolean(o.geometry.getAttribute('part'));
   groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
   groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
-  studioNow = { cove, grain, grid, gridMesh, rinkMesh, load, light };
+  studioNow = { cove, grain, grid, load, light };
 }
 
-// Another of the game's surfaces under the car: the room's colour, the floor's grain and what's painted on it (the
-// grid's lines, or the rink's paint) change; the shadows and the vignette stay. The pictures load as the floor is already drawn, so the colour
+// Another of the game's surfaces under the car: the room's colour, the floor's grain and the grid's lines
+// change; the shadows and the vignette stay. The pictures load as the floor is already drawn, so the colour
 // shows at once and the grain a moment later.
 export function setGround(name) {
   if (!studioNow || !GROUNDS[name]) return;
-  const spec = GROUNDS[name], { cove, grain, grid, gridMesh, rinkMesh, load, light } = studioNow;
-  gridMesh.visible = !spec.markings;
-  rinkMesh.visible = spec.markings === 'rink';
+  const spec = GROUNDS[name], { cove, grain, grid, load, light } = studioNow;
   const colour = spec.colour.map((c) => c * light);
   cove.color.setRGB(...colour);
   grid.color.setRGB(...colour.map((c) => c * 0.6));
