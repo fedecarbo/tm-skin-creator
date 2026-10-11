@@ -297,10 +297,11 @@ function stepGlide() {
 // flicked, coasts to rest; the wheel, the trackpad and a pinch zoom in a glide, not in steps. Both move
 // the camera round controls.target before controls.update() reads it, as the view glides do. A touch
 // stops a coast; a pinch on a phone is the controls' own (two fingers, continuous already). ----
-const HAND = { coast: 180, zoom: 110, fling: 120, wheel: 0.0009, pinch: 0.01, top: 0.0126 };
+const HAND = { coast: 180, zoom: 110, fling: 120, wheel: 0.0005, pinch: 0.01, top: 0.0126 };
 // coast, zoom: ms for a flick's spin and a zoom's glide to lose 63 %; fling: the drag's last ms that set
-// the flick's speed; top: the spin's most, rad/ms (two turns a second: a hard flick, half a turn); wheel, pinch: the distance's log change per px of deltaY (a wheel's notch, 100 px,
-// 9 %; a trackpad pinch comes as a wheel with ctrlKey, finer)
+// the flick's speed; top: the spin's most, rad/ms (two turns a second: a hard flick, half a turn); wheel, pinch: the distance's log change
+// per px of deltaY (a wheel's notch, 100 px, 5 %; a trackpad's swipe runs on after the fingers lift, thousands of px;
+// its pinch comes as a wheel with ctrlKey, finer)
 let spin = null;      // { theta, phi } rad/ms: the coast after a flick
 let turning = null;   // { id, alone, moves: [[t, x, y]] } while a drag turns the car
 let zoomTo = null;    // the distance the zoom glides to
@@ -406,7 +407,7 @@ function framing(w, h, box = null) {
   const left = box ? box.left : 0, right = box ? box.right : 0;
   const strip = embed && box;  // the box's top and bottom count only embedded: the page measures its own
   const pos = framedFrom?.pos || camera.position, target = framedFrom?.target || controls.target;
-  const own = !camPicked && outline(pos, target), round = own && outline(pos, target, true);
+  const own = !camPicked && outline(pos, target);
   if (!own) {  // a Driving camera, or the car not loaded yet: fits across as on the game's 16:9
     const f = camPicked ? GAME_FRAMED : { up: 0.05, zoom: FRAMED.zoom };
     const top = strip ? box.top : 0, bottom = strip ? box.bottom : 0, freeH = h - top - bottom;
@@ -420,6 +421,11 @@ function framing(w, h, box = null) {
     [top, bottom] = [Math.max(0, name.bottom), dock.top];
     if (bottom - top < 0.35 * h) [top, bottom] = [0, h];
   }
+  if (!framedFrom && framedTo) {  // the user has the camera: their zoom stays, the car's centre in the middle of the
+    // space (its outline from a camera this close is no measure: the picture collapsed to a pinhead, 2026-10-11)
+    return { w, h, x: -((left + w - right) / 2 - w / 2), y: -((top + bottom) / 2 - h / 2), zoom: framedTo.zoom };
+  }
+  const round = outline(pos, target, true);
   const free = w - left - right;
   const across = free * FRAMED.fill / ((round.x1 - round.x0) * h / 2);
   const down = (bottom - top) * FRAMED.fill / ((round.y1 - round.y0) * h / 2);
