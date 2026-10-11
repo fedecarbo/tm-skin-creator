@@ -48,7 +48,7 @@ export const GROUNDS = {
     grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
   // lighter than the first reading, and no grid on it (the user, 2026-10-11: "too dark. Also make it less tiley")
   dirt: { label: 'Dirt', colour: [0.41, 0.135, 0.055], swatch: '#d2814f', markings: 'plain',
-    grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
+    grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25, turn: 90 } },  // its streaks along the car (the user: "more on the perpendicular direction")
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
   // tool/view.py, draw_rink), laid out as the game's ice road (ROAD) in place of the grid
   // the sky in its sheen and the car mirrored in it, faintly, more at a low angle (the user: "a bit more reflective")
@@ -259,10 +259,12 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
 
   const disc = () => new THREE.CircleGeometry(RADIUS, 160).rotateX(-Math.PI / 2).translate(0, 0, z);
   const fadeFrom = (material) => { material.userData.studio.fadeCentre.value.set(centre.x, z); return material; };
-  const load = (url, repeat, colour) => {
+  const load = (url, repeat, colour, turn = 0) => {  // turn: the picture turned on the floor, degrees
     const t = new THREE.TextureLoader().load(url);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.repeat.set(repeat, repeat);
+    t.center.set(0.5, 0.5);
+    t.rotation = THREE.MathUtils.degToRad(turn);
     t.anisotropy = aniso;
     t.colorSpace = colour ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     return t;
@@ -270,7 +272,7 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   // the grain
   const G = spec.grain, base = `data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
   const grain = fadeFrom(studio(new THREE.MeshStandardMaterial({
-    map: load(`${base}_Color.jpg`, n, true), normalMap: load(`${base}_NormalGL.jpg`, n, false),
+    map: load(`${base}_Color.jpg`, n, true, G.turn), normalMap: load(`${base}_NormalGL.jpg`, n, false, G.turn),
     normalScale: new THREE.Vector2(G.relief, G.relief), roughness: spec.shine || 1, metalness: 0, transparent: true,
   }), { matte: true, fade: FADE, grain: { colour, mean: G.mean, power: G.power } }));
   grain.userData.studio.studioMatte.value = spec.shine ? 0 : 1;
@@ -421,8 +423,8 @@ export function setGround(name) {
   u.studioMatte.value = spec.shine ? 0 : 1;
   grain.roughness = spec.shine || 1;
   for (const t of [grain.map, grain.normalMap]) if (t) t.dispose();
-  grain.map = load(`${base}_Color.jpg`, n, true);
-  grain.normalMap = load(`${base}_NormalGL.jpg`, n, false);
+  grain.map = load(`${base}_Color.jpg`, n, true, G.turn);
+  grain.normalMap = load(`${base}_NormalGL.jpg`, n, false, G.turn);
   grain.normalScale.set(G.relief, G.relief);
   grain.needsUpdate = true;
 }
