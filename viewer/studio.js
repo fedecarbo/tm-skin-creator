@@ -49,7 +49,8 @@ export const GROUNDS = {
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
   // tool/view.py, draw_rink), and its grid drawn as the rink's paint, faint ("the paint is the actual grid")
   // the sky in its sheen and the car mirrored in it, faintly, more at a low angle (the user: "a bit more reflective")
-  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink', shine: 0.3, mirror: 0.055,  // a quarter of 0.22 (the user: "less mirrory like half", then "half it again")
+  // no shadow on it: the car's reflection is what ice shows (the user: "shadow does not make sense in ice")
+  ice: { label: 'Ice', colour: [0.42, 0.45, 0.49], swatch: '#dee6ee', markings: 'rink', shine: 0.3, mirror: 0.055, shadow: false,  // a quarter of 0.22 (the user: "less mirrory like half", then "half it again")
     grain: { asset: 'Rink', mean: [0.6033, 0.6033, 0.6033], power: 0.8, metres: 1.5, relief: 0 } },
 };
 export const GROUND_NAMES = Object.keys(GROUNDS);
@@ -351,17 +352,26 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
   // two layers of ground shadow, as KeyShot's ground occlusion looks: a wide soft one from
   // everything within 90 cm of the floor, a tight dark one where the tyres and the plank come nearest
   const isCar = (o) => Boolean(o.geometry.getAttribute('part'));
-  groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
-  groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
-  studioNow = { cove, grain, grid, gridMesh, rinkMesh, mirror, load, light };
+  const shadows = [groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 }),
+    groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 })];
+  studioNow = { cove, grain, grid, gridMesh, rinkMesh, mirror, shadows, floor, room, load, light };
+  shadowed(spec.shadow !== false);
 }
 
-// Another of the game's surfaces under the car: the room's colour, the floor's grain and its grid (the lines, or
-// on the ice the rink's paint) change; the shadows and the vignette stay. The pictures load as the floor is already drawn, so the colour
+// Whether the car shadows the ground: the two ground shadows, and the key light's cast shadow on the floor and the room.
+function shadowed(on) {
+  const { shadows, floor, room } = studioNow;
+  for (const sh of shadows) sh.visible = on;
+  for (const m of [floor, room]) if (m.receiveShadow !== on) { m.receiveShadow = on; m.material.needsUpdate = true; }
+}
+
+// Another of the game's surfaces under the car: the room's colour, the floor's grain, its grid (the lines, or
+// on the ice the rink's paint), its mirror and whether the car shadows it change; the vignette stays. The pictures load as the floor is already drawn, so the colour
 // shows at once and the grain a moment later.
 export function setGround(name) {
   if (!studioNow || !GROUNDS[name]) return;
   const spec = GROUNDS[name], { cove, grain, grid, gridMesh, rinkMesh, mirror, load, light } = studioNow;
+  shadowed(spec.shadow !== false);
   mirror.visible = Boolean(spec.mirror);
   mirror.material.uniforms.strength.value = spec.mirror || 0;
   gridMesh.visible = !spec.markings;
