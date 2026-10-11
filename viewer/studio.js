@@ -42,12 +42,10 @@ const RADIUS = 30;  // the room's flat floor: the cove curves up from here (14 u
 export const GROUNDS = {
   concrete: { label: 'Concrete', colour: [0.353, 0.329, 0.349], swatch: '#cdc8cc',
     grain: { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.7, metres: 0.4, relief: 0.3 } },
-  // the game's grass road (the user, 2026-10-11, from their screenshot: "for the grass the far sides are more bushy"): a
-  // pale mown track along the car with its mowing stripes (LAWN), a dark rough edge each side, darker grass beyond, and
-  // far out a rough overgrown grain in place of the lawn's (`far`, its own metres a repeat)
+  // the game's mown lawn (the user, 2026-10-11, from their screenshot of its grass road, then "just make it lawned (no
+  // bushy) but interchanging between shades"): pale, mown in strips along the car, a shade lighter and darker in turn (LAWN)
   grass: { label: 'Grass', colour: [0.30, 0.355, 0.11], swatch: '#bfcd78', markings: 'lawn',
-    grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 },
-    far: { asset: 'Ground037', mean: [0.3305, 0.3061, 0.1113], power: 1.1, metres: 2.5, dark: 0.85, from: 7, to: 13 } },
+    grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
   dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
@@ -65,10 +63,9 @@ const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user
 // car's length, measured off the picture: the road 16 m wide, its middle the ice's own white, a thin blue line
 // 1.9 m out, bluish ice to a thin red line 6.9 m out, bluish ice on beyond. The bands are a blue-grey laid thinly
 // over the white; the lines the picture's blue and red.
-// The grass road (the user's screenshot, 2026-10-11): the track 16 m wide, mown in strips 2 m wide along the car,
-// alternately a shade lighter and darker; a rough darker edge 1.2 m wide each side; darker green beyond.
-const LAWN = { half: 8, strip: 2, light: 'rgba(255, 255, 220, 0.09)', dark: 'rgba(40, 80, 20, 0.08)', edge: 1.2,
-  edgeTint: 'rgba(40, 90, 20, 0.5)', beyond: 'rgba(60, 120, 30, 0.42)' };
+// The lawn (the user's screenshot of the game's grass road, 2026-10-11): mown in strips 2 m wide along the car, the
+// whole floor over, alternately a shade lighter and darker.
+const LAWN = { strip: 2, light: 'rgba(255, 255, 220, 0.09)', dark: 'rgba(40, 80, 20, 0.08)' };
 const ROAD = { tint: 'rgba(130, 145, 175, 0.24)',  // the bands a lighter touch (the user: "maybe less blue")
   blue: 'rgba(90, 110, 170, 0.8)', red: 'rgba(200, 80, 100, 0.75)',
   blueAt: 1.9, redAt: 6.9, line: 0.1 };
@@ -96,21 +93,12 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
     grainMean: { value: new THREE.Vector3(...(grain ? grain.mean : [1, 1, 1])) },
     grainPower: { value: grain ? grain.power : 1 },
     studioMatte: { value: matte ? 1 : 0 },
-    // a second grain far from the car (a ground's `far`): its picture, mean and power, how much darker, and the
-    // distances it comes in between; without one the near grain is sampled twice and the mix is 0
-    farMap: { value: null },
-    farMean: { value: new THREE.Vector3(1, 1, 1) },
-    farPower: { value: 1 },
-    farDark: { value: 1 },
-    farRange: { value: new THREE.Vector2(1e6, 1e6 + 1) },
-    farScale: { value: 1 },  // the far picture's repeat against the near's
   };
   material.userData.studio = uniforms;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms, VIGNETTE);
     let frag = shader.fragmentShader.replace('#include <common>', `#include <common>
       varying vec2 vStudioXZ; uniform vec2 fadeCentre, fadeRange; uniform vec3 floorGrey; uniform float grainPower, studioMatte; uniform vec3 grainMean;
-      uniform sampler2D farMap; uniform vec3 farMean; uniform float farPower, farDark, farScale; uniform vec2 farRange;
       uniform vec3 vignetteAt, studioTint; uniform float vignetteStrength;`)
       .replace('#include <opaque_fragment>', `#include <opaque_fragment>
         float vignette = smoothstep( 0.5, 1.4, length( ( gl_FragCoord.xy - vignetteAt.xy ) / vignetteAt.z * vec2( 0.6, 1.0 ) ) );
@@ -133,9 +121,7 @@ function studio(material, { flat = false, matte = flat, fade = null, grain = nul
         }`)
         .replace('#include <map_fragment>', `#include <map_fragment>
         float grainRatio = dot( studioNoTile( map, vMapUv ).rgb / grainMean, vec3( 0.2126, 0.7152, 0.0722 ) );
-        float farRatio = dot( studioNoTile( farMap, vMapUv * farScale ).rgb / farMean, vec3( 0.2126, 0.7152, 0.0722 ) );
-        float far = smoothstep( farRange.x, farRange.y, length( vStudioXZ - fadeCentre ) );
-        diffuseColor.rgb = floorGrey * mix( pow( max( grainRatio, 0.0 ), grainPower ), farDark * pow( max( farRatio, 0.0 ), farPower ), far );`);
+        diffuseColor.rgb = floorGrey * pow( max( grainRatio, 0.0 ), grainPower );`);
     }
     if (fade) {
       frag = frag.replace('#include <alphamap_fragment>', `#include <alphamap_fragment>
@@ -287,7 +273,6 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
     normalScale: new THREE.Vector2(G.relief, G.relief), roughness: spec.shine || 1, metalness: 0, transparent: true,
   }), { matte: true, fade: FADE, grain: { colour, mean: G.mean, power: G.power } }));
   grain.userData.studio.studioMatte.value = spec.shine ? 0 : 1;
-  farGrain(grain, spec, n, load);
   const floor = new THREE.Mesh(disc(), grain);
   floor.receiveShadow = true;
   floor.renderOrder = 1;
@@ -395,32 +380,13 @@ function drawMarkings(rc, paint, spec) {
       rg.fillStyle = ROAD.red;
       rg.fillRect(at(sgn * ROAD.redAt) - w / 2, 0, w, rc.height);
     }
-  } else if (spec.markings === 'lawn') {  // the grass road: mowing strips, a rough edge, darker grass beyond
-    for (let k = -Math.ceil(LAWN.half / LAWN.strip); k < Math.ceil(LAWN.half / LAWN.strip); k++) {
+  } else if (spec.markings === 'lawn') {  // the lawn: mowing strips the whole floor over
+    for (let k = -Math.ceil(RADIUS / LAWN.strip); k < Math.ceil(RADIUS / LAWN.strip); k++) {
       rg.fillStyle = (k + 1000) % 2 ? LAWN.light : LAWN.dark;
-      const x0 = Math.max(at(k * LAWN.strip), at(-LAWN.half)), x1 = Math.min(at((k + 1) * LAWN.strip), at(LAWN.half));
-      rg.fillRect(x0, 0, x1 - x0, rc.height);
+      rg.fillRect(at(k * LAWN.strip), 0, LAWN.strip * ppm, rc.height);
     }
-    rg.fillStyle = LAWN.edgeTint;
-    rg.fillRect(at(-LAWN.half - LAWN.edge), 0, LAWN.edge * ppm, rc.height);
-    rg.fillRect(at(LAWN.half), 0, LAWN.edge * ppm, rc.height);
-    rg.fillStyle = LAWN.beyond;
-    rg.fillRect(0, 0, at(-LAWN.half - LAWN.edge), rc.height);
-    rg.fillRect(at(LAWN.half + LAWN.edge), 0, rc.width - at(LAWN.half + LAWN.edge), rc.height);
   }
   paint.needsUpdate = true;
-}
-
-// The far grain's uniforms for a ground (studio(): farMap...); none: the near picture again, never mixed in.
-function farGrain(grain, spec, n, load) {
-  const u = grain.userData.studio, F = spec.far;
-  if (u.farMap.value && u.farMap.value !== grain.map) u.farMap.value.dispose();
-  u.farMap.value = F ? load(`data/floor/${F.asset}/${F.asset}_1K-JPG_Color.jpg`, n, true) : grain.map;
-  u.farMean.value.set(...(F ? F.mean : [1, 1, 1]));
-  u.farPower.value = F ? F.power : 1;
-  u.farDark.value = F ? F.dark : 1;
-  u.farRange.value.set(...(F ? [F.from, F.to] : [1e6, 1e6 + 1]));
-  u.farScale.value = F && F.metres ? spec.grain.metres / F.metres : 1;
 }
 
 // How much the car shadows the ground, 0 to 1: the two ground shadows' opacity, and the strength of the shadow
@@ -453,7 +419,6 @@ export function setGround(name) {
   u.grainPower.value = G.power;
   u.studioMatte.value = spec.shine ? 0 : 1;
   grain.roughness = spec.shine || 1;
-  farGrain(grain, spec, n, load);
   for (const t of [grain.map, grain.normalMap]) if (t) t.dispose();
   grain.map = load(`${base}_Color.jpg`, n, true);
   grain.normalMap = load(`${base}_NormalGL.jpg`, n, false);
