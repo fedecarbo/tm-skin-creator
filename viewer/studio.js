@@ -61,7 +61,8 @@ const GRID = 1.0;  // metres between the lines (50 cm until 2026-10-11: the user
 // car's length, measured off the picture: the road 16 m wide, its middle the ice's own white, a thin blue line
 // 1.9 m out, bluish ice to a thin red line 6.9 m out, bluish ice on beyond. The bands are a blue-grey laid thinly
 // over the white; the lines the picture's blue and red.
-const ROAD = { tint: 'rgba(120, 135, 175, 0.4)', blue: 'rgba(90, 110, 170, 0.8)', red: 'rgba(200, 80, 100, 0.75)',
+const ROAD = { tint: 'rgba(130, 145, 175, 0.24)',  // the bands a lighter touch (the user: "maybe less blue")
+  blue: 'rgba(90, 110, 170, 0.8)', red: 'rgba(200, 80, 100, 0.75)',
   blueAt: 1.9, redAt: 6.9, line: 0.1 };
 const FADE = { r0: 10, r1: 30 };  // early and long, a gentle melt into the room (the user, 2026-10-11: "the fading is too intense")
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
