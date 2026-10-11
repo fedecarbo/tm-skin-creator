@@ -46,7 +46,8 @@ export const GROUNDS = {
   // bushy) but interchanging between shades"): pale, mown in strips along the car, a shade lighter and darker in turn (LAWN)
   grass: { label: 'Grass', colour: [0.30, 0.355, 0.11], swatch: '#bfcd78', markings: 'lawn',
     grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
-  dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
+  // lighter than the first reading, and no grid on it (the user, 2026-10-11: "too dark. Also make it less tiley")
+  dirt: { label: 'Dirt', colour: [0.41, 0.135, 0.055], swatch: '#d2814f', markings: 'plain',
     grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
   // a skating rink's ice (the user, 2026-10-11: "ice skating ice"): white-blue, with skate scratches (drawn by
   // tool/view.py, draw_rink), laid out as the game's ice road (ROAD) in place of the grid
@@ -380,7 +381,7 @@ function drawMarkings(rc, paint, spec) {
       rg.fillStyle = ROAD.red;
       rg.fillRect(at(sgn * ROAD.redAt) - w / 2, 0, w, rc.height);
     }
-  } else if (spec.markings === 'lawn') {  // the lawn: mowing strips the whole floor over
+  } else if (spec.markings === 'lawn') {  // ('plain': nothing drawn, and no grid either)  // the lawn: mowing strips the whole floor over
     for (let k = -Math.ceil(RADIUS / LAWN.strip); k < Math.ceil(RADIUS / LAWN.strip); k++) {
       rg.fillStyle = (k + 1000) % 2 ? LAWN.light : LAWN.dark;
       rg.fillRect(at(k * LAWN.strip), 0, LAWN.strip * ppm, rc.height);
