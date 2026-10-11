@@ -60,7 +60,7 @@ graphics chip's, the Mac only).
   `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
   computer's pages only.
 - The Lab is the one page (`viewer/index.html`, http://localhost:8765/): the car in its studio
-  (`viewer/viewer.js`: the views and the game's cameras, the moods, Show, Parts, the pedals, "My skins"
+  (`viewer/viewer.js`: the views and the game's cameras, the moods, the ground (the game's surfaces, `?ground=`), Show, Parts, the pedals, "My skins"
   behind its button), and over it the Lab's modules, loaded once the car is up. `PY -m tool.swatches`
   paints a ball for every finish in `finishes.CATALOGUE` and serves the page; `PY -m tool.doctor server`
   starts it detached (a background task is stopped at its time limit, and the Lab with it) and
@@ -74,7 +74,7 @@ graphics chip's, the Mac only).
     (`/api/meshpath`, `meshlines.path`; the note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
     (`view.export_steps`, `studio.json`; `install` paints without them), and drives the page's own
     car (no car until its first `dress`) through `window.viewer`: `dress`, `shown`, `onSkin`, `inset`,
-    `track`, `project`, `camera`, `go`, `mood`, `views`, `picture`, and the pen: `pen`, `onStroke`,
+    `track`, `project`, `camera`, `go`, `mood`, `ground`, `views`, `picture`, and the pen: `pen`, `onStroke`,
     `drawings`.
   - the UV map room (`?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
     in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or

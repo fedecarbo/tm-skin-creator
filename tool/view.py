@@ -60,10 +60,10 @@ HDRIS = {
     "qwantani_dusk_2_puresky": ("1k", "d400530e33f683654e70b4a087b6fe8d"),
 }
 HDRI_URL = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/{res}/{name}_{res}.hdr"
-# The studio floor's grain (viewer/studio.js, GRAIN, 2026-09-27): ambientCG sets (CC0), the 1K JPG
-# zips (the grain is a metre a repeat), of which the viewer reads the colour and the relief,
-# unpacked into DATA/floor/<asset>/.
-FLOOR_SETS = ("Rubber004",)
+# The studio's grounds' grain (viewer/studio.js, GROUNDS: the concrete, grass, dirt and ice): ambientCG
+# sets (CC0), the 1K JPG zips (each a metre a repeat), of which the viewer reads the colour and the
+# relief, unpacked into DATA/floor/<asset>/.
+FLOOR_SETS = ("Rubber004", "Grass005", "Ground104", "Snow014")
 FLOOR_MAPS = ("Color", "NormalGL")
 FLOOR_URL = "https://ambientcg.com/get?file={asset}_1K-JPG.zip"
 SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO",

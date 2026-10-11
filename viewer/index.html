@@ -51,8 +51,8 @@
   body.lightStudio #pad .sk:not([aria-pressed="true"]), body.lightStudio #railToggle { background: rgba(10, 12, 16, 0.36); }
   body.lightStudio #top .sk:not([aria-pressed="true"]):not(.acc):hover, body.lightStudio #bar .sk:not([aria-pressed="true"]):not(.acc):hover,
   body.lightStudio #pad .sk:not([aria-pressed="true"]):hover, body.lightStudio #railToggle:hover { background: rgba(10, 12, 16, 0.55); }
-  body.lightStudio :is(#showMenu, #moodMenu) .sk:not([aria-pressed="true"]):not(.acc) { background: rgba(12, 14, 18, 0.94); }
-  body.lightStudio :is(#showMenu, #moodMenu) .sk:not([aria-pressed="true"]):not(.acc):hover { background: rgba(40, 44, 52, 0.95); }
+  body.lightStudio :is(#showMenu, #moodMenu, #groundMenu) .sk:not([aria-pressed="true"]):not(.acc) { background: rgba(12, 14, 18, 0.94); }
+  body.lightStudio :is(#showMenu, #moodMenu, #groundMenu) .sk:not([aria-pressed="true"]):not(.acc):hover { background: rgba(40, 44, 52, 0.95); }
   body.lightStudio #title, body.lightStudio #speedo { text-shadow: 0 1px 14px rgba(0, 0, 0, 0.45); }
   body.brightStudio #title, body.brightStudio #speedo { color: var(--ground); text-shadow: none; }
   body.brightStudio #credit { opacity: 0.6; color: var(--ground); }
@@ -108,12 +108,13 @@
 
   /* Top right: show, parts, the mesh, the pen, the moods, a picture */
   #top { position: fixed; right: calc(var(--chat) + 40px); top: 40px; display: flex; gap: 6px; z-index: 2; }
-  #showWrap, #moodWrap { position: relative; }
-  #showMenu, #moodMenu { position: absolute; right: 0; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
-  #showMenu[hidden], #moodMenu[hidden] { display: none; }
-  #showMenu .sk, #moodMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
-  #showMenu .sk:hover, #moodMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
-  #showMenu .sk[aria-pressed="true"], #moodMenu .sk[aria-pressed="true"] { background: var(--text); }
+  #showWrap, #moodWrap, #groundWrap { position: relative; }
+  #showMenu, #moodMenu, #groundMenu { position: absolute; right: 0; top: calc(100% + 8px); display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+  #showMenu[hidden], #moodMenu[hidden], #groundMenu[hidden] { display: none; }
+  #showMenu .sk, #moodMenu .sk, #groundMenu .sk { justify-content: flex-start; font-size: 19px; background: rgba(12, 14, 18, 0.88); }
+  #showMenu .sk:hover, #moodMenu .sk:hover, #groundMenu .sk:hover { background: rgba(40, 44, 52, 0.95); }
+  #showMenu .sk[aria-pressed="true"], #moodMenu .sk[aria-pressed="true"], #groundMenu .sk[aria-pressed="true"] { background: var(--text); }
+  .gsw { flex: none; width: 12px; height: 12px; margin-top: -3px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25); }
   #showMenu .box { width: 10px; height: 10px; border: 2px solid currentColor; margin-top: -3px; }
   #showMenu .sk[aria-pressed="true"] .box { background: currentColor; }
   #top #stPen[aria-pressed="true"] { background: var(--acc); }
@@ -513,6 +514,15 @@
       <button id="sunrise" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-sunrise"/></svg><span>Sunrise</span></button>
       <button id="sunset" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-sunset"/></svg><span>Sunset</span></button>
       <button id="night" class="sk" aria-pressed="false"><svg class="ic"><use href="#i-moon"/></svg><span>Night</span></button>
+    </div>
+  </div>
+  <div id="groundWrap">
+    <button id="ground" class="sk" aria-expanded="false" title="the ground under the car, as the game's surfaces"><span id="groundSwatch" class="gsw"></span><span id="groundName">Concrete</span><svg class="ic"><use href="#i-down"/></svg></button>
+    <div id="groundMenu" hidden>
+      <button id="ground-concrete" class="sk" aria-pressed="true"><span class="gsw" style="background:#cdc8cc"></span><span>Concrete</span></button>
+      <button id="ground-grass" class="sk" aria-pressed="false"><span class="gsw" style="background:#8cab4b"></span><span>Grass</span></button>
+      <button id="ground-dirt" class="sk" aria-pressed="false"><span class="gsw" style="background:#c46c3e"></span><span>Dirt</span></button>
+      <button id="ground-ice" class="sk" aria-pressed="false"><span class="gsw" style="background:#ced4dc"></span><span>Ice</span></button>
     </div>
   </div>
   <button id="save" class="sk acc" title="save a picture of the car, without the buttons" aria-label="Save a picture"><svg class="ic"><use href="#i-camera"/></svg></button>

@@ -16,7 +16,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import { createStudio, setStudioTint } from './studio.js';
+import { GROUNDS, GROUND_NAMES, createStudio, setGround, setStudioTint } from './studio.js';
 
 const params = new URLSearchParams(location.search);
 let skinName = params.get('skin') || '';
@@ -1204,6 +1204,9 @@ function wingDepthMaterial() {
 const BRAKING = { day: 6, night: 6 };
 const BRAKE_HEAT = { up: 1.5, down: 1.3, day: 1.1, night: 1.3 };
 let braking = false, mood = 'day';
+// The ground under the car, one of the game's surfaces (viewer/studio.js: GROUNDS): ?ground=<name> for a
+// snapshot, else the one this browser picked last, else the concrete.
+let ground = 'concrete';
 const lightsNow = () => LOOKS[mood].lights || mood;  // 'day' or 'night': GLOW's column
 function setBraking(on) {
   braking = on;
@@ -1672,13 +1675,25 @@ function setMood(m) {
   markStudio();
 }
 
+// The ground: g a name from GROUNDS (anything else: the concrete). The menu's button shows the pick.
+function pickGround(g, remember = true) {
+  ground = GROUNDS[g] ? g : 'concrete';
+  setGround(ground);
+  for (const n of GROUND_NAMES) document.getElementById(`ground-${n}`).setAttribute('aria-pressed', String(n === ground));
+  document.getElementById('groundSwatch').style.background = GROUNDS[ground].swatch;
+  document.getElementById('groundName').textContent = GROUNDS[ground].label;
+  if (remember) try { localStorage.setItem('tsc-viewer-ground', ground); } catch {}
+  markStudio();
+  rouse();
+}
+
 // ---- The page's lettering over the studio (viewer/studio.js; index.html) ----
 
 // The buttons on a dark glass always (body.lightStudio), and where the studio is light (by day, the
 // track's 205, and at sunset, 155), the car's name and the speed in dark ink (body.brightStudio).
 function markStudio() {
   document.body.classList.add('lightStudio');
-  document.body.classList.toggle('brightStudio', mood === 'day' || mood === 'sunset');
+  document.body.classList.toggle('brightStudio', (mood === 'day' || mood === 'sunset') && (ground === 'concrete' || ground === 'ice'));
 }
 
 // ---- Skins: the list down the left, and switching the car's paint in place ----
@@ -1805,6 +1820,9 @@ const byId = (id) => document.getElementById(id);
 const openMoods = (open) => { byId('moodMenu').hidden = !open; byId('mood').setAttribute('aria-expanded', String(open)); };
 byId('mood').onclick = (e) => { e.stopPropagation(); openMoods(byId('moodMenu').hidden); };
 for (const m of MOODS) byId(m).onclick = () => { setMood(m); openMoods(false); };
+const openGrounds = (open) => { byId('groundMenu').hidden = !open; byId('ground').setAttribute('aria-expanded', String(open)); };
+byId('ground').onclick = (e) => { e.stopPropagation(); openGrounds(byId('groundMenu').hidden); };
+for (const g of GROUND_NAMES) byId(`ground-${g}`).onclick = () => { pickGround(g); openGrounds(false); };
 byId('colourBy').onclick = () => {
   partsState.mode.value = partsState.mode.value ? 0 : 1;
   pressed(byId('colourBy'), partsState.mode.value === 1);
@@ -1828,6 +1846,7 @@ byId('show').onclick = (e) => {
 document.addEventListener('click', (e) => {
   if (!byId('showWrap').contains(e.target)) { byId('showMenu').hidden = true; byId('show').setAttribute('aria-expanded', 'false'); }
   if (!byId('moodWrap').contains(e.target)) openMoods(false);
+  if (!byId('groundWrap').contains(e.target)) openGrounds(false);
   if (!byId('rail').contains(e.target) && !byId('railToggle').contains(e.target)) document.body.classList.remove('railOpen');
 });
 for (const b of document.querySelectorAll('#showMenu [data-part]')) {
@@ -1978,6 +1997,7 @@ Object.assign(window.viewer, {
     setView(view, true);
   },
   mood(m) { setMood(m); },  // day or night, the camera left where it is
+  ground(g) { pickGround(g); },  // concrete, grass, dirt or ice under the car
   views() {  // the game's cameras, as the viewer's own buttons name them
     return viewButtons.filter((b) => 'cam' in b.dataset).map((b) => ({ view: b.dataset.view, label: b.textContent.trim(), title: b.title }));
   },
@@ -2108,7 +2128,11 @@ async function start() {
   partsState.doc = doc;
   partTable();
   buildPartsList();
-  createStudio({ scene, renderer, centre: CENTRE, light: TUNE.room, parts: { table: partTable(), changes: () => partsState.hides } });
+  let groundAtFirst = params.get('ground');
+  if (!groundAtFirst && !snap) try { groundAtFirst = localStorage.getItem('tsc-viewer-ground'); } catch {}  // a snapshot: the address alone
+  ground = GROUNDS[groundAtFirst] ? groundAtFirst : 'concrete';
+  createStudio({ scene, renderer, centre: CENTRE, light: TUNE.room, ground, parts: { table: partTable(), changes: () => partsState.hides } });
+  pickGround(ground, false);
   await setupPlate(geoms.Skin);
   setupRearLights();
   setupWing();

@@ -3,14 +3,17 @@
 // kind of vignette so that the buttons dont dissapear", "the grid smaller in scale. but a bit farther
 // covering", then "we can have the grainy grid, and have the dark and light options", "Maybe we keep
 // one floor, but meet in the middle?" and last "Or maybe just meet the color that the screenshots
-// have"). One room, the colour of the game's track in the user's screenshots: FLOOR, lit by the mood,
-// reads the track's (205, 200, 204) by day and its (124, 123, 128) at sunrise from Cam 2; each mood's
-// `studio` in viewer.js's LOOKS corrects the rest (setStudioTint).
+// have"). One room, its ground one of the game's surfaces (GROUNDS; the user, 2026-10-11, from their
+// screenshots of each: "the types of surfaces in trackmania similar to the concrete, there's also grass,
+// sand"): the concrete, the colour of the game's track in the user's screenshots, lit by the mood, reads
+// the track's (205, 200, 204) by day and its (124, 123, 128) at sunrise from Cam 2; each mood's `studio`
+// in viewer.js's LOOKS corrects the rest (setStudioTint). The other grounds are read off the user's
+// screenshots by day the same way.
 //   The room: a seamless cove, the floor curving up into the walls and a ceiling (floor radius 14 m,
 //     curve 6 m, 14 m high), lit as if it were all flat floor (the normal straight up, no shine), so
-//     it's one even grey with no line where the floor bends, in every mood.
-//   The floor: a fine, even matte grain in grey (ambientCG Rubber004, CC0, downloaded by
-//     tool/view.py: FLOOR_SETS) averaging the room's grey, under a faint line every 50 cm, one under
+//     it's one even colour with no line where the floor bends, in every mood.
+//   The floor: a fine, even matte grain in the ground's colour (an ambientCG set, CC0, downloaded by
+//     tool/view.py: FLOOR_SETS) averaging the room's colour, under a faint line every 50 cm, one under
 //     the car's middle; both fade out between 8 and 13.8 m.
 //   The ground shadow: a soft shadow right under the car (KeyShot's ground occlusion), drawn again
 //     only when the car's parts come or go.
@@ -25,12 +28,24 @@ import { HorizontalBlurShader } from 'three/addons/shaders/HorizontalBlurShader.
 import { VerticalBlurShader } from 'three/addons/shaders/VerticalBlurShader.js';
 
 const RADIUS = 14;  // the room's flat floor: the cove curves up from here
-// The studio's colour (linear): a light grey with the track's faint warm-pink cast.
-const FLOOR = [0.353, 0.329, 0.349];
-// The grain: a repeat every 40 cm, grey only (the rubber's lilac and beige blotches gone), at power
-// 0.7 so it still shows as the viewer opens; finer melts into plain grey on the screen (the user's
-// pick from renders, 2026-09-27: "make the floor grain a bit smaller").
-const GRAIN = { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.7, metres: 0.4, relief: 0.3 };
+// The grounds: the game's surfaces, each its colour (linear; by day the light alone makes it read as
+// the screenshot's) and its grain (an ambientCG set: its colour picture's mean, the power the grain shows
+// at, the metres one repeat covers, how much of its relief). The concrete's grain repeats every 40 cm,
+// grey only (the rubber's lilac and beige blotches gone), at power 0.7 so it still shows as the viewer
+// opens; finer melts into plain grey on the screen (the user's pick from renders, 2026-09-27: "make the
+// floor grain a bit smaller"). The grass is the stadium's mown lawn, the dirt its terracotta, the ice its
+// pale blue-white; their grains are the real surfaces at about their real size.
+export const GROUNDS = {
+  concrete: { label: 'Concrete', colour: [0.353, 0.329, 0.349], swatch: '#cdc8cc',
+    grain: { asset: 'Rubber004', mean: [0.0238, 0.0255, 0.0323], power: 0.7, metres: 0.4, relief: 0.3 } },
+  grass: { label: 'Grass', colour: [0.151, 0.232, 0.040], swatch: '#8cab4b',
+    grain: { asset: 'Grass005', mean: [0.1352, 0.2358, 0.0265], power: 0.5, metres: 1.0, relief: 0.35 } },
+  dirt: { label: 'Dirt', colour: [0.319, 0.088, 0.028], swatch: '#c46c3e',
+    grain: { asset: 'Ground104', mean: [0.232, 0.1556, 0.0617], power: 0.4, metres: 0.6, relief: 0.25 } },
+  ice: { label: 'Ice', colour: [0.357, 0.381, 0.414], swatch: '#ced4dc',
+    grain: { asset: 'Snow014', mean: [0.4233, 0.4561, 0.5309], power: 0.5, metres: 1.0, relief: 0.2 } },
+};
+export const GROUND_NAMES = Object.keys(GROUNDS);
 const GRID = 0.5;  // metres between the lines
 const FADE = { r0: 8, r1: 13.8 };
 // The vignette, shared by every studio surface: the car's middle on the screen and half the
@@ -169,10 +184,12 @@ function groundShadow(scene, pick, parts, { z = 0, size = 5.6, height = 0.9, blu
   return shadow;
 }
 
-// The studio in the scene. light: FLOOR's scale (viewer.js's ?room= to try another). parts: as
-// groundShadow's.
-export function createStudio({ scene, renderer, centre, parts, light = 1 }) {
-  const colour = FLOOR.map((c) => c * light);
+// The studio in the scene. light: the ground colour's scale (viewer.js's ?room= to try another). parts: as
+// groundShadow's. ground: a name from GROUNDS; setGround swaps it later.
+let studioNow = null;  // what setGround changes: the cove, the floor and the grid, and the loader
+export function createStudio({ scene, renderer, centre, parts, light = 1, ground = 'concrete' }) {
+  const spec = GROUNDS[ground] || GROUNDS.concrete;
+  const colour = spec.colour.map((c) => c * light);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const z = centre.z;
 
@@ -210,11 +227,11 @@ export function createStudio({ scene, renderer, centre, parts, light = 1 }) {
     return t;
   };
   // the grain
-  const base = `data/floor/${GRAIN.asset}/${GRAIN.asset}_1K-JPG`, n = RADIUS * 2 / GRAIN.metres;
+  const G = spec.grain, base = `data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
   const grain = fadeFrom(studio(new THREE.MeshStandardMaterial({
     map: load(`${base}_Color.jpg`, n, true), normalMap: load(`${base}_NormalGL.jpg`, n, false),
-    normalScale: new THREE.Vector2(GRAIN.relief, GRAIN.relief), roughness: 1, metalness: 0, transparent: true,
-  }), { matte: true, fade: FADE, grain: { colour, mean: GRAIN.mean, power: GRAIN.power } }));
+    normalScale: new THREE.Vector2(G.relief, G.relief), roughness: 1, metalness: 0, transparent: true,
+  }), { matte: true, fade: FADE, grain: { colour, mean: G.mean, power: G.power } }));
   const floor = new THREE.Mesh(disc(), grain);
   floor.receiveShadow = true;
   floor.renderOrder = 1;
@@ -243,5 +260,26 @@ export function createStudio({ scene, renderer, centre, parts, light = 1 }) {
   const isCar = (o) => Boolean(o.geometry.getAttribute('part'));
   groundShadow(scene, isCar, parts, { z, height: 0.9, blur: 3.5, opacity: 0.75, power: 1.4, order: 2 });
   groundShadow(scene, isCar, parts, { z, height: 0.22, blur: 1.1, opacity: 0.9, power: 1.2, order: 3 });
+  studioNow = { cove, grain, grid, load, light };
+}
 
+// Another of the game's surfaces under the car: the room's colour, the floor's grain and the grid's lines
+// change; the shadows and the vignette stay. The pictures load as the floor is already drawn, so the colour
+// shows at once and the grain a moment later.
+export function setGround(name) {
+  if (!studioNow || !GROUNDS[name]) return;
+  const spec = GROUNDS[name], { cove, grain, grid, load, light } = studioNow;
+  const colour = spec.colour.map((c) => c * light);
+  cove.color.setRGB(...colour);
+  grid.color.setRGB(...colour.map((c) => c * 0.6));
+  const G = spec.grain, base = `data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
+  const u = grain.userData.studio;
+  u.floorGrey.value.set(...colour);
+  u.grainMean.value.set(...G.mean);
+  u.grainPower.value = G.power;
+  for (const t of [grain.map, grain.normalMap]) if (t) t.dispose();
+  grain.map = load(`${base}_Color.jpg`, n, true);
+  grain.normalMap = load(`${base}_NormalGL.jpg`, n, false);
+  grain.normalScale.set(G.relief, G.relief);
+  grain.needsUpdate = true;
 }
