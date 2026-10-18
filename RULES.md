@@ -11,8 +11,9 @@ game or the code goes into the code (a warning, a check, a docstring).
 - **Don't describe a car, or show it in screenshots.** Words make the user imagine it, and a still
   can't be turned (the user, 2026-10-04: "stop with the screenshots"). Put it in the Lab, where they
   move round it; pictures only as a widget's choices.
-- **Don't put a choice in plain text only.** The user picks by looking. Bring it to the Lab's chat as
-  a widget, and ask it in one bold line in the reply.
+- **Don't put a choice in plain text only.** The user picks by looking. A choice in words goes through
+  Claude's own picker in the chat; one with a picture or a colour, and every set of painted takes, to
+  the Lab's chat as a widget, asked in one bold line in the reply.
 - **Don't run the user through a fixed sequence of steps.** They work by reacting to the car. Make
   the change, show it, and offer options only when there's a real fork or they ask.
 - **Don't ask the user to test in the game.** They drive when they want. Use their F12 screenshots

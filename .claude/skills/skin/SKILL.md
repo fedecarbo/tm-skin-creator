@@ -123,12 +123,13 @@ game: install from the Windows PC after a push.
   look at its views, then `tool.sets open <car> <n>` with a line (`tool.notes say`). The pick:
   `tool.sets pick <car> <n> <letter> "<what>"` (the others go), then `tool.skin show <car>` and `tool.close
   <car>`. "None of these" or a mix in their words: change an option, then pick it, or `tool.sets drop`.
-- **Questions** (anything else to pick or confirm): `PY -m tool.notes ask <car> "<question>"
-  --choice "<label>" [--colour "#rrggbb"] [--picture <png>] --choice … [--several]`, or `--yes` for
-  yes or no. Ask the same in one bold line in the reply. Answered in the chat instead: `tool.notes
-  settle <car> <k> "<what was decided>"`.
-- After a set or a question, start `PY -m tool.notes wait` in the background and end the turn: the
-  answer arrives as a note.
+- **Questions** (anything else to pick or confirm): in words only, or yes or no, ask with your own
+  picker (AskUserQuestion); the answer comes back in the turn. With a colour or a picture to see:
+  `PY -m tool.notes ask <car> "<question>" --choice "<label>" [--colour "#rrggbb"] [--picture <png>]
+  --choice … [--several]`, and the same in one bold line in the reply; answered in the chat instead:
+  `tool.notes settle <car> <k> "<what was decided>"`.
+- After a set or a Lab question, start `PY -m tool.notes wait` in the background and end the turn:
+  the answer arrives as a note.
 
 ## Before showing
 
