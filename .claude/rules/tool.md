@@ -68,7 +68,7 @@ graphics chip's, the Mac only).
   the same when the server's code is older than the tool's (`/api/health`), prunes the work folder of
   skins that no longer exist, and keeps the server's output in the work folder's server.log. A gap in
   the Lab is a gap in the tool, to fix in the tool. Its modules share `viewer/lab-common.js`:
-  - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, "With Claude"
+  - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, the car's story
     (`lab-car.js`); Mesh lays the template's mesh over the paint (`viewer.mesh`;
     `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
     (`/api/meshpath`, `meshlines.path`; the note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
@@ -93,7 +93,7 @@ graphics chip's, the Mac only).
   served as `/notes/<file>`, and Claude's lines, `by: "claude"`, from `tool.notes say` and `done
   --say`). Each option's picture is its gallery thumb, and a pick keeps every option's picture in
   `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
-  note with `answer` (the set, the option), the box's words a note with no point: the car's tags
+  note with `answer` (the set, the option): the car's tags
   leave both out.
 - The widgets in the timeline (`tool/notes.py`'s docstring is the key): a set, Claude's question
   (`tool.notes ask`, `settle`: a Claude line with `ask`, its choices' pictures copied into `.notes/`

@@ -9,7 +9,7 @@
   /* The Lab, where a car gets designed with Claude, on the viewer's page (one page, the user's pick, B of two
      mockups, 2026-10-09): the car in its studio fills the window, the views and the game's cameras under it, the
      moods, Show, Parts, Mesh and Draw over it, the skin list behind its "My skins" button, the user's notes hanging
-     on the car as tags, and beside it "With Claude", the car's timeline. The materials and the UV map are rooms
+     on the car as tags, and beside it the car's story, its timeline. The materials and the UV map are rooms
      over the page. The look the user chose on 2026-09-25 ("race garage", from three mockups): slanted racing
      lettering, one yellow-green accent. Teko and Russo One (SIL OFL 1.1, lib/fonts, with their licences) are the
      google/fonts files that tool/fonts.py pins; Russo One draws the game's number on the car (viewer.js). Icons:
@@ -207,7 +207,7 @@
   .tagButtons { display: flex; gap: 6px; margin-top: 9px; padding-left: 4px; align-items: center; }
   .tagButtons .sk { font-size: 17px; padding: 6px 11px 3px; }
 
-  /* "With Claude", the car's timeline, A of its mockups (the user's pick, 2026-09-28), a column beside the car: like an AI
+  /* The car's story, its timeline (the user's pick of its mockups, A, 2026-10-18), a column beside the car: like an AI
      chat, newest at the bottom, the user's notes and words on the right, Claude's lines and sets of options on the left, room
      between one exchange and the next (the user: "a bit of breathing room per conversation"), the top fading while there's
      more above ("so that you can tell there's content above to scroll"), a box to write to Claude under it. */
@@ -326,14 +326,6 @@
   .askWords .sk { font-size: 16px; padding: 5px 11px 2px; }
   .askState { font-size: 12px; opacity: 0.6; }
   /* the box: words to Claude */
-  .compose { flex: none; padding: 12px 16px 12px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
-  .compose p { margin: 7px 0 0; font-size: 12px; opacity: 0.5; }
-  .say { display: flex; gap: 6px; }
-  .say input { flex: 1; min-width: 0; height: 36px; box-sizing: border-box; padding: 0 10px; background: var(--ball); color: var(--text);
-               border: 1px solid rgba(255, 255, 255, 0.15); font: 13.5px "Segoe UI", system-ui, -apple-system, sans-serif; outline: none; }
-  .say input:focus { border-color: var(--acc); }
-  .say input::placeholder { color: rgba(242, 244, 247, 0.45); }
-  .say .sk { font-size: 17px; padding: 6px 12px 3px; }
 
   #offline { position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 9px 16px; text-align: center;
              background: #c8322b; color: #fff; font-size: 14px; }
@@ -567,13 +559,9 @@
 </div>
 </div>
 
-<aside id="picks" aria-label="With Claude">
-  <h2 class="teko">With Claude</h2>
+<aside id="picks" aria-label="The car's story">
+  <h2 id="storyName" class="teko">The car</h2>
   <div id="stream" class="stream"></div>
-  <div class="compose">
-    <div class="say"><input id="sayText" placeholder="Say something to Claude…" autocomplete="off"><button id="saySend" class="sk acc teko"><span>Send</span></button></div>
-    <p>Claude reads it at once if it’s waiting, else with your next message.</p>
-  </div>
 </aside>
 </div>
 

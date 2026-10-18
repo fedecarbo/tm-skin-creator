@@ -19,3 +19,6 @@ unfolding so each pile's nap runs along the car.
   plush covers each sidepod top whole, its own seam the edge, and the velvet keeps its straight cuts at z 40 and -55.
   The judge blocks nothing; the close looks find nothing to name, and nothing changed outside the edit. Open (the
   user): their judgement of each pile close up, then this car is deleted.
+- Tool change (2026-10-18, Claude Fable 5.1): the Lab's column beside the car is now the car's story, no typing box (talking happens in
+  VS Code's chat); tested on this car with a question in words (answered in the chat: plaid fur, not painted) and one with two
+  pictures (answered in the Lab: the first view). Open (the user): their judgement of each pile close up, then this car is deleted.

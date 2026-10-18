@@ -1,7 +1,7 @@
 """Notes on the car, and the Lab's timeline with Claude. In the Lab the user clicks the car where they
 mean and writes what they want there (their pick of the mockups, 2026-09-27), draws on it with the
-pen (a strip where they'd want one, a ring round something: their idea, 2026-10-05), or says
-something in the box under the timeline (the Lab's timeline, A, the user's pick, 2026-09-28). Each
+pen (a strip where they'd want one, a ring round something: their idea, 2026-10-05), or answers a set
+or a question in the car's story (the Lab's timeline; talking happens in Claude's own chat). Each
 note keeps the skin (the one on the car: the car, or one of its options), the part under the click,
 the point (for its pin), the lines drawn (`drawn`: in the paint box's cm, and the parts they cross),
 the view and the user's words, in .notes/notes.json, and a picture of what the user was looking at
@@ -515,7 +515,7 @@ def deliver(since):
         if not new:
             return False
         print(f"Notes the user left in the Lab {since} (their words: on the car, each pinned to the part they "
-              "clicked or drawn on it, so look at its picture; in the box under the timeline; or an answer to a set of options "
+              "clicked or drawn on it, so look at its picture; or an answer to a set of options "
               "or a question. "
               "Once one is handled, `python -m tool.notes done <skin> <n> --say \"<what changed, a line>\"`):")
         for x in new:

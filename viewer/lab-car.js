@@ -1,15 +1,14 @@
-// The Lab's chat: beside the car (lab-studio.js: the car and the user's notes on it), "With Claude", the car's timeline (the user's pick of the timeline's mockups, A, 2026-09-28:
-// https://claude.ai/artifact/6nKpAWW1VFPfbrAZTfVZWM). Like an AI
-// chat, newest at the bottom: the user's notes on the car and their words on the right, Claude's lines
-// on the left, each set of options Claude offers as Claude's (a click puts an option on the car, a Pick
-// on each, "None of these"), Claude's questions as widgets (choices with a swatch or a picture, or yes
-// and no: tool.notes ask; the user, 2026-10-02: "keep the interactivity in the chat, whenever the user
-// gets to pick something. Similar to A2UI"), each with a box for the user's own words, a pick and "In
-// the game" as they happen. It opens at the bottom and follows what comes
-// unless the user has scrolled up; the top fades while there's more above. The box under it sends the
-// user's words to Claude, about the option on the car when one is. Picks and words go through the notes
-// channel (/api/notes, tool/notes.py) and reach Claude at once while it waits (tool.notes wait), else
-// with the user's next message. At its foot, what the tool is doing: a widget per job, its stage and
+// The car's story, beside the car (lab-studio.js: the car and the user's notes on it): its timeline, newest at
+// the bottom (the user's pick of the mockups, A, 2026-10-18: https://claude.ai/artifact/WnxM4BPZARHakuwfpT8axb).
+// The user's notes on the car on the right, what Claude did and said on the left, each set of options Claude
+// offers (a click puts an option on the car, a Pick on each, "None of these"), Claude's questions as widgets
+// (choices with a swatch or a picture, or yes and no: tool.notes ask; the user, 2026-10-02: "keep the
+// interactivity in the chat, whenever the user gets to pick something"), each with a box for the user's own
+// words, a pick and "In the game" as they happen. Talking to Claude happens in Claude's own chat (VS Code):
+// the story holds what needs the eye. It opens at the bottom and follows what comes unless the user has
+// scrolled up; the top fades while there's more above. Picks and words go through the notes channel
+// (/api/notes, tool/notes.py) and reach Claude at once while it waits (tool.notes wait), else with the
+// user's next message. At its foot, what the tool is doing: a widget per job, its stage and
 // count, settling into a line when it ends (/api/progress, tool/progress.py; the user, 2026-10-04: "it
 // would be nice to have progress indicators when it's doing something"). Under the car's name, what
 // Claude is doing. Everything comes from the tool:
@@ -20,7 +19,7 @@
 // the one taken when it was written (/notes/<file>).
 //   /?skin=<name>    the car <name> is or is an option of, <name> on the car
 
-import { $, every, post } from './lab-common.js';
+import { $, every, post, titleOf } from './lab-common.js';
 
 const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text != null ? { textContent: text } : {});
 const POLL = 2000;
@@ -81,7 +80,6 @@ function onTheCar() {
     $('stOn').querySelector('b').textContent = `${hit.o.key} · ${hit.o.title}`;
     $('stOn').querySelector('.s').textContent = hit.set.title;
   }
-  $('sayText').placeholder = hit ? `Say something about ${hit.o.key} · ${hit.o.title}…` : 'Say something to Claude…';
 }
 
 // ---- the timeline ----
@@ -153,7 +151,7 @@ function words(x) {  // the user's words: in the box, or an answer to a set or a
 function claude(x) {
   if (x.ask) return question(x);
   const b = el('div', 'ai');
-  b.append(who('Claude', x.made), linked(x.text));
+  b.append(who('', x.made), linked(x.text));  // what Claude did: its line, with its time
   return b;
 }
 
@@ -477,13 +475,6 @@ async function send(body) {
   return true;
 }
 
-async function say() {
-  const input = $('sayText');
-  const text = input.value.trim();
-  if (!text || !car) return;
-  if (await send({ skin: onCar || car.car, text })) input.value = '';
-}
-
 // ---- the car's timeline, followed ----
 
 async function loadGallery() {
@@ -509,6 +500,7 @@ async function refresh() {
     if (!car || car.car !== got.car) stick = true;
     carSig = sig;
     car = got;
+    $('storyName').textContent = (gallery.get(car.car) || {}).title || titleOf(car.car);
     stand.car(car.car, (n) => optionName(n) || n);
     draw();
   } catch { /* the server busy: the next poll */ }
@@ -525,8 +517,6 @@ export async function open() {
     stick = box.scrollHeight - box.scrollTop - box.clientHeight < STUCK;
     box.classList.toggle('above', box.scrollTop > 4);
   });
-  $('saySend').addEventListener('click', say);
-  $('sayText').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(); } });
   $('stBack').addEventListener('click', () => { if (car) stand.show(car.car); });
   stand = await import('./lab-studio.js');
   await stand.open();
