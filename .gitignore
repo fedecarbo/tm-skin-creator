@@ -24,3 +24,7 @@ __pycache__/
 # Skins by other players, for checking the car map only: not ours to publish
 *.rar
 /community/
+
+# The Mac app (app/): what npm installs and builds
+app/node_modules/
+app/dist/

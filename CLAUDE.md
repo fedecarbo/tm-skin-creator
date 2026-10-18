@@ -29,7 +29,8 @@ first.
   session (if it failed, sort that out first), then checks the tool (`tool/doctor.py`: GitHub, the
   tool's Python, the Lab's server, the work folder, the game's list, the queue) and prints where each
   skin stands and what's open.
-- `tool/`: the Python machinery. `viewer/`: the Lab, the one page with the car. `car/parts.json`: every part's
+- `tool/`: the Python machinery. `viewer/`: the Lab, the one page with the car. `app/`: the Mac app,
+  one window with the Lab and the real Claude Code (`app/README.md`). `car/parts.json`: every part's
   name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool put in the game.
 - `PY` is the tool's Python, run from the repo root: on the PC
   `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac

@@ -1,0 +1,46 @@
+{
+  "name": "tm-skin-lab",
+  "productName": "Skin Lab",
+  "version": "0.1.0",
+  "description": "The Lab and Claude in one window, for tm-skin-creator",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "postinstall": "electron-builder install-app-deps",
+    "build": "electron-builder --mac --dir"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "0.11.0",
+    "@xterm/xterm": "6.0.0",
+    "node-pty": "1.1.0"
+  },
+  "devDependencies": {
+    "electron": "44.9.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.fedecarbo.tm-skin-lab",
+    "productName": "Skin Lab",
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "node_modules/node-pty/**"
+    ],
+    "mac": {
+      "target": "dir",
+      "identity": null,
+      "category": "public.app-category.graphics-design"
+    },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeCliInspectArguments": false,
+      "resetAdHocDarwinSignature": true
+    }
+  },
+  "allowScripts": {
+    "node-pty@1.1.0": true
+  },
+  "author": "Federico Carbo"
+}
