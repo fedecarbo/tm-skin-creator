@@ -13,3 +13,9 @@ unfolding so each pile's nap runs along the car.
   blocks nothing (its notes: the bands' edges crossing the car's lines on purpose; the plush's soft edge where the
   flanks end it); the close looks find nothing to name. Open (the user): their judgement of each pile close up, then
   this car is deleted.
+- Change 1 (user, 2026-10-18, notes 1 and 2 on the left sidepod top, Claude Fable 5.1): "Why is this different when it comes to
+  angles?", "still weird". Read as: the velvet's soft edges, a split by which way the surface faces, shifting with the
+  surface's angle (the nap's direction measured: within a few degrees across the sidepod seam, so not that). Now the
+  plush covers each sidepod top whole, its own seam the edge, and the velvet keeps its straight cuts at z 40 and -55.
+  The judge blocks nothing; the close looks find nothing to name, and nothing changed outside the edit. Open (the
+  user): their judgement of each pile close up, then this car is deleted.

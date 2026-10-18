@@ -9,12 +9,12 @@ WORDS = "an actual fur texture library"
 def design(s):
     s.clay()
     s.step("The piles", "Six photographed piles along the car, each in its own colours: animal fur on the nose, "
-           "teddy fur over the front wheels, velvet over the cockpit with plush down its flanks, fleece over the deck, "
-           "plaid fur on the tail.", words=WORDS)
+           "teddy fur over the front wheels, velvet over the cockpit, plush on the two sidepod tops (each piece whole, "
+           "its own seam the edge), fleece over the deck, plaid fur on the tail.", words=WORDS)
     s.paint("body", "fur")
     s.paint("body", "teddy fur", zone=shapes.band(40, 110), across=True)
     s.paint("body", "velvet", zone=shapes.band(-55, 40), across=True)
-    s.paint("body", "plush", zone=shapes.band(-55, 40) & shapes.sides(0.55), across=True)
+    s.paint("sidepod top", "plush")
     s.paint("body", "fleece", zone=shapes.band(-135, -55), across=True)
     s.paint("body", "plaid fur", zone=shapes.behind(-135), across=True)
     s.step("The rest", "The inner car and the wheels in gloss black plastic, the tyres rubber: nothing to distract "
