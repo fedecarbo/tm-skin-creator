@@ -28,3 +28,6 @@ __pycache__/
 # The Mac app (app/): what npm installs and builds
 app/node_modules/
 app/dist/
+
+# The Finder's own bookkeeping
+.DS_Store
