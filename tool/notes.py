@@ -597,42 +597,56 @@ def _changed(skins, name):
         return ""
 
 
-def standing():
-    """Where every skin stands, for a session's start on either computer (tool/doctor.py prints it), newest first: the last event
-    in its record, whether it's in the game, and what's open. Open is a record's events that start with
-    `Open` (written when something is left to do, turned to `Closed` once it's done), a set waiting for
-    the user or being painted, and on this computer the Lab's notes not done and questions unanswered.
-    A note not read yet is marked read, as it's printed here in full."""
+def stands():
+    """Where every skin stands, by name (standing prints it; tool/gallery.py puts it in the Lab's list): day, the day of the
+    last commit that touched it ("" if none); installed, the day it went in the game (None if it hasn't); last, the last
+    event in its record; open, what's left to do: the record's events that start with `Open` (written when something is
+    left to do, turned to `Closed` once it's done), a set waiting for the user or being painted, and on this computer the
+    Lab's notes not done and questions unanswered. A skin that is only an option in such a set is left out; the Lab's
+    notes on a skin with no record make a row of their own, record False."""
     skins = Path(os.environ.get("TSC_SKINS_HOME") or REPO / "skins")
     sets = [json.loads(p.read_text("utf-8")) for p in sorted(skins.glob("*/sets.json"))]
     waiting = {d["car"]: [s for s in d["sets"] if s["state"] in ("painting", "open")] for d in sets}
     options = {o["skin"] for ss in waiting.values() for s in ss for o in s["options"]}
     installed = json.loads((skins / "installed.json").read_text("utf-8")) if (skins / "installed.json").exists() else {}
-    notes = load()
-    answered = {(x["skin"], x["answer"]["ask"]) for x in notes if (x.get("answer") or {}).get("ask")}
+    answered = {(x["skin"], x["answer"]["ask"]) for x in load() if (x.get("answer") or {}).get("ask")}
     lab = {}
-    for x in notes:
+    for x in load():
         if x["state"] != "done":
             lab.setdefault(x["skin"], []).append(line(x)[2:])
         elif x.get("ask") and not x["ask"]["settled"] and (x["skin"], x["ask"]["n"]) not in answered:
             lab.setdefault(x["skin"], []).append(f"question {x['ask']['n']} in the Lab, unanswered: \"{short(x['text'], 160)}\"")
-    rows = []
+    out = {}
     for record in skins.glob("*/notes.md"):
         name = record.parent.name
         if name in options:
             continue
         said = events(record.read_text("utf-8"))
-        day = _changed(skins, name)
         zip_ = installed.get(f"{name}.zip")
-        head = (f"{name}, {day or 'new'}, " + (f"in the game since {zip_['installed'][:10]}" if zip_ else "not in the game")
-                + (f". Last: {short(said[-1])}" if said else ". No events yet"))
         todo = ([short(e, 400) for e in said if re.match(r"Open\b", e)]
                 + [f"set {s['n']}, {s['title']}: " + ("for the user to pick" if s["state"] == "open" else "being painted")
                    + " (" + ", ".join(f"{o['key']} {o['skin']}" for o in s["options"]) + ")" for s in waiting.get(name, [])]
                 + lab.pop(name, []))
-        rows.append((day or "~", head, todo))  # a skin never committed sorts first
+        out[name] = {"day": _changed(skins, name), "installed": zip_["installed"][:10] if zip_ else None,
+                     "last": short(said[-1]) if said else "", "open": todo, "record": True}
+    for name, todo in sorted(lab.items()):
+        out[name] = {"day": "", "installed": None, "last": "", "open": todo, "record": False}
+    return out
+
+
+def standing():
+    """Where every skin stands (stands), printed for a session's start on either computer (tool/doctor.py), newest first:
+    the last event in its record, whether it's in the game, and what's open. A note not read yet is marked read, as it's
+    printed here in full."""
+    rows = []
+    for name, s in stands().items():
+        if not s["record"]:
+            rows.append(("", f"{name}, no record", s["open"]))  # a skin never committed sorts first, these last
+            continue
+        head = (f"{name}, {s['day'] or 'new'}, " + (f"in the game since {s['installed']}" if s["installed"] else "not in the game")
+                + (f". Last: {s['last']}" if s["last"] else ". No events yet"))
+        rows.append((s["day"] or "~", head, s["open"]))
     rows.sort(key=lambda r: r[0], reverse=True)
-    rows += [("", f"{name}, no record", todo) for name, todo in sorted(lab.items())]
     print("Where each skin stands, newest first (its record's last event; what's open):")
     for _, head, todo in rows:
         print(f"- {head}")
@@ -640,7 +654,7 @@ def standing():
             print(f"  - {t}")
     if not any(todo for *_, todo in rows):
         print("Nothing open.")
-    new = {(x["skin"], x["n"]) for x in notes if x["state"] == "new"}
+    new = {(x["skin"], x["n"]) for x in load() if x["state"] == "new"}
     if new:
         with contextlib.suppress(TimeoutError), _locked():
             fresh = load()

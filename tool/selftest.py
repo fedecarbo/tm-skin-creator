@@ -72,10 +72,10 @@ HOME = paths.WORK / "selftest"
 OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none rebuilds for them
 # The tripwires. Names the standard library calls or reads, which no code of ours does (tool/server.py's handler and
 # server, a C function's types for ctypes); tool/looks.py's @look registers each look by its name.
-UNSEEN = ("do_*", "log_request", "allow_reuse_address", "directory", "restype", "argtypes")
+UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 20551, "viewer/*.js": 4946}
+BUDGET = {"tool/*.py": 20568, "viewer/*.js": 5325}
 SLACK = 100
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice

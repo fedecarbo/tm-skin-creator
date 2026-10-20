@@ -192,6 +192,7 @@ class Server(http.server.ThreadingHTTPServer):
     # Windows lets a second server bind a port in use when the address is reused, so there the bind
     # must fail: two servers never run different code on PORT. The Mac keeps its fast restarts.
     allow_reuse_address = os.name != "nt"
+    request_queue_size = 64  # the garage asks for every car's maps at once (viewer/lab-garage.js): none refused
 
 
 def start(port=PORT):

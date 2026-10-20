@@ -126,7 +126,7 @@ const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 1, spec: 1 }
 // the game's 53, 37 at sunrise against 17); at half, Black to N6.5 read 81 117 158 204 by day against
 // the game's 80 114 158 204 (2026-09-27, the user: "its still a bit hazy"). spec in the address scales it.
 const SHEEN = 0.5;
-for (const key of Object.keys(TUNE)) if (params.has(key)) TUNE[key] = Number(params.get(key));
+for (const key of Object.keys(TUNE)) if (params.has(key) && Number.isFinite(+params.get(key))) TUNE[key] = +params.get(key);  // ?room=<a room> is lab.js's
 
 // The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on the screen on a car
 // standing or driving, by day and at night, and the colour the game supplies for codes whose RGB
@@ -1665,8 +1665,9 @@ if (!snap) {  // on the window, ahead of the controls: a drag that starts on the
   addEventListener('pointercancel', penUp, { capture: true });
 }
 
-// The four materials for one skin's textures.
-function makeMaterials(tex) {
+// The four materials for one skin's textures; still: a car standing in the garage (lab-garage.js), without the hooks
+// on the studio's state (its parts, overlays, number, lights, wing and pedals).
+function makeMaterials(tex, still = false) {
   const std = (set, extra = {}) => ({
     map: tex[`${set}_B`], roughnessMap: tex[`${set}_RM`], metalnessMap: tex[`${set}_RM`],
     roughness: 1, metalness: 1, aoMap: tex[`${set}_AO`], ...extra,
@@ -1694,6 +1695,7 @@ function makeMaterials(tex) {
     addGlow(glass, tex.Glass_Code);
   }
   const out = { Skin: skin, Details: details, Wheels: wheels, Glass: glass };
+  if (still) return out;
   for (const [name, material] of Object.entries(out)) addParts(material, sharedMaps[name], surfaceState[name]);
   if (!snap) for (const name of Object.keys(meshMaps)) addMesh(out[name], name);
   if (snap) for (const name of ['Skin', 'Details', 'Wheels']) addUvPass(out[name], name);
@@ -1704,6 +1706,10 @@ function makeMaterials(tex) {
   addWing(wheels);  // for the wheels' turn
   return out;
 }
+
+// The car shared with the garage (lab-garage.js), which parks every skin in a scene of its own: the geometries, the
+// plain materials and the day's sky. The garage disposes nothing of these: a dispose would reach the page's own car.
+export const kit = { geometries: () => geometries, materials: (tex) => makeMaterials(tex, true), environment: () => envMaps.day };
 
 // Dresses the car in a skin's textures; the first call builds the car.
 function dressCar(geoms, tex) {

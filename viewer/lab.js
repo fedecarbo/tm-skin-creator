@@ -2,7 +2,8 @@
 // room: every finish the tool knows (tool/swatches.py writes the list and each ball's textures from
 // tool/finishes.py), drawn on a ball with the viewer's lighting, with its code and numbers and a line to
 // copy for Claude.
-//   /                  the car: the skin Claude painted last (lab-studio.js), the chat beside it (lab-car.js)
+//   /                  the garage (lab-garage.js): every skin parked, where each stands; click one for the car
+//   /?skin=<name>      the car: that skin (lab-studio.js), its story beside it (lab-car.js); Claude's show opens it too
 //   /?room=materials   the materials room, the first family
 //   /?m=<slug>         that material picked (e.g. ?m=gold)
 //   /?room=uv          the UV map room (lab-rooms.js, from tool/rooms.py): the game's four flat maps;
@@ -209,13 +210,14 @@ function failed(e) {
 
 // ---- the rooms ----
 
-const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials') };
+const ROOMS = { studio: $('roomStudio'), materials: $('roomMaterials'), garage: $('roomGarage') };
 const painting = new Set();  // the rooms' keys (tool/rooms.py: the UV map), shown in #roomPaint
 const begun = {};
 function openRoom(name) {
   for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
   $('roomPaint').hidden = !painting.has(name);
   $('labTop').hidden = name === 'studio';  // the rooms' header: the way between them, and back to the car
+  document.body.classList.toggle('garage', name === 'garage');  // the header in dark ink on the garage's white
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);
   if (name === 'studio') u.searchParams.delete('room');
@@ -224,6 +226,7 @@ function openRoom(name) {
   $('status').textContent = '';
   if (name === 'materials') begun.materials ||= start().catch(failed);
   if (painting.has(name)) import('./lab-rooms.js').then((room) => room.open({ copy }, name)).catch(failed);
+  if (name === 'garage') import('./lab-garage.js').then((room) => room.open({ openRoom })).catch(failed);
   // the car: the car itself (lab-studio.js) and the chat beside it (lab-car.js)
   if (name === 'studio') import('./lab-car.js').then((room) => room.open()).catch(failed);
 }
@@ -248,6 +251,6 @@ async function rooms() {  // the rooms' header, and the way to them at the foot 
     $('railFoot').append(foot);
   }
   const want = params.get('room');
-  openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : 'studio');
+  openRoom(ROOMS[want] || painting.has(want) ? want : params.has('m') ? 'materials' : params.has('skin') ? 'studio' : 'garage');
 }
 rooms().catch(failed);

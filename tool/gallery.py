@@ -15,16 +15,16 @@ import json
 import shutil
 import subprocess
 
-from tool import install, paths, progress, view
+from tool import install, notes, paths, progress, view
 
 DATA = view.DATA
 
 
 def words_of(folder):
-    notes = folder / "notes.md"
-    if not notes.exists():
+    record = folder / "notes.md"
+    if not record.exists():
         return ""
-    for line in notes.read_text(encoding="utf-8").splitlines():
+    for line in record.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line and not line.startswith("#"):
             return line.lstrip("-* ").strip('"“”')
@@ -51,6 +51,7 @@ def first_commits():
 def refresh():
     manifest = install.load_manifest()
     committed = first_commits()
+    stands = notes.stands()  # where each skin stands, for the garage
     entries = []
     for folder in paths.SKINS.iterdir():
         if not folder.is_dir() or not (folder / "design.py").exists():
@@ -73,6 +74,7 @@ def refresh():
             "stamp": stamp,  # the picture's time, so pages reload it when it changes
             "made": made,
             "when": datetime.datetime.fromtimestamp(made).strftime("%Y-%m-%d %H:%M"),
+            "stand": stands.get(folder.name),  # tool/notes.py stands: its last event, its day, what's open
         })
     entries.sort(key=lambda e: (-e["made"], e["title"]))
     DATA.mkdir(parents=True, exist_ok=True)

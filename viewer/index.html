@@ -348,6 +348,15 @@
   .room { position: fixed; inset: 0; z-index: 6; background: var(--ground); display: grid; grid-template-columns: 250px 1fr var(--spec); grid-template-rows: 72px 1fr; column-gap: 8px; }
   .room[hidden] { display: none; }
   .room [hidden] { display: none !important; }
+  /* The garage (lab-garage.js): every skin parked on matte white, seen from one angle; the rooms' header in dark ink over it */
+  #roomGarage { display: block; background: #f2f2f3; color: var(--ground); }
+  #roomGarage[hidden] { display: none; }
+  #lot { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+  #lotStatus { position: absolute; left: 36px; bottom: 22px; font-size: 20px; opacity: 0.45; pointer-events: none; }
+  body.garage #labTop { color: var(--ground); }
+  body.garage #labTop .sk:not([aria-pressed="true"]) { background: rgba(13, 15, 18, 0.07); }
+  body.garage #labTop .sk:not([aria-pressed="true"]):hover { background: rgba(13, 15, 18, 0.14); }
+  body.garage #labTop .sk[aria-pressed="true"] { background: var(--ground); color: var(--text); }
   /* The families, or the maps */
   .rail { grid-column: 1; grid-row: 2; padding: 14px 44px 0 24px; background: rgba(8, 9, 12, 0.9); clip-path: polygon(0 0, 100% 0, calc(100% - 30px) 100%, 0 100%);
           overflow-y: auto; scrollbar-width: none; }
@@ -569,9 +578,15 @@
   <h1 id="labName" class="teko">The Lab</h1>
   <nav id="rooms" class="teko">
     <button class="sk" data-room="studio" aria-pressed="false"><svg class="ic"><use href="#i-back"/></svg><span>The car</span></button>
+    <button class="sk" data-room="garage" aria-pressed="false"><span>The garage</span></button>
     <button class="sk" data-room="materials" aria-pressed="false"><span>Materials</span></button>
   </nav>
 </header>
+
+<section id="roomGarage" class="room chrome" hidden>
+  <canvas id="lot"></canvas>
+  <div id="lotStatus" class="teko"></div>
+</section>
 
 <section id="roomMaterials" class="room chrome" hidden>
   <aside id="familyRail" class="rail teko">

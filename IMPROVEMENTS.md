@@ -123,7 +123,7 @@ it.
   Renaming touches `tool/naming.py` and the viewer.
 - **The Lab inside VS Code** (2026-10-18): the user works in VS Code's Claude panel with the Lab in a
   browser window beside it. One window would be the Lab as a VS Code tab (Simple Browser: Show,
-  `http://127.0.0.1:8765/`); untried with the car's 3D view.
+  http://127.0.0.1:8765/); untried with the car's 3D view.
 - **What the Mac lacks** (2026-10-05): the picture maker (it needs the PC's card; idea: FLUX.2 [klein]
   on Metal, quantised, the latest release looked up first) and two tyre fonts (Bahnschrift, Consolas;
   idea: open look-alikes).

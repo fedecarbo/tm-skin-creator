@@ -489,7 +489,7 @@ async function poll() {
 
 // A skin on the car: the car, or one of its options (the list), unless a note is being written.
 export async function show(name) {
-  if (!name || (skin && skin.name === name)) return;
+  if (!opened || !name || (skin && skin.name === name)) return;  // before open: open reads the address itself
   if (writing) cancelNote();
   if (tags.openKey) tags.close();
   note(name);
