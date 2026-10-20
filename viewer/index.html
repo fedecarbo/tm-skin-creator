@@ -348,8 +348,12 @@
   .room { position: fixed; inset: 0; z-index: 6; background: var(--ground); display: grid; grid-template-columns: 250px 1fr var(--spec); grid-template-rows: 72px 1fr; column-gap: 8px; }
   .room[hidden] { display: none; }
   .room [hidden] { display: none !important; }
-  /* The garage (lab-garage.js): every skin parked on matte white, seen from one angle; the rooms' header in dark ink over it */
+  /* The world (lab-garage.js): every skin parked on matte white in the user's lots, and the shop, seen from one angle; the
+     rooms' header in dark ink over it, with the crumb back up from a lot or the shop */
   #roomGarage { display: block; background: #f2f2f3; color: var(--ground); }
+  #crumb { display: flex; align-items: center; gap: 12px; font-size: 22px; }
+  #crumb[hidden] { display: none; }
+  #crumbHere { opacity: 0.6; }
   #roomGarage[hidden] { display: none; }
   #lot { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
   #lotStatus { position: absolute; left: 36px; bottom: 22px; font-size: 20px; opacity: 0.45; pointer-events: none; }
@@ -581,6 +585,7 @@
     <button class="sk" data-room="garage" aria-pressed="false"><span>The garage</span></button>
     <button class="sk" data-room="materials" aria-pressed="false"><span>Materials</span></button>
   </nav>
+  <nav id="crumb" class="teko" hidden><button class="sk" id="crumbWorld"><span>The world</span></button><span>›</span><span id="crumbHere"></span></nav>
 </header>
 
 <section id="roomGarage" class="room chrome" hidden>

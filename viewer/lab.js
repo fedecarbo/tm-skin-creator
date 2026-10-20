@@ -2,7 +2,7 @@
 // room: every finish the tool knows (tool/swatches.py writes the list and each ball's textures from
 // tool/finishes.py), drawn on a ball with the viewer's lighting, with its code and numbers and a line to
 // copy for Claude.
-//   /                  the garage (lab-garage.js): every skin parked, where each stands; click one for the car
+//   /                  the world (lab-garage.js): every skin parked in the user's lots, and the shop; a lot, the shop, a car by clicks
 //   /?skin=<name>      the car: that skin (lab-studio.js), its story beside it (lab-car.js); Claude's show opens it too
 //   /?room=materials   the materials room, the first family
 //   /?m=<slug>         that material picked (e.g. ?m=gold)
@@ -217,6 +217,7 @@ function openRoom(name) {
   for (const [k, el] of Object.entries(ROOMS)) el.hidden = k !== name;
   $('roomPaint').hidden = !painting.has(name);
   $('labTop').hidden = name === 'studio';  // the rooms' header: the way between them, and back to the car
+  if (name !== 'garage') $('crumb').hidden = true;  // the world's own way back up (lab-garage.js)
   document.body.classList.toggle('garage', name === 'garage');  // the header in dark ink on the garage's white
   for (const b of document.querySelectorAll('#rooms [data-room]')) b.setAttribute('aria-pressed', String(b.dataset.room === name));
   const u = new URL(location.href);

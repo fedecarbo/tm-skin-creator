@@ -28,6 +28,7 @@ game: install from the Windows PC after a push.
 | `PY -m tool.doctor server` | Starts the Lab's server (or restarts it after a change to the tool), http://localhost:8765/: the car, the user's notes on it, the chat beside it, the materials and the UV map (`?room=`). The session-start hook does the same. |
 | `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
 | `PY -m tool.skin list` / `PY -m tool.sets <car>` | Every skin / a car's sets of options. |
+| `PY -m tool.gallery lot move <skin> "<name>"` | The car into the lot (their group) they name on the Lab's world; `lots` lists them. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]`, `tile "<words>"`, `keep <slug> <k> <skin> <name>` | The picture maker (the PC): cut-outs or seamless tiles, kept as `skins/<skin>/art/<name>.png` for `s.art("<name>")`. Ask for a few large objects; give each run its own words. |
 | `PY -m tool.textures search "<surface>"`, then `add "<surface>" <Id> --scale <cm>` | A photographed surface (ambientCG, CC0) as a finish. |
 | `PY -m tool.tyres [TY-01 ...]` | The tyre markings library on the car. |

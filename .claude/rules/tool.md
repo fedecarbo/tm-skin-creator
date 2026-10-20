@@ -82,10 +82,13 @@ graphics chip's, the Mac only).
     `meshlines.template`) on the maps and on the car, rebuilt when the mesh or `meshlines.py` change.
     Its Car tab embeds the viewer (`index.html?embed=1`), a second car.
   - the materials (`?room=materials`, `lab.js`; the balls by `balls.js`).
-  - the garage (`lab-garage.js`), the page's front door when no skin is named (`?room=garage` too): every skin
-    in `gallery.json` parked as a car of its own, dressed from its `skin.json` shrunk in the browser, the bay of the
-    skin `studio.json` names lit; its line under each car from `notes.stands` (`gallery.refresh` writes it as
-    `stand`). The cars are the page's own through `viewer.js`'s `kit` (geometries, still materials, the day sky).
+  - the world (`lab-garage.js`), the page's front door when no skin is named (`?room=garage` too), in three levels
+    by clicks: the lots (the user's groups, `skins/lots.json` by `PY -m tool.gallery lot new "<name>"` and `lot move
+    <skin> "<name>"`; a skin in none is in New) with the shop beyond them; a lot, every skin in `gallery.json` parked as
+    a car of its own, dressed from its `skin.json` shrunk in the browser, the bay of the skin `studio.json` names lit,
+    its line under each car from `notes.stands` (`gallery.refresh` writes it as `stand`); the shop, the open set's
+    takes on lifts (`/api/sets`), Claude's figure at the one `steps.json` says is painting. `?lot=<name>`, `?shop=1`
+    keep the level. The cars are the page's own through `viewer.js`'s `kit` (geometries, still materials, the day sky).
   - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
     writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)
     or at once through `tool.notes wait` in the background. The hook runs `notes.py` as a script,
