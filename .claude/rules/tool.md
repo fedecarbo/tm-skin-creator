@@ -88,7 +88,10 @@ graphics chip's, the Mac only).
     a car of its own, dressed from its `skin.json` shrunk in the browser, the bay of the skin `studio.json` names lit,
     its line under each car from `notes.stands` (`gallery.refresh` writes it as `stand`); the shop, the open set's
     takes on lifts (`/api/sets`), Claude's figure at the one `steps.json` says is painting. `?lot=<name>`, `?shop=1`
-    keep the level. The cars are the page's own through `viewer.js`'s `kit` (geometries, still materials, the day sky).
+    keep the level. The cars are the page's own through `viewer.js`'s `kit` (geometries, still materials, the day sky);
+    the shop's and the lots' things and Claude's figure are real models (`tool/props.py`: Poly Haven's and Kenney's, CC0,
+    fetched once into the work folder by `PY -m tool.props` or the server's start, their shapes alone; `viewer/props.js`
+    puts them down in one matte white).
   - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
     writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)
     or at once through `tool.notes wait` in the background. The hook runs `notes.py` as a script,

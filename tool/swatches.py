@@ -31,7 +31,7 @@ import time
 import numpy as np
 from PIL import Image
 
-from tool import colours, finishes, looks, textures, tyres, view
+from tool import colours, finishes, looks, props, textures, tyres, view
 
 FOLDER = view.DATA / "materials"
 RADIUS = 15.0  # cm: a 30 cm ball
@@ -232,6 +232,7 @@ def entries():
 
 def build(all_=False):
     view.ensure_hdri()
+    props.ensure()  # the world's models, once
     stamps = {False: _stamp(), True: _stamp(treads=True)}
     infos = []
     write_tyre()

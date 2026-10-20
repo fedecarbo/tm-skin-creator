@@ -20,6 +20,7 @@
 import * as THREE from 'three';
 import { kit } from './viewer.js';
 import { $, every, followed, note, titleOf } from './lab-common.js';
+import { put, figure as character } from './props.js';
 
 const POLL = 1500, LIVE = 2000;
 const DIR = new THREE.Vector3(-1, 0.9, 1).normalize();  // from a car to the camera
@@ -47,6 +48,8 @@ let marks = null;              // every mark on the floor and the shop's walls, 
 let live = '';                 // the data's signature when the floor was last laid out
 const view = { target: new THREE.Vector3(), height: 12 };  // what the camera looks at, and how many metres it shows top to bottom
 let flight = null;             // { from, to, t0 }: the camera on its way to a level
+let mixer = null;              // Claude's figure moving while the paint is on
+const clock = new THREE.Clock();
 
 // ---- the scene ----
 
@@ -80,6 +83,7 @@ function build() {
   $('crumbWorld').addEventListener('click', () => setLevel({ kind: 'world', name: null }));
   renderer.setAnimationLoop(() => {
     if ($('roomGarage').hidden) return;
+    if (mixer) { mixer.update(clock.getDelta()); rouse(1); }
     if (flight) {
       const t = Math.min(1, (performance.now() - flight.t0) / FLY), e = 1 - (1 - t) ** 3;
       view.target.lerpVectors(flight.from.target, flight.to.target, e);
@@ -283,28 +287,16 @@ function liftAt(g, x, z) {
   g.add(box(2.2, 0.06, 0.4, steel, x, up, z - bay.l / 2 + 0.6));
 }
 
-// Claude: a small figure in overalls and the accent cap, the spray gun on, its mist in the air.
-function figure(x, z) {
-  const g = new THREE.Group();
-  const suit = matte(0xe4e4e7), skin = matte(0xd9b08c), cap = matte(0xe8ff47);
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.75, 16), suit);
-  body.position.y = 0.62; body.castShadow = true; g.add(body);
-  for (const dx of [-0.1, 0.1]) g.add(box(0.14, 0.3, 0.14, suit, dx, 0.15, 0));
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 16), skin);
-  head.position.y = 1.2; head.castShadow = true; g.add(head);
-  g.add(box(0.44, 0.1, 0.44, cap, 0, 1.36, 0));
-  g.add(box(0.46, 0.04, 0.2, cap, 0, 1.31, 0.3));
-  g.add(box(0.12, 0.12, 0.5, suit, 0.28, 0.85, 0.2));
-  g.add(box(0.1, 0.16, 0.22, matte(0x2a2c30, 0.8), 0.28, 0.85, 0.52));
-  const mist = new THREE.MeshStandardMaterial({ color: 0xe8ff47, roughness: 1, transparent: true, opacity: 0.45 });
-  for (let k = 0; k < 7; k++) {
-    const p = new THREE.Mesh(new THREE.SphereGeometry(0.05 + k * 0.025, 10, 8), mist);
-    p.position.set(0.28 + Math.sin(k * 2.1) * 0.025 * k, 0.8 + Math.cos(k * 1.7) * 0.06 * k, 0.75 + k * 0.17);
-    g.add(p);
-  }
-  g.position.set(x, 0, z);
-  g.rotation.y = -Math.PI / 2;  // facing the car's flank, from the near side
-  return g;
+// Claude: the figure at work at the car's flank (props.js), moving while the paint is on.
+function figure(g, x, z) {
+  character('interact-right').then(({ group, mixer: m }) => {
+    group.traverse((o) => { o.userData.shared = true; });
+    group.position.x = x; group.position.z = z;
+    group.rotation.y = Math.PI / 2;  // facing the car, from the near side
+    g.add(group);
+    mixer = m;
+    rouse();
+  }).catch((err) => console.error(`the figure: ${err.message || err}`));
 }
 
 // The shop's floor and walls (the near one low, no roof, a lintel), its bench and desk, its lamp lit while the paint
@@ -312,7 +304,7 @@ function figure(x, z) {
 function shopMarks(g, shop) {
   const { x: X, z: Z } = shop;
   const W = SHOP.w, D = SHOP.d, H = SHOP.h;
-  const plaster = matte(0xdedee1), wood = matte(0xcfc3b0), steel = matte(0x9a9ca2, 0.5, 0.4);
+  const plaster = matte(0xdedee1);
   const inner = new THREE.Mesh(new THREE.PlaneGeometry(W, D), matte(new THREE.Color(0.42, 0.42, 0.43)));
   inner.rotation.x = -Math.PI / 2; inner.position.set(X, 0.002, Z); inner.receiveShadow = true; g.add(inner);
   const wall = (w, h, d, x, z) => box(w, h, d, plaster, x, h / 2, z);
@@ -322,19 +314,40 @@ function shopMarks(g, shop) {
   g.add(wall(W + 0.4, 0.9, 0.2, X, Z + D / 2 + 0.1));
   g.add(box(W + 0.4, 0.35, 0.2, plaster, X, H - 0.18, Z + D / 2 + 0.1));
   g.add(box(0.2, H, 0.2, plaster, X - W / 2 - 0.1, H / 2, Z + D / 2 + 0.1));
-  g.add(box(6, 0.08, 0.3, shop.painting ? matte(0xe8ff47) : plaster, X, H - 0.5, Z - D / 4));
-  // the bench against the back wall, its paint; the desk, where the words arrive
-  g.add(box(4.0, 0.08, 0.9, wood, X - 4.5, 0.9, Z - D / 2 + 0.6));
-  for (const dx of [-6.4, -2.6]) for (const dz of [-D / 2 + 0.25, -D / 2 + 0.95]) g.add(box(0.1, 0.86, 0.1, steel, X + dx, 0.43, Z + dz));
-  [0xf0c020, 0x1a1c20, 0xe8ff47, 0x2b2f36, 0xc69a6a, 0xff7a1a].forEach((c, k) => {
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.28, 16), matte(c, 0.5));
-    t.position.set(X - 6.1 + k * 0.5, 1.08, Z - D / 2 + 0.6); t.castShadow = true; g.add(t);
-  });
-  g.add(box(3.6, 1.0, 0.2, wood, X - 4.5, 2.2, Z - D / 2 + 0.1));
-  g.add(box(2.2, 0.08, 0.9, wood, X + 4.5, 0.78, Z - D / 2 + 0.6));
-  for (const dx of [3.5, 5.5]) for (const dz of [-D / 2 + 0.25, -D / 2 + 0.95]) g.add(box(0.1, 0.74, 0.1, steel, X + dx, 0.37, Z + dz));
-  g.add(box(1.1, 0.68, 0.06, matte(0x1a1c20, 0.5), X + 4.5, 1.25, Z - D / 2 + 0.5));
-  g.add(box(0.6, 0.1, 0.4, steel, X + 4.5, 0.86, Z - D / 2 + 0.5));
+  const prop = (name, x, z, turn = 0, y = 0, material = null) => put(g, name, X + x, Z + z, turn, 1, y, rouse, material);
+  const back = -D / 2 + 0.45, right = W / 2 - 0.4;
+  // the back wall, left to right: the tyres, the bench with its vice, paint and tool chest, the shelves, the roller
+  // door, the storage cart, the desk with the laptop and its lamp, the stool
+  for (let k = 0; k < 4; k++) prop('old_tyre', -6.2, back + 0.1, Math.PI / 2, 0.08 + 0.16 * k);
+  prop('wooden_table_02', -5.0, back); prop('wooden_table_02', -3.85, back);
+  prop('bench_vice_01', -5.3, back - 0.05, Math.PI, 0.89);
+  for (let k = 0; k < 4; k++) prop('spray_paint_bottles', -4.6 + k * 0.12, back + 0.15 - (k % 2) * 0.12, k, 0.8);
+  prop('metal_tool_chest', -3.7, back - 0.05, 0, 0.99);
+  prop('steel_frame_shelves_02', -2.5, back - 0.15); prop('steel_frame_shelves_02', -1.9, back - 0.15);
+  prop('rollershutter_door', -0.5, -D / 2 + 0.05); prop('rollershutter_door', 0.58, -D / 2 + 0.05);
+  prop('industrial_storage_cart', 2.4, back);
+  prop('metal_office_desk', 4.9, back); prop('classic_laptop', 4.6, back, -0.2, 0.79); prop('desk_lamp_arm_01', 5.7, back, 0.4, 0.88);
+  prop('metal_stool_01', 4.9, back + 1.0);
+  // the right wall: jerrycans, the compressor, the ladder, the welding cart, the hand truck; the lamps on it
+  prop('metal_jerrycan', right, -3.0, -Math.PI / 2); prop('metal_jerrycan', right, -2.75, -Math.PI / 2);
+  prop('old_military_compressor', right - 0.1, 3.0, Math.PI / 2);
+  prop('ladder_sectioned_01', right + 0.15, 0.2, -Math.PI / 2);
+  prop('portable_welding_cart', right - 0.3, 1.6, -Math.PI / 2);
+  prop('hand_truck', right - 0.4, D / 2 - 1.2, -Math.PI / 2);
+  for (const z of [-2, 2]) prop('industrial_wall_lamp', W / 2 + 0.1, z, -Math.PI / 2, 2.4);
+  // the near side and the front: barrels, boxes, crates, the bin, the sign
+  prop('Barrel_01', -W / 2 + 0.6, 2.6); prop('Barrel_01', -W / 2 + 1.15, 2.9);
+  prop('cardboard_box_01', -W / 2 + 0.9, 0.6, 0.3, 0.18); prop('cardboard_box_01', -W / 2 + 0.85, 1.2, -0.2, 0.18);
+  for (let k = 0; k < 3; k++) prop('plastic_crate_01', -W / 2 + 0.5, -1.2 + (k === 2 ? 0 : 0), 0, 0.26 * k);
+  prop('metal_trash_can', -W / 2 + 0.6, back + 0.1);
+  prop('WetFloorSign_01', -2.8, D / 2 - 0.9, -0.6);
+  prop('security_light', -W / 2 - 0.1, D / 2 + 0.1, 0, 3.0);
+  // a beam over each lift, its lamp hanging from it, lit while the paint is on
+  const lit = new THREE.MeshStandardMaterial({ color: 0xe8ff47, emissive: 0xe8ff47, emissiveIntensity: 0.8, roughness: 1 });
+  for (const spot of shop.spots) {
+    g.add(box(0.15, 0.2, D + 0.4, plaster, spot.x, H - 0.1, Z));
+    put(g, 'hanging_industrial_lamp', spot.x, spot.z, 0, 1, H - 0.2, rouse, shop.painting && shop.takes[shop.spots.indexOf(spot)] && shop.takes[shop.spots.indexOf(spot)].skin === shop.painting ? lit : null);
+  }
   // the lifts: one a take, or one for the blank car
   shop.spots.forEach((spot, k) => {
     liftAt(g, spot.x, spot.z);
@@ -354,7 +367,7 @@ function shopMarks(g, shop) {
       s.userData.at = 'shop';
       g.add(s);
     }
-    if (lit) g.add(figure(spot.x - 1.6, spot.z - 0.6));
+    if (lit) { figure(g, spot.x - 1.5, spot.z); put(g, 'tool_cart', spot.x - 2.6, spot.z + 1.6, 0.3, 1, 0, rouse); }
   });
   const line = shop.painting ? `Claude is painting ${titleOf(shop.painting)}` : shop.takes.length ? 'For you to pick: click a take for the car' : 'Say what you want in the chat';
   const s = sign('The shop', line, !!shop.painting, 0.0105);
@@ -384,11 +397,14 @@ function lotMarks(g, lot) {
   ], 0.014);
   title.position.set(lot.x - lot.w / 2 + 0.4, 0.02, lot.z + lot.l / 2 + 0.3);
   g.add(title);
+  put(g, 'street_lamp_01', lot.x + lot.w / 2 + 0.5, lot.z - lot.l / 2 - 0.3, Math.PI / 4, 1, 0, rouse);
+  put(g, 'planter_box_01', lot.x - lot.w / 2 - 0.5, lot.z + lot.l / 2 - 0.6, Math.PI / 2, 1, 0, rouse);
   for (let i = 0; i < lot.cols * lot.rows; i++) {
     const { x, z } = lot.bay(i);
     const entry = lot.entries[i];
     bayMarks(g, x, z, i + 1, entry, !!entry && entry.name === bench, 'lot');
     if (!entry && i === n) {
+      put(g, 'covered_car', x, z, 0, 1, 0, rouse);
       const w = words([{ text: 'ROOM FOR THE NEXT CAR', font: '400 28px Teko', size: 28, colour: 'rgba(13, 15, 18, 0.4)' }], 0.006);
       w.position.set(x - bay.w / 2 + 0.3, 0.02, z + bay.l / 2 + 0.15);
       w.userData.at = 'lot';
@@ -558,11 +574,15 @@ async function fill() {
   }
   if (marks) {
     scene.remove(marks);
-    marks.traverse((o) => { if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } if (o.geometry) o.geometry.dispose(); });
+    mixer = null;
+    marks.traverse((o) => { if (o.userData.shared) return; if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } if (o.geometry) o.geometry.dispose(); });
   }
   marks = new THREE.Group();
   for (const lot of world.lots) lotMarks(marks, lot);
   shopMarks(marks, world.shop);
+  put(marks, 'utility_box_01', world.shop.x + SHOP.w / 2 + 0.6, world.shop.z + 2.5, -Math.PI / 2, 1, 0, rouse);
+  put(marks, 'fire_hydrant', world.box.x1 - 0.5, world.box.z1 - 1.5, 0, 1, 0, rouse);
+  for (let k = 0; k < 4; k++) put(marks, 'concrete_road_barrier', world.box.x0 - 1.5, world.box.z0 + 6 + k * 1.6, Math.PI / 2, 1, 0, rouse);
   scene.add(marks);
   showWords();
   const reach = Math.max(world.box.x1 - world.box.x0, world.box.z1 - world.box.z0) / 2 + 6;
