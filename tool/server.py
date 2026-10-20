@@ -81,6 +81,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
+        if self.command == "GET":  # reads are open to a page from another origin (the world, its own project); writes aren't
+            self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()
 
     # The Lab's notes (tool/notes.py): GET /api/notes?skin=<name> (the ones not done, for the car's tags),

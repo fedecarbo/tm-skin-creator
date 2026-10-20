@@ -58,7 +58,7 @@ graphics chip's, the Mac only).
   background. `tool/server.py` is the server: the page, the work folder's data, and the Lab's
   `/api/notes`, `/api/sets` and `/api/progress` (what the tool is doing,
   `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
-  computer's pages only.
+  computer's pages only; reads are open to any origin, for the world (its own project, `~/Developer/personal/tm-world`).
 - The Lab is the one page (`viewer/index.html`, http://localhost:8765/): the car in its studio
   (`viewer/viewer.js`: the views and the game's cameras, the moods, the ground (the game's surfaces, `?ground=`), Show, Parts, the pedals, "My skins"
   behind its button), and over it the Lab's modules, loaded once the car is up. `PY -m tool.swatches`
