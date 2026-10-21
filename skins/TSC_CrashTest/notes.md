@@ -79,3 +79,14 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   target is written for both sides. The paint also lands on the uprights and the front wing's inner faces (shared texels).
 - Shown (2026-10-21, on the Mac, Claude Fable 5.1): the body sheet under the camera light, the underside beside it
   with the light off. Not installed: the Mac has no game.
+- Change 6 (user, 2026-10-21, in the chat, of the three targets: "What would be nice is if you can actually paint a
+  detailed bottom and also using the curves and marks that it contains. I can already see you put two symbols and it
+  goes along the curve awkwardly without intent"; then "woud be nice some merasurments markings as well"): the floor
+  read off the mesh as a height map (the long raised panel outlined by its groove, its lowest level; seven round bosses
+  at x ±14.4 z -4 and -54, x 0 z 62, x ±22 z -88; the outer floor's straight edge at x 67 from z -60 to 30). The panel
+  painted matte black to its groove (the floor's level under 11.4 cm), each boss left yellow and made a target (black
+  quarters, a ring: yellow on the plank, black on the floor behind it), yellow rulers hanging in from the plank's
+  straight edges (every 3 cm, longer every 15) and on along its tapered edges to the nose, a black block scale along
+  each outer edge. The three earlier targets gone. Let go again (gate --despite): the two old steps in the body's tick
+  runs, untouched by this.
+- Shown (2026-10-21, on the Mac): the underside from below under the camera light, whole and close.

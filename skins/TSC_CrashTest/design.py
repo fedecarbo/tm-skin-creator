@@ -106,16 +106,40 @@ def design(s):
     # carried on 15 cm past the nose tip's seam, on over the nose ("It's ok to go past the next object")
     s.paint("body", "matte", colour=BLACK, zone=roll.offset(4).extended(start=15).mirrored().blocks(5, 2.5))
 
-    s.step("The underside's targets", "The floor in the dummy's yellow, and a quartered target under each sidepod "
-           "where the floor is widest and flat, and one under the nose: what a test's pit camera tracks. The floor's two "
-           "halves share one paint, so a target is written for both at once.",
-           words="paint the bottom part with the crash icons or symbols")
+    s.step("The underside", "The floor's own long raised panel, outlined by its groove, in matte black: the plank. "
+           "Its seven round bosses left in the dummy's yellow, each ringed and quartered as a target (the jack points a "
+           "test rig measures from). A yellow ruler hanging in from the plank's straight edges, every 3 cm and longer every "
+           "15, and on along its tapered edges to the nose; a black block scale along the outer floor's straight edge.",
+           words="paint a detailed bottom and also using the curves and marks that it contains; some measurement markings as well")
+    under = shapes.facing("down", 0.8)
     s.paint("floor", "soft-touch", colour=SKIN)
-    for c, size in (((45, 12, -20), 24), ((-45, 12, -20), 24), ((0, 12, 120), 18)):
-        s.paint("floor", "matte", colour=BLACK, zone=shapes.sphere(c, size / 2))
-        across = shapes.plane(c, (1, 0, 0) if c[0] >= 0 else (-1, 0, 0))
-        ahead = shapes.plane(c, (0, 0, 1))
-        s.paint("floor", "soft-touch", colour=SKIN, zone=shapes.sphere(c, 0.42 * size) & ((across & ahead) | (~across & ~ahead)))
+    s.paint("floor", "matte", colour=BLACK, zone=shapes.below(11.4) & under)  # the plank: the floor's lowest level, to its groove
+    # the bosses, measured off the mesh: five on the plank (ringed in yellow on the black), and the pair behind its end on
+    # the yellow floor (ringed in black; the pair shares its texels, so one call paints both)
+    for x, z, ring in ((14.4, -4.0, SKIN), (14.4, -53.7, SKIN), (0, 62.3, SKIN), (-22, -88.5, BLACK)):
+        for sgn in ((1, -1) if x > 0 else (1,)):
+            c = (sgn * x, 12, z)
+            across, ahead = shapes.plane(c, (sgn, 0, 0)), shapes.plane(c, (0, 0, 1))
+            s.paint("floor", "matte", colour=BLACK, zone=shapes.sphere(c, 3.2) & ((across & ahead) | (~across & ~ahead)) & under)
+            s.paint("floor", "soft-touch" if ring == SKIN else "matte", colour=ring,
+                    zone=shapes.sphere(c, 6.5) & ~shapes.sphere(c, 5.5) & under)
+    # the rulers: the plank's edge runs straight at x 29 from z -60 to 20, then tapers to x 10 at z 150
+    tick = lambda width, gap, reach, z0, z1: (shapes.stripes(width, across="z", gap=gap, edge=z0) & shapes.band(z0, z1) & under
+                                               & (shapes.box((29.5 - reach, 10, z0), (29.5, 13, z1)) | shapes.box((-29.5, 10, z0), (reach - 29.5, 13, z1))))
+    s.paint("floor", "soft-touch", colour=SKIN, zone=tick(0.5, 2.5, 2.5, -60, 20) | tick(0.6, 14.4, 4.5, -60, 20))
+    u = (-17.0, 0, 130.0)  # the tapered edge, (27.2, 20) to (10.2, 150)
+    for sgn in (1, -1):
+        A, w = (sgn * 27.2, 12, 20), (-sgn * 0.9916, 0, -0.1297)  # the edge's start, and inward from it
+        inside = lambda d: shapes.plane(A, w) & ~shapes.plane((A[0] + d * w[0], 12, A[2] + d * w[2]), w)
+        ticks = shapes.stripes(0.5, across=(sgn * u[0], 0, u[2]), gap=2.5, edge=A, mirror=False) & inside(2.5)
+        long = shapes.stripes(0.6, across=(sgn * u[0], 0, u[2]), gap=14.4, edge=A, mirror=False) & inside(4.5)
+        s.paint("floor", "soft-touch", colour=SKIN, zone=(ticks | long) & shapes.band(20, 150) & under
+                & shapes.plane((0, 0, 0), (sgn, 0, 0)))
+    # the block scale: two rows of 5 by 2.5 cm blocks along the outer floor's straight edge at x 67, z -60 to 30 (the
+    # floor rises to y 14.6 out there)
+    row = lambda x0, x1, edge: (shapes.stripes(5, across="z", edge=edge) & shapes.band(-60, 30) & under
+                                & (shapes.box((x0, 10, -60), (x1, 16, 30)) | shapes.box((-x1, 10, -60), (-x0, 16, 30))))
+    s.paint("floor", "matte", colour=BLACK, zone=row(64.5, 67.2, -60) | row(62, 64.5, -55))
 
     s.step("The lights", "The car's own lights in the dummy's yellow: the wheel rings, the speed numbers, "
            "the rear and brake lights.", look="rear night")
