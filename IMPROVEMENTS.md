@@ -76,8 +76,11 @@ it.
 
 - **The underside is black in the camera** (2026-10-21, the user: "it's black because of shadow"): the floor isn't drawn
   from below, but the studio is lit from the sky above and nothing lights the car from underneath, so the body sheet's
-  underside view (`tool.snap <name> --body`) shows a painted underside as near black. Idea: for a view from below, light
-  the car from below too (the sky turned under it, or a fill light), snapshots only.
+  underside view (`tool.snap <name> --body`) shows a painted underside as near black. The game's garage has a camera
+  light toggle, a light from the camera onto whatever it looks at (the user, 2026-10-21). Idea: the same switch in the
+  camera, on for the checks' pictures (the body sheet, the close looks: nothing left in shadow) and off for the views,
+  the chase cameras and the night shot (the look judged in the fitted light). A garage screenshot with the camera light
+  on is the cleanest picture of a skin's colours the game gives: step 13 fits the camera's colours against it first.
 - **Fur made by the tool, with a lay that follows the car** (2026-10-09, TSC_Bumblebee's surfaces pass; 2026-10-11): the
   photographed piles (fur, teddy fur, plaid fur, plush, velvet, fleece: `tool/textures.py`, the Lab's LF-08 to LF-13) lay
   their nap along each panel of the car's unfolding, fixed in the photo, so a photo's hairs can't sweep round the nose
