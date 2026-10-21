@@ -90,3 +90,4 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   each outer edge. The three earlier targets gone. Let go again (gate --despite): the two old steps in the body's tick
   runs, untouched by this.
 - Shown (2026-10-21, on the Mac): the underside from below under the camera light, whole and close.
+- The user, 2026-10-21, of the underside: "A lot better".
