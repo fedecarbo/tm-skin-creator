@@ -155,6 +155,7 @@ def option(car, n, title, skin=None):
         raise SetsError(f"no skin called {skin}")
     if skin == car or any(o["skin"] == skin for o in s["options"]):
         raise SetsError(f"{skin} can't be an option here")
+    (SKINS / skin / "take.json").write_text(json.dumps({"of": car}) + "\n", encoding="utf-8")  # a take (tool/gate.py's alone)
     s["options"].append({"key": letter, "title": title, "skin": skin})
     s["state"] = "painting"
     save(doc)
@@ -254,6 +255,7 @@ def clear(car, s):
         if name == car:
             continue
         if f"{name}.zip" in game:
+            (SKINS / name / "take.json").unlink(missing_ok=True)  # a car of its own now
             said.append(f"kept {name}: it's in the game")
             continue
         if (SKINS / name).is_dir():

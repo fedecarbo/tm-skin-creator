@@ -2,23 +2,23 @@
 don't work, then let's find another approach ... it cannot randomly make mistakes").
 
     python -m tool.gate <name>                    what the gates say of the car now
-    python -m tool.gate <name> --despite "<why>"  let what blocks go, said to the user in the Lab: what it is and why
+    python -m tool.gate <name> --despite "<why>"  let what blocks go: prints what it is and why, for the user to be told
 
 A car passes when this computer's verdict (tool/judge.py: build/<name>/verdict.json) is of its design as it is
 (`design_hash`: design.py, the designs it borrows, its art), nothing in it blocks but what was let go, and, with `looks`,
-the close looks (tool/close.py) have seen that design: a car shown alone wants them, an option in a set doesn't. Where
-it bites:
-  tool.notes done      a note handled: with the close looks
-  tool.sets open       a set's takes: each judged
+the close looks (tool/close.py) have seen that design: a car shown alone wants them, a take doesn't (`alone`: a take
+is a skin made as one of several to pick from, marked by skins/<name>/take.json, {"of": the car}, written by whoever
+makes takes, tool/sets.py). Where it bites:
   tool.skin install    judged in the paint it puts in the game
   a pass               an agent whose brief names a car with a language (language.md): with the close looks, refused
                        before it starts (tool/guard.py, PreToolUse)
   the end of a turn    each car whose design, verdict or what was let go changed in the turn: held once for each thing
                        wrong (tool/guard.py, Stop)
+  tool.notes done, tool.sets open   the Lab's: a note handled (with the close looks), a set's takes (each judged)
 What blocks and is meant, or is still there after about three rounds of fixing, is let go with --despite, never
-quietly: the Lab's timeline says what it is and why, and skins/<name>/despite.json keeps it let go while the design
-is the same. A car never judged, judged before its last change or not looked at close can't be let go: showing it
-again is cheap.
+quietly: it prints what it is and why, which the user is told, and skins/<name>/despite.json keeps it let go while the
+design is the same. A car never judged, judged before its last change or not looked at close can't be let go: showing
+it again is cheap.
 
 Standard library only: tool/notes.py, tool/sets.py and tool/guard.py run it, the last with whatever Python the
 computer has.
@@ -77,9 +77,8 @@ def blocks(name, v):
 
 
 def alone(name):
-    """The car shown alone, not an option in one of a car's sets (tool/sets.py)."""
-    from tool import sets
-    return sets.find(name) == name
+    """The car shown alone: not a take (skins/<name>/take.json)."""
+    return not (paths.SKINS / name / "take.json").exists()
 
 
 def wrong(name, looks=True):
@@ -112,7 +111,7 @@ def refusal(names, what, looks=True):
             + "\n".join(f"  {line}" for _, line in found))
     if any(k == "blocks" for k, _ in found):
         text += ("\nFix what blocks and show it again (about three rounds). What's meant, or still there after that: "
-                 "`PY -m tool.gate <name> --despite \"<why, in plain words>\"` tells the user in the Lab; then again.")
+                 "`PY -m tool.gate <name> --despite \"<why, in plain words>\"`, and tell the user; then again.")
     return text
 
 
@@ -123,8 +122,8 @@ def _place(text):
 
 
 def despite(name, why):
-    """Let the car's blocks go, for this design: said in the Lab's timeline, what they are and why."""
-    from tool import judge, notes
+    """Let the car's blocks go, for this design. Returns what they are and why, for the user to be told."""
+    from tool import judge
     why = " ".join(str(why or "").split())
     if not why:
         raise SystemExit("--despite needs the why, in plain words")
@@ -141,8 +140,7 @@ def despite(name, why):
     paths.write(p, json.dumps({"design": v["design"], "why": why, "blocks": kept + [f["text"] for f in b],
                                "when": time.strftime("%Y-%m-%d %H:%M")}, indent=1, ensure_ascii=False) + "\n")
     what = "; ".join(judge.KINDS.get(f["kind"], f["kind"]) + _place(f["text"]) for f in b)
-    notes.say(name, f"{why} Still there, as the tool measures it: {what}.")
-    return f"{len(b)} let go on {name}, and said in the Lab"
+    return f"{len(b)} let go on {name}. Tell the user: {why} Still there, as the tool measures it: {what}."
 
 
 def main(args):

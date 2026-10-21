@@ -13,6 +13,7 @@ official/*.zip
 __pycache__/
 *.pyc
 .venv/
+*.egg-info/
 
 # The pictures that come with the Lab's notes on the car, for Claude (tool/notes.py)
 .notes/

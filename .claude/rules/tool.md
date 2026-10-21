@@ -25,7 +25,7 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   the work folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
   `--profile` says where one paint's time and memory go.
 - A cache whose contents change must change its name or version (`coverage._key`,
-  `view.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
+  `labview.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
 - Claude's snapshots must not change with a change made for the Lab (snapshots, `?snap=1`, never
   load the Lab's modules, and the viewer's own Lab features are off under `snap`). The page draws
   only when something changed (`rouse` in `viewer/viewer.js`): anything new that changes the
@@ -39,7 +39,9 @@ picture, writing a file whole) and `requirements.txt` (the picture maker's packa
 graphics chip's, the Mac only).
 
 - Set up a fresh clone: Python 3.14 (on the Mac Homebrew's `python@3.14`), `python -m venv <the
-  work folder>/venv`, `PY -m pip install -r requirements.txt`, on the Mac `PY -m playwright install
+  work folder>/venv`, `PY -m pip install -r requirements.txt`, `PY -m pip install -e . --no-deps` (the tools as a
+  package, `pyproject.toml`: `PY -m tool.<x>` and `from tool import` work from any folder, a concept's beside this
+  one), on the Mac `PY -m playwright install
   --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths`
   looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks
   them; the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
@@ -55,19 +57,23 @@ graphics chip's, the Mac only).
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in
   the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
 - `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in the
-  background. `tool/server.py` is the server: the page, the work folder's data, and the Lab's
-  `/api/notes`, `/api/sets` and `/api/progress` (what the tool is doing,
-  `tool/progress.py`: every command that makes the user wait opens a `progress.job`), for this
-  computer's pages only; reads are open to any origin, for the world (its own project, `~/Developer/personal/tm-world`).
+  background. `tool/server.py` is the tool's static server (a page folder at `/`, the work folder's data at
+  `/data/`, `/api/health`; reads open to any origin, for a page from another folder: the world, its own project,
+  `~/Developer/personal/tm-world`); `tool/labserver.py` builds the Lab's routes on it: `/api/notes`, `/api/sets`,
+  `/api/meshpath` and `/api/progress` (what the tool is doing, `tool/progress.py`: every command that makes the
+  user wait opens a `progress.job`), for this computer's pages only, and `/data/gallery.json` and
+  `/data/lots.json` brought up to date when asked for (`gallery.fresh`). The tools write, the Lab reads: no tool
+  command refreshes the Lab's lists.
 - The Lab is the one page (`viewer/index.html`, http://localhost:8765/): the car in its studio
   (`viewer/viewer.js`: the views and the game's cameras, the moods, the ground (the game's surfaces, `?ground=`), Show, Parts, the pedals, "My skins"
   behind its button), and over it the Lab's modules, loaded once the car is up. `PY -m tool.swatches`
-  paints a ball for every finish in `finishes.CATALOGUE` and serves the page; `PY -m tool.doctor server`
+  paints a ball for every finish in `finishes.CATALOGUE` and serves the page; `PY -m tool.labdoctor server`
   starts it detached (a background task is stopped at its time limit, and the Lab with it) and
-  restarts it after a change to the tool; the session-start hook (`PY -m tool.doctor session`) does
-  the same when the server's code is older than the tool's (`/api/health`), prunes the work folder of
-  skins that no longer exist, and keeps the server's output in the work folder's server.log. A gap in
-  the Lab is a gap in the tool, to fix in the tool. Its modules share `viewer/lab-common.js`:
+  restarts it after a change to the tool; the session-start hook (`PY -m tool.doctor session`, the tool's checks,
+  then `PY -m tool.labdoctor session`, the Lab's) does the same when the server's code is older than the tool's
+  (`/api/health`), prunes the work folder of skins that no longer exist, and keeps the server's output in the work
+  folder's server.log. A gap in the Lab is a gap in the tool, to fix in the tool. Its modules share
+  `viewer/lab-common.js`:
   - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, the car's story
     (`lab-car.js`); Mesh lays the template's mesh over the paint (`viewer.mesh`;
     `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
@@ -77,7 +83,7 @@ graphics chip's, the Mac only).
     `track`, `project`, `camera`, `go`, `mood`, `ground`, `views`, `picture`, and the pen: `pen`, `onStroke`,
     `drawings`.
   - the UV map room (`?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
-    in a room) and `view.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
+    in a room) and `labview.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
     their code change; its Template (`view.export_template`, the model's own lines from
     `meshlines.template`) on the maps and on the car, rebuilt when the mesh or `meshlines.py` change.
     Its Car tab embeds the viewer (`index.html?embed=1`), a second car.

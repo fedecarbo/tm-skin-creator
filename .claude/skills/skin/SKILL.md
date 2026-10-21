@@ -25,7 +25,7 @@ game: install from the Windows PC after a push.
 | `PY -m tool.close <name>` | After a show: close looks along every line and over every decal, square to its face, 20 pixels a cm, both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. About 20 s for a busy car. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number); opens on their screen. |
-| `PY -m tool.doctor server` | Starts the Lab's server (or restarts it after a change to the tool), http://localhost:8765/: the car, the user's notes on it, the chat beside it, the materials and the UV map (`?room=`). The session-start hook does the same. |
+| `PY -m tool.labdoctor server` | Starts the Lab's server (or restarts it after a change to the tool), http://localhost:8765/: the car, the user's notes on it, the chat beside it, the materials and the UV map (`?room=`). The session-start hook does the same. |
 | `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
 | `PY -m tool.skin list` / `PY -m tool.sets <car>` | Every skin / a car's sets of options. |
 | `PY -m tool.gallery lot move <skin> "<name>"` | The car into the lot (their group) they name on the Lab's world; `lots` lists them. |
@@ -142,7 +142,7 @@ game: install from the Windows PC after a push.
 The gates hold you to both (`tool/gate.py`): `tool.notes done`, `tool.sets open`, a pass's agent and
 `install` refuse a car the judge hasn't passed as it is, and a turn is held once with what's wrong. What's
 meant, or still there after about three rounds: `PY -m tool.gate <name> --despite "<why, in plain
-words>"`, which tells the user in the Lab.
+words>"`, then tell the user what it printed, in the Lab (`tool.notes say`).
 3. The whole car: every visible part serves the idea, the lights at night (none left in a stock
    colour), no paint left from an earlier version, no part left in clay by accident (`show` names
    them). Fix and look again.

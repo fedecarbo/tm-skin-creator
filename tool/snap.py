@@ -103,7 +103,8 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
 def page(path, size=(1600, 1000)):
     """The Lab's page, e.g. "?room=uv" ("" for the car), photographed whole once it says it's
     ready (window.lab), into build/<page>.png."""
-    httpd = server.start(0)
+    from tool import labserver  # the Lab's routes, not just the camera's files
+    httpd = server.start(0, handler=labserver.Handler)
     out = paths.BUILD / ((re.sub(r"[^\w-]+", "_", path).strip("_") or "lab") + ".png")
     try:
         with sync_playwright() as p:

@@ -29,7 +29,7 @@ FRAMES = {
 }
 
 def rooms(p):
-    """ROOMS with each room's part ids and its maps, for the Lab (view.export_uvmap). A framed view
+    """ROOMS with each room's part ids and its maps, for the Lab (labview.export_uvmap). A framed view
     carries the ids it frames (fit), and hides the ids of the parts the room takes off."""
     ids = {r["key"]: [i for i, inst in enumerate(p.instances) if inst["mesh"] in r["sets"]] for r in ROOMS}
     placed = set().union(*ids.values())

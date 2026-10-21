@@ -34,7 +34,7 @@ import json
 import re
 import sys
 
-from tool import finishes, paths, server, view
+from tool import finishes, labserver, paths, server, view
 
 FOLDER = view.DATA / "language"
 HEX = re.compile(r"#[0-9a-fA-F]{6}")
@@ -204,10 +204,10 @@ def main(argv=None):
     if args.no_open:
         print(f"{args.name}'s visual language: {page_url(args.name)}")
     elif server.ours():
-        server.serve(f"data/language/{args.name}.html", f"{args.name}'s visual language")
+        labserver.serve(f"data/language/{args.name}.html", f"{args.name}'s visual language")
     else:
         print(f"{args.name}'s visual language: {page_url(args.name)} (the Lab's server isn't up: "
-              "`PY -m tool.doctor server`)")
+              "`PY -m tool.labdoctor server`)")
 
 
 if __name__ == "__main__":

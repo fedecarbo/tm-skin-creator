@@ -1,9 +1,11 @@
 """The list of skins, newest first, the installed ones marked: "My skins" on the Lab's page, and the
 lots they're parked in on the Lab's world (viewer/lab-garage.js), the user's own groups.
 
-The page (viewer/index.html) reads /data/gallery.json, written here (refresh, which `tool.skin show`
-calls) from skins/*/ and skins/installed.json, and shows each skin's thumb.png (copied to the work
-folder's viewer data). Each entry says its lot; /data/lots.json lists the lots in the user's order.
+The page (viewer/index.html) reads /data/gallery.json, written here (refresh) from skins/*/ and
+skins/installed.json, and shows each skin's thumb.png (copied to the work folder's viewer data). Each entry
+says its lot; /data/lots.json lists the lots in the user's order. The Lab's server (tool/labserver.py) calls
+`fresh` when a page asks for either: they're brought up to date from what the tools wrote (a thumb, a design,
+a record, the game's list) and what the Lab wrote (sets, notes, lots), so no command refreshes them.
 
 The lots, skins/lots.json (committed: both computers see the same world; a skin in no lot is in New):
 
@@ -59,6 +61,18 @@ def first_commits():
         elif line.startswith("skins/") and when is not None:
             times[line.split("/")[1]] = when
     return times
+
+
+def fresh():
+    """gallery.json brought up to date when anything it's made of is newer than it."""
+    out = DATA / "gallery.json"
+    if not out.exists():
+        return refresh()
+    sources = [*paths.SKINS.glob("*/thumb.png"), *paths.SKINS.glob("*/design.py"), *paths.SKINS.glob("*/notes.md"),
+               *paths.SKINS.glob("*/sets.json"), *(DATA / "skins").glob("*/skin.json"),
+               paths.INSTALLED_MANIFEST, LOTS, notes.HOME / "notes.json", paths.SKINS]
+    newest = max((p.stat().st_mtime for p in sources if p.exists()), default=0)
+    return refresh() if newest > out.stat().st_mtime else None
 
 
 def refresh():

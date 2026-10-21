@@ -1,7 +1,8 @@
 """Does everything the instructions name still exist? A renamed command, flag, file or function then
 fails the self-test, not a session that trusts the instructions.
 
-    python -m tool.instructions     prints what's missing, or one line: all present
+    python -m tool.instructions                 prints what's missing, or one line: all present
+    python -m tool.instructions --root <folder>  the same for another repo's instructions (a concept's)
 
 The self-test runs it on the working tree. The instructions are what a session reads: CLAUDE.md,
 RULES.md, the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car in words
@@ -276,8 +277,12 @@ def line(counts, missing):
         f"    {where}  `{s}`: {why}" for where, s, why in missing)
 
 
-def main():
-    counts, missing = check()
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    root = Path(argv[1]).resolve() if argv[:1] == ["--root"] and len(argv) == 2 else REPO
+    if argv and root is REPO:
+        sys.exit(__doc__)
+    counts, missing = check(root)
     print(line(counts, missing))
     sys.exit(1 if missing else 0)
 

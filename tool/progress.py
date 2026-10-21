@@ -9,9 +9,10 @@ them wait reports its job and its stages here, and the chat shows one widget per
         progress.tick()                            # 1 of 6 ...
 
 Each job is a file in the work folder's progress/ folder, replaced whole at each change and every
-BEAT seconds while it runs; the viewer's server reads them all (`jobs`, /api/progress). A job whose
+BEAT seconds while it runs; a page's server reads them all (`jobs`: the Lab's /api/progress). A job whose
 file stops beating (its process killed) reads as stopped after STALE seconds, and a finished one
-stays KEEP seconds as a single line, then its file goes. A job opened inside another in the same
+stays KEEP seconds as a single line, then its file goes (pruned by `jobs`, and when a job opens, so
+the folder never piles up without a reader). A job opened inside another in the same
 process (a snapshot inside a show) adds no widget: its stages are the outer job's. Without a job
 the calls do nothing, so the code under them runs the same from anywhere (the self-test's children).
 
@@ -71,6 +72,7 @@ def job(title, skin=None, done=None):
         yield _current
         return
     j = _current = Job(title, skin, done)
+    _prune()
     j.write()
     threading.Thread(target=j.beat, daemon=True).start()
     try:
@@ -115,17 +117,30 @@ def result(text, failed=False):
         _current.doc["failed" if failed else "result"] = text
 
 
-def jobs():
-    """Every job for the Lab, oldest first, each with its state: running, done, failed or stopped.
-    Finished ones older than KEEP are deleted on the way."""
-    now = time.time()
-    out = []
+def _read(now):
+    """(file, its job, when it ended or stopped beating) for each job file, oldest first."""
     for f in sorted(FOLDER.glob("*.json")) if FOLDER.is_dir() else ():
         try:
             doc = json.loads(f.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue  # being replaced: the next ask
-        end = doc.get("ended") or (doc["beat"] if now - doc["beat"] > STALE else None)
+        yield f, doc, doc.get("ended") or (doc["beat"] if now - doc["beat"] > STALE else None)
+
+
+def _prune():
+    now = time.time()
+    for f, _, end in _read(now):
+        if end and now - end > KEEP:
+            with contextlib.suppress(OSError):
+                f.unlink()
+
+
+def jobs():
+    """Every job, oldest first, each with its state: running, done, failed or stopped.
+    Finished ones older than KEEP are deleted on the way."""
+    now = time.time()
+    out = []
+    for f, doc, end in _read(now):
         if end and now - end > KEEP:
             with contextlib.suppress(OSError):
                 f.unlink()

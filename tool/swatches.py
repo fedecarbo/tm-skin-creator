@@ -31,7 +31,7 @@ import time
 import numpy as np
 from PIL import Image
 
-from tool import colours, finishes, looks, props, textures, tyres, view
+from tool import colours, finishes, labview, looks, props, textures, tyres, view
 
 FOLDER = view.DATA / "materials"
 RADIUS = 15.0  # cm: a 30 cm ball
@@ -262,10 +262,11 @@ def main():
     args = ap.parse_args()
     infos = build(args.all)
     print(f"{len(infos)} materials")
-    view.export_mesh()  # the car, and the Lab's rooms' data (view.export_uvmap)
+    view.export_mesh()  # the car
+    labview.export_uvmap()  # the Lab's rooms' data
     if not args.no_open:
-        from tool import server
-        server.serve("", "the Lab", open_tab=not args.no_tab)
+        from tool import labserver
+        labserver.serve("", "the Lab", open_tab=not args.no_tab)
 
 
 if __name__ == "__main__":

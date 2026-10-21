@@ -17,7 +17,6 @@ that finds another painting waits for it, and says so.
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),
 notes.md (the user's words and each change they asked for), thumb.png (the latest picture),
 versions/<n>.png (a picture of every round shown).
-show() also refreshes the Lab's list of skins (tool/gallery.py).
 """
 
 import argparse
@@ -27,7 +26,7 @@ import os
 import sys
 import time
 
-from tool import build, gallery, gate, install, judge, paintbox, paths, progress, snap, view
+from tool import build, gate, install, judge, paintbox, paths, progress, snap, view
 
 
 def borrow(name):
@@ -138,11 +137,14 @@ def show(name, open_browser=False, snapshot=True):
             thumb = paths.SKINS / name / "thumb.png"
             snap.snap(name, prepare=False, thumb=thumb)
             keep_version(name, thumb)
-        gallery.refresh()
     if open_browser:
         import urllib.parse
+        import webbrowser
         from tool import server
-        server.serve(f"?skin={urllib.parse.quote(name)}", "viewer")
+        if server.ours():
+            webbrowser.open(f"http://localhost:{server.PORT}/?skin={urllib.parse.quote(name)}")
+        else:
+            print("no server of ours is up to show it: `PY -m tool.labdoctor server`")
     return s
 
 
@@ -181,7 +183,6 @@ def do_install(name):
         progress.stage("Copying it into the game")
         target = install.install(zip_path)
         print(f"installed {target.name}")
-        gallery.refresh()
     return target
 
 
@@ -193,9 +194,11 @@ def main():
     ap.add_argument("--no-snap", action="store_true")
     args = ap.parse_args()
     if args.command == "list":
-        for entry in gallery.refresh():
-            mark = " (in the game)" if entry["installed"] else ""
-            print(f"{entry['name']:<24} {entry['when']}{mark}  {entry['words']}")
+        manifest = install.load_manifest()
+        designs = sorted(paths.SKINS.glob("*/design.py"), key=lambda p: p.stat().st_mtime, reverse=True)
+        for p in designs:
+            when = time.strftime("%Y-%m-%d %H:%M", time.localtime(p.stat().st_mtime))
+            print(f"{p.parent.name:<28} {when}" + ("  in the game" if f"{p.parent.name}.zip" in manifest else ""))
         return
     if not args.name:
         sys.exit("which skin?")
