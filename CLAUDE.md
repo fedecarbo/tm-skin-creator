@@ -38,10 +38,10 @@ cars, or a car the user asks for outright, and then it reads the `paint` skill f
 - `tool/`: the Python machinery. `viewer/`: the camera, the page the snapshots are taken on. `car/parts.json`:
   every part's name. `skins/<name>/`: one folder per skin: its design, its language, its record (`notes.md`), its
   art; a concept edits this repo only here. `skins/installed.json`: what the tool put in the game.
-- `PY` is the tool's Python, run from the repo root: on the PC
-  `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac
-  `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`. Its parent folder
-  is the work folder (caches, builds, the viewer's data): all rebuildable.
+- `PY` is the tool's Python, run from the repo root: on the Mac `.venv/bin/python`, on the PC
+  `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`. The work folder (caches, builds, the
+  viewer's data, the snapshots' browser: all rebuildable, never in git) is `work/` on the Mac and the PC's venv's
+  parent, outside its OneDrive (`tool/paths.py`).
 - GitHub `fedecarbo/tm-skin-creator` (public), branch `main`. Never push files that aren't ours to
   publish. Credit the car model's author, amogusstrikesback2 (CC-BY-4.0), wherever it's reused.
 

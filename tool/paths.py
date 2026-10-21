@@ -1,5 +1,6 @@
-"""Where things live: the repo, and the work folder outside OneDrive (on the Mac, in Application
-Support), plus the two computers' differences: the browser for snapshots and opening a file."""
+"""Where things live: the repo, and the work folder, everything the tools make or cache (rebuildable, never in git):
+work/ in the repo on the Mac; on the PC, whose clone sits in OneDrive, outside it in LOCALAPPDATA until the clone
+moves (IMPROVEMENTS.md). Plus the two computers' differences: the browser for snapshots and opening a file."""
 
 import os
 import subprocess
@@ -14,8 +15,7 @@ SKINS = REPO / "skins"
 INSTALLED_MANIFEST = SKINS / "installed.json"
 
 MAC = sys.platform == "darwin"
-WORK = (Path.home() / "Library" / "Application Support" if MAC
-        else Path(os.environ["LOCALAPPDATA"])) / "TrackmaniaSkinChallenge"
+WORK = REPO / "work" if MAC else Path(os.environ["LOCALAPPDATA"]) / "TrackmaniaSkinChallenge"
 UNPACKED = WORK / "official"  # extracted copies of the resources/official/ zips
 TEMPLATE = UNPACKED / "template"  # Nadeo's ReadMe and UV maps
 MODEL = UNPACKED / "model"  # the Sketchfab zip: textures/*.png, source/*.zip

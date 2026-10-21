@@ -41,8 +41,8 @@ computers' differences live in `tool/paths.py` (the work folder, the snapshots' 
 picture, writing a file whole) and `requirements.txt` (the picture maker's packages, the PC only; MLX, the
 graphics chip's, the Mac only).
 
-- Set up a fresh clone: Python 3.14 (on the Mac Homebrew's `python@3.14`), `python -m venv <the
-  work folder>/venv`, `PY -m pip install -r requirements.txt`, `PY -m pip install -e . --no-deps` (the tools as a
+- Set up a fresh clone: Python 3.14 (on the Mac Homebrew's `python@3.14`), `python -m venv .venv` (on the PC, the
+  work folder's `venv`), `PY -m pip install -r requirements.txt`, `PY -m pip install -e . --no-deps` (the tools as a
   package, `pyproject.toml`: `PY -m tool.<x>` and `from tool import` work from any folder, a concept's beside this
   one), on the Mac `PY -m playwright install
   --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths`
