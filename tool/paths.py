@@ -1,6 +1,6 @@
 """Where things live: the repo, and the work folder, everything the tools make or cache (rebuildable, never in git):
-work/ in the repo on the Mac; on the PC, whose clone sits in OneDrive, outside it in LOCALAPPDATA until the clone
-moves (IMPROVEMENTS.md). Plus the two computers' differences: the browser for snapshots and opening a file."""
+work/ in the repo on the Mac; on the PC, whose clone sits in OneDrive, outside it in LOCALAPPDATA. Plus the two
+computers' differences: the browser for snapshots and opening a file."""
 
 import os
 import subprocess

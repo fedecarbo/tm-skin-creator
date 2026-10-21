@@ -150,14 +150,3 @@ def meshes():
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(CACHE, **{f"{m}/{k}": v for m, d in result.items() for k, v in d.items()})
     return result
-
-
-if __name__ == "__main__":
-    for name, m in meshes().items():
-        p = m["positions"]
-        print(
-            f"{name}: {len(p)} vertices, {len(m['tri_vertex'])} triangles, "
-            f"x {p[:, 0].min():.1f}..{p[:, 0].max():.1f}, y {p[:, 1].min():.1f}..{p[:, 1].max():.1f}, "
-            f"z {p[:, 2].min():.1f}..{p[:, 2].max():.1f}, "
-            f"uv {m['tri_uv'].min():.3f}..{m['tri_uv'].max():.3f}"
-        )

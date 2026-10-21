@@ -56,9 +56,8 @@ PARTS = [
     dict(name="floor", parent="floor", rule="floor_main"),
     dict(name="floor plank", parent="floor", rule="floor_plank"),
     # the frame the tail hangs on: the face round the speed numbers, the channels under it and the two
-    # arms reaching forward. Cut from the floor's piece by its rule, it was "rear diffuser" in the
-    # floor until the user saw it (2026-09-26: "you are including a big portion of the rear.
-    # That's not the floor")
+    # arms reaching forward. Cut from the floor's piece by its rule: it isn't floor (the user,
+    # 2026-09-26: "you are including a big portion of the rear. That's not the floor")
     dict(name="tail frame", parent="tail", rule="floor_diffuser"),
     dict(name="floor rail", parent="floor", group=[254]),
     dict(name="nose inner", parent="chassis", rule="chassis_nose"),
@@ -108,7 +107,7 @@ PARTS = [
     dict(name="brake line", parent="front suspension", group=[279]),
     dict(name="upright", parent="front suspension", group=[415, 416]),
     # the slotted crescent inside each front wheel that the stock Details_I marks as brake lights
-    # (code 0): dim all the time, flaring when braking (checkpoint 1). Part of the hub's group.
+    # (code 0): dim all the time, flaring when braking (seen in the game). Part of the hub's group.
     dict(name="brake light", parent="rims and brakes", piece=[461, 462]),
     dict(name="hub", parent="rims and brakes", group=[421, 434]),
     dict(name="rim", parent="rims and brakes", group=[442, 443, 440, 444]),

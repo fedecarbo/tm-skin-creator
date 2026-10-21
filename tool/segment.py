@@ -118,11 +118,3 @@ def segments():
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(CACHE, **seg)
     return seg
-
-
-if __name__ == "__main__":
-    s = segments()
-    for i, name in enumerate(SETS):
-        sel = s["piece_mesh"] == i
-        print(f"{name}: {sel.sum()} pieces, {len(np.unique(s['group'][s['mesh'] == i]))} groups, "
-              f"{(s['piece_twin'][sel] >= 0).sum()} mirrored")

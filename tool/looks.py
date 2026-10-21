@@ -69,41 +69,14 @@ def planar_uv(pos, axis):
     return pos[:, a], pos[:, b]
 
 
-TUBE_AXIS_Y = 40.0  # the body is roughly a tube around a line at this height, along z
-
-
-def tube_uv(pos):
-    """Coordinates wrapped round the car's length like a label round a tube: u is the arc
-    length round the tube (cm), v the position along it. One projection for the whole
-    cross-section, so nothing overlaps on the shoulders; only the surfaces facing forward or
-    back (the nose's tip, the tail's face) smear, and those take the planar z projection."""
-    x, y = pos[:, 0], pos[:, 1] - TUBE_AXIS_Y
-    r = np.sqrt(x * x + y * y)
-    theta = np.arctan2(x, y)
-    return theta * r, pos[:, 2]
-
-
 def triplanar_value(pos, nrm, fn2d, power=4, wrap="planes", uv=None):
     """Lay a 2D pattern fn2d(u, v) -> (n,) on the surface.
     wrap="uv": in the car's own unfolding (tool/uvmap.py), which has almost no stretch; `uv`
     is the (n, 2) flat position in cm the paint box passes in. The default on the body.
     wrap="planes": from each of the three axes, blended by facing; the default on the inner
-    car. wrap="tube": round the car's length (kept for comparison; it stretches the flanks)."""
+    car."""
     if wrap == "uv" and uv is not None:
         return fn2d(uv[:, 0], uv[:, 1])
-    if wrap == "tube":
-        along = np.abs(nrm[:, 2])
-        t = smoothstep(0.6, 0.85, along)  # 1: faces along the car: use the flat z projection
-        out = np.zeros(len(pos), np.float32)
-        side = t < 0.99
-        if side.any():
-            u, v = tube_uv(pos[side])
-            out[side] += (1 - t[side]) * fn2d(u, v)
-        end = t > 0.01
-        if end.any():
-            u, v = planar_uv(pos[end], 2)
-            out[end] += t[end] * fn2d(u, v)
-        return out
     w = triplanar(nrm, power)
     out = np.zeros(len(pos), np.float32)
     for axis in range(3):
@@ -222,7 +195,6 @@ def webbing(pos, nrm, colour, finish, params):
     return {"colour": tint(colour, 0.8 + 0.35 * w)}
 
 
-@look("leather")
 def leather(pos, nrm, colour, finish, params):
     seed = params.get("seed", 0)
     f1, f2 = noise.worley(pos / 0.35, seed, second=True)
@@ -370,7 +342,6 @@ def scratched(pos, nrm, colour, finish, params):
             "varnish": const(len(pos), finish.varnish) * (1 - total)}
 
 
-@look("chipped")
 def chipped(pos, nrm, colour, finish, params):
     seed = params.get("seed", 0)
     amt = _amount(params)
@@ -520,8 +491,8 @@ def surface_points(pos, spacing, seed=0, regular=True, relax=15):
         blocked[hi[starts[i]:starts[i + 1]]] = True
     points = cand[accepted]
     # settle: each point moves to the middle of the surface nearest to it, then back onto the
-    # surface (Lloyd relaxation), so the spacing evens out into a honeycomb-like arrangement
-    # instead of a jittered one (the user found the first result messy, 2026-09-24)
+    # surface (Lloyd relaxation), so the spacing evens out into a honeycomb-like arrangement:
+    # a jittered one reads as messy (the user, 2026-09-24)
     for _ in range(int(relax)):
         _, owner = cKDTree(points).query(cand, workers=-1)
         sums = np.zeros_like(points)

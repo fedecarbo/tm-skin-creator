@@ -11,8 +11,7 @@ build/<name>/verdict.json, with what the close looks read (tool/close.py: along 
 install judges the paint it puts in the game, and stops at what blocks (tool/gate.py).
 
 Paints take turns: one at a time on a computer (TSC_PAINTS=<n> for more), since each needs a few
-GB and the Mac's old container (7.7 GB) ran out of memory with three at once (2026-09-28). A show or install
-that finds another painting waits for it, and says so.
+GB. A show or install that finds another painting waits for it, and says so.
 
 A skin lives in skins/<name>/: design.py (a `design(s)` function that paints a paintbox.Skin),
 notes.md (the user's words and each change they asked for), thumb.png (the latest picture),
@@ -133,7 +132,7 @@ def show(name, open_browser=False, snapshot=True):
             print(f"exported in {time.time() - t0:.0f} s")
         if snapshot:
             # the front three-quarter view becomes the skin's picture in the gallery, and a numbered
-            # copy in versions/ keeps every round the user has seen (checkpoint 7)
+            # copy in versions/ keeps every round the user has seen
             thumb = paths.SKINS / name / "thumb.png"
             snap.snap(name, prepare=False, thumb=thumb)
             keep_version(name, thumb)
@@ -188,10 +187,9 @@ def do_install(name):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["show", "install", "list", "paint"])
+    ap.add_argument("command", choices=["show", "install", "list"])
     ap.add_argument("name", nargs="?", help="the skin")
     ap.add_argument("--open", action="store_true")
-    ap.add_argument("--no-snap", action="store_true")
     args = ap.parse_args()
     if args.command == "list":
         manifest = install.load_manifest()
@@ -204,10 +202,7 @@ def main():
         sys.exit("which skin?")
     name = args.name
     if args.command == "show":
-        show(name, args.open, snapshot=not args.no_snap)
-    elif args.command == "paint":
-        with progress.job(f"Painting {progress.title_of(name)}", skin=name, done="Painted"), paint_slot():
-            paint(name)
+        show(name, args.open)
     else:
         do_install(name)
 

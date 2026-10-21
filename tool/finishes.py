@@ -344,7 +344,7 @@ def resolve(phrase, default="gloss"):
     return colour, finish, leftover
 
 
-# The Details_I alpha codes (CLAUDE.md), as the lab put them on named parts, and what the game
+# The Details_I alpha codes, as the lab put them on named parts, and what the game
 # did with them in the user's screenshots (2026-09-24). `keeps colour`: the texel's RGB shows
 # as painted; otherwise the game tints it and the RGB should be grey.
 GLOWS = {

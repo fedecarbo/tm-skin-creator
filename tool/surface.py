@@ -18,9 +18,6 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
     S.FV, S.FF                         the fine surface: the same, every face cut into 16 (its edges halved twice),
                                        for values between the model's own points: its face j lies in face j // 16,
                                        its first vertices are RV's, the rest the midpoints
-    S.distance(points, reach)          cm along the surface from any points, per fine vertex within `reach` cm of
-                                       them: exact (the points put into the fine surface as vertices of its own,
-                                       then libigl's exact geodesics); inf beyond the reach and on other pieces
     S.signed(line, reach, closed, crease)   cm along the surface from a line (its points in order on the surface,
                                        every quarter centimetre or so), with a side: + to the line's left as it
                                        runs, seen from outside, - to its right, exact on each side (the line put in
@@ -49,8 +46,8 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
                                        raised plate's edge: the raised skin is measured as if it sat level with the
                                        other, and the wall takes the sticker's edge) and bridges a gap up to BRIDGE
                                        cm between two skins facing alike. A
-                                       Chart: .at(size, lin) reads (X, Y) at texels (nan beyond the reach), .read(xy,
-                                       points=) at points on the car, .stretch() how far the sticker is stretched on
+                                       Chart: .read(xy, size, lin) reads (X, Y) at texels (nan beyond the reach),
+                                       .read(xy, points=) at points on the car, .stretch() how far the sticker is stretched on
                                        each face (0.05: its lengths grow or shrink 5 %; inf where it folds over itself)
     S.texels(size, lin)                where texels of the set's map (flat indices row * size + column; all by
                                        default) sit on the fine surface, from the bake's triangle (tool/bake.py):
@@ -296,24 +293,6 @@ class Surface:
         keep = np.flatnonzero(np.isfinite(near[self.FF]).any(1))
         verts, local = np.unique(self.FF[keep], return_inverse=True)
         return self.FV[verts], local.reshape(-1, 3), keep, verts
-
-    def distance(self, points, reach=8.0):
-        """cm along the surface from any points, per fine vertex within `reach` cm of them: the points put into the fine
-        surface as vertices of its own, the distances then exact (libigl's exact geodesics) on a patch of the surface
-        within the reach; inf beyond it, and on pieces holding none of the points."""
-        import igl
-        pts = np.asarray(points, np.float64).reshape(-1, 3)
-        f, w, on = self._locate(pts)
-        V, F, keep, verts = self._patch(on, reach)
-        V2, F2, src, _, _ = _insert(V, F, np.searchsorted(keep, f), w, on)
-        n = len(V2)
-        comp = _components(F2, n)
-        d = np.asarray(igl.exact_geodesic(V2, F2.astype(np.int64), np.unique(src).astype(np.int64), np.zeros(0, np.int64),
-                                          np.arange(n, dtype=np.int64), np.zeros(0, np.int64))).reshape(-1)[:len(V)]
-        ok = np.isin(comp[:len(V)], comp[src]) & (d <= reach)
-        out = np.full(len(self.FV), np.inf)
-        out[verts[ok]] = d[ok]
-        return out
 
     def _chain(self, pts, closed):
         """A line's points on the fine surface (the piece most of them are on: a point landing on another piece within
@@ -1143,10 +1122,6 @@ class Chart(_Patch):
         self.solved = len(Fn) if solved is None else solved  # the faces from here on are steps' walls, collapsed
         self._stretch = None
 
-    def at(self, size, lin=None):
-        """(X, Y) at texels of the set's map (flat indices; all by default): (m, 2), nan where the chart doesn't reach."""
-        return self.read(self.xy, size, lin)
-
     def stretch(self):
         """Per face of the mesh: how far the sticker is stretched there, the most its lengths grow or shrink as a share
         of themselves (0.05: 5 %; 0 flat); inf where the map folds over itself."""
@@ -1188,16 +1163,11 @@ def main():
           f"{sizes.max()} faces, {int((sizes < 50).sum())} under 50; the fine surface {len(S.FF)} faces over {len(S.FV)} points.")
     a, b = np.array([60.0, 16.5, -60.0]), np.array([60.0, 40.0, -60.0])  # the body's bottom edge, and up the side from it
     t = time.time()
-    d = S.distance(a, reach=40)
-    took = time.time() - t
-    t = time.time()
     path = S.path([a, b])
     walked = time.time() - t
-    j = S._locate(b[None])[0][0]
-    print(f"From the bottom edge at {tuple(a.round(1).tolist())} to {tuple(b.round(1).tolist())} up the side: "
-          f"{d[S.FF[j]].min():.2f} cm along the surface ({took:.2f} s, within 40 cm), the straightest "
-          f"line between them {len(path)} points and {np.linalg.norm(np.diff(path, axis=0), axis=1).sum():.2f} cm long "
-          f"({walked:.3f} s), {np.linalg.norm(a - b):.2f} cm through the air.")
+    print(f"From the bottom edge at {tuple(a.round(1).tolist())} to {tuple(b.round(1).tolist())} up the side: the "
+          f"straightest line between them {len(path)} points and {np.linalg.norm(np.diff(path, axis=0), axis=1).sum():.2f} "
+          f"cm long ({walked:.3f} s), {np.linalg.norm(a - b):.2f} cm through the air.")
     c = meshlines.line((39, 19, 70))
     size = 4096
     t = time.time()

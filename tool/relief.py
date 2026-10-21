@@ -10,7 +10,7 @@ A height is a function h(pos, nrm) -> cm, drawn on each part's own positions (a 
 shared texel gets the part's own shape). Its slope along the texture's u and v is measured in 3D:
 h at the texel and a millimetre along each of the texture's directions on that triangle (dP/du,
 dP/dv), so the relief is right across seams, folds and mirrored twins. The game reads the map as
-OpenGL (+v up the image), which the wing domes confirmed in checkpoint 4.
+OpenGL (+v up the image), confirmed in the game on the wing domes.
 
 Nadeo's own relief (their Details_N) stays under ours, blended, unless a call replaces it. Their
 map is 2048²; ours is drawn at the Details canvas's size (4096²) and ships there when the zip has

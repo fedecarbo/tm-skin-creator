@@ -256,8 +256,8 @@ def checks(size, across=("z", "y"), edge=(0.0, 0.0), mirror=True, soft=SOFT):
 
 
 # the wheel centres, fitted to the tyres' tread and bead, the covers' and the rims' edges (within
-# 0.2 mm, 2026-09-25). The older figures (35.3; 178.9, -119.6) were 5.7 mm too far forward, and a
-# ring round them wobbled in the game as the wheel turned (the user). tool/parts.py uses these too.
+# 0.2 mm, 2026-09-25): a ring round a centre a few millimetres off wobbles in the game as the wheel
+# turns (the user). tool/parts.py uses these too.
 WHEEL_Y, WHEEL_Z = 35.252, (178.314, -120.163)
 
 

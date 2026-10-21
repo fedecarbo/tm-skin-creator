@@ -16,7 +16,7 @@ it (any spelling of Trackmania\\Skins or Skins\\Models, or install.py's GAME_SKI
 is refused before it runs, with the reason. The file tools are denied there by the permissions in
 .claude/settings.json.
 
-A car built in passes (it has a language: .claude/skills/skin/language.md) gets each pass's agent only once the judge
+A car built in passes (it has a language: skins/<name>/language.json) gets each pass's agent only once the judge
 has passed it as it is and the close looks have seen it (tool/gate.py): an agent whose brief names it is refused
 until then, so no pass starts on a broken car.
 
