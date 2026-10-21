@@ -9,11 +9,9 @@ and checked by the self-test; ideas are named in plain words.
 
 ## Next: the road
 
-The research's order of work (`research/Skin tool state of the art 2026.md`), one step per session (the user,
-2026-10-07: "I will do the plan a session each"): built under the self-test, its worth shown on a new test car made for
-it (never a past car) or in plain words and numbers, then on the user's OK everything it retires removed (code,
-mentions, caches, the test car; `git grep` finds none of the retired names), the step deleted here, commit, push. A
-step names its model and effort; the user sets them as the session starts. One step is left, and it waits for the PC
+The research's order of work (`research/Skin tool state of the art 2026.md`), one step per session: built under the
+self-test, its worth shown on a new test car made for it (never a past car) or in plain words and numbers, then on
+the user's OK everything it retires removed and the step deleted here. One step is left, and it waits for the PC
 (away until November or December 2026):
 
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's

@@ -34,13 +34,13 @@ Draw the signature, the DNA and each size flat, in its colours (each svg a viewB
 It says how, never where: no list of items to place. Take the idea's feeling, materials and behaviour from its
 source, and its lines and shapes from the car's own form (its panels, creases and edges): the source's own
 geometry laid on the car reads too literal (the user, 2026-10-07, of a bomber's planform on the car: "it just
-doesn't go well with the aesthetics of the car"). The concept shows it to the user as a page (the Lab's
-language command checks it and opens it); the user changes it until it's right. It changes later too: when a pass
+doesn't go well with the aesthetics of the car"). The concept shows it to the user as a page; the user changes
+it until it's right. It changes later too: when a pass
 finds the language missing something, the language changes (and its page), not only the car.
 
 ## 2. The composition (this session): three takes, the user picks
 
-Three takes as a set of options (the concept's: the Lab's sets, a skin beside the car for each), each a different
+Three takes as a set of options (the concept's set, a skin beside the car for each), each a different
 reading of the same language: the big colour areas and the signature on the whole car, base finishes only, no
 details. Start each with `s.clay()`. Large shapes cross pieces and end where the car's flow ends, never at a seam.
 Paint each, look at its views, open the set. After the pick, write in the record what each big shape is for: the

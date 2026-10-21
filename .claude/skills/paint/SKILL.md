@@ -6,8 +6,8 @@ description: The craft of painting a Trackmania car skin with the tools, for any
 # Painting a car
 
 A car is painted from the user's words, shown, then changed from what they say about it, until they say yes.
-`RULES.md` applies throughout. A new car starts with its visual language, then is built in passes: read
-`language.md`, beside this file. A change to a car that exists edits it.
+A new car starts with its visual language, then is built in passes: read `language.md`, beside this file. A
+change to a car that exists edits it.
 
 ## Commands
 
@@ -16,11 +16,11 @@ From the repo root (or a concept's folder: the tools are installed into the venv
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer's data (a concept's page shows it), saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict: what BLOCKS (a gap, a step, a kink or a wobble in a line, a band on its edge's other face, a line cut by the body's edge, a fill short of its line, a mark or a picture not whole, a paint stopping short, anything on the game's panels, words bent or upside down), what it warns of (a soft edge, a spill onto a second piece, a paint over another, a picture that will show its pixels, a scatter uneven) and the eye's notes (how a graphic sits against the lines the eye sees: a gap that CLOSES, a SLIVER, a NEAR MISS, a SHALLOW crossing, JUST PAST a line, TOUCHES another paint: the close looks look there; it names, never forbids). |
+| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer's data (a concept's page shows it), saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict, which says what BLOCKS (a graphic that doesn't fit the car or sit where its line is), what it warns of, and the eye's notes (how a graphic sits against the lines the eye sees: the close looks look there; a note names, never forbids). |
 | `PY -m tool.close <name>` | After a show: close looks along every line and over every decal, square to its face, 20 pixels a cm, under the camera light (nothing left in shadow), both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. About 20 s for a busy car. |
 | `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
-| `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number); opens on their screen. |
-| `PY -m tool.gate <name>` | What the gates say of the car now; `--despite "<why>"` lets what blocks go, printing what to tell the user. |
+| `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number), kept with the builds; the concept decides what's shown. |
+| `PY -m tool.gate <name>` | What the gates say of the car now (Before showing). |
 | `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
 | `PY -m tool.skin list` | Every skin, the installed ones marked. |
 | `PY -m tool.pictures decal "<words>" [--style …] [-n 4]`, `tile "<words>"`, `keep <slug> <k> <skin> <name>` | The picture maker (the PC): cut-outs or seamless tiles, kept as `skins/<skin>/art/<name>.png` for `s.art("<name>")`. Ask for a few large objects; give each run its own words. |
@@ -31,15 +31,24 @@ From the repo root (or a concept's folder: the tools are installed into the venv
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls. Before the
   first design in a session, read `car/anatomy.md` (how the body is built, where it's calm, where a
-  graphic stops) with its picture `car/map/model.jpg`, and the docstrings of
-  `tool/paintbox.py` (the key), `tool/shapes.py` (zones), `tool/course.py` (markings along the car's
-  lines), `tool/marks.py` (shapes on a panel) and `tool/finishes.py`. Part names are in
-  `car/parts.json`.
+  graphic stops) with its picture `car/map/model.jpg`, and the docstring of `tool/paintbox.py`: the
+  toolbar, every call a design makes, and which tool is behind each. Each tool is one file in `tool/` with
+  its own docstring: read a tool's when the design reaches for it (`shapes` for zones, `course` for
+  markings along the car's lines, `marks` for shapes on a panel, `finishes`, `textures`, `relief`,
+  `looks`, `tyres`), not before. Part names are in `car/parts.json`.
+- Start the car blank, from the user's words: no taste rules, past cars or examples, which make every car
+  look the same. `borrow("TSC_X")` (`tool.skin`) builds on another skin's design, only when the user names it.
+- Write only words the user asks for: lettering has never come out well on this car's curves.
+- Follow the car's own flow, read from its mesh: one of the model's lines whole, or a line beside one, is there
+  when it's the line a graphic needs. A line on a skin needs a reason in the idea; most liveries have none. A
+  detail goes a few at a time where it means something, in the car's own language (its fasteners, its seams),
+  shown close up before there are more: never spread over the car by a rule.
+- A better game file is worth a slower build. A check names an accident, never a design: a shape that crosses
+  parts on purpose stays.
 - Start with `s.clay()` (any part no step paints stays clay, in the game too) and open each step
   with `s.step(name, does, words=<the user's words>)`; a concept's page shows the car at the end of each.
   A change edits its step.
 - Names: `TSC_<Idea>` in CamelCase. A change edits that skin unless the user wants both.
-  `borrow("TSC_X")` (`tool.skin`) builds on another skin's design, only when the user names it.
 - Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
   its family in `finishes.CATALOGUE`.
 
@@ -78,12 +87,11 @@ From the repo root (or a concept's folder: the tools are installed into the venv
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its
   places, words reading along it (`at=` a stretch of it, each letter following the line; the
   stretch is their room, on the panel named), in one paint. The user's line comes from the concept that showed
-  them the car (the Lab prints its points for `course.stroke`, or for a line picked on the mesh its
-  `meshlines.picked(...)` call: exact, use it as it is). 3 mm or more to be seen
+  them the car, as its points for `course.stroke` or, for a line picked on the mesh, its
+  `meshlines.picked(...)` call: exact, use it as it is. 3 mm or more to be seen
   while driving (2 mm is the thinnest that holds). A line through points of your own is
   `course.points(...)`: the straightest way along the surface from each to the next, corners at the
-  points. The cockpit leaves no skin down the top's
-  middle from z +70 to -45. The model's own crisp lines and panels (the template) are exact and
+  points. The model's own crisp lines and panels (the template) are exact and
   named (`car/anatomy.md`; `PY -m tool.meshlines` lists every name, `at x y z` names what lies near a point):
   `meshlines.line("side skirt crease 2")` a course along one (a rounded edge's `("rear flank roll 2", tilt=47)`,
   the tilt picking its line), `meshlines.panel("tail corner panel 1")` a zone filling one right up to its lines
@@ -105,19 +113,19 @@ From the repo root (or a concept's folder: the tools are installed into the venv
 
 ## Before showing
 
-1. Fix what the judge blocks, look at what it warns of, then look at the six views. For a set's
-   takes, that's enough.
+1. Fix what the judge blocks, look at what it warns of, then look at the six views.
 2. A design shown alone, or a pick: `tool.close <name>`; fix what it blocks, and look at every
    sheet: nothing cut, sunk, stretched or soft, the two sides alike, nothing changed that the edit
-   didn't mean.
+   didn't mean. A number passing doesn't make it done: the user's eye decides, so show it close up,
+   with the measure beside it.
 
 The gates hold you to both (`tool/gate.py`): a pass's agent, `install` and a concept's own commands (a note
 handled, a set opened) refuse a car the judge hasn't passed as it is, and a turn is held once with what's wrong.
 What's meant, or still there after about three rounds: `PY -m tool.gate <name> --despite "<why, in plain
 words>"`, then tell the user what it printed.
-3. The whole car: every visible part serves the idea, the lights at night (none left in a stock
-   colour), no paint left from an earlier version, no part left in clay by accident (`show` names
-   them). Fix and look again.
+3. The whole car: every part serves the idea, the hidden ones too (the user judges the whole car, close up),
+   the lights at night (none left in a stock colour), no paint left from an earlier version, no part left in
+   clay by accident (`show` names them). Fix and look again.
 
 ## The record
 

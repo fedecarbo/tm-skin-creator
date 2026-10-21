@@ -6,8 +6,8 @@ fails the self-test, not a session that trusts the instructions.
                                                  (the Lab's lab/, its page/) and the tools'
 
 The self-test runs it on the working tree. The instructions are what a session reads: CLAUDE.md,
-RULES.md, the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car in words
-(car/anatomy.md), and the hooks in .claude/settings.json. What each names, in backticks:
+the queue (IMPROVEMENTS.md), the rules and skills in .claude/, the car in words (car/anatomy.md),
+and the hooks in .claude/settings.json. What each names, in backticks:
 
 - a command (`PY -m tool.snap <name> --cams`, `tool.close <name>`): its module, and the word after
   it and every flag as strings in the module's code. A flag alone (`--before`), or a word and what
@@ -33,8 +33,7 @@ import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-READ = ("CLAUDE.md", "RULES.md", "IMPROVEMENTS.md", ".claude/rules/*.md", ".claude/skills/*/*.md",
-        ".claude/agents/*.md", "car/anatomy.md")
+READ = ("CLAUDE.md", "IMPROVEMENTS.md", ".claude/rules/*.md", ".claude/skills/*/*.md", "car/anatomy.md")
 CODE = ("tool/*.py", "viewer/*.js", "viewer/*.html")  # the tools' code; a concept's is its package and its page
 CONCEPT = {"lab": ("lab/*.py", "page/*.js", "page/*.html")}
 FILE = re.compile(r"\.(?:md|py|js|json|html|png|jpg|txt|zip|tga|lock|rar|css)$")
@@ -55,8 +54,10 @@ class Code:
         self.stems = {k: {p.stem for p in folder.glob("*.py")} for k, folder in self.packages.items()}  # the Mac's disk ignores case
         self.modules, self.classes = {}, {}
         patterns = [(REPO, p) for p in CODE] + [(root, p) for k in self.packages if k != "tool" for p in CONCEPT[k]]
+        # this file's own text left out: a name the docs give must be in the code it checks, not in the checker
         self.text = "\n".join(p.read_text(encoding="utf-8", errors="replace")
-                              for base, pattern in patterns for p in sorted(base.glob(pattern)))
+                              for base, pattern in patterns for p in sorted(base.glob(pattern))
+                              if p.resolve() != Path(__file__).resolve())
         # the repo's own folders, not the ones git leaves out: a file named in one must be there
         ignore = root / ".gitignore"
         left_out = set(re.findall(r"^/?([^\s/*]+)/$", ignore.read_text(encoding="utf-8"), re.M)) if ignore.exists() else set()

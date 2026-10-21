@@ -878,7 +878,8 @@ class Skin:
 
     @_verb(lambda amount, where="body": f"dirt {amount:g} on {_where(where)}")
     def dirt(self, amount, where="body"):
-        """How dirty the car gets on dirt: 1 is the stock amount, 0 never dirty, 2 twice."""
+        """How dirty the car gets on dirt: 1 is the stock amount, 0 never dirty, 2 twice. (In the dirt mask 255 is
+        full dust; the stock mask averages 53.)"""
         for tset in self._ids(where):
             if tset != "Glass":
                 self.canvas(tset).dirt = float(amount)

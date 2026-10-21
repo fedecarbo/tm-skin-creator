@@ -18,6 +18,7 @@ or an assembly has that name.
 """
 
 import argparse
+import hashlib
 import json
 
 import numpy as np
@@ -186,7 +187,14 @@ def resolve(seg):
 BAKE_SIZE = {"Skin": (2048, 2048), "Details": (2048, 2048), "Wheels": (512, 1024), "Glass": (1024, 1024)}
 
 
-STATS_CACHE = paths.CACHE / "parts_stats.json"
+def _stats_cache():
+    """The texel stats' cache, named by what they're made from (the mesh, the bake and this file), so that a change
+    to any of it makes a new file rather than reading an old one."""
+    h = hashlib.sha256()
+    for name in ("parts.py", "bake.py", "raster.py", "segment.py"):
+        h.update((paths.REPO / "tool" / name).read_bytes())
+    h.update(str(fbx.CACHE.stat().st_mtime_ns if fbx.CACHE.exists() else 0).encode())
+    return paths.CACHE / f"parts_stats_{h.hexdigest()[:16]}.json"
 
 
 def _texel_stats(tri_part, instances, mesh_offset):
@@ -194,6 +202,7 @@ def _texel_stats(tri_part, instances, mesh_offset):
     (its mirror twin, or repeats such as the four wheel covers): a colour there lands on all.
     Slow (a rasterisation per part), so results are cached by the instance's pieces."""
     from tool import bake
+    STATS_CACHE = _stats_cache()
     cache = json.loads(STATS_CACHE.read_text()) if STATS_CACHE.exists() else {}
     p = Parts(tri_part, instances, mesh_offset)
     for tset, (w, h) in BAKE_SIZE.items():

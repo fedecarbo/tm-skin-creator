@@ -12,6 +12,6 @@ landed, photograph it, build the game file and install it. A front end (the Lab,
 - `research/`: the state-of-the-art study of October 2026 and its notes.
 - `work/` (not in git): everything the tools make or cache: the painted maps the camera shows, the pictures, the game
   files, the caches. Safe to delete; the tools remake it. `.venv/` is the tools' Python.
-- `BRIEF.md` (what the user wants), `CLAUDE.md`, `RULES.md` and `IMPROVEMENTS.md` (how the work is done, and its queue).
+- `BRIEF.md` (what the user wants), `CLAUDE.md` and `IMPROVEMENTS.md` (how the work is done, and its queue).
 
 The car model is by amogusstrikesback2 (CC-BY-4.0).

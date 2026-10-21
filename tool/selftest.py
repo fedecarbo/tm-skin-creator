@@ -17,7 +17,8 @@ of tool/*.py, stripped of blanks, comments and docstrings, the same in two place
 errors hidden (`hiding`: an `except` that catches everything and says nothing, or that only passes, continues or
 returns with no comment on it saying why); and the tool past its size (BUDGET: lines a commit may not
 grow past without raising it here and saying why; when they shrink by more than SLACK, the budget comes down with
-them); and that the graphics chip's kernels give their numpy twins' bits (`chip`, tool/gpu.py). Each skin is painted
+them; WORDS the same for the instructions a session reads); and that the graphics chip's kernels give their numpy
+twins' bits (`chip`, tool/gpu.py). Each skin is painted
 in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
 `git archive` into the work folder (never the repo: the PC's is in OneDrive). Per texture it compares
 the painted floats, the uint8 image the viewer and install take, and the whole DDS file the game
@@ -76,8 +77,12 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes", "jobs")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18478, "viewer/*.js": 2506}
+BUDGET = {"tool/*.py": 18501, "viewer/*.js": 2506}
 SLACK = 100
+# The instructions' words (what a session reads: instructions.READ), the same way: a commit may not grow them past
+# this without raising it here and saying why; under it by more than WORD_SLACK, it comes down with them.
+WORDS = 8523
+WORD_SLACK = 50
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice
 PLAIN = {"", "else:", "try:", "finally:", "return", "continue", "break", "pass", ")", "]", "}", "))", "])", "},", "),", "],"}
@@ -667,8 +672,8 @@ def hiding():
 
 
 def tripwires():
-    """What the tripwires catch, a line each: code nothing uses, code written twice, errors hidden, and code past its
-    budget; then the line counts."""
+    """What the tripwires catch, a line each: code nothing uses, code written twice, errors hidden, and code or
+    instructions past their budget; then the counts."""
     import vulture
     v = vulture.Vulture(ignore_names=list(UNSEEN), ignore_decorators=["@look"])
     v.scavenge([paths.REPO / "tool", *sorted(paths.SKINS.glob("*/design.py"))])
@@ -691,6 +696,13 @@ def tripwires():
                           "in the commit")
         elif n < budget - SLACK:
             caught.append(f"{pattern}: {n} lines, {budget - n} under its budget: lower BUDGET to {n}")
+    n = sum(len(f.read_text(encoding="utf-8").split()) for pattern in instructions.READ for f in paths.REPO.glob(pattern))
+    counts.append(f"the instructions {n} words of {WORDS}")
+    if n > WORDS:
+        caught.append(f"the instructions: {n} words, {n - WORDS} past their budget: make room, or raise WORDS and say "
+                      "why in the commit")
+    elif n < WORDS - WORD_SLACK:
+        caught.append(f"the instructions: {n} words, {WORDS - n} under their budget: lower WORDS to {n}")
     return caught, counts
 
 
