@@ -34,8 +34,7 @@ from tool import fonts, paths, progress, server, view
 
 # (label, view, night, hidden meshes[, parts]). A view is a name from viewer.js's VIEWS, or
 # {"dir": [x, y, z], "dist": metres, "target": [x, y, z]}. parts is an optional
-# dict for viewer.showParts: {"colourBy": True, "shared": True, "hidden": [...], "only": [...],
-# "highlight": [...]} with part or assembly names (or "name|side|end").
+# dict for viewer.showParts: {"hidden": [...]} with part or assembly names (or "name|side|end").
 SHOTS = (("front three-quarter", "front", False, []), ("rear three-quarter", "rear", False, []),
          ("left side", "left", False, []), ("right side", "right", False, []),
          ("top", "top", False, []), ("night", "front", True, []))

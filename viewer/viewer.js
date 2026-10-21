@@ -142,7 +142,7 @@ const TUNE = { exposure: 1, env: 1, key: 1, lamp: 1, glow: 1, coat: 1, room: 1, 
 const SHEEN = 0.5;
 for (const key of Object.keys(TUNE)) if (params.has(key) && Number.isFinite(+params.get(key))) TUNE[key] = +params.get(key);  // ?room=<a name> is a page's own setting
 
-// The Details_I alpha codes (CLAUDE.md): how bright each kind of glow is on the screen on a car
+// The Details_I alpha codes (finishes.GLOWS): how bright each kind of glow is on the screen on a car
 // standing or driving, by day and at night, and the colour the game supplies for codes whose RGB
 // must be grey. A gain is a level on the screen whatever the exposure: 1 shows the texel's own
 // colour; above 1 its brightest channel clips and the colour shifts, as in the game (light blue
@@ -150,7 +150,7 @@ for (const key of Object.keys(TUNE)) if (params.has(key) && Number.isFinite(+par
 // "always on" keeps its colour, a little brighter at night; "night only", the front lights and
 // the brake lights are off by day and bright at night (and at sunset), the front lights the
 // brightest; energy stayed dark in all four moods (it had glowed dim red at rest in the garage,
-// 2026-09-24). Braking flares the brake lights (checkpoint 1's stock strips went towards white:
+// 2026-09-24). Braking flares the brake lights (the stock strips went towards white in the game:
 // BRAKING). Brake heat lights while braking (the lights test's videos, 2026-09-25: BRAKE_HEAT).
 // Turbo lights only after a turbo pad, in the pad's colour (the turbo videos, 2026-09-25: the hubs
 // yellow for about 3 s after a yellow pad): the pad's Turbo button (TURBO). Exhaust heat ("ON when
@@ -822,7 +822,7 @@ function addUvPass(material, set) {
 }
 
 // ---- The game's number. The game writes the player's initials and number on two engine-cover
-// panels over every skin, and a skin can't hide or move them (CLAUDE.md). The viewer lays them
+// panels over every skin, and a skin can't hide or move them. The viewer lays them
 // on as a layer of its own, never part of the skin, so "Show → Number" turns them off. As in the
 // user's Cam 1 screenshot (2026-09-25): the initials on "number panel", the narrow one just
 // behind the cockpit, and the number on "engine cover panel" behind it, both reading from behind
@@ -1074,8 +1074,8 @@ function showWing(out, apart) {  // each 0..1
 // the wings these do tilt: each panel turns about its other edge, along a hinge line in its own
 // plane, found from the mesh at load, and takes its underside along ("with"). Each arm swings
 // about its base and stretches so that its tip stays on the panel: the "rear damper" in each
-// quarter panel's opening and the "nose sensor" rods under the nose (names from checkpoint 3,
-// before we knew what they were). Provisional until a side view: the angles and how quick.
+// quarter panel's opening and the "nose sensor" rods under the nose (named before we knew what
+// they were). Provisional until a side view: the angles and how quick.
 // Snapshots keep them down; ?airbrake=1 raises them there. ----
 
 const AIRBRAKES = [  // hinge: the edge that stays; angle in degrees
@@ -1172,7 +1172,7 @@ function showAirbrakes(t) {  // 0 down .. 1 up
 
 // ---- The wheels turn with the pad's speed (the user, 2026-09-25). What turns about each axle:
 // the tyre, the rim, the thin ring at the tyre's bead, the wheel covers, and the small split
-// ring at the centre (named "brake caliper" in checkpoint 3, but it sits 5 to 7 cm from the
+// ring at the centre (named "brake caliper", though it sits 5 to 7 cm from the
 // axle on the outer face). What stays: the fairing inside the wheel ("hub") and the brake light
 // that shows through its slot, always behind the axle in the game. Axles from tool/shapes.py,
 // raised by the lift that puts the tyres on the floor (car.json's lift_cm: 1.2 cm; without it
@@ -1290,7 +1290,7 @@ function wingDepthMaterial() {
   return m;
 }
 
-// Braking: the brake lights (code 0) flare, as in the game (checkpoint 1: towards white). Show →
+// Braking: the brake lights (code 0) flare, as in the game (towards white). Show →
 // Braking holds them on (for a picture); the pad's Brake while it's held.
 // Brake heat (code 64): the lights test's videos (2026-09-25) show the rims glow faint red
 // within a moment of braking, red-orange at 1 s, bright orange (their colour) at 1.5 s, and fade
@@ -1628,7 +1628,7 @@ function makeMaterials(tex, still = false) {
     addGlow(details, tex.Details_Code);
   }
   const wheels = new THREE.MeshStandardMaterial(std('Wheels', { normalMap: tex.Wheels_N }));
-  // Glass: Glass_T tints what's seen through it. Its alpha isn't used yet (checkpoint 4).
+  // Glass: Glass_T tints what's seen through it. Its alpha isn't used.
   const glass = new THREE.MeshPhysicalMaterial({
     map: tex.Glass_T, transmission: 1, thickness: 0, ior: 1.5, roughness: 0.04, metalness: 0,
     aoMap: tex.Glass_AO,
@@ -1782,20 +1782,18 @@ Object.assign(window.viewer, {
     if (parts[name]) parts[name].visible = !!on;
     tell('sets', shownSets());
   },
-  // Parts settings: { colourBy, shared, hidden: [part names], only: [part names], highlight: [part names] }.
-  // A name matches a part, its assembly, its group (unless a part or assembly has that name, as the
-  // paint box reads it: "floor"), or "name|side|end".
+  // The car with parts hidden: { hidden: [part names] }, the parts shown plain. A name matches a part, its
+  // assembly, its group (unless a part or assembly has that name, as the paint box reads it: "floor"), or
+  // "name|side|end".
   async showParts(opts = {}) {
     const own = new Set(partsState.doc.parts.flatMap((p) => [p.name, p.parent]));
     const match = (names) => partsState.doc.parts.map((p, i) => [p, i]).filter(([p]) => names.some((n) =>
       n === p.name || n === p.parent || (n === p.group && !own.has(n)) || n === `${p.name}|${p.side}|${p.end}`)).map(([, i]) => i);
-    partsState.mode.value = opts.colourBy ? 1 : 0;
-    partsState.shared.value = opts.shared ? 1 : 0;
+    partsState.mode.value = 0;
+    partsState.shared.value = 0;
     const hidden = new Set(match(opts.hidden || []));
-    const only = opts.only ? new Set(match(opts.only)) : null;
-    for (const r of partsState.rows) setVisible(r, r.ids.every((i) => !hidden.has(i) && (!only || only.has(i))));
+    for (const r of partsState.rows) setVisible(r, r.ids.every((i) => !hidden.has(i)));
     highlight([]);
-    if (opts.highlight) highlight(match(opts.highlight));
     await frames(3);
   },
   // A page's parts list: the groups and assemblies (each with its `about`) and the rows ({ name, end, group,
@@ -1894,7 +1892,6 @@ Object.assign(window.viewer, {
   mood(m) { setMood(m); },  // day, sunrise, sunset or night, the camera left where it is
   lamp(on) { lamp.visible = !!on; tell('lamp', lamp.visible); },  // the camera light, on or off
   ground(g) { pickGround(g); },  // concrete, grass, dirt or ice under the car
-  views() { return CAM_BUTTONS; },  // the game's cameras, as a page's buttons name them
   // The stock car, for a page with no skin to show (the car is built only when it's dressed).
   async stock() {
     const slots = await (await fetch('/data/stock/stock.json')).json();

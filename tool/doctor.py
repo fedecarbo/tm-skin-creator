@@ -117,7 +117,7 @@ def _of_live(stem, live):
 
 
 def prune():
-    """The work folder: builds and viewer data of skins that no longer exist, old self-tests, the site."""
+    """The work folder: builds and viewer data of skins not in skins/, old self-tests, the site."""
     live = {p.parent.name for p in (REPO / "skins").glob("*/design.py")}
     gone, freed = set(), 0
 
@@ -129,11 +129,15 @@ def prune():
         else:
             path.unlink(missing_ok=True)
 
-    for folder in (paths.BUILD, paths.WORK / "viewer" / "skins"):
+    # builds hold other things too (the tyre sheets, the parts review), so only a skin's (TSC_) go; the viewer's
+    # skin data holds only skins, so anything there that isn't a live skin, the Template or a self-test car goes
+    for folder, any_name in ((paths.BUILD, False), (paths.WORK / "viewer" / "skins", True)):
         if folder.is_dir():
             for p in folder.iterdir():
                 stem = p.name if p.is_dir() else p.name.split(".")[0]
-                if stem.startswith("TSC_") and not _of_live(stem, live):
+                if stem == "Template" or stem.startswith("SelfTest_") or _of_live(stem, live):
+                    continue
+                if any_name or stem.startswith("TSC_"):
                     gone.add(re.sub(r"(_[a-z][a-z0-9]*)+$", "", stem))  # the skin's name, its build suffixes off
                     drop(p)
     tests = paths.WORK / "selftest"
@@ -147,7 +151,7 @@ def prune():
     total = _size(paths.WORK) if paths.WORK.is_dir() else 0
     ok = f"work folder {_gb(total)}"
     if freed:
-        ok += f" ({_gb(freed)} freed: {len(gone)} skins that no longer exist, old self-tests)"
+        ok += f" ({_gb(freed)} freed: {len(gone)} skins not in skins/, old self-tests)"
     return ok, []
 
 
