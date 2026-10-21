@@ -106,6 +106,17 @@ def design(s):
     # carried on 15 cm past the nose tip's seam, on over the nose ("It's ok to go past the next object")
     s.paint("body", "matte", colour=BLACK, zone=roll.offset(4).extended(start=15).mirrored().blocks(5, 2.5))
 
+    s.step("The underside's targets", "The floor in the dummy's yellow, and a quartered target under each sidepod "
+           "where the floor is widest and flat, and one under the nose: what a test's pit camera tracks. The floor's two "
+           "halves share one paint, so a target is written for both at once.",
+           words="paint the bottom part with the crash icons or symbols")
+    s.paint("floor", "soft-touch", colour=SKIN)
+    for c, size in (((45, 12, -20), 24), ((-45, 12, -20), 24), ((0, 12, 120), 18)):
+        s.paint("floor", "matte", colour=BLACK, zone=shapes.sphere(c, size / 2))
+        across = shapes.plane(c, (1, 0, 0) if c[0] >= 0 else (-1, 0, 0))
+        ahead = shapes.plane(c, (0, 0, 1))
+        s.paint("floor", "soft-touch", colour=SKIN, zone=shapes.sphere(c, 0.42 * size) & ((across & ahead) | (~across & ~ahead)))
+
     s.step("The lights", "The car's own lights in the dummy's yellow: the wheel rings, the speed numbers, "
            "the rear and brake lights.", look="rear night")
     s.relight("wheel ring", SKIN, keep_level=True)

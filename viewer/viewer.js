@@ -1,5 +1,5 @@
 // The camera: the car in a photo studio, wearing one skin, by day or night, drawn on canvas#view. An engine with
-// no furniture of its own: a page drives it through window.viewer (dress, show, go, mood, ground, number, pedal,
+// no furniture of its own: a page drives it through window.viewer (dress, show, go, mood, ground, lamp, number, pedal,
 // inset, track, project, camera, picture, pen, onStroke, drawings, mesh, parts, visible, highlight...) and hears
 // it through viewer.on (EVENTS), drawing its own buttons from what it hears; a concept's page (the Lab's
 // page/lab-ui.js) imports this module from /camera/viewer.js (tool/server.py). Its own page, index.html, is the
@@ -33,7 +33,7 @@ const statusBox = document.getElementById('status');
 //   sets           { Skin, Details, Wheels, Glass }: which of the car's texture sets show
 //   parts          { lit, colourBy, shared }: a part shown or hidden (the rows' `visible`), or these
 //   skin           the skin's name on the car (shown)        ready   the car is up
-const EVENTS = ['mood', 'ground', 'number', 'braking', 'pedal', 'speed', 'view', 'sets', 'parts', 'skin', 'ready'];
+const EVENTS = ['mood', 'ground', 'lamp', 'number', 'braking', 'pedal', 'speed', 'view', 'sets', 'parts', 'skin', 'ready'];
 const ears = Object.fromEntries(EVENTS.map((e) => [e, []]));
 function tell(event, value) { for (const f of ears[event]) f(value); }
 
@@ -131,10 +131,10 @@ const LOOKS = {
 const KEY_FROM = new THREE.Vector3(0.55, 1, 0.35).normalize();  // above the car's front left
 
 // Settings any of which can be tried from the address, e.g. ?exposure=1.1&env=0.8, when matching
-// the game again. exposure, env, key and glow scale the moods' own; spec the paint's sheen; room how
+// the game again. exposure, env, key, lamp and glow scale the moods' own; spec the paint's sheen; room how
 // light the studio is (a scale on its colour, viewer/studio.js). Also ?turn=<degrees>, added to the sky's envTurn,
 // ?keyFrom=x,y,z for the key's direction, and ?tone=aces (or neutral, agx...) for another tone mapping.
-const TUNE = { exposure: 1, env: 1, key: 1, glow: 1, coat: 1, room: 1, spec: 1 };
+const TUNE = { exposure: 1, env: 1, key: 1, lamp: 1, glow: 1, coat: 1, room: 1, spec: 1 };
 // The paint's own sheen (the body's specularIntensity, under any varnish), half three.js's: at full
 // strength it lifted every dark colour like a veil (the calibration car's pure black 64 by day against
 // the game's 53, 37 at sunrise against 17); at half, Black to N6.5 read 81 117 158 204 by day against
@@ -528,6 +528,17 @@ key.shadow.bias = -0.0004;
 key.shadow.normalBias = 0.02;
 key.shadow.radius = 8;  // soft, as from a big studio light (3 until the dehaze of 2026-09-27 made it the main light)
 scene.add(key, key.target);
+// The camera light, the game's garage's own switch: a white light from the camera onto whatever it looks at, so
+// nothing is left in shadow. On for the checks' pictures (the body sheet, the close looks), off for the views, the
+// chase cameras and the night shot, judged in the mood's light. It casts no shadow: from the eye, every shadow
+// hides behind what casts it. LAMP: its strength, lamp in the address scales it (fitted on the PC against a garage
+// screenshot with the light on, the cleanest picture of a skin's colours the game gives).
+const LAMP = 1;
+const lamp = new THREE.DirectionalLight(0xffffff, LAMP * TUNE.lamp);
+lamp.visible = false;
+lamp.target.position.set(0, 0, -1);
+camera.add(lamp, lamp.target);
+scene.add(camera);
 
 scene.background = new THREE.Color('#050506');  // seen only from under the floor
 
@@ -1881,6 +1892,7 @@ Object.assign(window.viewer, {
     setView(view, true);
   },
   mood(m) { setMood(m); },  // day, sunrise, sunset or night, the camera left where it is
+  lamp(on) { lamp.visible = !!on; tell('lamp', lamp.visible); },  // the camera light, on or off
   ground(g) { pickGround(g); },  // concrete, grass, dirt or ice under the car
   views() { return CAM_BUTTONS; },  // the game's cameras, as a page's buttons name them
   // The stock car, for a page with no skin to show (the car is built only when it's dressed).

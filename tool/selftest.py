@@ -76,7 +76,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes", "jobs")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18474, "viewer/*.js": 2494}
+BUDGET = {"tool/*.py": 18478, "viewer/*.js": 2506}
 SLACK = 100
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice
@@ -487,6 +487,12 @@ def tree(ref):
         for p in tmp.rglob("*"):
             os.utime(p, (OLD, OLD))
         tmp.rename(folder)
+    if paths.MAC:  # the Mac's work folder is inside the repo (tool/paths.py): the old code's is a link to the real one
+        link = folder / "work"
+        if link.is_dir() and not link.is_symlink():
+            shutil.rmtree(link)
+        if not link.is_symlink():
+            link.symlink_to(paths.WORK)
     return commit, folder
 
 

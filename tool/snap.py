@@ -9,7 +9,8 @@
     python -m tool.snap <name> --cams   -> build/<name>_cams.png: the game's Cam 1 and 2 and their alts,
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
-    python -m tool.snap <name> --body   -> build/<name>_body.png: the body alone, no wheels, nine views
+    python -m tool.snap <name> --body   -> build/<name>_body.png: the body alone, no wheels, nine views, under the
+                                             camera light (nothing left in shadow: the underside too)
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
                                              [--close-row <name> 2 5 9 [--close-row <other> 2 5 9]]
         -> build/<name>_picture.png, a row per skin from its views sheet (and a row of its close
@@ -62,10 +63,11 @@ def _font(px):
     return fonts.font("arial bold", px)
 
 
-def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None):
+def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, thumb=None, lamp=False):
     """query: extra page settings, e.g. "exposure=1.1&coat=0.5" (TUNE in viewer.js, over each look's own).
     prepare=False: the skin is already in the viewer's data (the paint box exports it itself).
-    thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture)."""
+    thumb: a path to save the first view to, unlabelled, at 640x480 (the gallery's picture).
+    lamp: the camera light on (viewer.lamp), for a check's pictures; the views are judged in the mood's light."""
     if prepare:
         view.prepare(name)
     httpd = server.start(0)
@@ -84,6 +86,7 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
             if page.evaluate("window.viewer.error"):
                 raise RuntimeError(page.evaluate("window.viewer.error"))
             print(f"GPU: {page.evaluate('viewer.gpu()')}; loaded in {time.time() - start:.1f} s")
+            page.evaluate("(on) => viewer.lamp(on)", lamp)
             progress.stage("Taking pictures", total=len(shots))
             for label, view_spec, night, hidden, *rest in shots:
                 page.evaluate("([v, n, h]) => viewer.show(v, n, h)", [view_spec, night, hidden])
@@ -226,7 +229,7 @@ def main():
     ap.add_argument("more", nargs="*", help="with --picture: the other takes, in order")
     ap.add_argument("--size", help="each picture's size (960x720; 1280x720 with --cams)")
     ap.add_argument("--cams", action="store_true", help="the game's Cam 1 and 2 and their alts, day and night, at 16:9")
-    ap.add_argument("--body", action="store_true", help="the body alone, no wheels, nine views")
+    ap.add_argument("--body", action="store_true", help="the body alone, no wheels, nine views, under the camera light")
     ap.add_argument("--picture", action="store_true", help="put the snapped sheets together for the user")
     ap.add_argument("--titles", nargs="*", help="a short title per skin, in plain words")
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
@@ -251,7 +254,7 @@ def main():
                       skin=args.name, done="Photographed"):
         if args.cams or args.body:
             snap(args.name, out=paths.BUILD / f"{args.name}_{kind}.png", size=(w, h), shots=shots, prepare=False,
-                 query="lens=game" if args.cams else "")  # the game's wide lens, to set beside its screenshots
+                 query="lens=game" if args.cams else "", lamp=args.body)  # the game's wide lens, to set beside its screenshots
         else:
             snap(args.name, size=(w, h))
 

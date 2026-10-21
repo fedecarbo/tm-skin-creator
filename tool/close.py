@@ -1,6 +1,6 @@
 """The close looks: along every line and over every decal of a painted car, square to the face the eye sees, PX_CM
-pixels a centimetre (a 1 cm gap is 20 pixels, a whole-car view gives it 6), each taken twice by the viewer: shaded,
-for Claude's eye, and as a texel pass (which texel of the body's map each pixel shows: viewer.uvs), from which every
+pixels a centimetre (a 1 cm gap is 20 pixels, a whole-car view gives it 6), under the camera light (viewer.lamp:
+nothing left in shadow), each taken twice by the viewer: shaded, for Claude's eye, and as a texel pass (which texel of the body's map each pixel shows: viewer.uvs), from which every
 graphic's flat mask is read and measured. Both sides seen alike: a graphic on both is looked at on the left, and on
 the right from each camera's mirror image, the two side by side on the sheets.
 
@@ -64,6 +64,7 @@ SPOT_APART = 10.0  # cm: a spot this near a look's middle is in it
 TWIN = 6.0         # cm: a mark whose middle is this near another's mirror image is its twin on the other side
 COLS, ROWS = 4, 4  # looks on a sheet
 FLIP = np.array([-1.0, 1.0, 1.0])
+LIGHT = "lamp"     # the light the looks are taken in (the camera light): a run before in another isn't compared
 LEVELS = {"gap": "block", "cut": "block", "hidden": "note", "sides": "warn", "changed": "warn"}
 
 
@@ -196,6 +197,7 @@ def take(name, looks, folder):
             page.wait_for_function("window.viewer && (window.viewer.ready || window.viewer.error)", timeout=180_000)
             if page.evaluate("window.viewer.error"):
                 raise RuntimeError(page.evaluate("window.viewer.error"))
+            page.evaluate("viewer.lamp(true)")
             progress.stage("Looking close up", total=len(looks))
             for L in looks:
                 page.evaluate("(v) => viewer.show(v, false, [])", L["view"])
@@ -414,8 +416,8 @@ def changes(M, gfx, looks, folder, before, found):
     compare sheet, and what it says in a line."""
     old = json.loads((before / "looks.json").read_text())
     old_owner = np.load(before / "owner.npy").reshape(-1)
-    if len(old_owner) != len(M.owner):
-        return [], "the run before was at another size: nothing compared"
+    if len(old_owner) != len(M.owner) or old.get("light") != LIGHT:
+        return [], "the run before was at another size or in another light: nothing compared"
     steps0, steps1 = old["steps"], gfx["steps"]
     edited = {s for s in set(steps0) | set(steps1) if steps0.get(s) != steps1.get(s)}
     ops0, ops1 = old["ops"], gfx["ops"]
@@ -565,7 +567,7 @@ def run(name):
     for L in looks:
         L.pop("texels", None)
     paths.write(folder / "looks.json", json.dumps({"design": gfx["design"], "steps": gfx["steps"], "ops": gfx["ops"],
-                                                   "paints": gfx["paints"], "looks": looks}))
+                                                   "paints": gfx["paints"], "looks": looks, "light": LIGHT}))
     shutil.rmtree(before, ignore_errors=True)
     folder.rename(before)
     for f in found:

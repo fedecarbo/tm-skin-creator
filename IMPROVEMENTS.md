@@ -17,8 +17,9 @@ step names its model and effort; the user sets them as the session starts. One s
 (away until November or December 2026):
 
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
-    own encoder; the viewer fitted per mood to the user's F12 screenshots (FLIP: exposure, environment strength, tone
-    mapper, clearcoat), and from their videos the cameras pulling back with speed, the car number's lettering, the
+    own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
+    cleanest picture of a skin's colours the game gives; `viewer.lamp`), then per mood to the user's F12 screenshots
+    (FLIP: exposure, environment strength, tone mapper, clearcoat), and from their videos the cameras pulling back with speed, the car number's lettering, the
     rear wings' and air brakes' angles. Retires nothing unless another encoder wins.
 
 ## The tool
@@ -27,13 +28,6 @@ step names its model and effort; the user sets them as the session starts. One s
   OneDrive by default, and the clone went there; the work folder was put outside OneDrive because of it. When the PC
   is back: clone the tools and the Lab into a plain folder (`C:\Users\fedec\Developer\`), as on the Mac, and point
   the hooks' and the doctor's notes at it. The game's own skin folder stays where the game keeps it.
-- **The underside is black in the camera** (2026-10-21, the user: "it's black because of shadow"): the floor isn't drawn
-  from below, but the studio is lit from the sky above and nothing lights the car from underneath, so the body sheet's
-  underside view (`tool.snap <name> --body`) shows a painted underside as near black. The game's garage has a camera
-  light toggle, a light from the camera onto whatever it looks at (the user, 2026-10-21). Idea: the same switch in the
-  camera, on for the checks' pictures (the body sheet, the close looks: nothing left in shadow) and off for the views,
-  the chase cameras and the night shot (the look judged in the fitted light). A garage screenshot with the camera light
-  on is the cleanest picture of a skin's colours the game gives: step 13 fits the camera's colours against it first.
 - **Fur made by the tool, with a lay that follows the car** (2026-10-09, TSC_Bumblebee's surfaces pass; 2026-10-11): the
   photographed piles (fur, teddy fur, plaid fur, plush, velvet, fleece: `tool/textures.py`, the Lab's LF-08 to LF-13) lay
   their nap along each panel of the car's unfolding, fixed in the photo, so a photo's hairs can't sweep round the nose

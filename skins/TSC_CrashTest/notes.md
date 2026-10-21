@@ -72,3 +72,10 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   drive this").
 - Accepted (user, 2026-10-07, Claude Opus 5.5): "You've done an amazing job, I would drive this". Not installed: the
   Mac has no game. Open (the PC): `tool.skin install TSC_CrashTest`, then Garage, My Skins, TSC_CrashTest.
+- Change 5 (user, 2026-10-21, in the chat, while the camera light was being built on the tools: "If you want you can
+  paint the bottom part with the crash icons or symbols, and test it like that?"): the floor in the dummy's yellow, a
+  24 cm quartered target under each sidepod where the floor is widest and flat (x ±45, z -20) and an 18 cm one under
+  the nose (z 120), built from zones (marks lay on the body only); the floor's two halves share one paint, so each
+  target is written for both sides. The paint also lands on the uprights and the front wing's inner faces (shared texels).
+- Shown (2026-10-21, on the Mac, Claude Fable 5.1): the body sheet under the camera light, the underside beside it
+  with the light off. Not installed: the Mac has no game.
