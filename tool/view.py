@@ -11,7 +11,7 @@ The work folder's viewer/ folder (served as /data/), all rebuildable:
   <Set>_Shared.png     the texels that several parts share (mirrored or repeated)
   template/            the model's template: its own lines on the maps and on the car (export_template),
                        the car a skin of its own too, skins/Template
-  <Set>_Parts.png, <Set>_Surfaces.png, uvmap.json   the Lab's UV map (tool/labview.py)
+  <Set>_Parts.png, <Set>_Surfaces.png, uvmap.json   the Lab's UV map (its lab/uvmap.py writes them here)
   <name>.hdr           the lighting by day and at night, Poly Haven HDRIs (CC0), see HDRIS
   floor/               the studio floor's grain (ambientCG, CC0), see FLOOR_SETS
   stock/*.png          Nadeo's stock textures, for anything a skin leaves out
@@ -168,7 +168,7 @@ TEMPLATE_LIGHT = np.array([0.35, 0.85, 0.4]) / np.linalg.norm([0.35, 0.85, 0.4])
 
 
 def export_template():
-    """The Lab's UV map template (viewer/lab-rooms.js, Template), from the model alone (meshlines.mesh, template):
+    """The model's template (the Lab's UV map room shows it), from the model alone (meshlines.mesh, template):
       template/<Set>_Map.png  each map at the Lab's grid: the body's shape (clay lit from above, from the bake's
                               normals), the model's mesh (every edge of its triangles, coloured where the body bends
                               across it), its lines in their colours (TEMPLATE_KEY)
@@ -396,7 +396,7 @@ def export_skin(name, textures):
     folder = DATA / "skins" / name
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.glob("*.png"):
-        if old.name != "thumb.png":  # the gallery's picture (tool/gallery.py)
+        if old.name != "thumb.png":  # the thumb (a concept's list copies it)
             old.unlink()
     own = set(_write_slots(folder, textures))
     stock = set(json.loads((STOCK / "stock.json").read_text()))

@@ -626,7 +626,7 @@ def _tr(kind, studs=False, **p):
     return fn
 
 
-# The tread library: the Lab's "Treads" (tool/swatches.py), a tread on its own for s.tyre_tread(),
+# The tread library: the Lab's "Treads" (its lab/swatches.py), a tread on its own for s.tyre_tread(),
 # or any marking's tread= ("ring soft" on "TR-02"). Codes as the finishes': never reorder or remove,
 # a new one goes at the end.
 TREAD_LIBRARY = [

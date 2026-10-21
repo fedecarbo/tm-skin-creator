@@ -749,7 +749,7 @@ def path(clicks, tset="Skin", closed=False):
 
 
 def picked(clicks, tset="Skin", closed=False):
-    """The line through points clicked on the car (the Lab, with Mesh and Draw on: `PY -m tool.notes drawn` prints the
+    """The line through points clicked on the car (the Lab, with Mesh and Draw on: its `lab.notes drawn` prints the
     call), a Course on the model: path's points as they are; closed, round back to the first."""
     from tool import course, surface
     pts = path(clicks, tset, closed)[0]

@@ -8,20 +8,20 @@ A car passes when this computer's verdict (tool/judge.py: build/<name>/verdict.j
 (`design_hash`: design.py, the designs it borrows, its art), nothing in it blocks but what was let go, and, with `looks`,
 the close looks (tool/close.py) have seen that design: a car shown alone wants them, a take doesn't (`alone`: a take
 is a skin made as one of several to pick from, marked by skins/<name>/take.json, {"of": the car}, written by whoever
-makes takes, tool/sets.py). Where it bites:
+makes takes: the Lab's lab/sets.py). Where it bites:
   tool.skin install    judged in the paint it puts in the game
   a pass               an agent whose brief names a car with a language (language.md): with the close looks, refused
                        before it starts (tool/guard.py, PreToolUse)
   the end of a turn    each car whose design, verdict or what was let go changed in the turn: held once for each thing
                        wrong (tool/guard.py, Stop)
-  tool.notes done, tool.sets open   the Lab's: a note handled (with the close looks), a set's takes (each judged)
+  a concept's commands   the Lab's lab.notes done (a note handled, with the close looks) and lab.sets open (a set's
+                       takes, each judged)
 What blocks and is meant, or is still there after about three rounds of fixing, is let go with --despite, never
 quietly: it prints what it is and why, which the user is told, and skins/<name>/despite.json keeps it let go while the
 design is the same. A car never judged, judged before its last change or not looked at close can't be let go: showing
 it again is cheap.
 
-Standard library only: tool/notes.py, tool/sets.py and tool/guard.py run it, the last with whatever Python the
-computer has.
+Standard library only: tool/guard.py runs it with whatever Python the computer has, and so may a concept's commands.
 """
 
 import hashlib

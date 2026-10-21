@@ -2,19 +2,21 @@
 fails the self-test, not a session that trusts the instructions.
 
     python -m tool.instructions                 prints what's missing, or one line: all present
-    python -m tool.instructions --root <folder>  the same for another repo's instructions (a concept's)
+    python -m tool.instructions --root <folder>  the same for a concept's repo: its docs against its own package
+                                                 (the Lab's lab/, its page/) and the tools'
 
 The self-test runs it on the working tree. The instructions are what a session reads: CLAUDE.md,
 RULES.md, the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car in words
 (car/anatomy.md), and the hooks in .claude/settings.json. What each names, in backticks:
 
-- a command (`PY -m tool.snap <name> --cams`, `tool.notes say`): its module, and the word after
+- a command (`PY -m tool.snap <name> --cams`, `tool.close <name>`): its module, and the word after
   it and every flag as strings in the module's code. A flag alone (`--before`), or a word and what
   it takes (`tile "<words>"`), belongs to the last command named in the same paragraph, list item
   or table row.
-- a file or folder (`tool/skin.py`, `skins/<name>/design.py`, `lab.js`): it exists, `<...>` and
-  `*` matching anything, a bare file name anywhere in the repo; one the tool makes as it runs
-  (`build/<name>_views.png`, `/api/notes`) has its fixed words in the tool's code.
+- a file or folder (`tool/skin.py`, `skins/<name>/design.py`, `viewer.js`): it exists, `<...>` and
+  `*` matching anything, a bare file name anywhere in the repo, `../` beside it (a concept naming the
+  tools' files); one the tool makes as it runs (`build/<name>_views.png`, `/api/health`) has its
+  fixed words in the tool's code.
 - a name in the code (`paintbox.Skin`, `Skin.step`, `s.scatter`, `parts.load().mask`): each step
   is defined there (read with ast, nothing imported). `X` in `file` (`SPOTS` in `tool/paintbox.py`):
   the file holds the word. A setting (`TSC_PAINTS=<n>`): the code reads it.
@@ -33,23 +35,28 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 READ = ("CLAUDE.md", "RULES.md", "IMPROVEMENTS.md", ".claude/rules/*.md", ".claude/skills/*/*.md",
         ".claude/agents/*.md", "car/anatomy.md")
-CODE = ("tool/*.py", "viewer/*.js", "viewer/*.html")
+CODE = ("tool/*.py", "viewer/*.js", "viewer/*.html")  # the tools' code; a concept's is its package and its page
+CONCEPT = {"lab": ("lab/*.py", "page/*.js", "page/*.html")}
 FILE = re.compile(r"\.(?:md|py|js|json|html|png|jpg|txt|zip|tga|lock|rar|css)$")
 SPAN = re.compile(r"`([^`]+)`")
-COMMAND = re.compile(r"(?:^|\s)(?:PY|python) -m tool\.(\w+)(.*)|^tool\.(\w+)(.*)")
+COMMAND = re.compile(r"(?:^|\s)(?:PY|python) -m (tool|lab)\.(\w+)(.*)|^(tool|lab)\.(\w+)(.*)")
 FLAG = re.compile(r"(?<![\w-])(--?[a-z][\w-]*)")
 CHAIN = re.compile(r"(?<![\w.])([A-Za-z_]\w*)((?:\.[A-Za-z_]\w*|\([^()]*\))+)")
 
 
 class Code:
-    """The tool's code, read once: each module's names, its strings, and every class's names."""
+    """The code the instructions may name, read once: each package's modules (the tools' tool/, and a concept's own
+    package under its root), each module's names, its strings, and every class's names."""
 
     def __init__(self, root):
         self.root = root
-        self.stems = {p.stem for p in (root / "tool").glob("*.py")}  # by name: the Mac's disk ignores case
+        self.packages = {"tool": REPO / "tool"}
+        self.packages.update({k: root / k for k in CONCEPT if (root / k).is_dir()})
+        self.stems = {k: {p.stem for p in folder.glob("*.py")} for k, folder in self.packages.items()}  # the Mac's disk ignores case
         self.modules, self.classes = {}, {}
+        patterns = [(REPO, p) for p in CODE] + [(root, p) for k in self.packages if k != "tool" for p in CONCEPT[k]]
         self.text = "\n".join(p.read_text(encoding="utf-8", errors="replace")
-                              for pattern in CODE for p in sorted(root.glob(pattern)))
+                              for base, pattern in patterns for p in sorted(base.glob(pattern)))
         # the repo's own folders, not the ones git leaves out: a file named in one must be there
         ignore = root / ".gitignore"
         left_out = set(re.findall(r"^/?([^\s/*]+)/$", ignore.read_text(encoding="utf-8"), re.M)) if ignore.exists() else set()
@@ -59,19 +66,25 @@ class Code:
             with zipfile.ZipFile(z) as f:
                 self.zipped |= {Path(n).name for n in f.namelist()}
 
-    def module(self, name):
-        """{"names", "strings", "classes": {name: its names}}, or None when there's no tool/<name>.py."""
-        if name not in self.stems:
+    def module(self, name, package=None):
+        """{"names", "strings", "classes": {name: its names}}, or None when there's no <package>/<name>.py; without a
+        package, the concept's module of that name first, then the tools'."""
+        for pkg in ([package] if package else [k for k in self.packages if k != "tool"] + ["tool"]):
+            if name in self.stems.get(pkg, ()):
+                break
+        else:
             return None
-        if name not in self.modules:
-            self.modules[name] = read(self.root / "tool" / f"{name}.py")
-            for cls, names in self.modules[name]["classes"].items():
+        key = f"{pkg}/{name}"
+        if key not in self.modules:
+            self.modules[key] = read(self.packages[pkg] / f"{name}.py")
+            for cls, names in self.modules[key]["classes"].items():
                 self.classes.setdefault(cls, set()).update(names)
-        return self.modules[name]
+        return self.modules[key]
 
     def every_class(self):
-        for stem in sorted(self.stems):
-            self.module(stem)
+        for pkg, stems in self.stems.items():
+            for stem in sorted(stems):
+                self.module(stem, pkg)
         return self.classes
 
 
@@ -143,7 +156,7 @@ def named(root, code):
         head = re.match(r"---\n(.*?)\n---", text, re.S)  # a rule loads with the files its paths: match
         for pattern in re.findall(r'^\s*-\s*"([^"]+)"', head.group(1) if head else "", re.M):
             yield where, "files", f"paths: {pattern}", None if next(root.glob(pattern), None) else "matches nothing"
-        last = {}  # block -> the module the last command in it named
+        last = {}  # block -> (the package, the module) the last command in it named
         for line, s, block in spans(text):
             for kind, why in name(s, code, last, block):
                 yield f"{where}:{line}", kind, s, why
@@ -160,19 +173,23 @@ def name(s, code, last, block):
     """(kind, why it's missing or None) for each thing one span names."""
     m = COMMAND.search(s)
     if m:
-        module, rest = (m.group(1), m.group(2)) if m.group(1) else (m.group(3), m.group(4))
-        last[block] = module
-        yield "commands", command(module, rest, code)
+        pkg, module, rest = (m.group(1), m.group(2), m.group(3)) if m.group(1) else (m.group(4), m.group(5), m.group(6))
+        last[block] = (pkg, module)
+        yield "commands", command(pkg, module, rest, code)
         return
     if re.fullmatch(r"--?[a-z][\w-]*(?: <\w+>)?|[a-z]+ (?:<|\"|--|\[).*", s):
         if block in last:
-            yield "commands", command(last[block], " " + s, code)
+            yield "commands", command(*last[block], " " + s, code)
         return
     if re.match(r"[A-Z][A-Z0-9_]+=", s):
         yield "names", None if s.split("=")[0] in code.text else "the tool's code never reads it"
         return
     if s.startswith("/"):
         yield "files", None if made(s, code, url=True) else "the tool's code never serves it"
+        return
+    if s.startswith("../"):  # a concept's docs name the tools' files by their place beside it
+        pattern = re.sub(r"<[^>]*>", "*", s.split("?")[0][3:]).rstrip("/")
+        yield "files", None if next((code.root / "..").glob(pattern), None) else "no such file beside this repo"
         return
     if path_like(s, code.root):
         yield "files", place(s, code)
@@ -183,16 +200,16 @@ def name(s, code, last, block):
             yield "names", why
 
 
-def command(module, rest, code):
-    found = code.module(module)
+def command(pkg, module, rest, code):
+    found = code.module(module, pkg)
     if found is None:
-        return f"there's no tool/{module}.py"
+        return f"there's no {pkg}/{module}.py"
     lost = []
     sub = re.match(r"\s+([a-z][a-z_]*)(?=\s|$)", rest)
     if sub and sub.group(1) not in found["strings"]:
         lost.append(sub.group(1))
     lost += [f for f in FLAG.findall(re.split(r"\s\d*>", rest)[0]) if f not in found["strings"]]  # not past "> /dev/null"
-    return f"tool/{module}.py takes no {', '.join(lost)}" if lost else None
+    return f"{pkg}/{module}.py takes no {', '.join(lost)}" if lost else None
 
 
 def path_like(s, root):
@@ -229,9 +246,9 @@ def chain(head, rest, code):
     a module's function to any of the module's classes' names; past anything else nothing is known."""
     mod = code.module(head)
     if head == "s":
-        names, where = code.module("paintbox")["classes"]["Skin"], "paintbox.Skin"
+        names, where = code.module("paintbox", "tool")["classes"]["Skin"], "paintbox.Skin"
     elif mod:
-        names, where = mod["names"], f"tool/{head}.py"
+        names, where = mod["names"], f"{head}.py"
     elif head in code.every_class():
         names, where = code.classes[head], head
     else:
@@ -239,7 +256,7 @@ def chain(head, rest, code):
     called = False  # just past a module's function
     for attr, call in re.findall(r"\.([A-Za-z_]\w*)|(\([^()]*\))", rest):
         if call:
-            names, where = (set().union(*mod["classes"].values()), f"a class in tool/{head}.py") if called else (None, where)
+            names, where = (set().union(*mod["classes"].values()), f"a class in {head}.py") if called else (None, where)
             called = False
         elif names is None:
             return None
@@ -253,19 +270,24 @@ def chain(head, rest, code):
 
 
 def hooks(root):
-    """The tool's files the hooks in .claude/settings.json run, and the word each is given."""
+    """The modules the hooks in .claude/settings.json run (as files, `tool/guard.py folder`, or as modules, `-m
+    lab.notes --hook`), and the word each is given."""
     settings = json.loads((root / ".claude/settings.json").read_text(encoding="utf-8"))
     where = ".claude/settings.json"
+    code = Code(root)
     for event in settings.get("hooks", {}).values():
         for entry in event:
             for hook in entry.get("hooks", []):
-                for path, arg in sorted(set(re.findall(r"\$\{CLAUDE_PROJECT_DIR\}/(tool/\w+\.py)\\?\"?\s+([\w-]+)",
-                                                       hook.get("command", "")))):
-                    if not (root / path).exists():
+                cmd = hook.get("command", "")
+                runs = {(path, arg) for path, arg in re.findall(r"\$\{CLAUDE_PROJECT_DIR\}/(\w+/\w+\.py)\\?\"?\s+([\w-]+)", cmd)}
+                runs |= {(f"{pkg}/{mod}.py", arg) for pkg, mod, arg in re.findall(r"-m (\w+)\.(\w+)\s+([\w-]+)", cmd)}
+                for path, arg in sorted(runs):
+                    pkg, mod = path.split("/")[0], path.split("/")[1][:-3]
+                    found = code.module(mod, pkg) if pkg in code.packages else None
+                    if found is None:
                         yield where, "files", path, "no such file"
                     else:
-                        yield where, "commands", f"{path} {arg}", None if arg in read(root / path)["strings"] else \
-                            f"{path} takes no {arg}"
+                        yield where, "commands", f"{path} {arg}", None if arg in found["strings"] else f"{path} takes no {arg}"
 
 
 def line(counts, missing):

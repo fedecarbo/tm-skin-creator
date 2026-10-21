@@ -32,7 +32,7 @@ from tool import build, gate, install, judge, paintbox, paths, progress, snap, v
 def borrow(name):
     """Another skin's design, to build on: its module, with its design(), helpers and colours.
     Run afresh at each call, so two designs that borrow it never share its state. A design names
-    the skin it borrows in quotes, `borrow("TSC_CMYK_EndsInK")`, which is how tool/sets.py sees it."""
+    the skin it borrows in quotes, `borrow("TSC_CMYK_EndsInK")`, which is how a concept's sets see it (the Lab's lab/sets.py)."""
     script = paths.SKINS / name / "design.py"
     if not script.exists():
         raise FileNotFoundError(f"no design at {script}")
@@ -144,7 +144,7 @@ def show(name, open_browser=False, snapshot=True):
         if server.ours():
             webbrowser.open(f"http://localhost:{server.PORT}/?skin={urllib.parse.quote(name)}")
         else:
-            print("no server of ours is up to show it: `PY -m tool.labdoctor server`")
+            print("no server of ours is up to show it: start the Lab's (`PY -m lab.doctor server` in its folder)")
     return s
 
 

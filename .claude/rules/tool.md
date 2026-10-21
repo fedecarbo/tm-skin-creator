@@ -24,12 +24,13 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
   for pixel, `--at <commit>` tests a commit instead of the working tree. A commit's side is kept in
   the work folder, so it's paid for once per computer. Run it before committing a change to `tool/`.
   `--profile` says where one paint's time and memory go.
-- A cache whose contents change must change its name or version (`coverage._key`,
-  `labview.UVMAP_VERSION`), or the old code under test reads the new cache and agrees with it.
-- Claude's snapshots must not change with a change made for the Lab (snapshots, `?snap=1`, never
-  load the Lab's modules, and the viewer's own Lab features are off under `snap`). The page draws
+- A cache whose contents change must change its name or version (`coverage._key`), or the old code
+  under test reads the new cache and agrees with it.
+- Claude's snapshots must not change with a change made for a concept's page (snapshots, `?snap=1`, draw
+  the car alone, and the viewer's own page features are off under `snap`). The page draws
   only when something changed (`rouse` in `viewer/viewer.js`): anything new that changes the
-  picture on its own must call it. Snapshots draw every frame and load every mood first.
+  picture on its own must call it. Snapshots draw every frame and load every mood first. The Lab's page carries
+  a copy of `viewer/viewer.js`, `studio.js`, `index.html` and `lib/`: a change to the camera is copied there.
 
 ## Commands for the machinery
 
@@ -45,7 +46,8 @@ graphics chip's, the Mac only).
   --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths`
   looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks
   them; the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
-  (the picture maker's 16 GB of weights).
+  (the picture maker's 16 GB of weights). Then the Lab's repo, tm-skin-lab on the same GitHub account, cloned
+  beside this one.
 - A skin's life: `tool/skin.py` paints a design (`paintbox.Skin`), `tool/judge.py` names what's
   wrong on it (`PY -m tool.judge <name>`; its docstring is the key: every graphic measured where it landed,
   one list of findings, block, warn and note, kept with the design's hash in `build/<name>/verdict.json`;
@@ -56,75 +58,19 @@ graphics chip's, the Mac only).
   see its size), `tool/install.py` puts it in the game (`PY -m tool.install <name> ...` installs
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in
   the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
-- `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> and opens it. Run it in the
+- `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> from `viewer/` and opens it. Run it in the
   background. `tool/server.py` is the tool's static server (a page folder at `/`, the work folder's data at
-  `/data/`, `/api/health`; reads open to any origin, for a page from another folder: the world, its own project,
-  `~/Developer/personal/tm-world`); `tool/labserver.py` builds the Lab's routes on it: `/api/notes`, `/api/sets`,
-  `/api/meshpath` and `/api/progress` (what the tool is doing, `tool/progress.py`: every command that makes the
-  user wait opens a `progress.job`), for this computer's pages only, and `/data/gallery.json` and
-  `/data/lots.json` brought up to date when asked for (`gallery.fresh`). The tools write, the Lab reads: no tool
-  command refreshes the Lab's lists.
-- The Lab is the one page (`viewer/index.html`, http://localhost:8765/): the car in its studio
-  (`viewer/viewer.js`: the views and the game's cameras, the moods, the ground (the game's surfaces, `?ground=`), Show, Parts, the pedals, "My skins"
-  behind its button), and over it the Lab's modules, loaded once the car is up. `PY -m tool.swatches`
-  paints a ball for every finish in `finishes.CATALOGUE` and serves the page; `PY -m tool.labdoctor server`
-  starts it detached (a background task is stopped at its time limit, and the Lab with it) and
-  restarts it after a change to the tool; the session-start hook (`PY -m tool.doctor session`, the tool's checks,
-  then `PY -m tool.labdoctor session`, the Lab's) does the same when the server's code is older than the tool's
-  (`/api/health`), prunes the work folder of skins that no longer exist, and keeps the server's output in the work
-  folder's server.log. A gap in the Lab is a gap in the tool, to fix in the tool. Its modules share
-  `viewer/lab-common.js`:
-  - the car (`lab-studio.js`, its tags `lab-tags.js`) and its timeline, the car's story
-    (`lab-car.js`); Mesh lays the template's mesh over the paint (`viewer.mesh`;
-    `template/<Set>_Mesh.png`), and with it Draw picks a line by clicks
-    (`/api/meshpath`, `meshlines.path`; the note's drawn keeps the clicks). The car follows the frames `tool.skin show` writes at each `Skin.step`
-    (`view.export_steps`, `studio.json`; `install` paints without them), and drives the page's own
-    car (no car until its first `dress`) through `window.viewer`: `dress`, `shown`, `onSkin`, `inset`,
-    `track`, `project`, `camera`, `go`, `mood`, `ground`, `views`, `picture`, and the pen: `pen`, `onStroke`,
-    `drawings`.
-  - the UV map room (`?room=uv`, `lab-rooms.js`), from `tool/rooms.py` (every part must be
-    in a room) and `labview.export_uvmap` (`<Set>_Surfaces.png`), rebuilt when the parts, the rooms or
-    their code change; its Template (`view.export_template`, the model's own lines from
-    `meshlines.template`) on the maps and on the car, rebuilt when the mesh or `meshlines.py` change.
-    Its Car tab embeds the viewer (`index.html?embed=1`), a second car.
-  - the materials (`?room=materials`, `lab.js`; the balls by `balls.js`).
-  - the world (`lab-garage.js`), the page's front door when no skin is named (`?room=garage` too), in three levels
-    by clicks: the lots (the user's groups, `skins/lots.json` by `PY -m tool.gallery lot new "<name>"` and `lot move
-    <skin> "<name>"`; a skin in none is in New) with the shop beyond them; a lot, every skin in `gallery.json` parked as
-    a car of its own, dressed from its `skin.json` shrunk in the browser, the bay of the skin `studio.json` names lit,
-    its line under each car from `notes.stands` (`gallery.refresh` writes it as `stand`); the shop, the open set's
-    takes on lifts (`/api/sets`), Claude's figure at the one `steps.json` says is painting. `?lot=<name>`, `?shop=1`
-    keep the level. The cars are the page's own through `viewer.js`'s `kit` (geometries, still materials, the day sky);
-    the shop's and the lots' things and Claude's figure are real models (`tool/props.py`: Poly Haven's and Kenney's, CC0,
-    fetched once into the work folder by `PY -m tool.props` or the server's start, their shapes alone; `viewer/props.js`
-    puts them down in one matte white).
-  - the notes on the car (`tool/notes.py`: `.notes/notes.json`, git-ignored, each computer its own,
-    writers take an mkdir lock) reach Claude through a UserPromptSubmit hook (`.claude/settings.json`)
-    or at once through `tool.notes wait` in the background. The hook runs `notes.py` as a script,
-    perhaps on the Mac's own python3: it stays standard library only.
-- The sets of options: `tool/sets.py` (its docstring is the key, standard library only) writes
-  `skins/<car>/sets.json`, the only writer; the Lab's timeline reads it through `/api/sets?skin=<name>`
-  (`sets.lab`: the car the skin is or is an option of), which also carries `said`, everything said in
-  the Lab about the car and its options (`notes.timeline`: the user's notes, with their pictures,
-  served as `/notes/<file>`, and Claude's lines, `by: "claude"`, from `tool.notes say` and `done
-  --say`). Each option's picture is its gallery thumb, and a pick keeps every option's picture in
-  `skins/<car>/sets/<n>/` (served as `/sets/<car>/<n>/<letter>.png`) for the timeline. A pick is a
-  note with `answer` (the set, the option): the car's tags
-  leave both out.
-- The widgets in the timeline (`tool/notes.py`'s docstring is the key): a set, Claude's question
-  (`tool.notes ask`, `settle`: a Claude line with `ask`, its choices' pictures copied into `.notes/`
-  and served as `/notes/<skin>-ask<k><key>.png`) and yes or no. An answer is a note with `answer`,
-  checked in `notes.add` against its question. The timeline redraws whole on every change, so
-  `lab-car.js` keeps a widget's typed words and ticks by widget (`drafts`, `chosen`) and gives the
-  focus back.
-- `PY -m tool.snap --page "<query>"` photographs the Lab's page whole, e.g. a room (`"?room=uv"`).
+  `/data/`, `/api/health`; reads open to any origin, for a concept's page from another folder); a concept's own
+  routes are a handler built on it (the Lab's, serving its own page on the same port, started by its doctor).
+  The tools write, a concept reads: `tool.skin show` writes the frames the page follows at each `Skin.step`
+  (`view.export_steps`, `studio.json`; `install` paints without them), `tool/progress.py` the job log (every
+  command that makes the user wait opens a `progress.job`), and no tool command refreshes a concept's lists.
 - The close looks (`tool/close.py`, its docstring is the key) read what show keeps (`judge.save`: `graphics.json`,
   every graphic's stations or middle; `owner.npy`, whose paint each texel holds) through the viewer's texel pass
   (`viewer.uvs`, snapshots only: which texel each pixel shows, never a blend).
 - Tyre markings: `tool/tyres.py` (its docstring says how the tyres' map wraps the wheel, and why
   its words are flip-proof), drawn in the map's own rows and columns, with relief in `Wheels_N`
-  (the paint box's `Canvas.normal`); its tread library (TR codes) is the Lab's Treads, each drawn
-  on the car's own tyre (`swatches.write_tread`, a lathe in `lab.js`). `PY -m tool.tyres`
+  (the paint box's `Canvas.normal`); its tread library (TR codes). `PY -m tool.tyres`
   photographs the library (`tool/tyresheet.py`).
 - A marking along the car's own lines or the user's stroke is a course (`tool/course.py`, its
   docstring is the key: the line's points every 0.25 cm, every one on the surface; a marking's width and
@@ -144,7 +90,8 @@ graphics chip's, the Mac only).
   (`tool/wear.py`, its docstring is the key: how sharply the body bends, the open air, how thick, how far in from
   its outline; `PY -m tool.wear`, a minute): wear reads only them. The car in words, `car/anatomy.md`,
   comes from the model's lines and the map: after a change to either, `tool.carmap --describe` again, and
-  retake its picture `car/map/model.jpg` (`tool.snap Template --body`).
+  retake its picture `car/map/model.jpg` (`tool.snap Template --body`). The model's own lines on the maps and on
+  the car (`view.export_template`, from `meshlines.template`) are rebuilt when the mesh or `meshlines.py` change.
 - Parts: `PY -m tool.parts` turns `tool/naming.py` into `car/parts.json` (`--review` renders the
   car coloured by part). `parts.load().mask(bake, "Details", "brake caliper", side="left",
   end="front")` is a texel mask. See `shared` in `car/parts.json` for shared texels.

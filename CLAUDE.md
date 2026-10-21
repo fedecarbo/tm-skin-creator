@@ -4,15 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## The project
 
-A tool that makes skins (paint jobs) from the user's words for the Trackmania 2020 stadium car
-(CarSport). The user describes a skin in a chat; Claude shows it on the car and changes it until
-they say yes, then installs it. They judge it by four things (`BRIEF.md`): they'd drive it in the
+The tools that paint a skin (a paint job) for the Trackmania 2020 stadium car (CarSport) from the user's words: the
+paint box and everything it paints with, the judge that measures what landed, the camera that photographs it, the
+build and the install into the game. The user judges a skin by four things (`BRIEF.md`): they'd drive it in the
 game; it's fast, minutes from their words to the car; it's all in words; it stays small and simple.
 
 The user isn't technical and won't read code. Claude makes every technical decision.
 
-**Every request to make, change, show or install a skin goes through the `skin` skill.** Load it
-first.
+The user designs a car in a **concept**: an interface with its own workflow, instructions, skill and repo, beside
+this one, that runs the tools (pip-installed into the work folder's venv, so `PY -m tool.<x>` and `from tool
+import` work from any folder). **The tools write, a concept reads:** the tools produce the car's data, every skin's
+maps, the step frames, the verdicts, the job log (the work folder's viewer data, served by `tool/server.py`); a
+concept reads them over the tools' server and writes only its own things. Concept 1 is the Lab
+(`~/Developer/personal/tm-skin-lab`: the one page with the car, the user's notes on it, sets of takes); concept 2
+the world (`~/Developer/personal/tm-world`). A session here works on the tools: it paints only the self-test's
+cars, or a car the user asks for outright, and then it reads the `paint` skill first (the craft and the manual:
+`.claude/skills/paint/SKILL.md`, which every concept's skill reads before painting).
 
 ## The rules
 
@@ -25,12 +32,12 @@ first.
   on when they ask. `.claude/rules/tool.md` loads with the tool's code: checking a change (the
   self-test), the machinery's commands, the game's texture format.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the
-  picture maker) and the Mac (designing, the viewer, snapshots). A hook pulls at the start of each
+  picture maker) and the Mac (designing, snapshots). A hook pulls at the start of each
   session (if it failed, sort that out first), then checks the tool (`tool/doctor.py`: GitHub, the
-  tool's Python, the work folder, the game's list, the queue) and the Lab (`tool/labdoctor.py`: its server,
-  then where each skin stands and what's open).
-- `tool/`: the Python machinery. `viewer/`: the Lab, the one page with the car. `car/parts.json`: every part's
-  name. `skins/<name>/`: one folder per skin. `skins/installed.json`: what the tool put in the game.
+  tool's Python, the work folder, the game's list, the queue).
+- `tool/`: the Python machinery. `viewer/`: the camera, the page the snapshots are taken on. `car/parts.json`:
+  every part's name. `skins/<name>/`: one folder per skin: its design, its language, its record (`notes.md`), its
+  art; a concept edits this repo only here. `skins/installed.json`: what the tool put in the game.
 - `PY` is the tool's Python, run from the repo root: on the PC
   `%LOCALAPPDATA%\TrackmaniaSkinChallenge\venv\Scripts\python.exe`, on the Mac
   `"$HOME/Library/Application Support/TrackmaniaSkinChallenge/venv/bin/python"`. Its parent folder
@@ -52,5 +59,4 @@ first.
 ## Keeping this file useful
 
 It loads every session: only what every session needs. Instructions for one part of the code go
-in `.claude/rules/*.md` with `paths:`; the design routine in the `skin` skill. Delete what stops
-being true.
+in `.claude/rules/*.md` with `paths:`; the craft in the `paint` skill. Delete what stops being true.

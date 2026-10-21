@@ -1,26 +1,9 @@
 # Rules
 
-How we work with AI on this project, written as the mistakes not to repeat: what not to do, why,
-and what to do instead. It stays a page: a new rule replaces or merges another. A fact about the
-game or the code goes into the code (a warning, a check, a docstring).
-
-## With the user
-
-- **Don't ask about anything but taste and real choices.** The user hands every technical decision
-  to Claude. Decide, do it, show it.
-- **Don't describe a car, or show it in screenshots.** Words make the user imagine it, and a still
-  can't be turned (the user, 2026-10-04: "stop with the screenshots"). Put it in the Lab, where they
-  move round it; pictures only as a widget's choices.
-- **Don't put a choice in plain text only.** The user picks by looking. A choice in words goes through
-  Claude's own picker in the chat; one with a picture or a colour, and every set of painted takes, to
-  the Lab's chat as a widget, asked in one bold line in the reply.
-- **Don't run the user through a fixed sequence of steps.** They work by reacting to the car. Make
-  the change, show it, and offer options only when there's a real fork or they ask.
-- **Don't ask the user to test in the game.** They drive when they want. Use their F12 screenshots
-  when they share them.
-- **Don't keep what the user didn't pick** (unpicked takes, test cars). It turns into noise in every
-  list. Delete it; git keeps it.
-- **Don't show code, file names or jargon in replies** unless they ask. They don't read code.
+How we work on the tools, written as the mistakes not to repeat: what not to do, why, and what to do
+instead (how we work with the user is each concept's: the Lab's RULES.md). It stays a page: a new rule
+replaces or merges another. A fact about the game or the code goes into the code (a warning, a check, a
+docstring).
 
 ## Designing
 
@@ -55,8 +38,6 @@ game or the code goes into the code (a warning, a check, a docstring).
 - **Don't mention what no longer exists, or how things used to be,** in instructions, comments or
   docstrings. Naming it puts it back in mind. Write as if things had always been this way; history
   is in git. (A skin's `notes.md` is its record, and keeps its story.)
-- **Don't keep a list in the Lab that the tool doesn't produce.** It drifts out of date. The Lab shows
-  only the tool's own data.
 - **Don't change the tool without the self-test.** Every car's game files stay identical, byte for
   byte, unless the change means to alter them, and the commit says which and why.
 - **Don't guess.** Measure slowness before fixing it, and check the viewer against the game before

@@ -115,7 +115,7 @@ class Coverage:
         """Per texel of a coarser grid (one texel in sx by sy, from each cell's middle, as the
         Lab's maps sample owners()), the parts covering it by `least`/255 or more: (index (h, w), -1 for
         none, and the list of id tuples it points into). The Lab's surfaces are made from these
-        (view._surfaces): each names only the parts on its own texels, not every part its parts
+        (its UV map): each names only the parts on its own texels, not every part its parts
         share any paint with (the user, 2026-09-26: "I can't select that surface because it
         selects almost all details surfaces")."""
         gw, gh = self.w // sx, self.h // sy

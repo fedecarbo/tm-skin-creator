@@ -11,7 +11,7 @@
 // Data comes from /data/ (see tool/view.py): car.json + car.bin (every triangle corner tagged
 // with its part), parts.json (the named parts), <Set>_Shared.png (texels several parts share),
 // the two lighting HDRIs, skins/<name>/skin.json, which gives the URL of every texture slot, and
-// gallery.json (tool/gallery.py), the list of skins behind "My skins".
+// gallery.json (a concept's list: the Lab's lab/gallery.py), the list of skins behind "My skins".
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -195,7 +195,7 @@ controls.maxDistance = 18;
 // No limit on the angle: skins paint the underside too, and the floor isn't drawn from below.
 
 // view: a name from VIEWS, or { dir, dist, target, fov } for a close look, or { dir, fit, margin }
-// to frame parts (the Lab's rooms, tool/rooms.py). glide: move there smoothly.
+// to frame parts (the Lab's rooms, its lab/uvmap.py). glide: move there smoothly.
 let glide = null;
 let fitted = null;  // a framing view, framed again when the window changes, until the user turns the car
 function setView(view, smooth = false) {
@@ -1787,7 +1787,7 @@ function markStudio() {
 // ---- Skins: the list down the left, and switching the car's paint in place ----
 
 let geometries = null;
-let gallery = [];  // tool/gallery.py's entries
+let gallery = [];  // gallery.json's entries (the Lab's lab/gallery.py)
 let loading = 0;   // the latest request wins when skins are clicked quickly (loadSkin, dress)
 let wanted = '';   // the skin last asked for: shown, or on its way
 const titleOf = (name) => name.replace(/^TSC_/, '').replaceAll('_', ' ').replace(/([a-z])(?=[A-Z])/g, '$1 ');

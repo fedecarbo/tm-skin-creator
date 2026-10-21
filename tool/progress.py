@@ -36,7 +36,7 @@ _current = None
 
 
 def title_of(name):
-    """A skin's name as the Lab writes it (lab-common.js, titleOf): TSC_RedFlash -> Red Flash."""
+    """A skin's name as a page writes it (the Lab's titleOf): TSC_RedFlash -> Red Flash."""
     return re.sub(r"([a-z])(?=[A-Z])", r"\1 ", re.sub(r"^TSC_", "", name).replace("_", " "))
 
 

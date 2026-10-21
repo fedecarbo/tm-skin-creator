@@ -71,11 +71,12 @@ SNAP = ("TSC_CMYK_EndsInK",)
 HOME = paths.WORK / "selftest"
 OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none rebuilds for them
 # The tripwires. Names the standard library calls or reads, which no code of ours does (tool/server.py's handler and
-# server, a C function's types for ctypes); tool/looks.py's @look registers each look by its name.
-UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes")
+# server, a C function's types for ctypes), and what a concept reads (progress.jobs, the Lab's /api/progress);
+# tool/looks.py's @look registers each look by its name.
+UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes", "jobs")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 20900, "viewer/*.js": 5716}
+BUDGET = {"tool/*.py": 18474, "viewer/*.js": 2700}
 SLACK = 100
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice
@@ -480,8 +481,7 @@ def tree(ref):
         progress.stage("Getting the old code")
         tmp = folder.with_name("tree.tmp")
         shutil.rmtree(tmp, ignore_errors=True)
-        blob = git("archive", commit, "--", "tool", "car", "viewer", "skins",
-                   ":(exclude)skins/*/versions", ":(exclude)skins/*/sets")
+        blob = git("archive", commit, "--", "tool", "car", "viewer", "skins", ":(exclude)skins/*/versions")
         with tarfile.open(fileobj=io.BytesIO(blob)) as t:
             t.extractall(tmp, filter="data")
         for p in tmp.rglob("*"):

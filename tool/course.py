@@ -8,7 +8,7 @@ a strip, dashes, ticks, spots or words.
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
     meshlines.line(name), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py), as courses
-    course.stroke(points)                   the line the user drew (tool.notes show_drawn prints its points): its
+    course.stroke(points)                   the line the user drew (a concept prints its points: the Lab's `lab.notes drawn`): its
                                              points on the body, joined by the straightest way along the surface
     course.points([(x, y, z), ...])          any points on the car, joined the same way
     course.Courses([a, b], "the contour")    several courses marked alike: a marking is every one's, in one zone

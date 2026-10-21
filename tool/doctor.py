@@ -3,7 +3,7 @@ and fixes what's safe, so a cold start on either computer begins with a working 
 
     python tool/doctor.py session    what the SessionStart hook runs after the pull: GitHub, the
                                      tool's Python, the work folder, the game's list, the queue
-                                     (the Lab's own doctor, tool/labdoctor.py, runs after it)
+                                     (a concept's own doctor runs after it: the Lab's lab/doctor.py)
 
 Each check prints only when something needs doing, and a check that fails says so and lets the rest
 run: nothing here can stop a session. Standard library only (the hook may run it with the Mac's own
@@ -38,13 +38,16 @@ QUEUE_MOST, QUEUE_DAYS = 20, 30
 ITEM = re.compile(r"^- \*\*(.+?)\*\*[^\n]*?(?:\((\d{4}-\d{2}-\d{2})|$)", re.M)  # an item: its title, and the date on its first line
 
 
-def _git(*args, timeout=20):
-    return subprocess.run(["git", "-C", str(REPO), *args], capture_output=True, text=True, timeout=timeout)
+def _git(*args, repo=REPO, timeout=20):
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, timeout=timeout)
 
 
-def git_state():
-    """GitHub: in sync or not, stale branches; one author identity and pruning set for this repo."""
+def git_state(repo=REPO):
+    """GitHub: in sync or not, stale branches; one author identity and pruning set for this repo (or a concept's)."""
     todo = []
+
+    def _git(*args):
+        return globals()["_git"](*args, repo=repo)
     head = _git("rev-parse", "--short", "HEAD").stdout.strip() or "?"
     counts = _git("rev-list", "--left-right", "--count", "HEAD...@{u}")
     if counts.returncode == 0:
@@ -162,11 +165,11 @@ def game_list():
                 "`PY -m tool.install remove --deleted` takes them out of the game."]
 
 
-def queue():
-    """IMPROVEMENTS.md: how many items, the oldest; prune it past QUEUE_MOST or QUEUE_DAYS."""
-    if not QUEUE.exists():
+def queue(path=QUEUE):
+    """IMPROVEMENTS.md (this repo's, or a concept's): how many items, the oldest; prune it past QUEUE_MOST or QUEUE_DAYS."""
+    if not path.exists():
         return "", []
-    items = ITEM.findall(QUEUE.read_text(encoding="utf-8"))
+    items = ITEM.findall(path.read_text(encoding="utf-8"))
     if not items:
         return "the queue empty", []
     dates = sorted(datetime.date.fromisoformat(d) for _, d in items if d)

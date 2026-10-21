@@ -10,8 +10,6 @@
                                              by day and at night, at 16:9 (CAMS), to set beside
                                              the game's F12 screenshots
     python -m tool.snap <name> --body   -> build/<name>_body.png: the body alone, no wheels, nine views
-    python -m tool.snap --page "?room=uv" [--size 1600x1000]
-                                          -> build/lab_room_uv.png: any page of the viewer's, whole
     python -m tool.snap <name> --picture [<other> ...] [--titles ...] [--views ...]
                                              [--close-row <name> 2 5 9 [--close-row <other> 2 5 9]]
         -> build/<name>_picture.png, a row per skin from its views sheet (and a row of its close
@@ -98,31 +96,6 @@ def snap(name, out=None, size=(960, 720), shots=SHOTS, query="", prepare=True, t
     for e in errors:
         print(f"page error: {e}")
     return sheet(name, tiles, out, size, thumb)
-
-
-def page(path, size=(1600, 1000)):
-    """The Lab's page, e.g. "?room=uv" ("" for the car), photographed whole once it says it's
-    ready (window.lab), into build/<page>.png."""
-    from tool import labserver  # the Lab's routes, not just the camera's files
-    httpd = server.start(0, handler=labserver.Handler)
-    out = paths.BUILD / ((re.sub(r"[^\w-]+", "_", path).strip("_") or "lab") + ".png")
-    try:
-        with sync_playwright() as p:
-            browser = paths.launch(p)
-            pg = browser.new_page(viewport={"width": size[0], "height": size[1]})
-            pg.on("pageerror", lambda e: print(f"page error: {e}"))
-            pg.goto(f"http://127.0.0.1:{httpd.server_address[1]}/{path}")
-            pg.wait_for_function("window.lab && (window.lab.ready || window.lab.error)", timeout=120_000)
-            err = pg.evaluate("window.lab.error")
-            if err:
-                raise RuntimeError(err)
-            out.parent.mkdir(parents=True, exist_ok=True)
-            pg.screenshot(path=str(out), full_page=True)
-            browser.close()
-    finally:
-        httpd.shutdown()
-    print(f"page: {out}")
-    return out
 
 
 def sheet(name, tiles, out=None, size=(960, 720), thumb=None):
@@ -259,13 +232,9 @@ def main():
     ap.add_argument("--views", nargs="*", default=["front", "rear", "top"], choices=list(VIEW_TILES))
     ap.add_argument("--close-row", nargs="+", action="append", metavar="NAME N",
                     help="a skin, then numbers of its close looks, tool.close's (again for another skin)")
-    ap.add_argument("--page", metavar="PAGE", help='the Lab\'s page, whole, e.g. "?room=uv" or "" for the car (no name)')
     ap.add_argument("--before", nargs="?", const="views", choices=list(KINDS),
                     help="the tiles that changed since the sheet before, before beside after")
     args = ap.parse_args()
-    if args.page:
-        page(args.page, tuple(int(v) for v in (args.size or "1600x1000").split("x")))
-        return
     if not args.name:
         ap.error("the skin's name")
     if args.before:

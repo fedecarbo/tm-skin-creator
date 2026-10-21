@@ -50,7 +50,7 @@ it.
   indicate all the details on where to put what and how"; the car designed as a whole, not "as individual parts with
   added details"; "I'm okay if there's a level of process or steps"; "some kind of template that can be reused but
   ... the template should somehow give the freedom to explore the concept"). Built: the routine, the language then
-  the car in passes (`.claude/skills/skin/language.md`), and each car's page (`PY -m tool.language <name>`, the
+  the car in passes (`.claude/skills/paint/language.md`), and each car's page (the Lab's language command, the
   layout the user picked: A, the brand book). Waiting for the user's words for a new car: its language page shown
   for their OK, then the passes on it.
 
@@ -105,25 +105,12 @@ it.
 - **The open air may differ between the Mac and the PC** (2026-10-05): the car map's open air (`tool/carmap.py`)
   is worked out on each computer (numpy and BLAS); the judge (`tool/judge.py`) and a mark's room
   (`tool/marks.py`) read it and haven't run on the PC yet: a mark could land a texel or two apart there.
-- **The Lab is empty before a new car's first paint** (2026-10-05): idea: the car in clay with a line
-  on the stage until the first paint.
-- **The Lab's front end, refined as a whole** (2026-10-10, the user, after the one page: "Can we leave some
-  frontend refinements to the queue. Ill work on it some other time"; "Is there a chance to actually see things a
-  bit away from what it is now?"). What's grown by accretion: the conversation in two places (this chat and the
-  Lab's chat, with the polling and the "Claude has it" states that bridge them); two rooms the car page now
-  covers (the materials, which a question's swatches can bring into the chat; the UV map, which a click on the car
-  and the Mesh button cover); the UV map room's Car tab a second car in its own frame (`index.html?embed=1`).
-  Idea: two or three directions rendered on a sheet first (the visual-plan way the layout was picked), the
-  simplest being one page, one conversation, no rooms; whichever is picked, retire what it replaces.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
   airbox: check them the first time a design paints them; 2026-10-07: the "antenna" is the probe under the nose,
   the "nose sensor" is hidden inside it, the "sidepod grille" is the backing of the visible "sidepod grille plate"), and the fasteners have none
   (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand). The body's own bolt heads are four tiny parts with one paint for
   the whole car, which no zoned paint reaches: gold dots on every shard of TSC_Kintsugi, unasked.
   Renaming touches `tool/naming.py` and the viewer.
-- **The Lab inside VS Code** (2026-10-18): the user works in VS Code's Claude panel with the Lab in a
-  browser window beside it. One window would be the Lab as a VS Code tab (Simple Browser: Show,
-  http://127.0.0.1:8765/); untried with the car's 3D view.
 - **What the Mac lacks** (2026-10-05): the picture maker (it needs the PC's card; idea: FLUX.2 [klein]
   on Metal, quantised, the latest release looked up first) and two tyre fonts (Bahnschrift, Consolas;
   idea: open look-alikes).

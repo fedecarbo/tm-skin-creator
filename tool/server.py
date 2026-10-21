@@ -1,11 +1,11 @@
 """The tool's web server: Python's own, on this computer only (ES modules don't load from file://). It serves a page
-folder at / and the work folder's viewer data at /data/ (tool/view.py), answers /api/health, and nothing else: the
-Lab's own routes are tool/labserver.py's, a handler built on this one.
+folder at / and the work folder's viewer data at /data/ (tool/view.py), answers /api/health, and nothing else: a
+concept's own routes (the Lab's lab/server.py) are a handler built on this one, serving its own page folder.
 
   /        the page folder: the repo's viewer/ by default (the camera: index.html?skin=<name>&snap=1 for the tool's
-           snapshots, tool/snap.py; the Lab's page too, served by tool/labserver.py)
+           snapshots, tool/snap.py)
   /data/   the work folder's viewer/ folder: the car, the lighting, the skins (tool/view.py)
-  /api/health   alive: its pid and the age of the code it runs (tool/labdoctor.py restarts an old one)
+  /api/health   alive: its pid and the age of the code it runs (a concept's doctor restarts an old one)
 
 start(0) serves on a free port for a hidden browser (tool/snap.py, tool/close.py, tool/tyresheet.py); serve() is how
 the tool opens a page for the user: it serves on PORT unless a server of ours already answers there (/api/health; it
@@ -27,7 +27,7 @@ from tool import paths, view
 
 PORT = 8765
 STARTED = time.time()
-# the tool's code as this server loaded it: tool/labdoctor.py restarts a server older than the code on disk
+# the tool's code as this server loaded it: a concept's doctor restarts a server older than the code on disk
 CODE = max((p.stat().st_mtime for p in (paths.REPO / "tool").glob("*.py")), default=0.0)
 
 
@@ -113,8 +113,7 @@ def serve(page, label, open_tab=True, root=None, handler=Handler):
     try:
         start(PORT, root, handler)
     except OSError as e:
-        raise SystemExit(f"port {PORT} is held by something that isn't the tool's server ({e}): "
-                         "`PY -m tool.labdoctor server` sorts it out")
+        raise SystemExit(f"port {PORT} is held by something that isn't the tool's server ({e}): stop it first")
     print(f"{label}: {url} (pid {os.getpid()})", flush=True)
     if open_tab:
         webbrowser.open(url)
