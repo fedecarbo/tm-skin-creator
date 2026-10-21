@@ -1,4 +1,4 @@
-"""Check the official zips against official/SOURCES.md and unpack them into the work folder.
+"""Check the official zips against resources/official/SOURCES.md and unpack them into the work folder.
 
 Run: python -m tool.prepare
 The zips are never modified. Unpacking again is safe: it replaces the extracted copies.
@@ -61,10 +61,10 @@ def main():
     for name, dest in ZIPS.items():
         zip_path = paths.OFFICIAL / name
         if not zip_path.exists():
-            sys.exit(f"Missing {zip_path}. Copy it from the other computer, or download it from the link in official/SOURCES.md.")
+            sys.exit(f"Missing {zip_path}. Copy it from the other computer, or download it from the link in resources/official/SOURCES.md.")
         actual = sha256(zip_path)
         if actual != hashes.get(name):
-            sys.exit(f"{name}: sha256 {actual} does not match official/SOURCES.md")
+            sys.exit(f"{name}: sha256 {actual} does not match resources/official/SOURCES.md")
         unpack(zip_path, dest)
         print(f"{name}: sha256 ok, unpacked to {dest}")
     unpack(paths.MODEL / NESTED, paths.MODEL_SOURCE)

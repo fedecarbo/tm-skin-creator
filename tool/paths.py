@@ -9,14 +9,14 @@ import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-OFFICIAL = REPO / "official"
+OFFICIAL = REPO / "resources" / "official"  # Nadeo's template and the car model (resources/official/SOURCES.md)
 SKINS = REPO / "skins"
 INSTALLED_MANIFEST = SKINS / "installed.json"
 
 MAC = sys.platform == "darwin"
 WORK = (Path.home() / "Library" / "Application Support" if MAC
         else Path(os.environ["LOCALAPPDATA"])) / "TrackmaniaSkinChallenge"
-UNPACKED = WORK / "official"  # extracted copies of the official/ zips
+UNPACKED = WORK / "official"  # extracted copies of the resources/official/ zips
 TEMPLATE = UNPACKED / "template"  # Nadeo's ReadMe and UV maps
 MODEL = UNPACKED / "model"  # the Sketchfab zip: textures/*.png, source/*.zip
 MODEL_SOURCE = UNPACKED / "model_source"  # the nested zip: the FBX and the stock DDS files

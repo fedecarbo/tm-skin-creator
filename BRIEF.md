@@ -55,11 +55,11 @@ checklist.
 
 ## What I'm giving you
 
-The `official/` folder has the files you can't make yourself:
+The `resources/official/` folder has the files you can't make yourself:
 
 - `CarSport-Template.zip`: Nadeo's skin template, with their instructions and the flat
   UV maps of the car.
 - `CarSport-Model.zip`: the car's 3D model, with its unpainted textures.
 
-`official/SOURCES.md` says where each came from, and links Nadeo's published pages
+`resources/official/SOURCES.md` says where each came from, and links Nadeo's published pages
 about skins. Everything else is yours to find, choose or build.

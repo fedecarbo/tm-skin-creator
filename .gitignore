@@ -1,6 +1,6 @@
 # Third-party assets: not ours to publish, and the repo is public.
-# official/SOURCES.md says where to download them and lists their sha256.
-official/*.zip
+# resources/official/SOURCES.md says where to download them and lists their sha256.
+resources/official/*.zip
 
 # The user's recordings and screenshots from the game: large, and they stay on the Windows PC.
 *.mp4
@@ -21,7 +21,7 @@ __pycache__/
 
 # Skins by other players, for checking the car map only: not ours to publish
 *.rar
-/community/
+/resources/community/
 
 # The Finder's own bookkeeping
 .DS_Store

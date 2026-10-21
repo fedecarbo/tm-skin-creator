@@ -9,7 +9,7 @@ and checked by the self-test; ideas are named in plain words.
 
 ## Next: the road
 
-The research's order of work (`reports/Skin tool state of the art 2026.md`: its last table, the why and the
+The research's order of work (`research/Skin tool state of the art 2026.md`: its last table, the why and the
 sources), one step per session (the user, 2026-10-07: "I will do the plan a session each"). A session does the
 first step below and nothing past it:
 - build it under the self-test, and show its worth: on a new test car made for it when it changes what a car looks

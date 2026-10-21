@@ -61,8 +61,8 @@ class Code:
         ignore = root / ".gitignore"
         left_out = set(re.findall(r"^/?([^\s/*]+)/$", ignore.read_text(encoding="utf-8"), re.M)) if ignore.exists() else set()
         self.kept = {p.name for p in root.iterdir() if p.is_dir() and p.name not in left_out | {".git"}}
-        self.zipped = set()  # the files in Nadeo's and the model's zips (official/), by name
-        for z in root.glob("official/*.zip"):
+        self.zipped = set()  # the files in Nadeo's and the model's zips (resources/official/), by name
+        for z in root.glob("resources/official/*.zip"):
             with zipfile.ZipFile(z) as f:
                 self.zipped |= {Path(n).name for n in f.namelist()}
 

@@ -1,14 +1,15 @@
 # The tools as a package, installed editable into the work folder's venv (`PY -m pip install -e . --no-deps`), so
 # `PY -m tool.<x>` and `from tool import ...` work from any folder: a concept (an interface with its own
 # workflow, in its own repo beside this one) runs the tools from there. requirements.txt stays the install list.
+# Hatchling (1.32.4, 2026-10) builds it: an editable install is one .pth line in the venv, nothing left in this folder.
 [build-system]
-requires = ["setuptools>=75"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.32"]
+build-backend = "hatchling.build"
 
 [project]
 name = "tm-skin-tool"
 version = "0"
 requires-python = ">=3.14"
 
-[tool.setuptools]
+[tool.hatch.build.targets.wheel]
 packages = ["tool"]

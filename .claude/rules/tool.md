@@ -2,7 +2,7 @@
 paths:
   - "tool/**"
   - "viewer/**"
-  - "official/**"
+  - "resources/**"
   - "car/**"
 ---
 
@@ -46,7 +46,7 @@ graphics chip's, the Mac only).
   package, `pyproject.toml`: `PY -m tool.<x>` and `from tool import` work from any folder, a concept's beside this
   one), on the Mac `PY -m playwright install
   --only-shell chromium` (with `PLAYWRIGHT_BROWSERS_PATH=<the work folder>/browsers`, where `paths`
-  looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `official/` zips and unpacks
+  looks), `PY -m tool.prepare` (downloads Nadeo's template, checks the `resources/official/` zips and unpacks
   them; the model zip is copied from the other computer), and on the PC `PY -m tool.pictures setup`
   (the picture maker's 16 GB of weights). Then the Lab's repo, tm-skin-lab on the same GitHub account, cloned
   beside this one.
@@ -122,9 +122,9 @@ graphics chip's, the Mac only).
 - Agents load when a session starts: a new or changed `.claude/agents/*.md` reaches the next one.
   `car/parts.json` shows up changed: delete the work folder's `parts_stats.json`, run `tool.parts`.
 
-## Source assets (`official/`)
+## Source assets (`resources/official/`)
 
-Leave the zips unchanged: `official/SOURCES.md` records their sha256. Extract them to a working
+Leave the zips unchanged: `resources/official/SOURCES.md` records their sha256. Extract them to a working
 folder and never edit them in place. They're git-ignored because the GitHub repo is public. A
 fresh clone downloads them from the links in `SOURCES.md`.
 
@@ -139,7 +139,7 @@ fresh clone downloads them from the links in `SOURCES.md`.
 ## Skin texture format
 
 From Nadeo's `ReadMe.txt` and Nadeo's 2020 post "Stadium CAR Ressources" (link in
-`official/SOURCES.md`). DDS files are required. They must use legacy D3D9 headers (FourCC
+`resources/official/SOURCES.md`). DDS files are required. They must use legacy D3D9 headers (FourCC
 `DXT1`, `DXT5`, `ATI1` or `ATI2`), not DX10 headers.
 
 | File | Compression | Content |
