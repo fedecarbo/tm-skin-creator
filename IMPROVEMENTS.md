@@ -74,6 +74,10 @@ it.
 
 ## The tool
 
+- **The underside is black in the camera** (2026-10-21, the user: "it's black because of shadow"): the floor isn't drawn
+  from below, but the studio is lit from the sky above and nothing lights the car from underneath, so the body sheet's
+  underside view (`tool.snap <name> --body`) shows a painted underside as near black. Idea: for a view from below, light
+  the car from below too (the sky turned under it, or a fill light), snapshots only.
 - **Fur made by the tool, with a lay that follows the car** (2026-10-09, TSC_Bumblebee's surfaces pass; 2026-10-11): the
   photographed piles (fur, teddy fur, plaid fur, plush, velvet, fleece: `tool/textures.py`, the Lab's LF-08 to LF-13) lay
   their nap along each panel of the car's unfolding, fixed in the photo, so a photo's hairs can't sweep round the nose
