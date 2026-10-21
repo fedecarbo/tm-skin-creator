@@ -74,6 +74,10 @@ it.
 
 ## The tool
 
+- **The PC's repo is inside OneDrive** (2026-10-21, the user: "why is ours on onedrive?"): Windows puts Documents under
+  OneDrive by default, and the clone went there; the work folder was put outside OneDrive because of it. When the PC
+  is back: clone the tools and the Lab into a plain folder (`C:\Users\fedec\Developer\`), as on the Mac, and point
+  the hooks' and the doctor's notes at it. The game's own skin folder stays where the game keeps it.
 - **The underside is black in the camera** (2026-10-21, the user: "it's black because of shadow"): the floor isn't drawn
   from below, but the studio is lit from the sky above and nothing lights the car from underneath, so the body sheet's
   underside view (`tool.snap <name> --body`) shows a painted underside as near black. The game's garage has a camera
