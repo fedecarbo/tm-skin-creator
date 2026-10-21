@@ -4,6 +4,8 @@ concept's own routes (the Lab's lab/server.py) are a handler built on this one, 
 
   /        the page folder: the repo's viewer/ by default (the camera: index.html?skin=<name>&snap=1 for the tool's
            snapshots, tool/snap.py)
+  /camera/   the repo's viewer/ whatever the page folder: a concept's page imports the engine from /camera/viewer.js
+           (with its studio.js and lib/) and frames the bare car from /camera/?embed=1
   /data/   the work folder's viewer/ folder: the car, the lighting, the skins (tool/view.py)
   /api/health   alive: its pid and the age of the code it runs (a concept's doctor restarts an old one)
 
@@ -42,6 +44,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         path = urllib.parse.urlsplit(path).path
         if path.startswith("/data/"):
             self.directory, path = str(view.DATA), path[len("/data"):]
+        elif path.startswith("/camera/"):  # the camera's own files, for a page from another folder to import the engine
+            self.directory, path = str(paths.REPO / "viewer"), path[len("/camera"):]
         else:
             self.directory = str(self.server.root)
         return super().translate_path(path)

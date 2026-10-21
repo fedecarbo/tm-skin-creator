@@ -27,10 +27,12 @@ are in `RULES.md`. The top docstring of each `tool/*.py` is its key.
 - A cache whose contents change must change its name or version (`coverage._key`), or the old code
   under test reads the new cache and agrees with it.
 - Claude's snapshots must not change with a change made for a concept's page (snapshots, `?snap=1`, draw
-  the car alone, and the viewer's own page features are off under `snap`). The page draws
-  only when something changed (`rouse` in `viewer/viewer.js`): anything new that changes the
-  picture on its own must call it. Snapshots draw every frame and load every mood first. The Lab's page carries
-  a copy of `viewer/viewer.js`, `studio.js`, `index.html` and `lib/`: a change to the camera is copied there.
+  the car alone, drawn every frame, every mood loaded first). The camera (`viewer/viewer.js`, with `studio.js`
+  and `lib/`) is an engine with no buttons of its own: a page drives it through `window.viewer` and hears its
+  state through `viewer.on` (`EVENTS` in `viewer/viewer.js`), drawing its own buttons; `viewer/index.html` is the
+  bare car. A concept's page imports it from the server's `/camera/` (the Lab's `page/lab-ui.js`): a change to the
+  camera is made here only, and its `--snap` sheets stay pixel for pixel. The page draws only when something changed
+  (`rouse`): anything new that changes the picture on its own must call it.
 
 ## Commands for the machinery
 
@@ -58,10 +60,11 @@ graphics chip's, the Mac only).
   see its size), `tool/install.py` puts it in the game (`PY -m tool.install <name> ...` installs
   built zips). Paints take turns on a computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in
   the work folder, freed if a paint dies; `TSC_PAINTS=<n>` for more slots): each needs a few GB.
-- `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> from `viewer/` and opens it. Run it in the
-  background. `tool/server.py` is the tool's static server (a page folder at `/`, the work folder's data at
-  `/data/`, `/api/health`; reads open to any origin, for a concept's page from another folder); a concept's own
-  routes are a handler built on it (the Lab's, serving its own page on the same port, started by its doctor).
+- `PY -m tool.view <name>`: serves http://localhost:8765/?skin=<name> from `viewer/` (the bare car) and opens it. Run
+  it in the background. `tool/server.py` is the tool's static server (a page folder at `/`, the camera at `/camera/`
+  whatever the page folder, the work folder's data at `/data/`, `/api/health`; reads open to any origin, for a
+  concept's page from another folder); a concept's own routes are a handler built on it (the Lab's, serving its own
+  page on the same port, started by its doctor).
   The tools write, a concept reads: `tool.skin show` writes the frames the page follows at each `Skin.step`
   (`view.export_steps`, `studio.json`; `install` paints without them), `tool/progress.py` the job log (every
   command that makes the user wait opens a `progress.job`), and no tool command refreshes a concept's lists.

@@ -225,17 +225,6 @@ assert set(CODES.values()) == set(LIBRARY), f"finishes missing from CATALOGUE: {
 CODE_WORD = re.compile(r"\b([a-z]{2})[- ]?(\d{2})\b", re.IGNORECASE)
 
 
-def title(finish):
-    """The name as the Lab shows it: "Polished aluminium"."""
-    return finish.name[:1].upper() + finish.name[1:]
-
-
-def line(finish):
-    """The line the Lab copies for the user to paste to Claude: the code, the name, the numbers."""
-    return (f"{finish.code} {title(finish)} (matte {round(finish.roughness * 100)}%, metal {round(finish.metalness * 100)}%, "
-            f"varnish {round(finish.varnish * 100)}%)")
-
-
 def _texture_finish(key):
     """A finish for a photographed surface added by name (tool/textures.py)."""
     from tool import textures

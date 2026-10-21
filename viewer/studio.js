@@ -270,7 +270,7 @@ export function createStudio({ scene, renderer, centre, parts, light = 1, ground
     return t;
   };
   // the grain
-  const G = spec.grain, base = `data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
+  const G = spec.grain, base = `/data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
   const grain = fadeFrom(studio(new THREE.MeshStandardMaterial({
     map: load(`${base}_Color.jpg`, n, true, G.turn), normalMap: load(`${base}_NormalGL.jpg`, n, false, G.turn),
     normalScale: new THREE.Vector2(G.relief, G.relief), roughness: spec.shine || 1, metalness: 0, transparent: true,
@@ -415,7 +415,7 @@ export function setGround(name) {
   const colour = spec.colour.map((c) => c * light);
   cove.color.setRGB(...colour);
   grid.color.setRGB(...colour.map((c) => c * 0.6));
-  const G = spec.grain, base = `data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
+  const G = spec.grain, base = `/data/floor/${G.asset}/${G.asset}_1K-JPG`, n = RADIUS * 2 / G.metres;
   const u = grain.userData.studio;
   u.floorGrey.value.set(...colour);
   u.grainMean.value.set(...G.mean);
