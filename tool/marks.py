@@ -66,6 +66,7 @@ BITE = 0.3      # cm² of its ink kept off by its zone, from which a mark is sai
 SIDE = 30.0   # cm from the car's middle: words on the top further out read from beside the car, nearer from its ends
 LEAST = 0.4   # the smallest share of its size a mark is shrunk to
 OFF = 5.0     # cm: `at` further than this from the panel is said
+HIDDEN = 0.25  # the share of a laid shape a wheel stands in front of, seen square to it, from which it's said (a finding)
 MIDDLE = 0.5  # cm from the car's middle: a mark wanted nearer is centred, and has no twin
 WALL = 0.15   # cm: skin this near one of the model's crisp lines walls a panel's room (its roomiest spot keeps off them)
 LOOK = 0.3    # how much a texel must face the look along an axis (`at` with a None) to be the skin seen there
@@ -822,6 +823,22 @@ def _stroke(at, size, reach):
     return tuple(mid), reach
 
 
+def _behind_wheel(c, texels, facing, most=2000):
+    """What a wheel hides of a laid shape, seen square to it: (the share hidden, which wheel) from HIDDEN, else None.
+    The tyres in place (the car's own mesh) are what's tested: the body's own cover is the open air's (tool/carmap.py),
+    which a shape's place keeps to."""
+    t = texels[::max(1, len(texels) // most)]
+    P = c.pos[t].astype(np.float64)
+    zbuf, to_pixel = carmap._depth_map(carmap._occluders(("Wheels",)), np.asarray(facing, np.float64))
+    pix, depth = to_pixel(P)
+    behind = (pix >= 0) & (depth > zbuf[np.maximum(pix, 0)] + 0.4)
+    share = float(behind.mean())
+    if share < HIDDEN:
+        return None
+    mid = P.mean(0)
+    return share, f"{'front' if mid[2] > 30 else 'rear'} {'left' if mid[0] > 0 else 'right'}"
+
+
 def _how(got, shape):
     """How a laid shape sits, in words: its stretch (from STRETCH), where it's torn, the turn under words (from
     WORD_TURN); [] when it sits flat."""
@@ -875,6 +892,12 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
                                   "text": f"{name}: chipped: {area:.1f} cm² of it missing where the skin is bare, a bite "
                                           f"{wide:.1f} cm wide, {where_}"})
         on = idx[m > 0.5]
+        hidden = _behind_wheel(c, on, got["facing"]) if len(on) else None
+        if hidden:
+            where_, z, side = judge._where(c.pos[on])
+            skin.findings.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "step": step,
+                                  "text": f"{name}: hidden: the {hidden[1]} wheel stands in front of {hidden[0]:.0%} of it, "
+                                          f"seen square, {where_}"})
         expected = shown.area() * got["size"] ** 2
         share = judge.area(c, on) / expected if len(on) and expected > 0 else 0.0
         kept = {k: v for k, v in got["kept"].items() if k == "its zone" or not across}

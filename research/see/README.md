@@ -9,9 +9,9 @@ question sample became the tool's own: `PY -m tool.meshlines` and its questions 
 
 - `atlas.py`: the car drawn flat with its lines numbered and panels lettered, and a card per line with its course's
   start and end named (pictures in the work folder's `build/see_*.png` when drawn).
-- `dryrun.py`: a design run against the car before any paint (at 4096: a course's zones are the 4096 map's texels),
-  every call's landing printed and sketched. The 21 October mistake (`designs/wrongend_design.py`) caught in 12 s;
-  the self-test's tour in 69 s and 5.7 GB (`control/dryrun_tour.txt`).
+- The dry run sample (a design run against the car before any paint, every call's landing printed and sketched) became
+  the tool's own, `PY -m tool.skin read` (the road's step 15). Its evidence: the 21 October mistake
+  (`designs/wrongend_design.py`) caught in 12 s; the self-test's tour in 69 s and 5.7 GB (`control/dryrun_tour.txt`).
 
 The quiz (`quiz/`): ten questions with the key computed from the mesh as the car answered on 2026-10-22 (since step
 14 every course runs nose first, so Q2's stretch is the front one); eight fresh agents, two per way of seeing.

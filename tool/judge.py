@@ -71,7 +71,7 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
-from tool import carmap, coverage, fbx, gate, paths, pieces, shapes, uvmap
+from tool import carmap, coverage, fbx, gate, paths, pieces, receipt, shapes, uvmap
 
 # ---- the kinds and the levels ----
 KINDS = {
@@ -88,9 +88,10 @@ KINDS = {
             "short, a slant",
     "edge": "an edge soft, pixelated or outlined",
     "spread": "a pattern spread unevenly",
+    "hidden": "a graphic another part stands in front of, seen square: a wheel at the paint, any part at the close looks",
 }
 LEVELS = {"gap": "block", "short": "block", "line": "block", "cut": "block", "clear": "block", "upside down": "block",
-          "fold": "block", "spill": "warn", "over": "warn", "edge": "warn", "spread": "warn", "sits": "note"}
+          "fold": "block", "hidden": "block", "spill": "warn", "over": "warn", "edge": "warn", "spread": "warn", "sits": "note"}
 READINGS = ("outside", "region", "sides", "facing")  # zones whose edges are the car's, read off its mesh: the rest
 # (a length, a height, a box, a pattern) end a paint where the design wrote it
 OUTER = 0.1  # the open air a spot sees not to be hidden skin: an opening's insides see about 0.01, the flanks
@@ -188,9 +189,7 @@ LAID = 0.9          # a graphic whose edge is this much against another's is lai
 # ---- where things are, in words ----
 
 def _place(z):
-    stations = np.array([s for s, _ in carmap.STATIONS], float)
-    k = int(np.argmin(np.abs(stations - z)))
-    name = carmap.STATIONS[k][1] if abs(stations[k] - z) <= 12 else None
+    name = receipt.station(z)
     return f"z {z:+.0f}" + (f" ({name})" if name else "")
 
 

@@ -17,7 +17,8 @@ lands in the work folder's `build/` (`tool/paths.py`).
 
 | Command | What it does |
 |---|---|
-| `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer's data (a concept's page shows it), saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict, which says what BLOCKS (a graphic that doesn't fit the car or sit where its line is), what it warns of, and the eye's notes (how a graphic sits against the lines the eye sees: the close looks look there; a note names, never forbids). |
+| `PY -m tool.skin read <name>` | Before any paint: `skins/<name>/design.py` read against the car in 12 s to a minute, nothing painted for anyone to see. Every call's receipt with its landing (the stretch of the car it lies on, the parts under it, its area, the way it faces) and the sketch `build/<name>_landing.png`, each call's texels on the side and top views, numbered (look at it). Read each landing against the user's words: a stretch at the wrong end, a zone on the wrong parts, a stroke landing nowhere or behind a wheel, a part left in clay; fix and read again until each lands where the words say, then show. |
+| `PY -m tool.skin show <name>` | Paints it with the same receipts, puts it in the viewer's data (a concept's page shows it), saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict, which says what BLOCKS (a graphic that doesn't fit the car or sit where its line is), what it warns of, and the eye's notes (how a graphic sits against the lines the eye sees: the close looks look there; a note names, never forbids). |
 | `PY -m tool.close <name>` | After a show: close looks along every line and over every decal, square to its face, 20 pixels a cm, under the camera light (nothing left in shadow), both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. About 20 s for a busy car. |
 | `PY -m tool.snap <name> --cams`, `--body` | The game's chase cameras, by day and at night; the body alone, nine views with the underside, under the camera light. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number), kept with the builds; the concept decides what's shown. |
@@ -85,9 +86,9 @@ lands in the work folder's `build/` (`tool/paths.py`).
   the surface turns more than 20 degrees under words (they read bent: smaller words, or a flatter panel). On an
   inner-car part, `depth=` raises them in its relief instead. Objects: `s.scatter` (whole copies, spaced along the
   surface). A continuous texture: a tile through `s.print`.
-- **Every call returns a receipt**, and `show` prints each as the paint goes: what it painted and how much, where a
-  mark landed, what it refused, what it found wrong. A part's name or a line's name that isn't one stops the paint
-  at once with "did you mean": fix the name, never guess round it.
+- **Every call returns a receipt**, printed as the paint goes: what it painted and how much, its landing on the body,
+  where a mark landed, what it refused, what it found wrong. A part's name or a line's name that isn't one stops the
+  paint at once with "did you mean": fix the name, never guess round it.
 - **A marking along one of the car's lines** (one of the model's lines: a crease, an edge where the body
   ends, a seam between two of its pieces, a rounded edge's; or a panel's edge) or along
   the line the user drew is a course (`tool/course.py`): a strip, dashes, ticks, spots at its

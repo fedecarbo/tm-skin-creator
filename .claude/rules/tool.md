@@ -69,8 +69,9 @@ whole) and `requirements.txt` (the picture maker's packages, the PC only; MLX, t
   Nadeo's template, checks the `resources/official/` zips and unpacks them; the model zip is copied from the
   other computer), and on the PC `PY -m tool.pictures setup` (the picture maker's 16 GB of weights). Then the
   Lab's repo, tm-skin-lab on the same GitHub account, cloned beside this one.
-- A skin's life, one tool each, its docstring the key: `tool/skin.py` paints a design (`paintbox.Skin`, the
-  toolbar every design calls) and shows or installs it; `tool/judge.py` names what's wrong on it; `tool/gate.py`
+- A skin's life, one tool each, its docstring the key: `tool/skin.py` reads a design against the car (every call's
+  landing in its receipt, `tool/receipt.py`; drawn by `tool/sketch.py`), paints it (`paintbox.Skin`, the toolbar
+  every design calls) and shows or installs it; `tool/judge.py` names what's wrong on it; `tool/gate.py`
   makes the verdict bite, with the hooks in `tool/guard.py`; `tool/close.py` looks close up; `tool/build.py`
   puts it in the viewer and builds the zip; `tool/install.py` puts it in the game. Paints take turns on a
   computer (`skin.paint_slot`, an OS lock on `paint<k>.lock` in the work folder, freed if a paint dies;

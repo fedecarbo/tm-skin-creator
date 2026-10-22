@@ -15,19 +15,14 @@ in plain words and numbers, then on the user's OK everything it retires removed 
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
 AI's eye**. Four steps, then 13 on the PC (away until November or December 2026):
 
-14. **The car answers, and the traps come out.** Built, waiting for the user's OK (2026-10-22): `PY -m tool.meshlines`
-    answers questions from the mesh (a line's ends and course, a panel, a part with its piece and gap, a point by the
-    skin the eye sees, a where-word, flat rooms); every course from `meshlines.line` runs nose first; `marks.rooms` seen
-    square with the wheels in place; `car/anatomy.md` only the axes and where a graphic stops. Shown on TSC_SeeTool,
-    painted by a fresh agent from the skill alone, beside TSC_SeeControl and TSC_SeeTest (the same brief). On the OK: the
-    three test cars deleted, and this step.
-15. **The landing in every receipt.** What `research/see/dryrun.py` prints, printed by `tool.skin show` as the paint
-    goes: each call's stretch of the car (z, y, x), the parts under it, its area, and a sketch of every call's texels
-    on the side and top views; and a way to stop before the textures, the judge and the views, so a design is read
-    against the car in 12 s (a simple car) to a minute (a busy one) before anything is shown. The test: a design with
-    strokes planted in the wrong place (a stretch by z landing on a line's far side, a zone on the wrong parts, a
-    badge behind a wheel), each caught before a paint. Retires nothing; it replaces repaints (the control car of
-    2026-10-22 took three paints, the test car one).
+15. **The landing in every receipt.** Built, waiting for the user's OK (2026-10-22): every receipt says where its paint
+    lies on the body (z with the car's stations named, y, x, the side, the way it faces); `PY -m tool.skin read <name>`
+    stops before the textures, the judge and the views (14 s a simple car, 16 s the user's) and draws
+    `build/<name>_landing.png`, every call's texels on the side and top views, the tyres outlined over what they hide
+    (`show` prints and draws the same); a mark or words a wheel stands in front of is a finding (`marks.HIDDEN`).
+    Shown on TSC_LandingTest: three strokes planted wrong (a stripe by z at the cockpit's far side, a zone on the wrong
+    parts, a badge behind the rear wheel), each caught by `read` before a paint (its `notes.md`). On the OK: the test
+    car deleted, and this step.
 16. **The judge names its ruler and the bites it can't see.** Every placement finding names the line it read against;
     a row of marks at a course's places and dots zoned by `shapes.sphere` get a check and a close look; a sticker's bite
     where `surface.Surface.chart` spans a step onto a raised plate (the nose ring of 2026-10-22, notched where it
@@ -48,6 +43,10 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
 - **A colour name half known is taken as the half it knows** (2026-10-22, the test car's agent): `colours.get("warm
   white")`, "antique white" and "floral white" give plain white, dropping the word it doesn't know, while "deep" and
   "bright" are read. Idea: a name not known whole fails with "did you mean", as a part's name does.
+- **A named spot behind the rear wheel** (2026-10-22, step 15's finding on the self-test's cars): `SPOTS` in
+  `tool/paintbox.py` puts "left side" at (70, 41, -66), where 10 cm words are 42 % behind the rear wheel seen square
+  (the planted-flaw pair's SIDE at (67, 50, -75) wholly); the car's `at` question says the same. Idea: the spots taken
+  from the flat rooms (`marks.rooms`), which know the wheels.
 - **One rounded edge named as several rolls** (2026-10-22, the test car's agent): body shell rolls 1, 2 and 5 lie side
   by side along the deck's shoulder (tilts 22, 33, 40) but are three names, their lengths too unlike for one roll, so
   "the rounded edge through (40, 62, -20)" is three answers and two agents picked different ones.

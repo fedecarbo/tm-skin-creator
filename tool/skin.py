@@ -1,11 +1,15 @@
 """Run a skin's design script: show it in the viewer, or build and install it.
 
+    python -m tool.skin read <name>            read the design against the car: every call's receipt with its landing
+                                               and the sketch of where each lands, nothing painted for anyone to see
     python -m tool.skin show <name>            paint it, put it in the viewer, snapshot it
     python -m tool.skin show <name> --open     ... and open the viewer in the browser
     python -m tool.skin install <name>         paint it, build the zip, install it (the PC)
     python -m tool.skin list                   every skin, newest first
 
-show also judges the car before anyone looks (tool/judge.py: every graphic measured where it landed, one list
+read stops before the textures, the judge and the views (12 s for a simple car, a minute for a busy one): a design is
+read against the car, call by call, before anything is shown. show prints the same receipts as the paint goes, then
+judges the car before anyone looks (tool/judge.py: every graphic measured where it landed, one list
 of findings, block, warn and note, with the design's hash), printed after the paint's notes and kept in
 build/<name>/verdict.json, with what the close looks read (tool/close.py: along every line and over every decal).
 install judges the paint it puts in the game, and stops at what blocks (tool/gate.py).
@@ -25,7 +29,7 @@ import os
 import sys
 import time
 
-from tool import build, gate, install, judge, paintbox, paths, progress, snap, view
+from tool import build, gate, install, judge, paintbox, paths, progress, sketch, snap, view
 
 
 def borrow(name):
@@ -83,22 +87,33 @@ def paint_slot():
         time.sleep(1)
 
 
-def paint(name, frames=False, judged=False):
+def paint(name, frames=False, judged=False, read=False):
     """frames: also draw the car at the end of each step, for the Lab (show does); judged: keep what the judge
-    reads (show and install do)."""
+    reads (show and install do); read: stop before the textures (read does). Every call's receipt is printed as it
+    ends, with its landing, and the sketch of where each call lands is drawn when the design is done."""
     t0 = time.time()
-    progress.stage("Painting")
+    progress.stage("Reading the design against the car" if read else "Painting")
     s = paintbox.Skin(name)
     s.measure = frames or judged
+    s.sketch = sketch.Sketch()
     if frames:
         view.start_steps(name)
         s.frames = True
     s.say = lambda rec: print(f"  {rec}".replace("\n", "\n  "), flush=True)  # each call's receipt as it ends
     load_design(name)(s)
-    s.end_steps()
-    print(f"painted in {time.time() - t0:.0f} s")
-    print(s.summary(found=not s.measure))  # the judge says the paint's own findings with the rest
+    s.end_steps(textures=not read)
+    print(f"{'read against the car' if read else 'painted'} in {time.time() - t0:.0f} s")
+    print(s.summary(found=read or not s.measure))  # the judge says the paint's own findings with the rest
+    print(f"where each call lands: {s.sketch.draw(s, paths.BUILD / f'{name}_landing.png')} (look at it)")
     return s
+
+
+def read(name):
+    """The design read against the car, nothing painted for anyone to see: every call's receipt with its landing, the
+    parts still in clay, the sketch."""
+    with progress.job(f"Reading {progress.title_of(name)}", skin=name, done="Read against the car"):
+        with paint_slot():
+            return paint(name, read=True)
 
 
 def judge_it(name, s):
@@ -187,7 +202,7 @@ def do_install(name):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["show", "install", "list"])
+    ap.add_argument("command", choices=["read", "show", "install", "list"])
     ap.add_argument("name", nargs="?", help="the skin")
     ap.add_argument("--open", action="store_true")
     args = ap.parse_args()
@@ -201,7 +216,9 @@ def main():
     if not args.name:
         sys.exit("which skin?")
     name = args.name
-    if args.command == "show":
+    if args.command == "read":
+        read(name)
+    elif args.command == "show":
         show(name, args.open)
     else:
         do_install(name)

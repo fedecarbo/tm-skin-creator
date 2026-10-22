@@ -77,11 +77,11 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes", "jobs")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 18655, "viewer/*.js": 2503}
+BUDGET = {"tool/*.py": 18913, "viewer/*.js": 2503}
 SLACK = 100
 # The instructions' words (what a session reads: instructions.READ), the same way: a commit may not grow them past
 # this without raising it here and saying why; under it by more than WORD_SLACK, it comes down with them.
-WORDS = 7289
+WORDS = 7398
 WORD_SLACK = 50
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice

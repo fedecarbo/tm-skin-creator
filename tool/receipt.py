@@ -1,8 +1,11 @@
-"""A receipt: what one call of the paint box did, in a line. Every verb of `paintbox.Skin` returns one, and `tool.skin
-show` prints each as the paint goes, so a design is read back call by call: what it painted and how much, where a
-mark landed, what it refused and any accident it found.
+"""A receipt: what one call of the paint box did, in a line, and where it landed. Every verb of `paintbox.Skin` returns
+one, and `tool.skin show` and `read` print each as the paint goes, so a design is read back call by call: what it
+painted and how much; its landing on the body (the stretch of the car it lies on, z nose to tail with the car's
+stations named, y, x and which side, and the way it faces), read off its texels' places; where a mark landed; what
+it refused and any accident it found.
 
-    r = s.paint("body", "gloss red")       str(r): "gloss red on body: 31 parts of the body, 58,900 cm²", then its notes
+    r = s.paint("body", "gloss red")       str(r): "gloss red on body: 31 parts of the body, 58,900 cm²", then its
+                                           landing ("on the body: z 215 to -162, ..., facing up"), then its notes
     badge = s.mark("rear flank", "gloss", marks.disc(), size=12)
     badge.centre, badge.size, badge.twin   where it landed (cm), its width as laid (0: nothing laid), its mirror image's
     s.decal("7", badge, ...)               a receipt is a place for the next graphic
@@ -11,13 +14,60 @@ mark landed, what it refused and any accident it found.
 import numpy as np
 
 MOST = 4  # parts named in a line before "and n more"
-SAMPLE = 400_000  # texels a big paint's area is read from
+SAMPLE = 400_000  # texels a big paint's area and landing are read from
+STATION = 12.0  # cm: the car's station this near a z names it
+FACE = 0.5      # a texel's normal along an axis this much faces that way ...
+FACING = 0.3    # ... and a landing faces a way when this share of its texels do
+FACES = ("up", "down", "left", "right", "forward", "back")
+AXES = ((1, 1), (1, -1), (0, 1), (0, -1), (2, 1), (2, -1))
+
+
+def _n(v):
+    return f"{round(float(v)) + 0.0:.0f}"  # never "-0"
+
+
+def station(z):
+    """The car's station nearest a z along it (carmap.STATIONS: "the nose", "the deck, the engine cover panel"), within
+    STATION cm; else None."""
+    from tool import carmap
+    stations = np.array([s for s, _ in carmap.STATIONS], float)
+    k = int(np.argmin(np.abs(stations - z)))
+    return carmap.STATIONS[k][1] if abs(stations[k] - z) <= STATION else None
+
+
+class Landing:
+    """Where a call's paint lies on the body, from its texels' places: the box it fills and the ways it faces."""
+
+    def __init__(self):
+        self.lo = self.hi = None
+        self.faces = np.zeros(len(FACES))  # texels facing each of FACES
+        self.n = 0
+
+    def add(self, pos, nrm):
+        lo, hi = pos.min(0), pos.max(0)
+        self.lo = lo if self.lo is None else np.minimum(self.lo, lo)
+        self.hi = hi if self.hi is None else np.maximum(self.hi, hi)
+        n = nrm / np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-9)
+        for k, (axis, sign) in enumerate(AXES):
+            self.faces[k] += int((n[:, axis] * sign > FACE).sum())
+        self.n += len(pos)
+
+    def __str__(self):
+        lo, hi = self.lo, self.hi
+        side = ("the left side" if lo[0] > 1 else "the right side" if hi[0] < -1
+                else "both sides" if lo[0] < -1 and hi[0] > 1 else "the middle")
+        a, b = station(round(float(hi[2]))), station(round(float(lo[2])))
+        where = f" ({a} to {b})" if a and b and a != b else f" ({a or b})" if a or b else ""
+        faces = [w for k, w in enumerate(FACES) if self.faces[k] >= FACING * self.n]
+        return (f"z {_n(hi[2])} to {_n(lo[2])}{where}, y {_n(lo[1])} to {_n(hi[1])}, x {_n(lo[0])} to {_n(hi[0])} ({side})"
+                + (f", facing {', '.join(faces)}" if faces else ""))
 
 
 class Receipt:
     def __init__(self, what, step):
         self.what, self.step = what, step
         self.painted = {}   # texture set -> {part name: cm²}
+        self.landing = None  # where it lies on the body (Landing), once paint lands there
         self.notes = []     # what the call decided, in words
         self.findings = []  # what it found wrong (tool/judge.py's findings)
         # a mark's place (tool/marks.py): its centre (x, y, z in cm, on the car), size (its width in cm as laid; 0 when
@@ -48,6 +98,12 @@ class Receipt:
         for name, cm2 in zip(names, area):
             mine[name] = mine.get(name, 0.0) + float(cm2)
 
+    def land(self, pos, nrm):
+        """Paint laid on the body at these places, facing these ways: its landing."""
+        if self.landing is None:
+            self.landing = Landing()
+        self.landing.add(pos, nrm)
+
     def __bool__(self):
         return self.size > 0 if self.mark else bool(self.painted)
 
@@ -69,8 +125,9 @@ class Receipt:
         if self.empty and not said:
             said.append(self.empty)
         line = f"{self.what}: {'; '.join(said)}" if said else self.what
-        more = [f"    {n}" for n in self.notes] + [f"    {f['level'].upper() if f.get('level') == 'block' else 'found'}: {f['text']}"
-                                                  for f in self.findings]
+        more = [f"    on the body: {self.landing}"] if self.landing else []
+        more += [f"    {n}" for n in self.notes] + [f"    {f['level'].upper() if f.get('level') == 'block' else 'found'}: {f['text']}"
+                                                   for f in self.findings]
         return "\n".join([line, *more])
 
     __repr__ = __str__

@@ -2,7 +2,7 @@
 
     PY atlas.py            -> see/out/atlas_side.png, atlas_top.png, atlas_front.png (numbered tags, a legend beside),
                               cards_1.png, cards_2.png (one card per line: the line alone, its ends named)
-Also imported by dryrun.py for its sketch: views(), draw_body(), project().
+
 """
 import sys
 from pathlib import Path

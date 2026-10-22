@@ -157,6 +157,9 @@ class Canvas:
         self.clay = None  # texels still in the Studio's clay (Skin.clay), None when it wasn't used
         self.owner = None  # the call that covered each texel last (Skin.ops; -1 the stock), while Skin.measure
         self.op = -1  # the call painting now
+        self.sketch = None  # where every call lands, drawn (tool/sketch.py; Skin.sketch)
+        # the wheel covers' texels sit at one wheel of the four: they're left out of a landing, with the edge texels no part owns
+        self.covers = np.array([i for name in WHEEL_COVER_PARTS for i in parts.select(name)]) if parts else np.zeros(0, int)
         self.glow_rgb = self.glow_code = None
         self.glow_touched = False
         if tset == "Details":
@@ -199,9 +202,22 @@ class Canvas:
 
     def took(self, idx, m=None):
         """The call painting now took these texels (those m covers by half or more): the receipt says which parts and
-        how much."""
-        if self.receipt is not None and len(idx):
-            self.receipt.add(self.set, *receipt.areas(self, self.parts, idx if m is None else idx[m > 0.5]))
+        how much, and on the body where they lie (its landing, read at every k-th texel of a big paint, as its area
+        is); the sketch draws them (tool/sketch.py)."""
+        if self.receipt is None or not len(idx):
+            return
+        texels = idx if m is None else idx[m > 0.5]
+        self.receipt.add(self.set, *receipt.areas(self, self.parts, texels))
+        if self.set != "Skin" or not len(texels):
+            return
+        texels = texels[::max(1, len(texels) // receipt.SAMPLE)]
+        own = self.owners[texels]
+        texels = texels[(own >= 0) & ~np.isin(own, self.covers)]
+        if len(texels):
+            pos, nrm = self.pos[texels], self.nrm[texels]
+            self.receipt.land(pos, nrm)
+            if self.sketch is not None:
+                self.sketch.land(self.op, pos, nrm)
 
     def blend(self, idx, m, colour, rough=None, metal=None, varnish=None):
         """Mix new values into the layers at flat indices idx, by weight m (n,)."""
@@ -348,6 +364,7 @@ class Skin:
         self._twin_cache = {}  # texture set -> coverage twins, for _warn_shared
         self._final = None  # the finished textures, built once when the design is done (end_steps)
         self.measure = False  # skin.show sets it: keep what the judge reads (the calls, who covered what)
+        self.sketch = None  # skin.paint sets it: where every call lands, drawn when the design is done (tool/sketch.py)
         self.ops = []  # every call that laid paint: {what, step}
         self.zoned = []  # each zoned paint on the body: {op, step, what, where, zone, ids, across (it crosses
         # edges on purpose), idx (the texels it covers), under (the call each of them showed before)}
@@ -415,18 +432,20 @@ class Skin:
                     found.append((i, self.parts.instances[i]["name"]))
         return found
 
-    def end_steps(self):
+    def end_steps(self, textures=True):
         """The design is done: the parts still in clay noted, the last step's frame, and the
-        Studio's list marked finished."""
+        Studio's list marked finished. textures=False stops before the game's textures (skin.read: the design read
+        against the car, nothing painted for anyone to see)."""
         self.clay_left = self.still_clay()
         if self.clay_left:
             self.notes.append("still clay (no step paints them): " + ", ".join(dict.fromkeys(n for _, n in self.clay_left)))
         # nothing paints after this: the last frame, summary(), the viewer and save_painted all
         # take these rather than each building them again (15 to 25 s a show)
-        self._final = self.textures()
+        if textures:
+            self._final = self.textures()
         self._end_step(done=True)
         for tset, c in self.canvases.items():  # the layers go, but the body's while the judge reads it (skin.judge_it)
-            if tset != "Skin" or c.owner is None:
+            if not textures or tset != "Skin" or c.owner is None:
                 c.free()
 
     def _end_step(self, done=False):
@@ -474,6 +493,7 @@ class Skin:
         if tset not in self.canvases:
             w, h = self.sizes[tset]
             self.canvases[tset] = Canvas(tset, w, h, self.parts)
+            self.canvases[tset].sketch = self.sketch
             if self.measure and tset == "Skin":
                 self.canvases[tset].owner = np.full(w * h, -1, np.int16)
         c = self.canvases[tset]
@@ -1133,7 +1153,8 @@ class Skin:
         """What was painted and the notes, for Claude: the parts whose paint lands on the same others
         (a small patch serves many inner parts) named together, once. found: the paint's own findings
         too (a picture over a fold), where no check follows to say them."""
-        lines = [f"{self.name}: {', '.join(sorted(self.textures()))}"]
+        made = sorted(self._final) if self._final is not None else []
+        lines = [f"{self.name}: {', '.join(made) if made else 'read against the car, no textures made'}"]
         shared, said = {}, []
         for n in dict.fromkeys(self.notes + [f["text"] for f in self.findings if found]):
             name, sep, tail = n.partition(": its paint also lands on ")
