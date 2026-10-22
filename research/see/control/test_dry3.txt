@@ -1,0 +1,93 @@
+TSC_SeeTest: read against the car in 23 s at 4096² (nothing painted for anyone to see).
+
+Step: The design
+  [1] the clay
+      lands on the body: z 215 (front) to -162 (back), y 6 to 86, x -107 to 87 (both sides); 76,083 cm²; on: body shell (22 %), rear flank (14 %), side skirt (11 %), sidepod top (6 %), engine cover (5 %) and 17 more; faces up
+      receipt: the clay: body shell, rear flank, side skirt, sidepod top and 18 more (body), 76,078 cm²; floor, cockpit tub, tail frame, rim and 52 more (inner car), 143,227 cm²
+
+Step: The split
+  [2] ivory on body
+      lands on the body: z 215 (front) to -162 (back), y 14 to 86, x -87 to 87 (both sides); 71,889 cm²; on: body shell (25 %), rear flank (15 %), side skirt (13 %), sidepod top (7 %), engine cover (6 %) and 14 more; faces up
+      receipt: ivory on body: body shell, rear flank, side skirt, sidepod top and 15 more (body), 71,884 cm²
+  [3] deep navy satin on body
+      lands on the body: z 215 (front) to -147 (back), y 14 to 40, x -87 to 87 (both sides); 22,883 cm²; on: side skirt (40 %), rear flank (26 %), diffuser (9 %), diffuser strake (9 %), wing pylon (7 %) and 3 more; faces down
+      receipt: deep navy satin on body: side skirt, rear flank, diffuser, diffuser strake and 4 more (body), 22,883 cm²
+
+Step: Sidepod tops
+  [4] matte black on sidepod top
+      lands on the body: z 12 (front) to -50 (back), y 28 to 63, x -87 to 87 (both sides); 4,907 cm²; on: sidepod top (100 %); faces up
+      receipt: matte black on sidepod top: sidepod top (body), 4,907 cm²
+
+Step: Shoulder band
+  [5] bright orange on body shell
+      lands on the body: z 39 (front) to -1 (back), y 57 to 65, x -45 to 45 (both sides); 258 cm²; on: body shell (100 %); faces up
+      receipt: bright orange on body shell: body shell (body), 258 cm²
+               body shell: its paint also lands on mirror mount (left, right: all of it)
+
+Step: Flank discs
+  [6] white disc on rear flank
+      lands on the body: z -70 (front) to -87 (back), y 26 to 45, x -72 to 72 (both sides); 619 cm²; on: rear flank (100 %); faces left, right, back
+      receipt: white disc on rear flank: rear flank (body), 619 cm²; laid at (66, 35, -78), 20.0 cm wide, and its twin
+  [7] navy ring on rear flank
+      lands on the body: z -70 (front) to -87 (back), y 26 to 45, x -72 to 72 (both sides); 223 cm²; on: rear flank (100 %); faces left, right, back
+      receipt: navy ring on rear flank: rear flank (body), 223 cm²; laid at (66, 35, -78), 20.0 cm wide, and its twin
+  [8] the text 'SEE 22'
+      lands on the body: z -42 (front) to -65 (back), y 26 to 36, x -85 to 85 (both sides); 210 cm²; on: rear flank (100 %); faces left, right
+      receipt: the text 'SEE 22': rear flank (body), 210 cm²; laid at (80, 31, -54), 10.0 cm tall, and its twin
+
+Step: Deck spots
+  [9] white disc on engine cover|part
+      lands on the body: z -84 (front) to -88 (back), y 66 to 69, x -40 to 40 (both sides); 20 cm²; on: engine cover (100 %); faces up, left, right
+      receipt: white disc on engine cover|part: engine cover (body), 20 cm²; laid at (38, 67, -86), 4.0 cm wide, and its twin
+  [10] white disc on engine cover|part
+      lands on the body: z -90 (front) to -94 (back), y 69 to 72, x -36 to 36 (both sides); 21 cm²; on: engine cover (100 %); faces up, left, right
+      receipt: white disc on engine cover|part: engine cover (body), 21 cm²; laid at (34, 71, -92), 4.0 cm wide, and its twin
+  [11] white disc on engine cover|part
+      lands on the body: z -90 (front) to -94 (back), y 65 to 66, x -43 to 43 (both sides); 23 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 23 cm²; laid at (42, 65, -92), 4.0 cm wide, and its twin
+  [12] white disc on engine cover|part
+      lands on the body: z -96 (front) to -100 (back), y 65 to 67, x -40 to 40 (both sides); 23 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 23 cm²; laid at (39, 66, -98), 4.0 cm wide, and its twin
+  [13] white disc on engine cover|part
+      lands on the body: z -96 (front) to -100 (back), y 64 to 65, x -46 to 46 (both sides); 24 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 24 cm²; laid at (44, 64, -98), 4.0 cm wide, and its twin
+  [14] white disc on engine cover|part
+      lands on the body: z -102 (front) to -106 (back), y 64 to 65, x -43 to 43 (both sides); 24 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 24 cm²; laid at (41, 65, -104), 4.0 cm wide, and its twin
+  [15] white disc on engine cover|part
+      lands on the body: z -108 (front) to -112 (back), y 65 to 66, x -40 to 40 (both sides); 25 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 25 cm²; laid at (39, 65, -110), 4.0 cm wide, and its twin
+  [16] white disc on engine cover|part
+      lands on the body: z -114 (front) to -118 (back), y 65 to 67, x -37 to 37 (both sides); 26 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 26 cm²; laid at (35, 66, -116), 4.0 cm wide, and its twin
+  [17] white disc on engine cover|part
+      lands on the body: z -121 (front) to -125 (back), y 65 to 66, x -34 to 34 (both sides); 26 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 26 cm²; laid at (32, 66, -123), 4.0 cm wide, and its twin
+  [18] white disc on engine cover|part
+      lands on the body: z -120 (front) to -124 (back), y 64 to 65, x -40 to 40 (both sides); 26 cm²; on: engine cover (100 %); faces up
+      receipt: white disc on engine cover|part: engine cover (body), 26 cm²; laid at (38, 65, -122), 4.0 cm wide, and its twin
+
+Step: Nose ring
+  [19] bright orange ring on body
+      lands on the body: z 162 (front) to 138 (back), y 56 to 61, x -12 to 12 (both sides); 202 cm²; on: nose panel (75 %), nose fin (22 %), nose tip (1 %), body shell (1 %); faces up
+      receipt: bright orange ring on body: nose panel, nose fin, nose tip, body shell (body), 202 cm²; laid at (-0, 58, 150), 25.0 cm wide
+               bright orange ring on body: 5% of it where the sticker would tear or fold over itself
+
+Step: Skirt dots
+  [20] black on side skirt
+      lands on the body: z 138 (front) to 26 (back), y 17 to 22, x -72 to 72 (both sides); 92 cm²; on: side skirt (100 %); faces up, left, right
+      receipt: black on side skirt: side skirt (body), 92 cm²
+
+Step: Wheels, tyres, inner
+  [21] dark grey satin on inner
+      lands off the body (the inner car, the tyres or the glass): the receipt says which parts
+      receipt: dark grey satin on inner: floor, cockpit tub, tail frame, rim and 52 more (inner car), 143,227 cm²
+  [22] gold on wheels
+      lands on the body: z -91 (front) to -150 (back), y 6 to 65, x -107 to -96 (right side); 4,194 cm²; on: wheel cover ring (45 %), wheel cover disc (36 %), wheel cover hub (19 %); faces right
+      receipt: gold on wheels: wheel cover ring, wheel cover hub, wheel cover disc (body), 4,194 cm²; rim, hub, brake light, wheel ring and 1 more (inner car), 23,525 cm²
+  [23] the tyre marking TY-65
+      lands off the body (the inner car, the tyres or the glass): the receipt says which parts
+      receipt: the tyre marking TY-65: sidewall (tyres), 650 cm²
+
+Still in clay: nothing
+Sketch: /private/tmp/claude-501/-Users-fcarbo-Developer-personal-tm-skin-creator/d6323ffa-b930-4235-8278-bb2973c2c74f/scratchpad/see/out/dryrun_TSC_SeeTest.png

@@ -1,0 +1,101 @@
+TSC_SeeTest: read against the car in 17 s at 1024² (nothing painted for anyone to see).
+
+Step: The design
+  [1] the clay
+      lands on the body: z 215 (front) to -162 (back), y 6 to 86, x -107 to 87 (both sides); 76,057 cm²; on: body shell (22 %), rear flank (14 %), side skirt (11 %), sidepod top (6 %), engine cover (5 %) and 17 more; faces up
+      receipt: the clay: body shell, rear flank, side skirt, sidepod top and 18 more (body), 76,054 cm²; floor, cockpit tub, tail frame, hub and 52 more (inner car), 142,955 cm²
+
+Step: The split
+  [2] ivory on body
+      lands on the body: z 215 (front) to -162 (back), y 14 to 86, x -87 to 87 (both sides); 71,873 cm²; on: body shell (25 %), rear flank (15 %), side skirt (13 %), sidepod top (7 %), engine cover (6 %) and 14 more; faces up
+      receipt: ivory on body: body shell, rear flank, side skirt, sidepod top and 15 more (body), 71,871 cm²
+  [3] deep navy satin on body
+      lands on the body: z 215 (front) to -147 (back), y 14 to 40, x -87 to 87 (both sides); 22,871 cm²; on: side skirt (40 %), rear flank (26 %), diffuser (9 %), diffuser strake (9 %), wing pylon (7 %) and 3 more; faces down
+      receipt: deep navy satin on body: side skirt, rear flank, diffuser, diffuser strake and 4 more (body), 22,870 cm²
+
+Step: Sidepod tops
+  [4] matte black on sidepod top
+      LANDS NOWHERE: nothing painted
+      receipt: matte black on sidepod top: nothing painted: its zone reaches none of the parts named
+
+Step: Shoulder band
+  [5] bright orange on body shell
+      LANDS NOWHERE: nothing painted
+      receipt: bright orange on body shell: nothing painted: its zone reaches none of the parts named
+
+Step: Flank discs
+  [6] white disc on rear flank
+      lands on the body: z -72 (front) to -88 (back), y 26 to 45, x -70 to 70 (both sides); 617 cm²; on: rear flank (100 %); faces left, right, back
+      receipt: white disc on rear flank: rear flank (body), 617 cm²; laid at (64, 35, -80), 20.0 cm wide, and its twin
+  [7] navy ring on rear flank
+      lands on the body: z -72 (front) to -88 (back), y 26 to 45, x -70 to 70 (both sides); 222 cm²; on: rear flank (100 %); faces left, right, back
+      receipt: navy ring on rear flank: rear flank (body), 222 cm²; laid at (64, 35, -80), 20.0 cm wide, and its twin
+  [8] the text 'SEE 22'
+      lands on the body: z -36 (front) to -78 (back), y 23 to 34, x -85 to 85 (both sides); 547 cm²; on: rear flank (100 %); faces left, right
+      receipt: the text 'SEE 22': rear flank (body), 547 cm²; laid at (76, 28, -58), 9.8 cm tall, and its twin
+               the text 'SEE 22': moved 8.7 cm, shrunk to 9.8 cm tall (98% of its 10.0), to stay whole on the rear flank
+               the text 'SEE 22': the surface turns 26° under it, more than 20: it will read bent
+
+Step: Deck spots
+  [9] copies of a picture on engine cover
+      lands on the body: z -54 (front) to -133 (back), y 63 to 85, x -54 to 53 (both sides); 210 cm²; on: engine cover (100 %); faces up
+      receipt: copies of a picture on engine cover: engine cover (body), 210 cm²
+               engine cover: the whole assembly, so it also paints airbox (inner car); engine cover panel, number panel (body); 'engine cover|part' is the engine cover alone
+               scatter on engine cover: 26 copies placed (10 of them smaller ones filling bare patches), 12 spots left bare for crossing a crisp line or an edge; spaced 12.0 cm or more along the surface (5 s); stickers go on the body: the airbox left as they are
+
+Step: Nose ring
+  [10] bright orange ring on body
+      lands on the body: z 162 (front) to 138 (back), y 56 to 61, x -12 to 12 (both sides); 202 cm²; on: nose panel (76 %), nose fin (22 %), body shell (1 %), nose tip (1 %); faces up
+      receipt: bright orange ring on body: nose panel, nose fin, nose tip, body shell (body), 202 cm²; laid at (-0, 58, 150), 25.0 cm wide
+               bright orange ring on body: 97% of it landed on the car; the rest falls in a gap or off an edge; 5% of it where the sticker would tear or fold over itself
+
+Step: Skirt dots
+  [11] black disc on side skirt
+      lands on the body: z 138 (front) to 136 (back), y 18 to 19, x -26 to 26 (both sides); 5 cm²; on: side skirt (100 %); faces up
+      receipt: black disc on side skirt: side skirt (body), 5 cm²; laid at (26, 18, 136), 3.0 cm wide, and its twin
+               black disc on side skirt: 40% of it landed on the car; the rest falls in a gap or off an edge
+               found: black disc on side skirt: not whole: 40% of its 7 cm² is on the car, on the left, z +138 (the nose fin's plate)
+               found: black disc on side skirt: not whole: 40% of its 7 cm² is on the car, on the right, z +138 (the nose fin's plate)
+  [12] black disc on side skirt
+      lands on the body: z 113 (front) to 113 (back), y 17 to 18, x -29 to 29 (both sides); 1 cm²; on: side skirt (100 %); faces down, left, right
+      receipt: black disc on side skirt: side skirt (body), 1 cm²; laid at (29, 18, 113), 3.0 cm wide, and its twin
+               black disc on side skirt: 7% of it landed on the car; the rest falls in a gap or off an edge
+               found: black disc on side skirt: not whole: 7% of its 7 cm² is on the car, on the left, z +113 (the bonnet)
+               found: black disc on side skirt: not whole: 4% of its 7 cm² is on the car, on the right, z +113 (the bonnet)
+  [13] black disc on side skirt
+      lands on the body: z 88 (front) to 88 (back), y 17 to 18, x -34 to 34 (both sides); 1 cm²; on: side skirt (100 %); faces down, left
+      receipt: black disc on side skirt: side skirt (body); laid at (34, 18, 88), 3.0 cm wide, and its twin
+               black disc on side skirt: 7% of it landed on the car; the rest falls in a gap or off an edge
+               found: black disc on side skirt: not whole: 7% of its 7 cm² is on the car, on the left, z +88 (the cockpit opening's front)
+               found: black disc on side skirt: not whole: 3% of its 7 cm² is on the car, on the right, z +88 (the cockpit opening's front)
+  [14] black disc on side skirt
+      lands on the body: z 66 (front) to 64 (back), y 17 to 19, x -42 to 42 (both sides); 13 cm²; on: side skirt (100 %); faces up, left, right
+      receipt: black disc on side skirt: side skirt (body), 13 cm²; laid at (41, 18, 65), 3.0 cm wide, and its twin
+               black disc on side skirt: 74% of it landed on the car; the rest falls in a gap or off an edge
+               found: black disc on side skirt: not whole: 74% of its 7 cm² is on the car, on the left, z +66 (the front flank)
+               found: black disc on side skirt: not whole: 74% of its 7 cm² is on the car, on the right, z +66 (the front flank)
+  [15] black disc on side skirt
+      lands on the body: z 46 (front) to 42 (back), y 18 to 21, x -56 to 56 (both sides); 15 cm²; on: side skirt (100 %); faces up, down, left, right, forward
+      receipt: black disc on side skirt: side skirt (body), 15 cm²; laid at (55, 19, 45), 3.0 cm wide, and its twin
+               black disc on side skirt: 77% of it landed on the car; the rest falls in a gap or off an edge
+               found: black disc on side skirt: not whole: 77% of its 7 cm² is on the car, on the left, z +46
+  [16] black disc on side skirt
+      lands on the body: z 28 (front) to 26 (back), y 20 to 22, x -71 to 71 (both sides); 12 cm²; on: side skirt (100 %); faces up, left, right, forward
+      receipt: black disc on side skirt: side skirt (body), 12 cm²; laid at (71, 21, 27), 3.0 cm wide, and its twin
+               black disc on side skirt: 83% of it landed on the car; the rest falls in a gap or off an edge
+               found: black disc on side skirt: not whole: 83% of its 7 cm² is on the car, on the left, z +28 (the front flank, the sidepods begin)
+               found: black disc on side skirt: not whole: 83% of its 7 cm² is on the car, on the right, z +28 (the front flank, the sidepods begin)
+
+Step: Wheels, tyres, inner
+  [17] dark grey satin on inner
+      lands off the body (the inner car, the tyres or the glass): the receipt says which parts
+      receipt: dark grey satin on inner: floor, cockpit tub, tail frame, hub and 52 more (inner car), 142,955 cm²
+  [18] gold on wheels
+      lands on the body: z -91 (front) to -150 (back), y 6 to 65, x -107 to -96 (right side); 4,184 cm²; on: wheel cover ring (45 %), wheel cover disc (36 %), wheel cover hub (20 %); faces right
+      receipt: gold on wheels: wheel cover ring, wheel cover hub, wheel cover disc (body), 4,183 cm²; hub, rim, brake light, wheel ring and 1 more (inner car), 23,416 cm²
+  [19] the tyre marking TY-65
+      lands off the body (the inner car, the tyres or the glass): the receipt says which parts
+      receipt: the tyre marking TY-65: sidewall (tyres), 650 cm²
+
+Still in clay: nothing
+Sketch: /private/tmp/claude-501/-Users-fcarbo-Developer-personal-tm-skin-creator/d6323ffa-b930-4235-8278-bb2973c2c74f/scratchpad/see/out/dryrun_TSC_SeeTest.png

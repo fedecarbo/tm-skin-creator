@@ -1,0 +1,180 @@
+tour: read against the car in 69 s at 4096² (nothing painted for anyone to see).
+
+Step: The design
+  [1] the clay
+      lands on the body: z 215 (front) to -162 (back), y 6 to 86, x -107 to 87 (both sides); 76,083 cm²; on: body shell (22 %), rear flank (14 %), side skirt (11 %), sidepod top (6 %), engine cover (5 %) and 17 more; faces up
+      receipt: the clay: body shell, rear flank, side skirt, sidepod top and 18 more (body), 76,078 cm²; floor, cockpit tub, tail frame, rim and 52 more (inner car), 143,227 cm²
+
+Step: Base
+  [2] gloss red on body
+      lands on the body: z 215 (front) to -162 (back), y 14 to 86, x -87 to 87 (both sides); 71,889 cm²; on: body shell (25 %), rear flank (15 %), side skirt (13 %), sidepod top (7 %), engine cover (6 %) and 14 more; faces up
+      receipt: gloss red on body: body shell, rear flank, side skirt, sidepod top and 15 more (body), 71,884 cm²
+  [3] candy teal on body
+      lands on the body: z 6 (front) to -162 (back), y 14 to 86, x -87 to 87 (both sides); 42,497 cm²; on: rear flank (26 %), sidepod top (12 %), body shell (11 %), engine cover (10 %), sidepod inlet (8 %) and 10 more; faces up
+      receipt: candy teal on body: rear flank, sidepod top, body shell, engine cover and 11 more (body), 42,498 cm²
+  [4] matte black on body
+      lands on the body: z 211 (front) to -162 (back), y 30 to 86, x -86 to 86 (both sides); 35,424 cm²; on: body shell (35 %), engine cover (12 %), sidepod top (9 %), cockpit surround (8 %), nose tip (6 %) and 11 more; faces up
+      receipt: matte black on body: body shell, engine cover, sidepod top, cockpit surround and 12 more (body), 35,425 cm²
+  [5] splatter on body
+      lands on the body: z -11 (front) to -87 (back), y 15 to 86, x -87 to 87 (both sides); 8,703 cm²; on: rear flank (33 %), sidepod top (17 %), body shell (17 %), sidepod inlet (12 %), cockpit surround (6 %) and 6 more; faces up
+      receipt: splatter on body: rear flank, sidepod top, body shell, sidepod inlet and 7 more (body), 8,703 cm²
+  [6] satin #e02020 on nose fin
+      lands on the body: z 142 (front) to 118 (back), y 60 to 70, x -2 to 2 (both sides); 185 cm²; on: nose fin (100 %), body shell (0 %); faces up
+      receipt: satin #e02020 on nose fin: nose fin, body shell (body), 185 cm²
+  [7] satin #f4f2ec on body
+      lands on the body: z -54 (front) to -67 (back), y 83 to 85, x -7 to 7 (both sides); 144 cm²; on: engine cover (72 %), number panel (28 %); faces up
+      receipt: satin #f4f2ec on body: engine cover, number panel (body), 144 cm²
+  [8] matte black on body
+      lands on the body: z 166 (front) to 149 (back), y 16 to 58, x -24 to 24 (both sides); 1,476 cm²; on: nose tip (57 %), nose panel (22 %), side skirt (21 %), wing pylon (0 %); faces up
+      receipt: matte black on body: nose tip, nose panel, side skirt, wing pylon (body), 1,476 cm²
+  [9] wear on body
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: wear on body
+               wear on body: faded up to 30%, 20% clear coat gone, 0.0% scraped, chipped: 27% of the edges, 0.5% of the open panels, grime on 21% (5 s)
+
+Step: The map
+  [10] satin #f4f2ec on body
+      lands on the body: z 140 (front) to 64 (back), y 16 to 74, x -42 to 42 (both sides); 5,142 cm²; on: body shell (86 %), side skirt (13 %), nose fin (1 %), cockpit surround (0 %); faces up, left, right
+      receipt: satin #f4f2ec on body: body shell, side skirt, nose fin, cockpit surround (body), 5,142 cm²
+  [11] satin #9fc3e6 on body
+      lands on the body: z -6 (front) to -35 (back), y 41 to 43, x 86 to 87 (left side); 35 cm²; on: sidepod top (100 %); faces left
+      receipt: satin #9fc3e6 on body: sidepod top (body), 35 cm²
+  [12] satin #2e7d32 on body
+      lands on the body: z 215 (front) to -145 (back), y 14 to 35, x -86 to 86 (both sides); 11,576 cm²; on: side skirt (50 %), rear flank (20 %), diffuser (14 %), diffuser strake (13 %), wing pylon (2 %) and 2 more; faces down
+      receipt: satin #2e7d32 on body: side skirt, rear flank, diffuser, diffuser strake and 3 more (body), 11,576 cm²
+  [13] gloss #111111 on body
+      lands on the body: z 69 (front) to 50 (back), y 15 to 74, x 21 to 39 (left side); 1,104 cm²; on: body shell (74 %), side skirt (26 %); faces up, left
+      receipt: gloss #111111 on body: body shell, side skirt (body), 1,104 cm²
+
+Step: Pictures
+  [14] a picture at bonnet
+      lands on the body: z 113 (front) to 94 (back), y 66 to 69, x -10 to 10 (both sides); 320 cm²; on: body shell (100 %); faces up
+      receipt: a picture at bonnet: body shell (body), 320 cm²; laid at (0, 68, 103), 20.2 cm wide
+               a picture at bonnet: moved 13.8 cm, shrunk to 20.2 cm wide (67% of its 30.0), to stay whole on the body shell
+  [15] copies of a picture on engine cover
+      lands on the body: z -52 (front) to -132 (back), y 63 to 85, x -56 to 55 (both sides); 1,304 cm²; on: engine cover (100 %); faces up
+      receipt: copies of a picture on engine cover: engine cover (body), 1,304 cm²
+               engine cover: its paint also lands on upright (front left, front right: all of it), floor (29 %)
+               engine cover: the whole assembly, so it also paints airbox (inner car); engine cover panel, number panel (body); 'engine cover|part' is the engine cover alone
+               scatter on engine cover: 57 copies placed (14 of them smaller ones filling bare patches), 18 spots left bare for crossing a crisp line or an edge; spaced 6.9 cm or more along the surface (15 s); stickers go on the body: the airbox left as they are
+  [16] selftest tile on rear flank
+      lands on the body: z -25 (front) to -152 (back), y 15 to 64, x -86 to 86 (both sides); 11,267 cm²; on: rear flank (100 %); faces left, right
+      receipt: selftest tile on rear flank: rear flank (body), 11,268 cm²
+  [17] fur on body
+      lands on the body: z -80 (front) to -100 (back), y 15 to 80, x -69 to 69 (both sides); 4,754 cm²; on: rear flank (54 %), engine cover (26 %), engine cover panel (16 %), rear quarter panel (3 %), body shell (1 %); faces up
+      receipt: fur on body: rear flank, engine cover, engine cover panel, rear quarter panel and 1 more (body), 4,754 cm²
+  [18] the text 'TOUR 7'
+      lands on the body: z -45 (front) to -91 (back), y 34 to 46, x 59 to 86 (left side); 470 cm²; on: rear flank (100 %); faces left, back
+      receipt: the text 'TOUR 7': rear flank (body), 470 cm²; laid at (74, 40, -69), 9.9 cm tall
+               the text 'TOUR 7': shrunk to 9.9 cm tall (99% of its 10.0), to stay whole on the body shell, rear flank, side skirt and sidepod inlet
+               the text 'TOUR 7': the surface turns 24° under it, more than 20: it will read bent
+  [19] gloss #111111 on body
+      lands on the body: z -66 (front) to -70 (back), y 62 to 83, x -68 to 68 (both sides); 597 cm²; on: body shell (34 %), number panel (29 %), rear quarter panel (24 %), engine cover (9 %), fuel cap (4 %); faces up
+      receipt: gloss #111111 on body: body shell, number panel, rear quarter panel, engine cover and 1 more (body), 597 cm²
+               gloss #111111 on body: leaves the rear flank as painted by name; across=True paints over it
+  [20] gloss #f4f2ec star on sidepod top
+      lands on the body: z -23 (front) to -36 (back), y 59 to 61, x -83 to 83 (both sides); 141 cm²; on: sidepod top (100 %); faces up
+      receipt: gloss #f4f2ec star on sidepod top: sidepod top (body), 141 cm²; laid at (76, 60, -29), 14.0 cm wide, and its twin
+               gloss #f4f2ec star on sidepod top: laid at (76, 60, -29), 14.0 cm wide
+  [21] gloss #111111 disc on sidepod top
+      lands on the body: z -27 (front) to -31 (back), y 60 to 61, x -78 to 78 (both sides); 27 cm²; on: sidepod top (100 %); faces up
+      receipt: gloss #111111 disc on sidepod top: sidepod top (body), 27 cm²; laid at (76, 60, -29), 4.2 cm wide, and its twin
+               gloss #111111 disc on sidepod top: laid at (76, 60, -29), 4.2 cm wide
+  [22] satin #e0a82e box on rear quarter panel
+      lands on the body: z -54 (front) to -67 (back), y 69 to 81, x -39 to 39 (both sides); 293 cm²; on: rear quarter panel (100 %); faces up, left, right
+      receipt: satin #e0a82e box on rear quarter panel: rear quarter panel (body), 293 cm²; laid at (33, 76, -61), 17.3 cm wide, and its twin
+               satin #e0a82e box on rear quarter panel: moved 4.3 cm, shrunk to 17.3 cm wide (43% of its 40.0), to stay whole on the rear quarter panel
+  [23] satin #e8601c ring on body
+      lands on the body: z 161 (front) to 139 (back), y 56 to 61, x -11 to 10 (both sides); 191 cm²; on: nose panel (82 %), nose fin (18 %); faces up
+      receipt: satin #e8601c ring on body: nose panel, nose fin (body), 191 cm²; laid at (-0, 58, 150), 22.0 cm wide
+               satin #e8601c ring on body: 2% of it where the sticker would tear or fold over itself
+
+Step: The model's lines
+  [24] satin #1f8f3a on rear flank
+      lands on the body: z -25 (front) to -135 (back), y 15 to 31, x -84 to 84 (both sides); 3,328 cm²; on: rear flank (100 %); faces down
+      receipt: satin #1f8f3a on rear flank: rear flank (body), 3,328 cm²
+  [25] satin #f4f2ec on tail panel
+      lands on the body: z -131 (front) to -162 (back), y 62 to 66, x -31 to 31 (both sides); 914 cm²; on: tail panel (100 %), tail corner (0 %); faces up
+      receipt: satin #f4f2ec on tail panel: tail panel, tail corner (body), 914 cm²
+  [26] satin #111111 on sidepod top
+      lands on the body: z 8 (front) to -50 (back), y 28 to 63, x -87 to 87 (both sides); 2,499 cm²; on: sidepod top (100 %); faces up
+      receipt: satin #111111 on sidepod top: sidepod top (body), 2,499 cm²
+  [27] satin #111111 on body
+      lands on the body: z 40 (front) to -24 (back), y 25 to 26, x -84 to 84 (both sides); 47 cm²; on: side skirt (100 %); faces left, right, forward
+      receipt: satin #111111 on body: side skirt (body), 47 cm²
+  [28] satin #e0a82e on rear quarter panel
+      lands on the body: z -42 (front) to -85 (back), y 68 to 83, x -40 to 40 (both sides); 87 cm²; on: rear quarter panel (99 %), body shell (1 %); faces up, left, right
+      receipt: satin #e0a82e on rear quarter panel: rear quarter panel, body shell (body), 87 cm²
+  [29] satin #d0208e on body
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: satin #d0208e on body: nothing painted: its zone reaches none of the parts named
+               satin #d0208e on body: leaves the rear flank as painted by name; across=True paints over it
+  [30] satin #e0a82e on body
+      lands on the body: z 139 (front) to 70 (back), y 47 to 58, x -36 to 36 (both sides); 345 cm²; on: body shell (100 %); faces left, right
+      receipt: satin #e0a82e on body: body shell (body), 345 cm²
+  [31] satin #e0a82e on body
+      lands on the body: z 1 (front) to -22 (back), y 18 to 18, x -74 to 74 (both sides); 8 cm²; on: side skirt (100 %); faces down
+      receipt: satin #e0a82e on body: side skirt (body), 8 cm²
+  [32] satin #f4f2ec on body
+      lands on the body: z 91 (front) to -52 (back), y 70 to 86, x -37 to 37 (both sides); 1,090 cm²; on: cockpit surround (100 %); faces up
+      receipt: satin #f4f2ec on body: cockpit surround (body), 1,090 cm²
+  [33] satin #111111 on body
+      lands on the body: z -50 (front) to -128 (back), y 61 to 64, x 43 to 77 (left side); 22 cm²; on: body shell (96 %), engine cover (4 %); faces up
+      receipt: satin #111111 on body: body shell, engine cover (body), 22 cm²
+               satin #111111 on body: leaves the rear flank as painted by name; across=True paints over it
+  [34] the placard 'ALONG'
+      lands on the body: z -93 (front) to -107 (back), y 63 to 64, x 46 to 55 (left side); 21 cm²; on: rear flank (100 %); faces up
+      receipt: the placard 'ALONG': rear flank (body), 21 cm²; laid at (50, 64, -100), 2.6 cm tall
+               the placard 'ALONG': stretched 6% under it (the surface curves two ways)
+
+Step: Details
+  [35] camo matte on inner
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: camo matte on inner: floor, cockpit tub, tail frame, rim and 52 more (inner car), 143,227 cm²
+  [36] cloth charcoal on seat
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: cloth charcoal on seat: seat (inner car), 3,806 cm²
+  [37] glow always on on rear strake
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: glow always on on rear strake: rear strake, wing bracket, rear arm (inner car), 2,048 cm²
+               rear strake: its paint also lands on upright (front left, front right: all of it), floor (29 %)
+  [38] relight wheel ring
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: relight wheel ring: wheel ring (inner car), 63 cm²
+  [39] glass tinted plum
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: glass tinted plum: nose lens, canopy, rear light lens, side lens and 2 more (glass), 7,911 cm²
+  [40] dirt 1.3 on body
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: dirt 1.3 on body
+  [41] satin #e0a82e on sidewall
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: satin #e0a82e on sidewall: sidewall (tyres), 851 cm²
+  [42] the tyre marking TY-26
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: the tyre marking TY-26: sidewall, tread (tyres), 1,444 cm²
+  [43] the tread TR-04
+      covers no texel by half or more (a thin blend, a glow, a tyre marking, or nothing)
+      receipt: the tread TR-04
+
+Still in clay: [(83, 'wheel cover disc'), (84, 'wheel cover disc'), (85, 'wheel cover disc'), (86, 'wheel cover disc'), (87, 'wheel cover hub'), (88, 'wheel cover hub'), (89, 'wheel cover hub'), (90, 'wheel cover hub'), (91, 'wheel cover ring'), (92, 'wheel cover ring'), (93, 'wheel cover ring'), (94, 'wheel cover ring')]
+Sketch: /private/tmp/claude-501/-Users-fcarbo-Developer-personal-tm-skin-creator/d6323ffa-b930-4235-8278-bb2973c2c74f/scratchpad/see/out/dryrun_tour.png
+       73.70 real        91.07 user         2.35 sys
+          5754044416  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1390800  page reclaims
+               28832  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 999  voluntary context switches
+               55386  involuntary context switches
+       1807923595864  instructions retired
+        387833927369  cycles elapsed
+          7310973840  peak memory footprint
+done
