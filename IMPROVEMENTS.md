@@ -61,6 +61,14 @@ the user's OK everything it retires removed and the step deleted here. One step 
   Renaming touches `tool/naming.py` and the viewer.
 - **Pollen grains of 2 mm** (2026-10-09, TSC_Bumblebee): pale specks two texels wide on black fur; the game's colour
   compression may flatten single grains, a haze should survive.
+- **How the AI sees the car: a research exploration** (2026-10-22, the user: "things written in mds are prone to fail
+  every now and then. For example, the anatomy. There has to be a better way for AI to 'see' the car without a written
+  essay"; "written or even through camera, my personal opinion it's prone to failure"). Today the car reaches a
+  session as an essay (`car/anatomy.md`, 2,500 words of lines and coordinates) and as pictures (the views, the close
+  looks); a line was taken from the wrong end on the test car because the fact sat in a number. Explore what else
+  there is: a labelled atlas drawn from the mesh, the car answering questions instead of being read, a design
+  measured against the surface as it's written, or ways found in the research; weigh each by what fails and when,
+  before any is built.
 - **The judge doesn't name the line it read a marking against** (2026-10-21, the test car's agent): "cut short by the
   edge where the body ends" was measured against the model line nearest the streak, 7 cm from the course the design
   followed, so the finding pointed at the wrong edge. Idea: every placement finding names the line it read against.
