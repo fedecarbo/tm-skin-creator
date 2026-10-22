@@ -9,11 +9,36 @@ and checked by the self-test; ideas are named in plain words.
 
 ## Next: the road
 
-The research's order of work (`research/Skin tool state of the art 2026.md`), one step per session: built under the
-self-test, its worth shown on a new test car made for it (never a past car) or in plain words and numbers, then on
-the user's OK everything it retires removed and the step deleted here. One step is left, and it waits for the PC
-(away until November or December 2026):
+One step per session: built under the self-test, its worth shown on a new test car made for it (never a past car) or
+in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
+2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
+perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
+AI's eye**. Four steps, then 13 on the PC (away until November or December 2026):
 
+14. **The car answers, and the traps come out.** The sample `research/see/ask.py` becomes the tool's own question tool
+    (`PY -m tool.meshlines` grows its questions: a line's two ends and which is the nose end, how its course runs and
+    the call for a stretch from an end, what it meets; a panel's parts, extent and lines; a part's piece and gap, where
+    a line stops; a point by the skin the eye sees; what a where-word covers; where words read flat). Every course
+    handed over nose first by `meshlines.line`; `marks.rooms` built with the wheels in place (the rear flank's 37 cm
+    room at (64, 36, -80) is behind the rear wheel: both test cars of 2026-10-22 put their badge there). Shown on a
+    throwaway car painted by a fresh agent from the skill alone, the essay gone. Retires: `car/anatomy.md`'s listings
+    of lines, rolls, panels and rooms (the axes and "where a graphic stops" stay, a page, not an essay) and the paint
+    skill's words that send a session to read it.
+15. **The landing in every receipt.** What `research/see/dryrun.py` prints, printed by `tool.skin show` as the paint
+    goes: each call's stretch of the car (z, y, x), the parts under it, its area, and a sketch of every call's texels
+    on the side and top views; and a way to stop before the textures, the judge and the views, so a design is read
+    against the car in 12 s (a simple car) to a minute (a busy one) before anything is shown. The 21 October wrong end
+    is the test: caught before a paint. Retires nothing; it replaces repaints (the control car of 2026-10-22 took three
+    paints, the test car one).
+16. **The judge names its ruler and the bites it can't see.** Every placement finding names the line it read against;
+    a row of marks at a course's places and dots zoned by `shapes.sphere` get a check and a close look; a sticker's bite
+    where `surface.Surface.chart` spans a step onto a raised plate (the nose ring of 2026-10-22, notched where it
+    climbs the nose fin's plate; the chipped decals of 2026-10-08) measured first, then fixed in the chart. Retires
+    the three queue items below that name these.
+17. **Intent beside landing.** Each step's `words=`, each call's landing and the judge's findings on it, written to the
+    viewer's data for a concept to show stroke by stroke, so a choice and an accident look different to the user (their
+    picture of the notched ring, 2026-10-22: the crossing meant, the notch the tool's, the block for a third reason).
+    Retires nothing.
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
     own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
     cleanest picture of a skin's colours the game gives; `viewer.lamp`), then per mood to the user's F12 screenshots
@@ -61,14 +86,6 @@ the user's OK everything it retires removed and the step deleted here. One step 
   Renaming touches `tool/naming.py` and the viewer.
 - **Pollen grains of 2 mm** (2026-10-09, TSC_Bumblebee): pale specks two texels wide on black fur; the game's colour
   compression may flatten single grains, a haze should survive.
-- **How the AI sees the car: a research exploration** (2026-10-22, the user: "things written in mds are prone to fail
-  every now and then. For example, the anatomy. There has to be a better way for AI to 'see' the car without a written
-  essay"; "written or even through camera, my personal opinion it's prone to failure"). Today the car reaches a
-  session as an essay (`car/anatomy.md`, 2,500 words of lines and coordinates) and as pictures (the views, the close
-  looks); a line was taken from the wrong end on the test car because the fact sat in a number. Explore what else
-  there is: a labelled atlas drawn from the mesh, the car answering questions instead of being read, a design
-  measured against the surface as it's written, or ways found in the research; weigh each by what fails and when,
-  before any is built.
 - **The judge doesn't name the line it read a marking against** (2026-10-21, the test car's agent): "cut short by the
   edge where the body ends" was measured against the model line nearest the streak, 7 cm from the course the design
   followed, so the finding pointed at the wrong edge. Idea: every placement finding names the line it read against.
