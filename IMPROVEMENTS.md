@@ -45,6 +45,16 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
 
 ## The tool
 
+- **A colour name half known is taken as the half it knows** (2026-10-22, the test car's agent): `colours.get("warm
+  white")`, "antique white" and "floral white" give plain white, dropping the word it doesn't know, while "deep" and
+  "bright" are read. Idea: a name not known whole fails with "did you mean", as a part's name does.
+- **One rounded edge named as several rolls** (2026-10-22, the test car's agent): body shell rolls 1, 2 and 5 lie side
+  by side along the deck's shoulder (tilts 22, 33, 40) but are three names, their lengths too unlike for one roll, so
+  "the rounded edge through (40, 62, -20)" is three answers and two agents picked different ones.
+- **Where the judge and the close looks say less than they seem** (2026-10-22, the test car's agent): a finding's
+  place is a station along the car's middle (a skirt dot at (28, 18, 119) "the nose fin's plate"); the close looks
+  saw no change when the whole body's white changed, and wash out white on warm white under the camera light; the
+  scatter, asked for 4 cm copies, made 12 of 27 smaller, and its receipt gives no places.
 - **The PC's repo is inside OneDrive** (2026-10-21, the user: "why is ours on onedrive?"): Windows puts Documents under
   OneDrive by default, and the clone went there; the work folder was put outside OneDrive because of it. When the PC
   is back: clone the tools and the Lab into a plain folder (`C:\Users\fedec\Developer\`), as on the Mac, and point

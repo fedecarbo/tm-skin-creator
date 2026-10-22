@@ -809,6 +809,7 @@ def picked(clicks, tset="Skin", closed=False):
 MEETS = 2.5     # cm: another line this near a line's end meets it there
 CORNER = 3.0    # cm: a line's way is told by its corners, where it strays this far from running straight
 TURN_SAID = 15.0  # degrees: a corner that turns less isn't said
+KEEP_SAID = 20.0  # cm: a panel the game letters, or the nose fin's plate, this near a point is said
 SETS = {"Skin": "the body", "Details": "the inner car", "Wheels": "the tyres", "Glass": "the glass"}
 
 
@@ -1059,6 +1060,14 @@ def _ask_at(p):
         if i:
             out.append(f"  Nearer, {d[0]:.1f} cm away, is hidden skin the eye doesn't see (inside an opening or under a panel): "
                        f"the {names[t[0]]}'s.")
+    grid = np.array([(a, b, 8 - a - b) for a in range(9) for b in range(9 - a)]) / 8.0  # points over each triangle
+    for part, words in judge.PANELS.items():  # the game's own panels, kept clear
+        X = np.einsum("kj,tjc->tkc", grid, e["P"][e["T"][names == part]]).reshape(-1, 3)
+        gap = 0.0 if names[t[i]] == part else float(np.linalg.norm(X - q[i], axis=1).min())
+        if gap <= KEEP_SAID:
+            where = "It's on" if gap == 0 else f"{gap:.0f} cm from"
+            out.append(f"  {where} {words}: keep clear, nothing on it or within {judge.CLEAR:.0f} cm"
+                       + (f" (a mark {2 * max(gap - judge.CLEAR, 0):.0f} cm across centred here reaches that)." if gap else "."))
     found = near(q[i])
     out.append("  Within 5 cm of it: " + ("; ".join(f"{n} ({what}) {dd:.1f} cm away" for dd, n, what in found[:6])
                                           if found else "none of the model's lines: open panel") + ".")
@@ -1067,8 +1076,10 @@ def _ask_at(p):
 
 def _ask_paint(where):
     from tool import paintbox
-    s = paintbox.Skin("TSC_Ask", size=1024)
+    s = paintbox.Skin("TSC_Ask")  # the game's sizes: what shares a texel is the paint's own
     ids = s._ids(where)
+    if not any("its paint also lands on" in n for n in s.notes):  # a group's word ("wheels", "body") too
+        s._warn_shared(where, [i for v in ids.values() for i in v])
     out = [f"Paint on {where!r} covers:"] + [f"  in {SETS[k]}'s texture: {', '.join(sorted({s.parts.instances[i]['name'] for i in v}))}."
                                              for k, v in ids.items()]
     return out + [f"  {n}" for n in s.notes] if ids else out + ["  nothing."]
@@ -1080,12 +1091,13 @@ def _rooms():
     import json
     import sys
     from tool import fbx, judge, marks, parts, paths
-    cache = paths.CACHE / "rooms_v1.json"
+    cache = paths.CACHE / "rooms_v2.json"
     if cache.exists() and cache.stat().st_mtime > fbx.CACHE.stat().st_mtime:
         return json.loads(cache.read_text())
     print("finding the body's flat rooms, seen square with the wheels in place (about a minute, once)...", file=sys.stderr)
     names = sorted({m["name"] for m in parts.load().instances if m["mesh"] == "Skin" and m["group"] == "body"} - set(judge.PANELS))
-    found = {k: [(a, [float(x) for x in c], [float(x) for x in f]) for a, c, f in v] for k, v in marks.rooms(names).items()}
+    found = {k: [(a, [float(x) for x in c], [float(x) for x in f]) for a, c, f in v]
+             for k, v in marks.rooms(names, most=4).items()}
     cache.parent.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps(found))
     return found

@@ -60,8 +60,8 @@ lands in the work folder's `build/` (`tool/paths.py`).
 ## What the car allows
 
 - **Wheels and tyres are their own paint.** "body" leaves out the wheel covers; paint "wheels" (the body's
-  wheel covers with their own hub, ring and disc, and the inner car's rims, hubs and wheel rings: two sets of
-  parts, both in `car/parts.json`) and "tyres" with their own calls. All four share one paint, and the
+  wheel covers, and the inner car's rims, hubs, wheel rings and front brake lights, with the paint they share:
+  `PY -m tool.meshlines paint wheels`) and "tyres" with their own calls. All four share one paint, and the
   right tyres are the left's mirror: words read backwards there unless every letter is one of
   B C D E H I K O X 0 3 8. Tyre markings and treads come from the library: `s.tyre_marks("TY-..")`,
   `s.tyre_tread("TR-..")`.
