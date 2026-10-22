@@ -1174,7 +1174,7 @@ def _stations(car, call, z, c, R, mark, reached, ends, span=None):
         hi_j = np.full(n, np.nan)
         order = np.lexsort((d[mine], st[mine]))  # by station, then by distance: each station's 3rd and 97th percentile
         sm, dm = st[mine][order], d[mine][order]
-        starts = np.r_[0, np.flatnonzero(sm[1:] != sm[:-1]) + 1]
+        starts = np.r_[0, np.flatnonzero(sm[1:] != sm[:-1]) + 1] if len(sm) else np.zeros(0, int)  # none of its texels here
         for j, a, b in zip(sm[starts], starts, np.r_[starts[1:], len(sm)]):
             if b - a >= 3:
                 lo_j[j], hi_j[j] = dm[a + int(0.03 * (b - a - 1))], dm[a + int(round(0.97 * (b - a - 1)))]
