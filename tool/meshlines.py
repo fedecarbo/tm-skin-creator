@@ -320,8 +320,9 @@ def line(name, tilt=None, side=None, tset="Skin"):
     """One of the model's lines by its name (named: "side skirt crease 2", "sidepod inlet edge 1", "body shell seam
     1"; a rounded edge's "rear flank roll 2" with `tilt`, degrees from facing up, picking the line of those side by
     side across it, when it has more than one): a Course along it, exactly through the model's points (closed round a
-    loop). side="right": its mirror image on the car's other side. A name that isn't one fails, saying the near ones;
-    PY -m tool.meshlines lists them all, and `at x y z` names what lies near a point."""
+    loop). side="right": its mirror image on the car's other side. Its points run the way the model's chain runs,
+    which may be tail first: check c.start before cutting a stretch, or take c.reversed(). A name that isn't one
+    fails, saying the near ones; PY -m tool.meshlines lists them all, and `at x y z` names what lies near a point."""
     from tool import course
     L = _named(name, "line", tset)
     if isinstance(L, list):  # a roll: its lines side by side across the edge

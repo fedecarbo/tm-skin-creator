@@ -40,8 +40,9 @@ finds the language missing something, the language changes (and its page), not o
 
 ## 2. The composition (this session): three takes, the user picks
 
-Three takes as a set of options (the concept's set, a skin beside the car for each), each a different
-reading of the same language: the big colour areas and the signature on the whole car, base finishes only, no
+Three takes as a set of options (the concept's set, a skin beside the car for each, marked a take by a take.json
+beside its design, {"of": the car}, as `tool/gate.py` says), each a different idea for the same language, never one
+idea placed three ways: the big colour areas and the signature on the whole car, base finishes only, no
 details. Start each with `s.clay()`. Large shapes cross pieces and end where the car's flow ends, never at a seam.
 Paint each, look at its views, open the set. After the pick, write in the record what each big shape is for: the
 next passes build on it.

@@ -28,7 +28,8 @@ a strip, dashes, ticks, spots or words.
                                              opening's frame): a marking applied panel by panel, as tape is;
                                              .without("nose tip") leaves those panels' pieces off
     c.length, c.start, c.middle, c.end, c.at(z=-70), c.at(s=20)   points on it (cm)
-    c.places(every=20)                       points every 20 cm along it, a whole gap at each end, for marks
+    c.places(every=20)                       points every 20 cm along it, half a gap at each end (margin= at least
+                                             that), for marks
   Markings, as zones (tool/shapes.py) for s.paint(..., zone=), measured across the surface:
     c.band(4)                                a band 4 cm wide along it, centred: wrapping whatever edge it runs along
     c.band(4, side=1)                        on one face beside it, its edge on the course, 4 cm across the surface to

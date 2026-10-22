@@ -12,13 +12,14 @@ change to a car that exists edits it.
 ## Commands
 
 From the repo root (or a concept's folder: the tools are installed into the venv). `PY` is the tool's Python
-(`CLAUDE.md`). The Mac has no picture maker and no game: install from the Windows PC after a push.
+(`CLAUDE.md`). The Mac has no picture maker and no game: install from the Windows PC after a push. Every picture
+lands in the work folder's `build/` (`tool/paths.py`).
 
 | Command | What it does |
 |---|---|
 | `PY -m tool.skin show <name>` | Paints `skins/<name>/design.py`, puts it in the viewer's data (a concept's page shows it), saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict, which says what BLOCKS (a graphic that doesn't fit the car or sit where its line is), what it warns of, and the eye's notes (how a graphic sits against the lines the eye sees: the close looks look there; a note names, never forbids). |
 | `PY -m tool.close <name>` | After a show: close looks along every line and over every decal, square to its face, 20 pixels a cm, under the camera light (nothing left in shadow), both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. About 20 s for a busy car. |
-| `PY -m tool.snap <name> --cams` | The game's chase cameras, by day and at night. |
+| `PY -m tool.snap <name> --cams`, `--body` | The game's chase cameras, by day and at night; the body alone, nine views with the underside, under the camera light. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number), kept with the builds; the concept decides what's shown. |
 | `PY -m tool.gate <name>` | What the gates say of the car now (Before showing). |
 | `PY -m tool.skin install <name>` | Paints it, builds the game files and installs them (the PC). |
@@ -54,8 +55,9 @@ From the repo root (or a concept's folder: the tools are installed into the venv
 
 ## What the car allows
 
-- **Wheels and tyres are their own paint.** "body" leaves out the wheel covers; paint "wheels"
-  (covers, rims, hubs, rings) and "tyres" with their own calls. All four share one paint, and the
+- **Wheels and tyres are their own paint.** "body" leaves out the wheel covers; paint "wheels" (the body's
+  wheel covers with their own hub, ring and disc, and the inner car's rims, hubs and wheel rings: two sets of
+  parts, both in `car/parts.json`) and "tyres" with their own calls. All four share one paint, and the
   right tyres are the left's mirror: words read backwards there unless every letter is one of
   B C D E H I K O X 0 3 8. Tyre markings and treads come from the library: `s.tyre_marks("TY-..")`,
   `s.tyre_tread("TR-..")`.

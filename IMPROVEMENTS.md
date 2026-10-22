@@ -61,6 +61,12 @@ the user's OK everything it retires removed and the step deleted here. One step 
   Renaming touches `tool/naming.py` and the viewer.
 - **Pollen grains of 2 mm** (2026-10-09, TSC_Bumblebee): pale specks two texels wide on black fur; the game's colour
   compression may flatten single grains, a haze should survive.
+- **The judge doesn't name the line it read a marking against** (2026-10-21, the test car's agent): "cut short by the
+  edge where the body ends" was measured against the model line nearest the streak, 7 cm from the course the design
+  followed, so the finding pointed at the wrong edge. Idea: every placement finding names the line it read against.
+- **Rows of dots get no check and no close look** (2026-10-21, the test car's agent): a paint zoned by
+  `shapes.sphere` at a course's places (pressure taps) is skipped by the judge and the close looks, so a row painted
+  inside a sidepod went unnamed. Idea: a row of marks at a course's places is a graphic, measured and looked at.
 - **Never seen in the game yet** (2026-10-05): the finishes candy, chrome rims, rust, leather,
   metallic flake, and the viewer's matte, satin, gloss and chrome against the game's; the exhaust heat
   and boost glows (TSC_CMYK_EndsInK carries exhaust heat); whether the wheel covers turn; how
