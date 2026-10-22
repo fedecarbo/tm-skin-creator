@@ -462,17 +462,19 @@ def _pole(panel, within, margin):
 
 
 def rooms(names, least=12.0, most=2, size=1024):
-    """The named body parts' flat rooms, for car/anatomy.md: the biggest discs of free room on each part (as a mark's:
-    off the model's crisp lines, in the open air, clear of the game's panels) whose skin turns no more than WORD_TURN
-    degrees from one way, so words read flat on them, `least` cm across or more, on the left side and the middle:
-    {part: [(across in cm, centre, facing), ...]}, the roomiest first, at most `most`, each clear of the ones before.
-    Measured on a `size`² texture, in the texture's own unfolding."""
+    """The named body parts' flat rooms (PY -m tool.meshlines flat <part>): the biggest discs of free room on each part
+    (as a mark's: off the model's crisp lines, in the open air, clear of the game's panels) whose skin turns no more
+    than WORD_TURN degrees from one way, so words read flat on them, and is seen from that way, square, with nothing in
+    front of it (the body, the inner car, the tyres: the wheels in place), `least` cm across or more, on the left side
+    and the middle: {part: [(across in cm, centre, facing), ...]}, the roomiest first, at most `most`, each clear of the
+    ones before. Measured on a `size`² texture, in the texture's own unfolding."""
     from tool import paintbox
     skin = paintbox.Skin("TSC_Rooms", size=size)
     c = skin.canvas("Skin")
     ways = carmap.directions().astype(np.float32)
     flat = np.cos(np.radians(WORD_TURN))
-    out = {}
+    seen_by = carmap._occluders(("Skin", "Details", "Wheels"))
+    each = []
     for name in names:
         panel = _Panel(skin, c, skin._ids(name, warn=False).get("Skin", []))
         if not len(panel.texels):
@@ -481,19 +483,30 @@ def rooms(names, least=12.0, most=2, size=1024):
         room, island = panel.room(win, sel, None)
         r0, r1, c0, c1 = win
         nrm, pos = c.bake["normal"][r0:r1, c0:c1], c.bake["position"][r0:r1, c0:c1]
-        room &= pos[..., 0] > -MIDDLE
-        found = []
-        for isl in np.unique(island[room]):
-            on = room & (island == isl)
-            for d in ways:
-                f = on & ((nrm @ d) >= flat)
-                if f.sum() < 4:
+        each.append((name, panel, room & (pos[..., 0] > -MIDDLE), island, nrm, pos))
+    found = {name: [] for name, *_ in each}
+    for d in ways:  # the skin facing each way, seen from it
+        faces = [room & ((nrm @ d) >= flat) for _, _, room, _, nrm, _ in each]
+        P = np.concatenate([pos[f] for f, (*_, pos) in zip(faces, each)]).astype(np.float64)
+        if not len(P):
+            continue
+        N = np.concatenate([nrm[f] for f, (*_, nrm, _) in zip(faces, each)]).astype(np.float64)
+        seen, k = carmap._seen(P, N, d[None].astype(np.float64), seen_by)[:, 0], 0
+        for f, (name, panel, _, island, nrm, pos) in zip(faces, each):
+            n = int(f.sum())
+            f[np.nonzero(f)] = seen[k:k + n]
+            k += n
+            for isl in np.unique(island[f]):
+                on = f & (island == isl)
+                if on.sum() < 4:
                     continue
-                edt = ndimage.distance_transform_edt(np.pad(f, 1))[1:-1, 1:-1] * float(panel.pitch[isl])
-                k = np.unravel_index(int(edt.argmax()), edt.shape)
-                found.append((2 * float(edt[k]), pos[k].astype(np.float64), nrm[k].astype(np.float64)))
+                edt = ndimage.distance_transform_edt(np.pad(on, 1))[1:-1, 1:-1] * float(panel.pitch[isl])
+                j = np.unravel_index(int(edt.argmax()), edt.shape)
+                found[name].append((2 * float(edt[j]), pos[j].astype(np.float64), nrm[j].astype(np.float64)))
+    out = {}
+    for name, got in found.items():
         kept = []
-        for across, centre, facing in sorted(found, key=lambda f: -f[0]):
+        for across, centre, facing in sorted(got, key=lambda f: -f[0]):
             if across < least or len(kept) == most:
                 break
             if all(np.linalg.norm(centre - k[1]) > k[0] / 2 + across / 2 for k in kept):

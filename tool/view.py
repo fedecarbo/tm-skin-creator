@@ -176,8 +176,7 @@ def export_template():
       template/<Set>_Mesh.png the same mesh and lines alone, clear between them (colour premultiplied by its alpha):
                               what the Lab's Mesh button lays over any car's paint (viewer.js, addMesh)
       template.json           those slots' URLs, the stock for the rest, as skin.json's, and the key
-    and skins/Template/skin.json, the same car as a skin the viewer opens by name (car/map/model.jpg: `PY -m tool.snap
-    Template --body`)."""
+    and skins/Template/skin.json, the same car as a skin the viewer opens by name."""
     from tool import meshlines, paintbox
     stamp = TEMPLATE / "template.json"
     key = hashlib.sha1(repr((TEMPLATE_VERSION, TEMPLATE_KEY, BEND, meshlines.SHARP, meshlines.SEWN,

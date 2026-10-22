@@ -81,11 +81,11 @@ whole) and `requirements.txt` (the picture maker's packages, the PC only; MLX, t
   the job log, and no tool command refreshes a concept's lists.
 - The car: `tool/surface.py` (the foundation every graphic is laid on and measured by), `tool/carmap.py` (the open
   air, where along the car), `tool/wear.py` (the wear maps), `tool/meshlines.py` (the model's own lines, the
-  template), `tool/course.py` (markings along a line), `tool/marks.py` (shapes on a panel), `tool/tyres.py` (the
-  tyres' map and markings), `tool/parts.py` (the names, from `tool/naming.py`, into `car/parts.json`). After a
-  change to the mesh or to `meshlines.py`: the surface, the car map and the wear maps rebuild themselves (`PY -m
-  tool.surface`, `tool.carmap`, `tool.wear` do it by hand); then `tool.carmap --describe` rewrites the car in
-  words, `car/anatomy.md`, and `tool.snap Template --body` retakes its picture `car/map/model.jpg`.
+  template, the car's answers to questions), `tool/course.py` (markings along a line), `tool/marks.py` (shapes on a
+  panel), `tool/tyres.py` (the tyres' map and markings), `tool/parts.py` (the names, from `tool/naming.py`, into
+  `car/parts.json`). After a change to the mesh or to `meshlines.py`: the surface, the car map, the wear maps and
+  the flat rooms rebuild themselves (`PY -m tool.surface`, `tool.carmap`, `tool.wear` do it by hand); then
+  `tool.carmap --describe` rewrites the page `car/anatomy.md` (the axes, where a graphic stops).
 
 ## Facts the code doesn't say
 

@@ -21,7 +21,7 @@ def design(s):
 
     s.step("Shoulder band", "Orange, 3 cm, on the deck's rounded shoulder (body shell roll 2), its front 40 cm.",
            words="A bright orange band 3 cm wide along the deck's rounded shoulder ... its FRONT 40 cm only")
-    shoulder = meshlines.line("body shell roll 2", tilt=33).reversed()  # nose first: start (40, 58, 38)
+    shoulder = meshlines.line("body shell roll 2", tilt=33)  # nose first: start (40, 58, 38)
     front = shoulder.between(shoulder.start, shoulder.at(s=40))
     s.paint("body shell", "bright orange", zone=front.mirrored().band(3))
 

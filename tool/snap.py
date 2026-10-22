@@ -43,7 +43,7 @@ SHOTS = (("front three-quarter", "front", False, []), ("rear three-quarter", "re
 CAMS = tuple((f"{title} {'night' if night else 'day'}", view, night, []) for night in (False, True)
              for title, view in (("Cam 1", "cam1"), ("Cam 1 alt", "cam1alt"), ("Cam 2", "cam2"), ("Cam 2 alt", "cam2alt")))
 CAM_SIZE = "1280x720"
-# The body alone, the wheels taken off (car/map/model.jpg; the user, 2026-09-29, "you might need to
+# The body alone, the wheels taken off (the user, 2026-09-29, "you might need to
 # hide the wheels so you see the body"): nine views, the flanks behind the wheels and the underside's
 # edges included.
 NO_WHEELS = {"hidden": ["wheel cover", "tyre", "rims and brakes"]}

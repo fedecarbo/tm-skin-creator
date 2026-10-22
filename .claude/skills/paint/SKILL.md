@@ -31,12 +31,16 @@ lands in the work folder's `build/` (`tool/paths.py`).
 ## Designing
 
 - A design is `skins/<name>/design.py`: a `design(s)` function of `paintbox.Skin` calls. Before the
-  first design in a session, read `car/anatomy.md` (how the body is built, where it's calm, where a
-  graphic stops) with its picture `car/map/model.jpg`, and the docstring of `tool/paintbox.py`: the
-  toolbar, every call a design makes, and which tool is behind each. Each tool is one file in `tool/` with
-  its own docstring: read a tool's when the design reaches for it (`shapes` for zones, `course` for
-  markings along the car's lines, `marks` for shapes on a panel, `finishes`, `textures`, `relief`,
-  `looks`, `tyres`), not before. Part names are in `car/parts.json`.
+  first design in a session, read `car/anatomy.md` (the car's axes, where a graphic stops) and the
+  docstring of `tool/paintbox.py`: the toolbar, every call a design makes, and which tool is behind each.
+  Each tool is one file in `tool/` with its own docstring: read a tool's when the design reaches for it
+  (`shapes` for zones, `course` for markings along the car's lines, `marks` for shapes on a panel,
+  `finishes`, `textures`, `relief`, `looks`, `tyres`), not before. Part names are in `car/parts.json`.
+- **Ask the car, never guess it.** Every fact about its shape comes from `PY -m tool.meshlines` and its
+  questions (`line`, `panel`, `part`, `at x y z`, `paint`, `flat`, `find`: its docstring says what each
+  answers), exact from the mesh. Ask before every call that names a line, a panel, a part or a point, and
+  write the call from the answer: a course runs nose first (`c.start` its nose end), a point is the skin
+  the eye sees, a flat room is one nothing stands in front of.
 - Start the car blank, from the user's words: no taste rules, past cars or examples, which make every car
   look the same. `borrow("TSC_X")` (`tool.skin`) builds on another skin's design, only when the user names it.
 - Write only words the user asks for: lettering has never come out well on this car's curves.
@@ -94,7 +98,7 @@ lands in the work folder's `build/` (`tool/paths.py`).
   while driving (2 mm is the thinnest that holds). A line through points of your own is
   `course.points(...)`: the straightest way along the surface from each to the next, corners at the
   points. The model's own crisp lines and panels (the template) are exact and
-  named (`car/anatomy.md`; `PY -m tool.meshlines` lists every name, `at x y z` names what lies near a point):
+  named (`PY -m tool.meshlines` lists every name and answers for each):
   `meshlines.line("side skirt crease 2")` a course along one (a rounded edge's `("rear flank roll 2", tilt=47)`,
   the tilt picking its line), `meshlines.panel("tail corner panel 1")` a zone filling one right up to its lines
   (`border=` a trim); the names are the left side's, `.mirrored()` or `both=True` for both sides, `side="right"`

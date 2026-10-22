@@ -1,4 +1,5 @@
-"""The 21 October mistake replayed: a streak meant for the FRONT of the deck's shoulder, cut from c.start, which is the tail end."""
+"""The 21 October mistake replayed: a streak meant for the FRONT of the deck's shoulder, cut from c.start, the tail end until
+step 14 made every course run nose first; now it lands on the front."""
 from tool import meshlines
 
 

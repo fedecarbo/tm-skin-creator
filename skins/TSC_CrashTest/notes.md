@@ -91,3 +91,4 @@ its colours, the Lab's finishes painted in them, and its shapes, all within what
   runs, untouched by this.
 - Shown (2026-10-21, on the Mac): the underside from below under the camera light, whole and close.
 - The user, 2026-10-21, of the underside: "A lot better".
+- Changed (2026-10-22, the tool, not the user): every course runs nose first now (the road's step 14), so the block tape along each rear flank's shoulder starts at the sidepod's back corner, as its step says: its 15 blocks' black and clear swap places.

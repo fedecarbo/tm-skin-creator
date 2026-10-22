@@ -1,8 +1,8 @@
 {
- "design": "802e750d656b2f55",
- "why": "the brief asks for the nose ring across the seam at z 142 on purpose; the nose fin's plate begins there, so a ring that crosses that seam can't stay 3 cm clear of it",
+ "design": "7733fdcbfb37f683",
+ "why": "The brief puts the 25 cm nose ring across the seam at z 142 on purpose; the nose fin plate's 3 cm clear begins at z 145, so both can't hold. A test car, kept only until the user has looked.",
  "blocks": [
   "bright orange ring on body (Nose ring): 44 cm² on the nose fin's plate, z +145 (the nose) to z +138 (the nose fin's plate)"
  ],
- "when": "2026-10-22 11:15"
+ "when": "2026-10-22 15:28"
 }

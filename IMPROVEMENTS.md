@@ -15,21 +15,19 @@ in plain words and numbers, then on the user's OK everything it retires removed 
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
 AI's eye**. Four steps, then 13 on the PC (away until November or December 2026):
 
-14. **The car answers, and the traps come out.** The sample `research/see/ask.py` becomes the tool's own question tool
-    (`PY -m tool.meshlines` grows its questions: a line's two ends and which is the nose end, how its course runs and
-    the call for a stretch from an end, what it meets; a panel's parts, extent and lines; a part's piece and gap, where
-    a line stops; a point by the skin the eye sees; what a where-word covers; where words read flat). Every course
-    handed over nose first by `meshlines.line`; `marks.rooms` built with the wheels in place (the rear flank's 37 cm
-    room at (64, 36, -80) is behind the rear wheel: both test cars of 2026-10-22 put their badge there). Shown on a
-    throwaway car painted by a fresh agent from the skill alone, the essay gone. Retires: `car/anatomy.md`'s listings
-    of lines, rolls, panels and rooms (the axes and "where a graphic stops" stay, a page, not an essay) and the paint
-    skill's words that send a session to read it.
+14. **The car answers, and the traps come out.** Built, waiting for the user's OK (2026-10-22): `PY -m tool.meshlines`
+    answers questions from the mesh (a line's ends and course, a panel, a part with its piece and gap, a point by the
+    skin the eye sees, a where-word, flat rooms); every course from `meshlines.line` runs nose first; `marks.rooms` seen
+    square with the wheels in place; `car/anatomy.md` only the axes and where a graphic stops. Shown on TSC_SeeTool,
+    painted by a fresh agent from the skill alone, beside TSC_SeeControl and TSC_SeeTest (the same brief). On the OK: the
+    three test cars deleted, and this step.
 15. **The landing in every receipt.** What `research/see/dryrun.py` prints, printed by `tool.skin show` as the paint
     goes: each call's stretch of the car (z, y, x), the parts under it, its area, and a sketch of every call's texels
     on the side and top views; and a way to stop before the textures, the judge and the views, so a design is read
-    against the car in 12 s (a simple car) to a minute (a busy one) before anything is shown. The 21 October wrong end
-    is the test: caught before a paint. Retires nothing; it replaces repaints (the control car of 2026-10-22 took three
-    paints, the test car one).
+    against the car in 12 s (a simple car) to a minute (a busy one) before anything is shown. The test: a design with
+    strokes planted in the wrong place (a stretch by z landing on a line's far side, a zone on the wrong parts, a
+    badge behind a wheel), each caught before a paint. Retires nothing; it replaces repaints (the control car of
+    2026-10-22 took three paints, the test car one).
 16. **The judge names its ruler and the bites it can't see.** Every placement finding names the line it read against;
     a row of marks at a course's places and dots zoned by `shapes.sphere` get a check and a close look; a sticker's bite
     where `surface.Surface.chart` spans a step onto a raised plate (the nose ring of 2026-10-22, notched where it

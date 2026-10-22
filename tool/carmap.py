@@ -18,8 +18,8 @@ Map.at, value and level find the body under any point (tool/course.py lays its l
 The lines on the car are the model's own (tool/meshlines.py).
 
     python -m tool.carmap            build it and print a summary
-    python -m tool.carmap --describe the car in words: car/anatomy.md (read before a design: the model's
-                                     lines, tool/meshlines.py; its flat rooms, marks.rooms)
+    python -m tool.carmap --describe the car's axes and where a graphic stops: car/anatomy.md (read before a
+                                     design; the rest of its shape the car answers, tool/meshlines.py)
 """
 
 import functools
@@ -59,10 +59,11 @@ def directions(n=N_DIRS):
 
 # ---- what each spot sees ----
 
-def _occluders():
-    """The corners of every triangle that can hide the body: the body and the inner car."""
+def _occluders(sets=("Skin", "Details")):
+    """The corners of every triangle that can hide the body: the body and the inner car (sets: the meshes, by their
+    texture set's name; "Wheels" the tyres)."""
     ms = fbx.meshes()
-    tris = [ms[k]["positions"][ms[k]["tri_vertex"]] for k in ("Skin_01", "Details_01")]
+    tris = [ms[fbx.MESH_OF[k]]["positions"][ms[fbx.MESH_OF[k]]["tri_vertex"]] for k in sets]
     return np.concatenate(tris).astype(np.float64)
 
 
@@ -277,8 +278,7 @@ def load():
     return Map(dict(np.load(CACHE)))
 
 
-
-# ---- the car in words, for the AI (car/anatomy.md) ----
+# ---- the car's axes and where a graphic stops, for the AI (car/anatomy.md) ----
 
 ANATOMY_MD = paths.REPO / "car" / "anatomy.md"
 STATIONS = ((212, "the nose's tip"), (190, "the nose, over the front wing"), (178, "the front wheels' axle"),
@@ -286,114 +286,11 @@ STATIONS = ((212, "the nose's tip"), (190, "the nose, over the front wing"), (17
             (60, "the front flank"), (30, "the front flank, the sidepods begin"), (0, "the sidepods, their inlets"),
             (-30, "the sidepods"), (-60, "the sidepods' back, the number panel"), (-90, "the deck, the engine cover panel"),
             (-120, "the rear wheels' axle"), (-140, "the tail"), (-158, "the tail's end"))
-LINE_LEAST = 80.0   # cm: a line of the model's this long is in the anatomy (a rounded edge: its longest line)
-PANEL_LEAST = 500.0  # cm2: a panel of the model's this big is in the anatomy
-CORNER = 3.0        # cm: a line is told by its corners, where it strays this far from running straight
-TURN_SAID = 15.0    # degrees: a corner that turns less isn't said
-ROOM_LEAST = 12.0   # cm across: a flat room this big is in the anatomy
-
-
-def _corners(p, tol):
-    """The indices of a line's corners: where it strays more than tol cm from a straight run
-    (Douglas and Peucker), its ends included."""
-    a, b = p[0], p[-1]
-    ab = b - a
-    d = (np.linalg.norm(np.cross(p - a, ab), axis=1) / np.linalg.norm(ab) if np.linalg.norm(ab) > 1e-9
-         else np.linalg.norm(p - a, axis=1))
-    k = int(d.argmax())
-    if len(p) < 3 or d[k] <= tol:
-        return [0, len(p) - 1]
-    return _corners(p[:k + 1], tol)[:-1] + [i + k for i in _corners(p[k:], tol)]
-
-
-def _outside(L):
-    """A line of the model's on the outer body's left half or middle: not on the wheel covers, not facing the ground."""
-    return (L["parts"][0] not in WHEEL_COVERS and float(np.median(L["pts"][:, 0])) >= -0.5
-            and float(np.mean(L["nrm"][:, 1] < -0.5)) < 0.5)
-
-
-def _way(p):
-    """A line's way in words: from its first point through the corners where it turns to its last."""
-    corners = _corners(p, CORNER)
-    legs = np.diff(p[corners], axis=0)
-    cos = (legs[:-1] * legs[1:]).sum(1) / np.maximum(np.linalg.norm(legs[:-1], axis=1) * np.linalg.norm(legs[1:], axis=1), 1e-9)
-    turns = np.degrees(np.arccos(np.clip(cos, -1, 1)))
-    way = [_cm(p[corners[0]])] + [_cm(p[k]) + f" turning {t:.0f}°" for k, t in zip(corners[1:-1], turns) if t >= TURN_SAID]
-    return " → ".join(way + [_cm(p[corners[-1]])])
-
-
-def _model_lines():
-    """The anatomy's section on the model's own lines (tool/meshlines.py): its crisp lines and edges, its rounded
-    edges and its panels, the left side and the middle."""
-    from tool import meshlines
-    A = ["## How the body is built", "",
-         "The model's own lines, read off its triangles (`tool/meshlines.py`): exact on the car and on the flat texture "
-         "alike. The Lab's UV map room draws them (Template), its Mesh button lays them over any car, and "
-         "`car/map/model.jpg` is the same on the bare body: the model's triangles grey, orange where the body rolls "
-         "outward across them, violet where it dips in, its crisp lines yellow, red where the body ends, blue where the "
-         "flat texture is cut. The left side and the middle (the right mirrors the left); every line and panel, with "
-         "a point on each: `PY -m tool.meshlines`.", "",
-         "### Its crisp lines and edges", "",
-         f"Panel lines, crisp folds, where the body ends and the seams between its parts, {LINE_LEAST:.0f} cm or longer, "
-         "the longest first, each by its name. A marking along one: `meshlines.line(name)` (`side=\"right\"` its mirror "
-         "image; `.mirrored()` both).", ""]
-    words = lambda L: ("where the body ends" if L["kind"] == "opening" else "a seam" if L["kind"] == "seam" else
-                       f"a panel line, a groove of {L['walls']}" if L["walls"] > 1 else "a crisp line")
-    every = meshlines.named("Skin")
-    kind = lambda name: name.rsplit(" ", 2)[-2]
-    lines = sorted((n for n in every if kind(n) in ("crease", "edge", "seam")), key=lambda n: -every[n]["length"])
-    for name in lines:
-        L = every[name]
-        if L["length"] < LINE_LEAST:
-            break
-        if not _outside(L):
-            continue
-        p, at = L["pts"], L["pts"][len(L["pts"]) // 2]
-        run = (f"round, z {p[:, 2].max():.0f} to {p[:, 2].min():.0f}" if L["closed"] else
-               _way(p if p[0, 2] >= p[-1, 2] else p[::-1]))
-        A.append(f"- **{name}**: {words(L)}, {L['length']:.0f} cm, along the {_listed(L['parts'][:3])}, at {_cm(at)}: {run}.")
-    A += ["", "### Its rounded edges", "",
-          "Where the body rolls from facing one way to another, the model's lines run side by side across the roll, one "
-          f"every 1 to 2 cm, each facing its own way (degrees from facing up): a roll. Those {LINE_LEAST:.0f} cm or longer, "
-          "the longest first. A marking along one of a roll's lines: `meshlines.line(name, tilt=<degrees>)`; along "
-          "several end to end, or across: `meshlines.picked(points)`.", ""]
-    rolls = sorted((n for n in every if kind(n) == "roll"), key=lambda n: -max(L["length"] for L in every[n]))
-    for name in rolls:
-        g = [L for L in every[name] if _outside(L)]
-        if not g or max(L["length"] for L in every[name]) < LINE_LEAST:
-            continue
-        long = max(g, key=lambda L: L["length"])
-        p = long["pts"] if long["pts"][0, 2] >= long["pts"][-1, 2] else long["pts"][::-1]
-        across = "; ".join(f"{L['tilt']:.0f}° at {_cm(L['pts'][len(L['pts']) // 2])}" for L in g)
-        many = f"{len(g)} lines across it, tilted" if len(g) > 1 else "One line, tilted"
-        A.append(f"- **{name}**: {long['length']:.0f} cm along the {_listed(long['parts'][:3])}: {_way(p)}. {many} {across}.")
-    A += ["", "### Its panels", "",
-          f"The model's own panels, bounded by its crisp lines and edges, {PANEL_LEAST:.0f} cm² or more, the biggest "
-          "first, each by its name (the left side's and the middle's; the right side mirrors them). A colour filling one "
-          "right up to its lines: `meshlines.panel(name)` (`both=True` its mirror image too).", "",
-          "| panel | parts | cm² | a point |", "|---|---|---|---|"]
-    panels = sorted((n for n in every if kind(n) == "panel"), key=lambda n: -every[n]["area"])
-    for name in panels:
-        d = every[name]
-        if d["area"] >= PANEL_LEAST and d["parts"][0] not in WHEEL_COVERS:
-            A.append(f"| {name} | {_listed(d['parts'][:2])} | {d['area']:.0f} | {_cm(d['at'])} |")
-    return A + [""]
-
-
-def _cm(p):
-    return "(" + ", ".join(str(round(float(v)) + 0) for v in p) + ")"
 
 
 def _listed(words):
     words = list(words)
     return words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]
-
-
-def _faces(n):
-    """Which way a surface faces, in words: its leading directions, the left side's."""
-    ways = (("out", n[0]), ("in", -n[0]), ("up", n[1]), ("down", -n[1]), ("forward", n[2]), ("back", -n[2]))
-    big = sorted((w for w in ways if w[1] >= 0.35), key=lambda w: -w[1])
-    return _listed([w for w, _ in big if w != "in" and not (w in ("forward", "back") and abs(n[2]) < 0.35)] or ["out"])
 
 
 def _opening_groups(m):
@@ -425,38 +322,23 @@ def _opening_groups(m):
 
 
 def describe(m=None):
-    """car/anatomy.md, the car in one page for Claude to read before a design: every number comes from the
-    model and the map, so it's redone with them."""
+    """car/anatomy.md, the car's axes and where a graphic stops, one page for Claude to read before a design: every
+    number comes from the model and the map, so it's redone with them. Everything else about the car's shape it answers
+    itself (PY -m tool.meshlines)."""
     import datetime
-    from tool import judge, marks, pieces as pieces_mod
+    from tool import judge, pieces as pieces_mod
     m = m or load()
     names = np.array([inst["name"] for inst in parts.load().instances])
     plist, nm = pieces_mod.write()
     pname = names[m.part]
     zr = lambda name: (lambda z: f"z {z.min():.0f} to {z.max():.0f}")(m.V[m.F[pname == name]][..., 2])
 
-    A = ["# The car's anatomy", "",
-         f"Written by `python -m tool.carmap --describe` from the car's own shape ({datetime.date.today()}): how the "
-         "body is built, where it's calm and where a graphic stops. Read it before a design, and "
-         "follow these lines and rooms where the idea needs them, never by rule. Lengths in cm: x out to the car's "
-         "left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at -162).", ""]
-    A += _model_lines()
-    A += ["## Where it's calm", "",
-          f"The flat rooms: on each panel the biggest discs of skin whose surface turns no more than {marks.WORD_TURN:.0f} "
-          f"degrees from one way, off the model's crisp lines and clear of the game's panels, {ROOM_LEAST:.0f} cm across "
-          "or more: where words read flat, and a badge or a picture sits with no stretch to speak of (the left side; the "
-          "right mirrors it). A sticker wraps a rolled edge as well as it lies on a flat panel; only where the surface "
-          "curves two ways is it stretched, and the note says by how much.", "",
-          "| panel | across, cm | centre | faces |", "|---|---|---|---|"]
-    big = {n: m.area[pname == n].sum() for n in np.unique(pname)}  # the panels, the biggest first
-    order = [n for n in sorted(big, key=lambda n: -big[n]) if big[n] >= 50]
-    for name, found in sorted(marks.rooms([n for n in order if n not in judge.PANELS], ROOM_LEAST).items(),
-                              key=lambda kv: -kv[1][0][0]):
-        for across, centre, facing in found:
-            if facing[1] < -0.5:
-                continue  # under the car
-            A.append(f"| {name} | {across:.0f} | {_cm(centre)} | {_faces(facing)} |")
-    A += ["", "## Where a graphic stops", ""]
+    A = ["# The car", "",
+         f"Written by `python -m tool.carmap --describe` from the car's own shape ({datetime.date.today()}). Lengths in cm: x "
+         "out to the car's left (the right mirrors it), y up from the ground, z forward (the nose's tip at 215, the tail at "
+         "-162). Along the car: " + "; ".join(f"{z} {words}" for z, words in STATIONS) + ". Everything else about its "
+         "shape the car answers, exact from its mesh: `PY -m tool.meshlines` and its questions.", "",
+         "## Where a graphic stops", ""]
     seen, own, sewn = set(), [], []
     for q in plist[1:]:
         key = tuple(q["parts"])

@@ -70,3 +70,5 @@ x is out to the car's left, y up from the ground, z forward; all in cm.
   at z -83 to -87 (looks 45, 46); the navy ring 100 % hidden on both sides (looks 47, 48: the camera square to the
   flank's back-facing surface looks through the rear wheel). Gate: passes with the one let go.
 - Open (the nose ring): the let-go stands while the design is the same (despite.json). Not installed (a test car).
+- Changed (2026-10-22, the tool, not the user): every course runs nose first now (the road's step 14), so the shoulder's `.reversed()` came out of the design; the band is the same stretch, (40, 58, 38) to (44, 64, -1).
+- Shown again (2026-10-22, after the tool change above): the close looks found nothing changed; the nose ring's let-go restated (the design file changed).
