@@ -17,8 +17,8 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   parts share, or a sewn-on piece's gap under 2.5 cm), 4 cm wide, kept 5.5 cm off the plates the game letters (plain,
   the colour round them), off the underside and the wing pylon, and off what's hidden. Let go on each: the stripes and
   waves stop under the black line, as meant.
-- Open (Claude): where the sidepod top meets its inlet the colours touch under the lip with no black line (it's
-  hidden there); the lights by day and night; the glass.
+- Closed (Claude): where the sidepod top meets its inlet the colours touch under the lip with no black line (it's
+  hidden there); the lights by day and night; the glass. (The lights and glass: pass 3; the joint: pass 4.)
 - Picked C, two sides (the user, in the Lab, 2026-10-22). What the composition is, for the passes to build on:
   every part of the body is a section of the picture, each its own colour and pattern (PLAN in design.py); the right
   side's sided parts (side skirt, sidepod top, sidepod inlet, rear flank, rear quarter panel, tail corner) unlike their
@@ -38,3 +38,19 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   and no dirt even on a dirt road (s.dirt(0)). Shown, judged; the same four pattern ends let go again; close looks clean.
 - Open (Claude): the language gives white "the light in the car"; the lights took palette colours instead, as white
   reads as the stock's. The language's line may want changing (the user's call).
+- Details, pass 4 (Claude, Opus 5.5, 2026-10-22): the sidepod joint, seen close: the colour there isn't hidden. The
+  green round each inlet's mouth is the inner car's sidepod frame, and it touched the yellow and red sidepod tops, the
+  checks, the skirts and the inlets' stripes with no black, as the blue tail frame and the purple bumper touched the
+  tail corners, flanks and tail panel. Added "The outline round the inner car": a 3 cm black line on the body wherever
+  it meets a coloured inner part (contacts(): a body edge within 1 cm of one, or its edge lying on the body; inside the
+  inlets too), and the frame black where it shows only as a sliver (the gaps between the sidepod top, rear flank and
+  skirt, and its ledge above the skirt behind the ring). Then the small size, three marks, each outlined in black
+  1.2 cm round (motif()/layer(): the black and the colour from one distance field, so the line is even): a red heart
+  on the cockpit surround's left, beside the driver's heart; a sun (yellow, a thin black ring, an orange core) on the
+  left rear quarter panel; a green star (the language's proportions, tips and notches rounded) on the right one, the
+  two sides unlike. Few on purpose: the car is full, so the marks sit on the plain pieces and read close up and from
+  the chase camera. Shown, judged; six pattern ends let go (the four, and the inlets' and tail panel's stripes that
+  now stop under the new line); close looks clean.
+- Open (Claude): the inner car's coloured parts still touch one another with no black between them (the red rear
+  strakes on the blue tail frame, the front wing's pieces, the wishbones at their joints); they stand apart in 3D, but
+  the language says black between.
