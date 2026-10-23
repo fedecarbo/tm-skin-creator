@@ -76,9 +76,9 @@ lands in the work folder's `build/` (`tool/paths.py`).
   turn under words). `across=True` presses it on as it is, over every edge and crisp line in its
   footprint, as a sticker over a panel gap. A shape or a stripe meant to cross parts says
   `across=True`; without it a zoned paint on "body" leaves a part painted by its name.
-- **Keep clear** of the number panel and the engine cover panel on the deck, where the game letters
-  the player's number and name, and of the nose fin's plate: they aren't pieces. `show` names
-  anything on them or round them.
+- **The number panel and the engine cover panel** on the deck are where the game letters the player's number
+  and name, on top of the paint: a guide, not parts. Paint runs on across them (paint them with the part round
+  them); `show` notes what lies under the lettering. Keep clear of the nose fin's plate.
 - **Words and pictures** are one verb, `s.decal`, laid as shapes are: words (`height=` the capitals'), words in
   a thin box as a small sign (`box=True`, near a point or the line the user drew) or a picture (`width=`), on a
   named panel (both sides, words reading forward on each) or at a named spot (`SPOTS` in `tool/paintbox.py`, one
@@ -104,6 +104,7 @@ lands in the work folder's `build/` (`tool/paths.py`).
   the tilt picking its line), `meshlines.panel("tail corner panel 1")` a zone filling one right up to its lines
   (`border=` a trim); the names are the left side's, `.mirrored()` or `both=True` for both sides, `side="right"`
   for the right alone;
+  `course.outline(parts)` a black outline round parts, every seam and edge (any width);
   `.band(cm, side="seen")` a band of even width on one face beside one, its edge on the line, measured
   along the surface (`.band(cm)` centred, wrapping the edge; `crease=True` stopping at the body's next
   crease); `.offset(cm)` a line beside one, `.extended(start=cm)` one carried on along the surface

@@ -368,7 +368,7 @@ class Surface:
         faces = np.array([o[0] for o in out])
         return faces, np.array([o[1] for o in out]), np.array([o[2] for o in out]), gaps
 
-    def signed(self, line, reach=8.0, closed=False, crease=False, levels=()):
+    def signed(self, line, reach=8.0, closed=False, crease=False, levels=(), holes=0.0, only=None):
         """cm along the surface from a line, with a side: + to its left as it runs, seen from outside, - to its right.
         The line's points go into the fine surface as a chain of its edges (_chain), the surface is cut along them (and,
         with `crease`, along the model's crisp lines: where faces meet at meshlines.SHARP degrees or more, so nothing
@@ -377,11 +377,16 @@ class Surface:
         past each end (the edge there that carries its way on best), so each side keeps its own copy of the end and the
         two sides meet only beyond it, not square to it. `levels`: the distances that will be drawn as lines (a band's
         edges, a line beside the line): where their contours bend across faces too big for them (HALF_TEXEL), those
-        faces are cut finer and the distance solved again, ROUNDS times at most. A Field, read at texels."""
+        faces are cut finer and the distance solved again, ROUNDS times at most. `holes`: the patch's holes shorter than
+        this round (a fastener's) zipped shut first (_zipped), so the distance runs straight past one. `only`: which of
+        the line's points (a mask), whose stretches' own distance on its left is solved too (Field.only). A Field, read
+        at texels."""
         import igl
         faces, w, on, gaps = self._chain(line, closed)
         V, F, keep, verts = self._patch(on, reach)
         V2, F2, _, parent, ids = _insert(V, F, np.searchsorted(keep, faces), w, on, chain=True)
+        if holes:
+            V2, F2, parent = _zipped(V2, F2, parent, holes, set(np.asarray(ids).tolist()))
         n2 = len(F2)
         # every edge of the patch: its faces and the corner it starts from in each
         slot = {}
@@ -390,17 +395,22 @@ class Surface:
             for k, (u, v) in enumerate(((x, y), (y, z), (z, x))):
                 slot.setdefault((min(u, v), max(u, v)), []).append((g, k, u))
         cuts = np.zeros((n2, 3), bool)
-        left, right = set(), set()
-        for a, b in zip(ids[:-1], ids[1:]):
+        left, right, mine = set(), set(), set()
+        if only is not None:  # each of the chain's vertices by the line's point nearest it
+            near_only = np.asarray(only, bool)[cKDTree(np.asarray(line, np.float64).reshape(-1, 3)).query(V2[ids])[1]]
+        for i, (a, b) in enumerate(zip(ids[:-1], ids[1:])):
             if a == b:
                 continue
             here = slot.get((min(a, b), max(a, b)), [])
             if not here:
                 gaps += 1
                 continue
+            ours = only is not None and near_only[i] and near_only[i + 1]
             for g, k, u in here:
                 cuts[g, k] = True
                 (left if u == a else right).add((g, k))  # the face running a to b is on the left of a to b
+                if ours and u == a:
+                    mine.add((g, k))
         if not closed and ids[0] != ids[-1]:
             chain = set(zip(np.minimum(ids[:-1], ids[1:]), np.maximum(ids[:-1], ids[1:])))
             for end, prev in ((ids[0], ids[1]), (ids[-1], ids[-2])):
@@ -418,7 +428,8 @@ class Surface:
         if crease:
             cuts |= self._sharp(F2, parent, keep)
         Vn, Fn, _ = igl.cut_mesh(V2, F2.astype(np.int64), cuts)
-        src = [np.unique([Fn[g, (k + j) % 3] for g, k in side for j in (0, 1)]).astype(np.int64) for side in (left, right)]
+        sides = (left, right, mine) if only is not None else (left, right)
+        src = [np.unique([Fn[g, (k + j) % 3] for g, k in side for j in (0, 1)]).astype(np.int64) for side in sides]
         field = Field(self, keep, parent, Vn, Fn, _solve(Vn, Fn, src), gaps)
         for _ in range(ROUNDS):
             coarse = field.too_coarse(levels)
@@ -809,6 +820,49 @@ def _bridged(V, F, parent, fn):
     return V, F, parent
 
 
+def _zipped(V, F, parent, holes, line):
+    """A patch's mesh with its holes shorter than `holes` cm round (a rim loop: a fastener's hole) zipped shut by a fan
+    from their middle, wound as their rim's faces are; a loop through the `line`'s vertices, or one whose fan would
+    have a face thinner than THIN (the exact solver never returns on one), is left open. The fans' faces have no face
+    of the patch (parent -1)."""
+    edge = {}
+    for tri in F:
+        for k in range(3):
+            u, v = int(tri[k]), int(tri[(k + 1) % 3])
+            edge.setdefault((min(u, v), max(u, v)), []).append((u, v))
+    after = {}  # a rim edge's end from its start, the way its face runs
+    for uses in edge.values():
+        if len(uses) == 1:
+            after[uses[0][0]] = uses[0][1]
+    V, F, parent, seen = np.asarray(V, np.float64), [tuple(f) for f in F], list(parent), set()
+    extra = []
+    for u0 in list(after):
+        if u0 in seen:
+            continue
+        loop, u = [u0], after[u0]
+        seen.add(u0)
+        while u != u0 and u in after and u not in seen:
+            loop.append(u)
+            seen.add(u)
+            u = after[u]
+        if u != u0 or len(loop) < 3 or line & set(loop):
+            continue
+        P = V[loop]
+        if np.linalg.norm(P - np.roll(P, -1, 0), axis=1).sum() >= holes:
+            continue
+        c = P.mean(0)
+        if any(_thin(V[b], V[a], c) for a, b in zip(loop, loop[1:] + loop[:1])):
+            continue
+        k = len(V) + len(extra)
+        extra.append(c)
+        for a, b in zip(loop, loop[1:] + loop[:1]):
+            F.append((b, a, k))
+            parent.append(-1)
+    if not extra:
+        return V, np.asarray(F, np.int64), np.asarray(parent)
+    return np.vstack([V, extra]), np.asarray(F, np.int64), np.asarray(parent)
+
+
 def _fans(F):
     """How many fans of faces meet at each point of a mesh whose edges have one or two faces: the faces round it joined
     by the edges through it (two or more: a bowtie, which libigl's exact solver doesn't go past, reading 0 beyond)."""
@@ -1162,7 +1216,16 @@ class Field(_Patch):
 
     def __init__(self, S, keep, parent, Vn, Fn, value, gaps):
         super().__init__(S, keep, parent, Vn, Fn)
-        self.value, self.gaps = value, gaps
+        self.value, self.gaps = value[:, :2], gaps
+        self.only = value[:, 2] if value.shape[1] > 2 else None  # from the stretches `only` named, on the left
+
+    def at_only(self, size, lin=None):
+        """The distance on the line's left from the stretches `only` named (signed), at texels: inf where unreached."""
+        g, wt = self.faces_at(size, lin)
+        out = np.full(len(g), np.inf)
+        on = g >= 0
+        out[on] = _read(self.only[self.Fn[g[on]]][..., None], wt[on])[:, 0]
+        return out
 
     def at(self, size, lin=None):
         """The signed distance at texels of the set's map (flat indices; all by default): + to the line's left, - to its

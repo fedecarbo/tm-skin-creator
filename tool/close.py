@@ -261,15 +261,17 @@ def _line(M, L, g, lift, verdict, found):
     on = t >= 0
     P = M.pos[t[on]].astype(np.float64)
     own = M.owner[t[on]] == g["op"]
-    reach = max(abs(g["lo"]), abs(g["hi"])) + judge.TOL if g["kind"] == "line" else judge.TOL
-    W = g["hi"] - g["lo"] if g["kind"] == "line" else 0.0
+    line = g["kind"] == "line"  # its designed edges: one number all along, or one per station (an outline's)
+    lo_g, hi_g = (np.broadcast_to(np.asarray(g[k] if line else 0.0, np.float64), (len(pos),)) for k in ("lo", "hi"))
+    reach = max(np.abs(lo_g).max(), np.abs(hi_g).max()) + judge.TOL if line else judge.TOL
+    W = hi_g - lo_g
     box = (np.abs(P - pos[a:b].mean(0)) <= np.abs(pos[a:b] - pos[a:b].mean(0)).max(0) + reach + 1.0).all(1)
     P, own = P[box], own[box]
     xy, _ = _project(L["view"], pos[a:b], lift)
     d = np.asarray(L["view"]["dir"])
     width, seen, hidden = np.zeros(b - a), np.zeros(b - a, bool), np.zeros(b - a, bool)
-    one_sided = g["kind"] == "line" and g["lo"] * g["hi"] >= 0
-    lo, hi = (0.0, W) if one_sided else (g.get("lo", 0.0), g.get("hi", 0.0))
+    one_sided = line and bool(np.all(lo_g * hi_g >= 0))
+    lo, hi = (np.zeros(len(pos)), W) if one_sided else (lo_g, hi_g)
     body = np.zeros(b - a)  # how much of its designed width the body shows, whatever paint is on it
 
     def spread(x):
@@ -287,7 +289,7 @@ def _line(M, L, g, lift, verdict, found):
         hidden[k] = inside and not seen[k] and fac[s] @ d >= EDGE_ON
         across = r if one_sided else r * np.sign(v @ A[s])  # a centred strip's two faces either side of its middle
         width[k] = spread(across[near & own])
-        body[k] = spread(across[near & (across >= lo - 0.3) & (across <= hi + 0.3)])
+        body[k] = spread(across[near & (across >= lo[s] - 0.3) & (across <= hi[s] + 0.3)])
     for c0, c1 in judge._runs(hidden):
         if (c1 - c0) * judge.STATION >= HIDDEN_RUN:
             _say(found, L, g, "hidden", pos[a + c0:a + c1], f"{g['what']}: hidden by another part for "
@@ -295,14 +297,15 @@ def _line(M, L, g, lift, verdict, found):
     if g["kind"] != "line":
         return
     expected = ndimage.binary_erosion(np.asarray(g["expected"]), iterations=END)  # the stations at its ends straddle them
-    gap = expected[a:b] & (fac[a:b] @ d >= FACING) & (body >= judge.NARROW * W) & (width < 0.5 * W)
+    gap = expected[a:b] & (fac[a:b] @ d >= FACING) & (body >= judge.NARROW * W[a:b]) & (width < 0.5 * W[a:b])
     for c0, c1 in judge._runs(gap):
         if (c1 - c0) * judge.STATION < GAP_RUN:
             continue
         _, z, side, _ = judge._where(pos[a + c0:a + c1])
         if not _said(verdict, z, side):
             _say(found, L, g, "gap", pos[a + c0:a + c1], f"{g['what']}: seen close up, {np.median(width[c0:c1]):.1f} of "
-                 f"its {W:.1f} cm wide for {(c1 - c0) * judge.STATION:.1f} cm (another paint, or none, in its place)")
+                 f"its {np.median(W[a + c0:a + c1]):.1f} cm wide for {(c1 - c0) * judge.STATION:.1f} cm (another paint, "
+                 f"or none, in its place)")
 
 
 def _mark(M, L, g, lift, found):

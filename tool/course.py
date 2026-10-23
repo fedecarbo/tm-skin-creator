@@ -7,6 +7,10 @@ a strip, dashes, ticks, spots or words.
     course.edge("sidepod top", near=(55, 61, -40))   a panel's edge: its outline (the loop nearest `near`,
                                              else the longest), the panel on its left as it runs, seen from
                                              outside; side="left" picks the panel's instance
+    course.edges("rear flank|left")          every edge loop of a part, named as a paint names it
+    course.outline(["body shell", "nose tip"])   a zone: an outline round parts, one even line along every edge of
+                                             each, centred on the seams between them, inside an edge meeting none,
+                                             its corners and slivers filled, the lettering plates a guide (outline)
     meshlines.line(name), meshlines.picked(points)   the model's own lines, exact (tool/meshlines.py), as courses
     course.stroke(points)                   the line the user drew (a concept prints its points: the Lab's `lab.notes drawn`): its
                                              points on the body, joined by the straightest way along the surface
@@ -61,6 +65,7 @@ the nose root, 1 to 5 along the surface).
 import functools
 
 import numpy as np
+from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
 from tool import shapes
@@ -280,46 +285,55 @@ class Course:
 
     # ---- markings ----
 
-    def _signed(self, reach, crease=False, mirrored=False, levels=()):
+    def _signed(self, reach, crease=False, mirrored=False, levels=(), holes=0.0, only=None):
         """The signed distance along the surface from the course (or its mirror image) within `reach` cm, kept on the
-        course: a Field (tool/surface.py); `levels`, the distances drawn as lines, which it reads finely."""
-        key = (round(reach, 3), crease, mirrored, tuple(levels))
+        course: a Field (tool/surface.py); `levels`, the distances drawn as lines, which it reads finely; `holes`, the
+        holes it runs straight past (shorter than that round); `only`, the points whose stretches' own distance is
+        solved too."""
+        key = (round(reach, 3), crease, mirrored, tuple(levels), holes, None if only is None else np.packbits(only).tobytes())
         if key not in self._fields:
             P = self.pts * MIRROR if mirrored else self.pts
-            self._fields[key] = _surface().signed(P, reach=reach, closed=self.closed, crease=crease, levels=levels)
+            self._fields[key] = _surface().signed(P, reach=reach, closed=self.closed, crease=crease, levels=levels,
+                                                  holes=holes, only=only)
         return self._fields[key]
 
-    def _across(self, reach, crease=False, size=4096, levels=()):
+    def _across(self, reach, crease=False, size=4096, levels=(), holes=0.0, only=None):
         """The signed distance along the surface from the course, read at the body's texels within `reach` cm of it
         (tool/surface.py: exact on each side; + to the course's left as it runs, seen from outside): one dict per copy
         (the course; its mirror image when it's on both sides, `mirrored`): the texels' flat indices on the map (lin),
-        their places (pos), the distance at each (d), and the copy's points and tangents (P, T). Kept on the course."""
+        their places (pos), the distance at each (d; with `only`, d_only too: from those points' stretches alone), and
+        the copy's points and tangents (P, T). Kept on the course."""
         from tool import bake
-        key = (round(reach, 3), crease, size, tuple(levels))
+        key = (round(reach, 3), crease, size, tuple(levels)) + ((holes,) if holes else ()) + (
+            (np.packbits(only).tobytes(),) if only is not None else ())
         if key not in self._fields:
             b = bake.bake("Skin", size, size)
             tri, pos = b["tri"].reshape(-1), b["position"].reshape(-1, 3)
             copies = [(self.pts, self.tan, False)] + ([(self.pts * MIRROR, self.tan * MIRROR, True)] if self.mirror else [])
             out = []
             for P, T, mirrored in copies:
-                field = self._signed(reach + 1.0, crease, mirrored, levels)
+                field = self._signed(reach + 1.0, crease, mirrored, levels, holes, only)
                 lo, hi = P.min(0) - reach - 1, P.max(0) + reach + 1
                 lin = np.flatnonzero((tri >= 0) & np.all((pos >= lo) & (pos <= hi), axis=1))
                 d = field.at(size, lin)
                 ok = np.isfinite(d) & (np.abs(d) <= reach)
                 out.append(dict(lin=lin[ok], pos=pos[lin[ok]].astype(np.float64), d=d[ok], P=P, T=T, mirrored=mirrored))
+                if only is not None:
+                    out[-1]["d_only"] = field.at_only(size, lin[ok])
             self._fields[key] = out
         return self._fields[key]
 
-    def _zone(self, lo, hi, along, label, soft, crease=False):
+    def _zone(self, lo, hi, along, label, soft, crease=False, levels=None, holes=0.0):
         """A zone: the texels whose distance across the surface from the course, b (+ to its left seen from outside),
         lies between `lo` and `hi` cm (for the mirror image, between -hi and -lo: the mirror image of the marking)
         where `along` (s, b -> cm inside the marking, negative outside: s how far along the course, by its nearest
-        point) says so. The texels are the 4096² map's, matched by their places: a smaller canvas gets none of it."""
+        point) says so; `levels`, the distances it reads finely (its lo and hi). The texels are the 4096² map's, matched
+        by their places: a smaller canvas gets none of it."""
         from tool import bake
         reach = max(abs(lo), abs(hi)) + soft + 1.0
         lins, ws = [], []
-        for c in self._across(reach, crease, levels=tuple(v for v in (lo, hi) if v)):  # its edges, read finely
+        levels = tuple(v for v in (lo, hi) if v) if levels is None else levels
+        for c in self._across(reach, crease, levels=levels, holes=holes):  # its edges, read finely
             L, H = (-hi, -lo) if c["mirrored"] else (lo, hi)
             _, i = cKDTree(c["P"]).query(c["pos"], workers=-1)
             a = ((c["pos"] - c["P"][i]) * c["T"][i]).sum(1)
@@ -335,7 +349,7 @@ class Course:
         lin, w = lin[order][first], w[order][first]
         pos = bake.bake("Skin", 4096, 4096)["position"].reshape(-1, 3)[lin].astype(np.float64)
         z = self._matched(pos, w, label=label)
-        z.course, z.lo, z.hi, z.along, z.crease = self, lo, hi, along, crease  # what the judge reads it back by
+        z.course, z.lo, z.hi, z.along, z.crease, z.lin = self, lo, hi, along, crease, lin  # what the judge reads it by
         return z
 
     def band(self, width, side=0, crease=False, soft=shapes.SOFT):
@@ -624,15 +638,11 @@ def points(pts, name="the points given"):
     return Course(_surface().path(np.asarray(pts, np.float64)), name)
 
 
-def edge(part, side=None, near=None):
-    """A panel's edge: its outline on the body's mesh, chained into loops, the panel on the course's
-    left as it runs (seen from outside); the loop nearest `near` (a point), else the longest. side:
-    "left" or "right" for a panel the car has on both sides."""
+def _loops(ids):
+    """The outline of some of the body's part instances on its mesh, chained into loops, the parts on each loop's
+    left as it runs (seen from outside): (points, closed) each."""
     from tool import fbx, parts as parts_mod
     P = parts_mod.load()
-    ids = P.select(part, side=side)
-    if not ids:
-        raise ValueError(f"no part called {part!r} on the {side}")
     m = fbx.meshes()["Skin_01"]
     tv, pos = m["tri_vertex"], m["positions"].astype(np.float64)
     T = len(tv)
@@ -670,6 +680,18 @@ def edge(part, side=None, near=None):
         closed = any(v == u0 for v in nxt.get(u, []))
         if len(loop) >= 3:
             loops.append((V[loop], closed))
+    return loops
+
+
+def edge(part, side=None, near=None):
+    """A panel's edge: its outline on the body's mesh, chained into loops, the panel on the course's
+    left as it runs (seen from outside); the loop nearest `near` (a point), else the longest. side:
+    "left" or "right" for a panel the car has on both sides."""
+    from tool import parts as parts_mod
+    ids = parts_mod.load().select(part, side=side)
+    if not ids:
+        raise ValueError(f"no part called {part!r} on the {side}")
+    loops = _loops(ids)
     if not loops:
         raise ValueError(f"{part}: no edge found")
     if near is not None:
@@ -679,3 +701,221 @@ def edge(part, side=None, near=None):
         pts, closed = max(loops, key=lambda lc: float(np.linalg.norm(np.diff(lc[0], axis=0), axis=1).sum()))
     tag = f" on the {side}" if side else ""
     return Course(pts, f"the edge of the {part}{tag}", None, closed)
+
+
+def edges(part, least=0.0, merged=()):
+    """Every edge loop of a part, named as a paint names it ("rear flank|left", "engine cover|part"; a part on both
+    sides with no side named has its loops on both): Courses, each loop with the part on its left as it runs, seen
+    from outside, a loop under `least` cm round left out (a fastener's hole); `merged`, parts taken as the part's own
+    (a plate lying in it)."""
+    from tool import parts as parts_mod
+    name, side, ids = _named(part)
+    ids = ids + [i for m in merged for i in parts_mod.load().select(m)]
+    out = []
+    for pts, closed in _loops(ids):
+        x = float(pts[:, 0].mean())
+        tag = f" on the {side}" if side else " on the left" if x > MIDDLE else " on the right" if x < -MIDDLE else ""
+        c = Course(pts, f"the edge of the {name}{tag}", None, closed)
+        if c.length + (float(np.linalg.norm(c.pts[0] - c.pts[-1])) if closed else 0.0) >= least:
+            out.append(c)
+    return Courses(out, f"the edges of the {name}" + (f" on the {side}" if side else ""))
+
+
+def _named(part):
+    """A part as a paint names it ("rear flank|left", "engine cover|part"): its name, the side named, its instances."""
+    from tool import parts as parts_mod
+    bits = [b.strip() for b in part.split("|")]
+    side = next((b for b in bits[1:] if b in ("left", "right", "centre")), None)
+    end = next((b for b in bits[1:] if b in ("front", "rear")), None)
+    return bits[0], side, parts_mod.load().select(bits[0], side=side, end=end, exact="part" in bits[1:])
+
+
+FREE, SEAM, UNDER = 0, 1, 2  # an outline's edge meets none of its parts, meets one, lies under the one it meets
+SETTLE = 1.5  # cm: an outline's edge changing kind for less than this is the kind round it
+TURN = 35.0  # degrees within CORNERED cm either way: an outline's edge turning this much at a change of kind is a
+CORNERED = 1.0  # corner (the line there whole to it, not eased from a seam's half; a corner filled square)
+SLIVER = 1.2  # cm: a part's colour left narrower than this between its lines ...
+SLIVER_AREA = 30.0  # cm² ... in a piece no bigger than this is all line (a longer strip is the design's)
+
+
+def outline(parts, width=2.5, apart=2.5, least=15.0, taper=3.0, tucked=0.1, soft=shapes.SOFT):
+    """An outline round parts of the body (a paint's names): one even stroke `width` cm wide along every edge loop of
+    each (a loop under `least` cm round left out), each loop's band inside its own part, measured along the surface
+    from the part's edge. Where two of the parts meet (their edges within `apart` cm: a seam, a sewn-on piece's gap)
+    each takes half, so the line is centred on the seam; where an edge meets none of them (an opening, a frame, the
+    body's own end) its part takes all of it; where one piece lies over another (its edge seeing `tucked` more of the
+    open air) the line is centred on the edge the eye sees, over the piece beneath where it comes out. From a half to
+    the whole the band widens over `taper` cm on the free edge where it runs straight on, so the line never jogs; at a
+    corner (the edge turning TURN degrees) the free edge's line is whole right to it, its corner square filled. A fastener's hole (a loop under
+    `least` cm round) is filled for the measure, so the line runs straight past one. A part's colour left narrower
+    than SLIVER cm between its lines is line too. The plates the game letters the player's number and name on are a
+    guide, not parts: one lying in a part is the part's, with no line round it. A zone; the judge reads each loop back
+    at its own width, with the paint beyond its edge its neighbour's half."""
+    from tool import bake, carmap, judge, parts as parts_mod
+    plates = {p: np.vstack([c.pts for c in edges(p)]) for p in judge.LETTERED if p not in parts}
+    loops, who, mine = [], [], []
+    for k, part in enumerate(parts):
+        own = edges(part, least)
+        if own.courses:
+            tree = cKDTree(np.vstack([c.pts for c in own]))
+            inside = tuple(p for p, q in plates.items() if tree.query(q, workers=-1)[0].max() < apart)
+            own = edges(part, least, merged=inside) if inside else own
+        for c in own:
+            loops.append(c)
+            who.append(np.full(len(c.pts), k))
+            mine.append(k)
+    if not loops:
+        raise ValueError(f"no edge of {', '.join(parts)} is {least:g} cm round")
+    P, who = np.vstack([c.pts for c in loops]), np.concatenate(who)
+    air = np.concatenate([carmap.load().value("open", c.pts, c.nrm) for c in loops])
+    tan = np.vstack([c.tan for c in loops])
+    best = np.full(len(P), -1.0)
+    for i, nb in enumerate(cKDTree(P).query_ball_point(P, apart, workers=-1)):
+        nb = np.asarray(nb, int)
+        nb = nb[who[nb] != who[i]]
+        v = P[nb] - P[i]
+        r = np.linalg.norm(v, axis=1)
+        nb = nb[(r < 0.3) | (np.abs((v @ tan[i]) / np.maximum(r, 1e-9)) < 0.5)]  # beside it, not ahead round a corner
+        if len(nb):
+            best[i] = air[nb].max()
+    kind = np.where(best < 0, FREE, np.where(air < best - tucked, UNDER, SEAM))
+    cut = np.cumsum([0] + [len(c.pts) for c in loops])
+    for c, a, b in zip(loops, cut[:-1], cut[1:]):
+        kind[a:b] = _settled(kind[a:b], c.closed, int(round(SETTLE / STEP)))
+    zones, beyond = [], [[] for _ in parts]  # each part's texels and how far past its line each is, loop by loop
+    reach, levels, holes = width + soft + 1.0, (width / 2, width), least
+    b_ = bake.bake("Skin", 4096, 4096)
+    tri, pos = b_["tri"].reshape(-1), b_["position"].reshape(-1, 3)
+    for c, k, a, b in zip(loops, mine, cut[:-1], cut[1:]):
+        free = kind[a:b] == FREE
+        turn = _turns(c, CORNERED)
+        w = _ramped(np.where(free, width, width / 2), c, (width / 2) / taper, stop=turn >= TURN)
+        wide = (lambda s, c=c, w=w: np.interp(s, c.s, w))
+        ends = c._ends()
+        corner = _corners(free, turn, c)
+        lins, ws = [], []
+        for copy in c._across(reach, levels=levels, holes=holes, only=free if len(corner) else None):
+            d = copy["d"]
+            _, i = cKDTree(copy["P"]).query(copy["pos"], workers=-1)
+            s = c.s[i] + ((copy["pos"] - copy["P"][i]) * copy["T"][i]).sum(1)
+            # from just past the edge (a seam's texels whole, not half from each side), to its width inside
+            inside = np.minimum(np.minimum(d + soft, wide(s) - d), ends(s, d))
+            if len(corner):  # by a corner a free edge meets a seam at: within the free edge's width of it, measured
+                # from the free edge alone (the nearest edge, the seam's, would leave a wedge of colour in the corner)
+                near = np.abs(c.s[i][:, None] - c.s[corner][None, :])
+                if c.closed:
+                    near = np.minimum(near, c.length - near)
+                by = near.min(1) <= width + soft
+                inside[by] = np.maximum(inside[by], np.minimum(d[by] + soft, width - copy["d_only"][by]))
+            wt = smoothstep(-soft / 2, soft / 2, inside).astype(np.float32)
+            on = wt > 0.002
+            lins.append(copy["lin"][on])
+            ws.append(wt[on])
+            past = d > 0
+            beyond[k].append((copy["lin"][past], d[past] - wide(s[past])))
+        lin, at = np.unique(np.concatenate(lins), return_inverse=True)
+        wt = np.zeros(len(lin), np.float32)
+        np.maximum.at(wt, at, np.concatenate(ws))
+        z = Course._matched(pos[lin].astype(np.float64), wt, label=f"the outline along {c.name}")
+        # what the judge reads it back by
+        z.course, z.lo, z.hi, z.crease, z.lin, z.width, z.shared = c, -soft, width, False, lin, wide, True
+        z.along = lambda s, b_, wide=wide, ends=ends: np.minimum(wide(s) - b_, ends(s, b_))
+        zones.append(z)
+    fns = [z.fn for z in zones]
+    named = ", ".join(parts[:3]) + (f" and {len(parts) - 3} more" if len(parts) > 3 else "")
+    # a part's colour left narrower than SLIVER between its lines: the texels past its line that no texel SLIVER / 2
+    # further in comes within SLIVER / 2 of (the colour opened by SLIVER / 2), on the part's own skin
+    Pm = parts_mod.load()
+    thin = []
+    for k, part in enumerate(parts):
+        if not beyond[k]:
+            continue
+        ids = _named(part)[2]
+        lin, at = np.unique(np.concatenate([x for x, _ in beyond[k]]), return_inverse=True)
+        past = np.full(len(lin), np.inf)
+        np.minimum.at(past, at, np.concatenate([y for _, y in beyond[k]]))  # the least over its loops
+        ours = np.isin(Pm.tri_part[Pm.mesh_offset["Skin"] + tri[lin]], ids)
+        lin, past = lin[ours], past[ours]
+        deep, colour = past > SLIVER / 2, past > 0
+        if not colour.any():
+            continue
+        reached = np.zeros(len(lin), bool)
+        if deep.any():
+            reached[colour] = cKDTree(pos[lin[deep]]).query(pos[lin[colour]], workers=-1)[0] <= SLIVER / 2 + 0.1
+        q = pos[lin[colour & ~reached]].astype(np.float64)
+        if len(q):
+            gap = float(np.median(cKDTree(q).query(q, k=2, workers=-1)[0][:, 1]))  # a texel's pitch here
+            _, piece = connected_components(cKDTree(q).sparse_distance_matrix(cKDTree(q), 3 * gap), directed=False)
+            small = (np.bincount(piece) * gap * gap)[piece] <= SLIVER_AREA
+            thin.append(lin[colour & ~reached][small])
+    if thin and sum(map(len, thin)):
+        lin = np.concatenate(thin)
+        slivers = Course._matched(pos[lin].astype(np.float64), np.ones(len(lin), np.float32))
+        fns.append(slivers.fn)
+    out = shapes.Zone(lambda p, n: np.max([fn(p, n) for fn in fns], axis=0), label=f"the outline round the {named}")
+    out.course, out.pieces = Courses(loops, f"the edges of the {named}"), zones
+    seen = np.zeros(len(P), bool)
+    if (kind == UNDER).any():  # the edge the eye sees over a piece tucked under it: centred on it
+        seen = (kind == SEAM) & (cKDTree(P[kind == UNDER]).query(P, workers=-1)[0] < apart)
+        for c, a, b in zip(loops, cut[:-1], cut[1:]):
+            seen[a:b] = _settled(seen[a:b].astype(int), c.closed, int(round(SETTLE / STEP)), drop=True).astype(bool)
+    if seen.any():
+        tube = cKDTree(P[seen])
+        over = shapes.Zone(lambda p, n: smoothstep(-soft / 2, soft / 2, width / 2 - tube.query(p, workers=-1)[0])
+                           .astype(np.float32), label=f"the outline over the pieces tucked under the {named}")
+        out = out | over
+    return out
+
+
+def _settled(kind, closed, least, drop=False):
+    """A loop's kinds with every run shorter than `least` points taken as the run before it's (drop: a run of 1s
+    shorter than that is 0)."""
+    kind, n = kind.copy(), len(kind)
+    for _ in range(3):
+        cut = np.flatnonzero(kind != np.roll(kind, 1)) if closed else np.flatnonzero(np.r_[True, kind[1:] != kind[:-1]])
+        if len(cut) < 2:
+            break
+        ends = np.r_[cut[1:], cut[0] + n] if closed else np.r_[cut[1:], n]
+        for a, b in zip(cut, ends):
+            if b - a < least:
+                kind[np.arange(a, b) % n] = 0 if drop and kind[a] else kind[(a - 1) % n]
+    return kind
+
+
+def _ramped(w, c, slope, stop):
+    """Widths along a course with each rise eased: no point wider than its neighbour by more than `slope` cm a cm along
+    it (round a loop, its two ends neighbours), but for a point where it turns (`stop`), which eases nothing past it."""
+    w, s = w.astype(np.float64), c.s
+    gap = float(np.linalg.norm(c.pts[0] - c.pts[-1])) if c.closed else np.inf
+    for _ in range(2):
+        for i in range(1, len(w)):
+            if not (stop[i] or stop[i - 1]):
+                w[i] = min(w[i], w[i - 1] + slope * (s[i] - s[i - 1]))
+        if not (stop[0] or stop[-1]):
+            w[0] = min(w[0], w[-1] + slope * gap)
+        for i in range(len(w) - 2, -1, -1):
+            if not (stop[i] or stop[i + 1]):
+                w[i] = min(w[i], w[i + 1] + slope * (s[i + 1] - s[i]))
+        if not (stop[0] or stop[-1]):
+            w[-1] = min(w[-1], w[0] + slope * gap)
+    return w
+
+
+def _corners(free, turn, c):
+    """An outline's loop's corners where a free edge meets a seam (its kind changing where it turns TURN degrees or
+    more within CORNERED cm): their points."""
+    n, k = len(free), max(1, int(round(CORNERED / STEP)))
+    change = np.flatnonzero(free != np.roll(free, 1)) if c.closed else np.flatnonzero(np.diff(free)) + 1
+    return np.array([j for j in change if turn[np.arange(j - k, j + k + 1) % n].max() >= TURN], int)
+
+
+def _turns(c, cm):
+    """How far a course turns at each point, in degrees, between `cm` before it and `cm` after (round a loop, on past
+    its ends)."""
+    k = max(1, int(round(cm / STEP)))
+    n = len(c.pts)
+    i = np.arange(n)
+    a, b = (np.mod(i - k, n), np.mod(i + k, n)) if c.closed else (np.maximum(i - k, 0), np.minimum(i + k, n - 1))
+    u, v = c.pts[i] - c.pts[a], c.pts[b] - c.pts[i]
+    cos = (u * v).sum(1) / np.maximum(np.linalg.norm(u, axis=1) * np.linalg.norm(v, axis=1), 1e-12)
+    return np.degrees(np.arccos(np.clip(cos, -1, 1)))

@@ -1085,7 +1085,9 @@ def _ask_part(name):
         else:
             out.append(f"  A piece sewn on{' with the ' + ', '.join(others) if others else ''}, {pc['gap_cm']:.2f} cm from the "
                        f"{pc['nearest']}: a line or a band may run on across the join.")
-    if key in judge.PANELS:
+    if key in judge.LETTERED:
+        out.append(f"  A guide, not a part: {judge.PANELS[key]}, on top of the paint; paint runs on across it.")
+    elif key in judge.PANELS:
         out.append(f"  KEEP CLEAR: {judge.PANELS[key]}; nothing on it or within {judge.CLEAR:.0f} cm (show names anything there).")
     if tset == "Skin":
         ev = named("Skin")
@@ -1129,7 +1131,10 @@ def _ask_at(p):
     for part, words in judge.PANELS.items():  # the game's own panels, kept clear
         X = np.einsum("kj,tjc->tkc", grid, e["P"][e["T"][names == part]]).reshape(-1, 3)
         gap = 0.0 if names[t[i]] == part else float(np.linalg.norm(X - q[i], axis=1).min())
-        if gap <= KEEP_SAID:
+        if gap <= KEEP_SAID and part in judge.LETTERED:
+            out.append(f"  {'It is on' if gap == 0 else f'{gap:.0f} cm from'} {words}, which the game letters on top of the "
+                       "paint: a guide, not a part.")
+        elif gap <= KEEP_SAID:
             where = "It's on" if gap == 0 else f"{gap:.0f} cm from"
             out.append(f"  {where} {words}: keep clear, nothing on it or within {judge.CLEAR:.0f} cm"
                        + (f" (a mark {2 * max(gap - judge.CLEAR, 0):.0f} cm across centred here reaches that)." if gap else "."))
@@ -1172,7 +1177,7 @@ def _ask_flat(part):
     from tool import judge
     key = _part_named(part)
     rooms = _rooms().get(key)
-    if key in judge.PANELS:
+    if key in judge.PANELS and key not in judge.LETTERED:
         return [f"  The {key} is to be kept clear: {judge.PANELS[key]}."]
     if not rooms:
         return [f"  Nowhere on the {key} is flat, open and in sight enough for words (12 cm across or more, seen square, the "

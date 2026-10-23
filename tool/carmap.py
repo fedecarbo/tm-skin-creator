@@ -360,10 +360,11 @@ def describe(m=None):
         c = cockpit["pts"]
         A.append(f"- The cockpit leaves no skin down the top's middle from z {c[:, 2].max():.0f} to {c[:, 2].min():.0f}, "
                  f"{c[:, 0].max():.0f} cm out each side.")
-    lettered = [p for p, words in judge.PANELS.items() if "letters" in words]
-    A += [f"- Keep clear: {_listed(f'the {p} ({zr(p)})' for p in lettered)}, which the game letters, and "
-          f"{_listed(f'{words} ({zr(p)})' for p, words in judge.PANELS.items() if p not in lettered)}: nothing on "
-          f"them or within {judge.CLEAR:.0f} cm (`show` names anything there).", ""]
+    A += [f"- {_listed(f'the {p} ({zr(p)})' for p in judge.LETTERED).capitalize()}: where the game letters the player's "
+          "number and name, on top of the paint; a guide, not parts: paint runs on across them, an outline round the "
+          "part they lie in leaves them in it.",
+          f"- Keep clear: {_listed(f'{words} ({zr(p)})' for p, words in judge.PANELS.items() if p not in judge.LETTERED)}: "
+          f"nothing on it or within {judge.CLEAR:.0f} cm (`show` names anything there).", ""]
     ANATOMY_MD.write_text("\n".join(A))
     return ANATOMY_MD
 

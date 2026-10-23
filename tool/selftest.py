@@ -77,11 +77,11 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes", "jobs")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 19482, "viewer/*.js": 2503}
+BUDGET = {"tool/*.py": 19825, "viewer/*.js": 2503}
 SLACK = 100
 # The instructions' words (what a session reads: instructions.READ), the same way: a commit may not grow them past
 # this without raising it here and saying why; under it by more than WORD_SLACK, it comes down with them.
-WORDS = 7132
+WORDS = 7596
 WORD_SLACK = 50
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice
@@ -313,7 +313,6 @@ PLANTED = (
     ("edge", (98, 114), "the bonnet's stripe feathered over 2.5 cm"),
     ("cut", (-60, -68), "a disc 8 cm wide cut by the rear quarter panel's edge"),
     ("spill", (-45, -54), "a disc 8 cm wide over the sidepod top's back edge, onto the body shell"),
-    ("clear", (-67, -73), "a disc 5 cm wide on the number panel"),
     ("over", (-77, -83), "a disc 5 cm wide over the rear flank's strip"),
     ("cut", (-88, -102), "the picture across the rear flank's rolled shoulder cut where the surface turns 20 degrees from "
                          "its middle"),

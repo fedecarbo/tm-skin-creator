@@ -87,7 +87,8 @@ KINDS = {
     "cut": "a shape cut off by an edge, an opening or a join, or chipped",
     "spill": "a shape running off its panel onto the next piece",
     "over": "a paint laid over, or touching, another that should stay clear",
-    "clear": "paint on or round the game's own number and name panels",
+    "clear": "paint on or round the nose fin's plate",
+    "lettered": "paint where the game letters the player's number and name, on top of it: a guide, not a part",
     "upside down": "words upside down or mirrored",
     "line": "a line that isn't smooth or doesn't sit where it should",
     "sits": "a graphic that doesn't sit with the car's lines or the graphics round it: a gap that pinches, an end just "
@@ -97,7 +98,8 @@ KINDS = {
     "hidden": "a graphic another part stands in front of, seen square: a wheel at the paint, any part at the close looks",
 }
 LEVELS = {"gap": "block", "short": "block", "line": "block", "cut": "block", "clear": "block", "upside down": "block",
-          "fold": "block", "hidden": "block", "spill": "warn", "over": "warn", "edge": "warn", "spread": "warn", "sits": "note"}
+          "fold": "block", "hidden": "block", "spill": "warn", "over": "warn", "edge": "warn", "spread": "warn", "sits": "note",
+          "lettered": "note"}
 READINGS = ("outside", "region", "sides", "facing")  # zones whose edges are the car's, read off its mesh: the rest
 # (a length, a height, a box, a pattern) end a paint where the design wrote it
 OUTER = 0.1  # the open air a spot sees not to be hidden skin: an opening's insides see about 0.01, the flanks
@@ -167,6 +169,9 @@ LOOK = 200_000  # outline steps looked at per paint; a longer outline is sampled
 PANELS = {"number panel": "the number panel (the game letters it)",
           "engine cover panel": "the engine cover panel (the game letters it)",
           "nose fin": "the nose fin's plate"}
+# the plates the game letters the player's number and name on, on top of the paint: a guide, not parts (the user,
+# 2026-10-23: "they are not \"parts\" just a guide that a number and initial would be there")
+LETTERED = tuple(p for p, words in PANELS.items() if "letters" in words)
 NATURAL, FOLD, PART, EDGE_END, COVERED, HOLE = range(6)
 
 # ---- the eye ----
@@ -1012,6 +1017,10 @@ def _clear(car, found):
             on = float(car.cm2[t[np.isin(t, panel)]].sum())
             where, z, side, mid = car.place(t)
             how = f"{on:.0f} cm² on" if on >= 3 * SPECK else f"{car.cm2[t].sum():.0f} cm² within {CLEAR:g} cm of"
+            if part in LETTERED:  # said, as the game's lettering will lie on top of it
+                found.append({"check": "clear", "kind": "lettered", "z": z, "side": side, "mid": mid, "op": d,
+                              "text": f"{car.op(d)}: {how} {words}, under the number or name, {where}"})
+                continue
             found.append({"check": "clear", "kind": "clear", "z": z, "side": side, "mid": mid, "op": d,
                           "text": f"{car.op(d)}: {how} {words}, {where}"})
 
@@ -1229,13 +1238,17 @@ def _stations(car, call, z, c, R, mark, reached, ends, span=None):
     sc = c.s[ci]
     nrm_all = car.c.bake["normal"].reshape(-1, 3)
     out = []
+    wide = z.width(sc) if getattr(z, "width", None) is not None else None  # an outline's width, station by station
     for copy in copies:
         lo_e, hi_e = (-hi, -lo) if copy["mirrored"] else (lo, hi)
+        if wide is not None:
+            lo_e, hi_e = (-wide, np.zeros(n)) if copy["mirrored"] else (np.zeros(n), wide)
         W = hi_e - lo_e
         b_mid = (lo_e + hi_e) / 2
-        sign = float(np.sign(lo_e + hi_e)) if lo_e * hi_e == 0 else 0.0  # one-sided: the face it's meant on
+        lo_v, hi_v = np.broadcast_to(lo_e, (n,)), np.broadcast_to(hi_e, (n,))
+        sign = float(np.sign(np.median(lo_v + hi_v))) if np.all(lo_v * hi_v == 0) else 0.0  # one-sided: its face
         offs = np.linspace(-STATION / 2, STATION / 2, 5)
-        along = z.along(np.repeat(sc, 5) + np.tile(offs, n), np.full(5 * n, b_mid)).reshape(n, 5)
+        along = z.along(np.repeat(sc, 5) + np.tile(offs, n), np.repeat(np.broadcast_to(b_mid, (n,)), 5)).reshape(n, 5)
         expected = (along > 0).any(1)  # paint meant anywhere in the station (a tick is one station wide)
         if not ends[0]:
             expected[:END] = False
@@ -1248,11 +1261,14 @@ def _stations(car, call, z, c, R, mark, reached, ends, span=None):
         inside = (st >= 0) & (st < n)
         st, d, lin = st[inside], copy["d"][inside], copy["lin"][inside]
         own = mark[lin]
+        if getattr(z, "shared", False):  # an outline's loop: its own band, not the lines crossing it at a corner
+            own &= np.isin(lin, z.lin)
         got = reached[lin]
-        within = (d >= lo_e - TOL) & (d <= hi_e + TOL)
+        lo_t, hi_t, W_t = (lo_v[st], hi_v[st], np.broadcast_to(W, (n,))[st]) if wide is not None else (lo_e, hi_e, W)
+        within = (d >= lo_t - TOL) & (d <= hi_t + TOL)
         if sign:
             within &= np.sign(d) * sign >= 0  # its own face
-        designed = (d >= lo_e) & (d <= hi_e)
+        designed = (d >= lo_t) & (d <= hi_t)
         mine = own & within
         count = np.bincount(st[mine], minlength=n)
         lo_j = np.full(n, np.nan)
@@ -1263,7 +1279,7 @@ def _stations(car, call, z, c, R, mark, reached, ends, span=None):
         for j, a, b in zip(sm[starts], starts, np.r_[starts[1:], len(sm)]):
             if b - a >= 3:
                 lo_j[j], hi_j[j] = dm[a + int(0.03 * (b - a - 1))], dm[a + int(round(0.97 * (b - a - 1)))]
-        other = (np.bincount(st[own & (np.sign(d) == -sign) & (np.abs(d) > 0.3) & (np.abs(d) <= W + TOL)], minlength=n)
+        other = (np.bincount(st[own & (np.sign(d) == -sign) & (np.abs(d) > 0.3) & (np.abs(d) <= W_t + TOL)], minlength=n)
                  if sign else np.zeros(n, int))
         skin = np.bincount(st[designed], minlength=n)
         bare = np.bincount(st[designed & ~own & ~got], minlength=n)
@@ -1283,7 +1299,8 @@ def _stations(car, call, z, c, R, mark, reached, ends, span=None):
         pos, facing = Rpts * flip, R.nrm[np.clip(np.searchsorted(R.s, centres), 0, len(R.s) - 1)] * flip
         out.append(dict(expected=expected, n=count, lo=lo_j, hi=hi_j, other=other, skin=skin, bare=bare,
                         skin_lo=skin_lo, skin_hi=skin_hi, beyond_lo=beyond_lo, beyond_hi=beyond_hi, nrm=nrm, pos=pos,
-                        facing=facing, lo_e=lo_e, hi_e=hi_e, W=W, sign=sign, mirrored=copy["mirrored"], ends=ends))
+                        facing=facing, lo_e=lo_e, hi_e=hi_e, W=W, sign=sign, mirrored=copy["mirrored"], ends=ends,
+                        shared=bool(getattr(z, "shared", False))))
     return out
 
 
@@ -1327,7 +1344,7 @@ def _marking(car, call, z, found):
             car.looks.append({"kind": "line", "op": call["op"], "what": f"{name}: {label}", "step": call["step"],
                               "pos": st["pos"].round(2).tolist(),
                               "facing": np.where(painted, st["nrm"], st["facing"]).round(3).tolist(),
-                              "expected": st["expected"].tolist(), "lo": float(st["lo_e"]), "hi": float(st["hi_e"])})
+                              "expected": st["expected"].tolist(), "lo": _said_edge(st["lo_e"]), "hi": _said_edge(st["hi_e"])})
             stretches.setdefault(st["mirrored"], []).append((st, kind, a, b, ruler))
     # a step at the join of two lines the course follows in turn: the marking's centre jumps from one to the next
     for runs_ in stretches.values():
@@ -1338,16 +1355,26 @@ def _marking(car, call, z, found):
             full2 = np.flatnonzero(np.isfinite(s2["lo"]) & (s2["hi"] - s2["lo"] >= NARROW * s2["W"]))
             if not len(full1) or not len(full2):
                 continue
-            c1 = (s1["lo"][full1[-1]] + s1["hi"][full1[-1]]) / 2 - (s1["lo_e"] + s1["hi_e"]) / 2
-            c2 = (s2["lo"][full2[0]] + s2["hi"][full2[0]]) / 2 - (s2["lo_e"] + s2["hi_e"]) / 2
+            c1 = (s1["lo"][full1[-1]] + s1["hi"][full1[-1]]) / 2 - _of(s1["lo_e"] + s1["hi_e"], full1[-1]) / 2
+            c2 = (s2["lo"][full2[0]] + s2["hi"][full2[0]]) / 2 - _of(s2["lo_e"] + s2["hi_e"], full2[0]) / 2
             jump = abs(c2 - c1)
-            if jump > max(STEP_SHARE * s1["W"], STEP_LEAST):
+            if jump > max(STEP_SHARE * _of(s1["W"], full1[-1]), STEP_LEAST):
                 where, zz, side, mid = _where(np.vstack([s1["pos"][full1[-1]], s2["pos"][full2[0]]]))
                 ruler = f"{r1} and {r2}" + (", mirrored to the right" if s1["mirrored"] else "")
                 mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "mid": mid, "op": call["op"], "ruler": ruler,
                              "text": f"{name}: {label}: a step of {jump:.1f} cm sideways where the two lines it follows meet, "
                                      f"{where}; read against {ruler}"})
     return mine
+
+
+def _of(v, at):
+    """A designed edge or width at stations: one number all along, or one per station (an outline's), its median over
+    them."""
+    return float(v) if np.ndim(v) == 0 else float(np.median(np.asarray(v)[at]))
+
+
+def _said_edge(v):
+    return float(v) if np.ndim(v) == 0 else np.round(v, 3).tolist()
 
 
 def _merged(mine):
@@ -1372,7 +1399,7 @@ def _station_findings(name, label, call, st, kind, found, ruler):
     reference line's (None: the course itself)."""
     n, W = len(st["n"]), st["W"]
     exp, cnt = st["expected"], st["n"]
-    step = max(STEP_SHARE * W, STEP_LEAST)
+    step = np.broadcast_to(np.maximum(STEP_SHARE * W, STEP_LEAST), (n,))
     ruler += ", mirrored to the right" if st["mirrored"] else ""
     said = {"check": "placement", "op": call["op"], "ruler": ruler}
 
@@ -1387,7 +1414,7 @@ def _station_findings(name, label, call, st, kind, found, ruler):
     bare = (st["bare"] >= np.maximum(3, 0.5 * st["skin"])) | (st["beyond_lo"] >= 3) | (st["beyond_hi"] >= 3)
     first, last = (np.flatnonzero(exp)[[0, -1]] if exp.any() else (0, -1))
     # gaps: paint expected and none, or under half its width, the skin there and bare
-    gap = exp & (~has | (width < 0.5 * W)) & (st["other"] < 3) & bare
+    gap = exp & (~has | (width < 0.5 * W)) & ((st["other"] < 3) | st["shared"]) & bare
     for a, b in _runs(gap):
         L = (b - a) * STATION
         if L < 1.0:
@@ -1396,8 +1423,8 @@ def _station_findings(name, label, call, st, kind, found, ruler):
             say("short", slice(a, b), f"stops {L:.1f} cm short of its end, the skin bare")
         else:
             say("gap", slice(a, b), f"a gap of {L:.1f} cm, the skin bare")
-    # hops: a one-sided band on the line's other face
-    hop = exp & (st["other"] >= 3) & (cnt < st["other"])
+    # hops: a one-sided band on the line's other face (an outline's neighbour's half is there on purpose)
+    hop = exp & (st["other"] >= 3) & (cnt < st["other"]) & (not st["shared"])
     for a, b in _runs(hop):
         say("line", slice(a, b), f"on the line's other face for {(b - a) * STATION:.1f} cm")
     # its width short where the skin beyond its edge is bare; cut where the body ends (not along that edge)
@@ -1406,18 +1433,23 @@ def _station_findings(name, label, call, st, kind, found, ruler):
         if (b - a) * STATION < 2.0:
             continue
         w = float(np.median(width[a:b]))
-        say("short", slice(a, b), f"{w:.1f} of its {W:.1f} cm wide, the skin bare beyond it, over {(b - a) * STATION:.1f} cm")
-    if kind != "opening":  # the body ends inside its designed width, and the paint reaches the body's end
+        say("short", slice(a, b), f"{w:.1f} of its {_of(W, slice(a, b)):.1f} cm wide, the skin bare beyond it, over "
+            f"{(b - a) * STATION:.1f} cm")
+    # the body ends inside its designed width, and the paint reaches the body's end (an outline fills a part narrower
+    # than itself: what's there is all line)
+    if kind != "opening" and not st["shared"]:
         ended = exp & has & ~bare & ((st["skin_hi"] < st["hi_e"] - 1.0) | (st["skin_lo"] > st["lo_e"] + 1.0))
         for a, b in _runs(ended):
             w = float(np.median(width[a:b]))
-            if W - w >= 1.0:
-                say("cut", slice(a, b), f"cut short by the edge where the body ends: {w:.1f} of its {W:.1f} cm across")
+            if _of(W, slice(a, b)) - w >= 1.0:
+                say("cut", slice(a, b), f"cut short by the edge where the body ends: {w:.1f} of its "
+                    f"{_of(W, slice(a, b)):.1f} cm across")
     # steps: an edge jumping between neighbouring full stations
     both = full[:-1] & full[1:]
     jump = np.zeros(n - 1)
-    jump[both] = np.maximum(np.abs(np.diff(st["lo"]))[both], np.abs(np.diff(st["hi"]))[both])
-    for j in np.flatnonzero(jump > step):
+    meant_lo, meant_hi = (np.diff(np.broadcast_to(st[k], (n,))) for k in ("lo_e", "hi_e"))  # its width changing as designed
+    jump[both] = np.maximum(np.abs(np.diff(st["lo"]) - meant_lo)[both], np.abs(np.diff(st["hi"]) - meant_hi)[both])
+    for j in np.flatnonzero(jump > np.minimum(step[:-1], step[1:])):
         say("line", slice(j, j + 2), f"a step of {jump[j]:.1f} cm sideways")
     # kinks and wobbles: the centre's turning against the line, over KINK_RUN cm each side
     if kind is None:
