@@ -6,8 +6,9 @@
 
 `run` judges a skin painted with Skin.measure on (tool/skin.py's show): the verdict {design: the design's hash
 (tool/gate.py's `design_hash`: design.py, the designs it borrows, its art), findings, seconds}, kept by show in
-build/<name>/verdict.json (`save`); `words` says it for Claude, the blocks first. Each finding: {level, kind, check,
-text, z, side, step}: z the stretch along the car in cm, front to back, or None; side where one side alone; the eye's
+build/<name>/verdict.json (`save`, which sets each beside its stroke in the viewer's data: view.export_findings);
+`words` says it for Claude, the blocks first. Each finding: {level, kind, check, text, z, side, op}: z the stretch
+along the car in cm, front to back, or None; side where one side alone; op the call it names (Skin.ops); the eye's
 carry `at` and `nrm` too, for a close look square to the body there (tool/close.py, which adds its own findings, check
 "close"). The levels (LEVELS, by kind):
   block   an accident, to fix before the car is shown as done, the tool's or the design's;
@@ -75,7 +76,7 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
-from tool import carmap, coverage, fbx, gate, paths, pieces, receipt, shapes, uvmap
+from tool import carmap, coverage, fbx, gate, paths, pieces, receipt, shapes, uvmap, view
 
 # ---- the kinds and the levels ----
 KINDS = {
@@ -515,7 +516,7 @@ def _reach(car, call, found):
         r = _reach_side(car, call, car.bodies[key], shown, showing, aimed, sign)
         if not r:
             continue
-        said = {"check": "reach", "side": side, "step": call["step"]}
+        said = {"check": "reach", "side": side, "op": call["op"]}
         for end, e in r["ends"].items():
             x = e.get("across")
             if x and not x["as_written"]:
@@ -724,7 +725,7 @@ def _zoned(car, call, found, marking):
             k = np.bincount(o["detail"][soft], minlength=len(f)).argmax()
             wide = float(np.median(o["feather"][soft]))
             where, z, side = car.place(o["b"][soft])
-            found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "step": call["step"],
+            found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "op": call["op"],
                           "text": f"{name}: {_lengths(o, soft):.0f} cm of its edge is soft, about {wide:.1f} cm wide "
                                   f"(a crisp edge is {shapes.SOFT} cm), where {f[k]!r} ends it, {where}"})
     elif any(_blend(f) for f in call["zone"].parts()):
@@ -761,7 +762,7 @@ def _zoned(car, call, found, marking):
         for d in np.unique(o["detail"][sel]):
             if _lengths(o, sel & (o["detail"] == d)) >= CUT:
                 covers.setdefault(int(d), []).append(sel & (o["detail"] == d))
-        _spill(car, name, call["step"], S, found)
+        _spill(car, name, call["op"], S, found)
         _across(car, call["op"], S, under[mark == k], across)
 
     def why(code, d):
@@ -778,20 +779,20 @@ def _zoned(car, call, found, marking):
         sel = np.logical_or.reduce(list(hard.values()))
         said = "; ".join(f"{_lengths(o, x):.0f} cm where {why(*key)}" for key, x in sorted(hard.items(), key=lambda kv: -_lengths(o, kv[1])))
         where, z, side = car.place(o["b"][sel])
-        found.append({"check": "cut", "kind": "cut", "z": z, "side": side, "step": call["step"],
+        found.append({"check": "cut", "kind": "cut", "z": z, "side": side, "op": call["op"],
                       "text": f"{name}: {'several of its marks are ' if k is None else ''}cut along its outline: {said}, {where}"})
     for d, sels in sorted(covers.items()):
         if _sits_on(car, d, call["op"]):
             continue
         sel = np.logical_or.reduce(sels)
         where, z, side = car.place(o["b"][sel])
-        found.append({"check": "over", "kind": "over", "z": z, "side": side, "step": car.skin.ops[d]["step"],
+        found.append({"check": "over", "kind": "over", "z": z, "side": side, "op": d,
                       "text": f"{car.op(d)} covers part of {name}: {_lengths(o, sel):.0f} cm of its outline, {where}"})
-    _say_across(car, name, call["step"], across, found)
+    _say_across(car, name, call["op"], across, found)
     return bool(car.cm2[shown[graphic[mark]]].sum() >= 0.95 * car.cm2[shown].sum()), o
 
 
-def _spill(car, name, step, S, found):
+def _spill(car, name, op, S, found):
     """A graphic on two of the body's pieces."""
     on = np.bincount(car.piece[S] + 1, weights=car.cm2[S])
     big = np.flatnonzero(on >= max(SPILL, 0.01 * on.sum())) - 1
@@ -803,7 +804,7 @@ def _spill(car, name, step, S, found):
         names, counts = np.unique(car.part[t], return_counts=True)
         parts.append(f"{car.cm2[t].sum():.0f} cm² on the {car.names[names[counts.argmax()]]}")
     where, z, side = car.place(S)
-    found.append({"check": "spill", "kind": "spill", "z": z, "side": side, "step": step,
+    found.append({"check": "spill", "kind": "spill", "z": z, "side": side, "op": op,
                   "text": f"{name}: lies on {len(big)} separate pieces of the body ({', '.join(parts)}), {where}"})
 
 
@@ -825,12 +826,12 @@ def _across(car, op, S, under, across):
         across.setdefault(d, []).append((S[under == d], area[d + 1] / whole))
 
 
-def _say_across(car, name, step, across, found):
+def _say_across(car, name, op, across, found):
     for d, hits in sorted(across.items()):
         t = np.concatenate([h[0] for h in hits])
         where, z, side = car.place(t)
         share = max(h[1] for h in hits)
-        found.append({"check": "over", "kind": "over", "z": z, "side": side, "step": step,
+        found.append({"check": "over", "kind": "over", "z": z, "side": side, "op": op,
                       "text": f"{name} lies across the edge of {car.op(d)}: {share:.0%} of it over that paint, {where}"})
 
 
@@ -850,7 +851,7 @@ def _pictures(car, found):
     for p in car.skin.pictures:
         by_op.setdefault(p["op"], []).append(p)
     for op, laid in by_op.items():
-        name, step = car.op(op), laid[0]["step"]
+        name = car.op(op)
         idx = np.concatenate([p["idx"] for p in laid])
         under = np.concatenate([p["under"] for p in laid])
         idx, first = np.unique(idx, return_index=True)
@@ -861,29 +862,29 @@ def _pictures(car, found):
             continue
         car.graphics.append((op, S))
         if laid[0].get("kind", "picture") != "shape":
-            _pixelated(car, name, step, S, min(p["pixels"] for p in laid), found)
+            _pixelated(car, name, op, S, min(p["pixels"] for p in laid), found)
         for p in laid:
             if p.get("kind") in ("words", "placard"):
                 mine = np.isin(p["idx"], S)
                 if mine.sum() >= 20:
-                    _upright(car, name, step, p, p["idx"][mine], found)
+                    _upright(car, name, op, p, p["idx"][mine], found)
         if any(p.get("across") for p in laid):
             continue
-        _spill(car, name, step, S, found)
+        _spill(car, name, op, S, found)
         across = {}
         _across(car, op, S, under, across)
-        _say_across(car, name, step, across, found)
+        _say_across(car, name, op, across, found)
 
 
-def _pixelated(car, name, step, S, pixels, found):
+def _pixelated(car, name, op, S, pixels, found):
     if pixels < PIXELS:
         where, z, side = car.place(S)
-        found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "step": step,
+        found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "op": op,
                       "text": f"{name}: {pixels:.0f} of the picture's pixels per cm on the car, fewer than the car's own "
                               f"{PIXELS:.0f}: it will show its pixels, {where}"})
 
 
-def _upright(car, name, step, mark, S, found):
+def _upright(car, name, op, mark, S, found):
     """Words or a placard laid flat on the body: the surface under them turning (a fold), facing
     elsewhere than they were laid for (flipped or sheared), or their top pointing down on a side
     (hanging). Read off the texels' own normals; the frame is the one they were laid in."""
@@ -894,16 +895,16 @@ def _upright(car, name, step, mark, S, found):
     turn = float(np.percentile(np.degrees(np.arccos(np.clip(nrm @ mean, -1, 1))), 99))
     where, z, side = car.place(S)
     if turn > FOLD_WORDS:
-        found.append({"check": "fold", "kind": "fold", "z": z, "side": side, "step": step,
+        found.append({"check": "fold", "kind": "fold", "z": z, "side": side, "op": op,
                       "text": f"{name}: the surface under it turns {turn:.0f}° away from flat: it will look bent, {where}"})
     right, up, facing = (np.asarray(v, np.float64) for v in mark["frame"])
     off = float(np.degrees(np.arccos(np.clip(mean @ facing / np.linalg.norm(facing), -1, 1))))
     if off > FLIPPED:
-        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "step": step,
+        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "op": op,
                       "text": f"{name}: laid as if the surface faced one way, but under it the surface faces {off:.0f}° away: "
                               f"it will look flipped or sheared, {where}"})
     elif abs(mean[1]) < 0.7 and up[1] < HANG:
-        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "step": step,
+        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "op": op,
                       "text": f"{name}: its top points down: it hangs upside down, {where}"})
 
 
@@ -929,7 +930,8 @@ def _laid(car, found):
     was measured as it was laid (tool/marks.py: Skin.findings)."""
     c = car.c
     for mark in car.skin.marks:
-        name, step = car.op(mark["op"]), mark["step"]
+        op = mark["op"]
+        name = car.op(op)
         still = c.owner[mark["idx"]] == mark["op"]
         S, under = mark["idx"][still], mark["under"][still]
         if len(S) < 20:
@@ -937,13 +939,13 @@ def _laid(car, found):
         car.graphics.append((mark["op"], S))
         kind = mark.get("kind", "shape")
         if kind != "shape":
-            _pixelated(car, name, step, S, mark["pixels"], found)
+            _pixelated(car, name, op, S, mark["pixels"], found)
         if kind in ("words", "placard"):
-            _upright(car, name, step, mark, S, found)
-        _spill(car, name, step, S, found)
+            _upright(car, name, op, mark, S, found)
+        _spill(car, name, op, S, found)
         across = {}
-        _across(car, mark["op"], S, under, across)
-        _say_across(car, name, step, across, found)
+        _across(car, op, S, under, across)
+        _say_across(car, name, op, across, found)
 
 
 def _panels(car):
@@ -1003,7 +1005,7 @@ def _clear(car, found):
             on = float(car.cm2[t[np.isin(t, panel)]].sum())
             where, z, side = car.place(t)
             how = f"{on:.0f} cm² on" if on >= 3 * SPECK else f"{car.cm2[t].sum():.0f} cm² within {CLEAR:g} cm of"
-            found.append({"check": "clear", "kind": "clear", "z": z, "side": side, "step": car.skin.ops[d]["step"],
+            found.append({"check": "clear", "kind": "clear", "z": z, "side": side, "op": d,
                           "text": f"{car.op(d)}: {how} {words}, {where}"})
 
 
@@ -1011,11 +1013,11 @@ def _scattered(car, found):
     for s in car.skin.scattered:
         name = car.op(s["op"])
         if s["uneven"] > UNEVEN:
-            found.append({"check": "spread", "kind": "spread", "z": None, "side": None, "step": car.skin.ops[s["op"]]["step"],
+            found.append({"check": "spread", "kind": "spread", "z": None, "side": None, "op": s["op"],
                           "text": f"{name}: the copies lie unevenly: their distances to the nearest copy vary by "
                                   f"{s['uneven']:.0%} of the mean (even is under {UNEVEN:.0%})"})
         if s["bare"] > BARE:
-            found.append({"check": "spread", "kind": "spread", "z": s["z"], "side": None, "step": car.skin.ops[s["op"]]["step"],
+            found.append({"check": "spread", "kind": "spread", "z": s["z"], "side": None, "op": s["op"],
                           "text": f"{name}: {s['bare']:.0%} of its surface is further than {0.75 * s['spacing']:.0f} cm from "
                                   f"any copy: bare patches, from {_place(s['z'][0])} to {_place(s['z'][1])}"})
 
@@ -1059,7 +1061,7 @@ def _rows(car, found):
         call, n, S = calls[op], count[(op, side_)], np.concatenate([h[0] for h in hits])
         where, z, side = car.place(S)
         what = f"{max(h[1] for h in hits):.0%} of it" if n == 1 else f"{len(hits)} of its {n} marks"
-        found.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "step": call["step"],
+        found.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "op": op,
                       "text": f"{car.op(call['op'])}: {why} {what}" + (", seen square" if why.startswith("hidden") else "") + f", {where}"})
 
 
@@ -1335,7 +1337,7 @@ def _marking(car, call, z, found):
             if jump > max(STEP_SHARE * s1["W"], STEP_LEAST):
                 where, zz, side = _where(np.vstack([s1["pos"][full1[-1]], s2["pos"][full2[0]]]))
                 ruler = f"{r1} and {r2}" + (", mirrored to the right" if s1["mirrored"] else "")
-                mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "step": call["step"], "ruler": ruler,
+                mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "op": call["op"], "ruler": ruler,
                              "text": f"{name}: {label}: a step of {jump:.1f} cm sideways where the two lines it follows meet, "
                                      f"{where}; read against {ruler}"})
     return mine
@@ -1365,7 +1367,7 @@ def _station_findings(name, label, call, st, kind, found, ruler):
     exp, cnt = st["expected"], st["n"]
     step = max(STEP_SHARE * W, STEP_LEAST)
     ruler += ", mirrored to the right" if st["mirrored"] else ""
-    said = {"check": "placement", "step": call["step"], "ruler": ruler}
+    said = {"check": "placement", "op": call["op"], "ruler": ruler}
 
     def say(kind_, sel, text):
         where, zz, side = _where(st["pos"][sel])
@@ -1475,7 +1477,7 @@ def _fills(car, call, o, fills, found):
             if c_ - a < 2 or not sel.any() or length[sel].sum() < 3.0:
                 continue
             where, zz, side = _where(pos[sel])
-            found.append({"check": "placement", "kind": "short", "z": zz, "side": side, "step": call["step"], "ruler": what,
+            found.append({"check": "placement", "kind": "short", "z": zz, "side": side, "op": call["op"], "ruler": what,
                           "text": f"{name}: its edge sits {np.median(d[sel]):.1f} cm inside {what} over {length[sel].sum():.0f} cm, {where}"})
 
 
@@ -1790,7 +1792,7 @@ def _eye(car, calls, found):
                     out[text]["side"] = None
                 else:
                     out[text] = {"check": "eye", "kind": "over" if flag == "TOUCHES" else "sits", "z": list(z), "side": side,
-                                 "step": A["step"], "text": text, "at": list(at), "nrm": list(nrm)}
+                                 "op": A["op"], "text": text, "at": list(at), "nrm": list(nrm)}
     found += list(out.values())
 
 
@@ -1936,6 +1938,7 @@ def save(name, verdict, skin=None):
                                                        "ops": [o["step"] for o in skin.ops],
                                                        "paints": [o["what"] for o in skin.ops], "graphics": graphics}))
     paths.write(out / "verdict.json", json.dumps(verdict, indent=1))
+    view.export_findings(name, verdict)
 
 
 def main():

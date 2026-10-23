@@ -78,8 +78,9 @@ whole) and `requirements.txt` (the picture maker's packages, the PC only; MLX, t
   `TSC_PAINTS=<n>` for more slots).
 - The camera: `tool/server.py` serves it (`PY -m tool.view <name>` serves and opens the bare car; run it in the
   background), `tool/view.py` prepares its data, `tool/snap.py` takes Claude's snapshots. The tools write, a
-  concept reads: `tool.skin show` writes the step frames a page follows (`view.export_steps`), `tool/progress.py`
-  the job log, and no tool command refreshes a concept's lists.
+  concept reads: `tool.skin show` writes the step frames a page follows and each step's strokes, what was meant
+  beside where it landed and what the judge found on it (`view.export_steps`), `tool/progress.py` the job log,
+  and no tool command refreshes a concept's lists.
 - The car: `tool/surface.py` (the foundation every graphic is laid on and measured by), `tool/carmap.py` (the open
   air, where along the car), `tool/wear.py` (the wear maps), `tool/meshlines.py` (the model's own lines, the
   template, the car's answers to questions), `tool/course.py` (markings along a line), `tool/marks.py` (shapes on a

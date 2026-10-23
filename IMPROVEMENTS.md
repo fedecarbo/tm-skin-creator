@@ -15,19 +15,13 @@ in plain words and numbers, then on the user's OK everything it retires removed 
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
 AI's eye**. Four steps, then 13 on the PC (away until November or December 2026):
 
-16. **The judge names its ruler and the bites it can't see.** Built, waiting for the user's OK (2026-10-22): every
-    placement finding ends "read against the model's crisp line 'side skirt crease 2', 0.3 cm from the design's
-    course" (or the course itself; `ruler` in the finding); each dot of a zoned paint (a row at a course's places,
-    `shapes.sphere`) is checked as a laid mark is (hidden skin, a wheel or another part in front of it, seen square)
-    and gets a close look; the nose ring's notch measured (rows of sliver holes along the plate's edge the chart's
-    bridging never closed, so the sticker folded) and fixed in `surface.Surface.chart` (a rim loop under `HOLE` cm is
-    zipped shut; every distance bounded by the way along the mesh's edges, since the exact solver walks a hairline's
-    slivers lengthwise). Shown on TSC_RulerTest (its `notes.md`). On the OK: the test car deleted, the three items
-    below that name these (the colour, the line, the rows), and this step.
-17. **Intent beside landing.** Each step's `words=`, each call's landing and the judge's findings on it, written to the
-    viewer's data for a concept to show stroke by stroke, so a choice and an accident look different to the user (their
-    picture of the notched ring, 2026-10-22: the crossing meant, the notch the tool's, the block for a third reason).
-    Retires nothing.
+17. **Intent beside landing.** Built, waiting for the user's OK (2026-10-22): `steps.json` gives each step its strokes,
+    every call of the design with its number in the landing sketch, its receipt's line, its landing as data
+    (`receipt.Landing.doc`), whether it crosses the car's parts on purpose, the tool's notes, and the judge's findings
+    on it (every finding names its call, `op`; `view.export_findings` sets them beside their strokes at each verdict,
+    the close looks' too, and says what was let go and why). Shown on TSC_IntentTest, the user's notched-ring picture
+    again: the crossing meant, the chip the tool's, the block for a third reason, each on its stroke. On the OK: the
+    test car deleted, and this step.
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
     own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
     cleanest picture of a skin's colours the game gives; `viewer.lamp`), then per mood to the user's F12 screenshots
@@ -40,6 +34,9 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
   2026-10-08): the paint says chipped (0.4 cm², 40 scattered texels) and the close look shows the band stepping
   sideways at 2 and 8 o'clock; measured not to come from the chart's step spanning nor its bridging (each switched
   off, the ring the same). Idea: read the chart's `xy` along the ring's band and find the line the jump sits on.
+- **A plain line beside the skirt's crease blocks ten times** (2026-10-22, TSC_IntentTest, on step 16's car too): a 1 cm
+  band 1 cm beside 'side skirt crease 3' gets steps of 0.3 cm read against 'side skirt roll 3' and 0.7 cm where it
+  meets 'side skirt crease 2'; the close looks show it smooth. Idea: see whether the ruler line steps there, not the paint.
 - **A colour name half known is taken as the half it knows** (2026-10-22, the test car's agent): `colours.get("warm
   white")`, "antique white" and "floral white" give plain white, dropping the word it doesn't know, while "deep" and
   "bright" are read. Idea: a name not known whole fails with "did you mean", as a part's name does.
@@ -76,12 +73,6 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
 - **The scatter's charts are the paint's slowest part** (2026-10-09, step 10's profile): 18 of the tour's 82 s under the
   profiler, five exact solves a copy on the processor (`surface.Surface.chart`), and the marks' sheet 5 s more in
   np.unique. Idea: a chart's five solves on the processor's cores at once; profile the sheet's bookkeeping.
-- **Decals chipped where a crisp line crosses them** (2026-10-08, the user, giving step 5 its OK: "certain decals where
-  chipped or slightly clipped"; their note on the test car's badge across the rear shoulder: "This decal looks chipped
-  off on one part of the circle"): a notch about half a centimetre wide in the ring where a crisp line crosses it, left
-  by `surface.Surface.chart`'s step spanning or its bridging at the sidepod top's hairline; find which on a chart of that
-  spot (the test car TSC_DecalsTest is in git at 3fac0d5). Step 6's judge names a decal not whole; a 5 cm disc on the
-  body across=True near z -84 (TSC_CloseTest, in git at 6ec0595) has a 0.6 cm² notch on both sides that only the close looks name.
 - **A mark on both sides fitted on each alone** (2026-10-08, found by the close looks): the planted-flaw pair's clean car
   lays its deck picture (one call, both sides) with 7,505 texels on the left and 2,947 on the right, shrunk to fit on
   one side only; nothing else says so. Idea: fit it once, for both sides, and say what kept it small.
@@ -93,12 +84,6 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
   Renaming touches `tool/naming.py` and the viewer.
 - **Pollen grains of 2 mm** (2026-10-09, TSC_Bumblebee): pale specks two texels wide on black fur; the game's colour
   compression may flatten single grains, a haze should survive.
-- **The judge doesn't name the line it read a marking against** (2026-10-21, the test car's agent): "cut short by the
-  edge where the body ends" was measured against the model line nearest the streak, 7 cm from the course the design
-  followed, so the finding pointed at the wrong edge. Idea: every placement finding names the line it read against.
-- **Rows of dots get no check and no close look** (2026-10-21, the test car's agent): a paint zoned by
-  `shapes.sphere` at a course's places (pressure taps) is skipped by the judge and the close looks, so a row painted
-  inside a sidepod went unnamed. Idea: a row of marks at a course's places is a graphic, measured and looked at.
 - **Never seen in the game yet** (2026-10-05): the finishes candy, chrome rims, rust, leather,
   metallic flake, and the viewer's matte, satin, gloss and chrome against the game's; the exhaust heat
   and boost glows (TSC_CMYK_EndsInK carries exhaust heat); whether the wheel covers turn; how

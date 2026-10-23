@@ -69,10 +69,15 @@ def verdict(name):
     return _read(paths.BUILD / name / "verdict.json")
 
 
+def let_go(name, v):
+    """What was let go for the verdict's design: (the findings' texts, why)."""
+    let = _read(paths.SKINS / name / "despite.json") or {}
+    return (set(let.get("blocks", ())), let.get("why", "")) if let.get("design") == v.get("design") else (set(), "")
+
+
 def blocks(name, v):
     """The verdict's blocking findings, but those let go for this design."""
-    let = _read(paths.SKINS / name / "despite.json") or {}
-    gone = set(let.get("blocks", ())) if let.get("design") == v.get("design") else set()
+    gone = let_go(name, v)[0]
     return [f for f in v.get("findings", ()) if f.get("level") == "block" and f.get("text") not in gone]
 
 
@@ -139,6 +144,8 @@ def despite(name, why):
     kept = let.get("blocks", []) if let.get("design") == v["design"] else []
     paths.write(p, json.dumps({"design": v["design"], "why": why, "blocks": kept + [f["text"] for f in b],
                                "when": time.strftime("%Y-%m-%d %H:%M")}, indent=1, ensure_ascii=False) + "\n")
+    from tool import view
+    view.export_findings(name, v)  # each stroke's findings say what was let go, and why
     what = "; ".join(judge.KINDS.get(f["kind"], f["kind"]) + _place(f["text"]) for f in b)
     return f"{len(b)} let go on {name}. Tell the user: {why} Still there, as the tool measures it: {what}."
 

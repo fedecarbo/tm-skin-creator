@@ -17,8 +17,9 @@ The work folder's viewer/ folder (served as /data/), all rebuildable:
   stock/*.png          Nadeo's stock textures, for anything a skin leaves out
   skins/<name>/        one skin's textures, and skin.json with the URL of every slot
   skins/<name>/steps/  the car at the end of each step of the design, at half size, and
-                       steps.json (export_steps); studio.json names the skin painted last.
-                       A page may follow them (the Lab does)
+                       steps.json (export_steps): each step with its strokes, what was meant beside
+                       where it landed and the judge's findings on it; studio.json names the skin
+                       painted last. A page may follow them (the Lab does)
 
 The game's textures become PNG "slots" laid out the way three.js reads them:
   <Set>_B      base colour, sRGB
@@ -45,7 +46,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from tool import bake, dds, fbx, finishes, parts, paths
+from tool import bake, dds, fbx, finishes, gate, parts, paths
 
 DATA = paths.WORK / "viewer"
 STOCK = DATA / "stock"
@@ -435,23 +436,56 @@ def frame_urls(own):
     return {slot: own.get(slot) or (f"stock/{slot}.png" if slot in stock and slot not in NO_STOCK else None) for slot in SLOTS}
 
 
-def export_steps(name, steps, painting, clay=None):
+def export_steps(skin, painting, clay=None):
     """steps.json: each step's name, what it does, the user's words, what it paints, how to look
-    at it, the line to copy for Claude, and the URL of every slot of its frame (its own pictures,
-    else the stock ones, as skin.json); a step still being painted has none yet. clay: when the
-    design is done, the parts still in clay, [(instance id, name)] (Skin.still_clay; None for a
+    at it, the line to copy for Claude, the URL of every slot of its frame (its own pictures,
+    else the stock ones, as skin.json; a step still being painted has none yet), and its strokes, so a page can set
+    what was meant beside what landed, stroke by stroke: each call of the design (n, its number in the landing sketch;
+    what, the call; said, its receipt's line; landing, where it lies on the body, receipt.Landing.doc, or None; across,
+    crossing the car's parts on purpose; notes, what the tool decided; findings, the judge's on it, export_findings).
+    clay: when the design is done, the parts still in clay, [(instance id, name)] (Skin.still_clay; None for a
     design that didn't start from clay)."""
+    name, steps = skin.name, skin.steps
     n = len(steps)
+    strokes = [[] for _ in steps]
+    for op, rec in enumerate(skin.receipts):
+        if 0 <= rec.k < n:
+            strokes[rec.k].append({"n": op + 1, "what": rec.what, "said": str(rec).split("\n")[0], "across": rec.across,
+                                   "landing": rec.landing.doc() if rec.landing else None, "notes": rec.notes, "findings": []})
     out = []
     for k, st in enumerate(steps):
         title = ("The start" if n > 1 else "The design") if st.get("implicit") else st["name"]
         urls = frame_urls(st["textures"]) if "textures" in st else None
         out.append({"name": title, "does": st["does"], "words": st["words"], "look": st["look"], "paints": st["paints"],
-                    "line": f"{name}, step {k} of {n - 1}: {title}", "frame": st.get("frame"), "textures": urls})
-    doc = {"name": name, "stamp": time.time(), "painting": painting, "steps": out}
+                    "line": f"{name}, step {k} of {n - 1}: {title}", "frame": st.get("frame"), "textures": urls,
+                    "strokes": strokes[k]})
+    doc = {"name": name, "design": gate.design_hash(name), "stamp": time.time(), "painting": painting, "steps": out,
+           "findings": []}
     if clay is not None:
         doc["clay"] = [{"id": i, "name": n} for i, n in clay]
     _json(DATA / "skins" / name / "steps.json", doc)
+
+
+def export_findings(name, verdict):
+    """steps.json's strokes given the verdict's findings (tool/judge.py), each on the call it names (`op`), one let go
+    (tool/gate.py's despite.json: meant, or still there after the rounds of fixing) with the why (`let_go`), the car's
+    own (no call's) on the steps' list. Only steps of the verdict's design; a car never shown here has none."""
+    path = DATA / "skins" / name / "steps.json"
+    try:
+        doc = json.loads(path.read_text())
+    except (OSError, ValueError):  # never shown on this computer: nothing to set them beside
+        return
+    if doc.get("design") != verdict.get("design"):
+        return
+    gone, why = gate.let_go(name, verdict)
+    by = {}
+    for f in verdict["findings"]:
+        by.setdefault(f.get("op"), []).append({**f, "let_go": why} if f["text"] in gone else f)
+    for st in doc["steps"]:
+        for s in st.get("strokes", ()):
+            s["findings"] = by.pop(s["n"] - 1, [])
+    doc["findings"] = [f for fs in by.values() for f in fs]
+    _json(path, doc)
 
 
 def _json(path, doc):

@@ -52,20 +52,36 @@ class Landing:
             self.faces[k] += int((n[:, axis] * sign > FACE).sum())
         self.n += len(pos)
 
-    def __str__(self):
+    def side(self):
         lo, hi = self.lo, self.hi
-        side = ("the left side" if lo[0] > 1 else "the right side" if hi[0] < -1
+        return ("the left side" if lo[0] > 1 else "the right side" if hi[0] < -1
                 else "both sides" if lo[0] < -1 and hi[0] > 1 else "the middle")
+
+    def facing(self):
+        return [w for k, w in enumerate(FACES) if self.faces[k] >= FACING * self.n]
+
+    def __str__(self):
+        lo, hi, faces = self.lo, self.hi, self.facing()
         a, b = station(round(float(hi[2]))), station(round(float(lo[2])))
         where = f" ({a} to {b})" if a and b and a != b else f" ({a or b})" if a or b else ""
-        faces = [w for k, w in enumerate(FACES) if self.faces[k] >= FACING * self.n]
-        return (f"z {_n(hi[2])} to {_n(lo[2])}{where}, y {_n(lo[1])} to {_n(hi[1])}, x {_n(lo[0])} to {_n(hi[0])} ({side})"
+        return (f"z {_n(hi[2])} to {_n(lo[2])}{where}, y {_n(lo[1])} to {_n(hi[1])}, x {_n(lo[0])} to {_n(hi[0])} ({self.side()})"
                 + (f", facing {', '.join(faces)}" if faces else ""))
+
+    def doc(self):
+        """As a concept's page reads it (tool/view.py's steps.json): the box in cm, z nose to tail, the side, the ways it
+        faces, and all of it in words."""
+        def span(a, b):
+            return [round(float(a), 1), round(float(b), 1)]
+        lo, hi = self.lo, self.hi
+        return {"z": span(hi[2], lo[2]), "y": span(lo[1], hi[1]), "x": span(lo[0], hi[0]), "side": self.side(),
+                "faces": self.facing(), "words": str(self)}
 
 
 class Receipt:
     def __init__(self, what, step):
         self.what, self.step = what, step
+        self.k = -1  # the step it lies in (Skin.steps), once it ends: a step a call opens itself (the clay's) is its own
+        self.across = False  # the design says it crosses the car's parts on purpose (across=True): meant, not an accident
         self.painted = {}   # texture set -> {part name: cm²}
         self.landing = None  # where it lies on the body (Landing), once paint lands there
         self.notes = []     # what the call decided, in words

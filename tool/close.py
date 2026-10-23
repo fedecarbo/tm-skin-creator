@@ -238,7 +238,7 @@ class _Map:
 
 def _say(found, L, g, kind, pts, text):
     where, z, side = judge._where(pts)
-    found.append({"check": "close", "kind": kind, "z": z, "side": side, "step": g["step"] if g else None,
+    found.append({"check": "close", "kind": kind, "z": z, "side": side, "op": g["op"] if g else None,
                   "text": f"{text}, {where} (look {L['n']})", "look": L["n"], "rings": pts})
 
 
@@ -455,7 +455,7 @@ def changes(M, gfx, looks, folder, before, found):
                 pts = M.pos[t[out][which.ravel() == j]]
                 moves[(p0, p1, L["side"])] = (area, L, pts[:: max(1, len(pts) // 50)])
     for (p0, p1, _), (area, L, pts) in moves.items():
-        _say(found, L, {"step": ops1[p1] if 0 <= p1 < len(ops1) else None}, "changed", pts,
+        _say(found, L, {"op": int(p1) if 0 <= p1 < len(ops1) else None}, "changed", pts,
              f"outside this edit, {area:.1f} cm² shows {paint(gfx['paints'], ops1, p1)} where "
              f"{paint(old['paints'], ops0, p0)} showed before")
     words = (f"{len(old['looks'])} looks before, each taken again; edited: {', '.join(sorted(edited)) or 'no step'}; "

@@ -306,6 +306,7 @@ def _verb(describe):
                 method(self, *args, **kw)
                 return self.receipt
             rec = receipt.Receipt(describe(*args, **kw), self.steps[-1]["name"] if self.steps else "The design")
+            rec.across = bool(kw.get("across"))
             self.ops.append({"what": rec.what, "step": rec.step})
             self.receipts.append(rec)
             self._op, self._op_open, self.receipt = len(self.ops) - 1, True, rec
@@ -318,7 +319,7 @@ def _verb(describe):
                 self._op_open, self.receipt = False, None
                 for c in self.canvases.values():
                     c.receipt = None
-                rec.notes, rec.findings = self.notes[n0:], self.findings[f0:]
+                rec.notes, rec.findings, rec.k = self.notes[n0:], self.findings[f0:], len(self.steps) - 1
                 if self.say:
                     self.say(rec)
             return rec
@@ -392,7 +393,7 @@ class Skin:
         progress.detail(f"Step {len(self.steps)}: {name}")
         if self.frames:  # the Studio shows it as being painted
             from tool import view
-            view.export_steps(self.name, self.steps, painting=True)
+            view.export_steps(self, painting=True)
         return self
 
     @_verb(lambda: "the clay")
@@ -476,7 +477,7 @@ class Skin:
             own = {slot: self._frame_slots[slot][1] for tset in self.canvases for slot in self._frame_sets.get(tset, ())}
             self.steps[k]["textures"] = own
             self.steps[k]["frame"] = hashlib.sha1(repr(sorted(self._frame_slots.items())).encode()).hexdigest()[:12]
-        view.export_steps(self.name, self.steps, painting=not done, clay=self.clay_left if done else None)
+        view.export_steps(self, painting=not done, clay=self.clay_left if done else None)
 
     # ---- selecting ----
 
