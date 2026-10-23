@@ -67,7 +67,9 @@ shoulder and the nose's roll alike (2026-10-08; a distance read between vertices
 the centre, where it is a cone over a 6 cm face). (The heat methods and fast marching, measured on this mesh, were
 off by 0.2 to 2 cm: the model's triangles are up to 24 cm long.) The body's skin is one piece (the body shell, the
 flanks, the skirts, the nose tip and the rest sewn with shared points); the sidepod tops, the tail's corners, the
-diffuser and the nose fin are pieces of their own, a hair apart from it (0.05 to 0.35 cm).
+diffuser and the nose fin are pieces of their own, a hair apart from it (0.05 to 0.35 cm); the fasteners' rings and
+the mirror mounts' feet are pieces lying on it (S.lies_on), which no distance along it reaches: a Field or a Chart
+reads their texels on the skin beneath them (S.beneath).
 """
 
 import functools
@@ -88,6 +90,7 @@ THIN = 1e-6      # cm: a face thinner than this isn't made (three points in a li
 JOIN = 12        # how many times a link of a line is halved to find the face it crosses, at most
 STRAY = 0.5      # cm: a line's point landing on another piece this near the line's own piece is put back on it
 HOP = 0.4        # cm: a line carried on hops a gap this wide between pieces (they're 0.05 to 0.35 apart)
+LIES = 0.1       # cm: a piece no further than this from another's skin lies on it (the body's are 0.01 to 0.05 above it)
 BRIDGE = 1.5     # cm: a sticker pressed over every edge bridges a gap this wide between two skins facing alike
 OWN_RIM = 6      # rim edges: a rim's vertex this near another along the rim is its own rim's, never a bridge's far end
 HOLE = 16.0      # cm round: a rim loop no longer than this is a hole or a slit in the skin (the nose plate's, 5 cm long), zipped
@@ -178,7 +181,7 @@ class Surface:
         self.RV = self.V[self.welded]
         self.points = int(d["points"])
         self.pieces = int(self.piece.max()) + 1
-        self._local, self._solvers, self._trees, self._longest, self._facing = {}, {}, {}, None, None
+        self._local, self._solvers, self._trees, self._longest, self._facing, self._lies = {}, {}, {}, None, None, None
         self._maps = {}  # per map size: the bake's triangle per texel and the mesh's UVs, kept (the bake is 500 MB unpacked)
 
     # ---- the pieces and their solvers ----
@@ -537,6 +540,31 @@ class Surface:
             self._facing = n
         return self._facing
 
+    def lies_on(self):
+        """Each piece's piece it lies on, -1 for none: every point of it within LIES cm of that one's skin, the two facing
+        within 60 degrees (a fastener's ring, a mirror mount's foot)."""
+        if self._lies is None:
+            fp = self.piece[np.arange(len(self.FF)) // 16]
+            box = [(self.FV[self.FF[fp == p]].reshape(-1, 3).min(0), self.FV[self.FF[fp == p]].reshape(-1, 3).max(0))
+                   for p in range(self.pieces)]
+            self._lies = np.full(self.pieces, -1)
+            for p in range(self.pieces):
+                faces = np.flatnonzero(self.piece == p)
+                X = self.RV[np.unique(self.RF[faces])]
+                n = self.fn[self.model[faces]].mean(0)
+                for q in range(self.pieces):
+                    lo, hi = box[q]
+                    if q == p or (lo > X.max(0) + LIES).any() or (hi < X.min(0) - LIES).any():
+                        continue
+                    if np.linalg.norm(self._locate(X[:1], q)[2] - X[:1]) > LIES:
+                        continue
+                    f, _, on = self._locate(X, q)
+                    m = self.fn[self.model[f // 16]].mean(0)
+                    if (np.linalg.norm(on - X, axis=1) <= LIES).all() and n @ m > 0.5 * np.linalg.norm(n) * np.linalg.norm(m):
+                        self._lies[p] = q
+                        break
+        return self._lies
+
     # ---- the texels ----
 
     def texels(self, size, lin=None):
@@ -566,6 +594,17 @@ class Surface:
             rows = np.flatnonzero(on) + k
             face[rows] = f
             bary[rows] = W
+        return face, bary
+
+    def beneath(self, face, bary):
+        """Points given by their fine face and weights there, each on a piece lying on another (lies_on) put at the point
+        beneath it, on the skin it lies on: (face, bary) again."""
+        face, bary = face.copy(), bary.copy()
+        rows = np.flatnonzero(face >= 0)
+        under = self.lies_on()[self.piece[face[rows] // 16]]
+        for q in np.unique(under[under >= 0]):
+            k = rows[under == q]
+            face[k], bary[k], _ = self._locate((self.FV[self.FF[face[k]]] * bary[k][..., None]).sum(1), q)
         return face, bary
 
     def sample(self, values, size, lin=None):
@@ -1185,8 +1224,10 @@ class _Patch:
         return g, wt
 
     def faces_at(self, size, lin=None):
-        """Each texel's face of the mesh and its weights there (_faces), for texels of the set's map (all by default)."""
-        return self._faces(*self.S.texels(size, lin))
+        """Each texel's face of the mesh and its weights there (_faces), for texels of the set's map (all by default); a
+        texel of a piece lying on another read at the point beneath it (S.beneath): what's measured along the skin
+        reaches it too."""
+        return self._faces(*self.S.beneath(*self.S.texels(size, lin)))
 
     def read(self, value, size=None, lin=None, points=None, faces=None):
         """A value per vertex of the mesh, (n,) or (n, k), read at texels of the set's map (size, lin), at points on

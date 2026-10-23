@@ -732,8 +732,13 @@ def _named(part):
 
 FREE, SEAM, UNDER = 0, 1, 2  # an outline's edge meets none of its parts, meets one, lies under the one it meets
 SETTLE = 1.5  # cm: an outline's edge changing kind for less than this is the kind round it
-TURN = 35.0  # degrees within CORNERED cm either way: an outline's edge turning this much at a change of kind is a
-CORNERED = 1.0  # corner (the line there whole to it, not eased from a seam's half; a corner filled square)
+TURN = 35.0  # degrees within CORNERED cm either way: an outline's edge turning this much towards its own part is a
+CORNERED = 1.0  # corner of it (the free edge's line whole right to it, not eased from a seam's half)
+TOUCH = 0.3  # cm: another part's edge this near an outline's edge, across the surface there, meets it whichever way
+ACROSS = 0.7  # further off, it meets it lying across it, out of its part (within 45 degrees of square to the edge), or
+# running alongside it the other way, facing it (over it or under it: a piece tucked under another), never along it
+# round a corner nor across the part's own skin
+BLEND = 1.0  # cm: an outline's free edge's width at a texel is its nearest points' widths, weighed over this along it
 SLIVER = 1.2  # cm: a part's colour left narrower than this between its lines ...
 SLIVER_AREA = 30.0  # cm² ... in a piece no bigger than this is all line (a longer strip is the design's)
 
@@ -745,9 +750,12 @@ def outline(parts, width=2.5, apart=2.5, least=15.0, taper=3.0, tucked=0.1, soft
     each takes half, so the line is centred on the seam; where an edge meets none of them (an opening, a frame, the
     body's own end) its part takes all of it; where one piece lies over another (its edge seeing `tucked` more of the
     open air) the line is centred on the edge the eye sees, over the piece beneath where it comes out. From a half to
-    the whole the band widens over `taper` cm on the free edge where it runs straight on, so the line never jogs; at a
-    corner (the edge turning TURN degrees) the free edge's line is whole right to it, its corner square filled. A fastener's hole (a loop under
-    `least` cm round) is filled for the measure, so the line runs straight past one. A part's colour left narrower
+    the whole the band widens over `taper` cm on the free edge where it runs straight on (or round a corner away from
+    its part), so the line never jogs; at a corner of its part (the edge turning TURN degrees towards it) the free
+    edge's line is whole right to it. The half is measured from the whole edge and the whole from the free edge alone,
+    so where they meet the line's inside is the two bands' together, never the nearest edge's width. A fastener is no
+    edge (its hole, a loop under `least` cm round, filled for the measure; its ring lying on the body read as the body
+    beneath it, surface.lies_on): the line runs straight past one. A part's colour left narrower
     than SLIVER cm between its lines is line too. The plates the game letters the player's number and name on are a
     guide, not parts: one lying in a part is the part's, with no line round it. A zone; the judge reads each loop back
     at its own width, with the paint beyond its edge its neighbour's half."""
@@ -768,14 +776,18 @@ def outline(parts, width=2.5, apart=2.5, least=15.0, taper=3.0, tucked=0.1, soft
         raise ValueError(f"no edge of {', '.join(parts)} is {least:g} cm round")
     P, who = np.vstack([c.pts for c in loops]), np.concatenate(who)
     air = np.concatenate([carmap.load().value("open", c.pts, c.nrm) for c in loops])
-    tan = np.vstack([c.tan for c in loops])
+    nrm, tan = np.vstack([c.nrm for c in loops]), np.vstack([c.tan for c in loops])
+    out = np.vstack([np.cross(c.tan, c.nrm) for c in loops])  # each point's way out of its part, across its edge
+    out /= np.maximum(np.linalg.norm(out, axis=1, keepdims=True), 1e-9)
     best = np.full(len(P), -1.0)
     for i, nb in enumerate(cKDTree(P).query_ball_point(P, apart, workers=-1)):
         nb = np.asarray(nb, int)
         nb = nb[who[nb] != who[i]]
         v = P[nb] - P[i]
+        facing = (tan[nb] @ tan[i] < -ACROSS) & (np.abs(v @ tan[i]) < 0.5 * np.linalg.norm(v, axis=1))
+        v -= np.outer(v @ nrm[i], nrm[i])  # across the surface there
         r = np.linalg.norm(v, axis=1)
-        nb = nb[(r < 0.3) | (np.abs((v @ tan[i]) / np.maximum(r, 1e-9)) < 0.5)]  # beside it, not ahead round a corner
+        nb = nb[(r < TOUCH) | (v @ out[i] > ACROSS * r) | facing]
         if len(nb):
             best[i] = air[nb].max()
     kind = np.where(best < 0, FREE, np.where(air < best - tucked, UNDER, SEAM))
@@ -788,31 +800,30 @@ def outline(parts, width=2.5, apart=2.5, least=15.0, taper=3.0, tucked=0.1, soft
     tri, pos = b_["tri"].reshape(-1), b_["position"].reshape(-1, 3)
     for c, k, a, b in zip(loops, mine, cut[:-1], cut[1:]):
         free = kind[a:b] == FREE
-        turn = _turns(c, CORNERED)
-        w = _ramped(np.where(free, width, width / 2), c, (width / 2) / taper, stop=turn >= TURN)
+        w = _ramped(np.where(free, width, width / 2), c, (width / 2) / taper, stop=_cornered(free, c))
         wide = (lambda s, c=c, w=w: np.interp(s, c.s, w))
         ends = c._ends()
-        corner = _corners(free, turn, c)
+        mixed = free.any() and not free.all()
         lins, ws = [], []
-        for copy in c._across(reach, levels=levels, holes=holes, only=free if len(corner) else None):
+        for copy in c._across(reach, levels=levels, holes=holes, only=free if mixed else None):
             d = copy["d"]
             _, i = cKDTree(copy["P"]).query(copy["pos"], workers=-1)
             s = c.s[i] + ((copy["pos"] - copy["P"][i]) * copy["T"][i]).sum(1)
-            # from just past the edge (a seam's texels whole, not half from each side), to its width inside
-            inside = np.minimum(np.minimum(d + soft, wide(s) - d), ends(s, d))
-            if len(corner):  # by a corner a free edge meets a seam at: within the free edge's width of it, measured
-                # from the free edge alone (the nearest edge, the seam's, would leave a wedge of colour in the corner)
-                near = np.abs(c.s[i][:, None] - c.s[corner][None, :])
-                if c.closed:
-                    near = np.minimum(near, c.length - near)
-                by = near.min(1) <= width + soft
-                inside[by] = np.maximum(inside[by], np.minimum(d[by] + soft, width - copy["d_only"][by]))
+            line = width / 2 - d  # cm inside the line: half the width from the edge, or the free edge's from it alone
+            if free.any():
+                d_free = copy["d_only"] if mixed else d
+                k_ = min(16, int(free.sum()))
+                r_, j = cKDTree(copy["P"][free]).query(copy["pos"], k=[*range(1, k_ + 1)], workers=-1)
+                g = np.exp(-(r_ ** 2 - r_[:, :1] ** 2) / (2 * BLEND ** 2))  # eased along it, never jumping across a bend
+                line = np.maximum(line, (w[free][j] * g).sum(1) / g.sum(1) - np.where(np.isfinite(d_free), d_free, np.inf))
+            # from just past the edge (a seam's texels whole, not half from each side), to the line's inside
+            inside = np.minimum(np.minimum(d + soft, line), ends(s, d))
             wt = smoothstep(-soft / 2, soft / 2, inside).astype(np.float32)
             on = wt > 0.002
             lins.append(copy["lin"][on])
             ws.append(wt[on])
             past = d > 0
-            beyond[k].append((copy["lin"][past], d[past] - wide(s[past])))
+            beyond[k].append((copy["lin"][past], -line[past]))
         lin, at = np.unique(np.concatenate(lins), return_inverse=True)
         wt = np.zeros(len(lin), np.float32)
         np.maximum.at(wt, at, np.concatenate(ws))
@@ -824,9 +835,11 @@ def outline(parts, width=2.5, apart=2.5, least=15.0, taper=3.0, tucked=0.1, soft
     fns = [z.fn for z in zones]
     named = ", ".join(parts[:3]) + (f" and {len(parts) - 3} more" if len(parts) > 3 else "")
     # a part's colour left narrower than SLIVER between its lines: the texels past its line that no texel SLIVER / 2
-    # further in comes within SLIVER / 2 of (the colour opened by SLIVER / 2), on the part's own skin
+    # further in comes within SLIVER / 2 of (the colour opened by SLIVER / 2), on the part's own skin; its edge soft as
+    # a line's, by how far past that reach each texel is
     Pm = parts_mod.load()
-    thin = []
+    thin, thin_w = [], []
+    edge = SLIVER / 2 + 0.1
     for k, part in enumerate(parts):
         if not beyond[k]:
             continue
@@ -839,18 +852,22 @@ def outline(parts, width=2.5, apart=2.5, least=15.0, taper=3.0, tucked=0.1, soft
         deep, colour = past > SLIVER / 2, past > 0
         if not colour.any():
             continue
-        reached = np.zeros(len(lin), bool)
+        far = np.full(len(lin), np.inf)
         if deep.any():
-            reached[colour] = cKDTree(pos[lin[deep]]).query(pos[lin[colour]], workers=-1)[0] <= SLIVER / 2 + 0.1
-        q = pos[lin[colour & ~reached]].astype(np.float64)
+            far[colour] = cKDTree(pos[lin[deep]]).query(pos[lin[colour]], workers=-1)[0]
+        bare = colour & (far > edge)
+        q = pos[lin[bare]].astype(np.float64)
         if len(q):
             gap = float(np.median(cKDTree(q).query(q, k=2, workers=-1)[0][:, 1]))  # a texel's pitch here
             _, piece = connected_components(cKDTree(q).sparse_distance_matrix(cKDTree(q), 3 * gap), directed=False)
             small = (np.bincount(piece) * gap * gap)[piece] <= SLIVER_AREA
-            thin.append(lin[colour & ~reached][small])
-    if thin and sum(map(len, thin)):
+            if small.any():
+                by = colour & (cKDTree(q[small]).query(pos[lin], distance_upper_bound=soft, workers=-1)[0] <= soft)
+                thin.append(lin[by])
+                thin_w.append(smoothstep(-soft / 2, soft / 2, far[by] - edge).astype(np.float32))
+    if thin:
         lin = np.concatenate(thin)
-        slivers = Course._matched(pos[lin].astype(np.float64), np.ones(len(lin), np.float32))
+        slivers = Course._matched(pos[lin].astype(np.float64), np.concatenate(thin_w))
         fns.append(slivers.fn)
     out = shapes.Zone(lambda p, n: np.max([fn(p, n) for fn in fns], axis=0), label=f"the outline round the {named}")
     out.course, out.pieces = Courses(loops, f"the edges of the {named}"), zones
@@ -901,21 +918,29 @@ def _ramped(w, c, slope, stop):
     return w
 
 
-def _corners(free, turn, c):
-    """An outline's loop's corners where a free edge meets a seam (its kind changing where it turns TURN degrees or
-    more within CORNERED cm): their points."""
+def _cornered(free, c):
+    """An outline's loop's points within CORNERED cm of a corner of its part where a free edge meets a seam (the kind
+    changing where the edge turns TURN degrees or more towards the part within CORNERED cm): there the free edge's line
+    is whole right to the seam, never eased from its half."""
     n, k = len(free), max(1, int(round(CORNERED / STEP)))
+    turn = _turns(c, CORNERED)
     change = np.flatnonzero(free != np.roll(free, 1)) if c.closed else np.flatnonzero(np.diff(free)) + 1
-    return np.array([j for j in change if turn[np.arange(j - k, j + k + 1) % n].max() >= TURN], int)
+    out = np.zeros(n, bool)
+    for j in change:
+        near = np.arange(j - k, j + k + 1)
+        near = near % n if c.closed else near[(near >= 0) & (near < n)]
+        if turn[near].max() >= TURN:
+            out[near] = True
+    return out
 
 
 def _turns(c, cm):
     """How far a course turns at each point, in degrees, between `cm` before it and `cm` after (round a loop, on past
-    its ends)."""
+    its ends): + to its left seen from outside (an edge's turn towards its own part: a corner of it), - to its right."""
     k = max(1, int(round(cm / STEP)))
     n = len(c.pts)
     i = np.arange(n)
     a, b = (np.mod(i - k, n), np.mod(i + k, n)) if c.closed else (np.maximum(i - k, 0), np.minimum(i + k, n - 1))
     u, v = c.pts[i] - c.pts[a], c.pts[b] - c.pts[i]
     cos = (u * v).sum(1) / np.maximum(np.linalg.norm(u, axis=1) * np.linalg.norm(v, axis=1), 1e-12)
-    return np.degrees(np.arccos(np.clip(cos, -1, 1)))
+    return np.where((np.cross(u, v) * c.nrm).sum(1) < 0, -1.0, 1.0) * np.degrees(np.arccos(np.clip(cos, -1, 1)))

@@ -32,3 +32,17 @@ outline round them all from one call. Deleted once the step is OK'd.
   painted (its textures written 10:42 local; the notes were made at 09:58 and 10:06, on an earlier version), then
   look at each spot from the user's own view (the note's `view`) and close up, and fix what they see. Left as well:
   millimetre teeth where three lines meet, a millimetre ring at each bolt's rim. Step 21 is not OK'd; Britto waits.
+- Change (Claude, Opus 5.5, 2026-10-23, the next session): the user, of the line's faults: "It's not only on that areas,
+  sometimes when the tool draws a line, for some reason it produces those types of distortions, it happens in many
+  places." Looked from the notes' own views first (the car as last painted): both still there, smaller (a red spike and
+  a blue step where three lines meet; a red ring round each bolt; the line narrowing by the plate's corners). Causes,
+  in the tool: an edge took another part's edge for its seam's partner when that one lay round a corner or across the
+  part's own skin (now only across the edge, or running alongside it facing it); the width was the nearest edge
+  point's, switched at a corner by a patch (now the half from the whole edge and the whole from the free edge alone,
+  together); the ease from half to whole crept past a corner by a point; the whole width was looked up at the nearest
+  free point through the air, which jumps across a bend (now eased over its neighbours); the slivers filled hard. The
+  bolts' rings are pieces lying on the body (22 of them: the cockpit's and airbox's bolts, the plate's, the mirror
+  mounts' feet), which nothing measured along the surface reached: now read as the body beneath (surface.lies_on).
+  Shown beside TSC_OutlineUV (the user's idea, drawn on the map) at the notes and the judge's places. Left, close up:
+  a nick at the red corner's tip (note 1), a notch of red by the bolt (note 2), a speck at the red corner by the skirt
+  at (24, 29, 72). The judge's 19 sideways steps are the corners, where a free edge's whole line meets a seam's half.
