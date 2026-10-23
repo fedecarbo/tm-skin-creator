@@ -82,3 +82,6 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
 - 2026-10-23, the user: "Can we start wrapping things up, this has taken years!" The fixing pass stopped before its
   first edit: the art director's eleven items stay Open (in the line above), the car as the details pass left it. The
   language's white line changed to what the car does (the lights in the palette's colours), as the art director said.
+- 2026-10-23, the user: "Leave it for next session". Next: the art director's items, first the deck's plain patch
+  framed as a chosen section, the blue back and wheels, the two missing seam lines (side skirt to rear flank, across
+  the nose); then show it in the Lab for their yes; install on the PC when it's back.
