@@ -13,7 +13,7 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. Four steps, the two the user asked for after them, then 13 on the PC (away until November or December
+AI's eye**. Four steps, the three the user asked for after them, then 13 on the PC (away until November or December
 2026):
 
 17. **Intent beside landing.** Built, waiting for the user's OK (2026-10-22): `steps.json` gives each step its strokes,
@@ -32,7 +32,14 @@ AI's eye**. Four steps, the two the user asked for after them, then 13 on the PC
     more; the judge then says "known, queued" on that finding, so a session fixes its own strokes and doesn't spend its
     rounds on the tool's. Its worth on the evidence there is: the skirt line's steps (two cars), the shoulder badge's
     chips (three since 2026-10-08). Retires nothing.
-19. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
+19. **The ring's chip, at its root** (the user, 2026-10-22: "Obviously there is somewhat a root cause that causes those
+    chipped things, so that would be a session worth running to fix"; of the badge, 2026-10-08: "This decal looks chipped
+    off on one part of the circle"). A ring pressed across the rear flank's rolled shoulder jogs 0.3 cm sideways at two
+    crossings and the paint says chipped (0.4 cm², TSC_RulerTest and TSC_IntentTest), measured not to come from the
+    chart's step spanning nor its bridging. The first root cause step 18's ledger should name by itself; then found (the
+    chart's `xy` along the ring's band: the line the jump sits on), fixed in `surface.Surface.chart`, and shown whole on
+    a new test car with rings across other creases and rolled edges. Retires what the ledger queued on it.
+20. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
     step's words beside its strokes' landings and findings, a choice and an accident told apart, the known ones marked.
     Retires nothing.
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
@@ -43,10 +50,6 @@ AI's eye**. Four steps, the two the user asked for after them, then 13 on the PC
 
 ## The tool
 
-- **A ring across the rear flank's shoulder jogs 0.3 cm at two crossings** (2026-10-22, TSC_RulerTest, the badge of
-  2026-10-08): the paint says chipped (0.4 cm², 40 scattered texels) and the close look shows the band stepping
-  sideways at 2 and 8 o'clock; measured not to come from the chart's step spanning nor its bridging (each switched
-  off, the ring the same). Idea: read the chart's `xy` along the ring's band and find the line the jump sits on.
 - **A plain line beside the skirt's crease blocks ten times** (2026-10-22, TSC_IntentTest, on step 16's car too): a 1 cm
   band 1 cm beside 'side skirt crease 3' gets steps of 0.3 cm read against 'side skirt roll 3' and 0.7 cm where it
   meets 'side skirt crease 2'; the close looks show it smooth. Idea: see whether the ruler line steps there, not the paint.

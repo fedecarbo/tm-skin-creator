@@ -81,7 +81,7 @@ BUDGET = {"tool/*.py": 19113, "viewer/*.js": 2503}
 SLACK = 100
 # The instructions' words (what a session reads: instructions.READ), the same way: a commit may not grow them past
 # this without raising it here and saying why; under it by more than WORD_SLACK, it comes down with them.
-WORDS = 7368
+WORDS = 7426
 WORD_SLACK = 50
 DUPLICATE = 6  # lines of code the same in two places of tool/*.py: written twice
 # lines that say nothing on their own, left out when looking for code written twice
