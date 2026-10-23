@@ -66,7 +66,7 @@ HDRI_URL = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/{res}/{name}_{res}
 FLOOR_SETS = ("Rubber004", "Grass005", "Ground104")
 FLOOR_MAPS = ("Color", "NormalGL")
 FLOOR_URL = "https://ambientcg.com/get?file={asset}_1K-JPG.zip"
-SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO",
+SLOTS = ("Skin_B", "Skin_RM", "Skin_Coat", "Skin_AO", "Skin_I", "Skin_Code",
          "Details_B", "Details_RM", "Details_N", "Details_I", "Details_Code", "Details_AO",
          "Wheels_B", "Wheels_RM", "Wheels_N", "Wheels_AO",
          "Glass_T", "Glass_I", "Glass_Code", "Glass_AO")

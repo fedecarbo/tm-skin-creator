@@ -196,3 +196,19 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
 - Change (Claude, Opus 5.5, 2026-10-23): the tread round lugs (`s.tyre_tread("round lugs")`, TR-13), a toy's; the
   sidewalls plain black, the stock lettering gone on both sides. Shown; close looks changed only in the tyres' step
   (58, none outside it); the outline's blocks, unchanged by it, let go as waiting on the tools' outline fix.
+- 2026-10-23, the user (Opus 5.5): "Want to try an experiment to have certain things glow in night for Britto.  For
+  example the Hearts, The purple squares, etc". Read as: the hearts on both sidepods (red on the left, yellow on the
+  right) and the purple squares (the left tail corner's checks) lit in their own colours at night, as painted by day.
+- Change (Claude, Opus 5.5, 2026-10-23): a step of its own, "Glow at night": s.glow night only on the sidepod tops
+  and the left tail corner, only where the paint is the hearts' or the squares' colour (painted=, new). The tools'
+  first glow on the body: Skin_I, in Details_I's format. Nadeo's list of skin files has no glow map for the body and
+  the game has never been seen to light one: the viewer shows what it would look like, the game may not. Shown: by
+  day nothing changed (604 close looks taken again, none changed); at night in the viewer the hearts and the purple
+  squares light up. The outline's blocks, unchanged, let go again as waiting on the tools' outline fix.
+- 2026-10-23, the user, on it in the Lab: "im actually thinking maybe night glowing shouldn't be a thing for this
+  car.  Unless there's another approach, Some colors glow more than others and it's not looking how I imagined"
+  (each glows as bright as its paint: the yellow and red hearts blaze, the purple squares stay dim). Also: "Im so
+  tired of years of designing, check after check after check".
+- Closed (Claude, Opus 5.5, 2026-10-23): the step taken out, design.py as before it; the one other way, every glow one
+  even colour, would lose the car's colours, and the game may not light the body at all. The body's glow stays in
+  the tools for another car; its test in the game is queued (`IMPROVEMENTS.md`), not on Britto.

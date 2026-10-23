@@ -111,8 +111,8 @@ lands in the work folder's `build/` (`tool/paths.py`).
   (over a seam, under a frame), `.then(other)` one joined to another.
 - **Edges are crisp** (a zone's edge is 0.2 cm). Paint can't fake big 3D shapes; a painted shadow
   must be even all round. Fine grain goes in the sheen, not the colour (compression flattens it).
-- **Glows light the inner car only**: `s.glow(part, colour, kind)`: always on, night only, front
-  lights, brake lights, brake heat, turbo. Exhaust heat and boost were never seen to light up.
+- **Glows**: `s.glow(part, colour, kind, painted=<a colour>)`: always on, night only, front lights, brake
+  lights, brake heat, turbo. Never seen in the game: exhaust heat, boost, a glow on the body (the viewer's only).
 - **The car's own lights take any colour**: `s.relight("speed numbers" | "brake lights" | "rear
   lights" | "wheel ring", colour)` (`keep_level=True` for a faint one, the wheel ring). Braking turns the rear lights red whatever their colour, and a
   tinted rear lens filters that red. `s.glass(colour, strength)` only tints, lights behind it too.

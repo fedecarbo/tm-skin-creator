@@ -611,7 +611,7 @@ async function loadMeshes() {
 }
 
 const textureLoader = new THREE.TextureLoader();
-const COLOUR_SLOTS = new Set(['Skin_B', 'Details_B', 'Wheels_B', 'Glass_T', 'Details_I', 'Glass_I']);
+const COLOUR_SLOTS = new Set(['Skin_B', 'Details_B', 'Wheels_B', 'Glass_T', 'Skin_I', 'Details_I', 'Glass_I']);
 
 async function loadTexture(slot, url) {
   const t = await textureLoader.loadAsync('/data/' + url);
@@ -1622,6 +1622,7 @@ function makeMaterials(tex, still = false) {
   const skin = new THREE.MeshPhysicalMaterial(std('Skin', {
     clearcoat: TUNE.coat, clearcoatRoughness: 0, clearcoatMap: tex.Skin_Coat || null, specularIntensity: SHEEN * TUNE.spec,
   }));
+  if (tex.Skin_I) { skin.emissiveMap = tex.Skin_I; addGlow(skin, tex.Skin_Code); }  // the body's glow: never seen in the game
   const details = new THREE.MeshStandardMaterial(std('Details', { normalMap: tex.Details_N }));
   if (tex.Details_I) {
     details.emissiveMap = tex.Details_I;

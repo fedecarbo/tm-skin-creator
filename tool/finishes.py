@@ -145,7 +145,7 @@ LIBRARY = {
     "race-worn": _f("race-worn", 0.45, 0.0, 0.6, look="worn", about="dust, chips and scratches, lightly"),
     "muddy": _f("muddy", 0.6, 0.0, 0.0, look="muddy", about="dried mud splashed on, heavier low down", source="eye"),
     # light
-    "neon": _f("neon", 0.4, 0.0, 0.0, glow="always on", about="a self-lit colour (inner car only; the body can't glow)"),
+    "neon": _f("neon", 0.4, 0.0, 0.0, glow="always on", about="a self-lit colour (inner car only; on the body, s.glow)"),
     "night glow": _f("night glow", 0.4, 0.0, 0.0, glow="night only", about="lit only at night (inner car only)"),
     "reflective tape": _f("reflective tape", 0.3, 0.75, 0.0, (0.9, 0.9, 0.88), about="bright silvery tape, no sparkle (user, 2026-09-24)"),
     # patterns that arrange colours (a palette); a stated colour is the first colour

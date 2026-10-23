@@ -13,8 +13,8 @@
         s.decal("27", "rear flank", colour="black", font="russo", height=20)  # words, laid the same way, each side
         s.decal("NO STEP", "sidepod top", box=True, height=2.6)             # words in a thin box
         s.decal(s.art("tiger"), "left side", width=30)                     # a picture, at a named spot
-        s.glow("sidepod frame", "electric blue")              # always on (inner car only)
-        s.glow("brake caliper")                               # glow in the colour painted on it
+        s.glow("sidepod frame", "electric blue")              # always on
+        s.glow("tail corner", kind="night only", painted="purple")  # its purple alone, lit as painted
         s.relight("speed numbers", "lime")                    # the stock glow, recoloured
         s.paint("sidewall", "white rubber")                   # the tyres' sides
         s.glass("smoke", 0.6)                                 # tint the glass
@@ -264,7 +264,7 @@ class Canvas:
         if self.glow_touched:
             rgba = np.concatenate([self.glow_rgb, dark_take_codes(self.glow_rgb, self.glow_code, w, h)[:, None].astype(np.float32) / 255],
                                   1).reshape(h, w, 4)
-            out["Details_I"] = (rgba, "DXT5", {"codes_in_alpha": True})
+            out[f"{self.set}_I"] = (rgba, "DXT5", {"codes_in_alpha": True})
         if self.slope is not None:
             from tool import relief
             n = relief.clean_stock(stock("Details_N", (w, h))).reshape(-1, 2)
@@ -727,7 +727,7 @@ class Skin:
         if fin.glow and tset == "Details":
             self._glow(c, idx, m, col, fin.glow)
         elif fin.glow:
-            self.notes.append(f"{fin.name} on {where}: only the inner car can glow; painted it bright instead")
+            self.notes.append(f"{fin.name} on {where}: a finish lights only the inner car; painted it bright (s.glow lights the body)")
 
     @_verb(lambda where, what=None, shape=None, *a, **k:
            f"{' '.join(x for x in (what or k.get('finish'), k.get('colour')) if isinstance(x, str)) or 'paint'} {shape!r} on {_where(where)}")
@@ -788,21 +788,29 @@ class Skin:
         c.glow_touched = True
 
     @_verb(lambda where, colour=None, kind="always on", *a, **k: f"glow {kind} on {_where(where)}")
-    def glow(self, where, colour=None, kind="always on", zone=None, replacing=None, keep_level=False):
-        """Make inner-car parts glow: kind is one of finishes.GLOWS ("always on", "night only",
-        "brake lights", "front lights", "energy", ...). The body can't glow. colour None: the
-        parts glow in whatever colour is already painted on them (so a fade can glow).
+    def glow(self, where, colour=None, kind="always on", zone=None, replacing=None, keep_level=False, painted=None):
+        """Make parts glow: kind is one of finishes.GLOWS ("always on", "night only",
+        "brake lights", "front lights", "energy", ...). colour None: the parts glow in whatever
+        colour is already painted on them (so a fade can glow); painted: only where it's now that
+        colour, within 0.25 (0 to 1 a channel). Each glows as bright as its paint: purple dim by yellow.
         replacing: only where the parts carry that kind of glow now (a stock one), swapped for
         this one: s.glow("hub", "magenta", "exhaust heat", replacing="turbo"). keep_level: each
-        texel keeps the brightness it glowed with (relight's), and the paint is left alone."""
+        texel keeps the brightness it glowed with (relight's), and the paint is left alone. The
+        body's glow, Skin_I in Details_I's format, is in no list of Nadeo's: never seen in the game."""
         col = None if colour is None else np.asarray(colours.get(colour), np.float32)
         targets = self._ids(where)
         for tset, ids in targets.items():
-            if tset != "Details":
-                self.notes.append(f"glow on {where}: only the inner car (Details) can glow; skipped {tset}")
+            if tset not in ("Details", "Skin"):
+                self.notes.append(f"glow on {where}: only the inner car and the body can glow; skipped {tset}")
                 continue
             c = self.canvas(tset)
             idx, m = self._mask(tset, ids, zone, c)
+            if c.glow_rgb is None:  # the body's first glow: it has none of its own
+                self.notes.append(f"glow on {where}: a glow on the body (Skin_I) was never seen in the game, only in the viewer")
+                c.glow_rgb, c.glow_code = np.zeros((len(c.colour), 3), np.float32), np.zeros(len(c.colour), np.uint8)
+            if painted is not None:
+                near = np.linalg.norm(c.colour[idx] - np.asarray(colours.get(painted), np.float32), axis=1) < 0.25
+                idx, m = idx[near], m[near]
             if replacing is not None:
                 keep = c.glow_code[idx] == finishes.glow(replacing)["code"]
                 idx, m = idx[keep], m[keep]
