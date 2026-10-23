@@ -13,7 +13,8 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. Four steps, then 13 on the PC (away until November or December 2026):
+AI's eye**. Four steps, the two the user asked for after them, then 13 on the PC (away until November or December
+2026):
 
 17. **Intent beside landing.** Built, waiting for the user's OK (2026-10-22): `steps.json` gives each step its strokes,
     every call of the design with its number in the landing sketch, its receipt's line, its landing as data
@@ -22,6 +23,18 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
     the close looks' too, and says what was let go and why). Shown on TSC_IntentTest, the user's notched-ring picture
     again: the crossing meant, the chip the tool's, the block for a third reason, each on its stroke. On the OK: the
     test car deleted, and this step.
+18. **Root causes logged across cars** (the user, 2026-10-22: "if it finds something that is happening in various cars,
+    something that has a root cause, then I guess it should be automatically just logged to queue a fix in another
+    session"). Every verdict's findings kept in a ledger in the work folder at `judge.save` (milliseconds), each by a
+    signature: its kind, the line or panel it was read against, its place to a few cm. A signature on three different
+    cars, or let go on two, is the tool's, not the design's: the tool writes it into this queue itself (a section it
+    keeps: the cars, one finding as it reads, the date), one item a signature, and takes it out when no car shows it any
+    more; the judge then says "known, queued" on that finding, so a session fixes its own strokes and doesn't spend its
+    rounds on the tool's. Its worth on the evidence there is: the skirt line's steps (two cars), the shoulder badge's
+    chips (three since 2026-10-08). Retires nothing.
+19. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
+    step's words beside its strokes' landings and findings, a choice and an accident told apart, the known ones marked.
+    Retires nothing.
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
     own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
     cleanest picture of a skin's colours the game gives; `viewer.lamp`), then per mood to the user's F12 screenshots
