@@ -68,13 +68,13 @@ class Landing:
                 + (f", facing {', '.join(faces)}" if faces else ""))
 
     def doc(self):
-        """As a concept's page reads it (tool/view.py's steps.json): the box in cm, z nose to tail, the side, the ways it
-        faces, and all of it in words."""
+        """As a concept's page reads it (tool/view.py's steps.json): the box in cm, z nose to tail, the car's stations
+        at its two ends (a name each, or None), the side, the ways it faces, and all of it in words."""
         def span(a, b):
             return [round(float(a), 1), round(float(b), 1)]
         lo, hi = self.lo, self.hi
         return {"z": span(hi[2], lo[2]), "y": span(lo[1], hi[1]), "x": span(lo[0], hi[0]), "side": self.side(),
-                "faces": self.facing(), "words": str(self)}
+                "stations": [station(round(float(z))) for z in (hi[2], lo[2])], "faces": self.facing(), "words": str(self)}
 
 
 class Receipt:

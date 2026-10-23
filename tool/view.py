@@ -18,7 +18,7 @@ The work folder's viewer/ folder (served as /data/), all rebuildable:
   skins/<name>/        one skin's textures, and skin.json with the URL of every slot
   skins/<name>/steps/  the car at the end of each step of the design, at half size, and
                        steps.json (export_steps): each step with its strokes, what was meant beside
-                       where it landed and the judge's findings on it; studio.json names the skin
+                       where it landed and the judge's findings on it, its kind in words; studio.json names the skin
                        painted last. A page may follow them (the Lab does)
 
 The game's textures become PNG "slots" laid out the way three.js reads them:
@@ -469,7 +469,8 @@ def export_steps(skin, painting, clay=None):
 def export_findings(name, verdict):
     """steps.json's strokes given the verdict's findings (tool/judge.py), each on the call it names (`op`), one let go
     (tool/gate.py's despite.json: meant, or still there after the rounds of fixing) with the why (`let_go`), the car's
-    own (no call's) on the steps' list. Only steps of the verdict's design; a car never shown here has none."""
+    own (no call's) on the steps' list, the kinds in words (`kinds`). Only the verdict's design; never shown here: none."""
+    from tool import judge  # it calls this: loaded already
     path = DATA / "skins" / name / "steps.json"
     try:
         doc = json.loads(path.read_text())
@@ -477,14 +478,13 @@ def export_findings(name, verdict):
         return
     if doc.get("design") != verdict.get("design"):
         return
-    gone, why = gate.let_go(name, verdict)
-    by = {}
+    (gone, why), by = gate.let_go(name, verdict), {}
     for f in verdict["findings"]:
         by.setdefault(f.get("op"), []).append({**f, "let_go": why} if f["text"] in gone else f)
     for st in doc["steps"]:
         for s in st.get("strokes", ()):
             s["findings"] = by.pop(s["n"] - 1, [])
-    doc["findings"] = [f for fs in by.values() for f in fs]
+    doc["findings"], doc["kinds"] = [f for fs in by.values() for f in fs], judge.KINDS
     _json(path, doc)
 
 

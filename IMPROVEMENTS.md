@@ -16,9 +16,9 @@ perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **
 AI's eye**. The last step the user asked for after its four, then 13 on the PC (away until November or December
 2026):
 
-20. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
-    step's words beside its strokes' landings and findings, a choice and an accident told apart, the known ones marked.
-    Retires nothing.
+20. **The Lab shows the strokes.** Built, waiting for the user's OK (2026-10-22): the Lab's Strokes tab, each step's
+    words beside its strokes' landings (`receipt.Landing.doc`'s `stations`) and findings (steps.json's `kinds`), told
+    apart by colour, dots on the car. On the OK: TSC_StrokesInLab deleted.
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
     own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
     cleanest picture of a skin's colours the game gives; `viewer.lamp`), then per mood to the user's F12 screenshots
@@ -95,8 +95,8 @@ Kept by the judge (`tool/ledger.py`): a flaw found in one place on three cars, o
 the design's. The judge says "known, queued" on it and the gate lets it pass; it's taken out when no car shows it any
 more. Fixed, or found not the tool's: delete its item, and only cars judged after count it again.
 
-- **K1: line, on 3 cars** (2026-10-22, last seen; TSC_Ledger1, TSC_Ledger2, TSC_Ledger3; at (±28, 18, 119), (±32, 19,
-  91), (±56, 20, 43), (±61, 20, 38), (±68, 21, 31)): gloss #f2f0ea on body (Skirt line): a band 1 cm wide along the
-  model's crisp line 'side skirt crease 3', 1 cm to its left: a step of 0.3 cm sideways, on the right, z +119 (the
-  bonnet); read against the model's line along a rounded edge 'side skirt roll 3' tilted 25 degrees, 0.3 cm from the
-  design's course, mirrored to the right
+- **K1: line, on 4 cars** (2026-10-22, last seen; TSC_Ledger1, TSC_Ledger2, TSC_Ledger3, TSC_StrokesInLab; at (±28, 18,
+  119), (±32, 19, 91), (±56, 20, 43), (±61, 20, 38), (±68, 21, 31)): satin #efe6d0 on body (Skirt line): a band 1 cm
+  wide along the model's crisp line 'side skirt crease 3', 1 cm to its left: a step of 0.3 cm sideways, on the right, z
+  +119 (the bonnet); read against the model's line along a rounded edge 'side skirt roll 3' tilted 25 degrees, 0.3 cm
+  from the design's course, mirrored to the right
