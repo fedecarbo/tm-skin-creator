@@ -7,11 +7,12 @@ the right from each camera's mirror image, the two side by side on the sheets.
     python -m tool.close <name>      after tool.skin show: the looks, their sheets, what they measure, what changed
 
 It reads what show kept (tool/judge.py's save): build/<name>/graphics.json (each marking's stations along the line it
-follows, each fill's edge, each mark, words and picture; each call's step and each step's hash), owner.npy (the call
+follows, each fill's edge, each mark, words and picture, each dot of a zoned paint; each call's step and each step's hash), owner.npy (the call
 that covered each texel last) and verdict.json (the spots the judge's eye names); a design changed since is refused.
 The looks (`plan`):
   along a line   one every ALONG cm, centred on the line, the camera square to the surface there;
-  over a mark    one, framed to it whole (fewer than PX_CM pixels a cm when it's too big for the frame);
+  over a mark    one, framed to it whole (fewer than PX_CM pixels a cm when it's too big for the frame); a dot of a
+                 zoned paint (a row's marks) the same;
   at a spot      one at each spot the judge's eye names that no look shows already.
   Not looked along: a paint zoned by a height or a reading of the car that runs along it (a band by shapes.above).
 What the masks measure, as findings added to the verdict (check "close", `measure` and `changes`):
@@ -319,7 +320,7 @@ def _mark(M, L, g, lift, found):
     if share >= HIDDEN_SHARE:
         _say(found, L, g, "hidden", pts[keep][~shown], f"{g['what']}: {share:.0%} of it hidden by another part, even seen "
              f"from where it faces")
-    if g["shape"] != "shape":
+    if g["shape"] not in ("shape", "zone") or (g["shape"] == "zone" and g.get("across")):  # a dot laid across parts is as written
         return
     m = M.mask(L, g["op"])
     lab, n = ndimage.label(m)
@@ -357,7 +358,7 @@ def _sides(M, G, looks, found):
         Lf = by_n[R["twin"]]
         g, h = G[Lf["g"]], G[R["g"]]
         a, b = M.mask(Lf, g["op"]), M.mask(R, h["op"])[:, ::-1]
-        if g["kind"] == "mark" and g["shape"] != "shape":
+        if g["kind"] == "mark" and g["shape"] not in ("shape", "zone"):
             apart = abs(int(a.sum()) - int(b.sum())) / R["px_cm"] ** 2
             if apart >= SIDES and apart >= 0.1 * max(a.sum(), b.sum()) / R["px_cm"] ** 2:
                 _say(found, R, h, "sides", [h["at"]], f"{h['what']}: {apart:.1f} cm² more of it on the "

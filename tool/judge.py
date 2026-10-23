@@ -30,6 +30,8 @@ under; where each is on the car, the bake; its area from the map's density):
                       degrees against the line; a WOBBLE, kinks turning each way within WOBBLE cm;
                short  its width under NARROW of the designed width where the skin beyond it is bare;
                cut    its width short where the body ends (ticks hanging off an edge), unless it follows that edge.
+             Every finding names its ruler (`ruler`): the model's line it was read against, by the name a design
+             writes, and how far that lies from the design's course; or the course itself, when it follows none.
              Fills: a panel filled to the model's lines (meshlines.panel) or a zone's edge inked on a course
              (inked_edge): short where the painted edge sits FILL cm or more off its line.
              Marks, words and pictures (tool/marks.py, at laying, Skin.findings): cut when not whole: under WHOLE of
@@ -50,6 +52,8 @@ under; where each is on the car, the bake; its area from the map's density):
              per cm; words over a fold (FOLD_WORDS degrees), flipped (FLIPPED) or hanging upside down (HANG); a second
              paint on, or a graphic within CLEAR cm of, the panels the game letters or the nose fin's plate (PANELS);
              a scatter spread unevenly (UNEVEN) or leaving BARE of its surface.
+  seen       each graphic of a zoned paint (a dot, the marks of a row at a course's places), as a laid mark is at its
+             laying (tool/marks.py): hidden, on hidden skin or with a wheel or another part in front of it, seen square.
   the eye    how a marking, a fill or an area paint sits against the lines the eye sees (meshlines.lines: crisp
              lines, panel lines, where the body ends; not the line it lies on, nor one within ALONG cm of it) and
              against the other graphics, as notes: a gap that CLOSES, a marking's end a NEAR MISS from a line, a
@@ -277,6 +281,7 @@ class _Car:
         self.dims = np.ceil(np.array([220.0, 120.0, 410.0]) / VOXEL).astype(int)
         self.blends = set()  # the calls whose zone is a blend: they make no edge
         self.graphics = []  # each graphic found: (its call, its texels)
+        self.spots = []  # each graphic of a zoned paint (a dot, a row's marks): (its call, its texels), for `_rows`
         self.zoned_ops = {call["op"] for call in skin.zoned} | {p["op"] for p in skin.pictures + skin.marks}
         self.bodies = {}  # the parts a paint was aimed at -> their body (reach)
         self.paints = {}  # a call -> its paint (colour, roughness, metalness), to tell the same paint going on
@@ -739,6 +744,7 @@ def _zoned(car, call, found, marking):
         if not len(S):
             continue
         car.graphics.append((call["op"], S))
+        car.spots.append((call, S))
         if call["across"]:  # the design's own crossing: nothing to say
             continue
         mine = at == k
@@ -1014,6 +1020,49 @@ def _scattered(car, found):
                                   f"any copy: bare patches, from {_place(s['z'][0])} to {_place(s['z'][1])}"})
 
 
+def _near_tris(car, at, within):
+    """The body's and the inner car's triangles (carmap._occluders) with a corner within `within` cm of a point."""
+    if not hasattr(car, "_tris"):
+        car._tris = carmap._occluders(("Skin", "Details"))
+    T = car._tris
+    near = (np.abs(T - np.asarray(at, np.float64)) <= within).all(2).any(1)
+    return T[near]
+
+
+def _rows(car, found):
+    """Each graphic of a zoned paint (a dot, the marks of a row at a course's places), seen square to it: on hidden skin
+    (inside an opening or under a panel), or a wheel or another part of the car standing in front of it (as a laid
+    mark is checked, tool/marks.py); one finding per call and cause."""
+    from tool import marks
+    by, count, calls = {}, {}, {}
+    for call, S in car.spots:
+        side = _where(car.c.pos[S])[2]
+        count[(call["op"], side)] = count.get((call["op"], side), 0) + 1
+        calls[call["op"]] = call
+        t = S[:: max(1, len(S) // 400)]
+        pos, nrm = car.c.pos[t].astype(np.float64), car.c.nrm[t].astype(np.float64)
+        facing = nrm.mean(0)
+        facing /= max(np.linalg.norm(facing), 1e-9)
+        hidden = float((car.open(t) < OUTER).mean())
+        if hidden >= marks.HIDDEN:
+            why, share = "on hidden skin the eye doesn't see (inside an opening or under a panel)", hidden
+        elif (wheel := marks._behind_wheel(car.c, S, facing)) is not None:
+            why, share = f"hidden: the {wheel[1]} wheel stands in front of", wheel[0]
+        else:  # the car's triangles near the dot (the depth map's cost is the triangles' and their extent)
+            tris = _near_tris(car, pos.mean(0), 80.0)
+            seen = carmap._seen(pos, nrm, facing[None], tris)[:, 0] if len(tris) else np.ones(len(pos), bool)
+            if (share := float((~seen).mean())) < marks.HIDDEN:
+                continue
+            why = "hidden: another part of the car stands in front of"
+        by.setdefault((call["op"], why, side), []).append((S, share))
+    for (op, why, side_), hits in by.items():
+        call, n, S = calls[op], count[(op, side_)], np.concatenate([h[0] for h in hits])
+        where, z, side = car.place(S)
+        what = f"{max(h[1] for h in hits):.0%} of it" if n == 1 else f"{len(hits)} of its {n} marks"
+        found.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "step": call["step"],
+                      "text": f"{car.op(call['op'])}: {why} {what}" + (", seen square" if why.startswith("hidden") else "") + f", {where}"})
+
+
 # ---- placement: markings along the car's lines ----
 
 def _pieces(zone, seen=None):
@@ -1041,7 +1090,7 @@ def _fill_lines(zone, seen=None):
         return []
     seen.add(id(zone))
     if getattr(zone, "lines", None) is not None:
-        return [(zone, np.asarray(zone.lines, np.float64), "its lines")]
+        return [(zone, np.asarray(zone.lines, np.float64), f"the lines of {zone!r}")]
     if getattr(zone, "inked", False):
         return [(zone, zone.course.pts, zone.course.name)]
     out = []
@@ -1051,11 +1100,39 @@ def _fill_lines(zone, seen=None):
 
 
 @functools.lru_cache(maxsize=1)
+def _line_names():
+    """Each of the model's lines by the name a design writes (meshlines.named: the left side's and the middle's; a
+    right-side line by its mirror image's name, 'on the right'), by its record's identity."""
+    from tool import meshlines
+    out, left = {}, []
+    for name, rec in meshlines.named("Skin").items():
+        for L in (rec if isinstance(rec, list) else [rec]):
+            if "pts" in L:
+                out[id(L)] = repr(name) + (f" tilted {L['tilt']:.0f} degrees" if "tilt" in L else "")
+                left.append(L)
+    mids = np.array([L["pts"][len(L["pts"]) // 2] for L in left])
+    for L in meshlines.lines("Skin") + meshlines.strips("Skin"):
+        if id(L) in out:
+            continue
+        m = L["pts"][len(L["pts"]) // 2]
+        for flip, side in ((1.0, ""), (-1.0, " on the right")):  # the same line under another record, or its mirror image
+            d, j = cKDTree(mids * [flip, 1, 1]).query(m)
+            if d <= 2.0 and abs(left[j]["length"] - L["length"]) <= 0.01 * L["length"] + 0.5:
+                out[id(L)] = out[id(left[j])] + side
+                break
+    return out
+
+
+@functools.lru_cache(maxsize=1)
 def _model():
     """The model's lines a marking can follow (crisp lines, panel lines, where the body ends, seams, the lines along
-    its rounded edges), every STEP cm: points, which line each is on, the lines, and a tree of the points."""
+    its rounded edges), every STEP cm: points, which line each is on, the lines (each with the name a design writes,
+    the ruler a finding names), and a tree of the points."""
     from tool import meshlines
     kept = [L for L in meshlines.lines("Skin") + meshlines.strips("Skin") if L["length"] >= 3.0]
+    names = _line_names()
+    for L in kept:
+        L["name"] = f"the model's {meshlines.WORDS[L['kind']]} {names[id(L)]}" if id(L) in names else _name(L)
     pts, ids = [], []
     for k, L in enumerate(kept):
         P = np.vstack([L["pts"], L["pts"][:1]]) if L["closed"] else L["pts"]
@@ -1214,37 +1291,38 @@ def _marking(car, call, z, found):
     reached = np.zeros(car.n, bool)
     reached[idx] = True
     line, runs, kept = _followed(c)
-    refs = []  # (the reference course, the line's kind or None, the run, the span along the reference)
+    refs = []  # (the reference course, the line's kind or None, the run, the span along the reference, the ruler:
+    # what the stations are read against, named in every finding)
     for v, a, b in runs:
         if c.s[b - 1] - c.s[a] < LEAST_RUN:
             continue
         if v < 0:
-            refs.append((c, None, (a, b), (float(c.s[a]), float(c.s[b - 1]))))
+            refs.append((c, None, (a, b), (float(c.s[a]), float(c.s[b - 1])), "its own course (none of the model's lines runs along it)"))
             continue
         R = _stretch(kept[v], c, a, b)
         if R is None:  # no stretch of the line alongside this run: read along the course itself
-            refs.append((c, None, (a, b), (float(c.s[a]), float(c.s[b - 1]))))
+            refs.append((c, None, (a, b), (float(c.s[a]), float(c.s[b - 1])), f"its own course (it crosses {kept[v]['name']})"))
             continue
         d = cKDTree(R.pts).query(c.pts[a:b], workers=-1)[0]
         if d.max() <= ON_LINE:  # the course is the line itself: read while painting
-            refs.append((c, kept[v]["kind"], (a, b), (float(c.s[a]), float(c.s[b - 1]))))
+            refs.append((c, kept[v]["kind"], (a, b), (float(c.s[a]), float(c.s[b - 1])), f"{kept[v]['name']} itself"))
         else:
-            refs.append((R, kept[v]["kind"], (a, b), None))
+            refs.append((R, kept[v]["kind"], (a, b), None, f"{kept[v]['name']}, {np.median(d):.1f} cm from the design's course"))
         if d.max() <= 0.3:  # the eye leaves out the lines the course lies on, and their walls
             car.followed.setdefault(call["op"], []).append(R.pts)
     mine, stretches = [], {}
-    for R, kind, (a, b), span in refs:
+    for R, kind, (a, b), span, ruler in refs:
         for st in _stations(car, call, z, c, R, mark, reached, (a == 0, b == len(c.pts)), span):
-            _station_findings(name, label, call, st, kind, mine)
+            _station_findings(name, label, call, st, kind, mine, ruler)
             painted = np.linalg.norm(st["nrm"], axis=1, keepdims=True) > 0.5  # the face its paint is on, else the line's
             car.looks.append({"kind": "line", "op": call["op"], "what": f"{name}: {label}", "step": call["step"],
                               "pos": st["pos"].round(2).tolist(),
                               "facing": np.where(painted, st["nrm"], st["facing"]).round(3).tolist(),
                               "expected": st["expected"].tolist(), "lo": float(st["lo_e"]), "hi": float(st["hi_e"])})
-            stretches.setdefault(st["mirrored"], []).append((st, kind, a, b))
+            stretches.setdefault(st["mirrored"], []).append((st, kind, a, b, ruler))
     # a step at the join of two lines the course follows in turn: the marking's centre jumps from one to the next
     for runs_ in stretches.values():
-        for (s1, k1, a1, b1), (s2, k2, a2, b2) in zip(runs_[:-1], runs_[1:]):
+        for (s1, k1, a1, b1, r1), (s2, k2, a2, b2, r2) in zip(runs_[:-1], runs_[1:]):
             if k1 is None or k2 is None or float(c.s[a2] - c.s[b1 - 1]) > JOIN:
                 continue
             full1 = np.flatnonzero(np.isfinite(s1["lo"]) & (s1["hi"] - s1["lo"] >= NARROW * s1["W"]))
@@ -1256,8 +1334,10 @@ def _marking(car, call, z, found):
             jump = abs(c2 - c1)
             if jump > max(STEP_SHARE * s1["W"], STEP_LEAST):
                 where, zz, side = _where(np.vstack([s1["pos"][full1[-1]], s2["pos"][full2[0]]]))
-                mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "step": call["step"],
-                             "text": f"{name}: {label}: a step of {jump:.1f} cm sideways where the two lines it follows meet, {where}"})
+                ruler = f"{r1} and {r2}" + (", mirrored to the right" if s1["mirrored"] else "")
+                mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "step": call["step"], "ruler": ruler,
+                             "text": f"{name}: {label}: a step of {jump:.1f} cm sideways where the two lines it follows meet, "
+                                     f"{where}; read against {ruler}"})
     return mine
 
 
@@ -1277,17 +1357,20 @@ def _merged(mine):
     return out
 
 
-def _station_findings(name, label, call, st, kind, found):
-    """The findings along one copy of one reference: runs of stations with the same fault, each said once. kind: the
+def _station_findings(name, label, call, st, kind, found, ruler):
+    """The findings along one copy of one reference: runs of stations with the same fault, each said once, naming the
+    ruler (the reference: the model's line the stations were read against, or the course itself). kind: the
     reference line's (None: the course itself)."""
     n, W = len(st["n"]), st["W"]
     exp, cnt = st["expected"], st["n"]
     step = max(STEP_SHARE * W, STEP_LEAST)
-    said = {"check": "placement", "step": call["step"]}
+    ruler += ", mirrored to the right" if st["mirrored"] else ""
+    said = {"check": "placement", "step": call["step"], "ruler": ruler}
 
     def say(kind_, sel, text):
         where, zz, side = _where(st["pos"][sel])
-        found.append({**said, "kind": kind_, "z": zz, "side": side, "text": f"{name}: {label}: {text}, {where}"})
+        found.append({**said, "kind": kind_, "z": zz, "side": side,
+                      "text": f"{name}: {label}: {text}, {where}; read against {ruler}"})
 
     has = np.isfinite(st["lo"])
     width = np.where(has, st["hi"] - st["lo"], 0.0)
@@ -1392,7 +1475,7 @@ def _fills(car, call, o, fills, found):
             if c_ - a < 2 or not sel.any() or length[sel].sum() < 3.0:
                 continue
             where, zz, side = _where(pos[sel])
-            found.append({"check": "placement", "kind": "short", "z": zz, "side": side, "step": call["step"],
+            found.append({"check": "placement", "kind": "short", "z": zz, "side": side, "step": call["step"], "ruler": what,
                           "text": f"{name}: its edge sits {np.median(d[sel]):.1f} cm inside {what} over {length[sel].sum():.0f} cm, {where}"})
 
 
@@ -1439,7 +1522,7 @@ def _lines():
 def _name(L):
     if L.get("inside"):
         return f"the outline round the {L['inside']}"
-    what = "edge where the body ends" if L["kind"] == "opening" else "panel line" if L["walls"] > 1 else "crisp line"
+    what = "edge where the body ends" if L["kind"] == "opening" else "panel line" if L.get("walls", 1) > 1 else "crisp line"
     return f"the {what} along the {L['parts'][0]}"
 
 
@@ -1731,16 +1814,20 @@ def _look_edges(car, call, fills):
 
 
 def _look_marks(car):
-    """Each mark, words and picture, for a close look over it: its middle, the way it faces, how far it reaches."""
+    """Each mark, words and picture, and each graphic of a zoned paint (a dot, a row's marks: shape "zone"), for a close
+    look over it: its middle, the way it faces, how far it reaches."""
     c = car.c
-    for rec in car.skin.marks + car.skin.pictures:
-        if not len(rec["idx"]):
+    marks_ = [(rec["idx"], rec["op"], rec["what"], rec["step"], rec["kind"], np.asarray(rec["frame"][2], np.float64), False)
+              for rec in car.skin.marks + car.skin.pictures]
+    spots = [(S, call["op"], car.op(call["op"]), call["step"], "zone", c.nrm[S].astype(np.float64).mean(0), call["across"])
+             for call, S in car.spots]
+    for idx, op, what, step, kind, facing, across in marks_ + spots:
+        if not len(idx):
             continue
-        pos = c.pos[rec["idx"]].astype(np.float64)
+        pos = c.pos[idx].astype(np.float64)
         middle = pos[np.argmin(np.linalg.norm(pos - pos.mean(0), axis=1))]
-        facing = np.asarray(rec["frame"][2], np.float64)
-        some = rec["idx"][:: max(1, len(rec["idx"]) // 300)]  # its texels' places, to see what hides it
-        car.looks.append({"kind": "mark", "op": rec["op"], "what": rec["what"], "step": rec["step"], "shape": rec["kind"],
+        some = idx[:: max(1, len(idx) // 300)]  # its texels' places, to see what hides it
+        car.looks.append({"kind": "mark", "op": op, "what": what, "step": step, "shape": kind, "across": across,
                           "at": middle.round(2).tolist(), "facing": (facing / np.linalg.norm(facing)).round(3).tolist(),
                           "reach": round(float(np.linalg.norm(pos - middle, axis=1).max()), 1),
                           "pts": c.pos[some].round(2).tolist(), "nrm": c.nrm[some].round(3).tolist()})
@@ -1774,6 +1861,7 @@ def run(skin):
         _laid(car, found)
         _clear(car, found)
         _scattered(car, found)
+        _rows(car, found)
         _eye(car, plain, found)
         _look_marks(car)
     once = {}

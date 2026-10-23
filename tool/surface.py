@@ -45,7 +45,9 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
                                        spans a step flat (a wall of skin thinner than STEP cm between two skins, a
                                        raised plate's edge: the raised skin is measured as if it sat level with the
                                        other, and the wall takes the sticker's edge) and bridges a gap up to BRIDGE
-                                       cm between two skins facing alike. A
+                                       cm between two skins facing alike, and a slit (a rim loop under HOLE cm round)
+                                       however its sides face; every distance bounded by the way along the mesh's
+                                       edges (_relaxed: the exact solver walks a hairline's slivers lengthwise). A
                                        Chart: .read(xy, size, lin) reads (X, Y) at texels (nan beyond the reach),
                                        .read(xy, points=) at points on the car, .stretch() how far the sticker is stretched on
                                        each face (0.05: its lengths grow or shrink 5 %; inf where it folds over itself)
@@ -86,6 +88,11 @@ JOIN = 12        # how many times a link of a line is halved to find the face it
 STRAY = 0.5      # cm: a line's point landing on another piece this near the line's own piece is put back on it
 HOP = 0.4        # cm: a line carried on hops a gap this wide between pieces (they're 0.05 to 0.35 apart)
 BRIDGE = 1.5     # cm: a sticker pressed over every edge bridges a gap this wide between two skins facing alike
+OWN_RIM = 6      # rim edges: a rim's vertex this near another along the rim is its own rim's, never a bridge's far end
+HOLE = 16.0      # cm round: a rim loop no longer than this is a hole or a slit in the skin (the nose plate's, 5 cm long), zipped
+# shut across (its own rim's vertices are its far ends, all but its neighbours)
+SLIT = 1.0       # cm: two rims this near are a slit's sides (the surface cut along a fold, the sides facing 90 degrees
+# apart), bridged however they face, short of opposite
 STEP = 1.5       # cm: a wall of skin this thin between two skins (a raised plate's edge) is a step a sticker spans flat
 WALL = 70.0      # degrees: skin facing this far from the sticker's centre is a wall, where it's thin
 SPECK = 0.5      # cm: a piece of a contour shorter than this is the solver's noise, not a line
@@ -468,7 +475,7 @@ class Surface:
             d = np.asarray(igl.exact_geodesic(Vn, Fn, src.astype(np.int64), np.zeros(0, np.int64), np.arange(n, dtype=np.int64),
                                               np.zeros(0, np.int64))).reshape(-1)
             d[~np.isin(comp, comp[src])] = np.inf
-            D.append(d)
+            D.append(_relaxed(d, Vn, Fn))
         r = D[0]
         reached = r <= reach
         xy = np.zeros((n, 2))
@@ -549,7 +556,7 @@ def _spanned(V, F, parent, fn, facing, centre):
     """A patch's mesh with its steps spanned, as a sticker pressed over every edge spans them flat rather than running
     down and up: a wall (faces facing WALL degrees or more from the sticker's facing) thinner than STEP cm (twice its
     area over its perimeter) between the centre's skin and another is taken out, the other skin moved onto the
-    centre's by the step (the mean offset between the wall's two rims) and the rims welded, each point of the raised rim
+    centre's by the step (the mean offset between the wall's two rims along the sticker's facing) and the rims welded, each point of the raised rim
     onto the other rim's own edge (put in as a vertex of it); a wall between two skins neither the centre's is left as
     it is. Faces that collapse go. (V, F, parent, walls): the walls spanned, collapsed onto the welded rims, for their
     texels to take the sticker's edge (never solved on: faces of no area)."""
@@ -603,7 +610,9 @@ def _spanned(V, F, parent, fn, facing, centre):
         ok = np.isfinite(d)
         if ok.sum() < 2:
             continue
-        V[comp == k] += (V[low[j[ok]]] - V[top[ok]]).mean(0)  # the raised skin level with the other
+        step = float(((V[low[j[ok]]] - V[top[ok]]) @ facing).mean())  # the step's height along the sticker's facing: the
+        V[comp == k] += step * facing  # raised skin moved level with the other and never sideways (a level hairline's
+        # far skin moved sideways by its width would jog every graphic across it by that much)
         A, B = V[segs[:, 0]], V[segs[:, 1]]
         AB = B - A
         for t in top:
@@ -635,9 +644,13 @@ def _spanned(V, F, parent, fn, facing, centre):
 def _bridged(V, F, parent, fn):
     """A patch's mesh with its gaps bridged, as a sticker pressed over every edge bridges them: where two skins facing
     alike (within 60 degrees) end within BRIDGE cm of each other (a raised plate's step, the hairline between two
-    pieces), the edges along their ends are joined by triangles, so a distance runs straight across instead of round.
-    Each end's vertex takes the nearest vertex of another end (never one it shares an edge with), and two vertices in
-    a row along an end make two triangles with their two. The bridges' faces have no face of the patch (parent -1)."""
+    pieces), or a slit's two sides lie within SLIT cm facing any way but opposite (the nose plate's front edge: a
+    row of sliver holes along the fold, 15 cm of them), the edges along their ends are joined by triangles, so a
+    distance runs straight across instead of round. Each end's vertex takes the nearest vertex of another end (never
+    one within OWN_RIM edges along its own rim, else a rim would take its own next vertex but one; a rim loop no longer
+    than HOLE is a hole, zipped shut: there only the neighbours are its own; left open, every geodesic across goes
+    round its ends and the sticker folds), and two vertices in a row along an end make two triangles with their two.
+    The bridges' faces have no face of the patch (parent -1)."""
     edge = {}
     for g, (x, y, z) in enumerate(F):
         for u, v in ((x, y), (y, z), (z, x)):
@@ -646,21 +659,42 @@ def _bridged(V, F, parent, fn):
     if len(rim) < 2:
         return V, F, parent
     verts = np.unique([u for u, v, _ in rim] + [v for u, v, _ in rim])
-    facing = {}
+    facing, along = {}, {}
     for u, v, g in rim:
-        for k in (u, v):
+        for k, o in ((u, v), (v, u)):
             facing.setdefault(k, []).append(fn[parent[g]])
+            along.setdefault(k, set()).add(o)
     nrm = np.array([np.mean(facing[k], 0) for k in verts])
     nrm /= np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-12)
+    loop, size = {}, {}  # each rim vertex's rim loop (the rim edges joined end to end), and each loop's length in cm
+    for u, v, _ in rim:
+        for k in (u, v):
+            if k in loop:
+                continue
+            loop[k] = len(size)
+            front = {k}
+            while front:
+                front = {o for x in front for o in along[x] if o not in loop}
+                for o in front:
+                    loop[o] = loop[k]
+            size[loop[k]] = 0.0
+        size[loop[u]] += float(np.linalg.norm(V[u] - V[v]))
+    own = {}  # each rim vertex's own rim within OWN_RIM edges along it (on a hole, its neighbours only)
+    for k in verts:
+        seen, front = {int(k)}, {int(k)}
+        for _ in range(1 if size[loop[int(k)]] <= HOLE else OWN_RIM):
+            front = {o for u in front for o in along[u]} - seen
+            seen |= front
+        own[int(k)] = seen
     tree = cKDTree(V[verts])
-    linked = set(edge)
     match = {}
     for i, k in enumerate(verts):
         for d, j in zip(*tree.query(V[k], k=min(8, len(verts)), distance_upper_bound=BRIDGE)):
             if not np.isfinite(d) or j == i or d < 1e-9:
                 continue
             m = int(verts[j])
-            if (min(k, m), max(k, m)) in linked or nrm[i] @ nrm[j] < 0.5:
+            alike = nrm[i] @ nrm[j]
+            if m in own[int(k)] or alike < (-0.2 if d <= SLIT else 0.5):
                 continue
             match[int(k)] = m
             break
@@ -685,6 +719,22 @@ def _bridged(V, F, parent, fn):
             F.append(tri)
             parent.append(-1)
     return V, np.array(F, np.int64), np.array(parent)
+
+
+def _relaxed(d, V, F):
+    """Distances from a source, no longer than the way along the mesh's edges from a nearer vertex (a few rounds of
+    relaxing over every edge): the exact solver walks a hairline's slivers lengthwise (a distance across one grows by
+    its length, and a vertex 8 cm away reads 14), and a way along the edges, on the surface itself, is never shorter
+    than the true one, so the shorter of the two is the nearer the truth."""
+    E = np.vstack([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
+    L = np.linalg.norm(V[E[:, 0]] - V[E[:, 1]], axis=1)
+    for _ in range(2 * ROUNDS):
+        before = d.copy()
+        np.minimum.at(d, E[:, 1], d[E[:, 0]] + L)
+        np.minimum.at(d, E[:, 0], d[E[:, 1]] + L)
+        if np.array_equal(before, d):
+            break
+    return d
 
 
 def _to_segment(p, a, b):

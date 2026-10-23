@@ -15,19 +15,15 @@ in plain words and numbers, then on the user's OK everything it retires removed 
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
 AI's eye**. Four steps, then 13 on the PC (away until November or December 2026):
 
-15. **The landing in every receipt.** Built, waiting for the user's OK (2026-10-22): every receipt says where its paint
-    lies on the body (z with the car's stations named, y, x, the side, the way it faces); `PY -m tool.skin read <name>`
-    stops before the textures, the judge and the views (14 s a simple car, 16 s the user's) and draws
-    `build/<name>_landing.png`, every call's texels on the side and top views, the tyres outlined over what they hide
-    (`show` prints and draws the same); a mark or words a wheel stands in front of is a finding (`marks.HIDDEN`).
-    Shown on TSC_LandingTest: three strokes planted wrong (a stripe by z at the cockpit's far side, a zone on the wrong
-    parts, a badge behind the rear wheel), each caught by `read` before a paint (its `notes.md`). On the OK: the test
-    car deleted, and this step.
-16. **The judge names its ruler and the bites it can't see.** Every placement finding names the line it read against;
-    a row of marks at a course's places and dots zoned by `shapes.sphere` get a check and a close look; a sticker's bite
-    where `surface.Surface.chart` spans a step onto a raised plate (the nose ring of 2026-10-22, notched where it
-    climbs the nose fin's plate; the chipped decals of 2026-10-08) measured first, then fixed in the chart. Retires
-    the three queue items below that name these.
+16. **The judge names its ruler and the bites it can't see.** Built, waiting for the user's OK (2026-10-22): every
+    placement finding ends "read against the model's crisp line 'side skirt crease 2', 0.3 cm from the design's
+    course" (or the course itself; `ruler` in the finding); each dot of a zoned paint (a row at a course's places,
+    `shapes.sphere`) is checked as a laid mark is (hidden skin, a wheel or another part in front of it, seen square)
+    and gets a close look; the nose ring's notch measured (rows of sliver holes along the plate's edge the chart's
+    bridging never closed, so the sticker folded) and fixed in `surface.Surface.chart` (a rim loop under `HOLE` cm is
+    zipped shut; every distance bounded by the way along the mesh's edges, since the exact solver walks a hairline's
+    slivers lengthwise). Shown on TSC_RulerTest (its `notes.md`). On the OK: the test car deleted, the three items
+    below that name these (the colour, the line, the rows), and this step.
 17. **Intent beside landing.** Each step's `words=`, each call's landing and the judge's findings on it, written to the
     viewer's data for a concept to show stroke by stroke, so a choice and an accident look different to the user (their
     picture of the notched ring, 2026-10-22: the crossing meant, the notch the tool's, the block for a third reason).
@@ -40,6 +36,10 @@ AI's eye**. Four steps, then 13 on the PC (away until November or December 2026)
 
 ## The tool
 
+- **A ring across the rear flank's shoulder jogs 0.3 cm at two crossings** (2026-10-22, TSC_RulerTest, the badge of
+  2026-10-08): the paint says chipped (0.4 cm², 40 scattered texels) and the close look shows the band stepping
+  sideways at 2 and 8 o'clock; measured not to come from the chart's step spanning nor its bridging (each switched
+  off, the ring the same). Idea: read the chart's `xy` along the ring's band and find the line the jump sits on.
 - **A colour name half known is taken as the half it knows** (2026-10-22, the test car's agent): `colours.get("warm
   white")`, "antique white" and "floral white" give plain white, dropping the word it doesn't know, while "deep" and
   "bright" are read. Idea: a name not known whole fails with "did you mean", as a part's name does.
