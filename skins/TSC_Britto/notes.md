@@ -54,3 +54,31 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
 - Open (Claude): the inner car's coloured parts still touch one another with no black between them (the red rear
   strakes on the blue tail frame, the front wing's pieces, the wishbones at their joints); they stand apart in 3D, but
   the language says black between.
+- Open (art director, 2026-10-23, Opus 5.5): eleven items, ranked by what shows first behind the car. Nothing fixed:
+  the session was stopped while the car was still being measured, and design.py is unchanged. Shown, closed and
+  gated once as it is (passes; the same pattern ends let go). The list, with what was measured:
+  1. the deck: the plates and the strip between them a green hole in the waves, yellow crumbs at its edges; to be
+     one plain green section outlined in black about 5.5 cm off the plates (the strip between the number panel,
+     z -62 to -78, and the engine cover panel, z -81 to -120, is only 3 cm, so a margin round both covers it);
+  2. the back one blue mass (tail frame, diffuser, rear arms, hubs): the hub, painted last of the inner parts,
+     shares its paint with the front uprights (as do the tail frame, rear arms, sidepod frame, rear strakes...), so it
+     colours them too; the hubs and the diffuser want colours unlike the tail frame and the arms;
+  3. no black line where the side skirt meets the rear flank: under 15 cm, so seam_points() drops it;
+  4. no line across the top of the nose: the nose panel (z 142 to 187) meets the fin's plate (z 118 to 142) edge to
+     edge, so the seam lies within 5.5 cm of the plate all the way across; run it to CLEAR, or close the U below it;
+  5. each inlet melts into its green frame: take green off both, the sides still unlike;
+  6. the sidepod hearts scattered, not in rows: a regular grid of upright hearts, a little bigger;
+  7. the checks read as long diamonds on the nose's sides, front on: the unfolding keeps them true squares (measured)
+     but its rows turn up and outward there; wrap="planes" keeps the rows square to the car, untested (it may leave
+     a seam where the shoulder turns from top to side);
+  8. the skirts' dots flattened and bean-shaped (left front most): likely centres on the skirt's rolled lip, half out
+     of sight; method="grid" lays them in rows in the unfolding;
+  9. the cockpit heart a black blob close up: about 8 cm so the outline keeps its notch;
+  10. slivers: 1 cm of colour between two black bands by the right rear quarter panel's checks, a white sliver at
+     the left quarter panel's top corner, doubled bands where the seam line runs beside the line round the inner car
+     on the cockpit surround;
+  11. the white mirrors melt into the white checks (a palette colour); the sidepod grille's green dots and the
+     frame's triangle holes look stock.
+- 2026-10-23, the user: "Can we start wrapping things up, this has taken years!" The fixing pass stopped before its
+  first edit: the art director's eleven items stay Open (in the line above), the car as the details pass left it. The
+  language's white line changed to what the car does (the lights in the palette's colours), as the art director said.
