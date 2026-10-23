@@ -126,7 +126,7 @@ more. Fixed, or found not the tool's: delete its item, and only cars judged afte
   wide along the model's crisp line 'side skirt crease 3', 1 cm to its left: a step of 0.3 cm sideways, on the right, z
   +119 (the bonnet); read against the model's line along a rounded edge 'side skirt roll 3' tilted 25 degrees, 0.3 cm
   from the design's course, mirrored to the right
-- **K4: line, on 2 cars** (2026-10-23, last seen; TSC_Britto, TSC_OutlineTest, let go on 1; at (0, 17, 214), (±3, 16,
+- **K4: line, on 2 cars** (2026-10-23, last seen; TSC_Britto, TSC_OutlineTest, let go on 2; at (0, 17, 214), (±3, 16,
   213), (0, 20, 204), (±18, 42, 145), (±24, 29, 72), (±54, 61, 11), (±76, 18, -25), (±45, 17, -108), (±44, 62, -127),
   (±49, 52, -150), (±49, 52, -151), (±29, 64, -158)): gloss #111111 on body shell, nose tip, nose panel, side
   skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod
