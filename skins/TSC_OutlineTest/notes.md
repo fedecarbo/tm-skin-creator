@@ -22,3 +22,7 @@ outline round them all from one call. Deleted once the step is OK'd.
   filled for the measure, so the line runs straight past a bolt instead of round it (2). Left: teeth of a few
   millimetres where three lines meet (the tail corners' ends, the skirts' fronts at z 45), a millimetre ring at each
   bolt's rim (the map's own edge at the hole).
+- Closed (Claude, Opus 5.5, 2026-10-23): the user's notes 1 and 2 (done in the Lab). Close looks: 544 in 103 s,
+  nothing blocking (the wheel covers' hub lines behind the wheels' hubs, noted). Let go: the judge's 17 sideways steps
+  of 0.4 to 2.4 cm under the car or where three lines meet, clean or millimetre teeth close up (the road's step 23).
+  Waiting: the user's look, and their OK of step 21.
