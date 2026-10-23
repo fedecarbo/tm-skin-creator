@@ -1,5 +1,5 @@
 {
- "design": "d94f10a42f0d45ec",
+ "design": "04a4ca6c286a7374",
  "why": "Each pattern's stripes and waves stop under the black line on the seam between two parts, as meant: Britto outlines every part in black, and the pattern belongs to its part",
  "blocks": [
   "gloss #ff7f1f on nose panel (Every part its own): its rear end stops 1 cm short: at 55 to 56 cm up the bare body goes on to z +159 (the nose); covered by gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline)",
@@ -7,5 +7,5 @@
   "gloss #ffd21f on engine cover|part (Every part its own): a gap of 2 cm from z -84 (the deck, the engine cover panel) to z -86 (the deck, the engine cover panel): covered by gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline)",
   "gloss #ffffff on tail panel (Every part its own): its front end stops 2 cm short: at 65 to 65 cm up the bare body goes on to z -131 (the tail); covered by gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline)"
  ],
- "when": "2026-10-22 23:17"
+ "when": "2026-10-22 23:34"
 }

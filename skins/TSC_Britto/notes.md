@@ -25,3 +25,16 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   left twins; the black seam outline holds it together (seams(): 4 cm, off the plates, the underside, the wing pylon
   and what's hidden); the plates plain in the colour round them; the inner car's parts solid colours (INNER); the
   wheel covers red with white dots in a yellow ring, a blue hub. Shown, judged, let go as before; close looks clean.
+- Surfaces, pass 3 (Claude, Opus 5.5, 2026-10-22): the body, its outline and the wheel covers stay gloss, the inner
+  car gloss plastic, as the language says. Added: the tyres plain black rubber (the black line round the car; the stock
+  markings gone); the glass clear (white at 0.9: the stock grey canopy and nose lens and the black mirror glass cleared,
+  so the red seat and blue steering wheel show, and the clear rear lens lets the braking red through); every light its
+  own colour of the palette, none left stock (checked texel by texel): the speed numbers yellow, the gear bar along the
+  tail green (blue was lost in the blue tail frame), the slots inside the front wheels purple, the front wing's lamps sun
+  yellow at night, the ring round each wheel a faint orange, and each inner part's own stock lamps and strips (white,
+  grey, cyan) in a palette colour that isn't its paint, at the stock brightness (LIT; the cockpit tub and nose inner
+  share paint, both green). No new glows: the body can't glow, and a glowing inner part also lights the paint it shares
+  (the front uprights, the floor). The car stays new on purpose, as the language's ageing says: no wear, no fading,
+  and no dirt even on a dirt road (s.dirt(0)). Shown, judged; the same four pattern ends let go again; close looks clean.
+- Open (Claude): the language gives white "the light in the car"; the lights took palette colours instead, as white
+  reads as the stock's. The language's line may want changing (the user's call).

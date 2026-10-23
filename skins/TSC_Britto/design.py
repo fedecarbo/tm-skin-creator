@@ -1,7 +1,8 @@
 """TSC_Britto: Romero Britto's pop art made of the car's own parts, its two sides unlike, as Britto paints a face's two
 halves: each part its own colour and pattern, and on the right side each of the side's parts another colour or pattern
 than its twin on the left; a black line on every seam between two parts; the plates the game letters plain; the inner
-car's parts each a solid colour."""
+car's parts each a solid colour. All of it gloss, the tyres black rubber, the glass clear, every light its own colour of
+the palette, and no dirt ever: it stays new."""
 
 import numpy as np
 from PIL import Image
@@ -55,6 +56,18 @@ INNER = {  # the inner car's parts seen from outside, each a solid colour
     "side vane": BLUE, "side vent": ORANGE, "exhaust": GREEN, "rear bumper": PURPLE, "rear bumper corner": YELLOW,
     "rear strake": RED, "tail frame": BLUE, "cockpit rim": ORANGE, "seat": RED, "steering wheel": BLUE,
     "airbox": YELLOW, "wing bracket": GREEN, "brake caliper": RED, "rim": YELLOW, "hub": BLUE,
+}
+# the car's own lights, each its own colour, none the stock's, at full colour: the speed numbers, the gear bar along
+# the tail's top (in the blue tail frame), the slots inside the front wheels, the lamps on the front wing (night only)
+LIGHTS = {"speed numbers": YELLOW, "rear lights": GREEN, "brake lights": PURPLE, "front wing": YELLOW}
+# the ring round each wheel and the inner car's parts that carry a light of their own (strips, lamps, the cockpit's
+# glow), each lit in a colour of the palette that isn't its paint, at the stock brightness
+LIT = {
+    "wheel ring": ORANGE, "hub": ORANGE, "rear bumper": YELLOW, "side vane": ORANGE, "exhaust": YELLOW,
+    "sidepod panel": YELLOW, "sidepod frame": YELLOW, "sidepod strut": ORANGE, "sidepod boss": YELLOW,
+    "sidepod grille plate": YELLOW, "airbox": ORANGE, "tie rod": YELLOW, "steering wheel": ORANGE,
+    "steering column": ORANGE, "upper wishbone": ORANGE, "front bulkhead": PURPLE, "floor rail": PURPLE,
+    "cockpit tub": GREEN, "nose inner": GREEN,  # these two share their paint
 }
 
 
@@ -167,3 +180,23 @@ def design(s):
     s.paint("inner", "gloss plastic", colour=BLACK)
     for part, colour in INNER.items():
         s.paint(part, "gloss plastic", colour=colour)
+
+    s.step("Tyres and glass", "The tyres plain black rubber, the black line round the whole car; the glass clear, "
+           "so the red seat and the blue steering wheel show through the canopy.",
+           words="I want you to actually paint each part differently")
+    s.paint("tyres", "rubber", colour=BLACK)
+    s.glass(WHITE, 0.9)
+
+    s.step("The lights", "Every light its own colour of the palette, none the stock's: the speed numbers yellow, the "
+           "gear bar along the tail green, the slots inside the front wheels purple, the front wing's lamps sun "
+           "yellow at night, the ring round each wheel orange; "
+           "each inner part's own lamps and strips in a colour that isn't its paint.",
+           words="I want you to actually paint each part differently", look="rear night")
+    for part, colour in LIGHTS.items():
+        s.relight(part, colour)
+    for part, colour in LIT.items():
+        s.relight(part, colour, keep_level=True)
+
+    s.step("Stays new", "A freshly varnished canvas: no dirt, no wear, no fading, even on a dirt road.",
+           words="How about we design a car like that")
+    s.dirt(0, "everything")
