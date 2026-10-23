@@ -144,3 +144,12 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   the straight gap between the edges is less than the way across its surface, so its half showed too thin). The
   corner from the note clean, both sides; the lines even and unbroken at the inlets, the sidepods, the tail. Still
   thinner round the inlets' rings than elsewhere.
+- 2026-10-23, the user: "Should I do another session with an agent for fixes?" Yes: this session is handed over.
+- Open (Claude, Opus 5.5, 2026-10-23), for the next session, the outline as strokes (the user's yes to keeping them):
+  shown, not judged by the user yet, not closed (the close looks take over an hour now: 600 looks along the many
+  strokes; stopped). The judge blocks 72, none let go: 23 steps of half a line where a free edge's 2.5 cm band meets a
+  seam's 1.25 cm (taper or overlap the free band's ends), 20 strokes cut by the body's edge on narrow pieces (the nose
+  tip, the skirts' fronts), 23 strokes wrapping onto the face behind an edge, 4 gaps. The line round the inlets'
+  green rings reads thinner than elsewhere (half of its band under the frame). The user's notes 9 to 11 (the tail's
+  seam foot, the thick stroke by the rear wheel, the stub by the inlet) are under the strokes now but not checked one
+  by one or marked done in the Lab. Then the art director's items still open (1, 2, 3, 5 to 8, 11).
