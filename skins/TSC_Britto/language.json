@@ -1,5 +1,5 @@
 {
- "idea": "Pop art in the style of Romero Britto: the car cut by thick black lines into big sections, each one its own bright colour and its own pattern.",
+ "idea": "Pop art in the style of Romero Britto: every part of the car painted as its own piece, each its own bright colour and its own pattern, outlined in black.",
  "world": "A Miami pop-art canvas. Joyful, loud and friendly: flat, saturated acrylic under a glossy varnish, primary and secondary colours side by side, every section of the subject outlined in black like a stained-glass window and filled with polka dots, stripes, checks or hearts. Nothing is shaded, nothing is sad, nothing is worn. It looks like a toy and a celebration at once.",
  "is": [
   "Joyful",
@@ -21,7 +21,7 @@
   "a cartoon character"
  ],
  "signature": {
-  "says": "The black outline. Thick black lines cut the whole car into a few big sections, the way Britto cuts a cat or a heart, and every section is a different colour with a different pattern. The lines take their course from the car's own form: they run along its creases, rolled edges and panel lines where one goes the way the section needs, and sweep across the body as long smooth curves where none does, following its flow from nose to tail. A line never stops in the middle of nowhere: it ends on another black line or where the body ends. Sections cross the car's pieces freely; the black line, not the panel gaps, says where one ends.",
+  "says": "Every part its own. Each of the car's parts (the nose, the side skirts, the sidepods, the engine cover, the tail panel, the fuel cap...) is painted as its own piece of the picture, a different colour or pattern from every part it touches, the way Britto paints a cat's ear, face and body each differently. A black outline runs round every part along its edges and seams, so the car reads as a stained-glass window made of its own parts. The inner car's parts (the wings, the arms, the frames) join in, each a solid colour.",
   "svg": "<svg viewBox=\"0 0 360 150\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"sgd\" width=\"16\" height=\"16\" patternUnits=\"userSpaceOnUse\"><rect width=\"16\" height=\"16\" fill=\"#e4202d\"/><circle cx=\"8\" cy=\"8\" r=\"4\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"sgs\" width=\"14\" height=\"14\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(35)\"><rect width=\"14\" height=\"14\" fill=\"#ffd21f\"/><rect width=\"7\" height=\"14\" fill=\"#ff7f1f\"/></pattern>\n<pattern id=\"sgc\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><rect width=\"20\" height=\"20\" fill=\"#1f5fd1\"/><rect width=\"10\" height=\"10\" fill=\"#ffffff\"/><rect x=\"10\" y=\"10\" width=\"10\" height=\"10\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"sgh\" width=\"26\" height=\"24\" patternUnits=\"userSpaceOnUse\"><rect width=\"26\" height=\"24\" fill=\"#2bb24c\"/><path d=\"M13 19 C4 12 6 4 13 9 C20 4 22 12 13 19 Z\" fill=\"#ffd21f\"/></pattern>\n<pattern id=\"sgp\" width=\"18\" height=\"18\" patternUnits=\"userSpaceOnUse\"><rect width=\"18\" height=\"18\" fill=\"#7d3ec1\"/><circle cx=\"9\" cy=\"9\" r=\"3.5\" fill=\"#ffd21f\"/></pattern>\n<clipPath id=\"sgbody\"><path d=\"M18 112 C30 52 120 24 200 26 C282 28 342 58 344 100 C345 122 330 128 300 128 L44 128 C24 128 14 124 18 112 Z\"/></clipPath>\n<clipPath id=\"sgL\"><path d=\"M0 0 L90 0 C110 60 100 100 130 150 L0 150 Z\"/></clipPath>\n<clipPath id=\"sgM\"><path d=\"M90 0 L200 0 C210 70 240 100 225 150 L130 150 C100 100 110 60 90 0 Z\"/></clipPath>\n<clipPath id=\"sgR\"><path d=\"M200 0 L360 0 L360 150 L225 150 C240 100 210 70 200 0 Z\"/></clipPath>\n<clipPath id=\"sgT\"><path d=\"M0 0 L360 0 L360 85 C240 110 120 75 0 95 Z\"/></clipPath>\n<clipPath id=\"sgB\"><path d=\"M0 95 C120 75 240 110 360 85 L360 150 L0 150 Z\"/></clipPath></defs>\n<rect width=\"360\" height=\"150\" fill=\"#ffffff\"/>\n<g clip-path=\"url(#sgbody)\">\n<g clip-path=\"url(#sgL)\"><rect clip-path=\"url(#sgT)\" width=\"360\" height=\"150\" fill=\"url(#sgd)\"/><rect clip-path=\"url(#sgB)\" width=\"360\" height=\"150\" fill=\"#ffd21f\"/></g>\n<g clip-path=\"url(#sgM)\"><rect clip-path=\"url(#sgT)\" width=\"360\" height=\"150\" fill=\"url(#sgc)\"/><rect clip-path=\"url(#sgB)\" width=\"360\" height=\"150\" fill=\"url(#sgh)\"/></g>\n<g clip-path=\"url(#sgR)\"><rect clip-path=\"url(#sgT)\" width=\"360\" height=\"150\" fill=\"url(#sgs)\"/><rect clip-path=\"url(#sgB)\" width=\"360\" height=\"150\" fill=\"url(#sgp)\"/></g>\n<path d=\"M90 0 C110 60 100 100 130 150\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/><path d=\"M200 0 C210 70 240 100 225 150\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/><path d=\"M0 95 C120 75 240 110 360 85\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/>\n</g><path d=\"M18 112 C30 52 120 24 200 26 C282 28 342 58 344 100 C345 122 330 128 300 128 L44 128 C24 128 14 124 18 112 Z\" stroke=\"#111111\" stroke-width=\"8\" fill=\"none\" stroke-linejoin=\"round\"/></svg>"
  },
  "dna": {
@@ -109,7 +109,7 @@
  "ageing": "None. The car is a freshly varnished canvas: no dirt, no wear, no fading. Pop art stays new.",
  "sizes": {
   "large": {
-   "what": "a few big outlined sections that sweep across the car's pieces, each its own colour, the black lines between them following the car's flow",
+   "what": "every part of the body its own colour, outlined in black where it meets the next: the car's own parts are the picture's sections",
    "svg": "<svg viewBox=\"0 0 260 120\" xmlns=\"http://www.w3.org/2000/svg\"><defs><clipPath id=\"lgf\"><rect x=\"4\" y=\"4\" width=\"252\" height=\"112\" rx=\"10\"/></clipPath></defs><g clip-path=\"url(#lgf)\"><path d=\"M0 0 L110 0 C90 40 120 80 95 120 L0 120 Z\" fill=\"#e4202d\"/><path d=\"M110 0 L260 0 L260 55 C200 70 150 40 103 62 C110 40 100 20 110 0 Z\" fill=\"#1f5fd1\"/>\n<path d=\"M103 62 C150 40 200 70 260 55 L260 120 L95 120 C110 100 112 80 103 62 Z\" fill=\"#ffd21f\"/>\n<path d=\"M110 0 C90 40 120 80 95 120\" stroke=\"#111111\" stroke-width=\"8\" fill=\"none\"/><path d=\"M103 62 C150 40 200 70 260 55\" stroke=\"#111111\" stroke-width=\"8\" fill=\"none\"/></g>\n<rect x=\"4\" y=\"4\" width=\"252\" height=\"112\" rx=\"10\" fill=\"none\" stroke=\"#111111\" stroke-width=\"8\"/></svg>"
   },
   "medium": {
@@ -124,12 +124,13 @@
  "fullness": "Full and busy, but ordered: nearly every section carries a pattern, one or two plain sections rest the eye, and the inner car joins in with solid colours. The car is loud everywhere, never cluttered: the black lines hold it together.",
  "never": [
   "Two colours touching without a black line between them",
-  "Two neighbouring sections with the same colour or the same pattern",
+  "Two neighbouring parts with the same colour and pattern",
+  "A colour or pattern carried over from one part onto the next",
   "Gradients, fades, shading or painted 3D",
   "Metallic, chrome, carbon or any worn finish",
   "Pastels, dark or muted colours",
-  "Wobbly, pointed or broken outlines, or a line that stops in the open",
-  "Straight cuts that ignore the car's curves",
+  "Wobbly, pointed or broken outlines",
+  "A pattern on the plates the game letters (the number panel, the engine cover panel, the nose fin's plate): they stay plain",
   "Words, numbers or a cartoon face"
  ]
 }
