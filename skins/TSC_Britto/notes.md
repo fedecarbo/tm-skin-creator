@@ -124,3 +124,14 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   Decided: rebuild the outline as one stroke along every part's own edge, inside the part (course.edge(part) with an
   even band, measured along the surface), two neighbours meeting in one 2.5 cm line; and a check in the tools that
   refuses a line whose edge is lumpy (IMPROVEMENTS.md). Waiting on the user: rebuild now, or stop for today.
+- 2026-10-23, the user: "can you do it so I can see and if not we go back?"
+- Change (Claude, Opus 5.5, 2026-10-23), for the user's look, to keep or undo: the outline rebuilt as strokes, no
+  stamped dabs left. Every part's every edge loop (course.edge, loops under 15 cm left out) drawn as a band inside the
+  part, measured across the surface: 2.5 cm along an edge nothing of the body meets, 1.25 cm along a seam (each part
+  its half), and along an edge tucked under the one it meets, 1.25 cm past that one's edge. The inner car's edges
+  lying on the body (the frames round the inlets, the bumper, the mirrors' feet): their points walked into courses, a
+  band 5 cm wide centred on them (half under the frame), on each part beside them alone. The wheel covers outlined the
+  same way. Shown; the judge reads the strokes as lines and blocks 63 findings, most where a stretch changes width at
+  a part's corner (a step of half the line) or where a stroke runs off the body's edge; not yet judged by eye. The
+  line round the inlets' rings reads thinner than the rest (half of it under the frame). Going back: design.py as
+  committed in f365dcb (the dab version), or 3bfc7bf (before notes 9 to 11).
