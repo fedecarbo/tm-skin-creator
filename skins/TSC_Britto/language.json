@@ -1,0 +1,135 @@
+{
+ "idea": "Pop art in the style of Romero Britto: the car cut by thick black lines into big sections, each one its own bright colour and its own pattern.",
+ "world": "A Miami pop-art canvas. Joyful, loud and friendly: flat, saturated acrylic under a glossy varnish, primary and secondary colours side by side, every section of the subject outlined in black like a stained-glass window and filled with polka dots, stripes, checks or hearts. Nothing is shaded, nothing is sad, nothing is worn. It looks like a toy and a celebration at once.",
+ "is": [
+  "Joyful",
+  "loud",
+  "flat",
+  "bold",
+  "outlined",
+  "patterned",
+  "glossy",
+  "friendly"
+ ],
+ "isnt": [
+  "Shaded",
+  "metallic",
+  "pastel",
+  "muted",
+  "aggressive",
+  "a racing livery",
+  "a cartoon character"
+ ],
+ "signature": {
+  "says": "The black outline. Thick black lines cut the whole car into a few big sections, the way Britto cuts a cat or a heart, and every section is a different colour with a different pattern. The lines take their course from the car's own form: they run along its creases, rolled edges and panel lines where one goes the way the section needs, and sweep across the body as long smooth curves where none does, following its flow from nose to tail. A line never stops in the middle of nowhere: it ends on another black line or where the body ends. Sections cross the car's pieces freely; the black line, not the panel gaps, says where one ends.",
+  "svg": "<svg viewBox=\"0 0 360 150\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"sgd\" width=\"16\" height=\"16\" patternUnits=\"userSpaceOnUse\"><rect width=\"16\" height=\"16\" fill=\"#e4202d\"/><circle cx=\"8\" cy=\"8\" r=\"4\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"sgs\" width=\"14\" height=\"14\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(35)\"><rect width=\"14\" height=\"14\" fill=\"#ffd21f\"/><rect width=\"7\" height=\"14\" fill=\"#ff7f1f\"/></pattern>\n<pattern id=\"sgc\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><rect width=\"20\" height=\"20\" fill=\"#1f5fd1\"/><rect width=\"10\" height=\"10\" fill=\"#ffffff\"/><rect x=\"10\" y=\"10\" width=\"10\" height=\"10\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"sgh\" width=\"26\" height=\"24\" patternUnits=\"userSpaceOnUse\"><rect width=\"26\" height=\"24\" fill=\"#2bb24c\"/><path d=\"M13 19 C4 12 6 4 13 9 C20 4 22 12 13 19 Z\" fill=\"#ffd21f\"/></pattern>\n<pattern id=\"sgp\" width=\"18\" height=\"18\" patternUnits=\"userSpaceOnUse\"><rect width=\"18\" height=\"18\" fill=\"#7d3ec1\"/><circle cx=\"9\" cy=\"9\" r=\"3.5\" fill=\"#ffd21f\"/></pattern>\n<clipPath id=\"sgbody\"><path d=\"M18 112 C30 52 120 24 200 26 C282 28 342 58 344 100 C345 122 330 128 300 128 L44 128 C24 128 14 124 18 112 Z\"/></clipPath>\n<clipPath id=\"sgL\"><path d=\"M0 0 L90 0 C110 60 100 100 130 150 L0 150 Z\"/></clipPath>\n<clipPath id=\"sgM\"><path d=\"M90 0 L200 0 C210 70 240 100 225 150 L130 150 C100 100 110 60 90 0 Z\"/></clipPath>\n<clipPath id=\"sgR\"><path d=\"M200 0 L360 0 L360 150 L225 150 C240 100 210 70 200 0 Z\"/></clipPath>\n<clipPath id=\"sgT\"><path d=\"M0 0 L360 0 L360 85 C240 110 120 75 0 95 Z\"/></clipPath>\n<clipPath id=\"sgB\"><path d=\"M0 95 C120 75 240 110 360 85 L360 150 L0 150 Z\"/></clipPath></defs>\n<rect width=\"360\" height=\"150\" fill=\"#ffffff\"/>\n<g clip-path=\"url(#sgbody)\">\n<g clip-path=\"url(#sgL)\"><rect clip-path=\"url(#sgT)\" width=\"360\" height=\"150\" fill=\"url(#sgd)\"/><rect clip-path=\"url(#sgB)\" width=\"360\" height=\"150\" fill=\"#ffd21f\"/></g>\n<g clip-path=\"url(#sgM)\"><rect clip-path=\"url(#sgT)\" width=\"360\" height=\"150\" fill=\"url(#sgc)\"/><rect clip-path=\"url(#sgB)\" width=\"360\" height=\"150\" fill=\"url(#sgh)\"/></g>\n<g clip-path=\"url(#sgR)\"><rect clip-path=\"url(#sgT)\" width=\"360\" height=\"150\" fill=\"url(#sgs)\"/><rect clip-path=\"url(#sgB)\" width=\"360\" height=\"150\" fill=\"url(#sgp)\"/></g>\n<path d=\"M90 0 C110 60 100 100 130 150\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/><path d=\"M200 0 C210 70 240 100 225 150\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/><path d=\"M0 95 C120 75 240 110 360 85\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/>\n</g><path d=\"M18 112 C30 52 120 24 200 26 C282 28 342 58 344 100 C345 122 330 128 300 128 L44 128 C24 128 14 124 18 112 Z\" stroke=\"#111111\" stroke-width=\"8\" fill=\"none\" stroke-linejoin=\"round\"/></svg>"
+ },
+ "dna": {
+  "says": "Every shape is outlined in black, rounded, and filled flat. Lines are smooth and even, never wobbly or pointed: thick (about 2.5 cm) round the big sections, medium (about 1.2 cm) round a mark, thin (0.5 cm) only inside small marks. Patterns are simple and even, laid in rows: polka dots (about 4 cm dots, twice that apart), stripes (about 4 cm, straight and slanted), checks (about 6 cm), little hearts and stars (about 5 cm). A pattern is drawn in white, black or one other colour on its section's colour, never more than two colours in a section. Rhythm: busy, plain, busy, never two neighbours alike.",
+  "svg": "<svg viewBox=\"0 0 360 130\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"dnd\" width=\"16\" height=\"16\" patternUnits=\"userSpaceOnUse\"><rect width=\"16\" height=\"16\" fill=\"#e4202d\"/><circle cx=\"8\" cy=\"8\" r=\"4\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"dns\" width=\"14\" height=\"14\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(35)\"><rect width=\"14\" height=\"14\" fill=\"#ffd21f\"/><rect width=\"7\" height=\"14\" fill=\"#ff7f1f\"/></pattern>\n<pattern id=\"dnc\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><rect width=\"20\" height=\"20\" fill=\"#1f5fd1\"/><rect width=\"10\" height=\"10\" fill=\"#ffffff\"/><rect x=\"10\" y=\"10\" width=\"10\" height=\"10\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"dnh\" width=\"26\" height=\"24\" patternUnits=\"userSpaceOnUse\"><rect width=\"26\" height=\"24\" fill=\"#2bb24c\"/><path d=\"M13 19 C4 12 6 4 13 9 C20 4 22 12 13 19 Z\" fill=\"#ffd21f\"/></pattern>\n<pattern id=\"dnp\" width=\"18\" height=\"18\" patternUnits=\"userSpaceOnUse\"><rect width=\"18\" height=\"18\" fill=\"#7d3ec1\"/><circle cx=\"9\" cy=\"9\" r=\"3.5\" fill=\"#ffd21f\"/></pattern></defs>\n<rect width=\"360\" height=\"130\" fill=\"#ffffff\"/>\n<rect x=\"10\" y=\"10\" width=\"56\" height=\"56\" rx=\"12\" fill=\"url(#dnd)\" stroke=\"#111111\" stroke-width=\"4\"/><rect x=\"80\" y=\"10\" width=\"56\" height=\"56\" rx=\"12\" fill=\"url(#dns)\" stroke=\"#111111\" stroke-width=\"4\"/><rect x=\"150\" y=\"10\" width=\"56\" height=\"56\" rx=\"12\" fill=\"url(#dnc)\" stroke=\"#111111\" stroke-width=\"4\"/><rect x=\"220\" y=\"10\" width=\"56\" height=\"56\" rx=\"12\" fill=\"url(#dnh)\" stroke=\"#111111\" stroke-width=\"4\"/><rect x=\"290\" y=\"10\" width=\"56\" height=\"56\" rx=\"12\" fill=\"url(#dnp)\" stroke=\"#111111\" stroke-width=\"4\"/>\n<path d=\"M14 88 C80 80 140 96 210 86\" stroke=\"#111111\" stroke-width=\"9\" stroke-linecap=\"round\" fill=\"none\"/>\n<path d=\"M14 106 C80 98 140 114 210 104\" stroke=\"#111111\" stroke-width=\"5\" stroke-linecap=\"round\" fill=\"none\"/>\n<path d=\"M14 120 C80 114 140 126 210 118\" stroke=\"#111111\" stroke-width=\"2.5\" stroke-linecap=\"round\" fill=\"none\"/>\n<circle cx=\"250\" cy=\"104\" r=\"14\" fill=\"#e4202d\" stroke=\"#111111\" stroke-width=\"4\"/><circle cx=\"290\" cy=\"104\" r=\"14\" fill=\"#ffd21f\" stroke=\"#111111\" stroke-width=\"4\"/><circle cx=\"330\" cy=\"104\" r=\"14\" fill=\"#1f5fd1\" stroke=\"#111111\" stroke-width=\"4\"/></svg>"
+ },
+ "colours": [
+  {
+   "name": "Britto red",
+   "colour": "#e4202d",
+   "share": 14,
+   "job": "a primary: a big section, often with white dots"
+  },
+  {
+   "name": "Sun yellow",
+   "colour": "#ffd21f",
+   "share": 14,
+   "job": "a primary: a big section, and the pattern on purple and green"
+  },
+  {
+   "name": "Cobalt blue",
+   "colour": "#1f5fd1",
+   "share": 14,
+   "job": "a primary: a big section, often with white checks"
+  },
+  {
+   "name": "Orange",
+   "colour": "#ff7f1f",
+   "share": 11,
+   "job": "a secondary: a section, or the stripes on yellow"
+  },
+  {
+   "name": "Green",
+   "colour": "#2bb24c",
+   "share": 11,
+   "job": "a secondary: a section, often with yellow hearts"
+  },
+  {
+   "name": "Purple",
+   "colour": "#7d3ec1",
+   "share": 10,
+   "job": "a secondary: a section, the deepest colour, with yellow dots"
+  },
+  {
+   "name": "Outline black",
+   "colour": "#111111",
+   "share": 14,
+   "job": "every outline, the inner car's frame and the tyres: the lead between the colours"
+  },
+  {
+   "name": "White",
+   "colour": "#ffffff",
+   "share": 12,
+   "job": "the patterns' dots, checks and stripes, and the light in the car"
+  }
+ ],
+ "meet": "Two colours never touch: a black line always sits between two sections. Inside a section, its pattern sits straight on the section's colour, a clean edge, no outline round each dot or stripe.",
+ "surfaces": [
+  {
+   "finish": "gloss",
+   "job": "every section and pattern on the body: flat bright acrylic under a varnish"
+  },
+  {
+   "finish": "gloss",
+   "colour": "#111111",
+   "job": "the black outlines, as glossy as the colours"
+  },
+  {
+   "finish": "gloss plastic",
+   "job": "the inner car's parts, each a solid colour from the palette, with black between"
+  },
+  {
+   "finish": "gloss",
+   "job": "the wheels: a colour from the palette, outlined"
+  },
+  {
+   "finish": "rubber",
+   "job": "the tyres: black, as an outline round the whole car"
+  },
+  {
+   "finish": "gloss",
+   "job": "the glass: clear, a slight tint at most"
+  }
+ ],
+ "ageing": "None. The car is a freshly varnished canvas: no dirt, no wear, no fading. Pop art stays new.",
+ "sizes": {
+  "large": {
+   "what": "a few big outlined sections that sweep across the car's pieces, each its own colour, the black lines between them following the car's flow",
+   "svg": "<svg viewBox=\"0 0 260 120\" xmlns=\"http://www.w3.org/2000/svg\"><defs><clipPath id=\"lgf\"><rect x=\"4\" y=\"4\" width=\"252\" height=\"112\" rx=\"10\"/></clipPath></defs><g clip-path=\"url(#lgf)\"><path d=\"M0 0 L110 0 C90 40 120 80 95 120 L0 120 Z\" fill=\"#e4202d\"/><path d=\"M110 0 L260 0 L260 55 C200 70 150 40 103 62 C110 40 100 20 110 0 Z\" fill=\"#1f5fd1\"/>\n<path d=\"M103 62 C150 40 200 70 260 55 L260 120 L95 120 C110 100 112 80 103 62 Z\" fill=\"#ffd21f\"/>\n<path d=\"M110 0 C90 40 120 80 95 120\" stroke=\"#111111\" stroke-width=\"8\" fill=\"none\"/><path d=\"M103 62 C150 40 200 70 260 55\" stroke=\"#111111\" stroke-width=\"8\" fill=\"none\"/></g>\n<rect x=\"4\" y=\"4\" width=\"252\" height=\"112\" rx=\"10\" fill=\"none\" stroke=\"#111111\" stroke-width=\"8\"/></svg>"
+  },
+  "medium": {
+   "what": "each section's pattern: dots, stripes, checks or hearts, even and in rows, sized to read from the chase camera",
+   "svg": "<svg viewBox=\"0 0 260 120\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"mdd\" width=\"16\" height=\"16\" patternUnits=\"userSpaceOnUse\"><rect width=\"16\" height=\"16\" fill=\"#e4202d\"/><circle cx=\"8\" cy=\"8\" r=\"4\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"mds\" width=\"14\" height=\"14\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(35)\"><rect width=\"14\" height=\"14\" fill=\"#ffd21f\"/><rect width=\"7\" height=\"14\" fill=\"#ff7f1f\"/></pattern>\n<pattern id=\"mdc\" width=\"20\" height=\"20\" patternUnits=\"userSpaceOnUse\"><rect width=\"20\" height=\"20\" fill=\"#1f5fd1\"/><rect width=\"10\" height=\"10\" fill=\"#ffffff\"/><rect x=\"10\" y=\"10\" width=\"10\" height=\"10\" fill=\"#ffffff\"/></pattern>\n<pattern id=\"mdh\" width=\"26\" height=\"24\" patternUnits=\"userSpaceOnUse\"><rect width=\"26\" height=\"24\" fill=\"#2bb24c\"/><path d=\"M13 19 C4 12 6 4 13 9 C20 4 22 12 13 19 Z\" fill=\"#ffd21f\"/></pattern>\n<pattern id=\"mdp\" width=\"18\" height=\"18\" patternUnits=\"userSpaceOnUse\"><rect width=\"18\" height=\"18\" fill=\"#7d3ec1\"/><circle cx=\"9\" cy=\"9\" r=\"3.5\" fill=\"#ffd21f\"/></pattern></defs>\n<rect width=\"260\" height=\"120\" fill=\"url(#mdd)\"/><path d=\"M150 0 C170 40 140 80 165 120 L260 120 L260 0 Z\" fill=\"url(#mds)\"/>\n<path d=\"M150 0 C170 40 140 80 165 120\" stroke=\"#111111\" stroke-width=\"7\" fill=\"none\"/></svg>"
+  },
+  "small": {
+   "what": "a few small outlined marks of the same world (a heart, a sun, a star) on small pieces, where they mean something, and the inner car's parts each a solid colour",
+   "svg": "<svg viewBox=\"0 0 260 120\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"260\" height=\"120\" fill=\"#7d3ec1\"/>\n<g transform=\"translate(60 60) scale(2.6)\"><path d=\"M0 9 C-11 1 -8 -9 0 -3 C8 -9 11 1 0 9 Z\" fill=\"#e4202d\" stroke=\"#111111\" stroke-width=\"1.4\"/></g>\n<g transform=\"translate(130 60)\"><circle r=\"18\" fill=\"#ffd21f\" stroke=\"#111111\" stroke-width=\"4\"/><circle r=\"7\" fill=\"#ff7f1f\" stroke=\"#111111\" stroke-width=\"3\"/></g>\n<g transform=\"translate(200 60)\"><path d=\"M0 -24 L6 -8 L23 -7 L10 4 L14 21 L0 11 L-14 21 L-10 4 L-23 -7 L-6 -8 Z\" fill=\"#2bb24c\" stroke=\"#111111\" stroke-width=\"4\" stroke-linejoin=\"round\"/></g></svg>"
+  }
+ },
+ "fullness": "Full and busy, but ordered: nearly every section carries a pattern, one or two plain sections rest the eye, and the inner car joins in with solid colours. The car is loud everywhere, never cluttered: the black lines hold it together.",
+ "never": [
+  "Two colours touching without a black line between them",
+  "Two neighbouring sections with the same colour or the same pattern",
+  "Gradients, fades, shading or painted 3D",
+  "Metallic, chrome, carbon or any worn finish",
+  "Pastels, dark or muted colours",
+  "Wobbly, pointed or broken outlines, or a line that stops in the open",
+  "Straight cuts that ignore the car's curves",
+  "Words, numbers or a cartoon face"
+ ]
+}
