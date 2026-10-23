@@ -185,3 +185,14 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   bumper's corners at z -142), so the eye sees the frame there, and 10 where Britto's own 5 cm band round the frames
   is half under them, as meant. Not let go: the same leftover as notes 9 to 11, the outline drawn from an inner
   part's edge lying on the body (queued, step 21). Waiting: the user's look, and their flaws next session.
+- 2026-10-23, the user (Opus 5.5): "Hi, any wheel designs we could implement to Britto?  Something unique?  I
+  realised I think that the markings of the default car will always be there corrent?", then "The tyres I mean",
+  "Just to be clear, im talking obout the rubber part, not the wheel". Read as: the tyres. The stock lettering was
+  still on Britto's tyres, raised (painting the rubber black left Nadeo's relief map); any tyre marking or tread takes
+  it off. Shown, painted on Britto: five sidewalls (clean black, white polka dots, a colour wheel, hearts, candy
+  stripes); the user: "b". Then: "But what about the treads.  What pattern are we using" (the stock's); shown four on
+  the dotted tyres (stock grooves, slick, round lugs, vintage diamond), all alike from the chase camera. The user:
+  "For now lets remove the white dots and include the C treads".
+- Change (Claude, Opus 5.5, 2026-10-23): the tread round lugs (`s.tyre_tread("round lugs")`, TR-13), a toy's; the
+  sidewalls plain black, the stock lettering gone on both sides. Shown; close looks changed only in the tyres' step
+  (58, none outside it); the outline's blocks, unchanged by it, let go as waiting on the tools' outline fix.

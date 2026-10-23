@@ -3,8 +3,8 @@ halves: each part its own colour and pattern, and on the right side each of the 
 than its twin on the left; a black stroke along every part's edges (centred on a seam, inside an edge it ends at)
 and along the inner car's frames where they lie on the body; the plates the game letters on a plain panel; the inner car's parts
 each a solid colour.
-All of it gloss, the tyres black rubber, the glass clear, every light its own colour of the palette, and no dirt ever:
-it stays new."""
+All of it gloss, the tyres black rubber with a toy's round lugs, the glass clear, every light its own colour of the
+palette, and no dirt ever: it stays new."""
 
 import functools
 
@@ -428,10 +428,12 @@ def design(s):
             | covered("sidepod frame", "the frame under the body, seen only through its cracks"))
     s.paint("inner", "gloss plastic", colour=BLACK, zone=exactly(bolts(), "every bolt"))
 
-    s.step("Tyres and glass", "The tyres plain black rubber, the black line round the whole car; the glass clear, "
+    s.step("Tyres and glass", "The tyres plain black rubber, the black line round the whole car, their sidewalls "
+           "smooth (the stock lettering off) and round lugs on the tread like a toy's; the glass clear, "
            "so the red seat and the blue steering wheel show through the canopy.",
            words="I want you to actually paint each part differently")
     s.paint("tyres", "rubber", colour=BLACK)
+    s.tyre_tread("round lugs")
     s.glass(WHITE, 0.9)
 
     s.step("The lights", "Every light its own colour of the palette, none the stock's: the speed numbers yellow, the "
