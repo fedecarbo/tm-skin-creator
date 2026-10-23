@@ -13,32 +13,25 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. Four steps, the three the user asked for after them, then 13 on the PC (away until November or December
+AI's eye**. The three steps the user asked for after its four, then 13 on the PC (away until November or December
 2026):
 
-17. **Intent beside landing.** Built, waiting for the user's OK (2026-10-22): `steps.json` gives each step its strokes,
-    every call of the design with its number in the landing sketch, its receipt's line, its landing as data
-    (`receipt.Landing.doc`), whether it crosses the car's parts on purpose, the tool's notes, and the judge's findings
-    on it (every finding names its call, `op`; `view.export_findings` sets them beside their strokes at each verdict,
-    the close looks' too, and says what was let go and why). Shown on TSC_IntentTest, the user's notched-ring picture
-    again: the crossing meant, the chip the tool's, the block for a third reason, each on its stroke. On the OK: the
-    test car deleted, and this step.
-18. **Root causes logged across cars** (the user, 2026-10-22: "if it finds something that is happening in various cars,
-    something that has a root cause, then I guess it should be automatically just logged to queue a fix in another
-    session"). Every verdict's findings kept in a ledger in the work folder at `judge.save` (milliseconds), each by a
-    signature: its kind, the line or panel it was read against, its place to a few cm. A signature on three different
-    cars, or let go on two, is the tool's, not the design's: the tool writes it into this queue itself (a section it
-    keeps: the cars, one finding as it reads, the date), one item a signature, and takes it out when no car shows it any
-    more; the judge then says "known, queued" on that finding, so a session fixes its own strokes and doesn't spend its
-    rounds on the tool's. Its worth on the evidence there is: the skirt line's steps (two cars), the shoulder badge's
-    chips (three since 2026-10-08). Retires nothing.
+18. **Root causes logged across cars.** Built, waiting for the user's OK (2026-10-22; the user: "if it finds something
+    that is happening in various cars, something that has a root cause, then I guess it should be automatically just
+    logged to queue a fix in another session"): `tool/ledger.py` keeps every car's latest verdict at `judge.save`
+    (milliseconds), each block and warning by its kind, its ruler's line and its place (every finding carries `mid`);
+    one in a place on three cars, or let go on two, is written into this queue's last section by the tool, one item for
+    a stroke's flaws of a kind, out when no car shows it; the judge then says "known, queued" and the gate lets it pass.
+    Shown on TSC_Ledger1 to 3, three different cars sharing a skirt line and a shoulder badge: the third queued K1 (the
+    skirt line's steps, five places) and K2 (the ring's chip) by itself, while its own planted mistake still blocked.
+    On the OK: the three test cars deleted (the ledger keeps their verdicts, so K1 and K2 stay), and this step.
 19. **The ring's chip, at its root** (the user, 2026-10-22: "Obviously there is somewhat a root cause that causes those
     chipped things, so that would be a session worth running to fix"; of the badge, 2026-10-08: "This decal looks chipped
     off on one part of the circle"). A ring pressed across the rear flank's rolled shoulder jogs 0.3 cm sideways at two
-    crossings and the paint says chipped (0.4 cm², TSC_RulerTest and TSC_IntentTest), measured not to come from the
-    chart's step spanning nor its bridging. The first root cause step 18's ledger should name by itself; then found (the
-    chart's `xy` along the ring's band: the line the jump sits on), fixed in `surface.Surface.chart`, and shown whole on
-    a new test car with rings across other creases and rolled edges. Retires what the ledger queued on it.
+    crossings and the paint says chipped (0.4 cm², K2 below: every car that laid it), measured not to come from the
+    chart's step spanning nor its bridging. Found (the chart's `xy` along the ring's band: the line the jump sits on),
+    fixed in `surface.Surface.chart`, and shown whole on a new test car with rings across other creases and rolled
+    edges. Retires K2 (its item deleted: the ledger counts it again only on cars judged after).
 20. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
     step's words beside its strokes' landings and findings, a choice and an accident told apart, the known ones marked.
     Retires nothing.
@@ -106,3 +99,18 @@ AI's eye**. Four steps, the three the user asked for after them, then 13 on the 
   see-through the glass is (tint only, so far); tyre markings (their relief, legibility, the band
   clearing the covers); a glow on the body (Skin_I in Details_I's format, on a test skin); the upload
   size limit (zips stay under 8.5 MB until one shows up).
+
+## Found on several cars
+
+Kept by the judge (`tool/ledger.py`): a flaw found in one place on three cars, or let go on two, is the tool's, not
+the design's. The judge says "known, queued" on it and the gate lets it pass; it's taken out when no car shows it any
+more. Fixed, or found not the tool's: delete its item, and only cars judged after count it again.
+
+- **K1: line, on 3 cars** (2026-10-22, last seen; TSC_Ledger1, TSC_Ledger2, TSC_Ledger3; at (±28, 18, 119), (±32, 19,
+  91), (±56, 20, 43), (±61, 20, 38), (±68, 21, 31)): gloss #f2f0ea on body (Skirt line): a band 1 cm wide along the
+  model's crisp line 'side skirt crease 3', 1 cm to its left: a step of 0.3 cm sideways, on the right, z +119 (the
+  bonnet); read against the model's line along a rounded edge 'side skirt roll 3' tilted 25 degrees, 0.3 cm from the
+  design's course, mirrored to the right
+- **K2: cut, on 3 cars** (2026-10-22, last seen; TSC_Ledger1, TSC_Ledger2, TSC_Ledger3; at (±70, 62, -64)): deep navy
+  satin ring on body: chipped: 0.4 cm² of it missing where the skin is bare, a bite 12.1 cm wide, on the left, z -61
+  (the sidepods' back, the number panel) to z -69 (the sidepods' back, the number panel)

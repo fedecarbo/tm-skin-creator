@@ -147,7 +147,7 @@ def plan(gfx, verdict, lift):
     def add(i, v, px, stations=None, twin=None):
         g = G[i]
         pts = np.asarray(g["pos"])[stations[0]:stations[1]] if stations else np.asarray([g["at"]])
-        where, z, side = judge._where(pts)
+        where, z, side, _ = judge._where(pts)
         looks.append({"n": len(looks) + 1, "g": i, "side": side, "view": v, "px_cm": px, "stations": stations,
                       "twin": twin, "where": where, "z": z, "label": g["what"]})
 
@@ -175,7 +175,7 @@ def plan(gfx, verdict, lift):
         if any(min(np.linalg.norm(np.asarray(L["view"]["target"]) * 100 - [0, lift, 0] - p) for p in (at, at * FLIP))
                < SPOT_APART for L in looks):
             continue
-        where, z, side = judge._where(at)
+        where, z, side, _ = judge._where(at)
         looks.append({"n": len(looks) + 1, "g": None, "side": side, "view": _view(at, _dir(f["nrm"]), PX_CM, lift),
                       "px_cm": PX_CM, "stations": None, "twin": None, "where": where, "z": z,
                       "label": f"what the eye names: {f['text']}"})
@@ -237,8 +237,8 @@ class _Map:
 
 
 def _say(found, L, g, kind, pts, text):
-    where, z, side = judge._where(pts)
-    found.append({"check": "close", "kind": kind, "z": z, "side": side, "op": g["op"] if g else None,
+    where, z, side, mid = judge._where(pts)
+    found.append({"check": "close", "kind": kind, "z": z, "side": side, "mid": mid, "op": g["op"] if g else None,
                   "text": f"{text}, {where} (look {L['n']})", "look": L["n"], "rings": pts})
 
 
@@ -299,7 +299,7 @@ def _line(M, L, g, lift, verdict, found):
     for c0, c1 in judge._runs(gap):
         if (c1 - c0) * judge.STATION < GAP_RUN:
             continue
-        _, z, side = judge._where(pos[a + c0:a + c1])
+        _, z, side, _ = judge._where(pos[a + c0:a + c1])
         if not _said(verdict, z, side):
             _say(found, L, g, "gap", pos[a + c0:a + c1], f"{g['what']}: seen close up, {np.median(width[c0:c1]):.1f} of "
                  f"its {W:.1f} cm wide for {(c1 - c0) * judge.STATION:.1f} cm (another paint, or none, in its place)")
@@ -584,8 +584,8 @@ def run(name):
         print(f"  {path}: {', '.join(dict.fromkeys(L['label'] for L in part))}")
     if said:
         print(said + (f"\n  {changed}" if changed else ""))
-    for f in found:
-        print(f"  {f['level'].upper() if f['level'] == 'block' else f['level']}: {f['kind']}: {f['text']}")
+    for line in judge.words({"findings": found}):
+        print(f"  {line}")
     if not found:
         print("the close looks find nothing to name")
     return verdict

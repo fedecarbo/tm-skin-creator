@@ -17,7 +17,7 @@ of tool/*.py, stripped of blanks, comments and docstrings, the same in two place
 errors hidden (`hiding`: an `except` that catches everything and says nothing, or that only passes, continues or
 returns with no comment on it saying why); and the tool past its size (BUDGET: lines a commit may not
 grow past without raising it here and saying why; when they shrink by more than SLACK, the budget comes down with
-them; WORDS the same for the instructions a session reads); and that the graphics chip's kernels give their numpy
+them; WORDS the same for the instructions a session reads, but the queue's items the ledger keeps); and that the graphics chip's kernels give their numpy
 twins' bits (`chip`, tool/gpu.py). Each skin is painted
 in a fresh process, from the code in the working tree and from <ref>'s code, extracted by
 `git archive` into the work folder (never the repo: the PC's is in OneDrive). Per texture it compares
@@ -60,7 +60,7 @@ import sys
 import tarfile
 import tokenize
 
-from tool import instructions, paths, progress
+from tool import instructions, ledger, paths, progress
 
 # Together they use every part of the paint box: the user's car (peel, relief, raised lettering, glows, relit
 # lights, a library finish, the canvas by hand) and TOUR, a test car of the self-test's own that
@@ -77,7 +77,7 @@ OLD = 946684800  # 2000-01-01: the old code's files predate every cache, so none
 UNSEEN = ("do_*", "log_request", "allow_reuse_address", "request_queue_size", "directory", "restype", "argtypes", "jobs")
 # The tool's lines (tool/*.py, the viewer's own viewer/*.js): a commit may not grow them past this without raising it
 # here and saying why in its message; when they shrink by more than SLACK, the budget comes down with them.
-BUDGET = {"tool/*.py": 19113, "viewer/*.js": 2503}
+BUDGET = {"tool/*.py": 19311, "viewer/*.js": 2503}
 SLACK = 100
 # The instructions' words (what a session reads: instructions.READ), the same way: a commit may not grow them past
 # this without raising it here and saying why; under it by more than WORD_SLACK, it comes down with them.
@@ -696,7 +696,8 @@ def tripwires():
                           "in the commit")
         elif n < budget - SLACK:
             caught.append(f"{pattern}: {n} lines, {budget - n} under its budget: lower BUDGET to {n}")
-    n = sum(len(f.read_text(encoding="utf-8").split()) for pattern in instructions.READ for f in paths.REPO.glob(pattern))
+    n = sum(len(ledger.unkept(f.read_text(encoding="utf-8")).split())  # the ledger's items come and go by themselves
+            for pattern in instructions.READ for f in paths.REPO.glob(pattern))
     counts.append(f"the instructions {n} words of {WORDS}")
     if n > WORDS:
         caught.append(f"the instructions: {n} words, {n - WORDS} past their budget: make room, or raise WORDS and say "

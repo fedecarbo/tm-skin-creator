@@ -887,15 +887,15 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         step = skin.ops[skin._op]["step"]
         if got["chips"]:
             area, wide, Q = got["chips"]
-            where_, z, side = judge._where(Q)
-            skin.findings.append({"check": "whole", "kind": "cut", "z": z, "side": side, "op": skin._op,
+            where_, z, side, mid = judge._where(Q)
+            skin.findings.append({"check": "whole", "kind": "cut", "z": z, "side": side, "mid": mid, "op": skin._op,
                                   "text": f"{name}: chipped: {area:.1f} cm² of it missing where the skin is bare, a bite "
                                           f"{wide:.1f} cm wide, {where_}"})
         on = idx[m > 0.5]
         hidden = _behind_wheel(c, on, got["facing"]) if len(on) else None
         if hidden:
-            where_, z, side = judge._where(c.pos[on])
-            skin.findings.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "op": skin._op,
+            where_, z, side, mid = judge._where(c.pos[on])
+            skin.findings.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "mid": mid, "op": skin._op,
                                   "text": f"{name}: hidden: the {hidden[1]} wheel stands in front of {hidden[0]:.0%} of it, "
                                           f"seen square, {where_}"})
         expected = shown.area() * got["size"] ** 2
@@ -903,8 +903,8 @@ def lay(skin, where, what, shape, size, at, colour, finish, up, turn, margin, re
         kept = {k: v for k, v in got["kept"].items() if k == "its zone" or not across}
         if share < judge.WHOLE or sum(kept.values()) >= BITE:
             why = ", ".join(f"{a:.1f} cm² kept off by {k}" for k, a in sorted(kept.items(), key=lambda kv: -kv[1]))
-            where_, z, side = judge._where(c.pos[on]) if len(on) else ("", None, None)
-            skin.findings.append({"check": "whole", "kind": "cut", "z": z, "side": side, "op": skin._op,
+            where_, z, side, mid = judge._where(c.pos[on]) if len(on) else ("", None, None, None)
+            skin.findings.append({"check": "whole", "kind": "cut", "z": z, "side": side, "mid": mid, "op": skin._op,
                                   "text": f"{name}: not whole: {share:.0%} of its {expected:.0f} cm² is on the car"
                                           f"{' (' + why + ')' if why else ''}, {where_}"})
         if skin.measure:

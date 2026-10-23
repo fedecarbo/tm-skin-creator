@@ -5,7 +5,8 @@ don't work, then let's find another approach ... it cannot randomly make mistake
     python -m tool.gate <name> --despite "<why>"  let what blocks go: prints what it is and why, for the user to be told
 
 A car passes when this computer's verdict (tool/judge.py: build/<name>/verdict.json) is of its design as it is
-(`design_hash`: design.py, the designs it borrows, its art), nothing in it blocks but what was let go, and, with `looks`,
+(`design_hash`: design.py, the designs it borrows, its art), nothing in it blocks but what was let go or is known as the
+tool's (tool/ledger.py: found in one place on several cars, and queued), and, with `looks`,
 the close looks (tool/close.py) have seen that design: a car shown alone wants them, a take doesn't (`alone`: a take
 is a skin made as one of several to pick from, marked by skins/<name>/take.json, {"of": the car}, written by whoever
 makes takes: the Lab's lab/sets.py). Where it bites:
@@ -76,9 +77,10 @@ def let_go(name, v):
 
 
 def blocks(name, v):
-    """The verdict's blocking findings, but those let go for this design."""
+    """The verdict's blocking findings, but those let go for this design and those known as the tool's (`known`)."""
     gone = let_go(name, v)[0]
-    return [f for f in v.get("findings", ()) if f.get("level") == "block" and f.get("text") not in gone]
+    return [f for f in v.get("findings", ()) if f.get("level") == "block" and f.get("text") not in gone
+            and not f.get("known")]
 
 
 def alone(name):
@@ -144,7 +146,9 @@ def despite(name, why):
     kept = let.get("blocks", []) if let.get("design") == v["design"] else []
     paths.write(p, json.dumps({"design": v["design"], "why": why, "blocks": kept + [f["text"] for f in b],
                                "when": time.strftime("%Y-%m-%d %H:%M")}, indent=1, ensure_ascii=False) + "\n")
-    from tool import view
+    from tool import ledger, view
+    ledger.keep(name, v)  # what's let go on several cars is the tool's
+    paths.write(paths.BUILD / name / "verdict.json", json.dumps(v, indent=1))
     view.export_findings(name, v)  # each stroke's findings say what was let go, and why
     what = "; ".join(judge.KINDS.get(f["kind"], f["kind"]) + _place(f["text"]) for f in b)
     return f"{len(b)} let go on {name}. Tell the user: {why} Still there, as the tool measures it: {what}."
@@ -170,8 +174,10 @@ def main(args):
         if let.get("design") == v["design"]:
             print(f"let go ({let['when']}): {let['why']}")
     if not found:
+        known = sorted({f["known"] for f in v["findings"] if f.get("known") and f["level"] == "block"})
         print(f"{name} passes: judged as it is" + (", looked at close" if alone(name) else "") + ", nothing blocks"
-              + (" but what was let go" if let.get("design") == v["design"] else ""))
+              + (" but what was let go" if let.get("design") == v["design"] else "")
+              + (f"; known as the tool's and queued: {', '.join(known)}" if known else ""))
 
 
 if __name__ == "__main__":

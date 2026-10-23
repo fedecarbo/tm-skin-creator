@@ -120,7 +120,8 @@ lands in the work folder's `build/` (`tool/paths.py`).
 
 ## Before showing
 
-1. Fix what the judge blocks, look at what it warns of, then look at the six views.
+1. Fix what the judge blocks, look at what it warns of, then look at the six views. What it says is "known,
+   queued" is the tool's, found on several cars: tell the user, don't paint round it.
 2. A design shown alone, or a pick: `tool.close <name>`; fix what it blocks, and look at every
    sheet: nothing cut, sunk, stretched or soft, the two sides alike, nothing changed that the edit
    didn't mean. A number passing doesn't make it done: the user's eye decides, so show it close up,

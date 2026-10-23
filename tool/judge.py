@@ -6,11 +6,12 @@
 
 `run` judges a skin painted with Skin.measure on (tool/skin.py's show): the verdict {design: the design's hash
 (tool/gate.py's `design_hash`: design.py, the designs it borrows, its art), findings, seconds}, kept by show in
-build/<name>/verdict.json (`save`, which sets each beside its stroke in the viewer's data: view.export_findings);
-`words` says it for Claude, the blocks first. Each finding: {level, kind, check, text, z, side, op}: z the stretch
-along the car in cm, front to back, or None; side where one side alone; op the call it names (Skin.ops); the eye's
-carry `at` and `nrm` too, for a close look square to the body there (tool/close.py, which adds its own findings, check
-"close"). The levels (LEVELS, by kind):
+build/<name>/verdict.json (`save`, which keeps it beside every car's, tool/ledger.py, and sets each beside its stroke
+in the viewer's data: view.export_findings); `words` says it for Claude, the blocks first. Each finding: {level, kind,
+check, text, z, side, mid, op}: z the stretch along the car in cm, front to back, or None; side where one side alone;
+mid the middle of what it names (x, y, z cm); op the call it names (Skin.ops); `known` when the ledger has it queued as
+the tool's; the eye's carry `at` and `nrm` too, for a close look square to the body there (tool/close.py, which adds its
+own findings, check "close"). The levels (LEVELS, by kind):
   block   an accident, to fix before the car is shown as done, the tool's or the design's;
   warn    to look at close up, then fix or know why it's meant;
   note    how a graphic sits against the car's lines and the graphics round it: it names, never forbids.
@@ -76,7 +77,7 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
-from tool import carmap, coverage, fbx, gate, paths, pieces, receipt, shapes, uvmap, view
+from tool import carmap, coverage, fbx, gate, ledger, paths, pieces, receipt, shapes, uvmap, view
 
 # ---- the kinds and the levels ----
 KINDS = {
@@ -198,15 +199,20 @@ def _place(z):
     return f"z {z:+.0f}" + (f" ({name})" if name else "")
 
 
+def _mid(p):
+    """The middle of points on the car, cm: a finding's place (tool/ledger.py's signatures)."""
+    return [round(float(v), 1) + 0.0 for v in np.asarray(p, np.float64).reshape(-1, 3).mean(0)]
+
+
 def _where(p):
-    """Where points are, in words, and for a finding: (words, z, side)."""
+    """Where points are, in words, and for a finding: (words, z, side, mid)."""
     p = np.asarray(p, np.float64).reshape(-1, 3)
     z = [round(float(p[:, 2].max()), 1), round(float(p[:, 2].min()), 1)]
     left, right = bool((p[:, 0] > 2).any()), bool((p[:, 0] < -2).any())
     side = "left" if left and not right else "right" if right and not left else None
     a, b = round(z[0]) + 0.0, round(z[1]) + 0.0  # never "z -0"
     along = _place(a) if a - b < 4 else f"{_place(a)} to {_place(b)}"
-    return (f"on the {side}, " if side else "") + along, z, side
+    return (f"on the {side}, " if side else "") + along, z, side, _mid(p)
 
 
 def _reading(f):
@@ -445,7 +451,7 @@ def _reach_side(car, call, body, shown, showing, aimed, sign):
                 gap, _ = cKDTree(p[tip]).query(body.pos[k[joined]], distance_upper_bound=EDGE * 2, workers=-1)
                 edge = joined[gap <= EDGE] if (gap <= EDGE).any() else joined
                 worst = {"short": float(along.max()), "body": zend + d * float(along.max()), "height": [a, b],
-                         "edge": k[edge], "across": worst.get("across")}
+                         "edge": k[edge], "mid": _mid(body.pos[k[joined]]), "across": worst.get("across")}
             # the body at the paint's height resuming past an opening (the rear wheel's), bare: past
             # the end, OPENING cm or more with none of it, then ACROSS_RUN cm or more of it
             far = body.near(sign, zend - FAR, zend + FAR, a, b)
@@ -462,7 +468,7 @@ def _reach_side(car, call, body, shown, showing, aimed, sign):
                 if long >= ACROSS_RUN and long > (worst.get("across") or {}).get("long", 0):
                     inside = (on >= r0 * BIN) & (on < r1 * BIN)
                     worst["across"] = {"from": zend + d * r0 * BIN, "to": zend + d * r1 * BIN, "long": long,
-                                       "height": [a, b], "texels": far[inside]}
+                                       "height": [a, b], "texels": far[inside], "mid": _mid(body.pos[far[inside]])}
                 break
         if worst["short"] >= SHORT:
             worst["why"], worst["as_written"] = _why(car, call, body.texels[worst["edge"]], aimed)
@@ -494,7 +500,8 @@ def _reach_side(car, call, body, shown, showing, aimed, sign):
             continue
         hole = k[(kb >= g0) & (kb < g1) & ~on]
         why, written = _why(car, call, body.texels[hole], aimed)
-        out["gaps"].append({"from": (b0 + g1) * BIN, "to": (b0 + g0) * BIN, "why": why, "as_written": written})
+        out["gaps"].append({"from": (b0 + g1) * BIN, "to": (b0 + g0) * BIN, "why": why, "as_written": written,
+                            "mid": _mid(body.pos[k[(kb >= g0) & (kb < g1)]])})
     return out
 
 
@@ -521,16 +528,16 @@ def _reach(car, call, found):
             x = e.get("across")
             if x and not x["as_written"]:
                 up = f"{x['height'][0]:.0f} to {x['height'][1]:.0f} cm up"
-                found.append({**said, "kind": "short", "z": [x["from"], x["to"]],
+                found.append({**said, "kind": "short", "z": [x["from"], x["to"]], "mid": x["mid"],
                               "text": f"{name}: its {end} end stops short past an opening: at {up} the body goes on, bare, "
                                       f"from {_place(x['from'])} to {_place(x['to'])}; {x['why']}"})
             if e["short"] >= SHORT and not e["as_written"]:
                 at = f"{e['height'][0]:.0f} to {e['height'][1]:.0f} cm up"
                 much = f"{e['short']:.0f} cm" if e["short"] < REACH - BIN else f"{REACH:.0f} cm or more"
-                found.append({**said, "kind": "short", "z": [r[end], e["body"]],
+                found.append({**said, "kind": "short", "z": [r[end], e["body"]], "mid": e["mid"],
                               "text": f"{name}: its {end} end stops {much} short: at {at} the bare body goes on to "
                                       f"{_place(e['body'])}; {e['why']}"})
-        found += [{**said, "kind": "gap", "z": [g["from"], g["to"]],
+        found += [{**said, "kind": "gap", "z": [g["from"], g["to"]], "mid": g["mid"],
                    "text": f"{name}: a gap of {g['from'] - g['to']:.0f} cm from {_place(g['from'])} to {_place(g['to'])}: {g['why']}"}
                   for g in r["gaps"] if not g["as_written"]]
 
@@ -724,8 +731,8 @@ def _zoned(car, call, found, marking):
             f = call["zone"].parts()
             k = np.bincount(o["detail"][soft], minlength=len(f)).argmax()
             wide = float(np.median(o["feather"][soft]))
-            where, z, side = car.place(o["b"][soft])
-            found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "op": call["op"],
+            where, z, side, mid = car.place(o["b"][soft])
+            found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "mid": mid, "op": call["op"],
                           "text": f"{name}: {_lengths(o, soft):.0f} cm of its edge is soft, about {wide:.1f} cm wide "
                                   f"(a crisp edge is {shapes.SOFT} cm), where {f[k]!r} ends it, {where}"})
     elif any(_blend(f) for f in call["zone"].parts()):
@@ -778,15 +785,15 @@ def _zoned(car, call, found, marking):
     for k, hard in cuts.items():
         sel = np.logical_or.reduce(list(hard.values()))
         said = "; ".join(f"{_lengths(o, x):.0f} cm where {why(*key)}" for key, x in sorted(hard.items(), key=lambda kv: -_lengths(o, kv[1])))
-        where, z, side = car.place(o["b"][sel])
-        found.append({"check": "cut", "kind": "cut", "z": z, "side": side, "op": call["op"],
+        where, z, side, mid = car.place(o["b"][sel])
+        found.append({"check": "cut", "kind": "cut", "z": z, "side": side, "mid": mid, "op": call["op"],
                       "text": f"{name}: {'several of its marks are ' if k is None else ''}cut along its outline: {said}, {where}"})
     for d, sels in sorted(covers.items()):
         if _sits_on(car, d, call["op"]):
             continue
         sel = np.logical_or.reduce(sels)
-        where, z, side = car.place(o["b"][sel])
-        found.append({"check": "over", "kind": "over", "z": z, "side": side, "op": d,
+        where, z, side, mid = car.place(o["b"][sel])
+        found.append({"check": "over", "kind": "over", "z": z, "side": side, "mid": mid, "op": d,
                       "text": f"{car.op(d)} covers part of {name}: {_lengths(o, sel):.0f} cm of its outline, {where}"})
     _say_across(car, name, call["op"], across, found)
     return bool(car.cm2[shown[graphic[mark]]].sum() >= 0.95 * car.cm2[shown].sum()), o
@@ -803,8 +810,8 @@ def _spill(car, name, op, S, found):
         t = S[car.piece[S] == p]
         names, counts = np.unique(car.part[t], return_counts=True)
         parts.append(f"{car.cm2[t].sum():.0f} cm² on the {car.names[names[counts.argmax()]]}")
-    where, z, side = car.place(S)
-    found.append({"check": "spill", "kind": "spill", "z": z, "side": side, "op": op,
+    where, z, side, mid = car.place(S)
+    found.append({"check": "spill", "kind": "spill", "z": z, "side": side, "mid": mid, "op": op,
                   "text": f"{name}: lies on {len(big)} separate pieces of the body ({', '.join(parts)}), {where}"})
 
 
@@ -829,9 +836,9 @@ def _across(car, op, S, under, across):
 def _say_across(car, name, op, across, found):
     for d, hits in sorted(across.items()):
         t = np.concatenate([h[0] for h in hits])
-        where, z, side = car.place(t)
+        where, z, side, mid = car.place(t)
         share = max(h[1] for h in hits)
-        found.append({"check": "over", "kind": "over", "z": z, "side": side, "op": op,
+        found.append({"check": "over", "kind": "over", "z": z, "side": side, "mid": mid, "op": op,
                       "text": f"{name} lies across the edge of {car.op(d)}: {share:.0%} of it over that paint, {where}"})
 
 
@@ -878,8 +885,8 @@ def _pictures(car, found):
 
 def _pixelated(car, name, op, S, pixels, found):
     if pixels < PIXELS:
-        where, z, side = car.place(S)
-        found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "op": op,
+        where, z, side, mid = car.place(S)
+        found.append({"check": "edge", "kind": "edge", "z": z, "side": side, "mid": mid, "op": op,
                       "text": f"{name}: {pixels:.0f} of the picture's pixels per cm on the car, fewer than the car's own "
                               f"{PIXELS:.0f}: it will show its pixels, {where}"})
 
@@ -893,18 +900,18 @@ def _upright(car, name, op, mark, S, found):
     mean = nrm.mean(0)
     mean /= np.linalg.norm(mean)
     turn = float(np.percentile(np.degrees(np.arccos(np.clip(nrm @ mean, -1, 1))), 99))
-    where, z, side = car.place(S)
+    where, z, side, mid = car.place(S)
     if turn > FOLD_WORDS:
-        found.append({"check": "fold", "kind": "fold", "z": z, "side": side, "op": op,
+        found.append({"check": "fold", "kind": "fold", "z": z, "side": side, "mid": mid, "op": op,
                       "text": f"{name}: the surface under it turns {turn:.0f}° away from flat: it will look bent, {where}"})
     right, up, facing = (np.asarray(v, np.float64) for v in mark["frame"])
     off = float(np.degrees(np.arccos(np.clip(mean @ facing / np.linalg.norm(facing), -1, 1))))
     if off > FLIPPED:
-        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "op": op,
+        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "mid": mid, "op": op,
                       "text": f"{name}: laid as if the surface faced one way, but under it the surface faces {off:.0f}° away: "
                               f"it will look flipped or sheared, {where}"})
     elif abs(mean[1]) < 0.7 and up[1] < HANG:
-        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "op": op,
+        found.append({"check": "upside down", "kind": "upside down", "z": z, "side": side, "mid": mid, "op": op,
                       "text": f"{name}: its top points down: it hangs upside down, {where}"})
 
 
@@ -1003,9 +1010,9 @@ def _clear(car, found):
             if car.cm2[t].sum() < SPECK:
                 continue
             on = float(car.cm2[t[np.isin(t, panel)]].sum())
-            where, z, side = car.place(t)
+            where, z, side, mid = car.place(t)
             how = f"{on:.0f} cm² on" if on >= 3 * SPECK else f"{car.cm2[t].sum():.0f} cm² within {CLEAR:g} cm of"
-            found.append({"check": "clear", "kind": "clear", "z": z, "side": side, "op": d,
+            found.append({"check": "clear", "kind": "clear", "z": z, "side": side, "mid": mid, "op": d,
                           "text": f"{car.op(d)}: {how} {words}, {where}"})
 
 
@@ -1059,9 +1066,9 @@ def _rows(car, found):
         by.setdefault((call["op"], why, side), []).append((S, share))
     for (op, why, side_), hits in by.items():
         call, n, S = calls[op], count[(op, side_)], np.concatenate([h[0] for h in hits])
-        where, z, side = car.place(S)
+        where, z, side, mid = car.place(S)
         what = f"{max(h[1] for h in hits):.0%} of it" if n == 1 else f"{len(hits)} of its {n} marks"
-        found.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "op": op,
+        found.append({"check": "seen", "kind": "hidden", "z": z, "side": side, "mid": mid, "op": op,
                       "text": f"{car.op(call['op'])}: {why} {what}" + (", seen square" if why.startswith("hidden") else "") + f", {where}"})
 
 
@@ -1335,9 +1342,9 @@ def _marking(car, call, z, found):
             c2 = (s2["lo"][full2[0]] + s2["hi"][full2[0]]) / 2 - (s2["lo_e"] + s2["hi_e"]) / 2
             jump = abs(c2 - c1)
             if jump > max(STEP_SHARE * s1["W"], STEP_LEAST):
-                where, zz, side = _where(np.vstack([s1["pos"][full1[-1]], s2["pos"][full2[0]]]))
+                where, zz, side, mid = _where(np.vstack([s1["pos"][full1[-1]], s2["pos"][full2[0]]]))
                 ruler = f"{r1} and {r2}" + (", mirrored to the right" if s1["mirrored"] else "")
-                mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "op": call["op"], "ruler": ruler,
+                mine.append({"check": "placement", "kind": "line", "z": zz, "side": side, "mid": mid, "op": call["op"], "ruler": ruler,
                              "text": f"{name}: {label}: a step of {jump:.1f} cm sideways where the two lines it follows meet, "
                                      f"{where}; read against {ruler}"})
     return mine
@@ -1370,8 +1377,8 @@ def _station_findings(name, label, call, st, kind, found, ruler):
     said = {"check": "placement", "op": call["op"], "ruler": ruler}
 
     def say(kind_, sel, text):
-        where, zz, side = _where(st["pos"][sel])
-        found.append({**said, "kind": kind_, "z": zz, "side": side,
+        where, zz, side, mid = _where(st["pos"][sel])
+        found.append({**said, "kind": kind_, "z": zz, "side": side, "mid": mid,
                       "text": f"{name}: {label}: {text}, {where}; read against {ruler}"})
 
     has = np.isfinite(st["lo"])
@@ -1476,8 +1483,8 @@ def _fills(car, call, o, fills, found):
             sel = off & (zb - z0 >= a) & (zb - z0 < c_)
             if c_ - a < 2 or not sel.any() or length[sel].sum() < 3.0:
                 continue
-            where, zz, side = _where(pos[sel])
-            found.append({"check": "placement", "kind": "short", "z": zz, "side": side, "op": call["op"], "ruler": what,
+            where, zz, side, mid = _where(pos[sel])
+            found.append({"check": "placement", "kind": "short", "z": zz, "side": side, "mid": mid, "op": call["op"], "ruler": what,
                           "text": f"{name}: its edge sits {np.median(d[sel]):.1f} cm inside {what} over {length[sel].sum():.0f} cm, {where}"})
 
 
@@ -1881,9 +1888,16 @@ def run(skin):
             "graphics": car.looks if "Skin" in skin.canvases and skin.canvases["Skin"].owner is not None else []}
 
 
+def _level(f):
+    if f.get("known"):  # the tool's, queued: nothing to fix in the design
+        return f"known, queued as {f['known']} (the tool's)"
+    return f["level"].upper() if f["level"] == "block" else f["level"]
+
+
 def words(verdict):
-    """The verdict as lines for Claude: the blocks first, then the warnings, then the eye's notes."""
-    return [f"{f['level'].upper() if f['level'] == 'block' else f['level']}: {f['kind']}: {f['text']}" for f in verdict["findings"]]
+    """The verdict as lines for Claude: the blocks first, then the warnings, then the eye's notes; one the ledger knows
+    as the tool's says so."""
+    return [f"{_level(f)}: {f['kind']}: {f['text']}" for f in verdict["findings"]]
 
 
 def step_hashes(name):
@@ -1937,6 +1951,7 @@ def save(name, verdict, skin=None):
         paths.write(out / "graphics.json", json.dumps({"design": verdict["design"], "steps": steps,
                                                        "ops": [o["step"] for o in skin.ops],
                                                        "paints": [o["what"] for o in skin.ops], "graphics": graphics}))
+    ledger.keep(name, verdict)  # beside every car's: what's known as the tool's says so
     paths.write(out / "verdict.json", json.dumps(verdict, indent=1))
     view.export_findings(name, verdict)
 

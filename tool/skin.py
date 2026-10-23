@@ -124,9 +124,11 @@ def judge_it(name, s):
     if "Skin" in s.canvases:  # the judge was the last to read the body's layers
         s.canvases["Skin"].free()
     lines = judge.words(verdict)
-    blocks = sum(f["level"] == "block" for f in verdict["findings"])
+    blocks = sum(f["level"] == "block" and not f.get("known") for f in verdict["findings"])
+    known = sum(bool(f.get("known")) for f in verdict["findings"])
     print(f"judged in {verdict['seconds']} s: " + (f"{len(lines)} finding{'s' if len(lines) > 1 else ''}, "
-                                                   f"{blocks} blocking" if lines else "nothing to name"))
+                                                   f"{blocks} blocking" if lines else "nothing to name")
+          + (f", {known} known as the tool's (queued)" if known else ""))
     print("\n".join(f"  {line}" for line in lines))
     return lines, blocks
 
