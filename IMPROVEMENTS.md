@@ -13,16 +13,9 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. The two steps the user asked for after its four, then 13 on the PC (away until November or December
+AI's eye**. The last step the user asked for after its four, then 13 on the PC (away until November or December
 2026):
 
-19. **The ring's chip, at its root.** Built, waiting for the user's OK (2026-10-22; the user: "Obviously there is
-    somewhat a root cause that causes those chipped things"): six causes in `surface.Surface.chart` pressed over every
-    edge, each a ring cut or bent on TSC_RingsAcross_Before (the tool as it was) and whole on TSC_RingsAcross: a panel
-    line's groove read as a step (K2: `meshlines.grooves`, filled to its mouth), a face past the chart's reach dropped
-    whole, curved skin read as a step's wall (only a panel no wider than `surface.STEP`, `meshlines.widths`), a wall's
-    inner points left without a place, the sources' ways bent over a groove (`surface._ways`); and bridges left bowties
-    the exact solver reads 0 past (`surface._fans`). On the OK: K2's item deleted, both test cars.
 20. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
     step's words beside its strokes' landings and findings, a choice and an accident told apart, the known ones marked.
     Retires nothing.
@@ -107,6 +100,3 @@ more. Fixed, or found not the tool's: delete its item, and only cars judged afte
   model's crisp line 'side skirt crease 3', 1 cm to its left: a step of 0.3 cm sideways, on the right, z +119 (the
   bonnet); read against the model's line along a rounded edge 'side skirt roll 3' tilted 25 degrees, 0.3 cm from the
   design's course, mirrored to the right
-- **K2: cut, on 3 cars** (2026-10-22, last seen; TSC_Ledger1, TSC_Ledger2, TSC_Ledger3; at (±70, 62, -64)): deep navy
-  satin ring on body: chipped: 0.4 cm² of it missing where the skin is bare, a bite 12.1 cm wide, on the left, z -61
-  (the sidepods' back, the number panel) to z -69 (the sidepods' back, the number panel)
