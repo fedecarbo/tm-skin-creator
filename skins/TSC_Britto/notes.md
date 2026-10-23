@@ -180,3 +180,8 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   (by the rear wheel) still there and 11 (black specks on the inlet's green frame) new: the outline test car is clean
   at all three, so they are Britto's own code, the line round the inner car (contacts, paths) and the frame painted
   black under the body (covered): moving them into the tools is queued (`IMPROVEMENTS.md`, step 21).
+- Close looks (Claude, Opus 5.5, 2026-10-23): 604 in 3 minutes (over an hour on its own outline). They block 33: 23
+  where the outline runs along the body's own edge under the inner car (the green frames round the inlets, the
+  bumper's corners at z -142), so the eye sees the frame there, and 10 where Britto's own 5 cm band round the frames
+  is half under them, as meant. Not let go: the same leftover as notes 9 to 11, the outline drawn from an inner
+  part's edge lying on the body (queued, step 21). Waiting: the user's look, and their flaws next session.
