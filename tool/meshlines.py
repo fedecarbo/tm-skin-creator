@@ -392,6 +392,61 @@ def _panels(tset):
     return connected_components(coo_matrix((np.ones(len(t1)), (t1, t2)), shape=(n, n)), directed=False)[1]
 
 
+GROOVE = 0.5  # cm: a panel this narrow (twice its area over its outline) is a wall: a groove's (0.2) or a raised plate's edge
+FLUSH = 0.05  # cm: a groove's two lips lie this level with each other (the wing pylons' slots, 0.2, don't)
+MOUTH = 1.5   # cm: a groove's lips lie this near each other across it (0.3)
+
+
+@functools.lru_cache(maxsize=4)
+def widths(tset="Skin"):
+    """Each of the model's triangles' panel's width, cm: twice the panel's area over its outline (its crisp lines and
+    the body's edges round it). A panel line's groove's wall is 0.2 wide, a raised plate's edge 1, a panel 5 and up."""
+    e, lab = _edges(tset), _panels(tset)
+    X, n = e["P"][e["T"]], lab.max() + 1
+    t1, t2, tb = e["tri"][e["h1"]], e["tri"][e["h2"]], e["tri"][e["hb"]]
+    c = e["crease"]
+    length = np.linalg.norm(e["s1"][:, 1] - e["s1"][:, 0], axis=1)
+    area = np.bincount(lab, 0.5 * np.linalg.norm(np.cross(X[:, 1] - X[:, 0], X[:, 2] - X[:, 0]), axis=1), n)
+    outline = (np.bincount(lab[t1[c]], length[c], n) + np.bincount(lab[t2[c]], length[c], n)
+               + np.bincount(lab[tb], np.linalg.norm(e["sb"][:, 1] - e["sb"][:, 0], axis=1), n))
+    return (2 * area / np.maximum(outline, 1e-12))[lab]
+
+
+@functools.lru_cache(maxsize=4)
+def grooves(tset="Skin"):
+    """Which of the model's triangles lie in a panel line's groove (each triangle's True or False): narrow panels
+    (GROOVE) joined to one another at their foot by crisp lines folding inward, the skin on both sides of them level
+    (FLUSH) at their lips, where they fold outward. A narrow panel folding inward onto wide skin is a step's wall (a
+    raised plate's edge): neither it nor the walls joined to it are a groove. 22 on the body, 0.17 to 0.36 cm across,
+    the panel lines and the wheel covers' rings; a sticker pressed over one spans its mouth (surface.Surface.chart)."""
+    from scipy.sparse.csgraph import connected_components
+    e, lab = _edges(tset), _panels(tset)
+    n = lab.max() + 1
+    t1, t2 = e["tri"][e["h1"]], e["tri"][e["h2"]]
+    c, p1, p2 = e["crease"], lab[t1], lab[t2]
+    narrow = np.zeros(n, bool)
+    narrow[lab] = widths(tset) <= GROOVE
+    foot = c & (e["bend"] < 0)
+    joined = foot & narrow[p1] & narrow[p2] & (p1 != p2)
+    group = connected_components(coo_matrix((np.ones(joined.sum()), (p1[joined], p2[joined])), shape=(n, n)), directed=False)[1]
+    walls = np.zeros(n, bool)
+    walls[p1[joined]] = walls[p2[joined]] = True
+    on_skin = foot & (narrow[p1] != narrow[p2])
+    walls &= ~np.isin(group, group[np.where(narrow[p1], p1, p2)[on_skin]])
+    lip = c & (e["bend"] > 0) & (walls[p1] != walls[p2])
+    pts, first = np.unique(np.r_[e["a"][e["h1"]][lip], e["b"][e["h1"]][lip]], return_index=True)
+    wall = np.tile(np.where(walls[p1], p1, p2)[lip], 2)[first]
+    P, N = e["P"][pts], e["N"][pts]
+    level = {}
+    for i, near in enumerate(cKDTree(P).query_ball_point(P, MOUTH)):  # each lip point and the nearest across the groove
+        across = [j for j in near if wall[j] != wall[i] and group[wall[j]] == group[wall[i]]]
+        if across:
+            j = min(across, key=lambda j: np.linalg.norm(P[j] - P[i]))
+            level.setdefault(group[wall[i]], []).append(abs((P[j] - P[i]) @ N[i]))
+    walls &= np.isin(group, [g for g, d in level.items() if np.median(d) <= FLUSH])
+    return walls[lab]
+
+
 def _triangle_at(point, tset="Skin"):
     """The model's triangle nearest a point."""
     return _closest(point, tset)[0]
@@ -875,12 +930,22 @@ def _pool(tset="Skin"):
     return [(n, L) for n, rec in named(tset).items() if _kind(n) != "panel" for L in (rec if isinstance(rec, list) else [rec])]
 
 
+def _off(P, p):
+    """How far a point is from a line through the points P in order: from its segments, not only its points (the model's
+    points along a straight stretch lie up to 50 cm apart)."""
+    A, AB = P[:-1], np.diff(P, axis=0)
+    if not len(AB):
+        return float(np.linalg.norm(P[0] - p))
+    t = np.clip(((p - A) * AB).sum(1) / np.maximum((AB * AB).sum(1), 1e-18), 0, 1)
+    return float(np.linalg.norm(A + t[:, None] * AB - p, axis=1).min())
+
+
 def near(point, reach=5.0, tset="Skin"):
     """The model's lines and rounded edges within `reach` cm of a point: [(how far, the name, a word)], nearest first."""
     p = np.asarray(point, np.float64)
     found = {}
     for n, L in _pool(tset):
-        d = float(np.linalg.norm(L["pts"] - p, axis=1).min())
+        d = _off(L["pts"], p)
         if d <= reach and d < found.get(n, (np.inf,))[0]:
             found[n] = (d, n, f"{WORDS[L['kind']]}, {L['length']:.0f} cm" + (f", tilt {L['tilt']:.0f}" if "tilt" in L else ""))
     return sorted(found.values())
@@ -915,7 +980,7 @@ def _around(name, L, tset="Skin"):
         s, e = _ends(L)
         out.append(f"  Its way from c.start: {_way(L['pts'][::-1] if _backward(L['pts']) else L['pts'])}.")
         for word, p in (("start", s), ("end", e)):
-            met = sorted((float(np.linalg.norm(K["pts"] - p, axis=1).min()), n) for n, K in _pool(tset) if n != name)
+            met = sorted((_off(K["pts"], p), n) for n, K in _pool(tset) if n != name)
             met = list(dict.fromkeys(n for d, n in met if d <= MEETS))[:4]
             if met:
                 out.append(f"  At c.{word} it meets {', '.join(met)}.")

@@ -16,13 +16,13 @@ perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **
 AI's eye**. The two steps the user asked for after its four, then 13 on the PC (away until November or December
 2026):
 
-19. **The ring's chip, at its root** (the user, 2026-10-22: "Obviously there is somewhat a root cause that causes those
-    chipped things, so that would be a session worth running to fix"; of the badge, 2026-10-08: "This decal looks chipped
-    off on one part of the circle"). A ring pressed across the rear flank's rolled shoulder jogs 0.3 cm sideways at two
-    crossings and the paint says chipped (0.4 cm², K2 below: every car that laid it), measured not to come from the
-    chart's step spanning nor its bridging. Found (the chart's `xy` along the ring's band: the line the jump sits on),
-    fixed in `surface.Surface.chart`, and shown whole on a new test car with rings across other creases and rolled
-    edges. Retires K2 (its item deleted: the ledger counts it again only on cars judged after).
+19. **The ring's chip, at its root.** Built, waiting for the user's OK (2026-10-22; the user: "Obviously there is
+    somewhat a root cause that causes those chipped things"): six causes in `surface.Surface.chart` pressed over every
+    edge, each a ring cut or bent on TSC_RingsAcross_Before (the tool as it was) and whole on TSC_RingsAcross: a panel
+    line's groove read as a step (K2: `meshlines.grooves`, filled to its mouth), a face past the chart's reach dropped
+    whole, curved skin read as a step's wall (only a panel no wider than `surface.STEP`, `meshlines.widths`), a wall's
+    inner points left without a place, the sources' ways bent over a groove (`surface._ways`); and bridges left bowties
+    the exact solver reads 0 past (`surface._fans`). On the OK: K2's item deleted, both test cars.
 20. **The Lab shows the strokes** (in the Lab's repo; the user, 2026-10-22: "It's fine if you show it on lab"): each
     step's words beside its strokes' landings and findings, a choice and an accident told apart, the known ones marked.
     Retires nothing.
@@ -34,6 +34,11 @@ AI's eye**. The two steps the user asked for after its four, then 13 on the PC (
 
 ## The tool
 
+- **A sticker over the sidepod top's inner edge comes out half** (2026-10-22, TSC_RingsAcross at (56, 62, -15)): the
+  sidepod top is its own piece, its edge a 0.5 cm lip facing the 0.4 cm gap to the body shell, 115 degrees from the
+  shell's edge across it, so the gap is neither bridged (skins facing alike) nor spanned (a wall facing 70 degrees from
+  the sticker) and the shell's half never gets a place. Idea: the lip and the gap as one groove of two pieces, filled
+  to its mouth as a panel line's is.
 - **A plain line beside the skirt's crease blocks ten times** (2026-10-22, TSC_IntentTest, on step 16's car too): a 1 cm
   band 1 cm beside 'side skirt crease 3' gets steps of 0.3 cm read against 'side skirt roll 3' and 0.7 cm where it
   meets 'side skirt crease 2'; the close looks show it smooth. Idea: see whether the ruler line steps there, not the paint.

@@ -42,8 +42,9 @@ folder (`python -m tool.surface` rebuilds it and says what it did, in numbers):
                                        before and behind it along right and along up (the tracer's); with crease, the
                                        patch cut along the model's crisp lines first, so the sticker stays on the
                                        centre's own panel; without, it folds over them as a pressed sticker does,
-                                       spans a step flat (a wall of skin thinner than STEP cm between two skins, a
-                                       raised plate's edge: the raised skin is measured as if it sat level with the
+                                       fills a panel line's groove to its mouth (meshlines.grooves), spans a step flat
+                                       (a wall of skin, a panel of the model no wider than STEP cm, between two skins:
+                                       a raised plate's edge; the raised skin is measured as if it sat level with the
                                        other, and the wall takes the sticker's edge) and bridges a gap up to BRIDGE
                                        cm between two skins facing alike, and a slit (a rim loop under HOLE cm round)
                                        however its sides face; every distance bounded by the way along the mesh's
@@ -93,8 +94,8 @@ HOLE = 16.0      # cm round: a rim loop no longer than this is a hole or a slit 
 # shut across (its own rim's vertices are its far ends, all but its neighbours)
 SLIT = 1.0       # cm: two rims this near are a slit's sides (the surface cut along a fold, the sides facing 90 degrees
 # apart), bridged however they face, short of opposite
-STEP = 1.5       # cm: a wall of skin this thin between two skins (a raised plate's edge) is a step a sticker spans flat
-WALL = 70.0      # degrees: skin facing this far from the sticker's centre is a wall, where it's thin
+STEP = 1.5       # cm: a panel of the model this narrow between two skins (a raised plate's edge) is a step's wall, which
+WALL = 70.0      # a sticker spans flat where the wall faces this many degrees or more from the sticker's centre
 SPECK = 0.5      # cm: a piece of a contour shorter than this is the solver's noise, not a line
 EPS = 0.5        # cm: how far a chart's four more sources sit from its centre along the surface
 HALF_TEXEL = 0.05  # cm: a contour's vertex this far off the straight line between its neighbours, where the surface
@@ -450,8 +451,10 @@ class Surface:
         the surface's tangent plane at the centre, the sticker's X and Y. The distance from the centre is exact; the
         direction comes from the law of cosines against the four sources EPS cm away (each pair's two agree on a flat
         panel; a source that couldn't go, where the body ends or across a cut, leaves the other to tell; where neither
-        could, the direction through the air serves). Without the crease cut the patch's steps are spanned (_spanned) and
-        its gaps bridged (_bridged)."""
+        could, the direction through the air serves). Without the crease cut the patch's grooves are filled (_filled), its
+        steps spanned (_spanned) and its gaps bridged (_bridged), and each source's way is read off the sources' distances
+        from one another (_ways): the tracer's way bends where it crosses a groove the chart fills. A face reaching past
+        `reach` is read whole."""
         import igl
         p = self._locate(np.asarray(centre, np.float64)[None])[2][0]
         right, up = (np.asarray(v, np.float64) for v in (right, up))
@@ -464,8 +467,11 @@ class Surface:
             Vn, Fn, back = igl.cut_mesh(V2, F2.astype(np.int64), self._sharp(F2, parent, keep))
             copies = [np.flatnonzero(np.asarray(back).reshape(-1) == i) for i in ids]
         else:
-            fn = self.fine_facing()[keep]
-            Vn, Fn, parent, (walls, wall_parent) = _spanned(V2, F2.astype(np.int64), parent, fn, np.cross(right, up), int(ids[0]))
+            from tool import meshlines
+            fn, tri = self.fine_facing()[keep], self.model[keep // 16]
+            V2, fn = _filled(V2, F2.astype(np.int64), parent, fn, meshlines.grooves(self.tset)[tri])
+            Vn, Fn, parent, (walls, wall_parent) = _spanned(V2, F2.astype(np.int64), parent, fn, np.cross(right, up), int(ids[0]),
+                                                             meshlines.widths(self.tset)[tri] <= STEP)
             Vn, Fn, parent = _bridged(Vn, Fn, parent, fn)
             copies = [np.array([i]) for i in ids]
         n = len(Vn)
@@ -475,21 +481,33 @@ class Surface:
             d = np.asarray(igl.exact_geodesic(Vn, Fn, src.astype(np.int64), np.zeros(0, np.int64), np.arange(n, dtype=np.int64),
                                               np.zeros(0, np.int64))).reshape(-1)
             d[~np.isin(comp, comp[src])] = np.inf
+            d[(d <= 0) & ~np.isin(np.arange(n), src)] = np.inf  # where the solve didn't go it reads 0: unreached
             D.append(_relaxed(d, Vn, Fn))
         r = D[0]
         reached = r <= reach
-        xy = np.zeros((n, 2))
+        reached[Fn[reached[Fn].any(1)]] = True  # a face reaching past the reach is read whole: its far corners are
+        reached &= np.isfinite(r)  # within its longest edge more, inside the patch, so exact too
+        eps = np.array([float(r[c].min()) if len(c) else np.inf for c in copies[1:]])
+        went = np.flatnonzero((0.1 * EPS <= eps) & (eps <= 1.5 * EPS))  # it didn't go, or the surface is cut between
+        # each source's way on the sticker: as sent, or pressed over every edge, as the chart has it (the tracer's way
+        # bends over a groove the chart fills); then each point's place from its distances to the sources
+        way = np.array([[1.0, 0.0], [-1.0, 0.0], [0.0, 1.0], [0.0, -1.0]])
+        if not crease and len(went) >= 3:
+            way[went] = _ways(eps[went], np.array([[D[a + 1][copies[b + 1]].min() for b in went] for a in went]), way[went])
+        M, v = np.zeros((n, 2, 2)), np.zeros((n, 2))
+        for k in went:
+            ok = reached & np.isfinite(D[k + 1])
+            M[ok] += np.outer(way[k], way[k])
+            v[ok] += ((r[ok] ** 2 + eps[k] ** 2 - D[k + 1][ok] ** 2) / (2 * eps[k]))[:, None] * way[k]
         rel = Vn - p
-        for k, (axis, plus, minus) in enumerate(((right, 1, 2), (up, 3, 4))):
-            got, count = np.zeros(n), np.zeros(n)
-            for src, sign in ((plus, 1.0), (minus, -1.0)):
-                eps = float(r[copies[src]].min()) if len(copies[src]) else np.inf
-                if not 0.1 * EPS <= eps <= 1.5 * EPS:  # it didn't go, or the surface is cut between
-                    continue
-                ok = reached & np.isfinite(D[src])
-                got[ok] += sign * (r[ok] ** 2 + eps ** 2 - D[src][ok] ** 2) / (2 * eps)
-                count[ok] += 1
-            xy[:, k] = np.where(count > 0, got / np.maximum(count, 1), rel @ axis)
+        xy = np.c_[rel @ right, rel @ up]  # told by no source: the direction through the air serves
+        for k in range(2):
+            told = M[:, k, k] > 0
+            xy[told, k] = v[told, k] / M[told, k, k]
+        det = M[:, 0, 0] * M[:, 1, 1] - M[:, 0, 1] ** 2
+        both = (M[:, 0, 1] != 0) & (det > 1e-6)
+        xy[both] = np.c_[M[both, 1, 1] * v[both, 0] - M[both, 0, 1] * v[both, 1],
+                         M[both, 0, 0] * v[both, 1] - M[both, 0, 1] * v[both, 0]] / det[both, None]
         rho = np.hypot(xy[:, 0], xy[:, 1])
         xy *= np.where(rho > 1e-9, r / np.maximum(rho, 1e-9), 1.0)[:, None]  # the direction theirs, the distance exact
         xy[~reached] = np.nan
@@ -552,42 +570,101 @@ class Surface:
         return out
 
 
-def _spanned(V, F, parent, fn, facing, centre):
+def _ways(eps, between, sent):
+    """The ways a chart's sources lie from its centre on the sticker, as unit vectors: their places on a flat sheet from
+    their distances from the centre (eps) and from one another (between), by classical scaling, turned (or mirrored) to
+    sit best on the ways they were sent; the ways as sent when the places don't span the sheet."""
+    d = np.r_[np.c_[0.0, eps[None]], np.c_[eps[:, None], (between + between.T) / 2]]
+    k = len(d)
+    J = np.eye(k) - 1.0 / k
+    lam, U = np.linalg.eigh(-0.5 * J @ (d * d) @ J)
+    if lam[-2] <= 1e-6 or not np.isfinite(d).all():
+        return sent
+    X = U[:, -2:] * np.sqrt(lam[-2:])
+    X = X[1:] - X[0]
+    A, _, Bt = np.linalg.svd(X.T @ (sent * eps[:, None]))
+    X = X @ (A @ Bt)
+    return X / np.maximum(np.linalg.norm(X, axis=1, keepdims=True), 1e-12)
+
+
+def _filled(V, F, parent, fn, groove):
+    """A patch's mesh with its panel lines' grooves filled to their mouths, as a sticker pressed over one spans it
+    (groove: each face of the patch, whether it lies in one, meshlines.grooves): each point inside a groove lifted
+    along the skin's facing at the nearest point of the groove's lips (its edges shared with the skin outside) to the
+    lip's level there, so the way across is the mouth's width (0.3 cm), never down one wall and up the other, and no
+    wall of it reads as a step. A face that would come out thinner than THIN keeps its points. (V, fn): each face's
+    facing as filled."""
+    g = groove[parent]
+    inside, skin = np.zeros(len(V), bool), np.zeros(len(V), bool)
+    inside[F[g]], skin[F[~g]] = True, True
+    move, lips = np.flatnonzero(inside & ~skin), np.flatnonzero(inside & skin)
+    if not len(move) or not len(lips):
+        return V, fn
+    nrm = np.zeros_like(V)  # the skin's facing at each lip point
+    np.add.at(nrm, F[~g].reshape(-1), np.repeat(fn[parent[~g]], 3, axis=0))
+    nrm /= np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-12)
+    by_lip = {}  # each lip point's lip edges
+    for f in F[g]:
+        for u, v in ((f[0], f[1]), (f[1], f[2]), (f[2], f[0])):
+            if skin[u] and skin[v]:
+                by_lip.setdefault(u, set()).add((min(u, v), max(u, v)))
+                by_lip.setdefault(v, set()).add((min(u, v), max(u, v)))
+    V2 = V.copy()
+    for i, a in zip(move, lips[cKDTree(V[lips]).query(V[move])[1]]):
+        q, n = V[a], nrm[a]  # the lips' nearest point: on an edge of the nearest lip point's, its facing between its ends'
+        for u, v in by_lip.get(a, ()):
+            uv = V[v] - V[u]
+            s = float(np.clip((V[i] - V[u]) @ uv / max(uv @ uv, 1e-18), 0, 1))
+            if np.linalg.norm(V[u] + s * uv - V[i]) < np.linalg.norm(q - V[i]):
+                q, n = V[u] + s * uv, (1 - s) * nrm[u] + s * nrm[v]
+        n = n / max(np.linalg.norm(n), 1e-12)
+        V2[i] = V[i] + ((q - V[i]) @ n) * n
+
+    def thin(W):
+        A, B, C = (W[F[g, k]] for k in range(3))
+        longest = np.max([np.linalg.norm(B - A, axis=1), np.linalg.norm(C - B, axis=1), np.linalg.norm(A - C, axis=1)], 0)
+        return np.linalg.norm(np.cross(B - A, C - A), axis=1) < THIN * longest
+
+    back = np.intersect1d(F[g][thin(V2)], move)
+    V2[back] = V[back]
+    if (thin(V2) & ~thin(V)).any():
+        return V, fn
+    A, B, C = (V2[F[g, k]] for k in range(3))
+    face = np.cross(B - A, C - A)
+    face /= np.maximum(np.linalg.norm(face, axis=1, keepdims=True), 1e-12)
+    fn = fn.copy()
+    fn[parent[g]] = face * np.where((face * fn[parent[g]]).sum(1) < 0, -1.0, 1.0)[:, None]
+    return V2, fn
+
+
+def _spanned(V, F, parent, fn, facing, centre, narrow):
     """A patch's mesh with its steps spanned, as a sticker pressed over every edge spans them flat rather than running
-    down and up: a wall (faces facing WALL degrees or more from the sticker's facing) thinner than STEP cm (twice its
-    area over its perimeter) between the centre's skin and another is taken out, the other skin moved onto the
-    centre's by the step (the mean offset between the wall's two rims along the sticker's facing) and the rims welded, each point of the raised rim
-    onto the other rim's own edge (put in as a vertex of it); a wall between two skins neither the centre's is left as
-    it is. Faces that collapse go. (V, F, parent, walls): the walls spanned, collapsed onto the welded rims, for their
-    texels to take the sticker's edge (never solved on: faces of no area)."""
+    down and up: a wall (the faces of a panel no wider than STEP cm, `narrow` (meshlines.widths), facing WALL degrees or
+    more from the sticker's facing; skin curving away over a rolled edge is none) between the centre's skin and
+    another is taken out, the other skin moved onto the centre's by the step (the mean offset between the wall's two
+    rims along the sticker's facing) and the rims welded, each point of the raised rim onto the other rim's own edge
+    (put in as a vertex of it); a wall between two skins neither the centre's is left as it is. Faces that collapse
+    go. (V, F, parent, walls): the walls spanned, collapsed onto the welded rims (a point inside a wall onto the
+    nearest rim point's place), for their texels to take the sticker's edge (never solved on: faces of no area)."""
     n = len(V)
     none = (np.zeros((0, 3), np.int64), np.zeros(0, np.int64))
-    wall = np.flatnonzero(fn[np.maximum(parent, 0)] @ facing < np.cos(np.radians(WALL)))
+    wall = np.flatnonzero(narrow[parent] & (fn[parent] @ facing < np.cos(np.radians(WALL))))
     if not len(wall):
         return V, F, parent, none
     strips = _components(F[wall], n)[F[wall]].min(1)  # the walls joined edge to edge, by their lowest vertex's label
-    A, B, C = (V[F[wall, k]] for k in range(3))
-    area = 0.5 * np.linalg.norm(np.cross(B - A, C - A), axis=1)
-    per = np.linalg.norm(B - A, axis=1) + np.linalg.norm(C - B, axis=1) + np.linalg.norm(A - C, axis=1)
-    thin = set()
-    for s in np.unique(strips):
-        mine = strips == s
-        if 2 * area[mine].sum() / max(per[mine].sum() / 2, 1e-9) <= STEP:  # each inner edge counted twice: half the perimeter
-            thin.add(s)
-    gone = wall[np.isin(strips, list(thin))]
-    if not len(gone):
-        return V, F, parent, none
-    rest = np.setdiff1d(np.arange(len(F)), gone)
-    comp = _components(F[rest], n)
-    # a step parts two skins: a thin strip whose rims stay one skin without it (a groove's wall) is no step, and stays
-    home = comp[centre]
-    steps = [s for s in thin if len(np.unique(comp[np.unique(F[wall[strips == s]])])) >= 2]
+    rest = np.setdiff1d(np.arange(len(F)), wall)
+    comp, edged = _components(F[rest], n), np.zeros(n, bool)
+    edged[F[rest]] = True  # a wall's rims: its points on skin
+    # a step parts two skins: a strip whose rims stay one skin without it (a groove's wall) is no step, and stays
+    steps = [k for k in np.unique(strips) if len(np.unique(comp[[v for v in np.unique(F[wall[strips == k]]) if edged[v]]])) >= 2]
     gone = wall[np.isin(strips, steps)]
     if not len(gone):
         return V, F, parent, none
     rest = np.setdiff1d(np.arange(len(F)), gone)
-    comp = _components(F[rest], n)
+    comp, edged = _components(F[rest], n), np.zeros(n, bool)
+    edged[F[rest]] = True
     rim = np.unique(F[gone])
+    inner, rim = rim[~edged[rim]], rim[edged[rim]]
     home = comp[centre]
     low = rim[comp[rim] == home]
     V = V.copy()
@@ -627,18 +704,20 @@ def _spanned(V, F, parent, fn, facing, centre):
             w = np.zeros(3)
             w[list(F2[g]).index(segs[i, 0])], w[list(F2[g]).index(segs[i, 1])] = 1 - s[i], s[i]
             joins.append((int(t), g, w, Q[i]))
-    if not joins:
-        return V, F2, par2, (F[gone], parent[gone])
-    V3, F3, ids, par3, _ = _insert(V, F2, np.array([g for _, g, _, _ in joins]), np.array([w for _, _, w, _ in joins]),
-                                   np.array([q for _, _, _, q in joins]))
-    weld = np.arange(len(V3))
-    for (t, _, _, _), i in zip(joins, ids):
-        weld[t] = i
-    F3 = weld[F3]
-    keep = (F3[:, 0] != F3[:, 1]) & (F3[:, 1] != F3[:, 2]) & (F3[:, 2] != F3[:, 0])
-    keep &= ~np.array([_thin(*V3[f]) for f in F3])
-    walls = weld[np.r_[F[gone], np.zeros((0, 3), np.int64)]]
-    return V3, F3[keep], par2[par3][keep], (walls, parent[gone])
+    V3, F3, par3, weld = V, F2, par2, np.arange(len(V))
+    if joins:
+        V3, F3, ids, par3, _ = _insert(V, F2, np.array([g for _, g, _, _ in joins]), np.array([w for _, _, w, _ in joins]),
+                                       np.array([q for _, _, _, q in joins]))
+        weld = np.arange(len(V3))
+        for (t, _, _, _), i in zip(joins, ids):
+            weld[t] = i
+        F3 = weld[F3]
+        keep = (F3[:, 0] != F3[:, 1]) & (F3[:, 1] != F3[:, 2]) & (F3[:, 2] != F3[:, 0])
+        keep &= ~np.array([_thin(*V3[f]) for f in F3])
+        F3, par3 = F3[keep], par2[par3][keep]
+    if len(inner) and len(rim):
+        weld[inner] = weld[rim[cKDTree(V[rim]).query(V[inner])[1]]]
+    return V3, F3, par3, (weld[F[gone]], parent[gone])
 
 
 def _bridged(V, F, parent, fn):
@@ -702,13 +781,16 @@ def _bridged(V, F, parent, fn):
         return V, F, parent
     F, parent = list(map(tuple, F)), list(parent)
     count = {e: len(gs) for e, gs in edge.items()}  # faces per edge: a bridge never gives an edge a third, nor makes a thin face
-    for u, v, _ in rim:
+    for u, v, g in rim:
         if u not in match or v not in match:
             continue
         a, b = match[u], match[v]
         if min(a, b) < min(u, v):
             continue  # the other end builds this bridge
-        for tri in (((u, v, b),) if a == b else ((u, v, b), (u, b, a))):
+        tris = ((u, v, b),) if a == b else ((u, v, b), (u, b, a))
+        if F[g][(F[g].index(u) + 1) % 3] == v:  # wound as the rim's face is, each edge one way on each side (the exact
+            tris = tuple(t[::-1] for t in tris)  # solver reads nothing past a bridge wound against its skin: 0 cm)
+        for tri in tris:
             if len(set(tri)) < 3 or _thin(*(V[k] for k in tri)):
                 continue
             es = [(min(tri[k], tri[(k + 1) % 3]), max(tri[k], tri[(k + 1) % 3])) for k in range(3)]
@@ -718,7 +800,31 @@ def _bridged(V, F, parent, fn):
                 count[e] = count.get(e, 0) + 1
             F.append(tri)
             parent.append(-1)
-    return V, np.array(F, np.int64), np.array(parent)
+    F, parent = np.array(F, np.int64), np.array(parent)
+    while (parent < 0).any():  # a bridge leaving a point where two fans of faces meet goes: no exact solve goes past one
+        drop = (parent < 0) & np.isin(F, np.flatnonzero(_fans(F) > 1)).any(1)
+        if not drop.any():
+            break
+        F, parent = F[~drop], parent[~drop]
+    return V, F, parent
+
+
+def _fans(F):
+    """How many fans of faces meet at each point of a mesh whose edges have one or two faces: the faces round it joined
+    by the edges through it (two or more: a bowtie, which libigl's exact solver doesn't go past, reading 0 beyond)."""
+    m, top = len(F), int(F.max()) + 1
+    corner = np.arange(3 * m).reshape(m, 3)
+    u, v = F.reshape(-1), np.roll(F, -1, 1).reshape(-1)
+    cu, cv = corner.reshape(-1), np.roll(corner, -1, 1).reshape(-1)
+    key = np.minimum(u, v) * top + np.maximum(u, v)
+    order = np.argsort(key, kind="stable")
+    pair = np.flatnonzero(key[order][1:] == key[order][:-1])
+    a, b = order[pair], order[pair + 1]  # an edge's two faces: their corners at each end joined
+    straight = u[a] == u[b]
+    i = np.r_[cu[a], cv[a]]
+    j = np.r_[np.where(straight, cu[b], cv[b]), np.where(straight, cv[b], cu[b])]
+    lab = connected_components(coo_matrix((np.ones(len(i)), (i, j)), shape=(3 * m, 3 * m)), directed=False)[1]
+    return np.bincount(np.unique(np.c_[F.reshape(-1), lab], axis=0)[:, 0], minlength=top)
 
 
 def _relaxed(d, V, F):
