@@ -13,12 +13,8 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. The last step the user asked for after its four, then 13 on the PC (away until November or December
-2026):
+AI's eye**. Left: 13 on the PC (away until November or December 2026):
 
-20. **The Lab shows the strokes.** Built, waiting for the user's OK (2026-10-22): the Lab's Strokes tab, each step's
-    words beside its strokes' landings (`receipt.Landing.doc`'s `stations`) and findings (steps.json's `kinds`), told
-    apart by colour, dots on the car. On the OK: TSC_StrokesInLab deleted.
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
     own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
     cleanest picture of a skin's colours the game gives; `viewer.lamp`), then per mood to the user's F12 screenshots
