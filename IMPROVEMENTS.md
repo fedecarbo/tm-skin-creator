@@ -23,7 +23,10 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
     its edge meets nothing named, on the edge the eye sees where one piece lies over another, widening smoothly where
     one kind runs into the other; measured along the surface from each part's own edge, never stamped as dabs. Shown
     on a new test car, every part a plain colour, outlined. Retires TSC_Britto's own outline code (its loops,
-    stretches, widened, near, paths), Britto rebuilt on the tool after.
+    stretches, widened, near, paths), Britto rebuilt on the tool after. Built and shown on TSC_OutlineTest; the user,
+    2026-10-23: "For the most part things seem fairly okayish. Could be better. I just want to make sure it's a
+    universal fix", and "I would like to point out some flaws in the next session though for a universal fix": next,
+    the user's flaws on TSC_OutlineTest and Britto, each fixed in `course.outline` for every car, never in a design.
 22. **Lines cost by their length, and the surface can't hang** (Opus 5.5). A band costs about 0.3 s a course however
     short (52 pieces of 0.7 cm took 16 s, 2026-10-23), and `course.points` straight across the deck at x 28.5 froze
     the exact solver (killed after 10 minutes). Measure with `--profile` first; the close looks took over an hour on
