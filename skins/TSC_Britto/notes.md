@@ -85,3 +85,27 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
 - 2026-10-23, the user: "Leave it for next session". Next: the art director's items, first the deck's plain patch
   framed as a chosen section, the blue back and wheels, the two missing seam lines (side skirt to rear flank, across
   the nose); then show it in the Lab for their yes; install on the PC when it's back.
+- 2026-10-23, the user, notes in the Lab (Opus 5.5): "This needs a black line to close the fin." (on the nose panel's
+  top, where it meets the nose fin); "I think in general lines are too thick"; "Not sure what's going on here but
+  there's a line gap here" (the left rear quarter panel and the engine cover, by the number panel); "I don't like
+  when there's only a shape in a part.  Maybe for smaller parts, do dotted?" (the sun on the rear quarter panel);
+  "This part needs to close the black line" (drawn: the tail corner's edge by the rear wheel); "This stroke went too
+  far that it lands on the orange and white spots" (the line round the frame running from the sidepod top onto the
+  rear flank); "There are now many places that have this sort of circle brush by brush and it doesn't look like a
+  continuous stroke, make sure this is fixed.  Not sure. if this is lack of tools or an error".
+- Change (Claude, Opus 5.5, 2026-10-23), from those notes: the lines 2.5 cm, as the language says. They were wider
+  because where one piece lies over another both edges took the line (1.7 to 1.9 cm apart): now only the edge that
+  sees more of the open air does, and any edge seeing 0.3 of it or more (was 0.4: the tail panel's top edge broke).
+  A black line round the nose fin, closing the nose panel's U. The lines no longer drop out within 5.5 cm of the
+  plates: they keep 3 cm off the deck's two plates only (the gap by the number panel). The tail corner's edge by
+  each rear wheel traced from the user's line (the open air is low there, the eye sees it; the judge says the wheel
+  stands in front of it seen square, let go: the user saw the gap). The line round the inner car: the surfaces read
+  densely (its points came in clusters, drawn as round dabs), none on a seam (the seam's own line outlines it there,
+  and the two stacked made a lopsided tab onto the flank), none in a stretch under 10 cm, and on each part only
+  within 5 cm of where that part itself meets the inner car (no running on onto the next part). The three small marks
+  gone; the small rear quarter panels in small dots (6 cm apart), purple with yellow on the left, orange with white
+  on the right; the cockpit surround plain yellow. Shown, closed, gated (the pattern ends under the lines let go).
+- Closed (art director's list, 2026-10-23): 4 (the line across the nose), 9 (the cockpit heart: gone), and the
+  doubled bands of 10 (one edge per seam now). Still open from it: 1 (the deck's plain patch), 2 (the blue back),
+  3 (no line where the side skirt meets the rear flank: under 15 cm), 5 to 8, 11, and the green frame showing as a
+  thin line inside the seam between the sidepod top and the rear flank.

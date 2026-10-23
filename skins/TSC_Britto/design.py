@@ -1,10 +1,9 @@
 """TSC_Britto: Romero Britto's pop art made of the car's own parts, its two sides unlike, as Britto paints a face's two
 halves: each part its own colour and pattern, and on the right side each of the side's parts another colour or pattern
-than its twin on the left; a black line on every seam between two parts and wherever the body meets a coloured part of
-the inner car; the plates the game letters plain; the inner car's parts each a solid colour; three small outlined marks
-where they mean something (a heart by the driver's heart, a sun and a star on the rear quarter panels). All of it
-gloss, the tyres black rubber, the glass clear, every light its own colour of the palette, and no dirt ever: it stays
-new."""
+than its twin on the left; a black line on every seam between two parts, round the nose fin and wherever the body
+meets a coloured part of the inner car; the plates the game letters plain; the inner car's parts each a solid colour.
+All of it gloss, the tyres black rubber, the glass clear, every light its own colour of the palette, and no dirt ever:
+it stays new."""
 
 import functools
 
@@ -13,14 +12,21 @@ from PIL import Image
 from scipy.sparse.csgraph import connected_components
 from scipy.spatial import cKDTree
 
-from tool import fbx, marks, parts, shapes
+from tool import fbx, parts, shapes
 from tool.noise import smoothstep
 
 RED, YELLOW, BLUE, ORANGE, GREEN, PURPLE = "#e4202d", "#ffd21f", "#1f5fd1", "#ff7f1f", "#2bb24c", "#7d3ec1"
 BLACK, WHITE = "#111111", "#ffffff"
-LINE = 2.0   # cm from a seam to the black line's edge: the line is twice that
+LINE = 1.25  # cm from a seam to the black line's edge: the line is twice that (the language's 2.5 cm)
 GAP = 2.5    # cm: two pieces' edges this close are a seam (a sewn-on piece's gap)
-CLEAR = 3.5  # cm the line keeps off the plates the game letters
+SKY = 0.3    # the least share of the open air a seam's line sees (the car map's "open")
+CLEAR = 3.0  # cm the line keeps off the deck's plates the game letters
+DECK = ("number panel", "engine cover panel")
+# the line the user drew where the black broke by the left rear wheel (the Lab, 2026-10-23, note 6)
+DRAWN = np.array([(51.6, 57.7, -124.2), (51.7, 57.1, -124.1), (51.9, 56.8, -124.1), (51.9, 55.5, -123.5),
+                  (52.1, 54.3, -123.1), (52.2, 53.3, -122.9), (52.3, 53, -123.1), (52.2, 52.7, -124.1),
+                  (52.2, 52.7, -124.6), (52, 53.2, -128), (51.9, 53.2, -129), (51.9, 53.4, -129.5), (51.6, 53.5, -133.2),
+                  (51.5, 53.3, -135), (51.5, 53.4, -135.3), (51.5, 53.1, -136.6), (51.3, 52.8, -138.7)])
 LEAN = 0.47  # stripes lean forward 25 degrees
 
 # each part of the body (the mirror mount shares the body shell's paint): its colour, its pattern and the pattern's
@@ -39,8 +45,8 @@ PLAN = {
     "sidepod inlet|right": (WHITE, "stripes", GREEN),
     "rear flank|left": (ORANGE, "dots", WHITE),
     "rear flank|right": (PURPLE, "dots", WHITE),
-    "rear quarter panel|left": (PURPLE, "plain", None),
-    "rear quarter panel|right": (ORANGE, "plain", None),
+    "rear quarter panel|left": (PURPLE, "small dots", YELLOW),
+    "rear quarter panel|right": (ORANGE, "small dots", WHITE),
     "fuel cap": (GREEN, "plain", None),
     "engine cover|part": (GREEN, "waves", YELLOW),
     "tail corner|left": (PURPLE, "checks", WHITE),
@@ -54,8 +60,8 @@ UNDER = ("diffuser", "diffuser strake", "wing pylon")  # under the car and behin
 INSIDE = ("sidepod inlet",)  # seen through the inlet's mouth, though the open air is low in there
 RING = -3.0  # z where the ring round each inlet's mouth ends at the bottom (the sidepod top meets the frame at -1 to -4)
 LOW = 32.0  # cm up: the foot of the sidepod, where the frame shows above the skirt
-OUTLINE = 1.2  # cm of black round a mark, 0.5 inside one (the language's DNA)
-MEET = 3.0  # cm: the black line on the body where it meets a coloured part of the inner car
+MEET = 2.5  # cm: the black line on the body where it meets a coloured part of the inner car
+OWN = 5.0  # cm from a part's own meeting that its line reaches (its meeting points come in clusters)
 WHEELS = {"wheel cover disc": (RED, "dots", WHITE), "wheel cover ring": (YELLOW, "plain", None),
           "wheel cover hub": (BLUE, "plain", None)}
 INNER = {  # the inner car's parts seen from outside, each a solid colour
@@ -86,9 +92,9 @@ def seams(names):
 
 
 @functools.cache
-def seam_points(names):
-    """The seams between the named parts, points every 0.2 cm: an edge of the body's triangles two of them share, or
-    a piece's edge within GAP cm of another's (a sewn-on piece); none within CLEAR cm of the plates."""
+def skin():
+    """The body's skin, a triangle drawn twice once: its triangles (welded corners), corners, part names, each
+    triangle's part (an index into them) and facing."""
     P = parts.load()
     m = fbx.meshes()["Skin_01"]
     tv, pos = m["tri_vertex"], m["positions"].astype(np.float64)
@@ -98,9 +104,49 @@ def seam_points(names):
     weld = weld.reshape(-1)
     V = np.zeros((weld.max() + 1, 3))
     V[weld] = pos
-    tri, first = np.unique(np.sort(weld[tv], axis=1), axis=0, return_index=True)  # a triangle drawn twice once
+    tri, first = np.unique(np.sort(weld[tv], axis=1), axis=0, return_index=True)
     words, code = np.unique(name[first], return_inverse=True)
     facing = m["tri_normal"][first].mean(1)
+    return tri, V, words, code, facing / (np.linalg.norm(facing, axis=1, keepdims=True) + 1e-9)
+
+
+@functools.cache
+def fin_points():
+    """The nose fin's edge, points every 0.2 cm: the line round it lies beside it, on the body."""
+    tri, V, words, code, _ = skin()
+    e, _ = _edges(tri, words[code] == "nose fin")
+    return _points(V, e)[0]
+
+
+@functools.cache
+def traced():
+    """The tail corner's edge along the stretch the user drew by each rear wheel, points every 0.2 cm: little open
+    air reaches it, but the eye sees it (the rear flank's edge runs under it, 1.7 cm in)."""
+    tri, V, words, code, _ = skin()
+    e, _ = _edges(tri, words[code] == "tail corner")
+    p = _points(V, e)[0]
+    drawn = np.concatenate([a + (b - a) * t[:, None] for a, b in zip(DRAWN[:-1], DRAWN[1:])
+                            for t in [np.linspace(0, 1, 20)]])
+    drawn = np.vstack([drawn, drawn * [-1, 1, 1]])
+    return p[cKDTree(drawn).query(p)[0] < 1.5]
+
+
+@functools.cache
+def deck_points():
+    """The deck's plates' edges, points every 0.2 cm: the lines keep CLEAR cm off them."""
+    tri, V, words, code, _ = skin()
+    e, _ = _edges(tri, np.isin(words[code], DECK))
+    return _points(V, e)[0]
+
+
+@functools.cache
+def seam_points(names):
+    """The seams between the named parts, points every 0.2 cm: an edge of the body's triangles two of them share, or
+    a piece's edge within GAP cm of another's (a sewn-on piece) unless it's the one tucked under the other (it sees
+    less of the open air: the line follows the edge the eye sees, one curve); none that sees under SKY of the open
+    air (inside an inlet, under a panel)."""
+    from tool import carmap
+    tri, V, words, code, facing = skin()
     e = np.sort(np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]]), axis=1)
     c, chosen, f = np.tile(code, 3), np.isin(np.tile(words[code], 3), names), np.tile(facing, (3, 1))
     order = np.lexsort((e[:, 1], e[:, 0]))
@@ -112,7 +158,13 @@ def seam_points(names):
     open_ = ours & (many == 1)
     mid, oc = V[edge[open_]].mean(1), c[start][open_]
     near = cKDTree(mid).query(mid, k=12, distance_upper_bound=GAP)[1]
-    other = np.array([(oc[[j for j in row if j < len(mid)]] != oc[i]).any() for i, row in enumerate(near)])
+    sky = carmap.load().value("open", mid, f[start][open_])
+    other, best = np.zeros(len(mid), bool), np.zeros(len(mid))
+    for i, row in enumerate(near):
+        them = [j for j in row if j < len(mid) and oc[j] != oc[i]]
+        if them:
+            other[i], best[i] = True, sky[them].max()
+    other &= sky >= best - 0.1
     keep, kf = edge[shared], f[start][shared]
     if other.any():
         keep, kf = np.vstack([keep, edge[open_][other]]), np.vstack([kf, f[start][open_][other]])
@@ -121,13 +173,14 @@ def seam_points(names):
     i = np.repeat(np.arange(len(a)), k)
     pts = a[i] + (b[i] - a[i]) * np.concatenate([np.arange(n) / n for n in k])[:, None]
     nrm = kf[i] / np.linalg.norm(kf[i], axis=1, keepdims=True)
-    seen = shapes.outside(0.4)(pts.astype(np.float32), nrm.astype(np.float32)) > 0.5  # none inside an inlet or under a panel
-    plate = V[np.unique(tri[np.isin(words[code], list(PLATES))])]
-    if len(plate):
-        seen &= cKDTree(plate).query(pts, workers=-1)[0] > CLEAR + LINE
-    pts = pts[seen]
+    pts = pts[carmap.load().value("open", pts, nrm) >= SKY]
+    return pts[runs(pts, 15)]  # a stretch shorter than 15 cm left after the filters goes
+
+
+def runs(pts, cm):
+    """Which points (every 0.2 cm along lines) lie on a stretch at least `cm` long: a shorter one reads as a dab."""
     _, piece = connected_components(cKDTree(pts).sparse_distance_matrix(cKDTree(pts), 0.5), directed=False)
-    return pts[np.bincount(piece)[piece] >= 75]  # a stretch shorter than 15 cm left after the filters goes
+    return np.bincount(piece)[piece] >= cm / 0.2
 
 
 def _sample(tri, V, mask, per, seed):
@@ -187,26 +240,22 @@ def contacts(names, near=1.0, on=0.6):
     keep = ours[t]
     a, i = _points(bV, e[keep])
     at, an = t[keep][i], bnr[t[keep]][i]
-    inner, it = _sample(dt, dV, coloured, 4, 3)
+    inner, it = _sample(dt, dV, coloured, 20, 3)
     d, j = cKDTree(inner).query(a, workers=-1)
     sel = d < near
     a, abody, ainner, an = a[sel], bn[at[sel]], dn[it[j[sel]]], an[sel]
     # a coloured part's edge lying on the body's outer skin
     e, et = _edges(dt, coloured)
     b, i = _points(dV, e)
-    skin, st = _sample(bt, bV, ours, 6, 7)
-    d, j = cKDTree(skin).query(b, workers=-1)
+    outer, st = _sample(bt, bV, ours, 40, 7)
+    d, j = cKDTree(outer).query(b, workers=-1)
     bnrm = bnr[st[j]]
-    sel = (d < on) & (np.einsum("ij,ij->i", b - skin[j], bnrm) > -0.1)
+    sel = (d < on) & (np.einsum("ij,ij->i", b - outer[j], bnrm) > -0.1)
     pts, nrm = np.vstack([a, b[sel]]), np.vstack([an, bnrm[sel]])
     body, part = np.r_[abody, bn[st[j[sel]]]], np.r_[ainner, dn[et[i[sel]]]]
     seen = (shapes.outside(0.4)(pts.astype(np.float32), nrm.astype(np.float32)) > 0.5) | np.isin(body, INSIDE)
-    plate = bV[np.unique(bt[np.isin(bn, list(PLATES))])]
-    if len(plate):
-        seen &= cKDTree(plate).query(pts, workers=-1)[0] > CLEAR + LINE
     pts, body, part = pts[seen], body[seen], part[seen]
-    _, piece = connected_components(cKDTree(pts).sparse_distance_matrix(cKDTree(pts), 0.5), directed=False)
-    long = np.bincount(piece)[piece] >= 50  # a stretch shorter than about 10 cm goes
+    long = runs(pts, 10)  # a stretch shorter than 10 cm goes
     return pts[long], body[long], part[long]
 
 
@@ -237,68 +286,6 @@ def near(pts, width, label):
                        label=label)
 
 
-def motif(inside, extent, rounded=0.0, notch=0.0, px=800):
-    """A flat motif drawn by inside(x, y) (cm, y up, within extent cm of its middle) as its signed distance in cm
-    (positive inside), its points rounded by `rounded` cm and its notches by `notch`, smooth between the grid's
-    points."""
-    from scipy.ndimage import distance_transform_edt, map_coordinates
-    h = 2 * extent / px
-    y, x = np.mgrid[extent - h / 2:-extent:-h, -extent + h / 2:extent:h]
-    shape = inside(x, y)
-    if notch:  # grown, then cut back: a notch's sharp corner filled round
-        shape = distance_transform_edt(distance_transform_edt(~shape) * h <= notch) * h > notch
-    core = distance_transform_edt(shape) * h > rounded  # eroded, then grown back round: no sharp points
-    grid = np.where(core, distance_transform_edt(core) * h + rounded, rounded - distance_transform_edt(~core) * h)
-
-    def sd(x, y):
-        return map_coordinates(grid, [(extent - y) / h - 0.5, (x + extent) / h - 0.5], order=1, mode="nearest")
-    return sd
-
-
-def layer(sd, grow, label):
-    """The motif grown by `grow` cm (its outline round it), as a mark's shape one unit wide (tool/marks.py), and its
-    width in cm: an outline and its fill share their middle, so the fill laid at the outline's centre sits in it."""
-    span = np.linspace(-20, 20, 801)
-    x, y = np.meshgrid(span, span)
-    inside = sd(x, y) + grow > 0
-    xs, ys = x[inside], y[inside]
-    lo, hi = np.array([xs.min(), ys.min()]), np.array([xs.max(), ys.max()])
-    c, w = (lo + hi) / 2, hi[0] - lo[0]
-    return marks.Shape(lambda u, v: (sd(c[0] + np.asarray(u) * w, c[1] + np.asarray(v) * w) + grow) / w,
-                       (hi[1] - lo[1]) / w, label), w
-
-
-def heart_motif(width):
-    """A rounded heart `width` cm wide."""
-    k = width / 2.28
-    return motif(lambda x, y: ((x / k) ** 2 + (y / k) ** 2 - 1) ** 3 - (x / k) ** 2 * (y / k) ** 3 <= 0,
-                 width * 0.7 + 3, rounded=0.3, notch=1.0)
-
-
-def star_motif(width, points=5, inner=0.42):
-    """A star `width` cm across its points, its tips rounded."""
-    a = np.pi / 2 + np.arange(2 * points) * np.pi / points
-    r = np.where(np.arange(2 * points) % 2 == 0, 1.0, inner) * width / 2
-    P = np.stack([r * np.cos(a), r * np.sin(a)], -1)
-
-    def inside(x, y):
-        out = np.zeros(x.shape, bool)
-        for (x0, y0), (x1, y1) in zip(P, np.roll(P, -1, 0)):
-            cross = (y0 > y) != (y1 > y)
-            out ^= cross & (x < x0 + (y - y0) * (x1 - x0) / np.where(y1 == y0, 1, y1 - y0))
-        return out
-    return motif(inside, width * 0.6 + 3, rounded=0.4)
-
-
-def outlined(s, where, sd, colour, at, within):
-    """A motif laid on a part as a sticker in its colour with OUTLINE cm of black round it, one side only: the black
-    first, the colour on it at its middle (shrunk with it when it had to shrink to fit)."""
-    edge, w = layer(sd, OUTLINE, "an outline")
-    spot = s.mark(where, "gloss", edge, size=w, at=at, colour=BLACK, mirror=False, within=within)
-    fill, wf = layer(sd, 0.0, "a mark")
-    s.mark(where, "gloss", fill, size=wf * spot.size / w, at=spot.centre, colour=colour, mirror=False)
-
-
 def waves(width=4.0, every=10.0, rise=2.5, length=24.0):
     """Wavy stripes across the car, waving up the sides and across the top."""
     def f(p, n):
@@ -319,8 +306,8 @@ def heart(colour, px=192):
 
 def lay(s, part, colour, pattern, other):
     """A part in its colour and pattern."""
-    if pattern == "dots":
-        s.paint(part, "polka dots", palette=[colour, other], scale=10)
+    if pattern in ("dots", "small dots"):
+        s.paint(part, "polka dots", palette=[colour, other], scale=10 if pattern == "dots" else 6)
     elif pattern == "checks":
         s.paint(part, "checks", palette=[colour, other], scale=8)
     else:
@@ -339,18 +326,25 @@ def design(s):
     s.step("Every part its own", "Each part of the body its own colour and pattern, the two sides unlike: on the "
            "left the side skirt purple with yellow dots, the sidepod yellow with red hearts, the rear flank orange "
            "with white dots; on the right the side skirt yellow with purple dots, the sidepod red with yellow hearts, "
-           "the rear flank purple with white dots; the body shell blue with white checks, the engine cover green "
+           "the rear flank purple with white dots; the small rear quarter panels in small dots, purple with yellow on "
+           "the left, orange with white on the right; the body shell blue with white checks, the engine cover green "
            "with yellow waves; the plates the game letters plain.",
-           words="I want you to actually paint each part differently ... e.g tail panel is one, fuel cap, etc")
+           words="I want you to actually paint each part differently ... e.g tail panel is one, fuel cap, etc; "
+                 "Maybe for smaller parts, do dotted?")
     for part, plan in PLAN.items():
         lay(s, part, *plan)
     for part, colour in PLATES.items():
         s.paint(part, "gloss", colour=colour)
 
-    s.step("The black outline", "A black line on every seam between two parts, as Britto outlines everything.",
-           words="each part of something with for example red and circles, then another part with another color")
+    s.step("The black outline", "A black line 2.5 cm wide on every seam between two parts and round the nose fin, "
+           "as Britto outlines everything, unbroken; clear of the deck's plates the game letters.",
+           words="This needs a black line to close the fin; I think in general lines are too thick; This part needs "
+                 "to close the black line")
     body = [p for p in PLAN if p.split("|")[0] not in UNDER]
-    s.paint(body, "gloss", colour=BLACK, zone=seams([p.split("|")[0] for p in body]), across=True)
+    names = list(dict.fromkeys(p.split("|")[0] for p in body))
+    clear = ~near(deck_points(), CLEAR, "the deck's plates")
+    lines = seams(names) | near(fin_points(), 2 * LINE, "round the nose fin") | near(traced(), LINE, "by the rear wheels")
+    s.paint(body, "gloss", colour=BLACK, zone=lines & clear, across=True)
 
     s.step("Wheels and the inner car", "The wheel covers red with white dots in a yellow ring, a black line between; "
            "every part of the inner car a solid colour of its own, the rest of it black.",
@@ -368,27 +362,15 @@ def design(s):
            "the mirrors' feet; and the green frame black where it shows only as a sliver along the side (in the "
            "gaps between the sidepod top, the rear flank and the side skirt). Two colours never touch.",
            words="each part of something with for example red and circles, then another part with another color")
-    pts, on, by = contacts(list(dict.fromkeys(p.split("|")[0] for p in body)))
-    s.paint(body, "gloss", colour=BLACK, zone=near(pts, MEET, "where the body meets the coloured inner car"),
-            across=True)
+    pts, on, by = contacts(names)
+    alone = cKDTree(seam_points(tuple(names))).query(pts, workers=-1)[0] > 2.0  # on a seam its own line outlines it
+    alone[alone] = runs(pts[alone], 10)
+    meet = near(pts[alone], MEET, "where the body meets the coloured inner car")
+    for part in np.unique(on[alone]):  # on a part only near where it meets the inner car itself: no running on
+        s.paint([p for p in body if p.split("|")[0] == part], "gloss", colour=BLACK,
+                zone=meet & near(pts[alone & (on == part)], OWN, "its own meeting") & clear, across=True)
     s.paint("sidepod frame", "gloss plastic", colour=BLACK,
             zone=near(gaps(pts, on, by), 2.0, "the frame where it shows as a sliver along the side"))
-
-    s.step("Small marks", "A few small marks of Britto's world, each outlined in black, where they mean something: a "
-           "red heart on the cockpit's left beside the driver's heart; a sun, yellow round orange, on the left rear "
-           "quarter panel by the fuel cap; a green star on the right one. The two sides unlike, as everywhere.",
-           words="each part of something with for example red and circles, then another part with another color with "
-                 "some different shapes")
-    names = tuple(dict.fromkeys(p.split("|")[0] for p in body))
-    clear = ~near(seam_points(names), LINE + 1.0, "the black lines") & ~near(pts, MEET + 1.0, "the black lines")
-    outlined(s, "cockpit surround", heart_motif(5.2), RED, (31, None, 6), clear)
-    sun = 7.5  # the sun's yellow, across
-    spot = s.mark("rear quarter panel", "gloss", marks.disc(), size=sun + 2 * OUTLINE, at=(33, None, -60),
-                  colour=BLACK, mirror=False, within=clear)
-    k = spot.size / (sun + 2 * OUTLINE)  # shrunk to fit, the rest with it
-    for size, colour in ((sun, YELLOW), (3.0 + 1.0, BLACK), (3.0, ORANGE)):
-        s.mark("rear quarter panel", "gloss", marks.disc(), size=size * k, at=spot.centre, colour=colour, mirror=False)
-    outlined(s, "rear quarter panel", star_motif(9.5), GREEN, (-33, None, -60), clear)
 
     s.step("Tyres and glass", "The tyres plain black rubber, the black line round the whole car; the glass clear, "
            "so the red seat and the blue steering wheel show through the canopy.",
