@@ -26,3 +26,9 @@ outline round them all from one call. Deleted once the step is OK'd.
   nothing blocking (the wheel covers' hub lines behind the wheels' hubs, noted). Let go: the judge's 17 sideways steps
   of 0.4 to 2.4 cm under the car or where three lines meet, clean or millimetre teeth close up (the road's step 23).
   Waiting: the user's look, and their OK of step 21.
+- 2026-10-23, the user: "I need another session to fex because I don't see that you've fixed it". Open (for the next
+  session): notes 1 (the tail's corners) and 2 (the line round the nose fin's plate by its bolts) are not fixed to
+  the user's eye, though marked done in the Lab: take them as open. First check that the Lab shows the car as last
+  painted (its textures written 10:42 local; the notes were made at 09:58 and 10:06, on an earlier version), then
+  look at each spot from the user's own view (the note's `view`) and close up, and fix what they see. Left as well:
+  millimetre teeth where three lines meet, a millimetre ring at each bolt's rim. Step 21 is not OK'd; Britto waits.
