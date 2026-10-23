@@ -27,6 +27,10 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
     2026-10-23: "For the most part things seem fairly okayish. Could be better. I just want to make sure it's a
     universal fix", and "I would like to point out some flaws in the next session though for a universal fix": next,
     the user's flaws on TSC_OutlineTest and Britto, each fixed in `course.outline` for every car, never in a design.
+    Britto rebuilt on it the same day: its outline clean where it was the tool's; left, Britto's own code (the line
+    round the inner car's frames where they lie on the body, a notch at the tail and a jog by each rear wheel; the
+    frame painted black under the body, specks on the inlet's frame): the outline to draw that line too, from an
+    inner part's edge lying on the body, and step 24 to keep the frame out of the cracks.
 22. **Lines cost by their length, and the surface can't hang** (Opus 5.5). A band costs about 0.3 s a course however
     short (52 pieces of 0.7 cm took 16 s, 2026-10-23), and `course.points` straight across the deck at x 28.5 froze
     the exact solver (killed after 10 minutes). Measure with `--profile` first; the close looks took over an hour on

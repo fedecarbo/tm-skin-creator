@@ -168,3 +168,15 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   (`IMPROVEMENTS.md`: the outline as a tool, lines costing by their length, the judge seeing what the eye sees, the
   bolts and cracks known to the car), then is rebuilt on them and shown in the Lab; the art director's 6 to 8 (the
   hearts in rows, the nose's checks, the skirts' dots) still open.
+- Change (Claude, Opus 5.5, 2026-10-23, the user: "I just want to make sure it's a universal fix. For example, if you
+  want to apply it now to Britto and see it get fixed"): the body's and the wheel covers' outline is the tools' own
+  (`course.outline(body, width=LINE)`, the road's step 21, fixed that day at its root): Britto's own outline code gone
+  (its loops, stretches and widening, 117 lines), no line round the deck's plates (the tool takes them as a guide). Also
+  painted for the first time: the earlier change read against the car but never shown (the deck's plain green panel,
+  the back's colours, the inlets, the mirrors, every bolt black, the frame black under the body). The read 3.5 minutes
+  (was 9), the judge's blocks 22 (were 72: 15 the corner readings the test car has, the rest Britto's own line round
+  the inner car). Close up beside how it was: notes 4 (the gap by the rear quarter panel) and 12 (the deck's back
+  corner) clean; note 2 (under the nose fin's plate) a smooth swell where it jogged. Notes 9 (the tail's notch) and 10
+  (by the rear wheel) still there and 11 (black specks on the inlet's green frame) new: the outline test car is clean
+  at all three, so they are Britto's own code, the line round the inner car (contacts, paths) and the frame painted
+  black under the body (covered): moving them into the tools is queued (`IMPROVEMENTS.md`, step 21).

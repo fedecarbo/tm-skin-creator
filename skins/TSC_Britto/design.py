@@ -19,11 +19,7 @@ from tool.noise import smoothstep
 RED, YELLOW, BLUE, ORANGE, GREEN, PURPLE = "#e4202d", "#ffd21f", "#1f5fd1", "#ff7f1f", "#2bb24c", "#7d3ec1"
 BLACK, WHITE = "#111111", "#ffffff"
 LINE = 2.5   # cm: the black line's width (the language's 2.5 cm round the big sections)
-GAP = 2.5    # cm: two parts' edges this close meet (a sewn-on piece's gap)
-TUCKED = 0.1  # an edge seeing this much less of the open air than the one it meets is tucked under it
-STUB = 15.0  # cm: an edge loop shorter than this (a fastener's hole) gets no line
-TAPER = 3.0  # cm: an edge's line widens from a seam's half of LINE to the whole over this, beside the seam
-CLEAR = 3.0  # cm the lines keep off the deck's plates the game letters
+CLEAR = 3.0  # cm the lines round the inner car keep off the deck's plates the game letters
 DECK = ("number panel", "engine cover panel")
 LABEL = 28.5  # cm off the middle: the deck's plain panel, the rear quarter panels' inner edges carried on to the tail
 LABEL_Z = (-84.5, -131.0)  # the quarter panels' back corners, and past the tail panel's seam
@@ -196,119 +192,6 @@ def covered(part, label):
         k = np.arange(len(p))
         return (hid[j[k, first]] & (d[k, first] < 3.0)).astype(np.float32)  # a texel the part shares lies elsewhere
     return shapes.Zone(f, label=label)
-
-
-@functools.cache
-def loops(keys):
-    """Every edge loop of the named parts (PLAN's keys: "rear flank|left"), each a course along the car's own edge
-    (course.edge: the part on its left as it runs, seen from outside), a loop under STUB cm left out: (key, course)."""
-    tri, V, words, code, _ = skin()
-    out = []
-    for key in keys:
-        part, _, side = key.partition("|")
-        side = side if side in ("left", "right") else None
-        p = _points(V, _edges(tri, words[code] == part)[0])[0]
-        if side:
-            p = p[(p[:, 0] > 0) == (side == "left")]
-        _, comp = connected_components(cKDTree(p).sparse_distance_matrix(cKDTree(p), 0.3), directed=False)
-        found = []
-        for c in np.unique(comp):
-            q = p[comp == c]
-            if len(q) * 0.2 < STUB:
-                continue
-            loop = course.edge(part, side=side, near=q[len(q) // 2])
-            if loop.length >= STUB and not any(np.allclose(loop.pts[0], o.pts[0]) for o in found):
-                found.append(loop)
-                out.append((key, loop))
-    return out
-
-
-def outline(keys, label):
-    """The black outline of the named parts, LINE wide, along their every edge: each edge loop whole and unbroken, a
-    band inside the part measured across the car's surface (tool/course.py), half of LINE (a seam's line is two parts'
-    halves), LINE along an edge none of them meets (an opening, the inner car's frames, the body's own edges, the
-    plates); and on a seam where one piece lies over another, the line centred on the edge the eye sees (the one seeing
-    TUCKED more of the open air), over the tucked piece where it comes out from under (a dense line along one edge: a
-    stroke, not dabs). A free edge running on from a seam widens to LINE over TAPER cm, so the line never jogs."""
-    from tool import carmap
-    L = loops(tuple(keys))
-    P = np.vstack([c.pts for _, c in L])
-    who = np.concatenate([[key] * len(c.pts) for key, c in L])
-    air = np.concatenate([carmap.load().value("open", c.pts, c.nrm) for _, c in L])
-    best = np.full(len(P), -1.0)
-    for i, nb in enumerate(cKDTree(P).query_ball_point(P, GAP)):
-        them = [j for j in nb if who[j] != who[i]]
-        if them:
-            best[i] = air[them].max()
-    kind = np.where(best < 0, 0, np.where(air < best - TUCKED, 2, 1))  # 0 free, 1 a seam, 2 tucked under
-    free, at = {}, 0
-    for _, c in L:
-        run = stretches(c, kind[at:at + len(c.pts)])
-        for m, (j, piece, _) in enumerate(run):
-            if j != 0 or len(run) == 1:
-                continue
-            after_seam = (m > 0 or c.closed) and run[m - 1][0] != 0
-            before_seam = (m + 1 < len(run) or c.closed) and run[(m + 1) % len(run)][0] != 0
-            for w, p in widened(piece, after_seam, before_seam):
-                free.setdefault(w, []).append(p)
-        if len(run) == 1 and run[0][0] == 0:
-            free.setdefault(LINE, []).append(c)
-        at += len(c.pts)
-    seen = (kind == 1) & (cKDTree(P[kind == 2]).query(P, workers=-1)[0] < GAP if (kind == 2).any() else False)
-    zone = course.Courses([c for _, c in L], f"the edges of {label}").band(LINE / 2, side=1)
-    for w, pieces in sorted(free.items()):
-        zone = zone | course.Courses(pieces, f"the free edges of {label}").band(w, side=1)
-    if seen.any():
-        zone = zone | near(P[seen], LINE / 2, f"the seams of {label} where one piece lies over another")
-    return zone
-
-
-def widened(piece, start, end, steps=6):
-    """A free edge's line: LINE wide, and within TAPER cm of an end that runs on from a seam (start, end) widening
-    from the seam's half of LINE in `steps` steps, each under the least step the judge sees: (width, course) each, the
-    steps overlapping by a point."""
-    from tool.course import STEP
-    n = len(piece.pts)
-    t = min(int(round(TAPER / STEP)), (n - 1) // (2 if start and end else 1))
-    lo, hi = (t if start else 0), (n - 1 - t if end else n - 1)
-    out = [(LINE, piece.between(piece.pts[lo], piece.pts[hi]))] if hi - lo >= 1 else []
-    cut = np.linspace(0, t, steps + 1).round().astype(int)
-    for k in range(steps):
-        a, b = int(cut[k]), min(int(cut[k + 1]) + 1, n - 1)
-        if b - a < 1:
-            continue
-        w = round(LINE / 2 * (1 + (k + 1) / (steps + 1)), 3)
-        if start:
-            out.append((w, piece.between(piece.pts[a], piece.pts[b])))
-        if end:
-            out.append((w, piece.between(piece.pts[n - 1 - b], piece.pts[n - 1 - a])))
-    return out
-
-
-def stretches(c, kind, least=1.5):
-    """A course cut where its points' kind changes, a stretch under `least` cm taking the kind before it: (kind,
-    piece, its points' indices) each, the pieces meeting end to end; a loop all of one kind whole."""
-    from tool.course import STEP
-    kind, n = kind.copy(), len(kind)
-
-    def runs_of(kind):
-        cut = np.flatnonzero(kind != np.roll(kind, 1)) if c.closed else np.flatnonzero(np.r_[True, kind[1:] != kind[:-1]])
-        return cut, (np.r_[cut[1:], cut[0] + n] if c.closed else np.r_[cut[1:], n]) if len(cut) else cut
-
-    for _ in range(3):
-        cut, ends = runs_of(kind)
-        short = [(a, b) for a, b in zip(cut, ends) if (b - a) * STEP < least] if len(cut) > 1 else []
-        for a, b in short:
-            kind[np.arange(a, b) % n] = kind[(a - 1) % n]
-    cut, ends = runs_of(kind)
-    if not len(cut):
-        return [(int(kind[0]), c, np.arange(n))]
-    out = []
-    for a, b in zip(cut, ends):
-        j = b % n if c.closed else min(b, n - 1)
-        if j != a:
-            out.append((int(kind[a]), c.between(c.pts[a], c.pts[j]), np.arange(a, b + 1) % n))
-    return out
 
 
 def paths(pts, least=10.0, every=1.0):
@@ -505,13 +388,12 @@ def design(s):
     s.step("The black outline", "A black stroke 2.5 cm wide along every edge of every part, as Britto outlines "
            "everything: centred on the seam where two parts meet, inside the part where it ends (round the nose fin, "
            "the openings, the inner car's frames), widening gently where an edge runs on from a seam; the deck's "
-           "plain panel framed by two more, carrying the rear quarter panels' inner edges back to the tail; clear "
-           "of the deck's plates the game letters.",
+           "plain panel framed by two more, carrying the rear quarter panels' inner edges back to the tail; none "
+           "round the deck's plates the game letters (a guide, not parts).",
            words="This needs a black line to close the fin; I think in general lines are too thick; Like why dabs "
                  "anyways? should it just be strokes or outlines?")
     body = [p for p in PLAN if p.split("|")[0] not in UNDER]
-    clear = ~near(deck_points(), CLEAR, "the deck's plates")
-    s.paint(body, "gloss", colour=BLACK, zone=outline(body, "the body's parts") & clear, across=True)
+    s.paint(body, "gloss", colour=BLACK, zone=course.outline(body, width=LINE), across=True)
     s.paint("engine cover|part", "gloss", colour=BLACK, zone=label_lines().band(LINE))
 
     s.step("Wheels and the inner car", "The wheel covers red with white dots in a yellow ring, a black stroke along "
@@ -520,7 +402,7 @@ def design(s):
            words="primary and secondary colors")
     for part, plan in WHEELS.items():
         lay(s, part, *plan)
-    s.paint(list(WHEELS), "gloss", colour=BLACK, zone=outline(list(WHEELS), "the wheel covers"), across=True)
+    s.paint(list(WHEELS), "gloss", colour=BLACK, zone=course.outline(list(WHEELS), width=LINE), across=True)
     s.paint("inner", "gloss plastic", colour=BLACK)
     for part, colour in INNER.items():
         s.paint(part, "gloss plastic", colour=colour)
@@ -532,6 +414,7 @@ def design(s):
            "top, the rear flank and the side skirt) and wherever the body covers it, seen only through its cracks. "
            "Two colours never touch.",
            words="each part of something with for example red and circles, then another part with another color")
+    clear = ~near(deck_points(), CLEAR, "the deck's plates")
     names = list(dict.fromkeys(p.split("|")[0] for p in body))
     pts, on, by, lies = contacts(names)
     for part in np.unique(on[lies]):  # each part from its own stretch of the frame's edge: none runs on onto the next
