@@ -13,18 +13,9 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. The three steps the user asked for after its four, then 13 on the PC (away until November or December
+AI's eye**. The two steps the user asked for after its four, then 13 on the PC (away until November or December
 2026):
 
-18. **Root causes logged across cars.** Built, waiting for the user's OK (2026-10-22; the user: "if it finds something
-    that is happening in various cars, something that has a root cause, then I guess it should be automatically just
-    logged to queue a fix in another session"): `tool/ledger.py` keeps every car's latest verdict at `judge.save`
-    (milliseconds), each block and warning by its kind, its ruler's line and its place (every finding carries `mid`);
-    one in a place on three cars, or let go on two, is written into this queue's last section by the tool, one item for
-    a stroke's flaws of a kind, out when no car shows it; the judge then says "known, queued" and the gate lets it pass.
-    Shown on TSC_Ledger1 to 3, three different cars sharing a skirt line and a shoulder badge: the third queued K1 (the
-    skirt line's steps, five places) and K2 (the ring's chip) by itself, while its own planted mistake still blocked.
-    On the OK: the three test cars deleted (the ledger keeps their verdicts, so K1 and K2 stay), and this step.
 19. **The ring's chip, at its root** (the user, 2026-10-22: "Obviously there is somewhat a root cause that causes those
     chipped things, so that would be a session worth running to fix"; of the badge, 2026-10-08: "This decal looks chipped
     off on one part of the circle"). A ring pressed across the rear flank's rolled shoulder jogs 0.3 cm sideways at two
