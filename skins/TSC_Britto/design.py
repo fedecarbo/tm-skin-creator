@@ -110,6 +110,18 @@ def skin():
     return tri, V, words, code, facing / (np.linalg.norm(facing, axis=1, keepdims=True) + 1e-9)
 
 
+def inside(pts, depth=0.4):
+    """Whether each point lies more than `depth` cm inside the body, under the skin the eye sees nearest it (the car's
+    own test: tool/meshlines.py, at), as a piece's flange folded under the skin does."""
+    from tool import carmap, judge
+    tri, V, _, _, facing = skin()
+    S, t = _sample(tri, V, np.ones(len(tri), bool), 6, 13)
+    seen = carmap.load().value("open", S, facing[t]) >= judge.OUTER
+    S, N = S[seen], facing[t[seen]]
+    _, j = cKDTree(S).query(pts, workers=-1)
+    return np.einsum("ij,ij->i", pts - S[j], N[j]) < -depth
+
+
 @functools.cache
 def fin_points():
     """The nose fin's edge, points every 0.2 cm: the line round it lies beside it, on the body."""
@@ -140,11 +152,11 @@ def deck_points():
 
 
 @functools.cache
-def seam_points(names):
+def seam_points(names, sky=SKY, least=15):
     """The seams between the named parts, points every 0.2 cm: an edge of the body's triangles two of them share, or
     a piece's edge within GAP cm of another's (a sewn-on piece) unless it's the one tucked under the other (it sees
-    less of the open air: the line follows the edge the eye sees, one curve); none that sees under SKY of the open
-    air (inside an inlet, under a panel)."""
+    less of the open air: the line follows the edge the eye sees, one curve); none that sees under `sky` of the open
+    air (inside an inlet, under a panel), nor in a stretch under `least` cm left after these."""
     from tool import carmap
     tri, V, words, code, facing = skin()
     e = np.sort(np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]]), axis=1)
@@ -158,13 +170,13 @@ def seam_points(names):
     open_ = ours & (many == 1)
     mid, oc = V[edge[open_]].mean(1), c[start][open_]
     near = cKDTree(mid).query(mid, k=12, distance_upper_bound=GAP)[1]
-    sky = carmap.load().value("open", mid, f[start][open_])
+    air = carmap.load().value("open", mid, f[start][open_])
     other, best = np.zeros(len(mid), bool), np.zeros(len(mid))
     for i, row in enumerate(near):
         them = [j for j in row if j < len(mid) and oc[j] != oc[i]]
         if them:
-            other[i], best[i] = True, sky[them].max()
-    other &= sky >= best - 0.1
+            other[i], best[i] = True, air[them].max()
+    other &= air >= best - 0.1
     keep, kf = edge[shared], f[start][shared]
     if other.any():
         keep, kf = np.vstack([keep, edge[open_][other]]), np.vstack([kf, f[start][open_][other]])
@@ -173,14 +185,34 @@ def seam_points(names):
     i = np.repeat(np.arange(len(a)), k)
     pts = a[i] + (b[i] - a[i]) * np.concatenate([np.arange(n) / n for n in k])[:, None]
     nrm = kf[i] / np.linalg.norm(kf[i], axis=1, keepdims=True)
-    pts = pts[carmap.load().value("open", pts, nrm) >= SKY]
-    return pts[runs(pts, 15)]  # a stretch shorter than 15 cm left after the filters goes
+    pts = pts[carmap.load().value("open", pts, nrm) >= sky]
+    return pts[runs(pts, least)]
 
 
 def runs(pts, cm):
     """Which points (every 0.2 cm along lines) lie on a stretch at least `cm` long: a shorter one reads as a dab."""
     _, piece = connected_components(cKDTree(pts).sparse_distance_matrix(cKDTree(pts), 0.5), directed=False)
     return np.bincount(piece)[piece] >= cm / 0.2
+
+
+def heading(P, at, r=1.5):
+    """The way the line of points P runs at each of the points `at`: its main direction within r cm, a unit vector."""
+    out = np.zeros((len(at), 3))
+    for k, nb in enumerate(cKDTree(P).query_ball_point(at, r)):
+        if len(nb) > 2:
+            out[k] = np.linalg.svd(P[nb] - P[nb].mean(0), full_matrices=False)[2][0]
+    return out
+
+
+def between(at, part, names, r=1.5):
+    """Whether each seam point `at` lies between `part` and another of the named parts the eye sees (within r cm, seeing
+    SKY of the open air): a seam's line seen on both sides, not one on an edge whose other side is out of sight."""
+    from tool import carmap
+    tri, V, words, code, facing = skin()
+    S, t = _sample(tri, V, np.isin(words[code], names), 6, 17)
+    seen = carmap.load().value("open", S, facing[t]) >= SKY
+    S, w = S[seen], words[code[t[seen]]]
+    return np.array([(w[nb] != p).any() for nb, p in zip(cKDTree(S).query_ball_point(at, r), part)], bool)
 
 
 def _sample(tri, V, mask, per, seed):
@@ -254,6 +286,7 @@ def contacts(names, near=1.0, on=0.6):
     pts, nrm = np.vstack([a, b[sel]]), np.vstack([an, bnrm[sel]])
     body, part = np.r_[abody, bn[st[j[sel]]]], np.r_[ainner, dn[et[i[sel]]]]
     seen = (shapes.outside(0.4)(pts.astype(np.float32), nrm.astype(np.float32)) > 0.5) | np.isin(body, INSIDE)
+    seen &= np.isin(body, INSIDE) | ~inside(pts)  # none under the skin the eye sees
     pts, body, part = pts[seen], body[seen], part[seen]
     long = runs(pts, 10)  # a stretch shorter than 10 cm goes
     return pts[long], body[long], part[long]
@@ -363,7 +396,14 @@ def design(s):
            "gaps between the sidepod top, the rear flank and the side skirt). Two colours never touch.",
            words="each part of something with for example red and circles, then another part with another color")
     pts, on, by = contacts(names)
-    alone = cKDTree(seam_points(tuple(names))).query(pts, workers=-1)[0] > 2.0  # on a seam its own line outlines it
+    lined = np.vstack([seam_points(tuple(names)), traced()])
+    d, j = cKDTree(lined).query(pts, workers=-1)
+    along = d < 2.5  # beside a seam's line, which outlines it there, running with it (one crossing it stays)
+    along[along] = np.abs(np.einsum("ij,ij->i", heading(pts, pts[along]), heading(lined, lined[j[along]]))) > 0.7
+    along[along] = between(lined[j[along]], on[along], names)  # its line seen on both sides, not half off an edge
+    joint = cKDTree(seam_points(tuple(names), 0.0, 0)).query(pts, workers=-1)[0] < 2.5
+    joint &= by == "sidepod panel"  # the panel seen only in a joint between the sidepod's pieces: the car hides it
+    alone = ~along & ~joint
     alone[alone] = runs(pts[alone], 10)
     meet = near(pts[alone], MEET, "where the body meets the coloured inner car")
     for part in np.unique(on[alone]):  # on a part only near where it meets the inner car itself: no running on

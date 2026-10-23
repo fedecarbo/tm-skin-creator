@@ -23,6 +23,10 @@ AI's eye**. Left: 13 on the PC (away until November or December 2026):
 
 ## The tool
 
+- **A line drawn as dabs passes every check** (2026-10-23, TSC_Britto: the user, "why dabs anyways? should it just be
+  strokes or outlines?"): a zone "within w cm of points" stamps a disc per point, so stray, missing or hidden points
+  show as bumps, stubs, gaps and thick patches, and nothing measures a line's edge for lumps. Refuse a line whose edge
+  isn't smooth, and give an outline round every part as one stroke along each part's own edge (course.edge).
 - **A sticker over the sidepod top's inner edge comes out half** (2026-10-22, TSC_RingsAcross at (56, 62, -15)): the
   sidepod top is its own piece, its edge a 0.5 cm lip facing the 0.4 cm gap to the body shell, 115 degrees from the
   shell's edge across it, so the gap is neither bridged (skins facing alike) nor spanned (a wall facing 70 degrees from

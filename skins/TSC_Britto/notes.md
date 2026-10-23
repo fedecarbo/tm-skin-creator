@@ -109,3 +109,18 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   doubled bands of 10 (one edge per seam now). Still open from it: 1 (the deck's plain patch), 2 (the blue back),
   3 (no line where the side skirt meets the rear flank: under 15 cm), 5 to 8, 11, and the green frame showing as a
   thin line inside the seam between the sidepod top and the rear flank.
+- 2026-10-23, the user, notes in the Lab (Opus 5.5): "gaps here" (the tail: the black line along the bottom of the
+  tail corner and the tail panel breaks at the seam between them); "Thick stroke here, not sure why" (the tail
+  corner's edge by the left rear wheel: the traced line and the flank's line round the tail frame stacked); "Not sure
+  what happened here" (a black stub off the line round the right inlet's green frame, along the sidepod's crease).
+  Then: "I honestly don't get why you always make mistakes like these, no matter what car im building there's so
+  many bugs like that.  Like why dabs anyways? should it just be strokes or outlines? Im giving up, I thought this
+  whole "car provides the reads" work was going to solve it, and this tool just keeps making silly mistakes".
+- Open (Claude, Opus 5.5, 2026-10-23): the three notes above are not fixed; design.py holds an unfinished hour of
+  patches (the line round the inner car: none on a flange inside the body, none in a joint of the sidepod panel,
+  along a seam judged by direction and only where the seam is seen on both sides), shown but not closed or judged
+  by eye. The cause of every line fault today: the outline is round dabs stamped at points found near the edges
+  (near()), not a stroke, so missing, doubled or hidden points show as bumps, stubs, gaps and thick patches.
+  Decided: rebuild the outline as one stroke along every part's own edge, inside the part (course.edge(part) with an
+  even band, measured along the surface), two neighbours meeting in one 2.5 cm line; and a check in the tools that
+  refuses a line whose edge is lumpy (IMPROVEMENTS.md). Waiting on the user: rebuild now, or stop for today.
