@@ -1,7 +1,7 @@
-"""TSC_Britto, take C, two sides: Britto's pop art made of the car's own parts, and its two sides unlike, as Britto
-paints a face's two halves: each part its own colour and pattern, and on the right side each of the side's parts
-another colour or pattern than its twin on the left; a black line on every seam between two parts; the plates the game
-letters plain; the inner car's parts each a solid colour."""
+"""TSC_Britto: Romero Britto's pop art made of the car's own parts, its two sides unlike, as Britto paints a face's two
+halves: each part its own colour and pattern, and on the right side each of the side's parts another colour or pattern
+than its twin on the left; a black line on every seam between two parts; the plates the game letters plain; the inner
+car's parts each a solid colour."""
 
 import numpy as np
 from PIL import Image
