@@ -153,3 +153,18 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   green rings reads thinner than elsewhere (half of its band under the frame). The user's notes 9 to 11 (the tail's
   seam foot, the thick stroke by the rear wheel, the stub by the inlet) are under the strokes now but not checked one
   by one or marked done in the Lab. Then the art director's items still open (1, 2, 3, 5 to 8, 11).
+- Change (Claude, Opus 5.5, 2026-10-23), from the art director's list and close looks, read against the car but not
+  painted or shown: the deck a plain green panel down the engine cover's middle (the plates on it like a label), framed
+  by the rear quarter panels' inner edges carried straight back to the tail (x ±28.5) (item 1); at the back the rear
+  arms orange, the hubs and the diffuser purple, the tail frame blue (item 2); the left inlet red with white stripes,
+  the right blue with yellow (item 5); the mirrors red (item 11); every bolt black (the blue dots by the fuel cap and
+  the nose fin were bolt heads poking through the body, coloured by the blue parts sharing their paint); the sidepod
+  frame black wherever the body covers it (the green hairline in the seam between the sidepod top and the body shell
+  was the frame through a crack); an edge's line widening over 3 cm where it runs on from a seam (the jogs). Notes 11
+  and 12 look clean in close looks; 9 and 10 not yet checked one by one. The read took 9 minutes (the widening's small
+  pieces cost as much as long lines).
+- 2026-10-23, the user: "What's important is that we optimised each tool in the system ... Do we need to reevaluate
+  the tool itself?", then "Fix the tools first". Open: Britto waits for the tools' road steps 21 to 24
+  (`IMPROVEMENTS.md`: the outline as a tool, lines costing by their length, the judge seeing what the eye sees, the
+  bolts and cracks known to the car), then is rebuilt on them and shown in the Lab; the art director's 6 to 8 (the
+  hearts in rows, the nose's checks, the skirts' dots) still open.

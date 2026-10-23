@@ -1,7 +1,7 @@
 """TSC_Britto: Romero Britto's pop art made of the car's own parts, its two sides unlike, as Britto paints a face's two
 halves: each part its own colour and pattern, and on the right side each of the side's parts another colour or pattern
 than its twin on the left; a black stroke along every part's edges (centred on a seam, inside an edge it ends at)
-and along the inner car's frames where they lie on the body; the plates the game letters plain; the inner car's parts
+and along the inner car's frames where they lie on the body; the plates the game letters on a plain panel; the inner car's parts
 each a solid colour.
 All of it gloss, the tyres black rubber, the glass clear, every light its own colour of the palette, and no dirt ever:
 it stays new."""
@@ -22,8 +22,12 @@ LINE = 2.5   # cm: the black line's width (the language's 2.5 cm round the big s
 GAP = 2.5    # cm: two parts' edges this close meet (a sewn-on piece's gap)
 TUCKED = 0.1  # an edge seeing this much less of the open air than the one it meets is tucked under it
 STUB = 15.0  # cm: an edge loop shorter than this (a fastener's hole) gets no line
+TAPER = 3.0  # cm: an edge's line widens from a seam's half of LINE to the whole over this, beside the seam
 CLEAR = 3.0  # cm the lines keep off the deck's plates the game letters
 DECK = ("number panel", "engine cover panel")
+LABEL = 28.5  # cm off the middle: the deck's plain panel, the rear quarter panels' inner edges carried on to the tail
+LABEL_Z = (-84.5, -131.0)  # the quarter panels' back corners, and past the tail panel's seam
+BOLTS = (0.5440, 0.4781, 0.5509, 0.4959)  # the inner car's map: the one patch every bolt shares (u, v from, to)
 LEAN = 0.47  # stripes lean forward 25 degrees
 
 # each part of the body (the mirror mount shares the body shell's paint): its colour, its pattern and the pattern's
@@ -38,8 +42,8 @@ PLAN = {
     "cockpit surround": (YELLOW, "plain", None),
     "sidepod top|left": (YELLOW, "hearts", RED),
     "sidepod top|right": (RED, "hearts", YELLOW),
-    "sidepod inlet|left": (GREEN, "stripes", WHITE),
-    "sidepod inlet|right": (WHITE, "stripes", GREEN),
+    "sidepod inlet|left": (RED, "stripes", WHITE),
+    "sidepod inlet|right": (BLUE, "stripes", YELLOW),
     "rear flank|left": (ORANGE, "dots", WHITE),
     "rear flank|right": (PURPLE, "dots", WHITE),
     "rear quarter panel|left": (PURPLE, "small dots", YELLOW),
@@ -49,7 +53,7 @@ PLAN = {
     "tail corner|left": (PURPLE, "checks", WHITE),
     "tail corner|right": (ORANGE, "checks", WHITE),
     "tail panel": (RED, "stripes", WHITE),
-    "diffuser": (BLUE, "plain", None),
+    "diffuser": (PURPLE, "plain", None),
     "diffuser strake": (YELLOW, "plain", None),
 }
 PLATES = {"nose fin": BLUE, "number panel": GREEN, "engine cover panel": GREEN}  # one plain paint each, the colour round them
@@ -61,11 +65,11 @@ WHEELS = {"wheel cover disc": (RED, "dots", WHITE), "wheel cover ring": (YELLOW,
           "wheel cover hub": (BLUE, "plain", None)}
 INNER = {  # the inner car's parts seen from outside, each a solid colour
     "front wing": RED, "front wing endplate": YELLOW, "upper wishbone": BLUE, "lower wishbone": ORANGE,
-    "pushrod": GREEN, "tie rod": PURPLE, "upright": YELLOW, "upright cover": RED, "rear arm": BLUE,
-    "mirror": WHITE, "mirror arm": PURPLE, "sidepod frame": GREEN, "sidepod panel": RED, "sidepod strut": YELLOW,
+    "pushrod": GREEN, "tie rod": PURPLE, "upright": YELLOW, "upright cover": RED, "rear arm": ORANGE,
+    "mirror": RED, "mirror arm": PURPLE, "sidepod frame": GREEN, "sidepod panel": RED, "sidepod strut": YELLOW,
     "side vane": BLUE, "side vent": ORANGE, "exhaust": GREEN, "rear bumper": PURPLE, "rear bumper corner": YELLOW,
     "rear strake": RED, "tail frame": BLUE, "cockpit rim": ORANGE, "seat": RED, "steering wheel": BLUE,
-    "airbox": YELLOW, "wing bracket": GREEN, "brake caliper": RED, "rim": YELLOW, "hub": BLUE,
+    "airbox": YELLOW, "wing bracket": GREEN, "brake caliper": RED, "rim": YELLOW, "hub": PURPLE,
 }
 # the car's own lights, each its own colour, none the stock's, at full colour: the speed numbers, the gear bar along
 # the tail's top (in the blue tail frame), the slots inside the front wheels, the lamps on the front wing (night only)
@@ -108,6 +112,92 @@ def deck_points():
     return _points(V, e)[0]
 
 
+def label_lines():
+    """The deck's plain panel's sides: a line each side from the rear quarter panel's back corner straight back to the
+    tail panel's seam, LABEL cm off the middle: the deck's skin seen from above, straight down onto it."""
+    tri, V, *_ = skin()
+    T = V[tri]
+    up = np.cross(T[:, 1] - T[:, 0], T[:, 2] - T[:, 0])[:, 1]
+    out = []
+    for x, side in ((LABEL, "left"), (-LABEL, "right")):
+        pts = []
+        for z in np.arange(LABEL_Z[0], LABEL_Z[1], -0.25):
+            a, b, c = (T[:, k][:, [0, 2]] - [x, z] for k in range(3))
+            d = (b[:, 0] - a[:, 0]) * (c[:, 1] - a[:, 1]) - (b[:, 1] - a[:, 1]) * (c[:, 0] - a[:, 0])
+            u = (a[:, 1] * c[:, 0] - a[:, 0] * c[:, 1]) / np.where(d == 0, np.inf, d)
+            v = (a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0]) / np.where(d == 0, np.inf, d)
+            on = (u >= 0) & (v >= 0) & (u + v <= 1) & (up != 0)
+            if on.any():
+                y = (1 - u - v) * T[:, 0, 1] + u * T[:, 1, 1] + v * T[:, 2, 1]
+                pts.append((x, float(y[on].max()), z))
+        out.append(course.Course(pts, f"the deck's panel's {side} side"))
+    return course.Courses(out, "the deck's panel's sides")
+
+
+def exactly(pos, label):
+    """The texels at these baked places of the inner car's map, and no others."""
+    tree = cKDTree(pos)
+    return shapes.Zone(lambda p, n: (tree.query(p, distance_upper_bound=1e-3, workers=-1)[0] < 1e-3)
+                       .astype(np.float32), label=label)
+
+
+@functools.cache
+def bolts():
+    """Every bolt of the inner car: the patch of its map they all share (BOLTS), as its texels' baked places."""
+    from tool import bake
+    b = bake.bake("Details", 4096, 4096)
+    u0, v0, u1, v1 = BOLTS
+    rows = slice(int((1 - v1) * 4096), int(np.ceil((1 - v0) * 4096)))
+    cols = slice(int(u0 * 4096), int(np.ceil(u1 * 4096)))
+    pos = b["position"][rows, cols].reshape(-1, 3).astype(np.float64)
+    return pos[np.abs(pos).sum(1) > 0]
+
+
+@functools.cache
+def under_body(part, reach=25.0):
+    """The triangles of an inner part the body covers (a ray out along the triangle's facing meets the body's skin
+    within reach cm): their middles, facings, and which are covered."""
+    M, P = fbx.meshes(), parts.load()
+    m = M["Details_01"]
+    tv, pos = m["tri_vertex"], m["positions"].astype(np.float64)
+    off = P.mesh_offset["Details"]
+    mine = np.flatnonzero([P.instances[int(i)]["name"] == part for i in P.tri_part[off:off + len(tv)]])
+    C, N = pos[tv[mine]].mean(1), m["tri_normal"][mine].mean(1)
+    N = N / (np.linalg.norm(N, axis=1, keepdims=True) + 1e-9)
+    tri, V, *_ = skin()
+    S = V[tri]
+    tree = cKDTree(S.mean(1))
+    hid = np.zeros(len(C), bool)
+    for k, (o, d) in enumerate(zip(C + N * 0.05, N)):
+        near_ = tree.query_ball_point(o + d * reach / 2, reach / 2 + 6)
+        if not near_:
+            continue
+        a, b, c = S[near_, 0], S[near_, 1], S[near_, 2]
+        e1, e2 = b - a, c - a
+        h = np.cross(d, e2)
+        det = (e1 * h).sum(1)
+        inv = 1 / np.where(np.abs(det) > 1e-9, det, np.inf)
+        w = o - a
+        u, q = (w * h).sum(1) * inv, np.cross(w, e1)
+        v, t = (q @ d) * inv, (e2 * q).sum(1) * inv
+        hid[k] = np.any((u >= 0) & (v >= 0) & (u + v <= 1) & (t > 0) & (t < reach))
+    return C, N, hid
+
+
+def covered(part, label):
+    """Where the body covers an inner part (under_body): each texel by the nearest of its triangles facing its way."""
+    C, N, hid = under_body(part)
+    tree = cKDTree(C)
+
+    def f(p, n):
+        d, j = tree.query(p.astype(np.float64), k=4, workers=-1)
+        agree = np.einsum("ikc,ic->ik", N[j], n.astype(np.float64)) > 0.3
+        first = np.where(agree.any(1), agree.argmax(1), 0)
+        k = np.arange(len(p))
+        return (hid[j[k, first]] & (d[k, first] < 3.0)).astype(np.float32)  # a texel the part shares lies elsewhere
+    return shapes.Zone(f, label=label)
+
+
 @functools.cache
 def loops(keys):
     """Every edge loop of the named parts (PLAN's keys: "rear flank|left"), each a course along the car's own edge
@@ -139,7 +229,7 @@ def outline(keys, label):
     halves), LINE along an edge none of them meets (an opening, the inner car's frames, the body's own edges, the
     plates); and on a seam where one piece lies over another, the line centred on the edge the eye sees (the one seeing
     TUCKED more of the open air), over the tucked piece where it comes out from under (a dense line along one edge: a
-    stroke, not dabs)."""
+    stroke, not dabs). A free edge running on from a seam widens to LINE over TAPER cm, so the line never jogs."""
     from tool import carmap
     L = loops(tuple(keys))
     P = np.vstack([c.pts for _, c in L])
@@ -151,17 +241,48 @@ def outline(keys, label):
         if them:
             best[i] = air[them].max()
     kind = np.where(best < 0, 0, np.where(air < best - TUCKED, 2, 1))  # 0 free, 1 a seam, 2 tucked under
-    free, at = [], 0
+    free, at = {}, 0
     for _, c in L:
-        free += [piece for j, piece, _ in stretches(c, kind[at:at + len(c.pts)]) if j == 0]
+        run = stretches(c, kind[at:at + len(c.pts)])
+        for m, (j, piece, _) in enumerate(run):
+            if j != 0 or len(run) == 1:
+                continue
+            after_seam = (m > 0 or c.closed) and run[m - 1][0] != 0
+            before_seam = (m + 1 < len(run) or c.closed) and run[(m + 1) % len(run)][0] != 0
+            for w, p in widened(piece, after_seam, before_seam):
+                free.setdefault(w, []).append(p)
+        if len(run) == 1 and run[0][0] == 0:
+            free.setdefault(LINE, []).append(c)
         at += len(c.pts)
     seen = (kind == 1) & (cKDTree(P[kind == 2]).query(P, workers=-1)[0] < GAP if (kind == 2).any() else False)
     zone = course.Courses([c for _, c in L], f"the edges of {label}").band(LINE / 2, side=1)
-    if free:
-        zone = zone | course.Courses(free, f"the free edges of {label}").band(LINE, side=1)
+    for w, pieces in sorted(free.items()):
+        zone = zone | course.Courses(pieces, f"the free edges of {label}").band(w, side=1)
     if seen.any():
         zone = zone | near(P[seen], LINE / 2, f"the seams of {label} where one piece lies over another")
     return zone
+
+
+def widened(piece, start, end, steps=6):
+    """A free edge's line: LINE wide, and within TAPER cm of an end that runs on from a seam (start, end) widening
+    from the seam's half of LINE in `steps` steps, each under the least step the judge sees: (width, course) each, the
+    steps overlapping by a point."""
+    from tool.course import STEP
+    n = len(piece.pts)
+    t = min(int(round(TAPER / STEP)), (n - 1) // (2 if start and end else 1))
+    lo, hi = (t if start else 0), (n - 1 - t if end else n - 1)
+    out = [(LINE, piece.between(piece.pts[lo], piece.pts[hi]))] if hi - lo >= 1 else []
+    cut = np.linspace(0, t, steps + 1).round().astype(int)
+    for k in range(steps):
+        a, b = int(cut[k]), min(int(cut[k + 1]) + 1, n - 1)
+        if b - a < 1:
+            continue
+        w = round(LINE / 2 * (1 + (k + 1) / (steps + 1)), 3)
+        if start:
+            out.append((w, piece.between(piece.pts[a], piece.pts[b])))
+        if end:
+            out.append((w, piece.between(piece.pts[n - 1 - b], piece.pts[n - 1 - a])))
+    return out
 
 
 def stretches(c, kind, least=1.5):
@@ -368,27 +489,34 @@ def design(s):
     s.step("Every part its own", "Each part of the body its own colour and pattern, the two sides unlike: on the "
            "left the side skirt purple with yellow dots, the sidepod yellow with red hearts, the rear flank orange "
            "with white dots; on the right the side skirt yellow with purple dots, the sidepod red with yellow hearts, "
-           "the rear flank purple with white dots; the small rear quarter panels in small dots, purple with yellow on "
-           "the left, orange with white on the right; the body shell blue with white checks, the engine cover green "
-           "with yellow waves; the plates the game letters plain.",
+           "the rear flank purple with white dots, the inlet red with white stripes on the left, blue with yellow on "
+           "the right; the small rear quarter panels in small dots, purple with yellow on the left, orange with white "
+           "on the right; the body shell blue with white checks, the engine cover green with yellow waves, and down "
+           "its middle a plain green panel holding the plates the game letters, like a label.",
            words="I want you to actually paint each part differently ... e.g tail panel is one, fuel cap, etc; "
                  "Maybe for smaller parts, do dotted?")
     for part, plan in PLAN.items():
         lay(s, part, *plan)
     for part, colour in PLATES.items():
         s.paint(part, "gloss", colour=colour)
+    s.paint("engine cover|part", "gloss", colour=GREEN,
+            zone=shapes.Zone(lambda p, n: (np.abs(p[:, 0]) < LABEL).astype(np.float32), label="the deck's plain panel"))
 
     s.step("The black outline", "A black stroke 2.5 cm wide along every edge of every part, as Britto outlines "
            "everything: centred on the seam where two parts meet, inside the part where it ends (round the nose fin, "
-           "the openings, the inner car's frames); clear of the deck's plates the game letters.",
+           "the openings, the inner car's frames), widening gently where an edge runs on from a seam; the deck's "
+           "plain panel framed by two more, carrying the rear quarter panels' inner edges back to the tail; clear "
+           "of the deck's plates the game letters.",
            words="This needs a black line to close the fin; I think in general lines are too thick; Like why dabs "
                  "anyways? should it just be strokes or outlines?")
     body = [p for p in PLAN if p.split("|")[0] not in UNDER]
     clear = ~near(deck_points(), CLEAR, "the deck's plates")
     s.paint(body, "gloss", colour=BLACK, zone=outline(body, "the body's parts") & clear, across=True)
+    s.paint("engine cover|part", "gloss", colour=BLACK, zone=label_lines().band(LINE))
 
     s.step("Wheels and the inner car", "The wheel covers red with white dots in a yellow ring, a black stroke along "
-           "their edges; every part of the inner car a solid colour of its own, the rest of it black.",
+           "their edges; every part of the inner car a solid colour of its own (at the back the tail frame blue, "
+           "the rear arms orange, the hubs and the diffuser purple), the rest of it and every bolt black.",
            words="primary and secondary colors")
     for part, plan in WHEELS.items():
         lay(s, part, *plan)
@@ -401,7 +529,8 @@ def design(s):
            "the inner car that lies on it: round the green frame of each sidepod's inlet, the bumper and tail frame "
            "at the back, the mirrors' feet, on each part beside it; and "
            "the green frame black where it shows only as a sliver along the side (in the gaps between the sidepod "
-           "top, the rear flank and the side skirt). Two colours never touch.",
+           "top, the rear flank and the side skirt) and wherever the body covers it, seen only through its cracks. "
+           "Two colours never touch.",
            words="each part of something with for example red and circles, then another part with another color")
     names = list(dict.fromkeys(p.split("|")[0] for p in body))
     pts, on, by, lies = contacts(names)
@@ -412,7 +541,9 @@ def design(s):
                     zone=course.Courses(strokes, f"the inner car's edge on the {part}").band(2 * LINE) & clear,
                     across=True)
     s.paint("sidepod frame", "gloss plastic", colour=BLACK,
-            zone=near(gaps(pts, on, by), 2.0, "the frame where it shows as a sliver along the side"))
+            zone=near(gaps(pts, on, by), 2.0, "the frame where it shows as a sliver along the side")
+            | covered("sidepod frame", "the frame under the body, seen only through its cracks"))
+    s.paint("inner", "gloss plastic", colour=BLACK, zone=exactly(bolts(), "every bolt"))
 
     s.step("Tyres and glass", "The tyres plain black rubber, the black line round the whole car; the glass clear, "
            "so the red seat and the blue steering wheel show through the canopy.",

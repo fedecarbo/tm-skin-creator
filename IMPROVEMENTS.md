@@ -13,7 +13,30 @@ One step per session: built under the self-test, its worth shown on a new test c
 in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
-AI's eye**. Left: 13 on the PC (away until November or December 2026):
+AI's eye**. Added 2026-10-23 (the user, after a session of patching TSC_Britto's outline inside its design: "What's
+important is that we optimised each tool in the system ... Do we need to reevaluate the tool itself?"; then "Fix the
+tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the PC (away until November or December
+2026):
+
+21. **One outline, a tool** (Opus 5.5). An outline round any parts as one call: one even stroke along every edge of
+    the named parts, joined at every corner, centred on a seam two of them share (each its half), inside a part where
+    its edge meets nothing named, on the edge the eye sees where one piece lies over another, widening smoothly where
+    one kind runs into the other; measured along the surface from each part's own edge, never stamped as dabs. Shown
+    on a new test car, every part a plain colour, outlined. Retires TSC_Britto's own outline code (its loops,
+    stretches, widened, near, paths), Britto rebuilt on the tool after.
+22. **Lines cost by their length, and the surface can't hang** (Opus 5.5). A band costs about 0.3 s a course however
+    short (52 pieces of 0.7 cm took 16 s, 2026-10-23), and `course.points` straight across the deck at x 28.5 froze
+    the exact solver (killed after 10 minutes). Measure with `--profile` first; the close looks took over an hour on
+    Britto's strokes (600 looks).
+23. **The judge sees what the eye sees** (Opus 5.5). On Britto it blocked 72 jogs and hops under a centimetre that no
+    close look shows, and missed what does: bolt heads poking through the body as dots, the sidepod frame through a
+    hairline crack, the deck's plain plates as a hole in the waves. Each check read against close looks; a check for
+    an inner part showing through the body; retires the checks that never matched a visible fault.
+24. **The car knows its bolts and cracks** (Opus 5.5). Every bolt of the inner car shares one patch of its map (u 0.544
+    to 0.551, v 0.478 to 0.496), so a part painted later colours them all, and two (the airbox's at (57, 64, -80), the
+    nose plate's at (10, 60, 140)) poke 2 to 3 mm through the body; the sidepod frame shows through a hairline crack
+    between the sidepod top and the body shell (z -50). The car's answers name them, and a paint keeps a coloured
+    inner part out of the cracks by itself.
 
 13. **Yardsticks, on the PC** (Opus 5.5, high). The game files encoded once by quicktex and texconv against the tool's
     own encoder; the camera's colours fitted first to a garage screenshot with the game's camera light on (the
@@ -23,10 +46,6 @@ AI's eye**. Left: 13 on the PC (away until November or December 2026):
 
 ## The tool
 
-- **A line drawn as dabs passes every check** (2026-10-23, TSC_Britto: the user, "why dabs anyways? should it just be
-  strokes or outlines?"): a zone "within w cm of points" stamps a disc per point, so stray, missing or hidden points
-  show as bumps, stubs, gaps and thick patches, and nothing measures a line's edge for lumps. Refuse a line whose edge
-  isn't smooth, and give an outline round every part as one stroke along each part's own edge (course.edge).
 - **A sticker over the sidepod top's inner edge comes out half** (2026-10-22, TSC_RingsAcross at (56, 62, -15)): the
   sidepod top is its own piece, its edge a 0.5 cm lip facing the 0.4 cm gap to the body shell, 115 degrees from the
   shell's edge across it, so the gap is neither bridged (skins facing alike) nor spanned (a wall facing 70 degrees from
