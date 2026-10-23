@@ -135,3 +135,12 @@ each section a flat primary or secondary colour with its own pattern (dots, stri
   a part's corner (a step of half the line) or where a stroke runs off the body's edge; not yet judged by eye. The
   line round the inlets' rings reads thinner than the rest (half of it under the frame). Going back: design.py as
   committed in f365dcb (the dab version), or 3bfc7bf (before notes 9 to 11).
+- 2026-10-23, the user, a note in the Lab on the strokes: "What happened here" (spikes where the engine cover, the left
+  rear flank and the tail corner meet, (43, 64, -128)); asked to keep the strokes and draw each edge loop unbroken:
+  "yes".
+- Change (Claude, Opus 5.5, 2026-10-23): every edge loop whole and unbroken, 1.25 cm inside its part; 2.5 cm inside
+  along the free edges laid on top; where one piece lies over another, the line centred on the edge the eye sees (a
+  dense line along that one edge), covering the tucked piece where it comes out (the tucked piece's own extra band went:
+  the straight gap between the edges is less than the way across its surface, so its half showed too thin). The
+  corner from the note clean, both sides; the lines even and unbroken at the inlets, the sidepods, the tail. Still
+  thinner round the inlets' rings than elsewhere.

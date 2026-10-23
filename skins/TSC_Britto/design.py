@@ -134,32 +134,34 @@ def loops(keys):
 
 
 def outline(keys, label):
-    """The black outline of the named parts, a stroke inside each one along its every edge, measured across the car's
-    surface (tool/course.py): LINE cm wide along an edge none of them meets (an opening, the inner car's frames, the
-    body's own edges, the plates); half that along an edge another of them meets, its half of the seam's line; and
-    along an edge tucked under the one it meets (it sees TUCKED less of the open air), its half reaching past that
-    one's edge."""
+    """The black outline of the named parts, LINE wide, along their every edge: each edge loop whole and unbroken, a
+    band inside the part measured across the car's surface (tool/course.py), half of LINE (a seam's line is two parts'
+    halves), LINE along an edge none of them meets (an opening, the inner car's frames, the body's own edges, the
+    plates); and on a seam where one piece lies over another, the line centred on the edge the eye sees (the one seeing
+    TUCKED more of the open air), over the tucked piece where it comes out from under (a dense line along one edge: a
+    stroke, not dabs)."""
     from tool import carmap
     L = loops(tuple(keys))
     P = np.vstack([c.pts for _, c in L])
     who = np.concatenate([[key] * len(c.pts) for key, c in L])
     air = np.concatenate([carmap.load().value("open", c.pts, c.nrm) for _, c in L])
-    best, gap = np.full(len(P), -1.0), np.zeros(len(P))
+    best = np.full(len(P), -1.0)
     for i, nb in enumerate(cKDTree(P).query_ball_point(P, GAP)):
         them = [j for j in nb if who[j] != who[i]]
         if them:
-            best[i], gap[i] = air[them].max(), np.linalg.norm(P[them] - P[i], axis=1).min()
-    tucked = air < best - TUCKED
-    width = np.where(best < 0, LINE, LINE / 2 + np.where(tucked, gap, 0.0))
-    kind = np.where(best < 0, 0, np.where(tucked, 2, 1))
-    bands, at = {}, 0
+            best[i] = air[them].max()
+    kind = np.where(best < 0, 0, np.where(air < best - TUCKED, 2, 1))  # 0 free, 1 a seam, 2 tucked under
+    free, at = [], 0
     for _, c in L:
-        w = width[at:at + len(c.pts)]
-        for k, piece, idx in stretches(c, kind[at:at + len(c.pts)]):
-            bands.setdefault(np.ceil(np.median(w[idx]) * 4) / 4, []).append(piece)  # to the 0.25 cm
+        free += [piece for j, piece, _ in stretches(c, kind[at:at + len(c.pts)]) if j == 0]
         at += len(c.pts)
-    zones = [course.Courses(pieces, f"the edges of {label}").band(w, side=1) for w, pieces in sorted(bands.items())]
-    return functools.reduce(lambda x, y: x | y, zones)
+    seen = (kind == 1) & (cKDTree(P[kind == 2]).query(P, workers=-1)[0] < GAP if (kind == 2).any() else False)
+    zone = course.Courses([c for _, c in L], f"the edges of {label}").band(LINE / 2, side=1)
+    if free:
+        zone = zone | course.Courses(free, f"the free edges of {label}").band(LINE, side=1)
+    if seen.any():
+        zone = zone | near(P[seen], LINE / 2, f"the seams of {label} where one piece lies over another")
+    return zone
 
 
 def stretches(c, kind, least=1.5):
