@@ -78,7 +78,7 @@ def run(words, car, model=None):
             open(folder / "log.jsonl", "w", encoding="utf-8") as log, open(folder / "errors.txt", "w") as err:
         progress.stage("Painting from the instructions alone")
         p = subprocess.Popen(cmd + (["--model", model] if model else []), cwd=paths.REPO, env=env, text=True,
-                             encoding="utf-8", stdout=subprocess.PIPE, stderr=err)
+                             encoding="utf-8", stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=err)
         calls = 0
         for line in p.stdout:
             log.write(line)
