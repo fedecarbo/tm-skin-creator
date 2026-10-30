@@ -1,0 +1,92 @@
+{
+  "idea": "A coachbuilt car at night: one deep midnight-blue lacquer, each side panel picked out by a single thin gold coachline, and a few gold stars on the nose like the first ones out.",
+  "world": "Hand-finished coachbuilding (the gold pinstripe a coachbuilder lays round a grand tourer's panels) under a clear night sky.",
+  "is": [
+    "deep",
+    "calm",
+    "hand-finished",
+    "exact",
+    "night"
+  ],
+  "isnt": [
+    "busy",
+    "racing stripes",
+    "two-tone",
+    "sparkle all over",
+    "chrome"
+  ],
+  "signature": {
+    "says": "The gold coachline: one thin, even gold line traced just inside a side panel's own edge, following the panel's creases and the body's edges exactly. It starts at the panel's front corner, runs closed round the whole panel, and ends where it began: never cut short, never doubled, never leaving the panel's edge to make a shape of its own.",
+    "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'><rect width='240' height='120' fill='#0f1f4d'/><path d='M30 30 L170 22 Q205 24 214 52 L214 92 Q212 100 200 100 L44 100 Q30 98 28 84 Z' fill='none' stroke='#d4a531' stroke-width='2.2' stroke-linejoin='round'/></svg>"
+  },
+  "dna": {
+    "says": "Every mark is gold on blue, thin and exact, taken from the panel it sits on. One line width for every coachline, 0.5 cm, whatever the panel's size: the same hand everywhere. Corners follow the car's own corners, never added. Stars: five points, sharp, inner radius 0.45, upright; 3 to 6 cm across, each a different size, set loosely like real stars, never in a row or a grid. A sparse rhythm: a few, with dark between.",
+    "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'><rect width='240' height='120' fill='#0f1f4d'/><line x1='20' y1='30' x2='120' y2='30' stroke='#d4a531' stroke-width='5'/><line x1='20' y1='55' x2='120' y2='55' stroke='#d4a531' stroke-width='4'/><line x1='20' y1='80' x2='120' y2='80' stroke='#d4a531' stroke-width='3'/><polygon fill='#d4a531' points='175,30 178.5,40.2 189.3,40.4 180.7,46.9 183.8,57.3 175,51 166.2,57.3 169.3,46.9 160.7,40.4 171.5,40.2'/><polygon fill='#d4a531' points='212,62 214.1,68.1 220.6,68.2 215.4,72.1 217.3,78.4 212,74.6 206.7,78.4 208.6,72.1 203.4,68.2 209.9,68.1'/><polygon fill='#d4a531' points='190,85 191.4,89.1 195.7,89.2 192.3,91.8 193.5,95.9 190,93.4 186.5,95.9 187.7,91.8 184.3,89.2 188.6,89.1'/></svg>"
+  },
+  "colours": [
+    {
+      "name": "midnight blue",
+      "colour": "#0f1f4d",
+      "share": 90,
+      "job": "the car: the whole body and the inner car, one lacquer, the night itself; the car's own lights glow in it, low"
+    },
+    {
+      "name": "night black",
+      "colour": "#0a0d18",
+      "share": 7,
+      "job": "the hardware in the cockpit and under it: the seat, belts, steering wheel and column, dashboard, engine bay, exhausts, driveshafts, brakes, rear dampers and the speed display's backing, so the blue reads as the car"
+    },
+    {
+      "name": "gold",
+      "colour": "#d4a531",
+      "share": 3,
+      "job": "the accent, rare: the coachlines and the stars, nothing else"
+    }
+  ],
+  "meet": "Gold meets blue edge to edge, crisp, nothing between. Blue meets night black at the car's own seams, where the blue car ends and the hardware begins; gold never touches black.",
+  "surfaces": [
+    {
+      "finish": "PA-01",
+      "colour": "#0f1f4d",
+      "job": "the body: deep gloss lacquer, the blue reads wet"
+    },
+    {
+      "finish": "ME-07",
+      "colour": "#d4a531",
+      "job": "the coachlines and stars: gold leaf, a metal that catches the light"
+    },
+    {
+      "finish": "PA-03",
+      "colour": "#0a0d18",
+      "job": "the hardware in the cockpit and under it: satin night black, quiet"
+    },
+    {
+      "finish": "RU-01",
+      "job": "the tyres: stock black rubber"
+    }
+  ],
+  "ageing": "Stays new on purpose: fresh lacquer, polished, gold untouched; no wear and no extra dirt.",
+  "sizes": {
+    "large": {
+      "what": "the one midnight-blue body, whole; the coachline round each big side panel",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'><rect width='240' height='120' fill='#0f1f4d'/><path d='M20 40 L200 34 Q222 40 222 70 L222 96 L22 96 Z' fill='none' stroke='#d4a531' stroke-width='3'/></svg>"
+    },
+    "medium": {
+      "what": "the same gold coachline round a smaller side panel (the side skirt, the sill)",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'><rect width='240' height='120' fill='#0f1f4d'/><path d='M60 44 L180 40 Q192 44 190 70 L64 74 Q56 70 60 44 Z' fill='none' stroke='#d4a531' stroke-width='2.4'/></svg>"
+    },
+    "small": {
+      "what": "a few small gold stars on the nose, each its own size, loosely set",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 120'><rect width='240' height='120' fill='#0f1f4d'/><polygon fill='#d4a531' points='100,40 103.5,50.2 114.3,50.4 105.7,56.9 108.8,67.3 100,61 91.2,67.3 94.3,56.9 85.7,50.4 96.5,50.2'/><polygon fill='#d4a531' points='140,62 142.1,68.1 148.6,68.2 143.4,72.1 145.3,78.4 140,74.6 134.7,78.4 136.6,72.1 131.4,68.2 137.9,68.1'/><polygon fill='#d4a531' points='122,84 123.4,88.1 127.7,88.2 124.3,90.8 125.5,94.9 122,92.4 118.5,94.9 119.7,90.8 116.3,88.2 120.6,88.1'/></svg>"
+    }
+  },
+  "fullness": "Nearly empty: a blue car with a gold line round each side panel and a handful of stars on the nose. The quiet blue everywhere else is the design.",
+  "never": [
+    "a second accent colour",
+    "gold in large areas or stripes across the car",
+    "lines that leave a panel's own edge to make shapes of their own",
+    "stars anywhere but the nose, or in rows",
+    "gradients, fades or a two-tone body",
+    "words or numbers"
+  ]
+}

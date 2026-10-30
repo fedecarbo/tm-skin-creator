@@ -1,0 +1,10 @@
+{
+ "design": "100553ce38c68786",
+ "why": "Both are corners of the rear flank's closed coachline, meant: the 2.3 cm step at z -120 is where the line leaves the deck edge to turn down just in front of the tail corner, and the 1 cm thin spot at z -107 is the wheel opening's own 65-degree bend, seen grazing from behind. Each shows on the right side only; the left passes the same corners, and the close looks show both corners clean. Four rounds moved the corner findings from one corner to the next.",
+ "blocks": [
+  "ME-07 on body (The coachlines): a band 0.5 cm wide on the right of the model's edge where the body ends 'body shell edge 1' between (84, 58, -48) and (84, 26, -23), then the model's line along a rounded edge 'rear flank roll 2' tilted 47 degrees between z -48 and z -121, then the model's crisp line 'rear flank crease 3' between z -95 and z -121, then the model's line along a rounded edge 'rear flank roll 1' tilted 128 degrees between z -25 and z -90, then the points given: seen close up, 0.2 of its 0.5 cm wide for 1.0 cm (another paint, or none, in its place), on the right, z -107 (look 20)",
+  "ME-07 on body (The coachlines): a band 0.5 cm wide on the right of the model's edge where the body ends 'body shell edge 1' between (84, 58, -48) and (84, 26, -23), then the model's line along a rounded edge 'rear flank roll 2' tilted 47 degrees between z -48 and z -121, then the model's crisp line 'rear flank crease 3' between z -95 and z -121, then the model's line along a rounded edge 'rear flank roll 1' tilted 128 degrees between z -25 and z -90, then the points given: a step of 2.3 cm sideways, on the right, z -120 (the rear wheels' axle); read against the model's line along a rounded edge 'rear flank roll 2' tilted 47 degrees, 0.0 cm from the design's course, mirrored to the right"
+ ],
+ "reach": [],
+ "when": "2026-10-30 11:30"
+}
