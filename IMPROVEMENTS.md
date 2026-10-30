@@ -33,7 +33,9 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
     short (52 pieces of 0.7 cm took 16 s, 2026-10-23), and `course.points` straight across the deck at x 28.5 froze
     the exact solver (killed after 10 minutes). Measure with `--profile` first; the close looks took over an hour on
     Britto's strokes (600 looks). The scatter's charts too: five exact solves a copy, one after another
-    (`surface.Surface.chart`), 18 of the tour's 82 s on 2026-10-09, more work a chart since.
+    (`surface.Surface.chart`), 18 of the tour's 82 s on 2026-10-09, more work a chart since. Two leads (the scout,
+    2026-10-30): `surface.Surface.path` asks potpourri3d for each geodesic path with no cap on its iterations; libigl's
+    exact solver holds Python's lock, so the five solves run side by side only in separate processes.
 23. **The judge sees what the eye sees** (Opus 5.5). On Britto it blocked 72 jogs and hops under a centimetre that no
     close look shows, and missed what does: bolt heads poking through the body as dots, the sidepod frame through a
     hairline crack, the deck's plain plates as a hole in the waves. Each check read against close looks; a check for
