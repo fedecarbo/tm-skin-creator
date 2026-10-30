@@ -22,8 +22,9 @@ cars, or a car the user asks for outright, and then it reads the `paint` skill f
 
 ## Where things are
 
-- `IMPROVEMENTS.md`: the queue of what the tool should do better; whatever the user asks the tool to do better
-  goes there, and it's worked on when they ask. `.claude/rules/tool.md` loads with the tool's code: the rules for
+- `IMPROVEMENTS.md`: the queue of what the tool should do better: what the user asks for, and every miss on a car
+  that's the tool's (`tool/ledger.py`). The `steward` skill works it when they say "next"; the scout and the
+  trial painter (`.claude/agents/`) feed it. `.claude/rules/tool.md` loads with the tool's code: the rules for
   building it, checking a change (the self-test), the machinery's commands. The `paint` skill holds the craft and
   its rules.
 - **Two computers** share the repo through GitHub: the Windows PC (the game, installing, the picture maker) and

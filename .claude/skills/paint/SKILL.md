@@ -55,8 +55,9 @@ lands in the work folder's `build/` (`tool/paths.py`).
   with `s.step(name, does, words=<the user's words>)`; a concept's page shows the car at the end of each.
   A change edits its step.
 - Names: `TSC_<Idea>` in CamelCase. A change edits that skin unless the user wants both.
-- Something the box can't do: write it, in `tool/` if it's reusable. A new finish goes at the end of
-  its family in `finishes.CATALOGUE`.
+- Something the box can't do is the tool's to do: in `tool/`, for every car (`.claude/rules/tool.md`),
+  never in the design, which the gate refuses when it imports past `TOOLBOX` in `tool/gate.py`. A new
+  finish goes at the end of its family in `finishes.CATALOGUE`.
 
 ## What the car allows
 

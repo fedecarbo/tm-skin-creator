@@ -1,6 +1,6 @@
 {
  "design": "e03f932a4ec23078",
- "why": "Only the tyres changed (the round-lug tread, the stock lettering off): the close looks changed only in that step, nothing outside it. Every block left is the black outline's, the same ones as before this change (steps at corners, gaps along the line round the inner car), waiting on the tools' outline fix in the queue, not painted round here.",
+ "why": "Only the tyres changed (the round-lug tread, the stock lettering off): the close looks changed only in that step, nothing outside it. Every block left is the black outline's, the same ones as before this change (steps at corners, gaps along the line round the inner car), waiting on the tools' outline fix in the queue, not painted round here. Britto draws its own line round the inner car (where its frames lie on the body, the gaps between pieces) with its own searches over the raw mesh, finds its bolts in the bake by hand, and draws its hearts pixel by pixel: the tool can't do these yet. The outline and the bolts are the road's steps 21 and 24; Britto is rebuilt on the tool after them.",
  "blocks": [
   "gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline): the outline along the edge of the side skirt on the left: a step of 0.4 cm sideways, z +214 (the nose's tip); read against its own course (none of the model's lines runs along it)",
   "gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline): the outline along the edge of the side skirt on the right: a step of 0.7 cm sideways, on the right, z +213 (the nose's tip); read against the model's edge where the body ends 'rear flank edge 1', 0.1 cm from the design's course",
@@ -58,5 +58,12 @@
   "gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline): the outline along the edge of the rear flank on the left: a step of 0.5 cm sideways, on the left, z -150 (the tail's end); read against the model's edge where the body ends 'rear flank edge 1' itself",
   "gloss #111111 on body shell, nose tip, nose panel, side skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod inlet|right, rear flank|left, rear flank|right, rear quarter panel|left, rear quarter panel|right, fuel cap, engine cover|part, tail corner|left, tail corner|right, tail panel (The black outline): the outline along the edge of the tail panel: a step of 0.5 cm sideways, on the left, z -158 (the tail's end); read against its own course (none of the model's lines runs along it)"
  ],
- "when": "2026-10-23 15:16"
+ "reach": [
+  "PIL",
+  "scipy",
+  "tool.bake",
+  "tool.fbx",
+  "tool.parts"
+ ],
+ "when": "2026-10-30 09:39"
 }

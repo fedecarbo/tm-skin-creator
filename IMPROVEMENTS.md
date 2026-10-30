@@ -1,17 +1,15 @@
 # Improvements to the tool
 
 The one queue of what the tool should do better: each item dated, in two or three lines, what's wrong
-and an idea for the fix. The user says when to work on it. A finished item is deleted; what it taught
-goes into the code. It mustn't pile up or go stale: the session-start check (`tool/doctor.py`) says
+and an idea for the fix. The steward (`.claude/skills/steward/SKILL.md`) works it, an item a session,
+when the user says "next". A finished item is deleted; what it taught goes into the code. It mustn't pile up or go stale: the session-start check (`tool/doctor.py`) says
 "prune it" past 20 items or when one is older than 30 days; at a pruning each item is kept (re-dated,
 still in the user's words), done, or deleted (git keeps it). Things that exist are named in backticks
 and checked by the self-test; ideas are named in plain words.
 
 ## Next: the road
 
-One step per session: built under the self-test, its worth shown on a new test car made for it (never a past car) or
-in plain words and numbers, then on the user's OK everything it retires removed and the step deleted here. Decided
-2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
+Decided 2026-10-22 (the user: "there has to be a better way for AI to 'see' the car without a written essay"; "I just want
 perfectly painted cars. The accuracy bit."; the evidence in `research/see/`): **the car does the seeing, never the
 AI's eye**. Added 2026-10-23 (the user, after a session of patching TSC_Britto's outline inside its design: "What's
 important is that we optimised each tool in the system ... Do we need to reevaluate the tool itself?"; then "Fix the
@@ -106,13 +104,14 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
   yet); pollen grains 2 mm wide (TSC_Bumblebee: the colour compression may flatten single grains, a haze should
   survive); the upload size limit (zips stay under 8.5 MB until one shows up).
 
-## Found on several cars
+## The tool's misses
 
-Kept by the judge (`tool/ledger.py`): a flaw found in one place on three cars, or let go on two, is the tool's, not
-the design's. The judge says "known, queued" on it and the gate lets it pass; it's taken out when no car shows it any
-more. Fixed, or found not the tool's: delete its item, and only cars judged after count it again.
+Kept by the ledger (`tool/ledger.py`): a flaw the judge found in one place on three cars, or let go on two, is the
+tool's, not the design's, and so at once is a miss someone saw (the user's note, the gate, the trial painter). The
+judge says "known, queued" on it and the gate lets it pass; it's taken out when no car shows it any more. Fixed, or
+found not the tool's: delete its item, and only cars judged after count it again.
 
-- **K4: line, on 2 cars** (2026-10-23, last seen; TSC_Britto, TSC_OutlineTest, let go on 2; at (0, 17, 214), (±3, 16,
+- **K4: line, on 2 cars** (2026-10-30, last seen; TSC_Britto, TSC_OutlineTest, let go on 2; at (0, 17, 214), (±3, 16,
   213), (0, 20, 204), (±18, 42, 145), (±24, 29, 72), (±54, 61, 11), (±76, 18, -25), (±45, 17, -108), (±44, 62, -127),
   (±49, 52, -150), (±49, 52, -151), (±29, 64, -158)): gloss #111111 on body shell, nose tip, nose panel, side
   skirt|left, side skirt|right, cockpit surround, sidepod top|left, sidepod top|right, sidepod inlet|left, sidepod
@@ -120,3 +119,17 @@ more. Fixed, or found not the tool's: delete its item, and only cars judged afte
   cover|part, tail corner|left, tail corner|right, tail panel (The black outline): the outline along the edge of the
   side skirt on the left: a step of 0.4 cm sideways, z +214 (the nose's tip); read against its own course (none of the
   model's lines runs along it)
+- **K5: a miss the gate saw, on 1 car** (2026-10-30, last seen; TSC_Britto): TSC_Britto's design imports PIL, scipy,
+  tool.bake, tool.fbx, tool.parts itself: Britto draws its own line round the inner car (where its frames lie on the
+  body, the gaps between pieces) with its own searches over the raw mesh, finds its bolts in the bake by hand, and draws
+  its hearts pixel by pixel: the tool can't do these yet. The outline and the bolts are the road's steps 21 and 24;
+  Britto is rebuilt on the tool after them.
+- **K6: a miss the gate saw, on 1 car** (2026-10-30, last seen; TSC_CMYK_EndsInK): TSC_CMYK_EndsInK's design imports PIL
+  itself: CMYK draws its printer's registration mark (a ring with a cross through it) pixel by pixel and stamps it as a
+  decal: the tool's marks have a ring, not a ring with a cross.
+- **K7: a miss the user saw, on 1 car** (2026-10-30, last seen; TSC_OutlineTest; at (0, 60, 144)): note 3 on
+  TSC_OutlineTest (nose panel): "There's still this issue. Not sure why. Something to note is that there should also be
+  a line for the bottom edge of the fin (the white part) and the blue part has this strange slope" (what they saw:
+  /Users/fcarbo/Developer/personal/tm-skin-lab/.notes/TSC_OutlineTest-3.jpg); the tool: course.outline lays the line
+  along the nose panel's top edge, where it meets the fin, as a wavy bulge instead of an even band, and draws no line
+  along the bottom edge of the fin's white part

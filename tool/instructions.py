@@ -6,7 +6,7 @@ fails the self-test, not a session that trusts the instructions.
                                                  (the Lab's lab/, its page/) and the tools'
 
 The self-test runs it on the working tree. The instructions are what a session reads: CLAUDE.md,
-the queue (IMPROVEMENTS.md), the rules and skills in .claude/, the car in words (car/anatomy.md),
+the queue (IMPROVEMENTS.md), the rules, skills and agents in .claude/, the car in words (car/anatomy.md),
 and the hooks in .claude/settings.json. What each names, in backticks:
 
 - a command (`PY -m tool.snap <name> --cams`, `tool.close <name>`): its module, and the word after
@@ -33,7 +33,8 @@ import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-READ = ("CLAUDE.md", "IMPROVEMENTS.md", ".claude/rules/*.md", ".claude/skills/*/*.md", "car/anatomy.md")
+READ = ("CLAUDE.md", "IMPROVEMENTS.md", ".claude/rules/*.md", ".claude/skills/*/*.md", ".claude/agents/*.md",
+        "car/anatomy.md")
 CODE = ("tool/*.py", "viewer/*.js", "viewer/*.html")  # the tools' code; a concept's is its package and its page
 CONCEPT = {"lab": ("lab/*.py", "page/*.js", "page/*.html")}
 FILE = re.compile(r"\.(?:md|py|js|json|html|png|jpg|txt|zip|tga|lock|rar|css)$")

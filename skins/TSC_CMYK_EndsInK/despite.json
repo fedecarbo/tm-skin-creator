@@ -1,0 +1,9 @@
+{
+ "design": "fd1a7b4a702d94a6",
+ "why": "CMYK draws its printer's registration mark (a ring with a cross through it) pixel by pixel and stamps it as a decal: the tool's marks have a ring, not a ring with a cross.",
+ "blocks": [],
+ "reach": [
+  "PIL"
+ ],
+ "when": "2026-10-30 09:39"
+}

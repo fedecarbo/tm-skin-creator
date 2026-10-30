@@ -2,7 +2,7 @@
 and fixes what's safe, so a cold start on either computer begins with a working tool.
 
     python tool/doctor.py session    what the SessionStart hook runs after the pull: GitHub, the
-                                     tool's Python, the work folder, the game's list, the queue
+                                     tool's Python, the work folder, the game's list, the upkeep
                                      (a concept's own doctor runs after it: the Lab's lab/doctor.py)
 
 Each check prints only when something needs doing, and a check that fails says so and lets the rest
@@ -15,6 +15,12 @@ the caches stay (minutes to rebuild, shared by both sides of the self-test).
 
 The queue (IMPROVEMENTS.md): how many items and the oldest's date; "prune it" past QUEUE_MOST items
 or QUEUE_DAYS days, so it never piles up or goes stale (the user, 2026-10-05).
+
+The upkeep (`upkeep`, the user, 2026-10-30: "I want this tool to always be clean and tidy"): the
+steward's work in one line, so "next" is known before it's said (the road's next step this computer
+can do, the tool's misses the ledger queued, the queue to prune: .claude/skills/steward/), and the
+upkeep's agents that are due (.claude/agents/: UPKEEP days since the last commit whose message has
+the line `Upkeep: <role>`, the trial painter sooner when the paint skill changed since).
 """
 
 import datetime
@@ -35,6 +41,9 @@ AUTHOR = ("Federico Carbo", "fede.carbo@gmail.com")  # one name on both computer
 KEEP_SELFTESTS = 5
 QUEUE = REPO / "IMPROVEMENTS.md"
 QUEUE_MOST, QUEUE_DAYS = 20, 30
+UPKEEP = {"scout": 30, "trial-painter": 30}  # days between the upkeep's agents' runs
+ROAD = re.compile(r"^(\d+)\. \*\*(.+?)\*\*", re.M)  # a step of the road: its number and title
+KEPT = re.compile(r"^- \*\*K(\d+): (.+?), on (\d+) cars?\*\*", re.M)  # an item the ledger keeps (tool/ledger.py)
 ITEM = re.compile(r"^- \*\*(.+?)\*\*[^\n]*?(?:\((\d{4}-\d{2}-\d{2})|$)", re.M)  # an item: its title, and the date on its first line
 
 
@@ -192,11 +201,38 @@ def queue(path=QUEUE):
     return ok, todo
 
 
+def upkeep():
+    """The queue, the steward's work waiting (its pruning too) and the upkeep's agents due: one line each."""
+    ok, prune = queue(QUEUE)
+    text = QUEUE.read_text(encoding="utf-8") if QUEUE.exists() else ""
+    road = text.split("## Next: the road", 1)[-1].split("\n## ", 1)[0] if "## Next: the road" in text else ""
+    steps = [n for n, title in ROAD.findall(road) if not (paths.MAC and "on the PC" in title)]
+    kept = [f"K{k} " + ("yours" if "the user saw" in kind else f"on {n} car{'s' * (n != '1')}")
+            for k, kind, n in KEPT.findall(text)]
+    work = ([f"the road's step {steps[0]}"] if steps else []) + ([f"the tool's misses {', '.join(kept)}"] if kept else []) \
+        + (["the queue to prune (" + prune[0].split(": ", 1)[1].split(".")[0] + ")"] if prune else [])
+    todo = [f"The steward, in charge of the tool (say \"next\"): {'; '.join(work)}."] if work else []
+    due = []
+    for role, days in UPKEEP.items():
+        name = "the " + role.replace("-", " ")
+        last = _git("log", "-1", "-E", f"--grep=^Upkeep: {role}$", "--format=%H %cs").stdout.split()
+        if not last:
+            due.append(f"{name} (never run)")
+        elif (datetime.date.today() - datetime.date.fromisoformat(last[1])).days > days:
+            due.append(f"{name} (last {last[1]})")
+        elif role == "trial-painter" and _git("log", "-1", "--format=%h", f"{last[0]}..HEAD", "--",
+                                              ".claude/skills/paint").stdout.strip():
+            due.append(f"{name} (the paint skill changed since {last[1]})")
+    if due:
+        todo.append(f"Upkeep due (say \"upkeep\"): {', '.join(due)}.")
+    return ok, todo
+
+
 def session():
     """The block the session-start hook prints."""
     with_stdout_utf8()
     ok, todo = [], []
-    for check in (git_state, tool_imports, prune, game_list, queue):
+    for check in (git_state, tool_imports, prune, game_list, upkeep):
         try:
             line, more = check()
         except Exception as e:  # a check that fails never stops the session

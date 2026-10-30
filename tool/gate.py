@@ -22,9 +22,15 @@ quietly: it prints what it is and why, which the user is told, and skins/<name>/
 design is the same. A car never judged, judged before its last change or not looked at close can't be let go: showing
 it again is cheap.
 
+A design that does the tool's job itself blocks too (`reach`): one that imports past TOOLBOX (scipy, the raw mesh, its
+own module beside it) is painting round something the tool can't do, which is the tool's to do, for every car (the
+user, 2026-10-23: "What's important is that we optimised each tool in the system"). Let go, it's queued as the tool's
+(tool/ledger.py's `miss`), for the steward.
+
 Standard library only: tool/guard.py runs it with whatever Python the computer has, and so may a concept's commands.
 """
 
+import ast
 import hashlib
 import json
 import re
@@ -34,6 +40,20 @@ import time
 from tool import paths
 
 TOP = 3  # blocking findings a refusal names
+# what a design may import: the paint box's tools (tool/paintbox.py's docstring names each call's), numpy, and the
+# standard library but what reaches round the box
+TOOLBOX = {"numpy", *(f"tool.{m}" for m in ("colours", "course", "finishes", "fonts", "looks", "marks", "meshlines",
+                                             "noise", "relief", "scatter", "shapes", "textures", "tyres"))}
+REACH = {"sys", "os", "importlib", "subprocess", "ctypes", "runpy"}
+
+
+def _stdlib():
+    """The standard library's modules (the list is 3.10's; an older Python, a hook's last resort, reads its folder)."""
+    import pkgutil
+    import sysconfig
+    return getattr(sys, "stdlib_module_names", None) or (
+        {m.name for m in pkgutil.iter_modules([sysconfig.get_paths()["stdlib"], sysconfig.get_paths()["stdlib"]
+                                               + "/lib-dynload"])} | set(sys.builtin_module_names))
 
 
 def design_hash(name):
@@ -88,18 +108,43 @@ def alone(name):
     return not (paths.SKINS / name / "take.json").exists()
 
 
+def reach(name):
+    """What the design imports past TOOLBOX, by its top name ("scipy", "tool.fbx", "uvline"), but what was let go for
+    this design."""
+    try:
+        tree = ast.parse((paths.SKINS / name / "design.py").read_text(encoding="utf-8"))
+    except SyntaxError:  # a design that doesn't parse doesn't paint either: the show says why
+        return []
+    found, std = set(), _stdlib()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            mods = [a.name for a in node.names]
+        elif isinstance(node, ast.ImportFrom) and not node.level:
+            mods = [f"tool.{a.name}" for a in node.names] if node.module == "tool" else [node.module]
+        else:
+            continue
+        for m in mods:
+            top = ".".join(m.split(".")[:2]) if m.startswith("tool.") else m.split(".")[0]
+            if top not in TOOLBOX and (top in REACH or top.startswith("tool.") or top not in std):
+                found.add(top)
+    let = _read(paths.SKINS / name / "despite.json") or {}
+    return sorted(found - set(let.get("reach", ()) if let.get("design") == design_hash(name) else ()))
+
+
 def wrong(name, looks=True):
-    """What keeps the car from passing: (what, a line) each, what one of unjudged, changed, unlooked and blocks;
+    """What keeps the car from passing: (what, a line) each, what one of unjudged, changed, unlooked, blocks and reach;
     nothing when it passes or has no design. looks: the close looks wanted too, when it's shown alone."""
     if not (paths.SKINS / name / "design.py").exists():
         return []
+    r = reach(name)
+    out = [("reach", f"{name}'s design does the tool's job itself: it imports {', '.join(r)}. What it needs goes in "
+                     "the tool, for every car (`.claude/rules/tool.md`)")] if r else []
     v = verdict(name)
     show = f"`PY -m tool.skin show {name}`" + (f", then `PY -m tool.close {name}`" if looks and alone(name) else "")
     if v is None:
-        return [("unjudged", f"{name} hasn't been judged on this computer: {show}")]
+        return [("unjudged", f"{name} hasn't been judged on this computer: {show}")] + out
     if v.get("design") != design_hash(name):
-        return [("changed", f"{name}'s design changed since it was judged: {show}")]
-    out = []
+        return [("changed", f"{name}'s design changed since it was judged: {show}")] + out
     if looks and (v.get("close") or {}).get("design") != v["design"] and alone(name):
         out.append(("unlooked", f"{name} hasn't been looked at close as it is: `PY -m tool.close {name}`"))
     b = blocks(name, v)
@@ -116,7 +161,7 @@ def refusal(names, what, looks=True):
         return None
     text = (f"Refused: {what} waits for the judge to pass {'the car' if len(names) == 1 else 'each car'}.\n"
             + "\n".join(f"  {line}" for _, line in found))
-    if any(k == "blocks" for k, _ in found):
+    if any(k in ("blocks", "reach") for k, _ in found):
         text += ("\nFix what blocks and show it again (about three rounds). What's meant, or still there after that: "
                  "`PY -m tool.gate <name> --despite \"<why, in plain words>\"`, and tell the user; then again.")
     return text
@@ -134,24 +179,29 @@ def despite(name, why):
     why = " ".join(str(why or "").split())
     if not why:
         raise SystemExit("--despite needs the why, in plain words")
-    stale = [line for k, line in wrong(name, looks=False) if k != "blocks"]
+    stale = [line for k, line in wrong(name, looks=False) if k not in ("blocks", "reach")]
     if stale:
         raise SystemExit("\n".join(stale))
     v = verdict(name)
-    b = blocks(name, v)
-    if not b:
+    b, r = blocks(name, v), reach(name)
+    if not b and not r:
         raise SystemExit(f"nothing blocks on {name}: nothing to let go")
     p = paths.SKINS / name / "despite.json"
     let = _read(p) or {}
-    kept = let.get("blocks", []) if let.get("design") == v["design"] else []
-    paths.write(p, json.dumps({"design": v["design"], "why": why, "blocks": kept + [f["text"] for f in b],
+    same = let.get("design") == v["design"]
+    said = f"{let['why']} {why}" if same and let.get("why") and why not in let["why"] else why  # each why kept
+    paths.write(p, json.dumps({"design": v["design"], "why": said, "blocks": (let.get("blocks", []) if same else [])
+                               + [f["text"] for f in b], "reach": (let.get("reach", []) if same else []) + r,
                                "when": time.strftime("%Y-%m-%d %H:%M")}, indent=1, ensure_ascii=False) + "\n")
     from tool import ledger, view
+    if r:  # the tool's job done in the design: the tool's, at once
+        ledger.miss(name, "the gate", f"{name}'s design imports {', '.join(r)} itself: {why}", ruler=", ".join(r))
     ledger.keep(name, v)  # what's let go on several cars is the tool's
     paths.write(paths.BUILD / name / "verdict.json", json.dumps(v, indent=1))
     view.export_findings(name, v)  # each stroke's findings say what was let go, and why
-    what = "; ".join(judge.KINDS.get(f["kind"], f["kind"]) + _place(f["text"]) for f in b)
-    return f"{len(b)} let go on {name}. Tell the user: {why} Still there, as the tool measures it: {what}."
+    what = "; ".join([judge.KINDS.get(f["kind"], f["kind"]) + _place(f["text"]) for f in b]
+                     + ([f"the design's own {', '.join(r)}, queued as the tool's"] if r else []))
+    return f"{len(b) + bool(r)} let go on {name}. Tell the user: {why} Still there, as the tool measures it: {what}."
 
 
 def main(args):
