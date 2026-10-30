@@ -279,19 +279,19 @@ def hooks(root):
     for event in settings.get("hooks", {}).values():
         for entry in event:
             for hook in entry.get("hooks", []):
-                cmd = hook.get("command", "")
-                beside = re.match(r'cd "\$\{CLAUDE_PROJECT_DIR\}/\.\./([\w-]+)"', cmd)
-                folder = root.parent / beside.group(1) if beside else root
-                code = (codes.get(folder) or codes.setdefault(folder, Code(folder))) if folder.is_dir() else None
-                runs = {(path, arg) for path, arg in re.findall(r"\$\{CLAUDE_PROJECT_DIR\}/(\w+/\w+\.py)\\?\"?\s+([\w-]+)", cmd)}
-                runs |= {(f"{pkg}/{mod}.py", arg) for pkg, mod, arg in re.findall(r"-m (\w+)\.(\w+)\s+([\w-]+)", cmd)}
-                for path, arg in sorted(runs) if code else ():  # a concept not on this computer: its hook does nothing
-                    pkg, mod = path.split("/")[0], path.split("/")[1][:-3]
-                    found = code.module(mod, pkg) if pkg in code.packages else None
-                    if found is None:
-                        yield where, "files", path, "no such file"
-                    else:
-                        yield where, "commands", f"{path} {arg}", None if arg in found["strings"] else f"{path} takes no {arg}"
+                for cmd in re.split(r'(?=cd "\$\{CLAUDE_PROJECT_DIR\}/\.\./)', hook.get("command", "")):  # each cd a part
+                    beside = re.match(r'cd "\$\{CLAUDE_PROJECT_DIR\}/\.\./([\w-]+)"', cmd)
+                    folder = root.parent / beside.group(1) if beside else root
+                    code = (codes.get(folder) or codes.setdefault(folder, Code(folder))) if folder.is_dir() else None
+                    runs = {(path, arg) for path, arg in re.findall(r"\$\{CLAUDE_PROJECT_DIR\}/(\w+/\w+\.py)\\?\"?\s+([\w-]+)", cmd)}
+                    runs |= {(f"{pkg}/{mod}.py", arg) for pkg, mod, arg in re.findall(r"-m (\w+)\.(\w+)\s+([\w-]+)", cmd)}
+                    for path, arg in sorted(runs) if code else ():  # a concept not on this computer: its hook does nothing
+                        pkg, mod = path.split("/")[0], path.split("/")[1][:-3]
+                        found = code.module(mod, pkg) if pkg in code.packages else None
+                        if found is None:
+                            yield where, "files", path, "no such file"
+                        else:
+                            yield where, "commands", f"{path} {arg}", None if arg in found["strings"] else f"{path} takes no {arg}"
 
 
 def line(counts, missing):
