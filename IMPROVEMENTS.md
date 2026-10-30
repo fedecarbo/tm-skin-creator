@@ -34,11 +34,13 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
 22. **Lines cost by their length, and the surface can't hang** (Opus 5.5). A band costs about 0.3 s a course however
     short (52 pieces of 0.7 cm took 16 s, 2026-10-23), and `course.points` straight across the deck at x 28.5 froze
     the exact solver (killed after 10 minutes). Measure with `--profile` first; the close looks took over an hour on
-    Britto's strokes (600 looks).
+    Britto's strokes (600 looks). The scatter's charts too: five exact solves a copy, one after another
+    (`surface.Surface.chart`), 18 of the tour's 82 s on 2026-10-09, more work a chart since.
 23. **The judge sees what the eye sees** (Opus 5.5). On Britto it blocked 72 jogs and hops under a centimetre that no
     close look shows, and missed what does: bolt heads poking through the body as dots, the sidepod frame through a
     hairline crack, the deck's plain plates as a hole in the waves. Each check read against close looks; a check for
-    an inner part showing through the body; retires the checks that never matched a visible fault.
+    an inner part showing through the body; retires the checks that never matched a visible fault. Also: a 1 cm band beside 'side skirt crease 3' read as
+    steps of 0.3 to 0.7 cm against 'side skirt roll 3' (14 points over 140 cm) on four cars, smooth in close looks.
 24. **The car knows its bolts and cracks** (Opus 5.5). Every bolt of the inner car shares one patch of its map (u 0.544
     to 0.551, v 0.478 to 0.496), so a part painted later colours them all, and two (the airbox's at (57, 64, -80), the
     nose plate's at (10, 60, 140)) poke 2 to 3 mm through the body; the sidepod frame shows through a hairline crack
@@ -53,14 +55,11 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
 
 ## The tool
 
-- **A sticker over the sidepod top's inner edge comes out half** (2026-10-22, TSC_RingsAcross at (56, 62, -15)): the
+- **A sticker over the sidepod top's inner edge comes out half** (2026-10-22, at (56, 62, -15)): the
   sidepod top is its own piece, its edge a 0.5 cm lip facing the 0.4 cm gap to the body shell, 115 degrees from the
   shell's edge across it, so the gap is neither bridged (skins facing alike) nor spanned (a wall facing 70 degrees from
   the sticker) and the shell's half never gets a place. Idea: the lip and the gap as one groove of two pieces, filled
   to its mouth as a panel line's is.
-- **A plain line beside the skirt's crease blocks ten times** (2026-10-22, TSC_IntentTest, on step 16's car too): a 1 cm
-  band 1 cm beside 'side skirt crease 3' gets steps of 0.3 cm read against 'side skirt roll 3' and 0.7 cm where it
-  meets 'side skirt crease 2'; the close looks show it smooth. Idea: see whether the ruler line steps there, not the paint.
 - **A colour name half known is taken as the half it knows** (2026-10-22, the test car's agent): `colours.get("warm
   white")`, "antique white" and "floral white" give plain white, dropping the word it doesn't know, while "deep" and
   "bright" are read. Idea: a name not known whole fails with "did you mean", as a part's name does.
@@ -94,26 +93,18 @@ tools first"): 21 to 24, Britto waiting for them. Left: 21 to 24, and 13 on the 
 - **A line on a panel line sits on one wall of its groove** (2026-10-06, from the model's lines, G): `meshlines.line`
   along a panel line lands on one wall of its 0.36 cm groove, not its middle. The user, of the mesh: "there's
   improvements to make but for now let's keep it that way until I actually start building a car".
-- **The scatter's charts are the paint's slowest part** (2026-10-09, step 10's profile): 18 of the tour's 82 s under the
-  profiler, five exact solves a copy on the processor (`surface.Surface.chart`), and the marks' sheet 5 s more in
-  np.unique. Idea: a chart's five solves on the processor's cores at once; profile the sheet's bookkeeping.
-- **A mark on both sides fitted on each alone** (2026-10-08, found by the close looks): the planted-flaw pair's clean car
-  lays its deck picture (one call, both sides) with 7,505 texels on the left and 2,947 on the right, shrunk to fit on
-  one side only; nothing else says so. Idea: fit it once, for both sides, and say what kept it small.
 - **Names in the parts list** (2026-10-05): some inner part names are guesses (side vent, side vane,
   airbox: check them the first time a design paints them; 2026-10-07: the "antenna" is the probe under the nose,
-  the "nose sensor" is hidden inside it, the "sidepod grille" is the backing of the visible "sidepod grille plate"), and the fasteners have none
-  (they wear one tiny strip the list gives to the front wing; TSC_CMYK_EndsInK paints it by hand). The body's own bolt heads are four tiny parts with one paint for
-  the whole car, which no zoned paint reaches: gold dots on every shard of TSC_Kintsugi, unasked.
-  Renaming touches `tool/naming.py` and the viewer.
-- **Pollen grains of 2 mm** (2026-10-09, TSC_Bumblebee): pale specks two texels wide on black fur; the game's colour
-  compression may flatten single grains, a haze should survive.
+  the "nose sensor" is hidden inside it, the "sidepod grille" is the backing of the visible "sidepod grille plate"), and the
+  fasteners have none (they wear one tiny strip the list gives to the front wing; the bolts are step 24's). Renaming
+  touches `tool/naming.py` and the viewer.
 - **Never seen in the game yet** (2026-10-05): the finishes candy, chrome rims, rust, leather,
   metallic flake, and the viewer's matte, satin, gloss and chrome against the game's; the exhaust heat
   and boost glows (TSC_CMYK_EndsInK carries exhaust heat); whether the wheel covers turn; how
   see-through the glass is (tint only, so far); tyre markings (their relief, legibility, the band
   clearing the covers); a glow on the body (s.glow's Skin_I, in Details_I's format: never installed
-  yet); the upload size limit (zips stay under 8.5 MB until one shows up).
+  yet); pollen grains 2 mm wide (TSC_Bumblebee: the colour compression may flatten single grains, a haze should
+  survive); the upload size limit (zips stay under 8.5 MB until one shows up).
 
 ## Found on several cars
 
@@ -121,11 +112,6 @@ Kept by the judge (`tool/ledger.py`): a flaw found in one place on three cars, o
 the design's. The judge says "known, queued" on it and the gate lets it pass; it's taken out when no car shows it any
 more. Fixed, or found not the tool's: delete its item, and only cars judged after count it again.
 
-- **K1: line, on 4 cars** (2026-10-22, last seen; TSC_Ledger1, TSC_Ledger2, TSC_Ledger3, TSC_StrokesInLab; at (±28, 18,
-  119), (±32, 19, 91), (±56, 20, 43), (±61, 20, 38), (±68, 21, 31)): satin #efe6d0 on body (Skirt line): a band 1 cm
-  wide along the model's crisp line 'side skirt crease 3', 1 cm to its left: a step of 0.3 cm sideways, on the right, z
-  +119 (the bonnet); read against the model's line along a rounded edge 'side skirt roll 3' tilted 25 degrees, 0.3 cm
-  from the design's course, mirrored to the right
 - **K4: line, on 2 cars** (2026-10-23, last seen; TSC_Britto, TSC_OutlineTest, let go on 2; at (0, 17, 214), (±3, 16,
   213), (0, 20, 204), (±18, 42, 145), (±24, 29, 72), (±54, 61, 11), (±76, 18, -25), (±45, 17, -108), (±44, 62, -127),
   (±49, 52, -150), (±49, 52, -151), (±29, 64, -158)): gloss #111111 on body shell, nose tip, nose panel, side
