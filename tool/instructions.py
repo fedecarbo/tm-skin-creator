@@ -272,17 +272,20 @@ def chain(head, rest, code):
 
 def hooks(root):
     """The modules the hooks in .claude/settings.json run (as files, `tool/guard.py folder`, or as modules, `-m
-    lab.notes --hook`), and the word each is given."""
+    lab.notes --hook`, in a concept beside the repo after `cd "${CLAUDE_PROJECT_DIR}/../<it>"`), and their words."""
     settings = json.loads((root / ".claude/settings.json").read_text(encoding="utf-8"))
     where = ".claude/settings.json"
-    code = Code(root)
+    codes = {}
     for event in settings.get("hooks", {}).values():
         for entry in event:
             for hook in entry.get("hooks", []):
                 cmd = hook.get("command", "")
+                beside = re.match(r'cd "\$\{CLAUDE_PROJECT_DIR\}/\.\./([\w-]+)"', cmd)
+                folder = root.parent / beside.group(1) if beside else root
+                code = (codes.get(folder) or codes.setdefault(folder, Code(folder))) if folder.is_dir() else None
                 runs = {(path, arg) for path, arg in re.findall(r"\$\{CLAUDE_PROJECT_DIR\}/(\w+/\w+\.py)\\?\"?\s+([\w-]+)", cmd)}
                 runs |= {(f"{pkg}/{mod}.py", arg) for pkg, mod, arg in re.findall(r"-m (\w+)\.(\w+)\s+([\w-]+)", cmd)}
-                for path, arg in sorted(runs):
+                for path, arg in sorted(runs) if code else ():  # a concept not on this computer: its hook does nothing
                     pkg, mod = path.split("/")[0], path.split("/")[1][:-3]
                     found = code.module(mod, pkg) if pkg in code.packages else None
                     if found is None:

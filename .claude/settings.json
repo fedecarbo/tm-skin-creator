@@ -59,6 +59,11 @@
             "type": "command",
             "command": "\"${CLAUDE_PROJECT_DIR}/.venv/bin/python\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" stop 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" stop 2>/dev/null || python3 \"${CLAUDE_PROJECT_DIR}/tool/guard.py\" stop 2>/dev/null || true",
             "timeout": 60
+          },
+          {
+            "type": "command",
+            "command": "cd \"${CLAUDE_PROJECT_DIR}/../tm-skin-lab\" 2>/dev/null || exit 0; \"${CLAUDE_PROJECT_DIR}/.venv/bin/python\" -m lab.notes --stop 2>/dev/null || \"${LOCALAPPDATA}/TrackmaniaSkinChallenge/venv/Scripts/python.exe\" -m lab.notes --stop 2>/dev/null || python3 -m lab.notes --stop 2>/dev/null || true",
+            "timeout": 15
           }
         ]
       }
