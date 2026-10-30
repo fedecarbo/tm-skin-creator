@@ -18,7 +18,7 @@ def haunch():
     front = meshlines.line("body shell edge 1").between(top.start, (84, 26, -23)).reversed()
     over_wheel = meshlines.line("rear flank crease 3").between(-95, -121).reversed()
     sill = meshlines.line("rear flank roll 1", tilt=128).between(-25, -90).reversed()
-    close = course.points([sill.end, front.start])
+    close = meshlines.line("rear flank seam 1").between(sill.end, front.start)  # up the panel's own seam
     return front.then(top).then(over_wheel).then(sill).then(close)
 
 

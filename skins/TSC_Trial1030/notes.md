@@ -59,3 +59,16 @@ five-pointed stars, a few cm across, on the nose tip and nose panel, clear of th
   wheel at night is the night light's highlight on its ribs (relit bright red as a test, it stayed white; blue by
   day), not a light. Passed by the gate despite the two corners of the rear flank's line the judge reads as a step and
   a thin spot (see the gate's line).
+- Art director's second look (Claude, Opus 5.5, 2026-10-30): seven of its eight items closed; the corners let go read
+  clean to the eye. New: the stub closing the rear flank's line at z -25 was a straight joint 1.5 cm beside the
+  panel's seam (an added corner). Closed (the trial painter): the loop now closes up the panel's own seam
+  (`meshlines.line("rear flank seam 1")`), one upright line meeting the skirt's and the sill's in square corners
+  (close looks 1-2). The edit brought back the two corner blocks (a let-go keeps only for the design it was given
+  for); let go again, the same why.
+- Open (Claude): at night, from behind, the front brake light strips inside each front wheel show a red rim round a
+  blue core (Cam 1 alt night, Cam 2 alt night). Relit midnight blue; every stock glow kind on "brake light" and the
+  wheels' brake heat swapped for another colour as a probe: no change. Cause unknown: maybe the viewer's own red,
+  maybe the game's; check in the game at night, and ask the steward if it's a stock colour no call reaches.
+- Ready to show (Claude, Opus 5.5, 2026-10-30), the gate passing it (two corners let go, above). Time per pass: the
+  language and the three takes about 10 min; surfaces 7; details 9; art direction 10; the fix 36; the second look
+  8; the closing fix and the red at night 15. About 95 min from the words to the car.
