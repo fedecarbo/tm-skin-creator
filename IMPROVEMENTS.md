@@ -157,3 +157,9 @@ found not the tool's: delete its item, and only cars judged after count it again
   language, three takes and five agents (surfaces, details, the art director, a fixer, a second look), against the
   brief's minutes from the words to the car; nothing in the paint skill's language.md lets a simple request take a
   shorter road.
+- **K13: a miss the user saw, on 1 car** (2026-10-31, last seen; TSC_Trial1030; at (±68, 21, 31)): note 1 on
+  TSC_Trial1030 (side skirt|left): "This is a wobbly line" (what they saw:
+  /Users/fcarbo/Developer/personal/tm-skin-lab/.notes/TSC_Trial1030-1.jpg); the tool: the side skirt's lower gold line
+  is two of the model's lines joined with .then (side skirt crease 2, then side skirt roll 7) that don't meet: the join
+  is a short diagonal across the edge, a step in the line at z 38; the skill offers .then for any join, and the judge
+  doesn't read a joined course at its join, so the gate passed it
