@@ -135,3 +135,25 @@ found not the tool's: delete its item, and only cars judged after count it again
   /Users/fcarbo/Developer/personal/tm-skin-lab/.notes/TSC_OutlineTest-3.jpg); the tool: course.outline lays the line
   along the nose panel's top edge, where it meets the fin, as a wavy bulge instead of an even band, and draws no line
   along the bottom edge of the fin's white part
+- **K8: a miss the trial painter saw, on 1 car** (2026-10-30, last seen; TSC_Trial1030): The judge fights a line round a
+  panel: a trim over 0.5 cm wide (meshlines.panel with border=, its docstring's own 1.5 too) blocks as short at its
+  inner edge; two panels' trims joined with | block where they meet; a closed course's corners read as steps or thin
+  spots, moving from corner to corner over four rounds, on one side only of a mirrored design (two let go at the gate).
+- **K9: a miss the trial painter saw, on 1 car** (2026-10-30, last seen; TSC_Trial1030): Nothing says how much of a line
+  is seen: the side panels' edges run mostly under the floor, round the tail and under the bonnet, so the gold line
+  round them read from the side as an open J and two brackets, and only the art director saw it (36 minutes to redraw).
+  The line's receipt doesn't say it, the landing sketch draws hidden lines as seen ones, tool.close gives 78 one-line
+  hidden notes with no total per loop and rings them as it rings a block. Step 21's outline is where it goes: a line
+  round the face the eye sees.
+- **K10: a miss the trial painter saw, on 1 car** (2026-10-30, last seen; TSC_Trial1030): No command says which part or
+  glow a colour seen at night comes from: a red rim on the brake-light strips inside the front wheels stayed after the
+  brake lights were relit midnight blue, every stock glow kind there swapped and the wheels' brake heat too; the glow
+  receipts give no area. Left open on the car.
+- **K11: a miss the trial painter saw, on 1 car** (2026-10-30, last seen; TSC_Trial1030): A mark's direction isn't said:
+  s.mark's up= gives no form, nor its default on a slanted face, and the receipt doesn't say which way the mark points,
+  so one of four stars on the nose came out turned against the others.
+- **K12: a miss the trial painter saw, on 1 car** (2026-10-30, last seen; TSC_Trial1030): A short request takes the
+  whole road: three lines of words (a colour, a thin outline, a few stars) took 84 minutes, 109 turns and $24, through a
+  language, three takes and five agents (surfaces, details, the art director, a fixer, a second look), against the
+  brief's minutes from the words to the car; nothing in the paint skill's language.md lets a simple request take a
+  shorter road.

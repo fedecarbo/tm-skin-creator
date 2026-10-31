@@ -14,7 +14,8 @@ try what changed since the last trial.
 
 Then, in the session that ran it: the car shown to the user in the Lab, as any car is; each finding of the report put
 where it prevents the mistake (a docstring, the skill, under WORDS) or kept as the tool's for the steward
-(`ledger.miss(car, "the trial painter", what)`); committed with `Upkeep: trial-painter` as the message's last line
+(`ledger.miss(car, "the trial painter", what, ruler=<the call or tool it's about>)`, so two findings are two items, and
+a later trial's on the same call counts on its item); committed with `Upkeep: trial-painter` as the message's last line
 (tool/doctor.py dates the next trial from it); on the user's look, the car deleted.
 """
 
@@ -41,8 +42,9 @@ def _claude():
 
 
 def numbers(log):
-    """The run's numbers, from its stream-json log."""
-    by, failed, result = Counter(), 0, {}
+    """The run's numbers, from its stream-json log: a result each time the session stopped (a Stop hook sends it on),
+    their minutes and turns added, the cost the last's (it's the session's so far), the report the last's."""
+    by, failed, results = Counter(), 0, []
     for line in log.read_text(encoding="utf-8").splitlines():
         try:
             e = json.loads(line)
@@ -54,11 +56,12 @@ def numbers(log):
                 by[c["name"]] += 1
             failed += e["type"] == "user" and c.get("type") == "tool_result" and bool(c.get("is_error"))
         if e.get("type") == "result":
-            result = e
-    return {"minutes": round(result.get("duration_ms", 0) / 60000, 1), "turns": result.get("num_turns"),
-            "calls": sum(by.values()), "failed": failed, "agents": by["Agent"] + by["Task"],
-            "cost": round(result.get("total_cost_usd") or 0, 2), "by": dict(by.most_common()),
-            "report": result.get("result", "(no report: the session ended without one)")}
+            results.append(e)
+    last = results[-1] if results else {}
+    return {"minutes": round(sum(r.get("duration_ms", 0) for r in results) / 60000, 1),
+            "turns": sum(r.get("num_turns") or 0 for r in results), "calls": sum(by.values()), "failed": failed,
+            "agents": by["Agent"] + by["Task"], "cost": round(last.get("total_cost_usd") or 0, 2),
+            "by": dict(by.most_common()), "report": last.get("result", "(no report: the session ended without one)")}
 
 
 def _line(n, gated):

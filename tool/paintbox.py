@@ -13,10 +13,16 @@
         s.decal("27", "rear flank", colour="black", font="russo", height=20)  # words, laid the same way, each side
         s.decal("NO STEP", "sidepod top", box=True, height=2.6)             # words in a thin box
         s.decal(s.art("tiger"), "left side", width=30)                     # a picture, at a named spot
+        s.scatter(s.art("tiger"), size=6)                     # whole copies sprinkled over the body
+        s.print("bananas", scale=25)                          # a kept tile made a finish: s.paint(..., "bananas")
+        s.relief("seat", "quilted", depth=0.2)                # raised or sunk detail on an inner part
         s.glow("sidepod frame", "electric blue")              # always on
         s.glow("tail corner", kind="night only", painted="purple")  # its purple alone, lit as painted
         s.relight("speed numbers", "lime")                    # the stock glow, recoloured
+        s.no_glow("rear lights")                              # a stock glow off
         s.paint("sidewall", "white rubber")                   # the tyres' sides
+        s.tyre_marks("TY-07", colour="lime")                  # a tyre marking from the library (tool/tyres.py)
+        s.tyre_tread("TR-04")                                 # a tread in place of Nadeo's grooves
         s.glass("smoke", 0.6)                                 # tint the glass
         s.dirt(0.5)                                           # half as dirty as stock on dirt
         under = s.keep()                                      # the paint so far, as a layer...

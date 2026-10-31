@@ -19,7 +19,7 @@ lands in the work folder's `build/` (`tool/paths.py`).
 |---|---|
 | `PY -m tool.skin read <name>` | Before any paint: `skins/<name>/design.py` read against the car in 12 s to a minute, nothing painted for anyone to see. Every call's receipt with its landing (the stretch of the car it lies on, the parts under it, its area, the way it faces) and the sketch `build/<name>_landing.png`, each call's texels on the side and top views, numbered (look at it). Read each landing against the user's words: a stretch at the wrong end, a zone on the wrong parts, a stroke landing nowhere or behind a wheel, a part left in clay; fix and read again until each lands where the words say, then show. |
 | `PY -m tool.skin show <name>` | Paints it with the same receipts, puts it in the viewer's data (a concept's page shows it), saves six views to `build/<name>_views.png`. Read every note it prints and the judge's verdict, which says what BLOCKS (a graphic that doesn't fit the car or sit where its line is; a placement finding names the line it was read against), what it warns of, and the eye's notes (how a graphic sits against the lines the eye sees: the close looks look there; a note names, never forbids). |
-| `PY -m tool.close <name>` | After a show: close looks along every line, over every decal and every dot, square to its face, 20 pixels a cm, under the camera light (nothing left in shadow), both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. About 20 s for a busy car. |
+| `PY -m tool.close <name>` | After a show: close looks along every line, over every decal and every dot, square to its face, 20 pixels a cm, under the camera light (nothing left in shadow), both sides alike → `build/<name>_close_<k>.png` (look at each). Measured too: a line's paint missing where the body shows, a shape chipped, a stretch another part hides, the right side differing from the left's mirror, and against the run before, anything that changed outside the steps the edit changed (`build/<name>_close_changed.png`, before beside after). Its findings join the verdict. |
 | `PY -m tool.snap <name> --cams`, `--body` | The game's chase cameras, by day and at night; the body alone, nine views with the underside, under the camera light. |
 | `PY -m tool.snap <A> [<B> <C>] --picture --titles "…" [--views front rear top] [--close-row <name> 3 4 9]` | The picture for the user, a row per take (and close looks by number), kept with the builds; the concept decides what's shown. |
 | `PY -m tool.gate <name>` | What the gates say of the car now (Before showing). |
@@ -69,7 +69,7 @@ lands in the work folder's `build/` (`tool/paths.py`).
   `s.tyre_tread("TR-..")`.
 - **Shared paint.** Most inner parts share their paint with their twin on the other side, and some
   with other parts. `show` names every part a colour also lands on: read it.
-- **Shapes** (a spot, a badge, a roundel, a star) go on a named panel with `s.mark`: pressed onto its
+- **Shapes** (a spot, a badge, a roundel, a star) go on a part with `s.mark(part, ...)`: pressed onto its
   surface as a sticker is (it follows the panel's curve and wraps a rolled edge; every distance is
   measured along the surface), whole inside its edges, on its own panel (not across one of the
   model's crisp lines) and clear of the game's panels, moved or shrunk until they are. Read its
@@ -105,7 +105,7 @@ lands in the work folder's `build/` (`tool/paths.py`).
   the tilt picking its line), `meshlines.panel("tail corner panel 1")` a zone filling one right up to its lines
   (`border=` a trim); the names are the left side's, `.mirrored()` or `both=True` for both sides, `side="right"`
   for the right alone;
-  `course.outline(parts)` a black outline round parts, every seam and edge (any width);
+  `course.outline(parts)` any outline round parts (any colour and width), every seam and edge;
   `.band(cm, side="seen")` a band of even width on one face beside one, its edge on the line, measured
   along the surface (`.band(cm)` centred, wrapping the edge; `crease=True` stopping at the body's next
   crease); `.offset(cm)` a line beside one, `.extended(start=cm)` one carried on along the surface
@@ -115,7 +115,7 @@ lands in the work folder's `build/` (`tool/paths.py`).
 - **Glows**: `s.glow(part, colour, kind, painted=<a colour>)`: always on, night only, front lights, brake
   lights, brake heat, turbo. Never seen in the game: exhaust heat, boost, a glow on the body (the viewer's only).
 - **The car's own lights take any colour**: `s.relight("speed numbers" | "brake lights" | "rear
-  lights" | "wheel ring", colour)` (`keep_level=True` for a faint one, the wheel ring). Braking turns the rear lights red whatever their colour, and a
+  lights" | "wheel ring", colour)` (`keep_level=True` takes the colour's hue alone, at the stock brightness: a dark colour comes out bright). Braking turns the rear lights red whatever their colour, and a
   tinted rear lens filters that red. `s.glass(colour, strength)` only tints, lights behind it too.
 - **Can't be done** (say so if asked): holographic or colour-shift paint, relief on the body, the
   player's number and name or their colour, the turbo colour, the tyres' mapping.
